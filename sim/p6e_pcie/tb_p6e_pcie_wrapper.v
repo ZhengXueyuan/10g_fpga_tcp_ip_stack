@@ -658,7 +658,8 @@ module tb_p6e_pcie_wrapper;
         //   ② tkeep/tlast 合同 (非末拍 FFFF / 停流 flush 拍 = keep 00FF + tlast=1;
         //      替身侧对**每拍**做合同断言: `str_keep_bad`); ③ **背压 ⇒ 不拉 dma_req ⇒
         //      镜像 FIFO 满 ⇒ 丢字节只记 W70** (TL 裁定的核心性质, 本组最重的一条);
-        //   ④ `dma_en` 门 / `clr` / `MIR_DMA_CNT` 口径 (= 已交付 AXIS 字数); ⑤ H2C 恒吞噬。
+        //   ④ `dma_en` 门 / `clr` (= **窗口边界 ⇒ 丢弃残拍**, D4 板级修正轮后) /
+        //      `MIR_DMA_CNT` 口径 (= **从镜像 aux 口取走的 32 位字数**, 每 grant +2); ⑤ H2C 恒吞噬。
         // ⚠️ 期望值全部**手算锚**: 注入 w ⇒ 逻辑字 == w; 拍 = {w3,w2,w1,w0} (低字在前)。
         // ⚠️ 读 MIR_CTRL 的读回时**必须掩掉 bit1** (clr 是 toggle, 多次写后取值 = 翻转奇偶性)。
         $display("  --- P9-B: C2H AXIS shaper + H2C swallow (P9) ---");
@@ -729,7 +730,7 @@ module tb_p6e_pcie_wrapper;
         chk("P9-B-3c ⭐ 暂存满 ⇒ **不拉 dma_req** (无空间不请求)", {31'd0, u_dut.mir_dma_req}, 32'd0);
         snap_take(ok_r);
         u_dut.u_pcie_xdma.axil_read(32'h138, mi_w70b);     // W70 末值
-        $display("  [INFO] P9-B-3 W70: %08x -> %08x (300 字灌入, 下游停收)", mi_w70a, mi_w70b);
+        $display("  [INFO] P9-B-3 W70: %08x -> %08x (700 字灌入, 下游停收)", mi_w70a, mi_w70b);
         if ((mi_w70b - mi_w70a) > 0) $display("  [PASS] P9-B-3d dW70 > 0 (丢字节仍全部记在 W70; 无新计数器)");
         else begin $display("  [FAIL] P9-B-3d dW70 == 0 (饱和竟无丢字 => 计数或快照路径哑)"); fails = fails + 1; end
         // 恢复: tready=1 ⇒ 剩下的数据按序流出, 逐拍内容 == golden 前缀 (无损坏)
@@ -800,38 +801,57 @@ module tb_p6e_pcie_wrapper;
         u_dut.u_pcie_xdma.axil_read(32'h13C, v);
         chk("P9-B-5f 镜像 FIFO 已抽干 ⇒ level == 0", {16'd0, v[15:0]}, 32'd0);
         chk("P9-B-5g 半拍留在暂存 (en=1/cap_en=1 ⇒ stop=0 ⇒ 不出末拍)", {31'd0, u_dut.u_pcie_xdma.str_n}, 32'd0);
-        // P9-B-5h: ⭐ clr ⇒ **把残拍作为短末拍送出** + 计数归零 (TL 裁定 ②④: 不丢弃残拍)
-        u_dut.u_pcie_xdma.axil_write(32'h144, 32'h2);      // clr (dma_en 回 0)
-        u_dut.u_pcie_xdma.axis_wait_beats(1, 2000);
-        chk("P9-B-5h clr ⇒ 残拍以短末拍送出 (无超时)", {31'd0, u_dut.u_pcie_xdma.str_to}, 32'd0);
-        chk("P9-B-5i clr ⇒ 恰 1 拍末拍", {31'd0, u_dut.u_pcie_xdma.str_n}, 32'd1);
-        chk128("P9-B-5j 末拍内容 == {64'd0, 半个 8 B}", u_dut.u_pcie_xdma.str_data[0],
-               {64'd0, 32'hA5A54321, 32'h5A5A1234});
-        chk("P9-B-5k 末拍 keep == 00FF", {16'd0, u_dut.u_pcie_xdma.str_keep[0]}, 32'h00FF);
-        chk("P9-B-5k2 末拍 tlast == 1", {31'd0, u_dut.u_pcie_xdma.str_last[0]}, 32'd1);
+        // =====================================================================
+        // P9-B-5h ⭐ `clr` = **窗口边界 ⇒ 丢弃残拍** (D4 板级修正轮; 与单元门 G7/G7x 同形)
+        //   旧口径 (clr 把残拍作短末拍送出) 已被板级 0x22 实测推翻 —— 它让 EOP 早关描述符 ⇒
+        //   宿主首块 [8,4096) 全零 + 尾部截断 8,176 B + 第二次 read 超时 10 s
+        //   (件 = _proj_10g/notes/p9_board_0x22_20261011/runs/D4_BOUNDARY.txt) ⇒ 现口径 = 丢弃。
+        // =====================================================================
+        $display("  --- P9-B-5h: clr = window boundary -> DISCARD residue (no beat) ---");
+        u_dut.u_pcie_xdma.axis_mon_clear;                  // 清拍数/末拍数/合同/超时
+        u_dut.u_pcie_xdma.axil_write(32'h144, 32'h2);      // clr (cap_en=0, dma_en=0; 与板级起测同形)
+        repeat (600) @(posedge u_dut.u_pcie_xdma.aclk);    // 600 > 静置窗 (32 拍) ⇒ 若冒拍必被看见
+        chk("P9-B-5h clr drops residue", {31'd0, u_dut.u_pcie_xdma.str_n}, 32'd0);
+        chk("P9-B-5i clr: zero tlast beats", {31'd0, u_dut.u_pcie_xdma.str_last_n}, 32'd0);
+        chk("P9-B-5j clr: no keep viol", {31'd0, u_dut.u_pcie_xdma.str_keep_bad}, 32'd0);
         u_dut.u_pcie_xdma.axil_read(32'h148, v);
         chk("P9-B-5l clr 后计数归零", v, 32'd0);
-        // P9-B-5m: ⭐ 单独验 "clr **本身**在 stop 集合里" —— 写 0xB = cap_en=1 + clr+ + dma_en=1
-        //   (en/cap_en 都**不**变) ⇒ 残拍必须照样以短末拍送出 (TL 裁定 ②: clr 触发 flush)。
-        $display("  --- P9-B-5m: clr alone (en=1, cap_en=1) still flushes the residue ---");
+        // =====================================================================
+        // P9-B-5m ⭐ `clr` **单独触发** (en/cap_en 都保持 1) —— 旧版这里期望"短末拍";
+        //   D4 板级修正轮后 = **丢弃**; 并加**正面判据**: 新窗口头部不得出现 pre-clr 字节
+        //   (G7 同形 ⇒ 残拍若漏进新窗口, 头拍会带陈旧 8 B ⇒ 本组必红)。
+        // =====================================================================
+        $display("  --- P9-B-5m: clr alone -> discard; new window head has NO stale bytes ---");
         u_dut.u_pcie_xdma.axis_mon_clear;
-        u_dut.u_pcie_xdma.axil_write(32'h144, 32'h9);      // cap_en=1 + dma_en=1 (stop=0)
+        u_dut.u_pcie_xdma.axil_write(32'h144, 32'h9);      // cap_en=1 + dma_en=1 (clr 位=0 ⇒ 不翻转)
         repeat (300) @(posedge u_dut.u_pcie_xdma.aclk);
-        mir_word(32'h0BADF00D);
+        mir_word(32'h0BADF00D);                            // 2 个字 = 8 B = 半个拍 (停流前不出)
         mir_word(32'hFEEDFACE);
         repeat (300) @(posedge u_dut.u_pcie_xdma.aclk);
-        chk("P9-B-5m0 半个仍不出 (stop=0)", {31'd0, u_dut.u_pcie_xdma.str_n}, 32'd0);
+        chk("P9-B-5m0 half held (stop=0)", {31'd0, u_dut.u_pcie_xdma.str_n}, 32'd0);
         u_dut.u_pcie_xdma.axil_write(32'h144, 32'hB);      // clr toggle (en/cap_en 保持 1)
-        u_dut.u_pcie_xdma.axis_wait_beats(1, 2000);
-        chk("P9-B-5m1 clr 单触发 ⇒ 短末拍出现 (无超时)", {31'd0, u_dut.u_pcie_xdma.str_to}, 32'd0);
-        chk("P9-B-5m2 恰 1 拍", {31'd0, u_dut.u_pcie_xdma.str_n}, 32'd1);
-        chk128("P9-B-5m3 内容 == {64'd0, 半个}", u_dut.u_pcie_xdma.str_data[0],
-               {64'd0, 32'hFEEDFACE, 32'h0BADF00D});
-        chk("P9-B-5m4 keep == 00FF / tlast 组合合法",
-            {16'd0, u_dut.u_pcie_xdma.str_keep[0]}, 32'h00FF);
-        chk("P9-B-5m5 tlast == 1", {31'd0, u_dut.u_pcie_xdma.str_last[0]}, 32'd1);
+        repeat (600) @(posedge u_dut.u_pcie_xdma.aclk);
+        chk("P9-B-5m1 clr drops residue", {31'd0, u_dut.u_pcie_xdma.str_n}, 32'd0);
+        chk("P9-B-5m2 clr: zero tlast", {31'd0, u_dut.u_pcie_xdma.str_last_n}, 32'd0);
         u_dut.u_pcie_xdma.axil_read(32'h148, v);
-        chk("P9-B-5m6 clr 后计数归零", v, 32'd0);
+        chk("P9-B-5m3 clr 后计数归零", v, 32'd0);
+        // ⭐ 正面判据: 新窗口灌 4 个字 ⇒ 恰 1 个整拍, 内容**逐字节 == 新字**
+        mir_word(32'h11111111);
+        mir_word(32'h22222222);
+        mir_word(32'h33333333);
+        mir_word(32'h44444444);
+        u_dut.u_pcie_xdma.axis_wait_beats(1, 4000);        // 有界等头拍 (清窗外无拍 ⇒ str_to 置位)
+        repeat (300) @(posedge u_dut.u_pcie_xdma.aclk);    // ⚠️ 等**新窗口全部拍落定**再数拍:
+                                                           //   旧口径下残拍会先到 ⇒ 早读会把"2 拍"看成"1 拍"
+        chk("P9-B-5m4 new head (no tmo)", {31'd0, u_dut.u_pcie_xdma.str_to}, 32'd0);
+        chk("P9-B-5m5 new window 1 beat", {31'd0, u_dut.u_pcie_xdma.str_n}, 32'd1);
+        chk128("P9-B-5m6 head == new words", u_dut.u_pcie_xdma.str_data[0],
+               {32'h44444444, 32'h33333333, 32'h22222222, 32'h11111111});
+        chk("P9-B-5m7 head keep == FFFF", {16'd0, u_dut.u_pcie_xdma.str_keep[0]}, 32'hFFFF);
+        chk("P9-B-5m8 head tlast == 0", {31'd0, u_dut.u_pcie_xdma.str_last[0]}, 32'd0);
+        chk("P9-B-5m9 no keep viol", {31'd0, u_dut.u_pcie_xdma.str_keep_bad}, 32'd0);
+        u_dut.u_pcie_xdma.axil_read(32'h148, v);
+        chk("P9-B-5m10 count == 4", v, 32'd4);
         // =====================================================================
         // P9-B-6: H2C = **恒 tready=1 的吞噬口** (端口真接上 = 两根线非 Z)
         // =====================================================================

@@ -7,6 +7,7 @@
 **本报告不下 PASS/FAIL 裁定、不写"时序已解决"、不把"未观测到"写成"不存在"。**
 
 **权威口径**: 本轮的 D4 以 **TL 2026-10-12 板级修正消息**为准（见 §1）；其余 D 项按 `REVIEW.md` 原文。
+**⛔ 续轮 = `FIX_REPORT2.md`**（TL 追加授权: p6e TB 的 clr 判据组改写 + D8 文案 + 突变排练）。
 **门日志 (13 臂)**: 本目录 `logs_d4fix/`（`<arm>.xsim.log` + `<arm>.xvlog.log` + `mut_mut_*_gen.txt`）。
 
 ---
