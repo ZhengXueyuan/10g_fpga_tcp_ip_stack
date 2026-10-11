@@ -1,0 +1,36 @@
+=== STOP_PROBE S5 1791741278.407428337
+--- 停流前: MIR_STATUS / MIR_CTRL / MIR_DMA_CNT (逐字) ---
+Read 32-bit value at address 0x13c (0x7e97e4ac113c): 0x00240000
+Read 32-bit value at address 0x144 (0x73a0f2e97144): 0x00000009
+Read 32-bit value at address 0x148 (0x7fae4b3e4148): 0x00040002
+--- 写 MIR_CTRL = 0x8 (停流; bit1=0 ⇒ 无 clr 脉冲) ---
+Write 32-bits value 0x00000008 to 0x144 (0x0x72a19d386144)
+--- 停流后即刻: MIR_STATUS / MIR_CTRL / MIR_DMA_CNT ---
+Read 32-bit value at address 0x13c (0x7c403b26213c): 0x00200000
+Read 32-bit value at address 0x144 (0x7dfe5ed10144): 0x00000008
+Read 32-bit value at address 0x148 (0x7b8352d7d148): 0x00040002
+--- 读短尾 (= 恰一拍 8 B): dma_from_device -s 8 (stdout+stderr 全留) ---
+/dev/xdma0_c2h_0 ** Average BW = 8, 0.071014
+TAIL_RC=0 ELAPSED=0
+--- tail 文件 ---
+-rw-r--r-- 1 root root 8 Oct 12 01:54 ./tail_S5.bin
+ 9a f0 44 ec c7 c5 10 96
+TAIL_EXPECT exp=9af044ecc7c51096 got=9af044ecc7c51096
+TAIL_MATCH yes
+--- 读后: MIR_STATUS / MIR_DMA_CNT (level 应 0) ---
+Read 32-bit value at address 0x13c (0x7e4fe839913c): 0x00200000
+Read 32-bit value at address 0x148 (0x73c0076cf148): 0x00040002
+--- dmesg 尾部 (找 underflow / timeout / xdma 报错) ---
+[188005.511307] xdma:cdev_xvc_init: xcdev 0x00000000d10c2a95, bar 0, offset 0x40000.
+[188044.960240] xdma:xdma_xfer_submit: xfer 0x00000000c74b74d7,456704, s 0x1 timed out, ep 0x6f800.
+[188044.960249] xdma:engine_reg_dump: 0-C2H0-ST: ioread32(0x00000000f6f14ba5) = 0x1fc18006 (id).
+[188044.960253] xdma:engine_reg_dump: 0-C2H0-ST: ioread32(0x000000000e3d68a0) = 0x00000001 (status).
+[188044.960256] xdma:engine_reg_dump: 0-C2H0-ST: ioread32(0x00000000c7e640b7) = 0x00f83e1f (control)
+[188044.960259] xdma:engine_reg_dump: 0-C2H0-ST: ioread32(0x000000009be90880) = 0x255a4000 (first_desc_lo)
+[188044.960262] xdma:engine_reg_dump: 0-C2H0-ST: ioread32(0x00000000c0379718) = 0x00000002 (first_desc_hi)
+[188044.960265] xdma:engine_reg_dump: 0-C2H0-ST: ioread32(0x0000000017cf70b4) = 0x0000003f (first_desc_adjacent).
+[188044.960268] xdma:engine_reg_dump: 0-C2H0-ST: ioread32(0x000000003426d249) = 0x0000006e (completed_desc_count).
+[188044.960271] xdma:engine_reg_dump: 0-C2H0-ST: ioread32(0x00000000b60e2c75) = 0x00f83e1e (interrupt_enable_mask)
+[188044.960275] xdma:engine_status_dump: SG engine 0-C2H0-ST status: 0x00000001: BUSY
+[188044.960276] xdma:transfer_abort: abort transfer 0x00000000c74b74d7, desc 112, engine desc queued 0.
+=== STOP_PROBE_END S5 1791741279.439464489

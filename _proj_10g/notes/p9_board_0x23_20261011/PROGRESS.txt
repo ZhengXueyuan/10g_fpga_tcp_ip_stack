@@ -1,0 +1,38 @@
+# P9 最终板级 A/B 轮 (位流 0x23 / AXIS + clr 停流新口径) —— 进度台账
+# 轮次: 2026-10-12 凌晨 (接构建轮 p9_build_0x23)   出口: REPORT.md (已落盘)
+# 边界: 只 JTAG 烧归档件 / 绝不写 QSPI / 未改 rtl,tb,board,工具源码 / /tmp/p7b_biz 与历史目录只读
+
+[01:45] 勘查: 0x22 轮原件 (burn/run_arm/final_state/D4_BOUNDARY/REPORT) 逐件读; RTL 语义核对
+        (axis_c2h_stream.v 新旧两版 diff: clr=丢弃 / stop 不含 clr / QUIET_N=32 / mv_last 整拍恒 0);
+        MIR_CTRL 写语义核对 (axi_regs.v: bit1=写 1 才翻转 ⇒ 每次 arm 恰 1 个 clr 脉冲)
+[01:47] 建本轮目录 + step0 自检: 位流 sha256 066a3923…3126 双核 OK; 对端连通; 无残留进程;
+        板前态 = 0x22 / 0x08=0x2 / CARRIER=0 / ver=4; dmesg 已有 ST 引擎名记录 (未再诱导超时)
+[01:48] 部署 /tmp/p9_board_0x23/ (6 源件 put + 2 工具现编): selftest T1–T14 全 OK RC=0;
+        mir_dump md5 5ea97067… = 工具报告记录值; /tmp/p7b_biz 四件逐字未变
+[01:49] 烧 0x23 (TCPREG_BIT=burn/wrapper_p4_0x23.bit): 五判据 HIGH+DONE+路径+新鲜+无ABORT ⇒ BURN_OK
+[01:50] 设备级 remove+rescan 一次成功 (LnkSta x4, 未触发根端口升级); 身份五判据全中
+        (0x04=0x23 / 71 字 NFF=0 / 0x14C=ffffffff / x4 / 2 BARs) + ver=4 + 烧后清零全 0   [P1 完成]
+[01:51] S=P2A (paylen1472/K=1MiB/OFF=0): rc=0 fm=-1; 式A=B=0; ΔW70=0; level=0/premise=1;
+        reads=1 partial=0; 离线复算 1,048,576B 0 失配 + 车道 16/16 恒等
+[01:52] P2B 首跑 (paylen1470/K=1,505,280): ✗ read#2 (456,704B) 10s 超时; pc=1,048,576 / taken=1,501,960 /
+        ΔW70=3314 / 式A=453384 判红 / 式B=6; 已落盘 1MiB 0 失配无洞; dmesg = xdma 超时+abort
+[01:53] P2B2 重跑 (同配置): 逐项全绿 (pc=taken=1,505,280 / 二式=0 / ΔW70=0 / reads=2 partial=0 / secs=2.639
+        = 0x22 轮 S2 逐字) ⇒ P2B 首跑 = 宿主空档类 (工具自带 NOTE 已登记该危害); 候选机理未分离
+[01:53] S3' (paylen1472/k-bytes=1,048,584): 式A=8 (残拍见证) 式B=0 全绿 ⇒ 打包器留半拍
+[01:54] S4' (起测探针, OFF=auto=5,107,720): ⭐ 全绿 —— pc=taken=1,048,576 / 式A=B=0 / ΔW70=0 /
+        reads=1 partial=0 无超时; 离线: 头8B = 新窗口首字节 (≠残拍) / [8,4096) 非全零 /
+        最长零游程 2B / 全流逐字节 = 图案[5,107,720..) 0 失配                 [P3-① 完成]
+[01:54] S5' (再留残拍): 式A=8 全绿
+[01:54] 停流探针 (MIR_CTRL=0x8 ⇒ dma_from_device -s 8): ⭐ 8/8 RC=0 ELAPSED=0; tail 逐字节 =
+        图案[7,204,872..7,204,880)^0xA5; 闭式 K+8=K_src-ΔW70; 读后 level=0; dmesg 无新行  [P3-② 完成]
+[01:55] 复算件 d4_boundary_23.py (含与上轮 D4_BOUNDARY.txt 并列表) 落盘
+[01:56] P4: 烧 0x21 (fbb6fca8…892c 双核) ⇒ 身份 0x21/ver=3; MM 臂 --dma 同参数一条全绿
+        (bytes=1,048,576 words=262,144 clobber=0 short=0 fm=-1; 离线 0 失配)            [P4 完成]
+[01:58] 烧回 0x23: BURN_OK + rescan x4 + 身份复中 (0x23/ver=4) + 烧后清零全 0
+[01:59] 收尾 final_state: 板上留 0x23 + 0x08=0x2 (CARRIER=0, NIC 计数冻结) + MIR_CTRL=0 +
+        无残留进程; /tmp/p7b_biz 与历史目录复读未动
+[02:02] REPORT.md / PROGRESS.txt / SHA256SUMS.txt 落盘
+
+未定项 (详见 REPORT §6): P2B 首跑丢字节窗口/机理未分离 · "无第二拍"无独立计数证据 ·
+clr 丢弃动作本身无仪器 · CONF §7-⑥ 只有 8B 正例 · mid-capture clr/反复停流/0x22 重跑对照未做 ·
+0x21 臂 n=1 · 构建读数未复核

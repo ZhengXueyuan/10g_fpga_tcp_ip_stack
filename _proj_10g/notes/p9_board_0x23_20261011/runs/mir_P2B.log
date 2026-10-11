@@ -1,0 +1,24 @@
+MIR_ID magic=50360001 (exp 50360001) bid=00000023 (exp 00000023)
+MIR_SRC src_sel=0 readback=0
+MIR_STATUS ver=4 src_sel=0 cap=0 any_drop=0 unf=0 level=0
+MIR_VER ver=4 path=stream expect=4 unimpl=0x14C
+MIR_UNIMPL addr=14c val=ffffffff (exp ffffffff)
+MIR_STREAM_BUF bytes=134217728 mb=128 prefault=1 aligned=4096
+MIR_STREAM_CFG dev=/dev/xdma0_c2h_0 bytes=1505280 chunk=1048576 resid_max_shaper=32 resid_max_mirror=24 k_bytes=0 settle=1.00 sample_ms=50.0 arm=1 src=0
+MIR_STREAM_ALIGN want_mod_64=0 chunk_mod_64=0 (PG195: 描述符长度须 64 B 倍数)
+MIR_STREAM_WATCHDOG secs=30.0 (0=off; SIGALRM 打断阻塞 read)
+FAIL: stream read 出错 (n=456704): Connection timed out
+MIR_STREAM_DONE pc=1048576 reads=1 partial=0 nonmul64=0 short=1 ended_early=0 read_error=1 secs=12.880 rate_Bps=81414
+MIR_STREAM_ACCT pc=1048576 taken_bytes=1501960 dW70=3314 w70a=0 w70b=3314 words0=0 words1=375490 dwords=375490 K=1505280
+MIR_STREAM_QUIESCE level_end=0 quiesced=1 premise_level0=1 waited_ms=0.0 settle_s=1.00 strict=1 (前提: FIFO 尾部已排空; 打包器残留由 FPGA 侧停流 flush 清)
+MIR_STREAM_IDA 式A(成形器) taken_bytes - pc == shaper_resid -> 453384  band=[0,32] closed_a=0
+MIR_STREAM_IDB 式B(镜像/K) K - taken_bytes - dW70 == mirror_resid -> 6  band=[0,24] closed_b=1 (K 来源=--bytes; --resid-max 旧名未用)
+MIR_STREAM_WRAP words0=0 words1=375490 wrap_seen=0 dword_max_step=262152 (回卷余量: 单步 <2^32)
+MIR_STREAM_SAMPLE i=0 t=0.000 pc=0 drop=0 words=0 dword_acc=0
+MIR_STREAM_SAMPLE i=1 t=2.433 pc=1048576 drop=3314 words=262152 dword_acc=262152
+MIR_STREAM_SAMPLE i=2 t=12.880 pc=1048576 drop=3314 words=375490 dword_acc=375490
+MIR_STREAM_GAP first=0 last=453384 max=453384 nondecreasing=1 host_miss_bytes=453384 host_miss_pct=30.1862 (= (taken-pc)/taken; 宿主跟不上的比例)
+MIR_STREAM_NOTE 采样本身在流上=自造空档 (3 点); 首版板内不加缓冲 ⇒ 宿主空档直接变丢字节
+MIR_VERIFY rc=0 first_mismatch=-1 of pc=1048576 (want=1505280; 不足量看式B)
+FAIL: stream 真读错 (非早停/非看门狗) —— 见上一条
+FAIL: 式 A (成形器) 不成立: taken_bytes(1501960) - pc(1048576) = 453384 ∉ [0,32] (成形器/在飞残余越界)

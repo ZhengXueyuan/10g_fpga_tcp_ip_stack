@@ -1,0 +1,24 @@
+=== ① LFSR 自检 (p7b_pattern.h 的两条向量) ===
+SELFTEST off0_15    7f0b02e536a14ed61ab049b856add63f OK
+SELFTEST off1460_67 0300422d9b47cac0 OK
+=== ② 对账 ===
+file=runs/mir_P2B2.bin bytes=1505280 对账长度=1505280 pat_off=2553856 xor=0xA5
+--- 恒等假设 (tdata[7:0] = 宿主 byte 0) ---
+IDENTITY        first_mismatch=-1 mism_bytes=0 of 1505280 (全等)
+--- 三个候选失配形态 (同一份数据, 换重排假设) ---
+HYP (a) rev16   first_mismatch=0 mism_bytes=1499448 of 1505280 (99.61%)
+HYP (b) swap8   first_mismatch=0 mism_bytes=1499368 of 1505280 (99.61%)
+HYP (c) 4B字序  first_mismatch=0 mism_bytes=1499438 of 1505280 (99.61%)
+HYP (c') 4B反序 first_mismatch=0 mism_bytes=1499404 of 1505280 (99.61%)
+HYP     8B反序  first_mismatch=0 mism_bytes=1499826 of 1505280 (99.64%)
+HYP     拍内rot4 first_mismatch=0 mism_bytes=1499295 of 1505280 (99.60%)
+--- ⭐ 车道发现 (无先验: 每个内存车道 m 找唯一全中的图案通道 q) ---
+LANE_DISCOVERY beats=512 (起拍 1024) 每车道唯一一致映射 m->q: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+LANE_DISCOVERY 歧义/不满分车道: 无 (16/16 唯一且 100% 命中)
+LANE_DISCOVERY 形态标签: 恒等
+--- 十六进制 dump (偏移 0; 抓取 / 期望(图案^A5) / 逐字节异或) ---
+GOT  [0] 49 f7 a9 10 39 fb 12 62 05 13 be 03 27 8e b9 3c 2f c5 fb 26 d3 ce c6 54 a7 8e 60 42 0a 9f 10 1c
+EXP  [0] 49 f7 a9 10 39 fb 12 62 05 13 be 03 27 8e b9 3c 2f c5 fb 26 d3 ce c6 54 a7 8e 60 42 0a 9f 10 1c
+XOR  [0] 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+--- 全流逐字节统计 ---
+ALL_BYTES mism=0 / 1505280   (逐字节全等)

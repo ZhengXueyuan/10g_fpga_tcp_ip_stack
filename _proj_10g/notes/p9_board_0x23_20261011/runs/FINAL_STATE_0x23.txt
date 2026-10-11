@@ -1,0 +1,66 @@
+=== FINAL_STATE_BEGIN 1791741670.383748700
+--- 停流前: NIC 收速率 (2 s 窗) + carrier ---
+     port_rx_bytes: 25424577469156
+     port_rx_packets: 16809056107
+-- 2s later --
+     port_rx_bytes: 25424577469502
+     port_rx_packets: 16809056108
+CARRIER=1
+--- 写 0x08 = 0x2 (受控停流) ---
+Write 32-bits value 0x00000002 to 0x8 (0x0x7ba511082008)
+--- 写 MIR_CTRL = 0 (采集口回冻结默认态; bit1=0 ⇒ 无 clr 脉冲) ---
+Write 32-bits value 0x00000000 to 0x144 (0x0x7245cbb3b144)
+--- 停流后: NIC 收速率 (2 s 窗) + carrier + link ---
+netlink error: Operation not permitted
+     port_rx_bytes: 25424577469502
+     port_rx_packets: 16809056108
+-- 2s later --
+     port_rx_bytes: 25424577469502
+     port_rx_packets: 16809056108
+CARRIER=0
+LINK=Link detected: no
+--- 最终态寄存器 ---
+MAGIC_0x00=Read 32-bit value at address 0x0 (0x73d67f5ed000): 0x50360001
+BID_0x04=Read 32-bit value at address 0x4 (0x7ec398118004): 0x00000023
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x7a639c753008): 0x00000002
+MIR_STATUS_0x13C=Read 32-bit value at address 0x13c (0x7d5c3362e13c): 0x00200000
+MIR_CTRL_0x144=Read 32-bit value at address 0x144 (0x762c36c0e144): 0x00000000
+MIR_DMA_CNT_0x148=Read 32-bit value at address 0x148 (0x794023424148): 0x00000000
+UNIMPL_0x14C=Read 32-bit value at address 0x14c (0x79b95aefb14c): 0xffffffff
+--- 最终态快照 (触发式; W5/W11/W13/W70) ---
+SNAP_BEGIN final gen=2
+W5   0x34   gmii_free_FE           0x897713ed
+W11  0x4C   udpapp_rx_bytes        0x00000000
+W13  0x54   udpapp_mismatch        0x00000000
+W70  0x138  mir_drop_bytes         0x00000000
+SNAP_END final nff=0
+--- 残留进程 (对端) ---
+PROC_SCAN_DONE
+--- /tmp/p7b_biz 复读 (全程未动; 期望 = 开工时 md5: a3faafd3…/ba2faf79…/b2f2e962…/b0322279…) ---
+a3faafd37ed2e21e0acd3cc925e9c98c  /tmp/p7b_biz/p7b_udp_src
+ba2faf79f409302d1e542450db402975  /tmp/p7b_biz/p7b_snap.sh
+b2f2e9627bac53bf3b4ab2b565afe872  /tmp/p7b_biz/p7b_pattern.h
+b03222792d20443138515ba2804b0d87  /tmp/p7b_biz/p7b_affinity.h
+--- 历史目录只读核对 (未动) ---
+25af63df72993195469761d167005533  /tmp/p8_board_0x21/p7b_mir_dump
+e0d4da5834cb95d67afb0cc523d1f92f  /tmp/p8_board_0x21/p7b_udp_src
+5ea97067cd90f93c8c47d1f272b04667  /tmp/p9_board_0x22/p7b_mir_dump
+e0d4da5834cb95d67afb0cc523d1f92f  /tmp/p9_board_0x22/p7b_udp_src
+--- 对端改动台账 (全部可回退) ---
+1) 新增目录 /tmp/p9_board_0x23/ (本轮部署+现编+抓样+日志+tail_S5.bin); 回退 = rm -rf /tmp/p9_board_0x23
+2) 设备级 remove+rescan ×3 (0x23 首烧 / 0x21 对照臂 / 0x23 烧回); 状态 = 生效中
+3) 本轮新增 /tmp/p9_board_0x23/{mir_*.bin,mir_*.log,src_*.log,tail_S5.bin,drain?}; 随 1) 一起回退
+4) sysctl/qdisc/coalesce/nmcli 未动: qdisc mq 0: root 
+qdisc fq_codel 0: parent :4 limit 10240p flows 1024 quantum 1514 target 5ms interval 100ms memory_limit 32Mb ecn drop_batch 64 
+Adaptive RX: off  TX: n/a
+rx-usecs:	0
+5) 网络面:     inet 192.168.100.100/32 scope global enp1s0f1np1
+10 (unmanaged)
+--- dmesg 尾部 (本轮是否有新报错; 上一条已知 = P2B 首跑的 read#2 超时) ---
+[188572.650835] xdma:identify_bars: 2 BARs: config 1, user 0, bypass -1.
+[188572.650962] xdma:pci_keep_intx_enabled: 0000:02:00.0: clear INTX_DISABLE, 0x406 -> 0x6.
+[188572.650981] xdma:probe_one: 0000:02:00.0 xdma0, pdev 0x0000000006b9a25b, xdev 0x000000006291ed83, 0x0000000049b40894, usr 16, ch 1,1.
+[188572.651998] xdma:cdev_xvc_init: xcdev 0x00000000d10c2a95, bar 0, offset 0x40000.
+[188602.787182] sfc 0000:01:00.1 enp1s0f1np1: link down
+[188602.906056] sfc 0000:01:00.1 enp1s0f1np1: link down
+=== FINAL_STATE_END 1791741689.484842700

@@ -1,0 +1,64 @@
+=== STEP0_BEGIN 1791740718.978531400 Mon Oct 12 01:45:18     2026
+--- ① 本机: 位流 + 工具 sha256 双核 ---
+066a3923351b8f539a986b88d96f1093a686da57f95938e0c8837b13d30a3126 */d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_build_0x23/wrapper_p4.bit
+SHA_WANT want=066a3923351b8f539a986b88d96f1093a686da57f95938e0c8837b13d30a3126
+SHA_OK 位流 == 派单值
+f5e8d486ff3816b3fcb016762a86175058190eeb3af8b3620eeffee556ac8eb1 */d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_mir_dump.cpp
+ddfc0ece4def28b3bbf95a0dac17075fc3f19ecc38a441f5a9c69fb71cf863ff */d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_snap.sh
+1678ec59fdc95ab7e7887da37b51d3de759660e02e85a9fed0111682297b4a6c */d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_udp_src.cpp
+e81b0f97b74aeadc8a9494826e11f0c8072613765a604d12783ae689ae4b6ace */d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_pattern.h
+ee91175a184450c8e30aaedb0713c3744869ea73bb043f173eb6a9a6aaafae38 */d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_affinity.h
+--- ② 对端: 连通 + /tmp 清单 + 残留进程 + /tmp/p7b_biz 指纹(只读) ---
+7.0.0-38-generic
+--- /tmp 清单 ---
+/tmp/p7b_biz
+/tmp/p8_board
+/tmp/p8_board_0x20
+/tmp/p8_board_0x21
+/tmp/p9_axis_tool
+/tmp/p9_board_0x22
+/tmp/p9_sel_a.txt
+/tmp/p9_sel_b.txt
+--- 残留进程 ---
+PROC_SCAN_DONE
+--- /tmp/p7b_biz 指纹 (只读; 本轮一字不动) ---
+a3faafd37ed2e21e0acd3cc925e9c98c  p7b_udp_src
+ba2faf79f409302d1e542450db402975  p7b_snap.sh
+b2f2e9627bac53bf3b4ab2b565afe872  p7b_pattern.h
+b03222792d20443138515ba2804b0d87  p7b_affinity.h
+a073a3b48778e20c48bc2f196465f30e  -
+--- 历史目录只读核对 ---
+25af63df72993195469761d167005533  /tmp/p8_board_0x21/p7b_mir_dump
+e0d4da5834cb95d67afb0cc523d1f92f  /tmp/p8_board_0x21/p7b_udp_src
+5ea97067cd90f93c8c47d1f272b04667  /tmp/p9_board_0x22/p7b_mir_dump
+e0d4da5834cb95d67afb0cc523d1f92f  /tmp/p9_board_0x22/p7b_udp_src
+--- ③ 板: 现态寄存器 (期望 0x22 / 0x08=0x2 / ver=4) ---
+user 0x00=Read 32-bit value at address 0x0 (0x74be1649e000): 0x50360001
+user 0x04=Read 32-bit value at address 0x4 (0x7d52082ee004): 0x00000022
+user 0x08=Read 32-bit value at address 0x8 (0x7828619e4008): 0x00000002
+user 0x14C=Read 32-bit value at address 0x14c (0x7cd580b2d14c): 0xffffffff
+user 0x144=Read 32-bit value at address 0x144 (0x754424037144): 0x00000002
+user 0x13C=Read 32-bit value at address 0x13c (0x7081fe06f13c): 0x00200000
+user 0x148=Read 32-bit value at address 0x148 (0x785681657148): 0x00040000
+ctrl 0x0000=Read 32-bit value at address 0x0 (0x76ca27ee4000): 0x1fc08006
+ctrl 0x1000=Read 32-bit value at address 0x1000 (0x7015b9c76000): 0x1fc18006
+ctrl 0x004C=Read 32-bit value at address 0x4c (0x78fd91f6904c): 0x00010140
+ctrl 0x104C=Read 32-bit value at address 0x104c (0x72d10e45b04c): 0x00010140
+--- dmesg (读已有记录: ST 引擎名 / identify_bars; ⛔ 不诱导超时) ---
+[179530.416879] xdma:engine_reg_dump: 0-C2H0-ST: ioread32(0x000000000dd3db98) = 0x255a8e20 (first_desc_lo)
+[179530.416882] xdma:engine_reg_dump: 0-C2H0-ST: ioread32(0x0000000041c11402) = 0x00000002 (first_desc_hi)
+[179530.416885] xdma:engine_reg_dump: 0-C2H0-ST: ioread32(0x00000000bd82a1e4) = 0x00000000 (first_desc_adjacent).
+[179530.416888] xdma:engine_reg_dump: 0-C2H0-ST: ioread32(0x00000000e8aac8e0) = 0x00000000 (completed_desc_count).
+[179530.416891] xdma:engine_reg_dump: 0-C2H0-ST: ioread32(0x000000003a259f9d) = 0x00f83e1e (interrupt_enable_mask)
+[179530.416894] xdma:engine_status_dump: SG engine 0-C2H0-ST status: 0x00000001: BUSY
+--- 对端网络面 (每次测量前现取) ---
+    inet 192.168.100.100/32 scope global enp1s0f1np1
+10 (unmanaged)
+	Speed: 10000Mb/s
+	Link detected: no
+CARRIER=0
+192.168.100.2 dev enp1s0f1np1 src 192.168.100.100 uid 1000 
+    cache 
+--- 驱动源码: 'underflow' 字串 (判尾拍读法的依据) ---
+GREP_DONE
+=== STEP0_END 1791740725.184185300
