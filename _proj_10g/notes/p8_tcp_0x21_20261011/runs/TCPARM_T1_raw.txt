@@ -1,0 +1,57 @@
+=== TCPARM T1 K=262144 PACE=1500000 OFF=0 PORT=8080 SECS=40 1791718380.882332648
+--- 起测前快照 (W53 app_rx_bytes / W54 app_mismatch / W70 mir_drop / W11 W13 UDP / W5 W43 W20 背景) ---
+SNAP_BEGIN T1_pre gen=27
+W53  0xF4   app_rx_bytes           0x00000000
+W54  0xF8   app_mismatch           0x00000000
+W70  0x138  mir_drop_bytes         0x00000000
+W11  0x4C   udpapp_rx_bytes        0x005df000
+W13  0x54   udpapp_mismatch        0x00000000
+W5   0x34   gmii_free_FE           0xdc9047a1
+W43  0xCC   mtx_stat_tx_words      0xdc7fd7d3
+W20  0x70   mac_tx_frames          0x1dbd5135
+SNAP_END T1_pre nff=0
+--- 起 mir_dump (--dma --src tcp --pat-off 0) ---
+--- 起 TCP 发端 (p7b_tcp_src --port 8080 --bytes 262144 --pace-bps 1500000 --no-verify-down) ---
+SRC_RC=0
+TOOL_RC=2
+--- mir_dump 日志 (逐字) ---
+FATAL: 计数器跳变 4892 字 > 环容量 4096 (clr 换代? 或已落后 > 1 环 = 该段数据已被覆盖)
+MIR_ID magic=50360001 (exp 50360001) bid=00000021 (exp 00000021)
+MIR_SRC src_sel=1 readback=1
+MIR_STATUS ver=3 src_sel=1 cap=0 any_drop=0 unf=0 level=0
+MIR_UNIMPL addr=14c val=ffffffff (exp ffffffff)
+--- ss 采样 (逐字) ---
+--- SS_SAMPLE_1 1791718383.017354566
+State Recv-Q Send-Q   Local Address:Port   Peer Address:PortProcess
+ESTAB 0      215424 192.168.100.100:35018 192.168.100.2:8080 users:(("p7b_tcp_src",pid=286824,fd=3))
+	 cubic rto:201 rtt:0.088/0.015 ato:40 mss:1460 pmtu:1500 rcvmss:1460 advmss:1460 cwnd:42 bytes_sent:92952 bytes_acked:46721 bytes_received:176660 segs_out:140 segs_in:189 data_segs_out:64 data_segs_in:156 send 5574545455bps lastsnd:3 lastrcv:3 lastack:2 pacing_rate 12000000bps/12000000bps delivery_rate 17925888bps delivered:33 busy:21ms unacked:32 rcv_rtt:0.055 rcv_space:59860 rcv_ssthresh:124278 notsent:169192 minrtt:0.012 snd_wnd:49152
+--- SS_SAMPLE_2 1791718383.296788697
+State Recv-Q Send-Q Local Address:Port Peer Address:PortProcess
+--- SS_SAMPLE_3 1791718383.574747032
+State Recv-Q Send-Q Local Address:Port Peer Address:PortProcess
+--- SS_SAMPLE_4 1791718383.848462412
+State Recv-Q Send-Q Local Address:Port Peer Address:PortProcess
+--- SS_SAMPLE_5 1791718384.122368727
+State Recv-Q Send-Q Local Address:Port Peer Address:PortProcess
+--- 发端日志 (PIN_CPU 见证 + 关键行) ---
+PIN_RULE=avoid-nic PIN_DEGRADED=none PIN_CPU=5 PIN_CORES_ONLINE=0-7 PIN_NIC_IFACE=enp1s0f0np0,enp1s0f1np1 PIN_NIC_CPUS=0,1,2,3,4,5 PIN_NIC_EXCLUDED=none PIN_CORE_LOAD=184943769 PIN_ALLOWED_MASK=20 PIN_GETCPU_START=5 PIN_FREQ_START_KHZ=3699805 PIN_GOV=schedutil PIN_NIC_IRQLINES=12 PIN_NIC_IFACE_SRC=auto PIN_TUPLE_ORDER=own_sib_t PIN_PAIR_RULE=n/a PIN_PAIR_DEGRADED=n/a PIN_CPU_IO=n/a PIN_CPU_WORK=n/a PIN_PC_IO=n/a PIN_PC_WORK=n/a PIN_PAIR_EXCL=n/a PIN_PAIR_REQ=n/a
+SRC_CONNECTED 192.168.100.2:8080
+SRC_DRAINED tx_bytes=262144
+SRC_SUM tx_bytes=262144 rx_bytes=433620 dur_s=0.165 tx_Mbps=12.728 rx_Mbps=21.054 eof_seen=0 eof_at_s=-165311.970 send_err=0 rx_first_mismatch=-1 rx_mism_bytes=0 poll_tmo=0 poll_err=0
+SRC_DONE
+--- 快照 (after) ---
+SNAP_BEGIN T1_post gen=29
+W53  0xF4   app_rx_bytes           0x00040000
+W54  0xF8   app_mismatch           0x00000000
+W70  0x138  mir_drop_bytes         0x00000000
+W11  0x4C   udpapp_rx_bytes        0x005df000
+W13  0x54   udpapp_mismatch        0x00000000
+W5   0x34   gmii_free_FE           0xfcfafd43
+W43  0xCC   mtx_stat_tx_words      0xfcea78e3
+W20  0x70   mac_tx_frames          0x1de85163
+SNAP_END T1_post nff=0
+--- 文件 ---
+ls: cannot access 'mir_T1.bin': No such file or directory
+-rw-r--r-- 1 root root  763 Oct 11 19:33 src_T1.log
+-rw-r--r-- 1 root root 1053 Oct 11 19:33 ss_T1.log
+=== TCPARM_END T1 1791718384.452553986

@@ -1,0 +1,58 @@
+=== TCPARM T6 K=16384 PACE=1500000 OFF=0 PORT=8080 SECS=40 1791718610.816259268
+--- 起测前快照 (W53 app_rx_bytes / W54 app_mismatch / W70 mir_drop / W11 W13 UDP / W5 W43 W20 背景) ---
+SNAP_BEGIN T6_pre gen=48
+W53  0xF4   app_rx_bytes           0x001c4000
+W54  0xF8   app_mismatch           0x00000000
+W70  0x138  mir_drop_bytes         0x00000000
+W11  0x4C   udpapp_rx_bytes        0x005df000
+W13  0x54   udpapp_mismatch        0x00000000
+W5   0x34   gmii_free_FE           0x39863d6f
+W43  0xCC   mtx_stat_tx_words      0x39708ab9
+W20  0x70   mac_tx_frames          0x28d521e2
+SNAP_END T6_pre nff=0
+--- 起 mir_dump (--dma --src tcp --pat-off 0) ---
+--- 起 TCP 发端 (p7b_tcp_src --port 8080 --bytes 16384 --pace-bps 1500000 --no-verify-down) ---
+SRC_RC=0
+TOOL_RC=0
+--- mir_dump 日志 (逐字) ---
+MIR_ID magic=50360001 (exp 50360001) bid=00000021 (exp 00000021)
+MIR_SRC src_sel=1 readback=1
+MIR_STATUS ver=3 src_sel=1 cap=0 any_drop=0 unf=0 level=0
+MIR_UNIMPL addr=14c val=ffffffff (exp ffffffff)
+MIR_DMA_DONE bytes=16384 words=4096 secs=2.011 rate_Bps=8149 out=./mir_T6.bin
+MIR_DMA_ACCT cnt0=0 cnt1=4096 lag_max=3650 clobber=0 short_reads=0 (want: clobber==0 & short==0 & cnt1-cnt0==words[mod 2^32])
+MIR_DMA_NOTE ring=16KB idempotent-read; access=lseek+read on /dev/xdma0_c2h_0 (pread 未现核, 见文件头)
+MIR_VERIFY rc=0 first_mismatch=-1 of 16384 (pat_off_eff=0)
+--- ss 采样 (逐字) ---
+--- SS_SAMPLE_1 1791718612.922301589
+State Recv-Q Send-Q Local Address:Port Peer Address:PortProcess
+--- SS_SAMPLE_2 1791718613.196693650
+State Recv-Q Send-Q Local Address:Port Peer Address:PortProcess
+--- SS_SAMPLE_3 1791718613.474266323
+State Recv-Q Send-Q Local Address:Port Peer Address:PortProcess
+--- SS_SAMPLE_4 1791718613.752316268
+State Recv-Q Send-Q Local Address:Port Peer Address:PortProcess
+--- SS_SAMPLE_5 1791718614.025656165
+State Recv-Q Send-Q Local Address:Port Peer Address:PortProcess
+--- 发端日志 (PIN_CPU 见证 + 关键行) ---
+PIN_RULE=avoid-nic PIN_DEGRADED=none PIN_CPU=5 PIN_CORES_ONLINE=0-7 PIN_NIC_IFACE=enp1s0f0np0,enp1s0f1np1 PIN_NIC_CPUS=0,1,2,3,4,5 PIN_NIC_EXCLUDED=none PIN_CORE_LOAD=184944109 PIN_ALLOWED_MASK=20 PIN_GETCPU_START=5 PIN_FREQ_START_KHZ=3786134 PIN_GOV=schedutil PIN_NIC_IRQLINES=12 PIN_NIC_IFACE_SRC=auto PIN_TUPLE_ORDER=own_sib_t PIN_PAIR_RULE=n/a PIN_PAIR_DEGRADED=n/a PIN_CPU_IO=n/a PIN_CPU_WORK=n/a PIN_PC_IO=n/a PIN_PC_WORK=n/a PIN_PAIR_EXCL=n/a PIN_PAIR_REQ=n/a
+SRC_CONNECTED 192.168.100.2:8080
+SRC_DRAINED tx_bytes=16384
+SRC_SUM tx_bytes=16384 rx_bytes=100740 dur_s=0.005 tx_Mbps=25.949 rx_Mbps=159.551 eof_seen=0 eof_at_s=-165541.878 send_err=0 rx_first_mismatch=-1 rx_mism_bytes=0 poll_tmo=0 poll_err=0
+SRC_DONE
+--- 快照 (after) ---
+SNAP_BEGIN T6_post gen=51
+W53  0xF4   app_rx_bytes           0x001c8000
+W54  0xF8   app_mismatch           0x00000000
+W70  0x138  mir_drop_bytes         0x00000000
+W11  0x4C   udpapp_rx_bytes        0x005df000
+W13  0x54   udpapp_mismatch        0x00000000
+W5   0x34   gmii_free_FE           0x5a0929f5
+W43  0xCC   mtx_stat_tx_words      0x59f362d1
+W20  0x70   mac_tx_frames          0x2900418f
+SNAP_END T6_post nff=0
+--- 文件 ---
+-rw-r--r-- 1 root root 16384 Oct 11 19:36 mir_T6.bin
+-rw-r--r-- 1 root root   762 Oct 11 19:36 src_T6.log
+-rw-r--r-- 1 root root   505 Oct 11 19:36 ss_T6.log
+=== TCPARM_END T6 1791718614.352182189

@@ -1,0 +1,28 @@
+=== TCPPC1 PC1 K=65536 1791718637.292236807
+SNAP_BEGIN PC1_pre gen=55
+W53  0xF4   app_rx_bytes           0x002c8000
+W54  0xF8   app_mismatch           0x00000000
+W70  0x138  mir_drop_bytes         0x00000000
+SNAP_END PC1_pre nff=0
+--- arm: MIR_CTRL=0x6 (clr + src_sel=1, cap_en=0, dma_en=0) ---
+Write 32-bits value 0x00000006 to 0x144 (0x0x75ae398f3144)
+--- arm: MIR_CTRL=0x5 (cap_en=1 + src_sel=1, **dma_en=0**) ---
+Write 32-bits value 0x00000005 to 0x144 (0x0x7eb4cb524144)
+MIR_STATUS_after_arm=Read 32-bit value at address 0x13c (0x7e5036a8013c): 0x009c0000
+--- 起 TCP 发端 (K=65536; 主机**不读** MIR_DATA) ---
+SRC_RC=0
+MIR_STATUS_after=Read 32-bit value at address 0x13c (0x7fbce692013c): 0x009e01ff
+MIR_DMA_CNT_0x148=Read 32-bit value at address 0x148 (0x723a1d3d0148): 0x00000000
+SNAP_BEGIN PC1_post gen=56
+W53  0xF4   app_rx_bytes           0x002d8000
+W54  0xF8   app_mismatch           0x00000000
+W70  0x138  mir_drop_bytes         0x0000f7e8
+SNAP_END PC1_post nff=0
+--- 回冻结: MIR_CTRL=0x0 (cap_en=0 / dma_en=0) ---
+Write 32-bits value 0x00000000 to 0x144 (0x0x71e6403e8144)
+MIR_CTRL_0x144=Read 32-bit value at address 0x144 (0x70578ab9b144): 0x00000000
+PIN_RULE=avoid-nic PIN_DEGRADED=none PIN_CPU=5 PIN_CORES_ONLINE=0-7 PIN_NIC_IFACE=enp1s0f0np0,enp1s0f1np1 PIN_NIC_CPUS=0,1,2,3,4,5 PIN_NIC_EXCLUDED=none PIN_CORE_LOAD=184944212 PIN_ALLOWED_MASK=20 PIN_GETCPU_START=5 PIN_FREQ_START_KHZ=3703285 PIN_GOV=schedutil PIN_NIC_IRQLINES=12 PIN_NIC_IFACE_SRC=auto PIN_TUPLE_ORDER=own_sib_t PIN_PAIR_RULE=n/a PIN_PAIR_DEGRADED=n/a PIN_CPU_IO=n/a PIN_CPU_WORK=n/a PIN_PC_IO=n/a PIN_PC_WORK=n/a PIN_PAIR_EXCL=n/a PIN_PAIR_REQ=n/a
+SRC_CONNECTED 192.168.100.2:8080
+SRC_DRAINED tx_bytes=65536
+SRC_SUM tx_bytes=65536 rx_bytes=183960 dur_s=0.028 tx_Mbps=18.411 rx_Mbps=51.680 eof_seen=0 eof_at_s=-165566.273 send_err=0 rx_first_mismatch=-1 rx_mism_bytes=0 poll_tmo=0 poll_err=0
+=== TCPPC1_END PC1 1791718638.380150530

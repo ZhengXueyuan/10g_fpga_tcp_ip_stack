@@ -1,0 +1,38 @@
+### BRINGUP_BEGIN 2026-10-11T19:32:39+0800
+--- A) 恢复 carrier (= 写 0x08 = 0; 板侧 TX_DIS 门释放) ---
+Write 32-bits value 0x00000000 to 0x8 (0x0x71a3bc3b8008)
+R_0x08=Read 32-bit value at address 0x8 (0x7f4bdde1a008): 0x00000000
+--- B) 链路/网络面现取 ---
+netlink error: Operation not permitted
+CARRIER=1
+4: enp1s0f1np1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
+    inet 192.168.100.100/32 scope global enp1s0f1np1
+	Speed: 10000Mb/s
+	Link detected: yes
+---
+192.168.100.2 dev enp1s0f1np1 src 192.168.100.100 uid 1000 
+    cache 
+---
+192.168.100.2 dev enp1s0f1np1 lladdr 00:0a:35:01:fe:c0 REACHABLE 
+--- C) 背景泛洪见证 (NIC port_rx 2 s 差分; 板侧 W43/W20 两次读) ---
+     port_rx_bytes: 24157874175608
+     port_rx_packets: 15974598441
+     rx-0.rx_packets: 552454682
+     rx-1.rx_packets: 786909786
+     rx-2.rx_packets: 13719755019
+     rx-3.rx_packets: 311238679
+--- 2s later ---
+     port_rx_bytes: 24160329643832
+     port_rx_packets: 15976216010
+     rx-0.rx_packets: 552454682
+     rx-1.rx_packets: 786909786
+     rx-2.rx_packets: 13721335895
+     rx-3.rx_packets: 311238679
+W43a=Read 32-bit value at address 0xcc (0x7003d7b700cc): 0x2273b712
+W20a=Read 32-bit value at address 0x70 (0x70ca311e2070): 0x0639f01a
+W43b=Read 32-bit value at address 0xcc (0x74e2af79b0cc): 0x2273b712
+W20b=Read 32-bit value at address 0x70 (0x725d955c2070): 0x0639f01a
+--- D) 临时 fq 根 qdisc (SO_MAX_PACING_RATE 生效前置; mq+fq_codel 下被忽略) ---
+FQ_OK
+qdisc fq 8003: root refcnt 65 limit 10000p flow_limit 100p buckets 1024 orphan_mask 1023 quantum 3028b initial_quantum 15140b low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon 10s horizon_drop 
+### BRINGUP_END 2026-10-11T19:32:53+0800

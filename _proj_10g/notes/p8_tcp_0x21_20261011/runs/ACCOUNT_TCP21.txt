@@ -1,0 +1,14 @@
+run                K       pc      dW53    dW70  dW54      残余  工具行
+TCPARM_T1     262144        0    262144       0     0  262144  FATAL jump=4892 字
+TCPARM_T2     262144        0    262144       0     0  262144  FATAL jump=4716 字
+TCPARM_T3     262144        0    262144       0     0  262144  FATAL jump=5110 字
+TCPARM_T4       8192     8192      8192       0     0       0  DMA bytes=8192 words=2048 | cnt0=0 cnt1=2048 lag=1772 clob=0 short=0 | VERIFY rc=0 fm=-1 of 8192 (poff=0)
+TCPARM_T5       8192     8192      8192       0     0       0  DMA bytes=8192 words=2048 | cnt0=0 cnt1=2048 lag=2048 clob=0 short=0 | VERIFY rc=0 fm=-1 of 8192 (poff=0)
+TCPARM_T6      16384    16384     16384       0     0       0  DMA bytes=16384 words=4096 | cnt0=0 cnt1=4096 lag=3650 clob=0 short=0 | VERIFY rc=0 fm=-1 of 16384 (poff=0)
+TCPBAR_BAR1    262144    48176    262144  213968     0       0  BAR bytes=48176 words=12044 secs=40.001 | VERIFY rc=1 fm=2076 of 262144 (BAR)
+TCPMID_M1     262144   262144   1048576       0     0  786432  DMA bytes=262144 words=65536 | cnt0=0 cnt1=65886 lag=3286 clob=0 short=0
+TCPMID_M2     262144        0   1048576       0     0 1048576  FATAL jump=4410 字
+TCPPC1         65536        0     65536   63464     0    2072  PC1: 工具未用 (主机不读 MIR_DATA)
+
+注: '残余' = dW53 - pc - dW70; 判据式 pc + dW70 + (acc_cnt_r+stg_cnt) == dW53, 正常态残余 ∈ [0,24] 且 K%8==0+无丢 ⇒ 期望 0。
+    FATAL 跑 ('pc'=0) 的差额 = 数据留在环里/被环回绕覆盖 —— **工具侧**量, 不是镜像丢字。

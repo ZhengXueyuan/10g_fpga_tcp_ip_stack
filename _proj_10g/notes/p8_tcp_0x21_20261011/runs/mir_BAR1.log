@@ -1,0 +1,8 @@
+FAIL: content mismatch at 2076
+MIR_ID magic=50360001 (exp 50360001) bid=00000021 (exp 00000021)
+MIR_SRC src_sel=1 readback=1
+MIR_STATUS ver=3 src_sel=1 cap=0 any_drop=0 unf=0 level=0
+MIR_DONE bytes=48176 words=12044 secs=40.001 rate_Bps=1204 out=./mir_BAR1.bin drop_seen=1 unf_seen=0
+MIR_RATE_NOTE not-a-rate-benchmark (user-BAR window; ~4-10MB/s class; no PIN_CPU witness)
+MIR_ACCT dW11=0 dW70=213968 pc_bytes=48176 (want: (pc + dW70) == dW11  [mod 2^32])
+MIR_VERIFY rc=1 first_mismatch=2076 of 262144

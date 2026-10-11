@@ -1,0 +1,39 @@
+=== TCPBAR BAR1 K=262144 PACE=2500000 OFF=0 1791718774.333074649
+--- 起测前快照 ---
+SNAP_BEGIN BAR1_pre gen=58
+W53  0xF4   app_rx_bytes           0x002d8000
+W54  0xF8   app_mismatch           0x00000000
+W70  0x138  mir_drop_bytes         0x0000f7e8
+W11  0x4C   udpapp_rx_bytes        0x005df000
+W13  0x54   udpapp_mismatch        0x00000000
+SNAP_END BAR1_pre nff=0
+--- 起 mir_dump (**user-BAR 路径**, 无 --dma; dma_en=0) ---
+--- 起 TCP 发端 ---
+SRC_RC=0
+TOOL_RC=1
+--- mir_dump 日志 (逐字) ---
+FAIL: content mismatch at 2076
+MIR_ID magic=50360001 (exp 50360001) bid=00000021 (exp 00000021)
+MIR_SRC src_sel=1 readback=1
+MIR_STATUS ver=3 src_sel=1 cap=0 any_drop=0 unf=0 level=0
+MIR_DONE bytes=48176 words=12044 secs=40.001 rate_Bps=1204 out=./mir_BAR1.bin drop_seen=1 unf_seen=0
+MIR_RATE_NOTE not-a-rate-benchmark (user-BAR window; ~4-10MB/s class; no PIN_CPU witness)
+MIR_ACCT dW11=0 dW70=213968 pc_bytes=48176 (want: (pc + dW70) == dW11  [mod 2^32])
+MIR_VERIFY rc=1 first_mismatch=2076 of 262144
+--- 发端日志 (PIN_CPU + 关键行) ---
+PIN_RULE=avoid-nic PIN_DEGRADED=none PIN_CPU=5 PIN_CORES_ONLINE=0-7 PIN_NIC_IFACE=enp1s0f0np0,enp1s0f1np1 PIN_NIC_CPUS=0,1,2,3,4,5 PIN_NIC_EXCLUDED=none PIN_CORE_LOAD=184944404 PIN_ALLOWED_MASK=20 PIN_GETCPU_START=5 PIN_FREQ_START_KHZ=3798084 PIN_GOV=schedutil PIN_NIC_IRQLINES=12 PIN_NIC_IFACE_SRC=auto PIN_TUPLE_ORDER=own_sib_t PIN_PAIR_RULE=n/a PIN_PAIR_DEGRADED=n/a PIN_CPU_IO=n/a PIN_CPU_WORK=n/a PIN_PC_IO=n/a PIN_PC_WORK=n/a PIN_PAIR_EXCL=n/a PIN_PAIR_REQ=n/a
+SRC_CONNECTED 192.168.100.2:8080
+SRC_DRAINED tx_bytes=262144
+SRC_SUM tx_bytes=262144 rx_bytes=515380 dur_s=0.098 tx_Mbps=21.328 rx_Mbps=41.930 eof_seen=0 eof_at_s=-165705.321 send_err=0 rx_first_mismatch=-1 rx_mism_bytes=0 poll_tmo=0 poll_err=0
+SRC_DONE
+--- 快照 (after) ---
+SNAP_BEGIN BAR1_post gen=61
+W53  0xF4   app_rx_bytes           0x00318000
+W54  0xF8   app_mismatch           0x00000000
+W70  0x138  mir_drop_bytes         0x00043bb8
+W11  0x4C   udpapp_rx_bytes        0x005df000
+W13  0x54   udpapp_mismatch        0x00000000
+SNAP_END BAR1_post nff=0
+--- 文件 ---
+-rw-r--r-- 1 root root 48176 Oct 11 19:40 mir_BAR1.bin
+=== TCPBAR_END BAR1 1791718814.624108251

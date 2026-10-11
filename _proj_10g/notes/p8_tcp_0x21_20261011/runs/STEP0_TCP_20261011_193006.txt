@@ -1,0 +1,117 @@
+### STEP0_BEGIN 2026-10-11T19:30:06+0800
+
+### A) 对端 + 现役/历史工具名册 (只读)
+a-MS-7850
+Sun Oct 11 07:30:09 PM CST 2026
+7.0.0-38-generic
+--- /tmp/p7b_biz (现役) ---
+total 2368
+drwxrwxr-x  2 a    a      4096 Oct 10 07:22 .
+drwxrwxrwt 38 root root 901120 Oct 11 19:17 ..
+-rw-rw-r--  1 a    a      4661 Oct 10 07:59 a3_reconnect.py
+-rwxrwxr-x  1 a    a      6278 Oct  9 22:23 aff_selftest.sh
+-rwxrwxr-x  1 a    a      1446 Oct  9 22:23 calc_lf.py
+-rwxrwxr-x  1 a    a     17830 Oct  9 22:23 j6_stagec.sh
+-rwxrwxr-x  1 a    a      8721 Oct  9 22:23 lf_dl.sh
+-rwxrwxr-x  1 a    a       346 Oct  9 23:55 ls_rtt_fast.sh
+-rwxrwxr-x  1 a    a      1274 Oct  9 22:23 nicdelta.py
+-rw-rw-r--  1 a    a      2564 Oct  9 22:23 p7baff_faultinject.cpp
+-rw-rw-r--  1 a    a     65142 Oct  9 22:22 p7b_affinity.h
+-rwxrwxr-x  1 a    a     10260 Oct  9 22:23 p7b_dualthread_selftest.sh
+-rwxrwxr-x  1 a    a      4988 Oct  9 22:23 p7b_fake_board.py
+-rw-rw-r--  1 a    a      9515 Oct  9 22:22 p7b_io.h
+-rwxrwxr-x  1 a    a     12843 Oct  9 22:23 p7b_lane8_selftest.sh
+-rw-rw-r--  1 a    a     21578 Oct  9 22:22 p7b_pattern.h
+-rwxrwxr-x  1 a    a    171040 Oct  9 22:23 p7b_rate2_bench
+-rw-rw-r--  1 a    a     17041 Oct  9 22:22 p7b_rate2_bench.cpp
+-rwxrwxr-x  1 a    a     13740 Oct  9 22:23 p7b_selftest.sh
+--- md5 现役关键件 ---
+48d066a04684fbd6b901679120d88c3c  /tmp/p7b_biz/p7b_tcp_src
+md5sum: /tmp/p7b_biz/p7b_mir_dump: No such file or directory
+ba2faf79f409302d1e542450db402975  /tmp/p7b_biz/p7b_snap.sh
+b2f2e9627bac53bf3b4ab2b565afe872  /tmp/p7b_biz/p7b_pattern.h
+b03222792d20443138515ba2804b0d87  /tmp/p7b_biz/p7b_affinity.h
+--- /tmp/p8_board (镜像轮件) ---
+25af63df72993195469761d167005533  /tmp/p8_board/p7b_mir_dump
+79be2a09024206b7c678dc13a3b9051d  /tmp/p8_board/p7b_tcp_src
+5af4c61911a8cc2cb4821456f5c43845  /tmp/p8_board/p7b_snap.sh
+--- /tmp/p8_board_0x21 (上轮 0x21 件) ---
+total 7224
+drwxrwxr-x  2 a    a       4096 Oct 11 19:23 .
+drwxrwxrwt 38 root root  901120 Oct 11 19:17 ..
+-rw-r--r--  1 root root 1048576 Oct 11 19:23 mir_A1.bin
+-rw-r--r--  1 root root     589 Oct 11 19:23 mir_A1.log
+-rw-r--r--  1 a    a    1048576 Oct 11 19:22 mir_A1_run0.bin
+-rw-r--r--  1 a    a        582 Oct 11 19:22 mir_A1_run0.log
+-rw-r--r--  1 root root 1048576 Oct 11 19:23 mir_A2.bin
+-rw-r--r--  1 root root     589 Oct 11 19:23 mir_A2.log
+-rw-r--r--  1 root root 1505280 Oct 11 19:23 mir_B1.bin
+-rw-r--r--  1 root root     588 Oct 11 19:23 mir_B1.log
+-rw-r--r--  1 root root 1505280 Oct 11 19:23 mir_B2.bin
+-rw-r--r--  1 root root     588 Oct 11 19:23 mir_B2.log
+-rw-rw-r--  1 a    a      65142 Oct 11 12:17 p7b_affinity.h
+-rwxrwxr-x  1 a    a      41936 Oct 11 12:33 p7b_mir_dump
+-rw-rw-r--  1 a    a      21578 Oct 11 12:17 p7b_pattern.h
+-rw-rw-r--  1 a    a      15731 Oct 11 19:17 p7b_snap.sh
+-rwxrwxr-x  1 a    a     128048 Oct 11 12:17 p7b_udp_src
+-rw-rw-r--  1 a    a       2933 Oct 11 19:17 run_arm.sh
+-rw-r--r--  1 root root     710 Oct 11 19:23 src_A1.log
+25af63df72993195469761d167005533  /tmp/p8_board_0x21/p7b_mir_dump
+15eb5384d188a31eeaa40529aff28858  /tmp/p8_board_0x21/p7b_snap.sh
+
+### B) 仓库侧对照 md5 (现核)
+4a8e91f7e7e5151e209b8e6acff589d7 */d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_mir_dump.cpp
+7a6191fc01818f64eb956da069ed0640 */d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_tcp_src.cpp
+15eb5384d188a31eeaa40529aff28858 */d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_snap.sh
+b2f2e9627bac53bf3b4ab2b565afe872 */d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_pattern.h
+b03222792d20443138515ba2804b0d87 */d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_affinity.h
+
+### C) 网络面 (每次测量前现取)
+netlink error: Operation not permitted
+4: enp1s0f1np1: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc mq state DOWN group default qlen 1000
+    inet 192.168.100.100/32 scope global enp1s0f1np1
+---
+GENERAL.STATE:                          10 (unmanaged)
+GENERAL.CONNECTION:                     --
+---
+192.168.100.2 dev enp1s0f1np1 src 192.168.100.100 uid 1000 
+    cache 
+---
+---
+	Speed: 10000Mb/s
+	Link detected: no
+---
+Adaptive RX: off  TX: n/a
+rx-usecs:	0
+rx-usecs-irq:	0
+rx-usecs-low:	n/a
+---
+qdisc mq 0: root 
+qdisc fq_codel 0: parent :4 limit 10240p flows 1024 quantum 1514 target 5ms interval 100ms memory_limit 32Mb ecn drop_batch 64 
+qdisc fq_codel 0: parent :3 limit 10240p flows 1024 quantum 1514 target 5ms interval 100ms memory_limit 32Mb ecn drop_batch 64 
+
+### D) 板上现态 (只读; 期望 BID=0x21 / 0x08=0x2 受控停流)
+R_0x00=Read 32-bit value at address 0x0 (0x70052c2ab000): 0x50360001
+R_0x04=Read 32-bit value at address 0x4 (0x7ba76031d004): 0x00000021
+R_0x08=Read 32-bit value at address 0x8 (0x74e1ca746008): 0x00000002
+R_0x14C=Read 32-bit value at address 0x14c (0x7a58b9c1a14c): 0xffffffff
+R_0x4C=Read 32-bit value at address 0x4c (0x70550c3bc04c): 0x005df000
+R_0x54=Read 32-bit value at address 0x54 (0x787807eaf054): 0x00000000
+R_0xF4=Read 32-bit value at address 0xf4 (0x72e448f6f0f4): 0x00000000
+R_0xF8=Read 32-bit value at address 0xf8 (0x77d9d22300f8): 0x00000000
+R_0x138=Read 32-bit value at address 0x138 (0x74fb29591138): 0x00000000
+R_0x13C=Read 32-bit value at address 0x13c (0x7cd36281213c): 0x00180000
+R_0x144=Read 32-bit value at address 0x144 (0x7b704c743144): 0x00000002
+R_0x148=Read 32-bit value at address 0x148 (0x748e33be1148): 0x0005be00
+CARRIER=0
+	Region 0: Memory at df200000 (32-bit, non-prefetchable) [size=1M]
+	Region 1: Memory at df300000 (32-bit, non-prefetchable) [size=64K]
+		LnkSta:	Speed 5GT/s (downgraded), Width x4
+
+### E) /dev/xdma* + 残留进程 + dmesg
+crw------- 1 root root 235, 36 Oct 11 19:20 /dev/xdma0_c2h_0
+crw------- 1 root root 235,  0 Oct 11 19:20 /dev/xdma0_user
+--- nodes ---
+21
+PROC_SCAN_DONE
+### STEP0_END 2026-10-11T19:30:14+0800

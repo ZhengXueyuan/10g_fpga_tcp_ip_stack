@@ -1,0 +1,47 @@
+=== DEPLOY_BEGIN 1791718339.390451800
+--- ① 部署前: /tmp/p7b_biz 与 /tmp/p8_board md5 (只读; 部署后要复读证明未动) ---
+48d066a04684fbd6b901679120d88c3c  /tmp/p7b_biz/p7b_tcp_src
+b2f2e9627bac53bf3b4ab2b565afe872  /tmp/p7b_biz/p7b_pattern.h
+b03222792d20443138515ba2804b0d87  /tmp/p7b_biz/p7b_affinity.h
+102c371a84bde0eb0e8eb58ff0add486  -
+---
+25af63df72993195469761d167005533  /tmp/p8_board/p7b_mir_dump
+79be2a09024206b7c678dc13a3b9051d  /tmp/p8_board/p7b_tcp_src
+b2f2e9627bac53bf3b4ab2b565afe872  /tmp/p8_board/p7b_pattern.h
+b03222792d20443138515ba2804b0d87  /tmp/p8_board/p7b_affinity.h
+2f45df0a1ce4fbee454e198dad15cca1  -
+--- ② 建本轮目录 + 从 /tmp/p8_board 只读拷贝冻结工具 ---
+CP_OK
+--- ③ sftp put: 仓库 p7b_snap.sh (0x21 读侧件) + 本轮 run_tcp_arm.sh ---
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_snap.sh -> /tmp/p8_tcp_0x21/p7b_snap.sh
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p8_tcp_0x21_20261011/_tools/run_tcp_arm.sh -> /tmp/p8_tcp_0x21/run_tcp_arm.sh
+--- ④ 部署后 md5 双核 (对端 vs 本机期望) ---
+[对端]
+25af63df72993195469761d167005533  p7b_mir_dump
+79be2a09024206b7c678dc13a3b9051d  p7b_tcp_src
+15eb5384d188a31eeaa40529aff28858  p7b_snap.sh
+b2f2e9627bac53bf3b4ab2b565afe872  p7b_pattern.h
+b03222792d20443138515ba2804b0d87  p7b_affinity.h
+29d9dcb51204b42702fb556e7e6f18e1  run_tcp_arm.sh
+total 1168
+drwxrwxr-x  2 a    a      4096 Oct 11 19:32 .
+drwxrwxrwt 39 root root 901120 Oct 11 19:32 ..
+-rw-rw-r--  1 a    a     65142 Oct 11 12:17 p7b_affinity.h
+-rwxrwxr-x  1 a    a     41936 Oct 11 12:33 p7b_mir_dump
+-rw-rw-r--  1 a    a     21578 Oct 11 12:17 p7b_pattern.h
+-rw-rw-r--  1 a    a     15731 Oct 11 19:32 p7b_snap.sh
+-rwxrwxr-x  1 a    a    127720 Oct 11 12:45 p7b_tcp_src
+-rw-rw-r--  1 a    a      2693 Oct 11 19:32 run_tcp_arm.sh
+[本机期望]
+15eb5384d188a31eeaa40529aff28858 */d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_snap.sh
+29d9dcb51204b42702fb556e7e6f18e1 */d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p8_tcp_0x21_20261011/_tools/run_tcp_arm.sh
+EXPECT: mir_dump=25af63df72993195469761d167005533 tcp_src=79be2a09024206b7c678dc13a3b9051d snape=15eb5384d188a31eeaa40529aff28858
+--- ⑤ 复读两个旧目录 (与 ① 逐字比 = 未动) ---
+48d066a04684fbd6b901679120d88c3c  /tmp/p7b_biz/p7b_tcp_src
+b2f2e9627bac53bf3b4ab2b565afe872  /tmp/p7b_biz/p7b_pattern.h
+b03222792d20443138515ba2804b0d87  /tmp/p7b_biz/p7b_affinity.h
+102c371a84bde0eb0e8eb58ff0add486  -
+---
+25af63df72993195469761d167005533  /tmp/p8_board/p7b_mir_dump
+79be2a09024206b7c678dc13a3b9051d  /tmp/p8_board/p7b_tcp_src
+=== DEPLOY_END 1791718344.835451400

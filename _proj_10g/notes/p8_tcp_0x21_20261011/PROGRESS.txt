@@ -1,0 +1,43 @@
+P8 板级 TCP 臂轮 (位流 0x21 / STG 相位鲁棒暂存) —— 进度与状态
+================================================================
+目录: _proj_10g/notes/p8_tcp_0x21_20261011/
+主件: REPORT.md (读数与证据; 不下 PASS/FAIL 裁定)
+
+[状态] 完成 (10 跑全部有原始件; 收尾态已置)
+[位流] 0x21 (sha256 fbb6fca8…4892c) —— **本轮未烧录**, 板上现役即它 (现读核 0x04=0x00000021)
+[板子最终态] 0x08=0x2 (受控停流, peer CARRIER=0) · MIR_CTRL=0x2 (cap_en=0/dma_en=0) ·
+             MIR_STATUS=0x00180000 (cap=0/any_drop=0/level=0/src_sel=0) · MIR_DMA_CNT=0 ·
+             W53=0x318000 / W54=0 / W70=0x43BB8 / W11=0x5DF000 / W13=0
+             恢复 = reg_rw /dev/xdma0_user 0x08 w 0x0
+
+[时间线] (本机时钟, 2026-10-11)
+ 19:30  step0 只读自检 (位流 sha / 对端 / 工具 md5 / 网络面 / 板上现态 / 进程)   -> runs/STEP0_TCP_*.txt
+ 19:32  对端部署 /tmp/p8_tcp_0x21/ (从 /tmp/p8_board 只读拷贝冻结工具; 部署前后 md5 双核) -> runs/DEPLOY_TCP_*.txt
+ 19:32  恢复 carrier (0x08=0) + 网络面现取 + 泛洪见证 (NIC 2 s 差分 ≈809k fps) + 临时 fq 根 qdisc -> runs/BRINGUP_TCP_*.txt
+ 19:33  T1  DMA 全流 K=262144 pace=1.5MB/s  -> 工具 FATAL(环跳变 4892 字); ΔW70=0     -> runs/TCPARM_T1_raw.txt
+ 19:34  T2  同上重复                        -> FATAL(4716); ΔW70=0                   -> runs/TCPARM_T2_raw.txt
+ 19:34  T3  同 C1 + fq initial_quantum=1514 -> FATAL(5110); ΔW70=0 (fq 初始信用候选证伪) -> runs/TCPARM_T3_raw.txt
+ 19:35  T4  DMA 全流 K=8192                 -> rc=0 fm=-1 of 8192 (poff=0); ΔW70=0    -> runs/TCPARM_T4_raw.txt
+ 19:36  T5  同 T4 重复                      -> rc=0 fm=-1; 抓取样与 T4 **md5 相同**   -> runs/TCPARM_T5_raw.txt
+ 19:36  T6  DMA 全流 K=16384 (=环容量)      -> rc=0 fm=-1 of 16384; ΔW70=0            -> runs/TCPARM_T6_raw.txt
+ 19:35  M1  中流捕获 (发端先起 0.35s, 工具 256 KiB) -> rc=0 (--no-verify) 抓满 262144  -> runs/TCPMID_M1_raw.txt
+ 19:36  M2  同 M1 重复                      -> FATAL(4410) (中流捕获 1/2 不可靠)       -> runs/TCPMID_M2_raw.txt
+ 19:40  BAR1 user-BAR 路径 (与 0x1F 轮 TCP 臂同路径) K=262144 pace=2.5MB/s
+                                            -> pc=48176 / ΔW70=213968 / rc=1 fm=2076  -> runs/TCPBAR_BAR1_raw.txt
+ 19:37  PC1 W70 正控 (cap_en=1/dma_en=0/主机不读) K=65536
+                                            -> ΔW70=63464 = K-(2048+8+16) 逐位精确     -> runs/TCPPC1_raw.txt
+ 19:37  离线独立复算 T4/T5/T6/M1 (自检向量已过) -> runs/ANALYZE_*.txt
+ 19:38  收尾 #1: 端口核对 (8081 RC=124 / 8080 OK) + 清 sticky + 受控停流 + 撤 fq + 最终态 -> runs/FINAL_STATE_TCP_*.txt
+ 19:41  收尾 #2: (BAR1 跑后重做) 受控停流 + 撤 fq + 最终态 + 未动复读 -> runs/FINAL_STATE_TCP_*.txt
+
+[关键读数 (逐字见 REPORT.md)]
+ * ΔW70 (镜像内部丢字节) = 0 于 8 跑 (≈2.92 MB TCP 上行); ΔW54 (板 app 自检) = 0 于 10 跑
+ * MIR_VERIFY rc=0/fm=-1: T4/T5/T6 (从偏移 0) + 离线 M1 (中流段 @535,072, 唯一命中)
+ * 总账: W53 = 10 跑 K 之和逐位相同; W70 = PC1(63464) + BAR1(213968) 逐位相同
+ * 端口: 板上 TCP 服务 = 8080 (派单写 8081 有误; 8081 是 UDP app 口)
+
+[未定/未观测 (不许当已答)] 见 REPORT.md §7 (读侧分解粒度 / 启动突发来源 / 中流捕获 1成1败 /
+ 线速未测且环覆盖不进 W70 / admit 类未激励 / 只覆盖相位 4 / 8081 只做负向读数)
+
+[对端改动] 新目录 /tmp/p8_tcp_0x21/ (保留; 回退 rm -rf) · 临时 fq 已撤 (回 mq) ·
+ /tmp/p7b_biz/ 与 /tmp/p8_board/ 一字未动 (三次 md5 复读) · 未写 QSPI · 无残留进程

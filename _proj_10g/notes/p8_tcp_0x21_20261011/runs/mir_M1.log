@@ -1,0 +1,7 @@
+MIR_ID magic=50360001 (exp 50360001) bid=00000021 (exp 00000021)
+MIR_SRC src_sel=1 readback=1
+MIR_STATUS ver=3 src_sel=1 cap=0 any_drop=0 unf=0 level=0
+MIR_UNIMPL addr=14c val=ffffffff (exp ffffffff)
+MIR_DMA_DONE bytes=262144 words=65536 secs=0.173 rate_Bps=1515802 out=./mir_M1.bin
+MIR_DMA_ACCT cnt0=0 cnt1=65886 lag_max=3286 clobber=0 short_reads=0 (want: clobber==0 & short==0 & cnt1-cnt0==words[mod 2^32])
+MIR_DMA_NOTE ring=16KB idempotent-read; access=lseek+read on /dev/xdma0_c2h_0 (pread 未现核, 见文件头)

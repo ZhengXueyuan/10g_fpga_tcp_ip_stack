@@ -1,0 +1,54 @@
+### FINAL_BEGIN 2026-10-11T19:38:02+0800
+--- A) 端口核对 (派单写 8081; 板上 TCP 服务端口 = 8080 —— hls/src/layer_tcp.cpp:17) ---
+CONNECT_8081=RC=124
+CONNECT_8080=OK
+--- B) 清 sticky (clr) 后置冻结默认态 ---
+Write 32-bits value 0x00000002 to 0x144 (0x0x78a61f31b144)
+Write 32-bits value 0x00000000 to 0x144 (0x0x775a836fd144)
+--- C) 受控停流 (0x08=0x2) ---
+Write 32-bits value 0x00000002 to 0x8 (0x0x77a52d29c008)
+--- D) 撤 fq 根 qdisc (回 mq) ---
+qdisc mq 0: root 
+qdisc fq_codel 0: parent :4 limit 10240p flows 1024 quantum 1514 target 5ms interval 100ms memory_limit 32Mb ecn drop_batch 64 
+qdisc fq_codel 0: parent :3 limit 10240p flows 1024 quantum 1514 target 5ms interval 100ms memory_limit 32Mb ecn drop_batch 64 
+--- E) 残留进程扫描 (对端) ---
+PROC_SCAN_DONE
+--- F) 对端最终态 ---
+CARRIER=0
+4: enp1s0f1np1: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc mq state DOWN group default qlen 1000
+    inet 192.168.100.100/32 scope global enp1s0f1np1
+GENERAL.STATE:                          10 (unmanaged)
+--- G) 板侧最终态 (只读) ---
+R_0x00=Read 32-bit value at address 0x0 (0x7a4a7e7ea000): 0x50360001
+R_0x04=Read 32-bit value at address 0x4 (0x79145ed23004): 0x00000021
+R_0x08=Read 32-bit value at address 0x8 (0x75f401c1b008): 0x00000002
+R_0x14C=Read 32-bit value at address 0x14c (0x7359dbebe14c): 0xffffffff
+R_0x13C=Read 32-bit value at address 0x13c (0x7821c77da13c): 0x00180000
+R_0x144=Read 32-bit value at address 0x144 (0x76ab3e7ff144): 0x00000002
+R_0x148=Read 32-bit value at address 0x148 (0x736fc7e82148): 0x00000000
+R_0xF4=Read 32-bit value at address 0xf4 (0x7b8ce23ba0f4): 0x002d8000
+R_0xF8=Read 32-bit value at address 0xf8 (0x72416c2860f8): 0x00000000
+R_0x138=Read 32-bit value at address 0x138 (0x734305db8138): 0x0000f7e8
+R_0x4C=Read 32-bit value at address 0x4c (0x7229e05f904c): 0x005df000
+R_0x54=Read 32-bit value at address 0x54 (0x724ea4742054): 0x00000000
+		LnkSta:	Speed 5GT/s (downgraded), Width x4
+--- H) 触发式快照 (最终 W53/W54/W70/W11/W13) ---
+SNAP_BEGIN FINAL gen=57
+W53  0xF4   app_rx_bytes           0x002d8000
+W54  0xF8   app_mismatch           0x00000000
+W70  0x138  mir_drop_bytes         0x0000f7e8
+W11  0x4C   udpapp_rx_bytes        0x005df000
+W13  0x54   udpapp_mismatch        0x00000000
+W5   0x34   gmii_free_FE           0x5ce81a41
+W43  0xCC   mtx_stat_tx_words      0x5cd06e65
+W20  0x70   mac_tx_frames          0x2cfec281
+SNAP_END FINAL nff=0
+--- I) 未动复读 (只读核对两个旧目录 + 现役工具) ---
+48d066a04684fbd6b901679120d88c3c  /tmp/p7b_biz/p7b_tcp_src
+b2f2e9627bac53bf3b4ab2b565afe872  /tmp/p7b_biz/p7b_pattern.h
+b03222792d20443138515ba2804b0d87  /tmp/p7b_biz/p7b_affinity.h
+102c371a84bde0eb0e8eb58ff0add486  -
+25af63df72993195469761d167005533  /tmp/p8_board/p7b_mir_dump
+79be2a09024206b7c678dc13a3b9051d  /tmp/p8_board/p7b_tcp_src
+2f45df0a1ce4fbee454e198dad15cca1  -
+### FINAL_END 2026-10-11T19:38:16+0800
