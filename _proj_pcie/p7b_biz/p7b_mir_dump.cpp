@@ -56,26 +56,29 @@
 //   ⭐ 板内首版**不加缓冲** (用户裁定 "先不加, 测完以后加") ⇒ 宿主两次 `read()` 之间的空档
 //      直接表现为**板侧丢字节** (记在快照 `W70` = `app_rx_mirror.drop_bytes`)。
 //      ⇒ 本路径的记账必须把 **交付量 (板侧)** 与 **抓取量 (宿主)** 分开, 逐项打原始值。
-//   ⭐ 记账三件 + 闭合式 (U1: 三项全部打印, 不许只打一项):
+//   ⭐⭐⭐ 记账 = **两条独立恒等式** (D1 修复, TL 审查 2026-10-11 夜; 旧式已废, 见下"⛔ 旧式"):
 //        pc            = 抓取字节数 (宿主实际 read 到的字节)
+//        taken_bytes    = Δ`MIR_DMA_CNT` × 4 = **从镜像取走**的字节数
+//                        (已裁口径: `MIR_DMA_CNT` 数**从镜像取走 (`dma_gnt`) 的 32 位字数**;
+//                         P8/期 B 的老口径 = "环已写字数" —— 两者**不是同一个量**)
 //        ΔW70          = 板侧丢字节 (快照 W70 首末差; 32 位, 见"跨回卷")
-//        交付字节       = Δ`MIR_DMA_CNT` × 4 (P9 口径: **已交付 AXIS 口的 32 位字数**;
-//                        P8/期 B 的老口径 = "环已写字数" —— 两者**不是同一个量**, 见下)
-//        闭合式:  **pc + ΔW70 + 残余 == 交付字节**  (mod 2^32 意义下的字节账)
-//        残余口径 = `rtl/app_rx_mirror.v` 头注释: **`acc_cnt_r + stg_cnt`, 0..24 B**
-//        (P8-STG 口径位移; 旧版 `acc_cnt(+pend)`)。⚠️ 残余**板上不可读** ⇒ 本工具把它
-//        **蕴含出来** (`resid_implied = 交付字节 − pc − ΔW70`), 并断言它落在
-//        `[0, --resid-max]` 带内 (默认 24 B; **AXIS 侧新件若另有尾拍残留, 须按该件头注释
-//        把带宽放宽** —— 新件未落盘时无法读取, 见 TOOL_REPORT 的未定项)。
-//        ⭐ **计数点 = 上游 (已裁, TL 2026-10-11 夜; FPGA 侧同批执行)**: `MIR_DMA_CNT` 数
-//        **从镜像取走 (`dma_gnt`) 的 32 位字数**, **不是** `tvalid&&tready` 下游字数
-//        (FPGA 侧实现"内部不丢、无空间不取" ⇒ 两个口径本该相等, 但**上游才是设计口径**)
-//        ⇒ 上面那条闭合式**就是**设计口径下的恒等式, 不需要换式。
-//        ⭐ **闭合式的**另一个前提 = **`level == 0`** (FIFO 尾部已排空): 停流序列下的残差上界
-//        = 镜像 `acc+stg` (≤24 B) —— 打包器残留由 FPGA 侧"停流 flush 一拍短拍"清掉, FIFO 尾部
-//        由本工具的**有界等待 + 见证**清掉。⇒ 终样本前等 `MIR_STATUS.level == 0` (触发式快照读),
-//        **等到/超时都打实际值** (`MIR_STREAM_QUIESCE ... premise_level0=`); 超时 = 前提未见证
-//        ⇒ 账本**不可判** ⇒ 响亮 (rc=1), 除非显式 `--no-strict-quiesce` (放行也打见证)。
+//        K             = **源交付给采集通道**的字节数 (`--bytes`, 可用 `--k-bytes` 覆盖)
+//        **式 A (成形器侧)**:  taken_bytes − pc == 成形器/在飞残余   ∈ [0, --resid-max-shaper]
+//                               (默认 32 B; 审查给定上界)
+//        **式 B (镜像/K 侧)**: K − taken_bytes − ΔW70 == 镜像残余   ∈ [0, --resid-max-mirror]
+//                               (默认 24 B = `rtl/app_rx_mirror.v` 头注释 `acc_cnt_r + stg_cnt`;
+//                                旧名 `--resid-max` = 本式的别名)
+//        ⚠️ **只有式 B 含 K 与 ΔW70**; 两条**各自判定、各自命名打印** (`MIR_STREAM_IDA/IDB`),
+//           FAIL 时指名是哪一条并打出实际值。
+//        ⛔ **旧式 `pc + ΔW70 + 残余 == taken_bytes` 已废** —— 它把两个计数点混在一起
+//           (`dma_gnt` 计数点**在丢字节之后**, 丢掉的字节根本不进 taken_bytes) ⇒ **有丢字节的跑必假红**
+//           (审查实测 −688)。本工具不再打印该式 (回归留证 = selftest T10)。
+//        ⭐ **两条式的共同前提 = `level == 0`** (FIFO 尾部已排空; 打包器残留由 FPGA 侧"停流 flush 一拍
+//           短拍"清掉, FIFO 尾部由本工具的**有界等待 + 见证**清掉)。⇒ 终样本前等 `MIR_STATUS.level == 0`
+//           (触发式快照读), **等到/超时都打实际值** (`MIR_STREAM_QUIESCE ... premise_level0=`);
+//           超时 = 前提未见证 ⇒ 账本**不可判** ⇒ 响亮 (rc=1), 除非显式 `--no-strict-quiesce` (放行也打见证)。
+//        ⭐ **"不足量"不再单独判红**: 丢字节场景下 pc < want **是预期形态** (丢掉的字节没了) ⇒
+//           早停 (`ended_early`) 只打印; 解释不足量**是式 B 的活** (ΔW70 或镜像残余)。没解释 = 式 B 红。
 //   ⚠️ 原"计数器跳变 > 环 4096"那条 FATAL **在 ST 下失去载体** (无环, 且"落后"表现为丢字节
 //      不是回绕) ⇒ 它**只留在 `--dma` 路径** (run_dma 内), **不搬进本路径**。
 //      ST 路径的替代异常判据 = ① 闭合式 (上) ② **交付-抓取差的时间序列** (能否被宿主跟上:
@@ -90,10 +93,11 @@
 //   sudo ./p7b_mir_dump --bid 0x1F --bytes 1048576 --dma [--dma-dev /dev/xdma0_c2h_0]
 //                       [--src udp|tcp] [--out /tmp/mir.bin] [--seconds 30]
 //   sudo ./p7b_mir_dump --bid 0x22 --bytes 67108864 --stream [--stream-dev /dev/xdma0_c2h_0]
-//                       [--buf-mb 128] [--chunk 1048576] [--resid-max 24] [--settle 1.0]
-//                       [--sample-ms 50] [--allow-ver-mismatch] [--src udp|tcp] [--out /tmp/mir.bin]
+//                       [--buf-mb 128] [--chunk 1048576] [--resid-max-mirror 24] [--resid-max-shaper 32]
+//                       [--k-bytes N] [--sample-ms 50] [--allow-ver-mismatch] [--src udp|tcp]
+//                       [--out /tmp/mir.bin]      # 旧名 --resid-max = 式 B 上界的别名
 //   ./p7b_mir_dump --selftest [--bytes 65536]      # 无板自检 (内存 mock; 含负对照)
-// 退出码: 0 = 全好 / 1 = 内容失配、字节不足或不闭合 / 2 = 用法或身份失败 (响亮)。
+// 退出码: 0 = 全好 / 1 = 内容失配、式 A/式 B 不成立或真读错 / 2 = 用法或身份失败 (响亮)。
 // 编译 (部署口径 = _proj_10g/notes/p7b_affinity/BUILD.md §2):
 //   g++ -O3 -pthread -o p7b_mir_dump p7b_mir_dump.cpp
 // ⚠️ mingw-w64 (本机自检编译用): 让 <unistd.h> 声明 pread/pwrite —— 只影响 Windows 侧,
@@ -144,8 +148,9 @@ static const uint32_t RING_BYTES = RING_WORDS * 4u;
 //   ver=4 = P9-ST (AXIS 引擎;  MIR_DMA_CNT = **已交付 AXIS 口的 32 位字数**)
 //   ⇒ 两代的 0x148 语义不同 ⇒ **路径必须与 ver 配对** (见 path_ver_ok; 越轨 = 响亮拒)
 static const uint32_t VER_MM = 3, VER_ST = 4;
-// 残余带宽 (P8-STG: acc_cnt_r + stg_cnt ∈ 0..24 B; 见 rtl/app_rx_mirror.v 头注释)
-static const uint32_t RESID_MAX_DEF = 24;
+// 残余带宽 (⭐ D1 修复后是**两条各自的**上界; 旧单条 `--resid-max` 保留为式 B 的别名)
+static const uint32_t RESID_MAX_MIRROR_DEF = 24;   // 式 B: 镜像 acc_cnt_r+stg_cnt (P8-STG 口径)
+static const uint32_t RESID_MAX_SHAPER_DEF = 32;   // 式 A: 成形器在飞 (TL 审查建议上界)
 
 // ---------------------------------------------------------------------------
 // 寄存器 IO 抽象: 真设备 (pread/pwrite) | 内存 mock (--selftest)
@@ -480,30 +485,42 @@ struct FdStreamIo : StreamIo {
 };
 
 // mock 流 (--selftest 用): 一块内存 = "宿主可见"的字节流 (已含丢字节造成的洞);
-// 每次交出字节时同步推进 mock 板侧的交付计数 (= 源交付量口径) ⇒ 与闭合式同构。
+// ⭐⭐⭐ D1 修复: mock **按 FPGA 的两个计数点的真实定义**生成 (旧版把"源交付量 = 可见 + 丢 + 残余"
+//   硬编码进 `dma_cnt` ⇒ 那正是把 D1 藏起来的结构 —— 审查点名):
+//     · 源交付量 K (= src_k)
+//     · 镜像内: K = **取走** + drop(进 W70) + **镜像残余** (acc_cnt_r+stg_cnt, ≤24 B)
+//     · 成形器侧: **取走** = 宿主可见 + **成形器残余** (在飞, ≤32 B)
+//   ⇒ `MIR_DMA_CNT` 数**取走** (丢字节**已排除**); 可见流长度 = K − drop − 镜像残余 − 成形器残余。
 struct MemStreamIo : StreamIo {
     MemIo   *reg = nullptr;
-    const uint8_t *data = nullptr;
-    uint64_t len = 0, pos = 0;
+    const uint8_t *data = nullptr;  // 宿主可见流 (已挖掉丢字节的洞, 尾部已去掉两种残余)
+    uint64_t len = 0, pos = 0;      // len 应与 (src_k − drop − mirror_resid − shaper_resid) 一致
+    uint64_t src_k = 0;             // 源交付量 K
+    uint32_t drop_total = 0;        // 镜像丢字节 (进 mock 的 W70)
+    uint32_t mirror_resid = 0;      // 镜像残余 acc+stg (式 B 的右侧)
+    uint32_t shaper_resid = 0;      // 成形器/在飞残余 (式 A 的右侧)
     uint64_t hole_at = 0;           // 可见流上"丢字节发生"的位置 (W70 从这一刻起记)
-    uint32_t drop_total = 0;        // 板侧丢掉的字节数 (进 mock 的 W70)
-    uint32_t resid = 0;             // 板内残余 (acc_cnt_r + stg_cnt)
-    uint32_t dma_bias_words = 0;    // 负对照: **源停那一刻**把交付计数打偏这么多字
+    uint32_t dma_bias_words = 0;    // 负对照: 把取走计数打偏这么多**字** (破坏式 A 与式 B)
     uint32_t dma_base = 0;          // 计数器起点 (做"跑中回卷"用例: base 贴近 2^32)
     size_t   max_per_read = 0;      // 0 = 一次给完; >0 = 单次最多给这么多字节 (模拟碎片读)
-    // mock 的板侧模型 (与闭合式同构): 源交付量 = 可见字节 + 丢字节 + 残余
-    //   起测时刻 (pos==0) 交付增量 = 0; 走完 (pos==len) 增量 = len + drop + resid (+ 故意打偏项)
+    uint64_t taken_total() const {  // 本跑总共会被取走的字节数
+        return (src_k >= (uint64_t)drop_total + mirror_resid)
+                   ? (src_k - drop_total - mirror_resid) : 0ull;
+    }
+    // 取走计数 (逐拍推进; 起测时刻 = 0 ⇒ 工具读到的 Δ 才是"本跑取走")
     uint32_t dma_cnt_now() const {
-        uint64_t offered = pos;
-        if (pos > 0)    offered += drop_total;                  // 丢字节也经过采集通道
-        if (pos >= len) offered += resid;                       // 源停后残余定格在采集侧
-        uint32_t w = (uint32_t)(offered / 4);
-        if (pos >= len) w += dma_bias_words;                    // 负对照只改终值
+        uint64_t t = pos + shaper_resid;                        // 成形器比宿主读到的位置领先 shaper_resid
+        if (t > taken_total()) t = taken_total();
+        uint32_t w = (uint32_t)(t / 4);
+        if (pos >= len) w += dma_bias_words;                    // 负对照**只打偏终值** (否则 Δ 会把它抵消)
         return (uint32_t)(dma_base + w);                        // mod 2^32 (跑中回卷)
     }
     uint32_t w70_now() const { return (pos >= hole_at) ? drop_total : 0u; }
-    void arm() {                    // 起测时刻的初值 (tool 在 arm 后读 words0/w70a)
-        if (reg) { reg->w70 = w70_now(); reg->dma_cnt = dma_cnt_now(); }
+    void arm() {                    // 起测时刻的初值 (tool 在 arm 后读 words0/w70a): 取走 = 0
+        if (reg) {
+            reg->w70 = w70_now();
+            reg->dma_cnt = (uint32_t)(dma_base + 0);
+        }
     }
     long long rd(uint8_t *dst, size_t n) override {
         uint64_t av = len - pos;
@@ -524,34 +541,55 @@ struct StreamRes {
     uint32_t words0 = 0, words1 = 0;    // MIR_DMA_CNT 原始端点值
     uint32_t w70a = 0, w70b = 0;        // 快照 W70 原始端点值
     uint64_t dwords = 0, drop = 0;      // **跨回卷累计** (逐段 mod 2^32 差分再相加)
-    uint64_t delivered = 0;             // = dwords * 4 (交付字节)
-    long long resid = 0;                // 蕴含残余 = delivered - pc - drop (派生量, 逐项原始值另打)
-    bool closed = false;                // 闭合式是否成立 (0 <= resid <= resid_max)
+    uint64_t taken = 0;                 // = dwords * 4 (**从镜像取走**的字节数, ⛔ 不是"源交付量")
+    uint64_t k = 0;                     // 式 B 用的源交付量 K (= --bytes 或 --k-bytes)
+    long long resid_shaper = 0;         // 式 A 蕴含残余 = taken − pc
+    bool closed_a = false;              // 式 A 是否成立 (0 <= resid_shaper <= resid_max_shaper)
+    long long resid_mirror = 0;         // 式 B 蕴含残余 = K − taken − ΔW70
+    bool closed_b = false;              // 式 B 是否成立 (0 <= resid_mirror <= resid_max_mirror)
     uint32_t dword_max_step = 0;        // 单次采样间隔内交付字数的最大增量 (回卷余量见证)
     uint32_t level_end = 0;
     bool quiesced = false;              // 终样本前 level==0 达成 (源已停时这才可能)
     bool premise_level0 = false;        // = quiesced: "残余上界 24 B" 的见证前提 (TL 裁定 3)
     double wait_ms = 0;                 // 静默窗实际等待时长 (见证)
     bool armed = false;
-    int short_reads = 0;                // rd() 返回 0 或负
+    int short_reads = 0;                // rd() 返回 0 或负 (早停/看门狗/真错) —— 分流见 ended_early
+    bool ended_early = false;           // 流比 want 早结束 (丢字节场景下**是预期形态**: 由两式解释, 不单独判红)
+    bool read_error = false;            // 真读错 (非早停/非看门狗) —— 响亮
     bool timed_out = false;
     double secs = 0;
     std::vector<StreamSample> series;
 };
 
-// 闭合式 (纯函数; selftest 直接打表):
-//   交付字节 == pc + ΔW70 + 残余   ⇒   resid_implied = 交付字节 − pc − ΔW70 ∈ [0, resid_max]
-static bool closure_eval(uint64_t pc, uint64_t drop, uint64_t delivered,
-                         uint32_t resid_max, long long *resid_out) {
-    long long ri = (long long)delivered - (long long)pc - (long long)drop;
-    if (resid_out) *resid_out = ri;
-    return (ri >= 0 && ri <= (long long)resid_max);
+// ⭐⭐⭐ D1 修复 (TL 审查 2026-10-11 夜): **两条独立恒等式, 两条各自判定**。
+//   旧式 `pc + ΔW70 + 残余 == ΔMIR_DMA_CNT×4` **把两个计数点混在一起** ——
+//   `MIR_DMA_CNT` 数的是**从镜像取走 (`dma_gnt`) 的字**, 取走时**丢字节早已被排除**
+//   ⇒ ΔW70 不能再出现在那条式子里 (有丢字节的跑必假红; 审查实测 −688)。
+//   口径 (逐字自 TL):  K = 源交付给采集通道的字节数 (本工具 = `--bytes` / `--k-bytes`)
+//      · 镜像内:  K = 取走字节 + ΔW70 + 镜像残余(acc_cnt_r+stg_cnt, 0..24 B)   ← 式 B
+//      · 成形器/在飞: 取走字节 = pc + 成形器残余(≤32 B)                        ← 式 A
+//   两条都是"蕴含残余 ∈ [0, 上界]"式; 哪条不成立**指名报哪条**, 并打实际值。
+static bool resid_in_band(long long v, uint32_t maxv) { return v >= 0 && v <= (long long)maxv; }
+
+// 式 A (成形器侧): resid_shaper = taken − pc
+static bool idA_eval(uint64_t pc, uint64_t taken, uint32_t rmax, long long *resid_out) {
+    long long v = (long long)taken - (long long)pc;
+    if (resid_out) *resid_out = v;
+    return resid_in_band(v, rmax);
+}
+// 式 B (镜像/K 侧): resid_mirror = K − taken − ΔW70   (⚠️ 只有这一条含 K 与 ΔW70)
+static bool idB_eval(uint64_t k, uint64_t taken, uint64_t drop, uint32_t rmax, long long *resid_out) {
+    long long v = (long long)k - (long long)taken - (long long)drop;
+    if (resid_out) *resid_out = v;
+    return resid_in_band(v, rmax);
 }
 
 struct StreamOpts {
     uint64_t want = 0;
     uint64_t chunk = 1u << 20;
-    uint32_t resid_max = RESID_MAX_DEF;
+    uint32_t resid_max_shaper = RESID_MAX_SHAPER_DEF;   // 式 A 上界 (默认 32 B: 成形器在飞)
+    uint32_t resid_max_mirror = RESID_MAX_MIRROR_DEF;   // 式 B 上界 (默认 24 B: 镜像 acc+stg)
+    uint64_t k_bytes = 0;                               // 式 B 的 K; 0 = 取 want (--bytes)
     double   settle_s = 1.0;
     double   sample_ms = 50.0;
     bool     arm = true;
@@ -605,13 +643,23 @@ static StreamRes run_stream(RegIo &io, StreamIo &sio, uint8_t *dst, size_t cap, 
         if (n % 64u != 0) r.nonmul64++;
         long long got = sio.rd(dst + r.bytes, n);
         if (got < 0) {
-            fprintf(stderr, "FAIL: stream read 出错 (n=%zu): %s%s\n", n, strerror(errno),
-                    wd_fired() ? " [看门狗已响]" : "");
-            r.timed_out = wd_fired();
             r.short_reads++;
+            if (wd_fired()) {                               // 看门狗截断 = 操作者自己限的界 ⇒ 早停形态
+                r.timed_out = true; r.ended_early = true;
+                printf("MIR_STREAM_END saw=read/看门狗截断 pc=%llu want=%llu (由两式解释不足量)\n",
+                       (unsigned long long)r.bytes, (unsigned long long)o.want);
+            } else {                                        // 真读错 —— 响亮
+                r.read_error = true;
+                fprintf(stderr, "FAIL: stream read 出错 (n=%zu): %s\n", n, strerror(errno));
+            }
             break;
         }
-        if (got == 0) { r.short_reads++; fprintf(stderr, "FAIL: stream read 返回 0 (流提前结束?)\n"); break; }
+        if (got == 0) {                                     // 流比 want 早结束 (丢字节场景下是**预期形态**)
+            r.short_reads++; r.ended_early = true;
+            printf("MIR_STREAM_END saw=read==0 pc=%llu want=%llu (由两式解释不足量)\n",
+                   (unsigned long long)r.bytes, (unsigned long long)o.want);
+            break;
+        }
         r.reads++;
         if ((uint64_t)got < (uint64_t)n) r.partial++;
         r.bytes += (uint64_t)got;
@@ -636,8 +684,11 @@ static StreamRes run_stream(RegIo &io, StreamIo &sio, uint8_t *dst, size_t cap, 
     r.premise_level0 = r.quiesced;
     sample(true);                                            // 终样本
     r.words1 = last_words; r.w70b = last_w70;
-    r.delivered = r.dwords * 4u;
-    r.closed = closure_eval(r.bytes, r.drop, r.delivered, o.resid_max, &r.resid);
+    // ⭐⭐⭐ D1 修复: 两条独立恒等式 (各自蕴含各自的残余)
+    r.taken = r.dwords * 4u;                                // 从镜像取走的字节 (= ΔMIR_DMA_CNT×4)
+    r.k = o.k_bytes ? o.k_bytes : o.want;                   // 源交付量 K 的口径 (见 --k-bytes)
+    r.closed_a = idA_eval(r.bytes, r.taken, o.resid_max_shaper, &r.resid_shaper);
+    r.closed_b = idB_eval(r.k, r.taken, r.drop, o.resid_max_mirror, &r.resid_mirror);
     r.secs = now_s() - t0;
     return r;
 }
@@ -728,9 +779,13 @@ int main(int argc, char **argv) {
     // ⭐ P9 (--stream) 的新参数
     bool use_stream = false, allow_ver_mismatch = false, secs_given = false;
     bool strict_quiesce = true;            // ⭐ 前提未见证 (level!=0) ⇒ 判红; --no-strict-quiesce 显式放行
+    bool resid_max_alias_used = false;     // ⭐ 旧 `--resid-max` 是否被用过 (打印里标明生效值)
     uint32_t buf_mb = 128;                 // PC 侧大缓冲默认 128 MB 量级 (用户裁定)
     uint64_t chunk = 1u << 20;             // 1 MiB (64 的倍数)
-    uint32_t resid_max = RESID_MAX_DEF;    // 残余带宽上界 (P8-STG 口径 24 B)
+    // ⭐ D1 修复: 两条式各有自己的上界; 旧 `--resid-max` 保留为**式 B 的别名**
+    uint32_t resid_max_mirror = RESID_MAX_MIRROR_DEF;   // 式 B (K 侧; 旧 `--resid-max` 指它)
+    uint32_t resid_max_shaper = RESID_MAX_SHAPER_DEF;   // 式 A (成形器侧)
+    uint64_t k_bytes = 0;                  // 式 B 的 K; 0 = 取 --bytes
     double settle_s = 1.0, sample_ms = 50.0;
     const char *stream_dev = nullptr;
     for (int i = 1; i < argc; i++) {
@@ -752,7 +807,11 @@ int main(int argc, char **argv) {
         else if (a == "--stream-dev") { const char *p = nxt(); if (p) stream_dev = p; } // ⭐⭐ P9
         else if (a == "--buf-mb") { const char *p = nxt(); if (p) buf_mb = (uint32_t)strtoul(p, nullptr, 0); }
         else if (a == "--chunk") { const char *p = nxt(); if (p) chunk = strtoull(p, nullptr, 0); }
-        else if (a == "--resid-max") { const char *p = nxt(); if (p) resid_max = (uint32_t)strtoul(p, nullptr, 0); }
+        else if (a == "--resid-max") { const char *p = nxt(); if (p) {   // 旧名 = 式 B 的别名
+                        resid_max_mirror = (uint32_t)strtoul(p, nullptr, 0); resid_max_alias_used = true; } }
+        else if (a == "--resid-max-mirror") { const char *p = nxt(); if (p) resid_max_mirror = (uint32_t)strtoul(p, nullptr, 0); }
+        else if (a == "--resid-max-shaper") { const char *p = nxt(); if (p) resid_max_shaper = (uint32_t)strtoul(p, nullptr, 0); }
+        else if (a == "--k-bytes") { const char *p = nxt(); if (p) k_bytes = strtoull(p, nullptr, 0); }
         else if (a == "--settle") { const char *p = nxt(); if (p) settle_s = atof(p); }
         else if (a == "--sample-ms") { const char *p = nxt(); if (p) sample_ms = atof(p); }
         else if (a == "--allow-ver-mismatch") allow_ver_mismatch = true;        // ⭐⭐ P9
@@ -768,11 +827,13 @@ int main(int argc, char **argv) {
                                "       %*s --xor <hex> [--pat-off N] [--no-verify] [--no-arm]\n"
                                "       %*s [--src udp|tcp] | --dma [--dma-dev /dev/xdma0_c2h_0]\n"
                                "       %*s | --stream [--stream-dev /dev/xdma0_c2h_0] [--buf-mb 128]\n"
-                               "       %*s   [--chunk 1048576] [--resid-max 24] [--settle 1.0]\n"
-                               "       %*s   [--sample-ms 50] [--allow-ver-mismatch] [--no-strict-quiesce]\n"
+                               "       %*s   [--chunk 1048576] [--resid-max-mirror 24] [--resid-max-shaper 32]\n"
+                               "       %*s   [--k-bytes N] [--settle 1.0] [--sample-ms 50]\n"
+                               "       %*s   [--allow-ver-mismatch] [--no-strict-quiesce]  (旧名 --resid-max = 式B 别名)\n"
                                "       %s --selftest [--bytes K]\n", argv[0], (int)strlen(argv[0]), "",
                                (int)strlen(argv[0]), "", (int)strlen(argv[0]), "",
-                               (int)strlen(argv[0]), "", (int)strlen(argv[0]), "", argv[0]);
+                               (int)strlen(argv[0]), "", (int)strlen(argv[0]), "",
+                               (int)strlen(argv[0]), "", argv[0]);
                return 2; }
     }
     if (use_stream && use_dma) { fprintf(stderr, "FATAL: --stream 与 --dma 互斥 (同一次跑只走一条读出口)\n"); return 2; }
@@ -872,153 +933,195 @@ int main(int argc, char **argv) {
             if (!(d7.clobber > 0)) bad = 1;
         }
         // ================= ⭐⭐⭐ P9: --stream 路径的自检 (T8 起) =================
-        // T8 闭合式的算法例 (纯函数打表; 含**带内边界**与**必然不闭合**两类)
+        // T8 ⭐ D1 修复后 = **两条独立恒等式**各自的算法例 (纯函数打表; 含带内边界与必红两类)
         {
-            struct { uint64_t pc, drop, deliv; uint32_t band; bool want; long long wres; const char *tag; } C[] = {
-                {0,          0, 0,                       24, true,   0,    "zero"},
-                {1024,       8, 1024 + 8 + 6,            24, true,   6,    "clean+resid6"},
-                {1024,       0, 1024 + 24,               24, true,  24,    "resid==band(edge)"},
-                {1024,       0, 1024 + 25,               24, false, 25,    "resid=band+1(必须红)"},
-                {1024,      12, 1024 + 12 - 4,           24, false, -4,    "negative(必须红)"},
-                {0,          0, 4096,                    24, false, 4096,  "delivered-only(必须红)"},
+            struct { uint64_t pc, taken; uint32_t rmax; bool want; long long wres; const char *tag; } A[] = {
+                {0,     0,    32, true,   0,    "A zero"},
+                {1024,  1032, 32, true,   8,    "A resid=8"},
+                {1024,  1056, 32, true,  32,    "A resid==band(edge)"},
+                {1024,  1057, 32, false, 33,    "A band+1(必须红)"},
+                {1024,  1000, 32, false, -24,   "A negative(必须红)"},
+                {0,     4096, 32, false, 4096,  "A taken-only(必须红)"},
+            };
+            struct { uint64_t k, taken, drop; uint32_t rmax; bool want; long long wres; const char *tag; } B[] = {
+                {0,    0,    0,   24, true,   0,   "B zero"},
+                {1000, 980,  16,  24, true,   4,   "B resid=4"},
+                {1000, 976,  0,   24, true,  24,   "B resid==band(edge)"},
+                {1000, 975,  0,   24, false, 25,   "B band+1(必须红)"},
+                {1000, 1200, 0,   24, false, -200, "B taken>K(必须红)"},
+                {0,    0,    696, 24, false, -696, "B K=0,drop=696(审查例形,必须红)"},
             };
             int nb = 0; std::string det;
-            for (auto &c : C) {
-                long long ri = -12345; bool ok = closure_eval(c.pc, c.drop, c.deliv, c.band, &ri);
+            for (auto &c : A) {
+                long long ri = -12345; bool ok = idA_eval(c.pc, c.taken, c.rmax, &ri);
                 bool pass = (ok == c.want) && (ri == c.wres);
                 if (!pass) { nb++; det += std::string(" [") + c.tag + ":]"; }
-                printf("MIR_SELFTEST T8 closure %-24s pc=%llu drop=%llu deliv=%llu -> closed=%d resid=%lld (期望 %d/%lld) %s\n",
-                       c.tag, (unsigned long long)c.pc, (unsigned long long)c.drop,
-                       (unsigned long long)c.deliv, (int)ok, ri, (int)c.want, c.wres,
+                printf("MIR_SELFTEST T8 式A %-26s taken-pc=%lld -> closed_a=%d resid=%lld (期望 %d/%lld) %s\n",
+                       c.tag, (long long)c.taken - (long long)c.pc, (int)ok, ri, (int)c.want, c.wres,
                        pass ? "OK" : "FAIL");
+            }
+            for (auto &c : B) {
+                long long ri = -12345; bool ok = idB_eval(c.k, c.taken, c.drop, c.rmax, &ri);
+                bool pass = (ok == c.want) && (ri == c.wres);
+                if (!pass) { nb++; det += std::string(" [") + c.tag + ":]"; }
+                printf("MIR_SELFTEST T8 式B %-26s K-taken-drop=%lld -> closed_b=%d resid=%lld (期望 %d/%lld) %s\n",
+                       c.tag, (long long)c.k - (long long)c.taken - (long long)c.drop, (int)ok, ri,
+                       (int)c.want, c.wres, pass ? "OK" : "FAIL");
             }
             if (nb) { printf("MIR_SELFTEST T8 %d 条 FAIL:%s\n", nb, det.c_str()); bad = 1; }
         }
-        // T9 --stream 端到端 (mock 板: 干净档): pc==K / 账闭 / 内容逐字节 / 读碎片被计数
-        //   账模型 (与闭合式同构): 源交付量 = 可见字节 + 丢字节 + 残余; mock 的交付计数 = 源交付量/4
+        // 造"宿主可见流": 图案在 hole_at 处**挖掉 hole_len 个字节** (板上丢字节的真实形态: 字节没了)
+        auto mk_visible = [&](std::vector<uint8_t> &v, uint64_t n, uint64_t hole_at, uint32_t hole_len) {
+            v.resize((size_t)n);
+            P7bPat p(pat_off); uint64_t o = 0, i = 0;
+            while (i < n) {
+                uint8_t b = (uint8_t)(p.next() ^ xorc);
+                if (hole_len && o >= hole_at && o < hole_at + hole_len) { o++; continue; }
+                v[(size_t)i++] = b; o++;
+            }
+        };
+        // T9 --stream 端到端 (mock 板: 干净档, **无丢字节**) —— 两式都要闭
+        //   mock 板模型 (D1 修复后的两计数点): K = 取走 + drop + 镜像残余;  取走 = 可见 + 成形器残余
         {
-            const uint64_t K = 65536;
+            const uint64_t K = 65536; const uint32_t D = 0, MR = 4, SR = 8;
+            const uint64_t TAKEN = K - D - MR, VIS = TAKEN - SR;      // 65532 / 65524
             static MemIo m8; static MemStreamIo st8; static std::vector<uint8_t> vis8;
             m8.bid = 0x22; m8.ver = VER_ST;
-            const uint32_t R = 4;                       // 残余 (0..24 带内)
-            vis8.resize((size_t)K);
-            { P7bPat p(pat_off); for (uint64_t i = 0; i < K; i++) vis8[(size_t)i] = (uint8_t)(p.next() ^ xorc); }
-            st8.reg = &m8; st8.data = vis8.data(); st8.len = K; st8.resid = R;
+            mk_visible(vis8, VIS, 0, 0);
+            st8.reg = &m8; st8.data = vis8.data(); st8.len = VIS;
+            st8.src_k = K; st8.drop_total = D; st8.mirror_resid = MR; st8.shaper_resid = SR;
             st8.max_per_read = 8192;                    // 强制碎片读 (每次最多 8 KB)
             st8.arm();
-            StreamOpts o; o.want = K; o.chunk = 65536; o.resid_max = resid_max;
+            StreamOpts o; o.want = VIS; o.chunk = 65536; o.k_bytes = K;   // ⭐ K 显式声明 (want=VIS<K)
+            o.resid_max_mirror = resid_max_mirror; o.resid_max_shaper = resid_max_shaper;
             o.settle_s = 0.0; o.sample_ms = 0.0;        // 每块都采样 (自检里不介意开销)
-            std::vector<uint8_t> dst8((size_t)K + 64);
+            std::vector<uint8_t> dst8((size_t)VIS + 64);
             StreamRes sr8 = run_stream(m8, st8, dst8.data(), dst8.size(), o);
             fm = -1;
-            int rc8 = verify_buf(dst8.data(), sr8.bytes, K, xorc, pat_off, &fm);
-            bool pass8 = (sr8.bytes == K) && (rc8 == 0) && (fm == -1) && (sr8.closed == true) &&
-                         (sr8.resid == (long long)R) && (sr8.w70b == 0) && (sr8.drop == 0) &&
-                         (sr8.delivered == K + R) && (sr8.partial > 0) && (sr8.series.size() >= 2) &&
-                         (sr8.nonmul64 == 0) && (sr8.premise_level0 == true) && (sr8.quiesced == true);
-            printf("MIR_SELFTEST T9 stream clean: pc=%llu rc=%d fm=%lld closed=%d resid=%lld "
-                   "deliv=%llu drop=%llu reads=%llu partial=%llu nonmul64=%llu premise=%d series=%zu %s\n",
-                   (unsigned long long)sr8.bytes, rc8, fm, (int)sr8.closed, sr8.resid,
-                   (unsigned long long)sr8.delivered, (unsigned long long)sr8.drop,
-                   (unsigned long long)sr8.reads, (unsigned long long)sr8.partial,
-                   (unsigned long long)sr8.nonmul64, (int)sr8.premise_level0, sr8.series.size(),
-                   pass8 ? "OK" : "FAIL");
+            int rc8 = verify_buf(dst8.data(), sr8.bytes, VIS, xorc, pat_off, &fm);
+            bool pass8 = (sr8.bytes == VIS) && (rc8 == 0) && (fm == -1) &&
+                         (sr8.taken == TAKEN) && (sr8.drop == 0) && (sr8.w70b == 0) &&
+                         (sr8.closed_a == true) && (sr8.resid_shaper == (long long)SR) &&
+                         (sr8.closed_b == true) && (sr8.resid_mirror == (long long)MR) &&
+                         (sr8.partial > 0) && (sr8.series.size() >= 2) && (sr8.nonmul64 >= 1) &&
+                         // ↑ 可见长度 = K−drop−MR−SR = 65524 ≡ 52 (mod 64) ⇒ 尾读必然非 64 倍数 (**见证**)
+                         (!sr8.ended_early) && (sr8.premise_level0 == true) && (sr8.quiesced == true);
+            printf("MIR_SELFTEST T9 stream clean: pc=%llu taken=%llu drop=%llu 式A=[%lld/%u closed=%d] "
+                   "式B=[%lld/%u closed=%d] rc=%d fm=%lld partial=%llu nonmul64=%llu premise=%d series=%zu %s\n",
+                   (unsigned long long)sr8.bytes, (unsigned long long)sr8.taken,
+                   (unsigned long long)sr8.drop, sr8.resid_shaper, resid_max_shaper, (int)sr8.closed_a,
+                   sr8.resid_mirror, resid_max_mirror, (int)sr8.closed_b, rc8, fm,
+                   (unsigned long long)sr8.partial, (unsigned long long)sr8.nonmul64,
+                   (int)sr8.premise_level0, sr8.series.size(), pass8 ? "OK" : "FAIL");
             if (!pass8) bad = 1;
         }
-        // T10 --stream 端到端 (mock 板: **真有丢字节**): 账仍闭、内容在第 1000 字节处必红
-        //   ⇒ 证明"交付量 vs 抓取量"被分开记账 (丢的字节不吞掉: 它进 ΔW70, 不进 pc)
+        // T10 ⭐⭐ **D1 回归** (TL 审查点名): **有丢字节但两式都成立 ⇒ 必须全绿**
+        //   数值取审查例形 (取走 64836 / 抓取 64828 / ΔW70 696 / 镜像残余 4):
+        //     式 A: taken − pc = 8 ∈[0,32] ✓ ;  式 B: K − taken − ΔW70 = 4 ∈[0,24] ✓
+        //     ⛔ 旧式 (pc + ΔW70 + 残余 == taken) 在这里 = 64828+696−64836 = **688** ⇒ 必假红 (打印留证)
+        //   同时: want=K ⇒ pc<want ⇒ **ended_early 形态** (丢字节跑的真实形态) 由两式解释
         {
-            const uint64_t K = 65536, G = 1000; const uint32_t D = 8, R = 4;
+            const uint64_t K = 65536, G = 1000; const uint32_t D = 696, MR = 4, SR = 8;
+            const uint64_t TAKEN = K - D - MR, VIS = TAKEN - SR;      // 64836 / 64828
             static MemIo m9; static MemStreamIo st9; static std::vector<uint8_t> vis9;
             m9.bid = 0x22; m9.ver = VER_ST;
-            vis9.resize((size_t)K);
-            {   // 可见流 = 图案在 G 处**挖掉 D 个字节** (板上丢字节的真实形态: 字节没了)
-                P7bPat p(pat_off); uint64_t o = 0, i = 0;
-                while (i < K) {
-                    uint8_t b = (uint8_t)(p.next() ^ xorc);
-                    if (o >= G && o < G + D) { o++; continue; }   // 丢掉的字节不进可见流
-                    vis9[(size_t)i++] = b; o++;
-                }
-            }
-            st9.reg = &m9; st9.data = vis9.data(); st9.len = K; st9.hole_at = G;
-            st9.drop_total = D; st9.resid = R; st9.max_per_read = 0; st9.arm();
-            StreamOpts o; o.want = K; o.chunk = 65536; o.resid_max = resid_max;
+            mk_visible(vis9, VIS, G, D);
+            st9.reg = &m9; st9.data = vis9.data(); st9.len = VIS; st9.hole_at = G;
+            st9.src_k = K; st9.drop_total = D; st9.mirror_resid = MR; st9.shaper_resid = SR;
+            st9.max_per_read = 0; st9.arm();
+            StreamOpts o; o.want = K; o.chunk = 65536;                 // want = 源总量 ⇒ 会早停
+            o.resid_max_mirror = resid_max_mirror; o.resid_max_shaper = resid_max_shaper;
             o.settle_s = 0.0; o.sample_ms = 0.0;
-            std::vector<uint8_t> dst9((size_t)K + 64);
+            std::vector<uint8_t> dst9((size_t)VIS + 64);
             StreamRes sr9 = run_stream(m9, st9, dst9.data(), dst9.size(), o);
             fm = -1;
-            int rc9 = verify_buf(dst9.data(), sr9.bytes, K, xorc, pat_off, &fm);
-            bool pass9 = (sr9.bytes == K) && (rc9 == 1) && (fm == (long long)G) &&
-                         (sr9.closed == true) && (sr9.resid == (long long)R) &&
-                         (sr9.drop == D) && (sr9.w70b == D) &&
-                         (sr9.delivered == K + D + R);
-            printf("MIR_SELFTEST T10 stream drop: pc=%llu rc=%d fm=%lld(期望 %llu) closed=%d resid=%lld "
-                   "drop=%llu deliv=%llu %s\n",
-                   (unsigned long long)sr9.bytes, rc9, fm, (unsigned long long)G, (int)sr9.closed,
-                   sr9.resid, (unsigned long long)sr9.drop, (unsigned long long)sr9.delivered,
-                   pass9 ? "OK" : "FAIL");
+            int rc9 = verify_buf(dst9.data(), sr9.bytes, VIS, xorc, pat_off, &fm);
+            long long old_eq = (long long)sr9.bytes + (long long)sr9.drop - (long long)sr9.taken;
+            bool pass9 = (sr9.bytes == VIS) && (rc9 == 1) && (fm == (long long)G) &&
+                         (sr9.taken == TAKEN) && (sr9.drop == D) && (sr9.w70b == D) &&
+                         (sr9.closed_a == true) && (sr9.resid_shaper == (long long)SR) &&
+                         (sr9.closed_b == true) && (sr9.resid_mirror == (long long)MR) &&
+                         (sr9.ended_early == true) && (old_eq == 688);
+            printf("MIR_SELFTEST T10 (D1 reg) pc=%llu taken=%llu drop=%llu 式A=%lld(closed=%d) 式B=%lld(closed=%d) "
+                   "ended_early=%d fm=%lld(期望 %llu) 旧式=pc+drop-taken=%lld(应∉[0,24]) %s\n",
+                   (unsigned long long)sr9.bytes, (unsigned long long)sr9.taken,
+                   (unsigned long long)sr9.drop, sr9.resid_shaper, (int)sr9.closed_a,
+                   sr9.resid_mirror, (int)sr9.closed_b, (int)sr9.ended_early, fm,
+                   (unsigned long long)G, old_eq, pass9 ? "OK" : "FAIL");
             if (!pass9) bad = 1;
         }
-        // T10b ⭐ **负对照: 构造一个必然不闭合的输入 ⇒ 必须报红** (交付计数凭空多 64 字 = 256 B)
+        // T10b ⭐ 负对照: **取走计数被凭空打偏 64 字 (256 B)** ⇒ **两条式都必须红** (各自指名)
         {
             const uint64_t K = 65536;
-            const uint32_t R = 4, BIASW = 64;
+            const uint32_t D = 0, MR = 4, SR = 8, BIASW = 64;
+            const uint64_t TAKEN = K - D - MR, VIS = TAKEN - SR;
             static MemIo ma; static MemStreamIo sta; static std::vector<uint8_t> visa;
             ma.bid = 0x22; ma.ver = VER_ST;
-            visa.resize((size_t)K);
-            { P7bPat p(pat_off); for (uint64_t i = 0; i < K; i++) visa[(size_t)i] = (uint8_t)(p.next() ^ xorc); }
-            sta.reg = &ma; sta.data = visa.data(); sta.len = K; sta.resid = R;
+            mk_visible(visa, VIS, 0, 0);
+            sta.reg = &ma; sta.data = visa.data(); sta.len = VIS;
+            sta.src_k = K; sta.drop_total = D; sta.mirror_resid = MR; sta.shaper_resid = SR;
             sta.dma_bias_words = BIASW; sta.arm();
-            StreamOpts o; o.want = K; o.chunk = 65536; o.resid_max = resid_max;
+            StreamOpts o; o.want = VIS; o.chunk = 65536; o.k_bytes = K;   // ⭐ K 显式声明
+            o.resid_max_mirror = resid_max_mirror; o.resid_max_shaper = resid_max_shaper;
             o.settle_s = 0.0; o.sample_ms = 0.0;
-            std::vector<uint8_t> dsta((size_t)K + 64);
+            std::vector<uint8_t> dsta((size_t)VIS + 64);
             StreamRes sra = run_stream(ma, sta, dsta.data(), dsta.size(), o);
-            long long exp_resid = (long long)R + (long long)BIASW * 4;
-            bool passa = (sra.closed == false) && (sra.resid == exp_resid);
-            printf("MIR_SELFTEST T10b stream NOT-closing (bias=+%u 字): closed=%d resid=%lld (期望 0/%lld) %s\n",
-                   BIASW, (int)sra.closed, sra.resid, exp_resid, passa ? "OK" : "FAIL");
+            long long exp_a = (long long)SR + (long long)BIASW * 4;      // 式 A 蕴含 = 8 + 256 = 264 (> 32)
+            long long exp_b = (long long)MR - (long long)BIASW * 4;      // 式 B 蕴含 = 4 − 256 = −252 (< 0)
+            bool passa = (sra.closed_a == false) && (sra.resid_shaper == exp_a) &&
+                         (sra.closed_b == false) && (sra.resid_mirror == exp_b);
+            printf("MIR_SELFTEST T10b stream BOTH-red (bias=+%u 字): 式A resid=%lld(期望 %lld, closed=%d) "
+                   "式B resid=%lld(期望 %lld, closed=%d) %s\n",
+                   BIASW, sra.resid_shaper, exp_a, (int)sra.closed_a,
+                   sra.resid_mirror, exp_b, (int)sra.closed_b, passa ? "OK" : "FAIL");
             if (!passa) bad = 1;
         }
-        // T10c ⭐ 跑中**回卷** (全局 #55): 交付计数起点贴近 2^32 ⇒ 跑中翻过 0 ⇒
+        // T10c ⭐ 跑中**回卷** (全局 #55): 取走计数起点贴近 2^32 ⇒ 跑中翻过 0 ⇒
         //   跨回卷累计必须仍给出正确的 Δ (真板 1.7 GB/s 下 ~10 s 就翻一次)
         {
-            const uint64_t K = 65536; const uint32_t R = 4;
+            const uint64_t K = 65536; const uint32_t D = 0, MR = 4, SR = 8;
+            const uint64_t TAKEN = K - D - MR, VIS = TAKEN - SR;
             static MemIo mb; static MemStreamIo stb; static std::vector<uint8_t> visb;
             mb.bid = 0x22; mb.ver = VER_ST;
-            visb.resize((size_t)K);
-            { P7bPat p(pat_off); for (uint64_t i = 0; i < K; i++) visb[(size_t)i] = (uint8_t)(p.next() ^ xorc); }
-            stb.reg = &mb; stb.data = visb.data(); stb.len = K; stb.resid = R;
-            stb.dma_base = 0xFFFFF000u;                 // 距回卷 4096 字 (< 本跑的 K/4 = 16384 字)
+            mk_visible(visb, VIS, 0, 0);
+            stb.reg = &mb; stb.data = visb.data(); stb.len = VIS;
+            stb.src_k = K; stb.drop_total = D; stb.mirror_resid = MR; stb.shaper_resid = SR;
+            stb.dma_base = 0xFFFFF000u;                 // 距回卷 4096 字 (< 本跑的 TAKEN/4 = 16383 字)
             stb.arm();
-            StreamOpts o; o.want = K; o.chunk = 8192; o.resid_max = resid_max;
+            StreamOpts o; o.want = VIS; o.chunk = 8192; o.k_bytes = K;    // ⭐ K 显式声明
+            o.resid_max_mirror = resid_max_mirror; o.resid_max_shaper = resid_max_shaper;
             o.settle_s = 0.0; o.sample_ms = 0.0;
-            std::vector<uint8_t> dstb((size_t)K + 64);
+            std::vector<uint8_t> dstb((size_t)VIS + 64);
             StreamRes srb = run_stream(mb, stb, dstb.data(), dstb.size(), o);
-            bool passb = (srb.bytes == K) && (srb.dwords == (K + R) / 4) && (srb.delivered == K + R) &&
-                         (srb.closed == true) && (srb.words1 < srb.words0);   // 确实翻过 0
-            printf("MIR_SELFTEST T10c stream wrap: words0=%u words1=%u(wrapped=%d) dwords=%llu "
-                   "deliv=%llu closed=%d %s\n",
+            bool passb = (srb.bytes == VIS) && (srb.dwords == TAKEN / 4) && (srb.taken == TAKEN) &&
+                         (srb.closed_a == true) && (srb.closed_b == true) &&
+                         (srb.words1 < srb.words0);   // 确实翻过 0
+            printf("MIR_SELFTEST T10c stream wrap: words0=%u words1=%u(wrapped=%d) dwords=%llu taken=%llu "
+                   "式A=%lld/%d 式B=%lld/%d %s\n",
                    srb.words0, srb.words1, (int)(srb.words1 < srb.words0),
-                   (unsigned long long)srb.dwords, (unsigned long long)srb.delivered,
-                   (int)srb.closed, passb ? "OK" : "FAIL");
+                   (unsigned long long)srb.dwords, (unsigned long long)srb.taken,
+                   srb.resid_shaper, (int)srb.closed_a, srb.resid_mirror, (int)srb.closed_b,
+                   passb ? "OK" : "FAIL");
             if (!passb) bad = 1;
         }
         // T10d ⭐ 静默窗前提 (TL 2026-10-11 裁定 3): level != 0 ⇒ 前提未见证 ⇒
         //   ① run_stream 必须如实报 quiesced=0/premise=0 且**实际等满** settle 窗;
         //   ② `quiesce_verdict` 在 strict 下必须返回 1 (= 调用侧判红) ⇒ 这就是新前提的牙。
         {
-            const uint64_t K = 16384;
+            const uint64_t K = 16384; const uint32_t D = 0, MR = 4, SR = 8;
+            const uint64_t TAKEN = K - D - MR, VIS = TAKEN - SR;
             static MemIo mc; static MemStreamIo stc; static std::vector<uint8_t> visc;
             mc.bid = 0x22; mc.ver = VER_ST;
             mc.nbytes = 4096;                          // ⇒ mock 的 level = (4096-0)/4 = 1024 ≠ 0
-            visc.resize((size_t)K);
-            { P7bPat p(pat_off); for (uint64_t i = 0; i < K; i++) visc[(size_t)i] = (uint8_t)(p.next() ^ xorc); }
-            stc.reg = &mc; stc.data = visc.data(); stc.len = K; stc.arm();
-            StreamOpts o; o.want = K; o.chunk = 4096; o.resid_max = resid_max;
+            mk_visible(visc, VIS, 0, 0);
+            stc.reg = &mc; stc.data = visc.data(); stc.len = VIS;
+            stc.src_k = K; stc.drop_total = D; stc.mirror_resid = MR; stc.shaper_resid = SR; stc.arm();
+            StreamOpts o; o.want = VIS; o.chunk = 4096; o.k_bytes = K;    // ⭐ K 显式声明
+            o.resid_max_mirror = resid_max_mirror; o.resid_max_shaper = resid_max_shaper;
             o.settle_s = 0.05; o.sample_ms = 0.0;      // 有界静默窗 = 50 ms
-            std::vector<uint8_t> dstc((size_t)K + 64);
+            std::vector<uint8_t> dstc((size_t)VIS + 64);
             StreamRes src = run_stream(mc, stc, dstc.data(), dstc.size(), o);
-            bool passc = (src.bytes == K) && (!src.quiesced) && (!src.premise_level0) &&
+            bool passc = (src.bytes == VIS) && (!src.quiesced) && (!src.premise_level0) &&
                          (src.level_end == 1024u) && (src.wait_ms >= 40.0) &&
                          (quiesce_verdict(src.quiesced, true) == 1) &&     // strict ⇒ 判红
                          (quiesce_verdict(src.quiesced, false) == 0) &&    // 显式放行 ⇒ 不判红
@@ -1029,6 +1132,30 @@ int main(int argc, char **argv) {
                    quiesce_verdict(src.quiesced, true), quiesce_verdict(src.quiesced, false),
                    passc ? "OK" : "FAIL");
             if (!passc) bad = 1;
+        }
+        // T10e ⭐ **成形器残余越界 ⇒ 式 A 必须红、而式 B 仍绿** (两条各自独立的牙)
+        {
+            const uint64_t K = 65536; const uint32_t D = 0, MR = 4, SR = 40;   // SR=40 > R_A(32)
+            const uint64_t TAKEN = K - D - MR, VIS = TAKEN - SR;
+            static MemIo md; static MemStreamIo std_; static std::vector<uint8_t> visd;
+            md.bid = 0x22; md.ver = VER_ST;
+            mk_visible(visd, VIS, 0, 0);
+            std_.reg = &md; std_.data = visd.data(); std_.len = VIS;
+            std_.src_k = K; std_.drop_total = D; std_.mirror_resid = MR; std_.shaper_resid = SR;
+            std_.arm();
+            StreamOpts o; o.want = VIS; o.chunk = 65536; o.k_bytes = K;   // ⭐ K 显式声明
+            o.resid_max_mirror = resid_max_mirror; o.resid_max_shaper = resid_max_shaper;
+            o.settle_s = 0.0; o.sample_ms = 0.0;
+            std::vector<uint8_t> dstd((size_t)VIS + 64);
+            StreamRes srd = run_stream(md, std_, dstd.data(), dstd.size(), o);
+            bool passd = (srd.bytes == VIS) && (srd.taken == TAKEN) &&
+                         (srd.closed_a == false) && (srd.resid_shaper == (long long)SR) &&
+                         (srd.closed_b == true) && (srd.resid_mirror == (long long)MR);
+            printf("MIR_SELFTEST T10e shaper overflow: 式A resid=%lld(期望 %u > %u ⇒ closed=%d) "
+                   "式B resid=%lld(closed=%d) %s\n",
+                   srd.resid_shaper, SR, resid_max_shaper, (int)srd.closed_a,
+                   srd.resid_mirror, (int)srd.closed_b, passd ? "OK" : "FAIL");
+            if (!passd) bad = 1;
         }
         // T11 ver 两态 × 三路径的门矩阵 (6 格; 越轨必须被拒)
         {
@@ -1194,10 +1321,11 @@ int main(int argc, char **argv) {
             return 2;
         }
         printf("MIR_STREAM_BUF bytes=%zu mb=%u prefault=1 aligned=4096\n", buf_bytes, buf_mb);
-        printf("MIR_STREAM_CFG dev=%s bytes=%llu chunk=%llu resid_max=%u settle=%.2f sample_ms=%.1f "
-               "arm=%d src=%d\n",
+        printf("MIR_STREAM_CFG dev=%s bytes=%llu chunk=%llu resid_max_shaper=%u resid_max_mirror=%u "
+               "k_bytes=%llu settle=%.2f sample_ms=%.1f arm=%d src=%d\n",
                stream_dev ? stream_dev : dma_dev, (unsigned long long)want, (unsigned long long)chunk,
-               resid_max, settle_s, sample_ms, (int)!noarm, src_sel);
+               resid_max_shaper, resid_max_mirror, (unsigned long long)k_bytes, settle_s, sample_ms,
+               (int)!noarm, src_sel);
         printf("MIR_STREAM_ALIGN want_mod_64=%llu chunk_mod_64=%llu (PG195: 描述符长度须 64 B 倍数)\n",
                (unsigned long long)(want % 64u), (unsigned long long)(chunk % 64u));
         // 看门狗 (只有显式 --seconds 才武装; 默认 0 = 不武装 → 阻塞 read 可能久等)
@@ -1213,39 +1341,46 @@ int main(int argc, char **argv) {
 #endif
         FdStreamIo sio(stream_dev ? stream_dev : dma_dev);
         StreamOpts so;
-        so.want = want; so.chunk = chunk; so.resid_max = resid_max;
+        so.want = want; so.chunk = chunk;
+        so.resid_max_mirror = resid_max_mirror; so.resid_max_shaper = resid_max_shaper;
+        so.k_bytes = k_bytes;
         so.settle_s = settle_s; so.sample_ms = sample_ms;
         so.arm = !noarm; so.src_sel = src_sel; so.strict_quiesce = strict_quiesce;
         StreamRes sr = run_stream(io, sio, buf, buf_bytes, so);
 #ifndef _WIN32
         if (wd_s > 0) alarm(0);
 #endif
-        // ---- 三件记账全部打原始值 (U1) ----
-        printf("MIR_STREAM_DONE pc=%llu reads=%llu partial=%llu nonmul64=%llu short=%d secs=%.3f "
-               "rate_Bps=%.0f\n",
+        // ---- 原始值全打 (U1) ----
+        printf("MIR_STREAM_DONE pc=%llu reads=%llu partial=%llu nonmul64=%llu short=%d ended_early=%d "
+               "read_error=%d secs=%.3f rate_Bps=%.0f\n",
                (unsigned long long)sr.bytes, (unsigned long long)sr.reads,
                (unsigned long long)sr.partial, (unsigned long long)sr.nonmul64, sr.short_reads,
-               sr.secs, sr.secs > 0 ? (double)sr.bytes / sr.secs : 0.0);
-        printf("MIR_STREAM_ACCT pc=%llu dW70=%llu w70a=%u w70b=%u words0=%u words1=%u dwords=%llu "
-               "delivered_bytes=%llu\n",
-               (unsigned long long)sr.bytes, (unsigned long long)sr.drop, sr.w70a, sr.w70b,
-               sr.words0, sr.words1, (unsigned long long)sr.dwords,
-               (unsigned long long)sr.delivered);
+               (int)sr.ended_early, (int)sr.read_error, sr.secs,
+               sr.secs > 0 ? (double)sr.bytes / sr.secs : 0.0);
+        printf("MIR_STREAM_ACCT pc=%llu taken_bytes=%llu dW70=%llu w70a=%u w70b=%u words0=%u words1=%u "
+               "dwords=%llu K=%llu\n",
+               (unsigned long long)sr.bytes, (unsigned long long)sr.taken,
+               (unsigned long long)sr.drop, sr.w70a, sr.w70b, sr.words0, sr.words1,
+               (unsigned long long)sr.dwords, (unsigned long long)sr.k);
         printf("MIR_STREAM_QUIESCE level_end=%u quiesced=%d premise_level0=%d waited_ms=%.1f settle_s=%.2f "
-               "strict=%d (前提: FIFO 尾部已排空 ⇒ 残余上界 = 镜像 acc+stg ≤%u B; 打包器残留由 FPGA 侧停流 flush 清)\n",
+               "strict=%d (前提: FIFO 尾部已排空; 打包器残留由 FPGA 侧停流 flush 清)\n",
                sr.level_end, (int)sr.quiesced, (int)sr.premise_level0, sr.wait_ms, settle_s,
-               (int)strict_quiesce, resid_max);
-        printf("MIR_STREAM_CLOSURE pc + dW70 + resid == delivered_bytes  ->  resid_implied=%lld "
-               "band=[0,%u] closed=%d premise_level0=%d (残余口径 = app_rx_mirror 头注释 acc_cnt_r+stg_cnt)\n",
-               sr.resid, resid_max, (int)sr.closed, (int)sr.premise_level0);
+               (int)strict_quiesce);
+        // ⭐⭐⭐ D1 修复: **两条独立恒等式, 各自命名打印** (旧式 pc+dW70+残余==taken 已废)
+        printf("MIR_STREAM_IDA 式A(成形器) taken_bytes - pc == shaper_resid -> %lld  band=[0,%u] closed_a=%d\n",
+               sr.resid_shaper, resid_max_shaper, (int)sr.closed_a);
+        printf("MIR_STREAM_IDB 式B(镜像/K) K - taken_bytes - dW70 == mirror_resid -> %lld  band=[0,%u] closed_b=%d "
+               "(K 来源=%s; --resid-max 旧名%s)\n",
+               sr.resid_mirror, resid_max_mirror, (int)sr.closed_b,
+               k_bytes ? "--k-bytes" : "--bytes", resid_max_alias_used ? "已用(生效值 = 式B 上界)" : "未用");
         printf("MIR_STREAM_WRAP words0=%u words1=%u wrap_seen=%d dword_max_step=%u (回卷余量: 单步 <2^32)\n",
                sr.words0, sr.words1, (int)(sr.words1 < sr.words0), sr.dword_max_step);
-        // 序列 (交付-抓取差随时间; 单调增 ⇒ 宿主跟不上)
+        // 序列 (取走-抓取差随时间; 单调增 ⇒ 宿主跟不上)
         {
             uint64_t gap0 = 0, gapN = 0, gapmax = 0; int nondec = 1; uint64_t prevg = 0;
             for (size_t i = 0; i < sr.series.size(); i++) {
                 const StreamSample &sp = sr.series[i];
-                // "交付-抓取"差用**跨回卷累计**值算 (单点原始 words 会在回卷后塌, 只作展示)
+                // "取走-抓取"差用**跨回卷累计**值算 (单点原始 words 会在回卷后塌, 只作展示)
                 long long gs = (long long)(sp.dacc * 4u) - (long long)sp.pc;
                 uint64_t g = (gs > 0) ? (uint64_t)gs : 0ull;
                 if (i == 0) gap0 = g;
@@ -1262,10 +1397,10 @@ int main(int argc, char **argv) {
                 }
             }
             {
-                uint64_t miss = sr.delivered > sr.bytes ? sr.delivered - sr.bytes : 0;
-                double pct = sr.delivered ? (double)miss * 100.0 / (double)sr.delivered : 0.0;
+                uint64_t miss = sr.taken > sr.bytes ? sr.taken - sr.bytes : 0;
+                double pct = sr.taken ? (double)miss * 100.0 / (double)sr.taken : 0.0;
                 printf("MIR_STREAM_GAP first=%llu last=%llu max=%llu nondecreasing=%d host_miss_bytes=%llu "
-                       "host_miss_pct=%.4f (= (delivered-pc)/delivered; 与 dW70+残余 的差 = 在飞/未取走)\n",
+                       "host_miss_pct=%.4f (= (taken-pc)/taken; 宿主跟不上的比例)\n",
                        (unsigned long long)gap0, (unsigned long long)gapN, (unsigned long long)gapmax,
                        nondec, (unsigned long long)miss, pct);
             }
@@ -1279,28 +1414,34 @@ int main(int argc, char **argv) {
             fwrite(buf, 1, (size_t)sr.bytes, f); fclose(f);
         }
         long long fm2 = -1; int rc = 0;
-        if (!noverify) rc = verify_buf(buf, sr.bytes, want, xorc, pat_off, &fm2);
-        if (!noverify) printf("MIR_VERIFY rc=%d first_mismatch=%lld of %llu\n", rc, fm2,
-                              (unsigned long long)want);
+        // ⭐ D1 修复: 内容判据 = **纯内容** (对 pc 个字节逐字节); "不足量"由式 B 解释, 不再单独判红
+        if (!noverify) rc = verify_buf(buf, sr.bytes, sr.bytes, xorc, pat_off, &fm2);
+        if (!noverify) printf("MIR_VERIFY rc=%d first_mismatch=%lld of pc=%llu (want=%llu; 不足量看式B)\n",
+                              rc, fm2, (unsigned long long)sr.bytes, (unsigned long long)want);
         int fail = 0;
-        if (sr.short_reads) { fprintf(stderr, "FAIL: %d 次短读/读错 (流提前结束或看门狗截断)\n", sr.short_reads); fail = 1; }
+        if (sr.read_error) { fprintf(stderr, "FAIL: stream 真读错 (非早停/非看门狗) —— 见上一条\n"); fail = 1; }
         if (rc == 1) { fprintf(stderr, "FAIL: content mismatch at %lld\n", fm2); fail = 1; }
-        if (rc == 2) { fprintf(stderr, "FAIL: short (got %llu of %llu bytes)\n",
-                              (unsigned long long)sr.bytes, (unsigned long long)want); fail = 1; }
-        if (!sr.closed) {
-            fprintf(stderr, "FAIL: 闭合式不成立: pc=%llu + dW70=%llu + 残余(蕴含)=%lld != 交付字节=%llu "
-                            "(带宽 [0,%u]; 可能 = 位流口径不同代 / 有未记账的丢字节)\n",
-                    (unsigned long long)sr.bytes, (unsigned long long)sr.drop, sr.resid,
-                    (unsigned long long)sr.delivered, resid_max);
+        if (!sr.closed_a) {
+            fprintf(stderr, "FAIL: 式 A (成形器) 不成立: taken_bytes(%llu) - pc(%llu) = %lld ∉ [0,%u] "
+                            "(成形器/在飞残余越界)\n",
+                    (unsigned long long)sr.taken, (unsigned long long)sr.bytes, sr.resid_shaper,
+                    resid_max_shaper);
             fail = 1;
         }
-        // ⭐ 前提断言 (TL 2026-10-11 裁定 3): level==0 是"残余上界 ≤24 B"的见证前提 ⇒ 未见证
+        if (!sr.closed_b) {
+            fprintf(stderr, "FAIL: 式 B (镜像/K 侧) 不成立: K(%llu) - taken_bytes(%llu) - dW70(%llu) = %lld "
+                            "∉ [0,%u] (镜像残余越界 / K 口径不对 —— 若抓的是源流前缀请用 --k-bytes 声明源交付量)\n",
+                    (unsigned long long)sr.k, (unsigned long long)sr.taken,
+                    (unsigned long long)sr.drop, sr.resid_mirror, resid_max_mirror);
+            fail = 1;
+        }
+        // ⭐ 前提断言 (TL 2026-10-11 裁定 3): level==0 是"两条残余上界"的见证前提 ⇒ 未见证
         //   一律响亮 (rc=1); 非静默场景要用, 就显式 --no-strict-quiesce (放行也打见证, 不静默)
         if (quiesce_verdict(sr.quiesced, strict_quiesce)) {
             fprintf(stderr, "FAIL: 静默窗未达 level==0 (level_end=%u, 实等 %.1f ms / settle=%.2f s): "
-                            "\"残余上界 ≤%u B\" 的前提未获见证 ⇒ 本跑账本按\"不可判\"读 "
+                            "\"残余上界\"的前提未获见证 ⇒ 本跑账本按\"不可判\"读 "
                             "(非静默场景请显式 --no-strict-quiesce)\n",
-                    sr.level_end, sr.wait_ms, settle_s, resid_max);
+                    sr.level_end, sr.wait_ms, settle_s);
             fail = 1;
         } else if (!sr.quiesced) {
             printf("MIR_STREAM_QUIESCE_OVERRIDE strict=0 level_end=%u (显式放行: 前提未见证, 账本按\"不可判\"读)\n",
