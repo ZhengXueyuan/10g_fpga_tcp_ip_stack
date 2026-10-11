@@ -1,0 +1,122 @@
+  [PASS] 1  MAGIC = 50360001
+  [PASS] (P8 яяяеяЏ 8яяяжяяяћяяяє = 0x20) = 00000020
+  [PASS] 3  MARKER = deadbeef
+  [PASS] 4  HW_STATUS.bit3 = user_lnk_up = 1 (ж›їиє«е·ІжЉҐй“ѕи·Їиµ·)
+  [INFO] W5(gmii_free): 000000a2 -> 00000881
+  [PASS] 5  gmii еџџи‡Єз”±и®Ўж•°ењЁи·‘ (еї«з…§ CDC зњџзљ„ењЁжђ¬ж•°)
+  [INFO] W5(fe)=2193->6211 (О”4018)  W24(dp)=2743->7766 (О”5023)
+  [PASS] 5b О”W24/О”W5 = 5023/4018 = 1.2501 в€€ [1.24, 1.26] в‡’ ж•°жЌ®йќўи·‘ењЁ 156.25MHz (1.25Г—125MHz)
+  [PASS] locked == 1 (DP яяяйяяяєяяяЃяяљ) = 00000001
+  [PASS] 6 W0 = rx_stat_frames = 11111111
+  [PASS] 6 W1 = rx_stat_bytes = 22222222
+  [PASS] 6 W2 = {16'd0,wl_last} = 0000abcd
+  [PASS] 6 W3 = rx_stat_crc_err = 33333333
+  [PASS] 6 W4 = rx_stat_drop = 44444444
+  [PASS] 6 W6 = srx_stat_commit = 66666666
+  [PASS] 6 W7  = stx_stat_frames = 77777777
+  [PASS] 6 W8  = udpapp_tx_frames = 88888888
+  [PASS] 6 W9  = udpapp_tx_bytes = 99999999
+  [PASS] 6 W10 = udpapp_rx_frames = aaaaaaaa
+  [PASS] 6 W11 = udpapp_rx_bytes = bbbbbbbb
+  [PASS] 6 W12 = udpapp_rx_null = cccccccc
+  [PASS] 6 W13 = udpapp_mismatch = dddddddd
+  [PASS] 6 W14 = tx_stat_frames (TCP) = eeeeeeee
+  [PASS] 6 W15 = tx_stat_bytes (TCP) = ffffffff
+  [PASS] 6 W16 = srx_hls_bytes = 01020304
+  [PASS] 6 W17 = hr_cnt = 05060708
+  [PASS] 6 W18 = stx_stat_purge = 090a0b0c
+  [PASS] 6 W19 = srx_stat_drop = 0d0e0f10
+  [PASS] 6 W20 = mac_tx_frames = 11121314
+  [PASS] 6 W21 = tx_stat_abort = 15161718
+  [PASS] 6 W22 = rx_stat_pass = 191a1b1c
+  [PASS] 6 W23 = rx_stat_nonmatch = 1d1e1f20
+  [PASS] 6 W26 = rxcdc_full_cycles = 21222324
+  [PASS] 6 W27 = {16'd0,rxcdc_occ_max} = 00002526
+  [PASS] 6 W28 = {16'd0,txcdc_occ_max} = 00002728
+  [PASS] 6 W29 = txwire_stall_cycles = 292a2b2c
+  [PASS] 6 W30 = rxcdc_out_frames = 2d2e2f30
+  [PASS] 6 W31 = rxcdc_out_bytes = 31323334
+  [PASS] 6 W32 = stat_drop_partial (C10) = 35363738
+  [PASS] 6 W33 = stat_orphan_bytes (C10) = 393a3b3c
+  [PASS] 6 W34 = stat_drop_full = 3d3e3f40
+  [PASS]  stat_fifo_ovf (яя’ яяяЃяяя·яяЌ) = 41424344
+  [PASS] 6 W70 = u_mir.drop_bytes (M1) = 4d494d31
+  [PASS] ning) frozen while not triggered = 00001861
+  [PASS] 8  gen жЃ°еҐЅ +1 (5 -> 6)
+  [PASS] 9  unimpl 0x14C => rresp=SLVERR = 00000002
+  [PASS] M1-0a idle level == 0 = 00000000
+  [PASS] M1-0b idle unf_sticky == 0 = 00000000
+  [PASS] M1-1a ctrl: capture_on == 1 = 00000001
+  [PASS] evel == 2 (8B = 2 logical words) = 00000002
+  [PASS] M1-2b any_drop == 0 (no drop) = 00000000
+  [PASS] M1-3a content == 0xA1A6A7A4 = a1a6a7a4
+  [PASS] == 1 (dec by 1, stash holds 2nd) = 00000001
+  [PASS] 1 == 0xADA2A3A0 (0x08^0xA5=0xAD) = ada2a3a0
+  [PASS] M1-3d level == 0 (both popped) = 00000000
+  [PASS] M1-4a pre: level == 2 = 00000002
+  [PASS] 4b lvl unchanged == 2 (S1 tooth) = 00000002
+  [PASS] M1-5a 0x14C rresp = SLVERR = 00000002
+  [PASS] M1-5b lvl unchanged == 2 = 00000002
+  [PASS] M1-6a 0x100 bresp = SLVERR = 00000002
+  [PASS] M1-6b lvl unchanged == 2 = 00000002
+  [PASS] M1-7a word2 == 0x81868784 = 81868784
+  [PASS] M1-7a2 word3 == 0x8D828380 = 8d828380
+  [PASS] M1-7b empty read = MIR_SENT = 5a5a5a5a
+  [PASS] M1-7c unf_sticky set = 00000001
+  [PASS] M1-7d level still == 0 = 00000000
+  [PASS] M1-8a unf_sticky cleared = 00000000
+  [PASS] M1-8b cap_en kept by clr = 00000001
+  [INFO] M1-9 W70: 4d494d31 -> 4d494e79 (з€†еЏ‘ 300 ж‹Ќ x 8B/ж‹Ќ)
+  [PASS] M1-9a dW70 > 0 (ж‹’ж”¶иў«и®Ўе€° + еї«з…§и·Їеѕ„зњџ)
+  [PASS] M1-9b any_drop_sticky == 1 = 00000001
+  [INFO] M1-11 DMA_CNT: 00000000 -> 00000258 ; W70: 4d494e79 -> 4d494e79 ; level=0
+  [PASS]  0 (structural drop unreachable) = 00000000
+  [PASS] _CNT == 600 (300x8B = 600 words) = 00000258
+  [PASS] M1-11c level == 0 after drain = 00000000
+  [PASS] M1-10a1 src_sel readback == 1 = 00000001
+  [PASS] M1-10a2 capture_on == 1 = 00000001
+  [PASS] M1-10a3 cяяяеяяяљ„ level == 0 = 00000000
+  [PASS]  UDPяяяЄяяяйяяяё­ => levяяядяЌ 0 = 00000000
+  [PASS] 10c1 TCPяяя«яяядя­ => level == 2 = 00000002
+  [PASS] 10c2 TCPяяяЅяяяея— == 0xA1A6A7A4 = a1a6a7a4
+  [PASS] яяя“ => level == 3 (яяЄ TCP, +2) = 00000003
+  [PASS] яяя‹яяяЊяя“ яяяея— 1яяяЇ TCPяяя§ = ada2a3a0
+  [PASS] яя— 2 == 0xE19687B4 (TCPяяя° 8B) = e19687b4
+  [PASS] M1-10e1 src_sel readback == 0 = 00000000
+  [PASS] яяяћяяЋ TCP яяяияяяґ¦ => level 0 = 00000000
+  [PASS] яяя‡яяяеяЋ Uяяяияяяґ¦ => level 2 = 00000002
+  [PASS] 10e4 UDPяяяЅяяяея— == 0xFDF2F3F0 = fdf2f3f0
+  [PASS] яяяяяяЇяяязяяя­— (cяяяеяЋ == 0) = 00000000
+  [PASS] sel=0/dma_en=1 (яя© bit1 toggle) = 00000005
+  [PASS] яяя¬яя† яяя­— (MIR_DMA_CNT == 4) = 00000004
+  [PASS] яяявя’R яяяияяя—яяяжяяяїяяя”яя”) = 00000000
+  [PASS] M1-B-яяяжяяя•° == 1 (arlen=0) = 00000001
+  [PASS] M1-B-2c rlasяяя”яяя° = 00000001
+  [PASS] M1-B-2d rresp == OKAY = 00000000
+  [PASS] яяя®№ ==яяя‹яяяйяљ {w3,w2,w1,w0} = e1e6e7e49196979481868784b1b6b7b4
+  [PASS] M1-B-3a MIR_DMA_CNT == 20 (4+16) = 00000014
+  [PASS] M1-B-яяяжяяя¶яяя¶ = 00000000
+  [PASS] M1-B-3cяяяЌяя° == 4 = 00000004
+  [PASS] 1-B-яяяияяя†яяя№яяяжяЌ (row 1+i) = c0de0007c0de0006c0de0005c0de0004
+  [PASS] 1-B-яяяияяя†яяя№яяяжяЌ (row 1+i) = c0de000bc0de000ac0de0009c0de0008
+  [PASS] 1-B-яяяияяя†яяя№яяяжяЌ (row 1+i) = c0de000fc0de000ec0de000dc0de000c
+  [PASS] 1-B-яяяияяя†яяя№яяяжяЌ (row 1+i) = c0de0013c0de0012c0de0011c0de0010
+  [PASS] яяяеяяяЇяяяжяяя¶яяя¶яяяёяяяёяя‚) = 00000000
+  [PASS] -B-4яяяЄяяя–яя»:яяяЌяяяжяЎ 1яяяЌ = 00000001
+  [PASS] 1-B-яяязяяя¤яяя»: rresp = SLVERR = 00000002
+  [PASS] p = OKAYяяяЄяяя…яяязяяя­яяя№яя§) = 00000000
+  [PASS] M1-B-4e яяяияяяЇяяяжяяя¶яяя¶ = 00000000
+  [PASS] яяяея™: яяяияяя—яяяжяяяїяяя”яя”) = 00000000
+  [PASS] M1-B-яяяея™: яяяея° B = 00000001
+  [PASS] M1-B-5яяя†™: bresp == OKAY = 00000000
+  [PASS] M1-B-5dяяя™: bid == awiяяя›яяя« = 00000009
+  [PASS] M1-B-5eяяя™: 3 яяяеяяяЏяяя‹ = 00000003
+  [PASS]  == яяяжяяяЌяяяџяяяияяяёяяя«яяў) = 00000003
+  [PASS] 1-B-6a cяяяеяяяЋяяяЎяяяеяяяЅяяя¶ = 00000000
+  [PASS] en=0яяя’яяяЌяя¬ яяяЎяяяеяяя»Ќ 0) = 00000000
+  [PASS] яяя‡яяя­яяя™яяЁ leveяяя‡Њ (== 2) = 00000002
+  [PASS] яяяияяя»яяя¬яя° яяяЎяяяеяЁ == 2) = 00000002
+  [PASS] M1-B-6e яяяияяяђЋ level == 0 = 00000000
+PASS_ALL  tb_p6e_pcie_wrapper: е…Ёй“ѕй—Ёе…Ёиї‡
+INFO: xsimkernel Simulation Memory Usage: 115684 KB (Peak: 115684 KB), Simulation CPU Usage: 3671 ms
+INFO: [Common 17-206] Exiting xsim at Sun Oct 11 17:24:41 2026...

@@ -1,0 +1,224 @@
+#-----------------------------------------------------------
+# xsim v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Sun Oct 11 17:23:26 2026
+# Process ID         : 26212
+# Current directory  : D:/repo/XCKU5PMini/udp_hls_10g/sim/p7b_mir/xdir_mut_gate
+# Command line       : xsim.exe -log xsim.log -mode tcl -source {xsim.dir/tb_app_rx_mirror/xsim_script.tcl}
+# Log file           : D:/repo/XCKU5PMini/udp_hls_10g/sim/p7b_mir/xdir_mut_gate/xsim.log
+# Journal file       : D:/repo/XCKU5PMini/udp_hls_10g/sim/p7b_mir/xdir_mut_gate\xsim.jou
+# Running On         : xyz-intel
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26300
+# Processor Detail   : Intel(R) Core(TM) Ultra 7 265K
+# CPU Frequency      : 3878 MHz
+# CPU Physical cores : 20
+# CPU Logical cores  : 20
+# Host memory        : 68053 MB
+# Swap memory        : 4294 MB
+# Total Virtual      : 72348 MB
+# Available Virtual  : 37483 MB
+#-----------------------------------------------------------
+source xsim.dir/tb_app_rx_mirror/xsim_script.tcl
+# xsim {tb_app_rx_mirror} -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+=== tb_app_rx_mirror: M1 payload mirror unit gate (8B/beat contract) ===
+  --- G0: reset state ---
+  [PASS] G0a empty == 1 = 1
+  [PASS] G0b level == 0 = 0
+  [PASS] G0c drop_bytes == 0 = 00000000
+  [PASS] G0d any_drop == 0 = 0
+  [PASS] G0e any_drop_rd == 0 = 0
+  --- G1: cap_en=0, inject beats, capture must stay off ---
+  [PASS] G1a cap_en=0 => no capture = 0
+  [PASS] G1b drop_bytes == 0 = 00000000
+  [PASS] G1c empty == 1 = 1
+  --- G2: cap_en=1, one full beat => 1 word (= 2 logical words) ---
+  [PASS] G2a level == 2 (2 logical words) = 2
+  [PASS] G2b anchor: word_a == 0xF0C3D22D = f0c3d22d
+  [PASS] G2c level == 1 after first pop = 1
+  [PASS] G2d anchor: word_b == 0xB48796E1 = b48796e1
+  [PASS] G2e level == 0 after both pops = 0
+  --- G3: 4B partial beat => no word yet (new granularity) ---
+  [PASS] G3a level == 0 (4B: no word) = 0
+  [PASS] G3b 2nd 4B completes word = 2
+  [PASS] G3c anchor: word == 0xE19687B4 = e19687b4
+  [PASS] G3d anchor2 == 0x2DD2C3F0 = 2dd2c3f0
+  --- G4: accumulator across beats (1+0+2+1+4) ---
+  [PASS] G4a still <8B => level == 0 = 0
+  [PASS] G4b complete => level == 2 = 2
+  [PASS] G4c anchor == 0x78691E0F = 78691e0f
+  [PASS] G4d anchor2 == 0xE19687B4 = e19687b4
+  [PASS] G4e offered == 8 = 8
+  [PASS] G4f gold_n == 8 = 8
+  --- G5: tlast=1 mid-stream does not break the byte stream ---
+  [PASS] G5a tlast is not flush = 0
+  [PASS] G5b level == 2 = 2
+  [PASS] G5c anchor: word == 0xF01E0FB4 = f01e0fb4
+  [PASS] G5d anchor2 == 0x691E0F3C = 691e0f3c
+  [PASS] G5e level == 0 before G6 = 0
+  --- G6: tready=0 beats must not be captured ---
+  [PASS] G6a tready=0 => no capture = 0
+  [PASS] G6b empty == 1 = 1
+  --- G7: byte account, offered == 4*words ---
+  [INFO] G7 offered=24 gold_n=24 level=6 drop=0
+  [PASS] G7a drop_bytes == 0 = 0
+  [PASS] G7b level == 6 = 6
+  [PASS] G7c drained words == 6 = 6
+  [PASS] G7d words*4 == offered = 24
+  [PASS] G7e level == 0 after drain = 0
+  --- G12: aux pop port (2 words/beat) + host-priority + stash stall ---
+  [PASS] G12a empty: dma_gnt == 0 = 0
+  [PASS] G12b level == 2 before aux = 2
+  [PASS] G12c aux gnt count == 1 = 1
+  [PASS] G12d aux data == {wb, wa} = b48796e1f0c3d22d
+  [PASS] G12e level == 0 after aux drain = 0
+  [PASS] G12f level == 2 (req=0 holds) = 2
+  [PASS] G12g host priority: dma_gnt == 0 = 0
+  [PASS] G12h exactly 2 words consumed = 0
+  [PASS] G12i level == 4 (16B = 4 words) = 4
+  [PASS] G12j host pop0 == 0xA1A6A7A4 = a1a6a7a4
+  [PASS] G12k level == 3 (stash holds 1) = 3
+  [PASS] G12l aux stalls: gnt count == 1 = 1
+  [PASS] G12m aux pair == {word2, word1} = b1b6b7b4ada2a3a0
+  [PASS] G12n level == 1 (stash, no loss) = 1
+  [PASS] G12o stash drain == 0xBDB2B3B0 = bdb2b3b0
+  [PASS] G12p level == 0 (no loss) = 0
+  --- G13: sustained 8B/beat + aux drain => drop_bytes == 0 ---
+  [INFO] G13 offered=4800 gold_n=4800 gnt=600 level=0 d_drop=0 dword_mis=0
+  [PASS] G13a offered == 4800 (600x8B) = 4800
+  [PASS] G13b gold_n == 4800 = 4800
+  [PASS] G13c d_drop == 0 (struct gone) = 00000000
+  [PASS] G13d aux gnt == 600 = 600
+  [PASS] G13e drained == 1200 words = 1200
+  [PASS] G13f pairs == golden stream = 0
+  [PASS] G13g level == 0 after drain = 0
+  [PASS] G13h first pair anchor = 2dd2c3f0e19687b4
+  [PASS]  byte identity (resid = acc+stg) = 4800
+  --- G8: FIFO-full drops have teeth (300-beat burst, no drain) ---
+  [INFO] G8 offered=2400 d_drop=0 level=511 stg=0 acc=0
+  [PASS] G8a FIFO full at saturation = 1
+  [FAIL] _drop == 328 (cap-16 saturation) = 0 (exp 328)
+  [FAIL] G8c any_drop == 1 = 0 (exp 1)
+  [PASS] G8d level == 511 (clamp witness) = 511
+  [FAIL] on stg_cnt == 16 (CAP witnessed) = 0 (exp 16)
+  [FAIL] ation acc_cnt_r == 8 (held word) = 0 (exp 8)
+  [INFO] G8 drained=512 offered=2400 d_drop=0 resid=0
+  [FAIL] identity holds (resid = acc+stg) = 2048 (exp 2400)
+  [FAIL] G8h drained == 518 words = 512 (exp 518)
+  [PASS] G8i level == 0 after drain = 0
+  --- G11: write gate under full: byte identity holds (no silent loss) ---
+  [PASS] G11a FIFO reached full = 1
+  [PASS] G11b paced fill added no drops = 00000000
+  [INFO] G11 offered=2064 drained_words=512 d_drop=0 level=0
+  [FAIL] identity holds (resid = acc+stg) = 2048 (exp 2064)
+  [PASS] G11d level == 0 after drain = 0
+  --- G14: cap_en=0 freeze must not duplicate the held word ---
+  [PASS] G14a FIFO full = 1
+  [FAIL] G14b acc holds a whole word = 0 (exp 8)
+  [INFO] G14b2 residual split: acc=0 stg=0
+  [FAIL] held-word present (acc+stg >= 8) = 0 (exp 1)
+  [INFO] G14 drained_words=512 (expect 512 logical = 256 words)
+  [PASS] G14c drained == 512 (no dup) = 512
+  --- G15: phase-establish (4B) + 600 dense beats => drop==0 ---
+  [INFO] G15 offered=4804 gold_n=4804 gnt=600 level=0 d_drop=0 mis=0 resid=4
+  [PASS] G15a offered == 4804 = 4804
+  [PASS] G15b gold_n == 4804 = 4804
+  [PASS] G15c d_drop == 0 (phase-4 dense) = 00000000
+  [PASS] G15d aux gnt == 600 = 600
+  [PASS] G15e golden: all pairs match = 0
+  [PASS] G15f first pair anchor = a2a3a0a1a6a7a4a5
+  [PASS]  byte identity (resid = acc+stg) = 4804
+  --- G16: frames {1436,1460,1470,1477} x6, gap 0 / 4 ---
+  [INFO] G16 len=1436 gap=0 offered=8616 gold_n=8616 gnt=1077 d_drop=0 mis=0 resid=0
+  [INFO] G16 len=1436 gap=4 offered=8616 gold_n=8616 gnt=1077 d_drop=0 mis=0 resid=0
+  [INFO] G16 len=1460 gap=0 offered=8760 gold_n=8760 gnt=1095 d_drop=0 mis=0 resid=0
+  [INFO] G16 len=1460 gap=4 offered=8760 gold_n=8760 gnt=1095 d_drop=0 mis=0 resid=0
+  [INFO] G16 len=1470 gap=0 offered=8820 gold_n=8820 gnt=1102 d_drop=0 mis=0 resid=4
+  [INFO] G16 len=1470 gap=4 offered=8820 gold_n=8820 gnt=1102 d_drop=0 mis=0 resid=4
+  [INFO] G16 len=1477 gap=0 offered=8862 gold_n=8862 gnt=1107 d_drop=0 mis=0 resid=6
+  [INFO] G16 len=1477 gap=4 offered=8862 gold_n=8862 gnt=1107 d_drop=0 mis=0 resid=6
+  [PASS] G16 all 8 variants clean (drop==0 + golden + identity + anchor)
+  --- G17: phase scan ph=1..7 (residual ph bytes + 200 dense beats) ---
+  [INFO] G17 ph=1 offered=1601 gold_n=1601 gnt=200 d_drop=0 mis=0 resid=1
+  [INFO] G17 ph=2 offered=1602 gold_n=1602 gnt=200 d_drop=0 mis=0 resid=2
+  [INFO] G17 ph=3 offered=1603 gold_n=1603 gnt=200 d_drop=0 mis=0 resid=3
+  [INFO] G17 ph=4 offered=1604 gold_n=1604 gnt=200 d_drop=0 mis=0 resid=4
+  [INFO] G17 ph=5 offered=1605 gold_n=1605 gnt=200 d_drop=0 mis=0 resid=5
+  [INFO] G17 ph=6 offered=1606 gold_n=1606 gnt=200 d_drop=0 mis=0 resid=6
+  [INFO] G17 ph=7 offered=1607 gold_n=1607 gnt=200 d_drop=0 mis=0 resid=7
+  [PASS] G17 all 7 phases clean (drop==0 + golden + identity + anchor)
+  --- G18: worst-case trajectory anchor (ph=7): stg_cnt 7 -> 8 -> 15 -> 15 ---
+  [INFO] G18 trace_idx=0 max=15 d_drop=0
+  [TRACE] G18 s[0] stg=7 acc=0
+  [TRACE] G18 s[1] stg=8 acc=7
+  [TRACE] G18 s[2] stg=15 acc=0
+  [TRACE] G18 s[3] stg=15 acc=0
+  [TRACE] G18 s[4] stg=15 acc=0
+  [TRACE] G18 s[5] stg=15 acc=0
+  [TRACE] G18 s[20] stg=15 acc=0 (steady)
+  [PASS] 8a trajectory 7->8->15->15 found = 1
+  [PASS]  max stg_cnt == 15 (tight bound) = 15
+  [PASS] G18c steady sample == 15 = 15
+  [PASS] G18d d_drop == 0 = 00000000
+  [PASS]  G20 invariant violations so far = 0
+  --- G19ab: full -> release edge (variant A: exactly 1 beat, counted) ---
+  [PASS] G19a1 FIFO full at saturation = 1
+  [FAIL] _drop == 328 (cap-16 saturation) = 0 (exp 328)
+  [FAIL] on stg_cnt == 16 (CAP witnessed) = 0 (exp 16)
+  [FAIL] G19a4 saturation acc_cnt_r == 8 = 0 (exp 8)
+  [INFO] G19ab sat_drop=0 rel_drop=0 offered_delta=8 stg=0 acc=0
+  [FAIL] ge drop == 8 (<=1 beat, counted) = 0 (exp 8)
+  [PASS] G19b2 release beat was offered = 8
+  [FAIL] G19b3 any_drop == 1 = 0 (exp 1)
+  [INFO] G19ab drained=514 d_drop_total=0 resid=0
+  [FAIL] tity (saturation + release edge) = 2056 (exp 2408)
+  [FAIL] G19b5 drained == 518 words = 514 (exp 518)
+  [PASS] G19b6 level == 0 after drain = 0
+  --- G19c: cap_en=0 freeze mid-stream (staging non-empty) ---
+  [INFO] G19c frozen state stg=8 acc=0 level=42 offered=176
+  [PASS] c1 staging/acc non-empty witness = 1
+  [PASS] G19c2 no drop while frozen = 00000000
+  [PASS] G19c3 stg_cnt frozen = 8
+  [PASS] G19c4 acc_cnt_r frozen = 0
+  [PASS] G19c5 level frozen (no write) = 42
+  [PASS] 19c6 no drop while frozen (late) = 00000000
+  [INFO] G19c drained=84 offered=336 d_drop=0 resid=0
+  [PASS] c7 identity across freeze/resume = 336
+  [PASS] G19c8 level == 0 after drain = 0
+  --- G19d: clr with non-empty staging ---
+  [PASS] G19d1 residual == 5 B = 5
+  [PASS] G19d2 stg_cnt == 0 after clr = 0
+  [PASS] G19d3 acc_cnt_r == 0 after clr = 0
+  [PASS] G19d4 level == 0 after clr = 0
+  [PASS] G19d5 word0 == 0xE6E7E4E5 = e6e7e4e5
+  [PASS] G19d6 word1 == 0xE2E3E0E1 = e2e3e0e1
+  --- G19e: tlast on a partial beat with staging non-empty ---
+  [PASS] 9e1 tlast is not flush (level 0) = 0
+  [PASS] 19e2 level == 2 after completion = 2
+  [PASS] G19e3 word0 == 0xA6A7A4A5 = a6a7a4a5
+  [PASS] G19e4 word1 == 0xA2A3A0A1 = a2a3a0a1
+  [INFO] G20 invariant violations (all gates so far) = 0
+  [PASS] a stg_data invalid bits always 0 = 0
+  --- G9: clr (toggle) ---
+  [PASS] G9a pre: level == 2 (+2B resid) = 2
+  [PASS] G9b after clr: level == 0 = 0
+  [PASS] G9c after clr: any_drop == 0 = 0
+  [PASS] G9d any_drop_rd == 0 (CDC clear) = 0
+  [PASS] G9e clr keeps drop_bytes = 00000000
+  [PASS] G9f post-clr: level == 2 = 2
+  [PASS] G9g post-clr word0 == 0xA1A6A7A4 = a1a6a7a4
+  [PASS] G9h post-clr word1 == 0xADA2A3A0 = ada2a3a0
+  --- G10: final state ---
+  [PASS] G10a level == 0 = 0
+  [PASS] G10b empty == 1 = 1
+  [INFO] G20 invariant violations (whole run) = 0
+  [PASS] 0 stg_data invalid bits always 0 = 0
+
+APP_RX_MIRROR_GATE: FAIL (16 checks failed)
+$finish called at time : 119822 ns : File "D:/repo/XCKU5PMini/udp_hls_10g/tb/tb_app_rx_mirror.v" Line 1066
+exit
+INFO: [Common 17-206] Exiting xsim at Sun Oct 11 17:23:27 2026...

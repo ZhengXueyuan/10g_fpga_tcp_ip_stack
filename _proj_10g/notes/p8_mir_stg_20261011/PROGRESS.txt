@@ -1,0 +1,17 @@
+P8-STG (16B 弹性暂存) 实施进度 — 2026-10-11
+[T0] 开工: 现读 rtl/app_rx_mirror.v sha256=821d7593cbfd7fab7a24a6d665ccd6f0ed05a31efc757bcf73560e712b136519 (364 行) = 与派单一致
+[T0] 现读 tb/tb_app_rx_mirror.v (652 行) / DESIGN.md (476 行) / sim/p7b_mir/{run_tb_app_rx_mirror.bat,mut/make_mutants.py} / p8_mir8b_synth 配方
+[T0] 基线 (synth-only p8mir8b): LUT 84162 / FF 79080 / BRAM 354 / URAM 0 ; M1SYNTH_WNS=-0.371 / WHS=-0.661 / MIR_PINS=19090
+[T0] 基线 DP 定向: DP_WORST -0.371 lvl22 u_tcp_tx/FSM_sequential_rx_state_reg[0]/C -> u_app/stg_reg[0]/CE ; accreg_TO -0.371? (待查清单)
+[T1] RTL 实施完: 16B 弹性暂存 (stg_data/stg_cnt + sc4/keep/admit/nbmask/stg_ret/beat_pl/keep_bmask/stg_next)
+[T1] 过程中修两处实现 bug: (a) b7 取 lane8 应为 [71:64] (b) generate+genvar 三元式合并 xsim 取不到当拍 stg_ret ⇒ 改掩码式 (实测逐拍正确)
+[T2] TB: G15-G20 + G8/G11/G13/G14/G19 残余项改 acc+stg; 门 real 臂 = PASS_ALL
+[T3] 单元门突变 7 臂全 CAUGHT: mut_gate(16红: 恒等式+饱和锚+G14) / mut_order(9: 手锚+G16/17逐字) /
+     mut_cap4(73: G13/G15 dense drop+golden) / mut_admit14(19: G8饱和+G16(1477)+G17(ph7)+G18轨迹) /
+     mut_apos0(55: 手锚+golden+首对锚) / mut_dropcnt(7: 恒等式+any_drop) / mut_keep1(163: 记账全错)
+[T4] 环门 tb_mir_dma real = PASS_ALL (checks=45, 期望 0 改) ; p6e 全链 = PASS_ALL RC=0 (0 值改)
+[T5] synth 检查点 p8stg 启动 (后台)
+[T8] 证据归档 logs/: unit_{real,7突变}.xsim.log + ring/p6e stdout + synth stdout/pb_query/util/DP rpt
+[T8] 源绑定核 (#52 式): rtl 17:22:47 / tb 17:23:08 < unit real 17:23:16 < 突变(末 17:24:06) < 环 17:24:21 < p6e 17:24:41
+     ⇒ 全部门读数绑定到本轮终态源 (sha256 rtlf=d0310dd4… / tb=4aee89ce…)
+[T9] 全部交付完成: 实施 + 8 臂单元门 + 环门 + p6e + synth 检查点 + IMPL_REPORT.md ; 未出位流/未烧板/未 bump BID

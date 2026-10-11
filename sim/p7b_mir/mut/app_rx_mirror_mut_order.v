@@ -11,15 +11,34 @@
 // ★ **snoop 合同 (第一优先级)**: 只采样 `s_tvalid && s_tready`, **永不驱动**任何握手信号
 //   (s_tready 在本模块里是**只读**输入) ⇒ 对既有数据面逐位零影响。
 //
-// ⭐⭐ **写侧吞吐契约 (P8 阶段三 2026-10-11 重写; 旧版 = 4 B/拍, 见文末"旧契约"块)**:
-//   · **源一拍最多 8 B ⇒ 本模块一拍吸收 8 B** (暂存 64 位 + 累加器 64 位, 一拍搬 0..8 B,
-//     凑满 8 B 即写一个字)。⇒ **"结构吞吐类"丢字节对 ≤8 B/拍的源不可达**;
-//     唯一剩下的丢字节来源 = **② FIFO 满** (排空不够快)。故本版**删掉**旧版的
-//     "①暂存忙/结构吞吐上限"那一类 (板级实测: 旧版对 8 B/拍源恒丢 50%)。
+// ⭐⭐ **写侧吞吐契约 (P8-STG 弹性暂存 2026-10-11 重写; 上一版 = 8 B **单槽** `pend`,
+//   再上一版 = 4 B/拍 —— 见文末"旧契约"块)**:
+//   · 新版 = **16 B 字节粒度弹性暂存** (`stg_data[127:0]` + `stg_cnt[4:0]`): 每拍把暂存头部的
+//     `kk = min(8−acc_cnt, stg_cnt)` 个字节搬进累加器, **同一拍把源拍的 `n_b` 字节按字节粒度
+//     追加到暂存尾部** ⇒ 源拍与累加器的 **1..7 B 错位 (相位 ≠ 0) 不再要求源拍让位**。
+//   · ⚠️ **"结构吞吐类丢字节不可达"现在成立, 但前提必须逐条写清** (旧版那句话 (上一版
+//     `:16-18`)"结构吞吐类丢字节对 ≤8 B/拍源不可达"的**范围说宽了**, 板级已实测: 旧单槽版
+//     在相位 ≠0 时**恒丢 50%** —— 见 `_proj_10g/notes/p8_board_0x20_20261011/REPORT.md`):
+//       ① **源一拍 ≤ 8 B** 且 keep 是**顶 n 连续** (合同见下);
+//       ② **本模块对任意相位均可续接** (即"字节粒度追加"; 8 B 单槽版**不满足** ②);
+//       ③ **未被 FIFO 满打停** (排空够快)。
+//     ⇒ 真正剩下的丢字节来源 = **FIFO 满** (写空间不足) **+ `admit` 上限** (16 B 暂存装不下
+//       当拍源拍 —— 正常态**结构上不可达**, 只在"满饱和期及其恢复沿"出现, 见下容量界)。
+//   · **容量界 (设计件 §2.2 定理 1/2/3 + BFS 穷举复核)**:
+//       · **正常态 `stg_cnt ≤ 15`** —— **紧界**: `phase = 7` 的可达轨迹 `(0,7) → (7,8) → (0,15)`
+//         恰好达到追加需求 15; CAP=14 时该轨迹必丢 (模型实测), CAP=15 即可零丢。
+//       · **FIFO 满饱和期可达 16** (= CAP, 由 `admit ⇔ keep + n_b ≤ 16` 规则封顶)。
+//       · ⇒ **CAP = 16** = 128 位暂存的整数宽度 (1 B 裕量), **不多不少**。
+//       · 满态**恢复沿** (变体 A): 释放那一拍仍可再丢 ≤1 拍源拍 (计入 `drop_bytes`, **不静默**)。
 //   · ⚠️ **粒度随之变 8 字节** (旧版 4 字节): 输出字 = **64 位 = 2 个逻辑 32 位字**
 //     (`[31:0]` = 先到的那个字)。发端总字节数 K 的**前置条件 = K % 8 == 0**;
-//     尾部 1–7 B 会停在累加器里 (无读出通路) —— 与旧版 `<4 B` 同性质的**已知语义**, 不是缺陷。
-//     字节账 (判据层): `offered == 8×(写入字数) + drop_bytes + 累加器残余`。
+//     尾部 1–7 B 会停在**暂存/累加器**里 (无读出通路) —— 与旧版 `<4 B` 同性质的**已知语义**,
+//     不是缺陷。⚠️ **残余项口径位移 (P8-STG)**: 旧版残余 = `acc_cnt` (+ `pend`), 现为
+//     **`acc_cnt_r + stg_cnt`** (0..24 B) —— 判据/工具侧的**身份式必须跟着改**, 否则假红/假绿。
+//     字节账 (判据层): `offered == 8×(写入字数) + drop_bytes + (acc_cnt_r + stg_cnt)`。
+//   · **无效位恒 0 (结构性不变式)**: `stg_data[127 : 8*stg_cnt] == 0` **恒成立** ——
+//     源拍追加前先按 `n_b` 做字节掩码 (`nbmask`: 顶 n_b 字节为 1, 其余 0), 且"不追加"
+//     分支灌 0 ⇒ 归纳可得 (不依赖任何时序巧合; TB 的 G20 直接断言它)。
 //   · 读侧把 64 位拆回 2×32 位 ⇒ 下游 (`MIR_DATA` 读=弹出 / 环 `mir_dma_ring` 的逻辑字口径 /
 //     工具的字节账) **逐字不变**; `MIR_STATUS.level` **单位仍是 32 位字** (见 `level` 注)。
 //
@@ -27,7 +46,8 @@
 //   · 字节序: `s_tdata[63:56]` = 该拍**首字节** (与 MAC/app 字流合同一致);
 //     keep 合同 = **顶 n 字节有效** (0xFF<<(8-n); 与 `app_*.v` 的 kmask8/pop8 同款)。
 //     ⛔ 非连续 keep (洞) **不在本合同内** (全仓两个生产者的 keep 都按此约定生成)。
-//   · 变换: 只对有效字节做 `^XORC` (load 时整字异或即可 —— 无效字节的值永不进入字节流)。
+//   · 变换: 只对有效字节做 `^XORC` (load 时整字异或 + `nbmask` 掩掉无效低字节 ——
+//     无效字节的值既不进字节流、也不在暂存里留下垃圾位)。
 //   · 打包: **跨拍/跨段续用累加器** (不在 tlast flush, v2 §V1.2) ⇒ 输出 = 纯字节流。
 //   · 写门 = **组合** `wr_en = have && !full && cap_on` (v2 §V2-S6-④): 写使能是组合量时,
 //     空间门必须用**本拍** `full` (用 full_next 才是错的) ⇒ 与 fifo_async 硬规则①一致。
@@ -36,14 +56,21 @@
 //        (acc_cnt 不回零) 而 `wr_en` 仍 = `have && !full` ⇒ FIFO 一有空位就把**同一个字**
 //        反复写入 (最多 DEPTH 份)。本版把 `cap_on` 并进写门 ⇒ 冻结期**不写**,
 //        被握住的字留在累加器里 (cap_en 回来再写) —— 与头注释"0 = 不写"逐字一致。
-//   · 丢字节 `drop_bytes` (+1 bit sticky): **只剩 FIFO 满一类** (按字节计, 与 PC 的字节账
-//     同量纲), 满足"不静默丢"。旧版头注释里的 "①暂存忙 (4 B/拍结构上限)" 已随本版删除。
+//   · 丢字节 `drop_bytes` (+1 bit sticky): **口径仍只有一类 = "当拍源拍进不了 FIFO 通路"**
+//     (按字节计, **整拍拒收**、不部分接收, 与 PC 的字节账同量纲), 满足"不静默丢"。
+//     该类在 P8-STG 下的两种形态: ① **FIFO 满** (字被握住写不进去, 暂存随后涨满);
+//     ② **`admit` 上限** (`keep + n_b > 16`, 即暂存连当拍源拍都装不下) —— **正常态结构性
+//     不可达** (定理 1), 只在满饱和期及其恢复沿出现。
 //   · 使能 `cap_en`: 0 = 采集侧**整段冻结** (不暂存/不打包/不写/不计丢); FIFO 里已有
 //     的字照常可读; `clr` 的冲刷/清零不受 cap_en 影响。
-//     ⚠️ 中途关/开 cap_en 会让累加器残余**跨过暂停**拼进新流 ⇒ 正确用法 = `clr` → `cap_en=1`
-//        后**不再动**; 要重启就重走 `clr` (v2 §V1.3 的协议)。
+//     ⚠️ 中途关/开 cap_en 会让**暂存残余 + 累加器残余**跨过暂停拼进新流 ⇒ 正确用法 =
+//        `clr` → `cap_en=1` 后**不再动**; 要重启就重走 `clr` (v2 §V1.3 的协议)。
+//        **登记 (Q2 点名)**: 残余量 **正常态 ≤ 15 B** (满饱和冻结时 ≤ 16 B), 旧单槽版 ≤ 8 B
+//        —— **性质不变、量变大**; 无下游按"≤8 B"设计 (无依赖)。
 //   · `clr` (toggle): 写一次 ⇒ 跨到本域**恰好 1 个脉冲** (2FF + 沿检测) ⇒ 清 打包状态
-//     (暂存寄存器 + 累加器) + `any_drop` sticky; rd 域同步同一 toggle ⇒ 启动一次
+//     (**暂存寄存器 `stg_data`/`stg_cnt`** + 累加器) + `any_drop` sticky (**按定义**:
+//     被清掉的暂存/累加器残余字节算丢弃, 但**不计入 `drop_bytes`** —— 与旧版清 `pend`
+//     残余同款, 登记口径); rd 域同步同一 toggle ⇒ 启动一次
 //     **排空式冲刷** (读到空为止 —— 不碰 FIFO 复位, 遵守 fifo_async "两侧复位必须
 //     同源同时断言"的硬契约)。`drop_bytes` (W70) **不归零** (v2 §V1.3 冻结清单未列它;
 //     判据用 ΔW70, 不受影响 —— 登记口径)。
@@ -139,11 +166,15 @@ module app_rx_mirror #(
     wire clr_pulse = clrt_sr[2] ^ clrt_sr[1];
 
     // ---------------- 采集侧状态 (dp 域) ----------------
-    reg        pend_valid;
-    reg [63:0] pend_data;        // 已 ^XORC 的源字 (无效字节的值永不使用)
-    reg [7:0]  pend_keep;
-    reg [63:0] acc_r;            // 累加器 (64 位 = 2 个逻辑字): acc_r[7:0] = 本字**首字节**
-    reg [3:0]  acc_cnt_r;        // 0..8 (8 = 整字待写/等空间)
+    // ⭐⭐ P8-STG (2026-10-11): 8 B 单槽 `pend` → **16 B 字节粒度弹性暂存**。
+    //   `stg_data` 的**头部在 MSB 侧** (lane0 = `stg_data[127:120]` = 流的下一个字节);
+    //   顶部 `stg_cnt` 个字节有效, **其余位结构上恒 0** (见头注释"无效位恒 0")。
+    //   搬走侧 (`mv`/`acc_sh` 两表 + 写门 `wr_en`) **逐字不变** —— 只是 `b0..b7` 改从
+    //   `stg_data` 头部取 (设计件 §4.1 的两个实现观察)。
+    reg  [127:0] stg_data;       // 16 B 弹性暂存 (头部 = 流的下一个字节; 无效位恒 0)
+    reg  [4:0]   stg_cnt;        // 0..16 (正常态 ≤15 / 满饱和 16 —— 容量界见头注释)
+    reg  [63:0]  acc_r;          // 累加器 (64 位 = 2 个逻辑字): acc_r[7:0] = 本字**首字节**
+    reg  [3:0]   acc_cnt_r;      // 0..8 (8 = 整字待写/等空间)
 
     // popcount(keep) —— 与 app_*.v 的 pop8 同款 (4 位: 0..8)
     function [3:0] pop8; input [7:0] k; integer i; begin
@@ -151,27 +182,45 @@ module app_rx_mirror #(
         for (i = 0; i < 8; i = i + 1) pop8 = pop8 + k[i];
     end endfunction
 
-    wire [3:0] n_cur     = pend_valid ? pop8(pend_keep) : 4'd0;   // 暂存里的有效字节数 (0..8)
-    wire [3:0] room      = 4'd8 - acc_cnt_r;                      // 累加器还能吃几个字节
-    wire [3:0] kk        = (n_cur < room) ? n_cur : room;         // 本拍搬 kk 个字节 (0..8)
-    wire       drain_all = (kk == n_cur);                         // 本拍把暂存整块取走
-    wire       pend_after = pend_valid && !drain_all;
     wire       src_beat  = s_tvalid && s_tready && cap_on;        // 被接受的拍 (snoop)
-    wire       load      = src_beat && !pend_after;               // 收进暂存
-    wire       drop_now  = src_beat && pend_after;                // 拒收 (按字节计)
+    wire [3:0] n_b       = src_beat ? pop8(s_tkeep) : 4'd0;       // 当拍源字节数 (0..8)
+    wire [3:0] room      = 4'd8 - acc_cnt_r;                      // 累加器还能吃几个字节
+    wire [3:0] sc4       = (stg_cnt >= 5'd8) ? 4'd8 : stg_cnt[3:0]; // min(stg_cnt, 8)
+    wire [3:0] kk        = (sc4 < room) ? sc4 : room;             // 本拍搬 kk 个字节 (0..8)
+    wire [4:0] keep      = stg_cnt - {1'b0, kk};                  // 搬走后留在暂存的字节数 (0..16)
+    wire       admit     = src_beat && (keep + {1'b0, n_b} <= 5'd16); // ⭐ 追加能否装下 (CAP=16)
+    wire       drop_now  = src_beat && !admit;                    // 拒收 (按字节计; 正常态不可达)
     wire [3:0] acc_have  = acc_cnt_r + kk;
     wire       have      = (acc_have == 4'd8);                    // 本拍凑满一个 64 位字
     wire       wr_en     = have && !fifo_full && cap_on;          // 冻结写门 (组合 + 本拍 full + cap_on)
 
-    // 源字八字节 (b0 = 首字节)
-    wire [7:0]  b0 = pend_data[63:56];
-    wire [7:0]  b1 = pend_data[55:48];
-    wire [7:0]  b2 = pend_data[47:40];
-    wire [7:0]  b3 = pend_data[39:32];
-    wire [7:0]  b4 = pend_data[31:24];
-    wire [7:0]  b5 = pend_data[23:16];
-    wire [7:0]  b6 = pend_data[15:8];
-    wire [7:0]  b7 = pend_data[7:0];
+    // 源拍有效性掩码 (顶 n_b 字节) —— 追加前先把无效低字节清零 ⇒ 暂存无效位恒 0
+    // (与 app_*.v 的 bmask64/kmask8 同款; 无这一层时无效字节会以**垃圾值**残留在无效位上)
+    reg [63:0] nbmask;
+    always @* begin
+        case (n_b)
+            4'd0:    nbmask = 64'd0;
+            4'd1:    nbmask = 64'hFF00000000000000;
+            4'd2:    nbmask = 64'hFFFF000000000000;
+            4'd3:    nbmask = 64'hFFFFFF0000000000;
+            4'd4:    nbmask = 64'hFFFFFFFF00000000;
+            4'd5:    nbmask = 64'hFFFFFFFFFF000000;
+            4'd6:    nbmask = 64'hFFFFFFFFFFFF0000;
+            4'd7:    nbmask = 64'hFFFFFFFFFFFFFF00;
+            default: nbmask = 64'hFFFFFFFFFFFFFFFF;
+        endcase
+    end
+    wire [63:0] xbeat = (s_tdata ^ {8{XORC}}) & nbmask;           // 变换 + 有效字节掩码
+
+    // 暂存头部八字节 (b0 = 首字节 = `stg_data[127:120]`) —— 名字与旧版**同名** ⇒ `mv`/`acc_sh` 两表逐字不变
+    wire [7:0]  b0 = stg_data[127:120];
+    wire [7:0]  b1 = stg_data[119:112];
+    wire [7:0]  b2 = stg_data[111:104];
+    wire [7:0]  b3 = stg_data[103:96];
+    wire [7:0]  b4 = stg_data[95:88];
+    wire [7:0]  b5 = stg_data[87:80];
+    wire [7:0]  b6 = stg_data[79:72];
+    wire [7:0]  b7 = stg_data[71:64];           // ⚠️ lane7 = [71:64] (lane i = [127-8i -: 8])
 
     // mv = 本拍搬走的 kk 个字节 (b0 在 LSB, 即"首字节落在低位") —— 显式 case, 不用变量移位
     reg [63:0] mv;
@@ -205,40 +254,71 @@ module app_rx_mirror #(
     end
     wire [63:0] acc_next = acc_r | acc_sh;
 
-    // 暂存移位 (搬走 kk 个字节) —— 显式 case
-    reg [63:0] pend_sh;
-    reg [7:0]  keep_sh;
+    // 暂存整体前移 kk 字节 (**搬走头部** kk 字节 ⇒ 剩下的 `keep` 字节重新头部对齐) —— 9 路 case
+    reg [127:0] stg_ret;
     always @* begin
         case (kk)
-            4'd0:    begin pend_sh = pend_data;                keep_sh = pend_keep;               end
-            4'd1:    begin pend_sh = {pend_data[55:0], 8'd0};  keep_sh = {pend_keep[6:0], 1'b0};  end
-            4'd2:    begin pend_sh = {pend_data[47:0], 16'd0}; keep_sh = {pend_keep[5:0], 2'b0};  end
-            4'd3:    begin pend_sh = {pend_data[39:0], 24'd0}; keep_sh = {pend_keep[4:0], 3'b0};  end
-            4'd4:    begin pend_sh = {pend_data[31:0], 32'd0}; keep_sh = {pend_keep[3:0], 4'b0};  end
-            4'd5:    begin pend_sh = {pend_data[23:0], 40'd0}; keep_sh = {pend_keep[2:0], 5'b0};  end
-            4'd6:    begin pend_sh = {pend_data[15:0], 48'd0}; keep_sh = {pend_keep[1:0], 6'b0};  end
-            4'd7:    begin pend_sh = {pend_data[7:0],  56'd0}; keep_sh = {pend_keep[0],   7'b0};  end
-            default: begin pend_sh = 64'd0;                    keep_sh = 8'd0;                    end
+            4'd0:    stg_ret = stg_data;
+            4'd1:    stg_ret = {stg_data[119:0], 8'd0};
+            4'd2:    stg_ret = {stg_data[111:0], 16'd0};
+            4'd3:    stg_ret = {stg_data[103:0], 24'd0};
+            4'd4:    stg_ret = {stg_data[95:0],  32'd0};
+            4'd5:    stg_ret = {stg_data[87:0],  40'd0};
+            4'd6:    stg_ret = {stg_data[79:0],  48'd0};
+            4'd7:    stg_ret = {stg_data[71:0],  56'd0};
+            4'd8:    stg_ret = {stg_data[63:0],  64'd0};
+            default: stg_ret = 128'd0;                          // kk ∈ 0..8 ⇒ 不可达 (防御)
         endcase
     end
+    // 源拍顶 n_b 字节贴到 `keep` 之后的尾部 (= {xbeat,64'd0} >> 8*keep; 17 路 case)
+    reg [127:0] beat_pl;
+    always @* begin
+        case (keep)
+            5'd0:  beat_pl = {xbeat, 64'd0};
+            5'd1:  beat_pl = {8'd0,  xbeat, 56'd0};
+            5'd2:  beat_pl = {16'd0, xbeat, 48'd0};
+            5'd3:  beat_pl = {24'd0, xbeat, 40'd0};
+            5'd4:  beat_pl = {32'd0, xbeat, 32'd0};
+            5'd5:  beat_pl = {40'd0, xbeat, 24'd0};
+            5'd6:  beat_pl = {48'd0, xbeat, 16'd0};
+            5'd7:  beat_pl = {56'd0, xbeat, 8'd0};
+            5'd8:  beat_pl = {64'd0, xbeat};
+            5'd9:  beat_pl = {72'd0, xbeat[63:8]};
+            5'd10: beat_pl = {80'd0, xbeat[63:16]};
+            5'd11: beat_pl = {88'd0, xbeat[63:24]};
+            5'd12: beat_pl = {96'd0, xbeat[63:32]};
+            5'd13: beat_pl = {104'd0, xbeat[63:40]};
+            5'd14: beat_pl = {112'd0, xbeat[63:48]};
+            5'd15: beat_pl = {120'd0, xbeat[63:56]};
+            5'd16: beat_pl = 128'd0;                            // keep=16 ⇒ 只有 n_b=0 才能 admit
+            default: beat_pl = 128'd0;
+        endcase
+    end
+    // lane 合并 (**掩码表达式**): i < keep 保留暂存剩余字节; 否则接源拍 (不接收 ⇒ 灌 0)。
+    //   `keep_bmask` = 顶 keep 个字节为 1 的字节掩码 (由 `keep_msk` 每比特扩 8 位)。
+    //   ⚠️ 2026-10-11 实现注记 (实测): 最初写成 `generate for` + 逐 lane 三元式
+    //      `(gi < keep) ? stg_ret[8*gi +: 8] : …`, **xsim 里该结构取不到当拍的 `stg_ret`**
+    //      (定向 dump: keep=4 / stg_ret=04050607… 都对, 而 stg_next 恒 = beat_pl ⇒
+    //      "gi < keep" 分支从未被选中) —— 换成本式后同一激励下逐拍正确 (机理未定位, 只登记)。
+    //      ⇒ 本式与逐 lane 三元式**语义逐位相同** (mask=1 处取 stg_ret, =0 处取 beat_pl/0)。
+    wire [15:0]  keep_msk  = (16'd1 << keep) - 16'd1;   // keep 个低位为 1 (keep=16 ⇒ 0xFFFF)
+    wire [127:0] keep_bmask = {{8{keep_msk[0]}},  {8{keep_msk[1]}},  {8{keep_msk[2]}},  {8{keep_msk[3]}},
+                               {8{keep_msk[4]}},  {8{keep_msk[5]}},  {8{keep_msk[6]}},  {8{keep_msk[7]}},
+                               {8{keep_msk[8]}},  {8{keep_msk[9]}},  {8{keep_msk[10]}}, {8{keep_msk[11]}},
+                               {8{keep_msk[12]}}, {8{keep_msk[13]}}, {8{keep_msk[14]}}, {8{keep_msk[15]}}};
+    wire [127:0] stg_next = (stg_ret & keep_bmask) | (admit ? (beat_pl & ~keep_bmask) : 128'd0);
 
     // ---- 打包状态推进 (单驱动块; clr 优先于一切) ----
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            pend_valid <= 1'b0; pend_data <= 64'd0; pend_keep <= 8'd0;
+            stg_data <= 128'd0; stg_cnt <= 5'd0;
             acc_r <= 64'd0; acc_cnt_r <= 4'd0;
         end else if (clr_pulse) begin
-            pend_valid <= 1'b0; pend_data <= 64'd0; pend_keep <= 8'd0;
+            stg_data <= 128'd0; stg_cnt <= 5'd0;
             acc_r <= 64'd0; acc_cnt_r <= 4'd0;
         end else if (cap_on) begin
-            if (load) begin
-                pend_valid <= 1'b1;
-                pend_data  <= s_tdata ^ {8{XORC}};
-                pend_keep  <= s_tkeep;
-            end else if (pend_valid) begin
-                if (drain_all) pend_valid <= 1'b0;
-                else begin pend_data <= pend_sh; pend_keep <= keep_sh; end
-            end
+            stg_data <= stg_next;
+            stg_cnt  <= keep + (admit ? {1'b0, n_b} : 5'd0);    // ⭐ 容量界: ≤16
             if (wr_en) begin
                 acc_r <= 64'd0; acc_cnt_r <= 4'd0;          // 整字被 FIFO 收下
             end else if (kk != 4'd0) begin
@@ -353,6 +433,16 @@ module app_rx_mirror #(
 endmodule
 
 //=============================================================================
+// 变更登记 (P8-STG, 2026-10-11; 设计件 `_proj_10g/notes/p8_mir_stg_20261011/DESIGN.md`):
+//   · 采集侧暂存: 8 B 单槽 `pend_valid/pend_data/pend_keep` → **16 B 字节粒度
+//     `stg_data[127:0]` + `stg_cnt[4:0]`**; 新增 `sc4/keep/admit/nbmask/stg_ret/beat_pl/stg_next`。
+//   · **逐字不变** 的三处: `mv` 表、`acc_sh` 表、写门 `wr_en = have && !fifo_full && cap_on`;
+//     以及**端口表、读侧、FIFO、`level`、`drop_bytes` 口径** (下游语义 0 改动)。
+//   · **口径位移** (判据/工具侧要跟): 残余项 `acc_cnt_r` → `acc_cnt_r + stg_cnt`。
+//   · 设计件 §4.1 草图的 `beat_pl` 直接用未掩码的 `xbeat` ⇒ 无效低字节会以垃圾值留在
+//     无效位上 (设计件 §2.1-② 声称的"无效位恒 0"在草图上**不成立**)。本实现补一层
+//     `nbmask` (顶 n_b 字节掩码) ⇒ 该不变式成立、G20 结构性断言有牙。见 IMPL_REPORT 口径声明。
+//=============================================================================
 // 旧契约 (P8 阶段三之前; **已作废**, 逐字留档 —— 板级实测它就是恒丢 50% 的那条):
 //   · 打包: 压成 **32 位字** (写口 32 位) + 跨拍累加器 4 B/拍;
 //   · drop_bytes 两类: ① 暂存忙 —— 源一拍最多 8B, 而 FIFO 写口 = 32 位 ⇒ 持续采集上限
@@ -361,4 +451,7 @@ endmodule
 //   ⇒ 对 8 B/拍连续源: 收、丢、收、丢… (恰好 50%)。板级读数 (p8_board_20261011/REPORT.md §9,
 //     位流 0x1F): 丢字恒 = 采集量一半 / 偶数组全收奇数组全丢 / first_mismatch 恒 8。
 //   · 前置条件 K % 4 == 0 (现为 K % 8 == 0)。
+//   ⚠️ 中间还有一版 **8 B 单槽 `pend`** (位流 0x20; 写口 64 位, 但暂存只有 1 个 8 B 槽 ⇒
+//     相位 ≠ 0 时"新拍必须等本拍把暂存整块搬空"才收 ⇒ 恒丢 50% 的变体; 板级臂 B
+//     `--paylen 1470` 实测 `ΔW70 = 750,882 B = K 的 49.883%`)。本版 = 它的替代。
 //=============================================================================

@@ -1,0 +1,896 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version      : Vivado v.2025.2 (win64) Build 6299465 Fri Nov 14 19:35:11 GMT 2025
+| Date              : Sun Oct 11 17:41:47 2026
+| Host              : xyz-intel running 64-bit major release  (build 9200)
+| Command           : report_timing -delay_type max -max_paths 20 -to [get_pins -quiet -hierarchical -filter {NAME =~ *u_mir/stg_cnt*}] -file D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p8_stg_synth/pb_stgcnt_to_p8stg.rpt
+| Design            : wrapper_p4
+| Device            : xcku5p-ffvb676
+| Speed File        : -1  PRODUCTION 1.29 05-01-2022
+| Design State      : Synthesized
+| Temperature Grade : E
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Timing Report
+
+Slack (MET) :             2.147ns  (required time - arrival time)
+  Source:                 u_udp_split/u_uf/wptr_reg[1]/C
+                            (rising edge-triggered cell FDCE clocked by g_hw.clk_out0  {rise@0.000ns fall@3.200ns period=6.400ns})
+  Destination:            u_mir/stg_cnt_reg[4]/D
+                            (rising edge-triggered cell FDCE clocked by g_hw.clk_out0  {rise@0.000ns fall@3.200ns period=6.400ns})
+  Path Group:             g_hw.clk_out0
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            6.400ns  (g_hw.clk_out0 rise@6.400ns - g_hw.clk_out0 rise@0.000ns)
+  Data Path Delay:        4.073ns  (logic 1.378ns (33.833%)  route 2.695ns (66.167%))
+  Logic Levels:           13  (CARRY8=2 LUT2=1 LUT3=3 LUT4=3 LUT5=2 LUT6=2)
+  Clock Path Skew:        -0.145ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    6.358ns = ( 12.758 - 6.400 ) 
+    Source Clock Delay      (SCD):    6.050ns
+    Clock Pessimism Removal (CPR):    -0.453ns
+  Clock Uncertainty:      0.062ns  ((TSJ^2 + DJ^2)^1/2) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Discrete Jitter          (DJ):    0.101ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock g_hw.clk_out0 rise edge)
+                                                      0.000     0.000 r  
+    T25                                               0.000     0.000 r  sys_clk_p (IN)
+                         net (fo=0)                   0.000     0.000    u_clkgen/g_hw.u_ibufds/I
+    HPIOBDIFFINBUF_X0Y37 DIFFINBUF (Prop_DIFFINBUF_HPIOBDIFFINBUF_DIFF_IN_P_O)
+                                                      0.479     0.479 r  u_clkgen/g_hw.u_ibufds/DIFFINBUF_INST/O
+                         net (fo=1, estimated)        0.050     0.529    u_clkgen/g_hw.u_ibufds/OUT
+    T25                  IBUFCTRL (Prop_IBUFCTRL_HPIOB_M_I_O)
+                                                      0.000     0.529 r  u_clkgen/g_hw.u_ibufds/IBUFCTRL_INST/O
+                         net (fo=1, unplaced)         0.292     0.821    u_clkgen/g_hw.clk_in_ibuf
+                         BUFGCE (Prop_BUFGCE_I_O)     0.028     0.849 r  u_clkgen/g_hw.u_bufg_in/O
+                         net (fo=485, unplaced)       2.482     3.331    u_clkgen/clk_in_100
+                         MMCME4_ADV (Prop_MMCME4_ADV_CLKIN1_CLKOUT0)
+                                                     -0.106     3.225 r  u_clkgen/g_hw.u_mmcm/CLKOUT0
+                         net (fo=1, unplaced)         0.213     3.438    u_clkgen/g_hw.clk_out0
+                         BUFGCE (Prop_BUFGCE_I_O)     0.028     3.466 r  u_clkgen/g_hw.u_bufg_out/O
+                         net (fo=51240, unplaced)     2.584     6.050    u_udp_split/u_uf/dp_clk
+                         FDCE                                         r  u_udp_split/u_uf/wptr_reg[1]/C
+  -------------------------------------------------------------------    -------------------
+                         FDCE (Prop_FDCE_C_Q)         0.093     6.143 r  u_udp_split/u_uf/wptr_reg[1]/Q
+                         net (fo=123, unplaced)       0.193     6.336    u_udp_split/u_uf/uf_wptr[1]
+                         LUT2 (Prop_LUT2_I0_O)        0.063     6.399 r  u_udp_split/u_uf/nx_v_i_26/O
+                         net (fo=1, unplaced)         0.025     6.424    u_udp_split/u_uf/nx_v_i_26_n_53
+                         CARRY8 (Prop_CARRY8_S[1]_O[5])
+                                                      0.295     6.719 r  u_udp_split/u_uf/nx_v_reg_i_17/O[5]
+                         net (fo=2, unplaced)         0.162     6.881    u_udp_split/u_uf/uf_occ[5]
+                         LUT4 (Prop_LUT4_I0_O)        0.121     7.002 r  u_udp_split/u_uf/nx_v_i_8/O
+                         net (fo=1, unplaced)         0.281     7.283    u_udp_split/u_uf/nx_v_i_8_n_53
+                         CARRY8 (Prop_CARRY8_DI[2]_CO[4])
+                                                      0.201     7.484 r  u_udp_split/u_uf/nx_v_reg_i_5/CO[4]
+                         net (fo=3, unplaced)         0.218     7.702    u_udp_split/u_uf/play_gate
+                         LUT4 (Prop_LUT4_I1_O)        0.040     7.742 r  u_udp_split/u_uf/nx_v_i_2/O
+                         net (fo=4, unplaced)         0.226     7.968    u_eco_pipe/app_udp_rx_tvalid
+                         LUT3 (Prop_LUT3_I2_O)        0.040     8.008 r  u_eco_pipe/drop_bytes[31]_i_5/O
+                         net (fo=5, unplaced)         0.232     8.240    u_eco_pipe/mir_s_tvalid
+                         LUT3 (Prop_LUT3_I0_O)        0.040     8.280 r  u_eco_pipe/stg_cnt[0]_i_10/O
+                         net (fo=3, unplaced)         0.220     8.500    u_eco_pipe/cap_sr_reg[1]_10
+                         LUT5 (Prop_LUT5_I0_O)        0.040     8.540 r  u_eco_pipe/stg_cnt[4]_i_10/O
+                         net (fo=11, unplaced)        0.249     8.789    u_mir/stg_cnt_reg[4]_1
+                         LUT3 (Prop_LUT3_I0_O)        0.085     8.874 r  u_mir/stg_cnt[2]_i_12/O
+                         net (fo=3, unplaced)         0.162     9.036    u_mir/stg_cnt[2]_i_12_n_53
+                         LUT6 (Prop_LUT6_I1_O)        0.064     9.100 r  u_mir/stg_cnt[0]_i_9/O
+                         net (fo=2, unplaced)         0.214     9.314    u_mir/stg_cnt[0]_i_9_n_53
+                         LUT6 (Prop_LUT6_I4_O)        0.040     9.354 r  u_mir/stg_cnt[0]_i_3/O
+                         net (fo=78, unplaced)        0.294     9.648    u_mir/stg_cnt[0]_i_3_n_53
+                         LUT4 (Prop_LUT4_I0_O)        0.085     9.733 r  u_mir/stg_cnt[4]_i_3/O
+                         net (fo=2, unplaced)         0.161     9.894    u_mir/stg_cnt[4]_i_3_n_53
+                         LUT5 (Prop_LUT5_I1_O)        0.171    10.065 r  u_mir/stg_cnt[4]_i_2/O
+                         net (fo=1, unplaced)         0.058    10.123    u_mir/stg_cnt[4]_i_2_n_53
+                         FDCE                                         r  u_mir/stg_cnt_reg[4]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock g_hw.clk_out0 rise edge)
+                                                      6.400     6.400 r  
+    T25                                               0.000     6.400 r  sys_clk_p (IN)
+                         net (fo=0)                   0.000     6.400    u_clkgen/g_hw.u_ibufds/I
+    HPIOBDIFFINBUF_X0Y37 DIFFINBUF (Prop_DIFFINBUF_HPIOBDIFFINBUF_DIFF_IN_P_O)
+                                                      0.398     6.798 r  u_clkgen/g_hw.u_ibufds/DIFFINBUF_INST/O
+                         net (fo=1, estimated)        0.040     6.838    u_clkgen/g_hw.u_ibufds/OUT
+    T25                  IBUFCTRL (Prop_IBUFCTRL_HPIOB_M_I_O)
+                                                      0.000     6.838 r  u_clkgen/g_hw.u_ibufds/IBUFCTRL_INST/O
+                         net (fo=1, unplaced)         0.260     7.098    u_clkgen/g_hw.clk_in_ibuf
+                         BUFGCE (Prop_BUFGCE_I_O)     0.024     7.122 r  u_clkgen/g_hw.u_bufg_in/O
+                         net (fo=485, unplaced)       2.337     9.459    u_clkgen/clk_in_100
+                         MMCME4_ADV (Prop_MMCME4_ADV_CLKIN1_CLKOUT0)
+                                                      0.644    10.103 r  u_clkgen/g_hw.u_mmcm/CLKOUT0
+                         net (fo=1, unplaced)         0.192    10.295    u_clkgen/g_hw.clk_out0
+                         BUFGCE (Prop_BUFGCE_I_O)     0.024    10.319 r  u_clkgen/g_hw.u_bufg_out/O
+                         net (fo=51240, unplaced)     2.439    12.758    u_mir/dp_clk
+                         FDCE                                         r  u_mir/stg_cnt_reg[4]/C
+                         clock pessimism             -0.453    12.305    
+                         clock uncertainty           -0.062    12.243    
+                         FDCE (Setup_FDCE_C_D)        0.027    12.270    u_mir/stg_cnt_reg[4]
+  -------------------------------------------------------------------
+                         required time                         12.270    
+                         arrival time                         -10.123    
+  -------------------------------------------------------------------
+                         slack                                  2.147    
+
+Slack (MET) :             2.201ns  (required time - arrival time)
+  Source:                 u_udp_split/u_uf/wptr_reg[1]/C
+                            (rising edge-triggered cell FDCE clocked by g_hw.clk_out0  {rise@0.000ns fall@3.200ns period=6.400ns})
+  Destination:            u_mir/stg_cnt_reg[2]/D
+                            (rising edge-triggered cell FDCE clocked by g_hw.clk_out0  {rise@0.000ns fall@3.200ns period=6.400ns})
+  Path Group:             g_hw.clk_out0
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            6.400ns  (g_hw.clk_out0 rise@6.400ns - g_hw.clk_out0 rise@0.000ns)
+  Data Path Delay:        4.019ns  (logic 1.329ns (33.068%)  route 2.690ns (66.932%))
+  Logic Levels:           13  (CARRY8=2 LUT2=1 LUT3=3 LUT4=4 LUT5=1 LUT6=2)
+  Clock Path Skew:        -0.145ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    6.358ns = ( 12.758 - 6.400 ) 
+    Source Clock Delay      (SCD):    6.050ns
+    Clock Pessimism Removal (CPR):    -0.453ns
+  Clock Uncertainty:      0.062ns  ((TSJ^2 + DJ^2)^1/2) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Discrete Jitter          (DJ):    0.101ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock g_hw.clk_out0 rise edge)
+                                                      0.000     0.000 r  
+    T25                                               0.000     0.000 r  sys_clk_p (IN)
+                         net (fo=0)                   0.000     0.000    u_clkgen/g_hw.u_ibufds/I
+    HPIOBDIFFINBUF_X0Y37 DIFFINBUF (Prop_DIFFINBUF_HPIOBDIFFINBUF_DIFF_IN_P_O)
+                                                      0.479     0.479 r  u_clkgen/g_hw.u_ibufds/DIFFINBUF_INST/O
+                         net (fo=1, estimated)        0.050     0.529    u_clkgen/g_hw.u_ibufds/OUT
+    T25                  IBUFCTRL (Prop_IBUFCTRL_HPIOB_M_I_O)
+                                                      0.000     0.529 r  u_clkgen/g_hw.u_ibufds/IBUFCTRL_INST/O
+                         net (fo=1, unplaced)         0.292     0.821    u_clkgen/g_hw.clk_in_ibuf
+                         BUFGCE (Prop_BUFGCE_I_O)     0.028     0.849 r  u_clkgen/g_hw.u_bufg_in/O
+                         net (fo=485, unplaced)       2.482     3.331    u_clkgen/clk_in_100
+                         MMCME4_ADV (Prop_MMCME4_ADV_CLKIN1_CLKOUT0)
+                                                     -0.106     3.225 r  u_clkgen/g_hw.u_mmcm/CLKOUT0
+                         net (fo=1, unplaced)         0.213     3.438    u_clkgen/g_hw.clk_out0
+                         BUFGCE (Prop_BUFGCE_I_O)     0.028     3.466 r  u_clkgen/g_hw.u_bufg_out/O
+                         net (fo=51240, unplaced)     2.584     6.050    u_udp_split/u_uf/dp_clk
+                         FDCE                                         r  u_udp_split/u_uf/wptr_reg[1]/C
+  -------------------------------------------------------------------    -------------------
+                         FDCE (Prop_FDCE_C_Q)         0.093     6.143 r  u_udp_split/u_uf/wptr_reg[1]/Q
+                         net (fo=123, unplaced)       0.193     6.336    u_udp_split/u_uf/uf_wptr[1]
+                         LUT2 (Prop_LUT2_I0_O)        0.063     6.399 r  u_udp_split/u_uf/nx_v_i_26/O
+                         net (fo=1, unplaced)         0.025     6.424    u_udp_split/u_uf/nx_v_i_26_n_53
+                         CARRY8 (Prop_CARRY8_S[1]_O[5])
+                                                      0.295     6.719 r  u_udp_split/u_uf/nx_v_reg_i_17/O[5]
+                         net (fo=2, unplaced)         0.162     6.881    u_udp_split/u_uf/uf_occ[5]
+                         LUT4 (Prop_LUT4_I0_O)        0.121     7.002 r  u_udp_split/u_uf/nx_v_i_8/O
+                         net (fo=1, unplaced)         0.281     7.283    u_udp_split/u_uf/nx_v_i_8_n_53
+                         CARRY8 (Prop_CARRY8_DI[2]_CO[4])
+                                                      0.201     7.484 r  u_udp_split/u_uf/nx_v_reg_i_5/CO[4]
+                         net (fo=3, unplaced)         0.218     7.702    u_udp_split/u_uf/play_gate
+                         LUT4 (Prop_LUT4_I1_O)        0.040     7.742 r  u_udp_split/u_uf/nx_v_i_2/O
+                         net (fo=4, unplaced)         0.226     7.968    u_eco_pipe/app_udp_rx_tvalid
+                         LUT3 (Prop_LUT3_I2_O)        0.040     8.008 r  u_eco_pipe/drop_bytes[31]_i_5/O
+                         net (fo=5, unplaced)         0.232     8.240    u_eco_pipe/mir_s_tvalid
+                         LUT3 (Prop_LUT3_I0_O)        0.040     8.280 r  u_eco_pipe/stg_cnt[0]_i_10/O
+                         net (fo=3, unplaced)         0.220     8.500    u_eco_pipe/cap_sr_reg[1]_10
+                         LUT5 (Prop_LUT5_I0_O)        0.040     8.540 r  u_eco_pipe/stg_cnt[4]_i_10/O
+                         net (fo=11, unplaced)        0.249     8.789    u_mir/stg_cnt_reg[4]_1
+                         LUT3 (Prop_LUT3_I0_O)        0.085     8.874 r  u_mir/stg_cnt[2]_i_12/O
+                         net (fo=3, unplaced)         0.162     9.036    u_mir/stg_cnt[2]_i_12_n_53
+                         LUT6 (Prop_LUT6_I1_O)        0.064     9.100 f  u_mir/stg_cnt[0]_i_9/O
+                         net (fo=2, unplaced)         0.214     9.314    u_mir/stg_cnt[0]_i_9_n_53
+                         LUT6 (Prop_LUT6_I4_O)        0.040     9.354 f  u_mir/stg_cnt[0]_i_3/O
+                         net (fo=78, unplaced)        0.294     9.648    u_mir/stg_cnt[0]_i_3_n_53
+                         LUT4 (Prop_LUT4_I0_O)        0.085     9.733 r  u_mir/stg_cnt[2]_i_2/O
+                         net (fo=1, unplaced)         0.156     9.889    u_mir/stg_cnt[2]_i_2_n_53
+                         LUT4 (Prop_LUT4_I1_O)        0.122    10.011 r  u_mir/stg_cnt[2]_i_1/O
+                         net (fo=1, unplaced)         0.058    10.069    u_mir/stg_cnt[2]_i_1_n_53
+                         FDCE                                         r  u_mir/stg_cnt_reg[2]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock g_hw.clk_out0 rise edge)
+                                                      6.400     6.400 r  
+    T25                                               0.000     6.400 r  sys_clk_p (IN)
+                         net (fo=0)                   0.000     6.400    u_clkgen/g_hw.u_ibufds/I
+    HPIOBDIFFINBUF_X0Y37 DIFFINBUF (Prop_DIFFINBUF_HPIOBDIFFINBUF_DIFF_IN_P_O)
+                                                      0.398     6.798 r  u_clkgen/g_hw.u_ibufds/DIFFINBUF_INST/O
+                         net (fo=1, estimated)        0.040     6.838    u_clkgen/g_hw.u_ibufds/OUT
+    T25                  IBUFCTRL (Prop_IBUFCTRL_HPIOB_M_I_O)
+                                                      0.000     6.838 r  u_clkgen/g_hw.u_ibufds/IBUFCTRL_INST/O
+                         net (fo=1, unplaced)         0.260     7.098    u_clkgen/g_hw.clk_in_ibuf
+                         BUFGCE (Prop_BUFGCE_I_O)     0.024     7.122 r  u_clkgen/g_hw.u_bufg_in/O
+                         net (fo=485, unplaced)       2.337     9.459    u_clkgen/clk_in_100
+                         MMCME4_ADV (Prop_MMCME4_ADV_CLKIN1_CLKOUT0)
+                                                      0.644    10.103 r  u_clkgen/g_hw.u_mmcm/CLKOUT0
+                         net (fo=1, unplaced)         0.192    10.295    u_clkgen/g_hw.clk_out0
+                         BUFGCE (Prop_BUFGCE_I_O)     0.024    10.319 r  u_clkgen/g_hw.u_bufg_out/O
+                         net (fo=51240, unplaced)     2.439    12.758    u_mir/dp_clk
+                         FDCE                                         r  u_mir/stg_cnt_reg[2]/C
+                         clock pessimism             -0.453    12.305    
+                         clock uncertainty           -0.062    12.243    
+                         FDCE (Setup_FDCE_C_D)        0.027    12.270    u_mir/stg_cnt_reg[2]
+  -------------------------------------------------------------------
+                         required time                         12.270    
+                         arrival time                         -10.069    
+  -------------------------------------------------------------------
+                         slack                                  2.201    
+
+Slack (MET) :             2.259ns  (required time - arrival time)
+  Source:                 u_udp_split/u_uf/wptr_reg[1]/C
+                            (rising edge-triggered cell FDCE clocked by g_hw.clk_out0  {rise@0.000ns fall@3.200ns period=6.400ns})
+  Destination:            u_mir/stg_cnt_reg[3]/D
+                            (rising edge-triggered cell FDCE clocked by g_hw.clk_out0  {rise@0.000ns fall@3.200ns period=6.400ns})
+  Path Group:             g_hw.clk_out0
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            6.400ns  (g_hw.clk_out0 rise@6.400ns - g_hw.clk_out0 rise@0.000ns)
+  Data Path Delay:        3.961ns  (logic 1.271ns (32.088%)  route 2.690ns (67.912%))
+  Logic Levels:           13  (CARRY8=2 LUT2=1 LUT3=3 LUT4=4 LUT5=1 LUT6=2)
+  Clock Path Skew:        -0.145ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    6.358ns = ( 12.758 - 6.400 ) 
+    Source Clock Delay      (SCD):    6.050ns
+    Clock Pessimism Removal (CPR):    -0.453ns
+  Clock Uncertainty:      0.062ns  ((TSJ^2 + DJ^2)^1/2) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Discrete Jitter          (DJ):    0.101ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock g_hw.clk_out0 rise edge)
+                                                      0.000     0.000 r  
+    T25                                               0.000     0.000 r  sys_clk_p (IN)
+                         net (fo=0)                   0.000     0.000    u_clkgen/g_hw.u_ibufds/I
+    HPIOBDIFFINBUF_X0Y37 DIFFINBUF (Prop_DIFFINBUF_HPIOBDIFFINBUF_DIFF_IN_P_O)
+                                                      0.479     0.479 r  u_clkgen/g_hw.u_ibufds/DIFFINBUF_INST/O
+                         net (fo=1, estimated)        0.050     0.529    u_clkgen/g_hw.u_ibufds/OUT
+    T25                  IBUFCTRL (Prop_IBUFCTRL_HPIOB_M_I_O)
+                                                      0.000     0.529 r  u_clkgen/g_hw.u_ibufds/IBUFCTRL_INST/O
+                         net (fo=1, unplaced)         0.292     0.821    u_clkgen/g_hw.clk_in_ibuf
+                         BUFGCE (Prop_BUFGCE_I_O)     0.028     0.849 r  u_clkgen/g_hw.u_bufg_in/O
+                         net (fo=485, unplaced)       2.482     3.331    u_clkgen/clk_in_100
+                         MMCME4_ADV (Prop_MMCME4_ADV_CLKIN1_CLKOUT0)
+                                                     -0.106     3.225 r  u_clkgen/g_hw.u_mmcm/CLKOUT0
+                         net (fo=1, unplaced)         0.213     3.438    u_clkgen/g_hw.clk_out0
+                         BUFGCE (Prop_BUFGCE_I_O)     0.028     3.466 r  u_clkgen/g_hw.u_bufg_out/O
+                         net (fo=51240, unplaced)     2.584     6.050    u_udp_split/u_uf/dp_clk
+                         FDCE                                         r  u_udp_split/u_uf/wptr_reg[1]/C
+  -------------------------------------------------------------------    -------------------
+                         FDCE (Prop_FDCE_C_Q)         0.093     6.143 r  u_udp_split/u_uf/wptr_reg[1]/Q
+                         net (fo=123, unplaced)       0.193     6.336    u_udp_split/u_uf/uf_wptr[1]
+                         LUT2 (Prop_LUT2_I0_O)        0.063     6.399 r  u_udp_split/u_uf/nx_v_i_26/O
+                         net (fo=1, unplaced)         0.025     6.424    u_udp_split/u_uf/nx_v_i_26_n_53
+                         CARRY8 (Prop_CARRY8_S[1]_O[5])
+                                                      0.295     6.719 r  u_udp_split/u_uf/nx_v_reg_i_17/O[5]
+                         net (fo=2, unplaced)         0.162     6.881    u_udp_split/u_uf/uf_occ[5]
+                         LUT4 (Prop_LUT4_I0_O)        0.121     7.002 r  u_udp_split/u_uf/nx_v_i_8/O
+                         net (fo=1, unplaced)         0.281     7.283    u_udp_split/u_uf/nx_v_i_8_n_53
+                         CARRY8 (Prop_CARRY8_DI[2]_CO[4])
+                                                      0.201     7.484 r  u_udp_split/u_uf/nx_v_reg_i_5/CO[4]
+                         net (fo=3, unplaced)         0.218     7.702    u_udp_split/u_uf/play_gate
+                         LUT4 (Prop_LUT4_I1_O)        0.040     7.742 r  u_udp_split/u_uf/nx_v_i_2/O
+                         net (fo=4, unplaced)         0.226     7.968    u_eco_pipe/app_udp_rx_tvalid
+                         LUT3 (Prop_LUT3_I2_O)        0.040     8.008 r  u_eco_pipe/drop_bytes[31]_i_5/O
+                         net (fo=5, unplaced)         0.232     8.240    u_eco_pipe/mir_s_tvalid
+                         LUT3 (Prop_LUT3_I0_O)        0.040     8.280 r  u_eco_pipe/stg_cnt[0]_i_10/O
+                         net (fo=3, unplaced)         0.220     8.500    u_eco_pipe/cap_sr_reg[1]_10
+                         LUT5 (Prop_LUT5_I0_O)        0.040     8.540 r  u_eco_pipe/stg_cnt[4]_i_10/O
+                         net (fo=11, unplaced)        0.249     8.789    u_mir/stg_cnt_reg[4]_1
+                         LUT3 (Prop_LUT3_I0_O)        0.085     8.874 r  u_mir/stg_cnt[2]_i_12/O
+                         net (fo=3, unplaced)         0.162     9.036    u_mir/stg_cnt[2]_i_12_n_53
+                         LUT6 (Prop_LUT6_I1_O)        0.064     9.100 r  u_mir/stg_cnt[0]_i_9/O
+                         net (fo=2, unplaced)         0.214     9.314    u_mir/stg_cnt[0]_i_9_n_53
+                         LUT6 (Prop_LUT6_I4_O)        0.040     9.354 r  u_mir/stg_cnt[0]_i_3/O
+                         net (fo=78, unplaced)        0.294     9.648    u_mir/stg_cnt[0]_i_3_n_53
+                         LUT4 (Prop_LUT4_I0_O)        0.085     9.733 r  u_mir/stg_cnt[4]_i_3/O
+                         net (fo=2, unplaced)         0.156     9.889    u_mir/stg_cnt[4]_i_3_n_53
+                         LUT4 (Prop_LUT4_I2_O)        0.064     9.953 r  u_mir/stg_cnt[3]_i_1/O
+                         net (fo=1, unplaced)         0.058    10.011    u_mir/stg_cnt[3]_i_1_n_53
+                         FDCE                                         r  u_mir/stg_cnt_reg[3]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock g_hw.clk_out0 rise edge)
+                                                      6.400     6.400 r  
+    T25                                               0.000     6.400 r  sys_clk_p (IN)
+                         net (fo=0)                   0.000     6.400    u_clkgen/g_hw.u_ibufds/I
+    HPIOBDIFFINBUF_X0Y37 DIFFINBUF (Prop_DIFFINBUF_HPIOBDIFFINBUF_DIFF_IN_P_O)
+                                                      0.398     6.798 r  u_clkgen/g_hw.u_ibufds/DIFFINBUF_INST/O
+                         net (fo=1, estimated)        0.040     6.838    u_clkgen/g_hw.u_ibufds/OUT
+    T25                  IBUFCTRL (Prop_IBUFCTRL_HPIOB_M_I_O)
+                                                      0.000     6.838 r  u_clkgen/g_hw.u_ibufds/IBUFCTRL_INST/O
+                         net (fo=1, unplaced)         0.260     7.098    u_clkgen/g_hw.clk_in_ibuf
+                         BUFGCE (Prop_BUFGCE_I_O)     0.024     7.122 r  u_clkgen/g_hw.u_bufg_in/O
+                         net (fo=485, unplaced)       2.337     9.459    u_clkgen/clk_in_100
+                         MMCME4_ADV (Prop_MMCME4_ADV_CLKIN1_CLKOUT0)
+                                                      0.644    10.103 r  u_clkgen/g_hw.u_mmcm/CLKOUT0
+                         net (fo=1, unplaced)         0.192    10.295    u_clkgen/g_hw.clk_out0
+                         BUFGCE (Prop_BUFGCE_I_O)     0.024    10.319 r  u_clkgen/g_hw.u_bufg_out/O
+                         net (fo=51240, unplaced)     2.439    12.758    u_mir/dp_clk
+                         FDCE                                         r  u_mir/stg_cnt_reg[3]/C
+                         clock pessimism             -0.453    12.305    
+                         clock uncertainty           -0.062    12.243    
+                         FDCE (Setup_FDCE_C_D)        0.027    12.270    u_mir/stg_cnt_reg[3]
+  -------------------------------------------------------------------
+                         required time                         12.270    
+                         arrival time                         -10.011    
+  -------------------------------------------------------------------
+                         slack                                  2.259    
+
+Slack (MET) :             2.337ns  (required time - arrival time)
+  Source:                 u_udp_split/u_uf/wptr_reg[1]/C
+                            (rising edge-triggered cell FDCE clocked by g_hw.clk_out0  {rise@0.000ns fall@3.200ns period=6.400ns})
+  Destination:            u_mir/stg_cnt_reg[1]/D
+                            (rising edge-triggered cell FDCE clocked by g_hw.clk_out0  {rise@0.000ns fall@3.200ns period=6.400ns})
+  Path Group:             g_hw.clk_out0
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            6.400ns  (g_hw.clk_out0 rise@6.400ns - g_hw.clk_out0 rise@0.000ns)
+  Data Path Delay:        3.883ns  (logic 1.133ns (29.178%)  route 2.750ns (70.822%))
+  Logic Levels:           13  (CARRY8=2 LUT2=2 LUT3=2 LUT4=2 LUT5=1 LUT6=4)
+  Clock Path Skew:        -0.145ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    6.358ns = ( 12.758 - 6.400 ) 
+    Source Clock Delay      (SCD):    6.050ns
+    Clock Pessimism Removal (CPR):    -0.453ns
+  Clock Uncertainty:      0.062ns  ((TSJ^2 + DJ^2)^1/2) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Discrete Jitter          (DJ):    0.101ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock g_hw.clk_out0 rise edge)
+                                                      0.000     0.000 r  
+    T25                                               0.000     0.000 r  sys_clk_p (IN)
+                         net (fo=0)                   0.000     0.000    u_clkgen/g_hw.u_ibufds/I
+    HPIOBDIFFINBUF_X0Y37 DIFFINBUF (Prop_DIFFINBUF_HPIOBDIFFINBUF_DIFF_IN_P_O)
+                                                      0.479     0.479 r  u_clkgen/g_hw.u_ibufds/DIFFINBUF_INST/O
+                         net (fo=1, estimated)        0.050     0.529    u_clkgen/g_hw.u_ibufds/OUT
+    T25                  IBUFCTRL (Prop_IBUFCTRL_HPIOB_M_I_O)
+                                                      0.000     0.529 r  u_clkgen/g_hw.u_ibufds/IBUFCTRL_INST/O
+                         net (fo=1, unplaced)         0.292     0.821    u_clkgen/g_hw.clk_in_ibuf
+                         BUFGCE (Prop_BUFGCE_I_O)     0.028     0.849 r  u_clkgen/g_hw.u_bufg_in/O
+                         net (fo=485, unplaced)       2.482     3.331    u_clkgen/clk_in_100
+                         MMCME4_ADV (Prop_MMCME4_ADV_CLKIN1_CLKOUT0)
+                                                     -0.106     3.225 r  u_clkgen/g_hw.u_mmcm/CLKOUT0
+                         net (fo=1, unplaced)         0.213     3.438    u_clkgen/g_hw.clk_out0
+                         BUFGCE (Prop_BUFGCE_I_O)     0.028     3.466 r  u_clkgen/g_hw.u_bufg_out/O
+                         net (fo=51240, unplaced)     2.584     6.050    u_udp_split/u_uf/dp_clk
+                         FDCE                                         r  u_udp_split/u_uf/wptr_reg[1]/C
+  -------------------------------------------------------------------    -------------------
+                         FDCE (Prop_FDCE_C_Q)         0.093     6.143 r  u_udp_split/u_uf/wptr_reg[1]/Q
+                         net (fo=123, unplaced)       0.193     6.336    u_udp_split/u_uf/uf_wptr[1]
+                         LUT2 (Prop_LUT2_I0_O)        0.063     6.399 r  u_udp_split/u_uf/nx_v_i_26/O
+                         net (fo=1, unplaced)         0.025     6.424    u_udp_split/u_uf/nx_v_i_26_n_53
+                         CARRY8 (Prop_CARRY8_S[1]_O[5])
+                                                      0.295     6.719 r  u_udp_split/u_uf/nx_v_reg_i_17/O[5]
+                         net (fo=2, unplaced)         0.162     6.881    u_udp_split/u_uf/uf_occ[5]
+                         LUT4 (Prop_LUT4_I0_O)        0.121     7.002 r  u_udp_split/u_uf/nx_v_i_8/O
+                         net (fo=1, unplaced)         0.281     7.283    u_udp_split/u_uf/nx_v_i_8_n_53
+                         CARRY8 (Prop_CARRY8_DI[2]_CO[4])
+                                                      0.201     7.484 r  u_udp_split/u_uf/nx_v_reg_i_5/CO[4]
+                         net (fo=3, unplaced)         0.218     7.702    u_udp_split/u_uf/play_gate
+                         LUT4 (Prop_LUT4_I1_O)        0.040     7.742 r  u_udp_split/u_uf/nx_v_i_2/O
+                         net (fo=4, unplaced)         0.226     7.968    u_eco_pipe/app_udp_rx_tvalid
+                         LUT3 (Prop_LUT3_I2_O)        0.040     8.008 r  u_eco_pipe/drop_bytes[31]_i_5/O
+                         net (fo=5, unplaced)         0.232     8.240    u_eco_pipe/mir_s_tvalid
+                         LUT3 (Prop_LUT3_I0_O)        0.040     8.280 r  u_eco_pipe/stg_cnt[0]_i_10/O
+                         net (fo=3, unplaced)         0.220     8.500    u_eco_pipe/cap_sr_reg[1]_10
+                         LUT6 (Prop_LUT6_I0_O)        0.040     8.540 r  u_eco_pipe/stg_cnt[2]_i_8/O
+                         net (fo=11, unplaced)        0.249     8.789    u_mir/stg_cnt_reg[1]_0
+                         LUT6 (Prop_LUT6_I5_O)        0.040     8.829 f  u_mir/stg_cnt[2]_i_14/O
+                         net (fo=4, unplaced)         0.226     9.055    u_mir/stg_cnt[2]_i_14_n_53
+                         LUT5 (Prop_LUT5_I4_O)        0.040     9.095 r  u_mir/stg_cnt[0]_i_8/O
+                         net (fo=2, unplaced)         0.214     9.309    u_mir/stg_cnt[0]_i_8_n_53
+                         LUT6 (Prop_LUT6_I1_O)        0.040     9.349 r  u_mir/drop_bytes[31]_i_3/O
+                         net (fo=5, unplaced)         0.232     9.581    u_mir/drop_bytes[31]_i_3_n_53
+                         LUT6 (Prop_LUT6_I2_O)        0.040     9.621 f  u_mir/stg_cnt[1]_i_2/O
+                         net (fo=1, unplaced)         0.214     9.835    u_mir/stg_cnt[1]_i_2_n_53
+                         LUT2 (Prop_LUT2_I1_O)        0.040     9.875 r  u_mir/stg_cnt[1]_i_1/O
+                         net (fo=1, unplaced)         0.058     9.933    u_mir/stg_cnt[1]_i_1_n_53
+                         FDCE                                         r  u_mir/stg_cnt_reg[1]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock g_hw.clk_out0 rise edge)
+                                                      6.400     6.400 r  
+    T25                                               0.000     6.400 r  sys_clk_p (IN)
+                         net (fo=0)                   0.000     6.400    u_clkgen/g_hw.u_ibufds/I
+    HPIOBDIFFINBUF_X0Y37 DIFFINBUF (Prop_DIFFINBUF_HPIOBDIFFINBUF_DIFF_IN_P_O)
+                                                      0.398     6.798 r  u_clkgen/g_hw.u_ibufds/DIFFINBUF_INST/O
+                         net (fo=1, estimated)        0.040     6.838    u_clkgen/g_hw.u_ibufds/OUT
+    T25                  IBUFCTRL (Prop_IBUFCTRL_HPIOB_M_I_O)
+                                                      0.000     6.838 r  u_clkgen/g_hw.u_ibufds/IBUFCTRL_INST/O
+                         net (fo=1, unplaced)         0.260     7.098    u_clkgen/g_hw.clk_in_ibuf
+                         BUFGCE (Prop_BUFGCE_I_O)     0.024     7.122 r  u_clkgen/g_hw.u_bufg_in/O
+                         net (fo=485, unplaced)       2.337     9.459    u_clkgen/clk_in_100
+                         MMCME4_ADV (Prop_MMCME4_ADV_CLKIN1_CLKOUT0)
+                                                      0.644    10.103 r  u_clkgen/g_hw.u_mmcm/CLKOUT0
+                         net (fo=1, unplaced)         0.192    10.295    u_clkgen/g_hw.clk_out0
+                         BUFGCE (Prop_BUFGCE_I_O)     0.024    10.319 r  u_clkgen/g_hw.u_bufg_out/O
+                         net (fo=51240, unplaced)     2.439    12.758    u_mir/dp_clk
+                         FDCE                                         r  u_mir/stg_cnt_reg[1]/C
+                         clock pessimism             -0.453    12.305    
+                         clock uncertainty           -0.062    12.243    
+                         FDCE (Setup_FDCE_C_D)        0.027    12.270    u_mir/stg_cnt_reg[1]
+  -------------------------------------------------------------------
+                         required time                         12.270    
+                         arrival time                          -9.933    
+  -------------------------------------------------------------------
+                         slack                                  2.337    
+
+Slack (MET) :             2.524ns  (required time - arrival time)
+  Source:                 u_udp_split/u_uf/wptr_reg[1]/C
+                            (rising edge-triggered cell FDCE clocked by g_hw.clk_out0  {rise@0.000ns fall@3.200ns period=6.400ns})
+  Destination:            u_mir/stg_cnt_reg[0]/D
+                            (rising edge-triggered cell FDCE clocked by g_hw.clk_out0  {rise@0.000ns fall@3.200ns period=6.400ns})
+  Path Group:             g_hw.clk_out0
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            6.400ns  (g_hw.clk_out0 rise@6.400ns - g_hw.clk_out0 rise@0.000ns)
+  Data Path Delay:        3.696ns  (logic 1.162ns (31.439%)  route 2.534ns (68.561%))
+  Logic Levels:           12  (CARRY8=2 LUT2=1 LUT3=3 LUT4=2 LUT5=2 LUT6=2)
+  Clock Path Skew:        -0.145ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    6.358ns = ( 12.758 - 6.400 ) 
+    Source Clock Delay      (SCD):    6.050ns
+    Clock Pessimism Removal (CPR):    -0.453ns
+  Clock Uncertainty:      0.062ns  ((TSJ^2 + DJ^2)^1/2) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Discrete Jitter          (DJ):    0.101ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock g_hw.clk_out0 rise edge)
+                                                      0.000     0.000 r  
+    T25                                               0.000     0.000 r  sys_clk_p (IN)
+                         net (fo=0)                   0.000     0.000    u_clkgen/g_hw.u_ibufds/I
+    HPIOBDIFFINBUF_X0Y37 DIFFINBUF (Prop_DIFFINBUF_HPIOBDIFFINBUF_DIFF_IN_P_O)
+                                                      0.479     0.479 r  u_clkgen/g_hw.u_ibufds/DIFFINBUF_INST/O
+                         net (fo=1, estimated)        0.050     0.529    u_clkgen/g_hw.u_ibufds/OUT
+    T25                  IBUFCTRL (Prop_IBUFCTRL_HPIOB_M_I_O)
+                                                      0.000     0.529 r  u_clkgen/g_hw.u_ibufds/IBUFCTRL_INST/O
+                         net (fo=1, unplaced)         0.292     0.821    u_clkgen/g_hw.clk_in_ibuf
+                         BUFGCE (Prop_BUFGCE_I_O)     0.028     0.849 r  u_clkgen/g_hw.u_bufg_in/O
+                         net (fo=485, unplaced)       2.482     3.331    u_clkgen/clk_in_100
+                         MMCME4_ADV (Prop_MMCME4_ADV_CLKIN1_CLKOUT0)
+                                                     -0.106     3.225 r  u_clkgen/g_hw.u_mmcm/CLKOUT0
+                         net (fo=1, unplaced)         0.213     3.438    u_clkgen/g_hw.clk_out0
+                         BUFGCE (Prop_BUFGCE_I_O)     0.028     3.466 r  u_clkgen/g_hw.u_bufg_out/O
+                         net (fo=51240, unplaced)     2.584     6.050    u_udp_split/u_uf/dp_clk
+                         FDCE                                         r  u_udp_split/u_uf/wptr_reg[1]/C
+  -------------------------------------------------------------------    -------------------
+                         FDCE (Prop_FDCE_C_Q)         0.093     6.143 r  u_udp_split/u_uf/wptr_reg[1]/Q
+                         net (fo=123, unplaced)       0.193     6.336    u_udp_split/u_uf/uf_wptr[1]
+                         LUT2 (Prop_LUT2_I0_O)        0.063     6.399 r  u_udp_split/u_uf/nx_v_i_26/O
+                         net (fo=1, unplaced)         0.025     6.424    u_udp_split/u_uf/nx_v_i_26_n_53
+                         CARRY8 (Prop_CARRY8_S[1]_O[5])
+                                                      0.295     6.719 r  u_udp_split/u_uf/nx_v_reg_i_17/O[5]
+                         net (fo=2, unplaced)         0.162     6.881    u_udp_split/u_uf/uf_occ[5]
+                         LUT4 (Prop_LUT4_I0_O)        0.121     7.002 r  u_udp_split/u_uf/nx_v_i_8/O
+                         net (fo=1, unplaced)         0.281     7.283    u_udp_split/u_uf/nx_v_i_8_n_53
+                         CARRY8 (Prop_CARRY8_DI[2]_CO[4])
+                                                      0.201     7.484 r  u_udp_split/u_uf/nx_v_reg_i_5/CO[4]
+                         net (fo=3, unplaced)         0.218     7.702    u_udp_split/u_uf/play_gate
+                         LUT4 (Prop_LUT4_I1_O)        0.040     7.742 r  u_udp_split/u_uf/nx_v_i_2/O
+                         net (fo=4, unplaced)         0.226     7.968    u_eco_pipe/app_udp_rx_tvalid
+                         LUT3 (Prop_LUT3_I2_O)        0.040     8.008 r  u_eco_pipe/drop_bytes[31]_i_5/O
+                         net (fo=5, unplaced)         0.232     8.240    u_eco_pipe/mir_s_tvalid
+                         LUT3 (Prop_LUT3_I0_O)        0.040     8.280 r  u_eco_pipe/stg_cnt[0]_i_10/O
+                         net (fo=3, unplaced)         0.220     8.500    u_eco_pipe/cap_sr_reg[1]_10
+                         LUT5 (Prop_LUT5_I0_O)        0.040     8.540 r  u_eco_pipe/stg_cnt[4]_i_10/O
+                         net (fo=11, unplaced)        0.249     8.789    u_mir/stg_cnt_reg[4]_1
+                         LUT3 (Prop_LUT3_I0_O)        0.085     8.874 r  u_mir/stg_cnt[2]_i_12/O
+                         net (fo=3, unplaced)         0.162     9.036    u_mir/stg_cnt[2]_i_12_n_53
+                         LUT6 (Prop_LUT6_I1_O)        0.064     9.100 r  u_mir/stg_cnt[0]_i_9/O
+                         net (fo=2, unplaced)         0.214     9.314    u_mir/stg_cnt[0]_i_9_n_53
+                         LUT6 (Prop_LUT6_I4_O)        0.040     9.354 r  u_mir/stg_cnt[0]_i_3/O
+                         net (fo=78, unplaced)        0.294     9.648    u_mir/stg_cnt[0]_i_3_n_53
+                         LUT5 (Prop_LUT5_I2_O)        0.040     9.688 r  u_mir/stg_cnt[0]_i_1/O
+                         net (fo=1, unplaced)         0.058     9.746    u_mir/stg_cnt[0]_i_1_n_53
+                         FDCE                                         r  u_mir/stg_cnt_reg[0]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock g_hw.clk_out0 rise edge)
+                                                      6.400     6.400 r  
+    T25                                               0.000     6.400 r  sys_clk_p (IN)
+                         net (fo=0)                   0.000     6.400    u_clkgen/g_hw.u_ibufds/I
+    HPIOBDIFFINBUF_X0Y37 DIFFINBUF (Prop_DIFFINBUF_HPIOBDIFFINBUF_DIFF_IN_P_O)
+                                                      0.398     6.798 r  u_clkgen/g_hw.u_ibufds/DIFFINBUF_INST/O
+                         net (fo=1, estimated)        0.040     6.838    u_clkgen/g_hw.u_ibufds/OUT
+    T25                  IBUFCTRL (Prop_IBUFCTRL_HPIOB_M_I_O)
+                                                      0.000     6.838 r  u_clkgen/g_hw.u_ibufds/IBUFCTRL_INST/O
+                         net (fo=1, unplaced)         0.260     7.098    u_clkgen/g_hw.clk_in_ibuf
+                         BUFGCE (Prop_BUFGCE_I_O)     0.024     7.122 r  u_clkgen/g_hw.u_bufg_in/O
+                         net (fo=485, unplaced)       2.337     9.459    u_clkgen/clk_in_100
+                         MMCME4_ADV (Prop_MMCME4_ADV_CLKIN1_CLKOUT0)
+                                                      0.644    10.103 r  u_clkgen/g_hw.u_mmcm/CLKOUT0
+                         net (fo=1, unplaced)         0.192    10.295    u_clkgen/g_hw.clk_out0
+                         BUFGCE (Prop_BUFGCE_I_O)     0.024    10.319 r  u_clkgen/g_hw.u_bufg_out/O
+                         net (fo=51240, unplaced)     2.439    12.758    u_mir/dp_clk
+                         FDCE                                         r  u_mir/stg_cnt_reg[0]/C
+                         clock pessimism             -0.453    12.305    
+                         clock uncertainty           -0.062    12.243    
+                         FDCE (Setup_FDCE_C_D)        0.027    12.270    u_mir/stg_cnt_reg[0]
+  -------------------------------------------------------------------
+                         required time                         12.270    
+                         arrival time                          -9.746    
+  -------------------------------------------------------------------
+                         slack                                  2.524    
+
+Slack (MET) :             5.260ns  (required time - arrival time)
+  Source:                 u_mir/clrt_sr_reg[1]/C
+                            (rising edge-triggered cell FDCE clocked by g_hw.clk_out0  {rise@0.000ns fall@3.200ns period=6.400ns})
+  Destination:            u_mir/stg_cnt_reg[0]/CE
+                            (rising edge-triggered cell FDCE clocked by g_hw.clk_out0  {rise@0.000ns fall@3.200ns period=6.400ns})
+  Path Group:             g_hw.clk_out0
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            6.400ns  (g_hw.clk_out0 rise@6.400ns - g_hw.clk_out0 rise@0.000ns)
+  Data Path Delay:        0.890ns  (logic 0.173ns (19.438%)  route 0.717ns (80.562%))
+  Logic Levels:           2  (LUT2=2)
+  Clock Path Skew:        -0.145ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    6.358ns = ( 12.758 - 6.400 ) 
+    Source Clock Delay      (SCD):    6.050ns
+    Clock Pessimism Removal (CPR):    -0.453ns
+  Clock Uncertainty:      0.062ns  ((TSJ^2 + DJ^2)^1/2) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Discrete Jitter          (DJ):    0.101ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock g_hw.clk_out0 rise edge)
+                                                      0.000     0.000 r  
+    T25                                               0.000     0.000 r  sys_clk_p (IN)
+                         net (fo=0)                   0.000     0.000    u_clkgen/g_hw.u_ibufds/I
+    HPIOBDIFFINBUF_X0Y37 DIFFINBUF (Prop_DIFFINBUF_HPIOBDIFFINBUF_DIFF_IN_P_O)
+                                                      0.479     0.479 r  u_clkgen/g_hw.u_ibufds/DIFFINBUF_INST/O
+                         net (fo=1, estimated)        0.050     0.529    u_clkgen/g_hw.u_ibufds/OUT
+    T25                  IBUFCTRL (Prop_IBUFCTRL_HPIOB_M_I_O)
+                                                      0.000     0.529 r  u_clkgen/g_hw.u_ibufds/IBUFCTRL_INST/O
+                         net (fo=1, unplaced)         0.292     0.821    u_clkgen/g_hw.clk_in_ibuf
+                         BUFGCE (Prop_BUFGCE_I_O)     0.028     0.849 r  u_clkgen/g_hw.u_bufg_in/O
+                         net (fo=485, unplaced)       2.482     3.331    u_clkgen/clk_in_100
+                         MMCME4_ADV (Prop_MMCME4_ADV_CLKIN1_CLKOUT0)
+                                                     -0.106     3.225 r  u_clkgen/g_hw.u_mmcm/CLKOUT0
+                         net (fo=1, unplaced)         0.213     3.438    u_clkgen/g_hw.clk_out0
+                         BUFGCE (Prop_BUFGCE_I_O)     0.028     3.466 r  u_clkgen/g_hw.u_bufg_out/O
+                         net (fo=51240, unplaced)     2.584     6.050    u_mir/dp_clk
+                         FDCE                                         r  u_mir/clrt_sr_reg[1]/C
+  -------------------------------------------------------------------    -------------------
+                         FDCE (Prop_FDCE_C_Q)         0.093     6.143 r  u_mir/clrt_sr_reg[1]/Q
+                         net (fo=2, unplaced)         0.158     6.301    u_mir/clrt_sr[1]
+                         LUT2 (Prop_LUT2_I1_O)        0.040     6.341 r  u_mir/acc_cnt_r[2]_i_2/O
+                         net (fo=140, unplaced)       0.307     6.648    u_mir/acc_cnt_r[2]_i_2_n_53
+                         LUT2 (Prop_LUT2_I1_O)        0.040     6.688 r  u_mir/stg_cnt[4]_i_1/O
+                         net (fo=134, unplaced)       0.252     6.940    u_mir/stg_cnt[0]
+                         FDCE                                         r  u_mir/stg_cnt_reg[0]/CE
+  -------------------------------------------------------------------    -------------------
+
+                         (clock g_hw.clk_out0 rise edge)
+                                                      6.400     6.400 r  
+    T25                                               0.000     6.400 r  sys_clk_p (IN)
+                         net (fo=0)                   0.000     6.400    u_clkgen/g_hw.u_ibufds/I
+    HPIOBDIFFINBUF_X0Y37 DIFFINBUF (Prop_DIFFINBUF_HPIOBDIFFINBUF_DIFF_IN_P_O)
+                                                      0.398     6.798 r  u_clkgen/g_hw.u_ibufds/DIFFINBUF_INST/O
+                         net (fo=1, estimated)        0.040     6.838    u_clkgen/g_hw.u_ibufds/OUT
+    T25                  IBUFCTRL (Prop_IBUFCTRL_HPIOB_M_I_O)
+                                                      0.000     6.838 r  u_clkgen/g_hw.u_ibufds/IBUFCTRL_INST/O
+                         net (fo=1, unplaced)         0.260     7.098    u_clkgen/g_hw.clk_in_ibuf
+                         BUFGCE (Prop_BUFGCE_I_O)     0.024     7.122 r  u_clkgen/g_hw.u_bufg_in/O
+                         net (fo=485, unplaced)       2.337     9.459    u_clkgen/clk_in_100
+                         MMCME4_ADV (Prop_MMCME4_ADV_CLKIN1_CLKOUT0)
+                                                      0.644    10.103 r  u_clkgen/g_hw.u_mmcm/CLKOUT0
+                         net (fo=1, unplaced)         0.192    10.295    u_clkgen/g_hw.clk_out0
+                         BUFGCE (Prop_BUFGCE_I_O)     0.024    10.319 r  u_clkgen/g_hw.u_bufg_out/O
+                         net (fo=51240, unplaced)     2.439    12.758    u_mir/dp_clk
+                         FDCE                                         r  u_mir/stg_cnt_reg[0]/C
+                         clock pessimism             -0.453    12.305    
+                         clock uncertainty           -0.062    12.243    
+                         FDCE (Setup_FDCE_C_CE)      -0.043    12.200    u_mir/stg_cnt_reg[0]
+  -------------------------------------------------------------------
+                         required time                         12.200    
+                         arrival time                          -6.940    
+  -------------------------------------------------------------------
+                         slack                                  5.260    
+
+Slack (MET) :             5.260ns  (required time - arrival time)
+  Source:                 u_mir/clrt_sr_reg[1]/C
+                            (rising edge-triggered cell FDCE clocked by g_hw.clk_out0  {rise@0.000ns fall@3.200ns period=6.400ns})
+  Destination:            u_mir/stg_cnt_reg[1]/CE
+                            (rising edge-triggered cell FDCE clocked by g_hw.clk_out0  {rise@0.000ns fall@3.200ns period=6.400ns})
+  Path Group:             g_hw.clk_out0
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            6.400ns  (g_hw.clk_out0 rise@6.400ns - g_hw.clk_out0 rise@0.000ns)
+  Data Path Delay:        0.890ns  (logic 0.173ns (19.438%)  route 0.717ns (80.562%))
+  Logic Levels:           2  (LUT2=2)
+  Clock Path Skew:        -0.145ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    6.358ns = ( 12.758 - 6.400 ) 
+    Source Clock Delay      (SCD):    6.050ns
+    Clock Pessimism Removal (CPR):    -0.453ns
+  Clock Uncertainty:      0.062ns  ((TSJ^2 + DJ^2)^1/2) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Discrete Jitter          (DJ):    0.101ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock g_hw.clk_out0 rise edge)
+                                                      0.000     0.000 r  
+    T25                                               0.000     0.000 r  sys_clk_p (IN)
+                         net (fo=0)                   0.000     0.000    u_clkgen/g_hw.u_ibufds/I
+    HPIOBDIFFINBUF_X0Y37 DIFFINBUF (Prop_DIFFINBUF_HPIOBDIFFINBUF_DIFF_IN_P_O)
+                                                      0.479     0.479 r  u_clkgen/g_hw.u_ibufds/DIFFINBUF_INST/O
+                         net (fo=1, estimated)        0.050     0.529    u_clkgen/g_hw.u_ibufds/OUT
+    T25                  IBUFCTRL (Prop_IBUFCTRL_HPIOB_M_I_O)
+                                                      0.000     0.529 r  u_clkgen/g_hw.u_ibufds/IBUFCTRL_INST/O
+                         net (fo=1, unplaced)         0.292     0.821    u_clkgen/g_hw.clk_in_ibuf
+                         BUFGCE (Prop_BUFGCE_I_O)     0.028     0.849 r  u_clkgen/g_hw.u_bufg_in/O
+                         net (fo=485, unplaced)       2.482     3.331    u_clkgen/clk_in_100
+                         MMCME4_ADV (Prop_MMCME4_ADV_CLKIN1_CLKOUT0)
+                                                     -0.106     3.225 r  u_clkgen/g_hw.u_mmcm/CLKOUT0
+                         net (fo=1, unplaced)         0.213     3.438    u_clkgen/g_hw.clk_out0
+                         BUFGCE (Prop_BUFGCE_I_O)     0.028     3.466 r  u_clkgen/g_hw.u_bufg_out/O
+                         net (fo=51240, unplaced)     2.584     6.050    u_mir/dp_clk
+                         FDCE                                         r  u_mir/clrt_sr_reg[1]/C
+  -------------------------------------------------------------------    -------------------
+                         FDCE (Prop_FDCE_C_Q)         0.093     6.143 r  u_mir/clrt_sr_reg[1]/Q
+                         net (fo=2, unplaced)         0.158     6.301    u_mir/clrt_sr[1]
+                         LUT2 (Prop_LUT2_I1_O)        0.040     6.341 r  u_mir/acc_cnt_r[2]_i_2/O
+                         net (fo=140, unplaced)       0.307     6.648    u_mir/acc_cnt_r[2]_i_2_n_53
+                         LUT2 (Prop_LUT2_I1_O)        0.040     6.688 r  u_mir/stg_cnt[4]_i_1/O
+                         net (fo=134, unplaced)       0.252     6.940    u_mir/stg_cnt[0]
+                         FDCE                                         r  u_mir/stg_cnt_reg[1]/CE
+  -------------------------------------------------------------------    -------------------
+
+                         (clock g_hw.clk_out0 rise edge)
+                                                      6.400     6.400 r  
+    T25                                               0.000     6.400 r  sys_clk_p (IN)
+                         net (fo=0)                   0.000     6.400    u_clkgen/g_hw.u_ibufds/I
+    HPIOBDIFFINBUF_X0Y37 DIFFINBUF (Prop_DIFFINBUF_HPIOBDIFFINBUF_DIFF_IN_P_O)
+                                                      0.398     6.798 r  u_clkgen/g_hw.u_ibufds/DIFFINBUF_INST/O
+                         net (fo=1, estimated)        0.040     6.838    u_clkgen/g_hw.u_ibufds/OUT
+    T25                  IBUFCTRL (Prop_IBUFCTRL_HPIOB_M_I_O)
+                                                      0.000     6.838 r  u_clkgen/g_hw.u_ibufds/IBUFCTRL_INST/O
+                         net (fo=1, unplaced)         0.260     7.098    u_clkgen/g_hw.clk_in_ibuf
+                         BUFGCE (Prop_BUFGCE_I_O)     0.024     7.122 r  u_clkgen/g_hw.u_bufg_in/O
+                         net (fo=485, unplaced)       2.337     9.459    u_clkgen/clk_in_100
+                         MMCME4_ADV (Prop_MMCME4_ADV_CLKIN1_CLKOUT0)
+                                                      0.644    10.103 r  u_clkgen/g_hw.u_mmcm/CLKOUT0
+                         net (fo=1, unplaced)         0.192    10.295    u_clkgen/g_hw.clk_out0
+                         BUFGCE (Prop_BUFGCE_I_O)     0.024    10.319 r  u_clkgen/g_hw.u_bufg_out/O
+                         net (fo=51240, unplaced)     2.439    12.758    u_mir/dp_clk
+                         FDCE                                         r  u_mir/stg_cnt_reg[1]/C
+                         clock pessimism             -0.453    12.305    
+                         clock uncertainty           -0.062    12.243    
+                         FDCE (Setup_FDCE_C_CE)      -0.043    12.200    u_mir/stg_cnt_reg[1]
+  -------------------------------------------------------------------
+                         required time                         12.200    
+                         arrival time                          -6.940    
+  -------------------------------------------------------------------
+                         slack                                  5.260    
+
+Slack (MET) :             5.260ns  (required time - arrival time)
+  Source:                 u_mir/clrt_sr_reg[1]/C
+                            (rising edge-triggered cell FDCE clocked by g_hw.clk_out0  {rise@0.000ns fall@3.200ns period=6.400ns})
+  Destination:            u_mir/stg_cnt_reg[2]/CE
+                            (rising edge-triggered cell FDCE clocked by g_hw.clk_out0  {rise@0.000ns fall@3.200ns period=6.400ns})
+  Path Group:             g_hw.clk_out0
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            6.400ns  (g_hw.clk_out0 rise@6.400ns - g_hw.clk_out0 rise@0.000ns)
+  Data Path Delay:        0.890ns  (logic 0.173ns (19.438%)  route 0.717ns (80.562%))
+  Logic Levels:           2  (LUT2=2)
+  Clock Path Skew:        -0.145ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    6.358ns = ( 12.758 - 6.400 ) 
+    Source Clock Delay      (SCD):    6.050ns
+    Clock Pessimism Removal (CPR):    -0.453ns
+  Clock Uncertainty:      0.062ns  ((TSJ^2 + DJ^2)^1/2) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Discrete Jitter          (DJ):    0.101ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock g_hw.clk_out0 rise edge)
+                                                      0.000     0.000 r  
+    T25                                               0.000     0.000 r  sys_clk_p (IN)
+                         net (fo=0)                   0.000     0.000    u_clkgen/g_hw.u_ibufds/I
+    HPIOBDIFFINBUF_X0Y37 DIFFINBUF (Prop_DIFFINBUF_HPIOBDIFFINBUF_DIFF_IN_P_O)
+                                                      0.479     0.479 r  u_clkgen/g_hw.u_ibufds/DIFFINBUF_INST/O
+                         net (fo=1, estimated)        0.050     0.529    u_clkgen/g_hw.u_ibufds/OUT
+    T25                  IBUFCTRL (Prop_IBUFCTRL_HPIOB_M_I_O)
+                                                      0.000     0.529 r  u_clkgen/g_hw.u_ibufds/IBUFCTRL_INST/O
+                         net (fo=1, unplaced)         0.292     0.821    u_clkgen/g_hw.clk_in_ibuf
+                         BUFGCE (Prop_BUFGCE_I_O)     0.028     0.849 r  u_clkgen/g_hw.u_bufg_in/O
+                         net (fo=485, unplaced)       2.482     3.331    u_clkgen/clk_in_100
+                         MMCME4_ADV (Prop_MMCME4_ADV_CLKIN1_CLKOUT0)
+                                                     -0.106     3.225 r  u_clkgen/g_hw.u_mmcm/CLKOUT0
+                         net (fo=1, unplaced)         0.213     3.438    u_clkgen/g_hw.clk_out0
+                         BUFGCE (Prop_BUFGCE_I_O)     0.028     3.466 r  u_clkgen/g_hw.u_bufg_out/O
+                         net (fo=51240, unplaced)     2.584     6.050    u_mir/dp_clk
+                         FDCE                                         r  u_mir/clrt_sr_reg[1]/C
+  -------------------------------------------------------------------    -------------------
+                         FDCE (Prop_FDCE_C_Q)         0.093     6.143 r  u_mir/clrt_sr_reg[1]/Q
+                         net (fo=2, unplaced)         0.158     6.301    u_mir/clrt_sr[1]
+                         LUT2 (Prop_LUT2_I1_O)        0.040     6.341 r  u_mir/acc_cnt_r[2]_i_2/O
+                         net (fo=140, unplaced)       0.307     6.648    u_mir/acc_cnt_r[2]_i_2_n_53
+                         LUT2 (Prop_LUT2_I1_O)        0.040     6.688 r  u_mir/stg_cnt[4]_i_1/O
+                         net (fo=134, unplaced)       0.252     6.940    u_mir/stg_cnt[0]
+                         FDCE                                         r  u_mir/stg_cnt_reg[2]/CE
+  -------------------------------------------------------------------    -------------------
+
+                         (clock g_hw.clk_out0 rise edge)
+                                                      6.400     6.400 r  
+    T25                                               0.000     6.400 r  sys_clk_p (IN)
+                         net (fo=0)                   0.000     6.400    u_clkgen/g_hw.u_ibufds/I
+    HPIOBDIFFINBUF_X0Y37 DIFFINBUF (Prop_DIFFINBUF_HPIOBDIFFINBUF_DIFF_IN_P_O)
+                                                      0.398     6.798 r  u_clkgen/g_hw.u_ibufds/DIFFINBUF_INST/O
+                         net (fo=1, estimated)        0.040     6.838    u_clkgen/g_hw.u_ibufds/OUT
+    T25                  IBUFCTRL (Prop_IBUFCTRL_HPIOB_M_I_O)
+                                                      0.000     6.838 r  u_clkgen/g_hw.u_ibufds/IBUFCTRL_INST/O
+                         net (fo=1, unplaced)         0.260     7.098    u_clkgen/g_hw.clk_in_ibuf
+                         BUFGCE (Prop_BUFGCE_I_O)     0.024     7.122 r  u_clkgen/g_hw.u_bufg_in/O
+                         net (fo=485, unplaced)       2.337     9.459    u_clkgen/clk_in_100
+                         MMCME4_ADV (Prop_MMCME4_ADV_CLKIN1_CLKOUT0)
+                                                      0.644    10.103 r  u_clkgen/g_hw.u_mmcm/CLKOUT0
+                         net (fo=1, unplaced)         0.192    10.295    u_clkgen/g_hw.clk_out0
+                         BUFGCE (Prop_BUFGCE_I_O)     0.024    10.319 r  u_clkgen/g_hw.u_bufg_out/O
+                         net (fo=51240, unplaced)     2.439    12.758    u_mir/dp_clk
+                         FDCE                                         r  u_mir/stg_cnt_reg[2]/C
+                         clock pessimism             -0.453    12.305    
+                         clock uncertainty           -0.062    12.243    
+                         FDCE (Setup_FDCE_C_CE)      -0.043    12.200    u_mir/stg_cnt_reg[2]
+  -------------------------------------------------------------------
+                         required time                         12.200    
+                         arrival time                          -6.940    
+  -------------------------------------------------------------------
+                         slack                                  5.260    
+
+Slack (MET) :             5.260ns  (required time - arrival time)
+  Source:                 u_mir/clrt_sr_reg[1]/C
+                            (rising edge-triggered cell FDCE clocked by g_hw.clk_out0  {rise@0.000ns fall@3.200ns period=6.400ns})
+  Destination:            u_mir/stg_cnt_reg[3]/CE
+                            (rising edge-triggered cell FDCE clocked by g_hw.clk_out0  {rise@0.000ns fall@3.200ns period=6.400ns})
+  Path Group:             g_hw.clk_out0
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            6.400ns  (g_hw.clk_out0 rise@6.400ns - g_hw.clk_out0 rise@0.000ns)
+  Data Path Delay:        0.890ns  (logic 0.173ns (19.438%)  route 0.717ns (80.562%))
+  Logic Levels:           2  (LUT2=2)
+  Clock Path Skew:        -0.145ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    6.358ns = ( 12.758 - 6.400 ) 
+    Source Clock Delay      (SCD):    6.050ns
+    Clock Pessimism Removal (CPR):    -0.453ns
+  Clock Uncertainty:      0.062ns  ((TSJ^2 + DJ^2)^1/2) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Discrete Jitter          (DJ):    0.101ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock g_hw.clk_out0 rise edge)
+                                                      0.000     0.000 r  
+    T25                                               0.000     0.000 r  sys_clk_p (IN)
+                         net (fo=0)                   0.000     0.000    u_clkgen/g_hw.u_ibufds/I
+    HPIOBDIFFINBUF_X0Y37 DIFFINBUF (Prop_DIFFINBUF_HPIOBDIFFINBUF_DIFF_IN_P_O)
+                                                      0.479     0.479 r  u_clkgen/g_hw.u_ibufds/DIFFINBUF_INST/O
+                         net (fo=1, estimated)        0.050     0.529    u_clkgen/g_hw.u_ibufds/OUT
+    T25                  IBUFCTRL (Prop_IBUFCTRL_HPIOB_M_I_O)
+                                                      0.000     0.529 r  u_clkgen/g_hw.u_ibufds/IBUFCTRL_INST/O
+                         net (fo=1, unplaced)         0.292     0.821    u_clkgen/g_hw.clk_in_ibuf
+                         BUFGCE (Prop_BUFGCE_I_O)     0.028     0.849 r  u_clkgen/g_hw.u_bufg_in/O
+                         net (fo=485, unplaced)       2.482     3.331    u_clkgen/clk_in_100
+                         MMCME4_ADV (Prop_MMCME4_ADV_CLKIN1_CLKOUT0)
+                                                     -0.106     3.225 r  u_clkgen/g_hw.u_mmcm/CLKOUT0
+                         net (fo=1, unplaced)         0.213     3.438    u_clkgen/g_hw.clk_out0
+                         BUFGCE (Prop_BUFGCE_I_O)     0.028     3.466 r  u_clkgen/g_hw.u_bufg_out/O
+                         net (fo=51240, unplaced)     2.584     6.050    u_mir/dp_clk
+                         FDCE                                         r  u_mir/clrt_sr_reg[1]/C
+  -------------------------------------------------------------------    -------------------
+                         FDCE (Prop_FDCE_C_Q)         0.093     6.143 r  u_mir/clrt_sr_reg[1]/Q
+                         net (fo=2, unplaced)         0.158     6.301    u_mir/clrt_sr[1]
+                         LUT2 (Prop_LUT2_I1_O)        0.040     6.341 r  u_mir/acc_cnt_r[2]_i_2/O
+                         net (fo=140, unplaced)       0.307     6.648    u_mir/acc_cnt_r[2]_i_2_n_53
+                         LUT2 (Prop_LUT2_I1_O)        0.040     6.688 r  u_mir/stg_cnt[4]_i_1/O
+                         net (fo=134, unplaced)       0.252     6.940    u_mir/stg_cnt[0]
+                         FDCE                                         r  u_mir/stg_cnt_reg[3]/CE
+  -------------------------------------------------------------------    -------------------
+
+                         (clock g_hw.clk_out0 rise edge)
+                                                      6.400     6.400 r  
+    T25                                               0.000     6.400 r  sys_clk_p (IN)
+                         net (fo=0)                   0.000     6.400    u_clkgen/g_hw.u_ibufds/I
+    HPIOBDIFFINBUF_X0Y37 DIFFINBUF (Prop_DIFFINBUF_HPIOBDIFFINBUF_DIFF_IN_P_O)
+                                                      0.398     6.798 r  u_clkgen/g_hw.u_ibufds/DIFFINBUF_INST/O
+                         net (fo=1, estimated)        0.040     6.838    u_clkgen/g_hw.u_ibufds/OUT
+    T25                  IBUFCTRL (Prop_IBUFCTRL_HPIOB_M_I_O)
+                                                      0.000     6.838 r  u_clkgen/g_hw.u_ibufds/IBUFCTRL_INST/O
+                         net (fo=1, unplaced)         0.260     7.098    u_clkgen/g_hw.clk_in_ibuf
+                         BUFGCE (Prop_BUFGCE_I_O)     0.024     7.122 r  u_clkgen/g_hw.u_bufg_in/O
+                         net (fo=485, unplaced)       2.337     9.459    u_clkgen/clk_in_100
+                         MMCME4_ADV (Prop_MMCME4_ADV_CLKIN1_CLKOUT0)
+                                                      0.644    10.103 r  u_clkgen/g_hw.u_mmcm/CLKOUT0
+                         net (fo=1, unplaced)         0.192    10.295    u_clkgen/g_hw.clk_out0
+                         BUFGCE (Prop_BUFGCE_I_O)     0.024    10.319 r  u_clkgen/g_hw.u_bufg_out/O
+                         net (fo=51240, unplaced)     2.439    12.758    u_mir/dp_clk
+                         FDCE                                         r  u_mir/stg_cnt_reg[3]/C
+                         clock pessimism             -0.453    12.305    
+                         clock uncertainty           -0.062    12.243    
+                         FDCE (Setup_FDCE_C_CE)      -0.043    12.200    u_mir/stg_cnt_reg[3]
+  -------------------------------------------------------------------
+                         required time                         12.200    
+                         arrival time                          -6.940    
+  -------------------------------------------------------------------
+                         slack                                  5.260    
+
+Slack (MET) :             5.260ns  (required time - arrival time)
+  Source:                 u_mir/clrt_sr_reg[1]/C
+                            (rising edge-triggered cell FDCE clocked by g_hw.clk_out0  {rise@0.000ns fall@3.200ns period=6.400ns})
+  Destination:            u_mir/stg_cnt_reg[4]/CE
+                            (rising edge-triggered cell FDCE clocked by g_hw.clk_out0  {rise@0.000ns fall@3.200ns period=6.400ns})
+  Path Group:             g_hw.clk_out0
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            6.400ns  (g_hw.clk_out0 rise@6.400ns - g_hw.clk_out0 rise@0.000ns)
+  Data Path Delay:        0.890ns  (logic 0.173ns (19.438%)  route 0.717ns (80.562%))
+  Logic Levels:           2  (LUT2=2)
+  Clock Path Skew:        -0.145ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    6.358ns = ( 12.758 - 6.400 ) 
+    Source Clock Delay      (SCD):    6.050ns
+    Clock Pessimism Removal (CPR):    -0.453ns
+  Clock Uncertainty:      0.062ns  ((TSJ^2 + DJ^2)^1/2) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Discrete Jitter          (DJ):    0.101ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock g_hw.clk_out0 rise edge)
+                                                      0.000     0.000 r  
+    T25                                               0.000     0.000 r  sys_clk_p (IN)
+                         net (fo=0)                   0.000     0.000    u_clkgen/g_hw.u_ibufds/I
+    HPIOBDIFFINBUF_X0Y37 DIFFINBUF (Prop_DIFFINBUF_HPIOBDIFFINBUF_DIFF_IN_P_O)
+                                                      0.479     0.479 r  u_clkgen/g_hw.u_ibufds/DIFFINBUF_INST/O
+                         net (fo=1, estimated)        0.050     0.529    u_clkgen/g_hw.u_ibufds/OUT
+    T25                  IBUFCTRL (Prop_IBUFCTRL_HPIOB_M_I_O)
+                                                      0.000     0.529 r  u_clkgen/g_hw.u_ibufds/IBUFCTRL_INST/O
+                         net (fo=1, unplaced)         0.292     0.821    u_clkgen/g_hw.clk_in_ibuf
+                         BUFGCE (Prop_BUFGCE_I_O)     0.028     0.849 r  u_clkgen/g_hw.u_bufg_in/O
+                         net (fo=485, unplaced)       2.482     3.331    u_clkgen/clk_in_100
+                         MMCME4_ADV (Prop_MMCME4_ADV_CLKIN1_CLKOUT0)
+                                                     -0.106     3.225 r  u_clkgen/g_hw.u_mmcm/CLKOUT0
+                         net (fo=1, unplaced)         0.213     3.438    u_clkgen/g_hw.clk_out0
+                         BUFGCE (Prop_BUFGCE_I_O)     0.028     3.466 r  u_clkgen/g_hw.u_bufg_out/O
+                         net (fo=51240, unplaced)     2.584     6.050    u_mir/dp_clk
+                         FDCE                                         r  u_mir/clrt_sr_reg[1]/C
+  -------------------------------------------------------------------    -------------------
+                         FDCE (Prop_FDCE_C_Q)         0.093     6.143 r  u_mir/clrt_sr_reg[1]/Q
+                         net (fo=2, unplaced)         0.158     6.301    u_mir/clrt_sr[1]
+                         LUT2 (Prop_LUT2_I1_O)        0.040     6.341 r  u_mir/acc_cnt_r[2]_i_2/O
+                         net (fo=140, unplaced)       0.307     6.648    u_mir/acc_cnt_r[2]_i_2_n_53
+                         LUT2 (Prop_LUT2_I1_O)        0.040     6.688 r  u_mir/stg_cnt[4]_i_1/O
+                         net (fo=134, unplaced)       0.252     6.940    u_mir/stg_cnt[0]
+                         FDCE                                         r  u_mir/stg_cnt_reg[4]/CE
+  -------------------------------------------------------------------    -------------------
+
+                         (clock g_hw.clk_out0 rise edge)
+                                                      6.400     6.400 r  
+    T25                                               0.000     6.400 r  sys_clk_p (IN)
+                         net (fo=0)                   0.000     6.400    u_clkgen/g_hw.u_ibufds/I
+    HPIOBDIFFINBUF_X0Y37 DIFFINBUF (Prop_DIFFINBUF_HPIOBDIFFINBUF_DIFF_IN_P_O)
+                                                      0.398     6.798 r  u_clkgen/g_hw.u_ibufds/DIFFINBUF_INST/O
+                         net (fo=1, estimated)        0.040     6.838    u_clkgen/g_hw.u_ibufds/OUT
+    T25                  IBUFCTRL (Prop_IBUFCTRL_HPIOB_M_I_O)
+                                                      0.000     6.838 r  u_clkgen/g_hw.u_ibufds/IBUFCTRL_INST/O
+                         net (fo=1, unplaced)         0.260     7.098    u_clkgen/g_hw.clk_in_ibuf
+                         BUFGCE (Prop_BUFGCE_I_O)     0.024     7.122 r  u_clkgen/g_hw.u_bufg_in/O
+                         net (fo=485, unplaced)       2.337     9.459    u_clkgen/clk_in_100
+                         MMCME4_ADV (Prop_MMCME4_ADV_CLKIN1_CLKOUT0)
+                                                      0.644    10.103 r  u_clkgen/g_hw.u_mmcm/CLKOUT0
+                         net (fo=1, unplaced)         0.192    10.295    u_clkgen/g_hw.clk_out0
+                         BUFGCE (Prop_BUFGCE_I_O)     0.024    10.319 r  u_clkgen/g_hw.u_bufg_out/O
+                         net (fo=51240, unplaced)     2.439    12.758    u_mir/dp_clk
+                         FDCE                                         r  u_mir/stg_cnt_reg[4]/C
+                         clock pessimism             -0.453    12.305    
+                         clock uncertainty           -0.062    12.243    
+                         FDCE (Setup_FDCE_C_CE)      -0.043    12.200    u_mir/stg_cnt_reg[4]
+  -------------------------------------------------------------------
+                         required time                         12.200    
+                         arrival time                          -6.940    
+  -------------------------------------------------------------------
+                         slack                                  5.260    
+
+
+
+
