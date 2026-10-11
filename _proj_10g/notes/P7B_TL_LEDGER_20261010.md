@@ -771,3 +771,25 @@ synth 检查点：LUT **84,594**（+432）/ FF **79,147**（+67）/ BRAM 354（�
 
 ### §10-23-3 🔄 在飞：EDA 确认轮
 scratch `create_ip` + `CONFIG.xdma_axi_intf_mm {AXI_Stream}` + `generate_target` ⇒ **权威端口表 + 配置增量（我设的 vs 生效的）+ 静默重置项**；并核对端驱动侧（版本 / ST 支持 / `read()` 语义 / 16 B 对齐是否消失）。
+
+---
+
+## §10-24 2026-10-11 深夜：**AXIS 改造落地（工具侧 `dd6fe3d` + FPGA 侧 `173b18d`）→ 构建 `0x22` 在飞**
+
+### §10-24-1 工具侧（`dd6fe3d`）
+`p7b_mir_dump.cpp` **+787/−8**（1373 行）：`--stream` = 平铺 `read()`（不 lseek / 移除 16 B 对齐）· `--chunk` 默认 1 MiB **强制 %64==0**（PG195 描述符约束，末笔可能非 64 倍数并打 `nonmul64` 见证）· **PC 侧 128 MB 缓冲**（`posix_memalign(4096)`+预触页+预分配一次，失败 `exit(2)`）· 记账三件分打（pc / `ΔW70` / 交付字节 = `ΔMIR_DMA_CNT×4` 跨回卷按段 mod 2³²）· **闭合式** `pc+ΔW70+残余==交付字节`。
+⭐ **TL 裁定入档**：`MIR_DMA_CNT` 计数点 = **上游**（从镜像取走的 32 位字数，非 `tvalid&&tready`）⇒ 闭合式即设计口径下的恒等式。
+⭐ **静默窗升级为带见证断言**（+64/−0）：先写 `SNAP_CTRL` 再读 `MIR_STATUS.level`，等到/超时都打实际值（`MIR_STREAM_QUIESCE premise_level0=… waited_ms=…`），未见证 ⇒ `FAIL`+rc=1（`--no-strict-quiesce` 显式放行且打 `OVERRIDE` 见凭证）。
+兼容：`--dma`/user-BAR 默认路径**逐字不动**；新增 ver 门（`--dma` 只 ver=3 / `--stream` 只 ver=4）；`--stream` 要求 K%8==0。
+selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新增 T10d 与主路径两条负控（`level=7` ⇒ FAIL+RC=1，实测等满 101.4 ms）。
+
+### §10-24-2 FPGA 侧（`173b18d`）
+- **IP 切换真 EDA 实测**：B 臂写法（12 项 `-dict` 照抄 + 单独一行 intf）⇒ 两条 RC=0、**无 `19-3461/19-3438/17-39`**、13 项回读 `MISMATCH_N=0`、生成产物 6 参数 `BAD_N=0` ⇒ `XDMA_VERDICT=OK`；**xdma_0 OOC 综合完成**（.dcp 落盘）。断言块排练有牙（T1/T2/T3）；⭐ 排练**顺手抓到构建脚本一个真 bug**（`p7b_cfg_diff_keys` 未从参照表删 ⇒ 重复计数 2→4 行 ⇒ **构建轮会假红早退**），已修并复跑全过。
+- **新件 `rtl/axis_c2h_stream.v`**（~200 行）：2 grant = 16 B = 1 拍、`tdata={g2,g1}`；`tkeep` 非末拍 `FFFF` / 短末拍 `00FF`（PG195 p.27）；`tlast` 方案 A；⭐ 裁定逐条落实（计数点=上游、`stop=(!cap_en)||(!en)||clr` 逐字进头注释、`clr` 不丢残拍、**无新计数器 ⇒ 丢字节仍只记 `W70`**、几何不扩）。
+- `wrapper_p4.v`：35 根 `m_axi_*`→10 根 AXIS · 真支三件套→`u_mir_axis` · 两处 ¬ 支常量表 · XDMA 例化 75→50。`axi_regs.v`：`ver` 3→4。sim 桩/TB 同步（M1-B→P9-B 8 组）。
+- **门**：新件单元门 `PASS_ALL` + **7 突变臂全捕获**（FAIL 2/4/5/6/8/10/5，红灯面互不相同，每件 diff 恰 1 行）；p6e 真 wrapper 全链 `PASS_ALL`（0 FAIL）；counters `PASS_ALL`；lint(¬DP) OK；mirror/ring `PASS_ALL`；矩阵 `-only p5_wrapper` EXIT=0。⛔ `PCIE_OBS∧¬APP_MODE` 编不过 = **既存缺陷**（HEAD 同 6 条 `10-2989`）。
+- **synth 检查点**：LUT 84,594→**83,978**(−616) · FF 79,147→**77,946**(−1,201) · BRAM 354→**350** · synth WNS −0.377→−0.371；`u_mir_axis` top200 0 命中、定向锥 FROM ≥+1.531 / TO ≥+2.120；IP 级 A/B：MM 17,322/20,484/38 ⇒ AXIS 16,887/19,192/38。
+- ⚠️ **过程事故（已修）**：`173b18d` 误把 synth scratch `prj_p9axis/`（527 件/3.08M 行）纳入（忽略规则只写死了 `p8_*` 前缀）⇒ `eb4007b` = `git rm -r --cached` + 删盘 + **通配规则 `_proj_10g/notes/*_synth/prj_*/`**。⛔ **残留**：那 527 件仍在**历史**里（远端体积已增）；彻底清需改写历史+force-push ⇒ **待用户授权**。
+
+### §10-24-3 🔄 在飞
+**构建 `0x22`**（读侧同步阶段⑦ + BID 0x22 + 完整构建 + 矩阵 + 归档 `p9_build_0x22/`）+ **只读对抗审查**（新件逐拍复算 / 端口表逐根 / 断言能否抓静默回滚 / 桩忠实性 / 7 臂牙口 / 字节序口径三处自洽）。之后 = **板级**（AXIS 臂 vs 烧回 `0x21` 的 MM 臂对照 + CONF §⑥ 的 `0-C2H0-ST`/identifier bit15/alignments + 实现轮 §8① 的**字节序假设**逐字节对账）。
