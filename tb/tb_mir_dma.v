@@ -2,6 +2,10 @@
 //=============================================================================
 // tb_mir_dma.v — M1 期 B 单元门: `mir_dma_ring` (环+计数器) × `aximm_c2h_win` (AXI-MM 读从机)
 //=============================================================================
+// ⭐⭐ P8 阶段三 (2026-10-11): 写口 32b -> **64b** (一次 src_gnt 写 **2 个连续逻辑字**)。
+//   本门随之改的只有**激励侧**: `push_word` -> `push_pair` (一次推 2 字, wr_words 一次 +2)。
+//   判据/期望值全部**逐条不变** (逻辑字口径与物理映射没动) —— 这正是"只动端口不动语义"的见证。
+//
 // 被测合同 (逐条对应判据):
 //   A 基本 INCR 突发: 拍数/rlast 位置/ID 回填/128 位行装配/内容 (bank0 = LSB)
 //   B 跨环尾回绕: 线性地址跨过环尾 ⇒ 两段物理读, 内容按"物理位最后被写的逻辑字"对
@@ -33,7 +37,7 @@ module tb_mir_dma;
 
     // ---------------- ring ----------------
     reg         en = 1'b0, src_gnt = 1'b0, clr = 1'b0;
-    reg  [31:0] src_data = 32'd0;
+    reg  [63:0] src_data = 64'd0;      // ⭐ 64b = {后出, 先出} (P8 阶段三)
     wire        src_req;
     wire [31:0] wr_words;
     wire [ROW_AW-1:0] rr_row;
@@ -122,13 +126,15 @@ module tb_mir_dma;
         end
     endfunction
 
-    task push_word(input [31:0] d);
+    // ⭐ 64b 写口: 一次推 **2 个逻辑字** (w0 先出 -> 逻辑字 L; w1 -> L+1)
+    task push_pair(input [31:0] d0, input [31:0] d1);
         begin
             @(negedge clk);
-            src_data <= d; src_gnt <= 1'b1;
+            src_data <= {d1, d0}; src_gnt <= 1'b1;
             @(negedge clk);
             src_gnt <= 1'b0;
-            wmem[wcnt] = d; wcnt = wcnt + 1;
+            wmem[wcnt] = d0; wcnt = wcnt + 1;
+            wmem[wcnt] = d1; wcnt = wcnt + 1;
         end
     endtask
 
@@ -185,7 +191,7 @@ module tb_mir_dma;
 
         // ---------- A: 基本 INCR (32 字, 8 拍) ----------
         $display("  --- A: 基本 INCR 8 拍 (id=0xA) ---");
-        for (k = 0; k < 32; k = k + 1) push_word(32'hA5A50000 + k);
+        for (k = 0; k < 16; k = k + 1) push_pair(32'hA5A50000 + 2*k, 32'hA5A50000 + 2*k + 1);
         chk("A0 wr_words == 32", wr_words, 32);
         axi_ar(64'd0, 8'd7, 4'hA, 3'd4, 2'b01);
         wait_beats(8);
@@ -287,7 +293,7 @@ module tb_mir_dma;
         // ---------- B: 跨环尾回绕 ----------
         $display("  --- B: 跨环尾回绕 (读从物理 4088 起, 绕到 0) ---");
         w_before = wcnt;
-        for (k = 0; k < 4096 + 64 - 32; k = k + 1) push_word(32'h5A5A0000 + k);
+        for (k = 0; k < (4096 + 64 - 32)/2; k = k + 1) push_pair(32'h5A5A0000 + 2*k, 32'h5A5A0000 + 2*k + 1);
         chk("B0 wr_words == 4160", wr_words, 4160);
         axi_ar(64'd16352, 8'd3, 4'h7, 3'd4, 2'b01);   // 16352/16 = 1022 行 → 1022,1023,0,1
         wait_beats(4);
@@ -317,7 +323,7 @@ module tb_mir_dma;
         @(negedge clk); clr <= 1'b0;
         repeat (2) @(posedge clk);
         chk("H2 clr ⇒ wr_words == 0", wr_words, 0);
-        push_word(32'h11AA22BB); push_word(32'h33CC44DD);
+        push_pair(32'h11AA22BB, 32'h33CC44DD);
         chk("H3 clr 后计数从 0 起", wr_words, 2);
         axi_ar(64'd0, 8'd0, 4'h9, 3'd4, 2'b01);
         wait_beats(1);

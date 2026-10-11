@@ -10,9 +10,15 @@
 //   (1 KB 弹性, 见 `app_rx_mirror` 头注释"两条读出口不许混用")。⛔ 偏离处如实登记在此。
 //
 // 数据流:
-//   app_rx_mirror.FIFO (32b, dp→pcie) ──(aux 弹出)──> 本模块: 32b 写口 (pcie 域)
+//   app_rx_mirror.FIFO (64b, dp→pcie) ──(aux 弹出 2 字/拍)──> 本模块: **64b 写口** (pcie 域)
 //                                                          │  4 bank × 2^ROW_AW 行 × 32b
 //   aximm_c2h_win (AXI-MM 读从机) <──(1 拍延迟读行 = 128b)──┘  逻辑字 L → 物理 (L mod RING_WORDS)
+//
+// ⭐⭐ P8 阶段三 (2026-10-11): 写口 32b → **64b** (一次 `src_gnt` = **2 个连续逻辑字**)。
+//   原因 = 采集侧做到 8 B/拍后, 源上界 1.25 GB/s 而"1 字/拍"的写口只有 1 GB/s ⇒
+//   环成了新的结构瓶颈 (FIFO 会因此满 ⇒ 丢字节)。现在写口 = 2 字/拍 (= 2 GB/s @250MHz)。
+//   ⚠️ 语义 (逻辑字口径 / 计数器单位 / 读写映射)**逐条不变**: 一次 gnt 写 L 与 L+1 两个字,
+//      `wr_words` 一次 **+2** ⇒ 它仍然数"**32 位逻辑字**"; 主机侧字节偏移 = 4 × wr_words 不变。
 //
 // 语义 (冻结; 都是判据的依据):
 //   · **幂等只读**: 读口**不移动任何指针** ⇒ 重读/多读者/主机重启都安全 (与 MIR_DATA 的
@@ -30,7 +36,9 @@
 // 实现要点:
 //   · 4 个 bank (每 bank 2^ROW_AW × 32b) ⇒ 128 位 R 拍 = **一次行读** (4 bank 并行同址),
 //     读口在 pcie 域**每拍可出一行** ⇒ R 通路不受环读口限制 (128b @250MHz = 4 GB/s)。
-//   · 写口每拍 1 字 (bank = 物理字[1:0]) ⇒ 与排空器 1 字/拍对齐。
+//   · 写口每拍 **2 字** (bank = 物理字[1:0]; 第二个字 = 物理字+1) ⇒ 与排空器 2 字/拍对齐。
+//     ⚠️ **bank 对恒为 {0,1} 或 {2,3}**: 计数器复位/clr 都归零、每次 **+2** ⇒ `wr_words` **恒偶**
+//     ⇒ `wbank[0]==0` ⇒ 两个字**必在同一行** (跨行的那一支只是防御性写法, 结构性不可达)。
 //   · mem **不带复位** (BRAM 推断前提, 同 fifo_async); 数据可见性 = 写入沿之后**下一拍**
 //     即可被读口看到 (同一时钟域, 无同步器) ⇒ 主机读到"未写完的整行"时, 未写的那几个字
 //     是旧值 —— 由 `wr_words` 截断 (主机只用 < 计数器的字) 保证不用到它们。
@@ -46,8 +54,8 @@ module mir_dma_ring #(
     input  wire                clr_pulse,     // 镜像的 clr_pulse_rd: 计数/写指针归零
     // ---- 排空口 (接 app_rx_mirror 的 aux 读口) ----
     output wire                src_req,       // 恒 = en (镜像侧再与 !empty/优先级合门)
-    input  wire                src_gnt,       // 1 拍: 本拍 src_data 已被弹出 (写一字)
-    input  wire [31:0]         src_data,      // 被弹出的那个字
+    input  wire                src_gnt,       // 1 拍: 本拍 src_data 已被弹出 (**写 2 个字**)
+    input  wire [63:0]         src_data,      // ⭐ 64b: {后出的字, 先出的字} = 逻辑字 L/L+1
     // ---- AXI 从机的读口 (128 位行读; 1 拍延迟) ----
     input  wire [ROW_AW-1:0]   rr_row,        // 行地址 (物理行 = 逻辑字[ROW_AW+1:2])
     output reg  [127:0]        rr_dout,       // 该行 4 个字 {bank3,bank2,bank1,bank0}
@@ -74,16 +82,19 @@ module mir_dma_ring #(
 
     wire [ROW_AW+1:0] wphys = wr_words[ROW_AW+1:0];   // 物理字号 = 计数器的低 ROW_AW+2 位
     wire [ROW_AW-1:0] wrow  = wphys[ROW_AW+1:2];      // 物理行
-    wire [1:0]        wbank = wphys[1:0];             // bank
+    wire [1:0]        wbank = wphys[1:0];             // bank (第一个字)
+    // 第二个字 = 物理字+1 ⇒ 行 = 同 wrow (除非 wbank==3, 防御性分支: 行+1)
+    wire [ROW_AW-1:0] wrow_n = wrow + {{(ROW_AW-1){1'b0}}, 1'b1};
 
-    // ---- 写口 (每拍至多 1 字; 计数器与写地址**同一个寄存器**) ----
+    // ---- 写口 (每拍 **2 字**; 计数器与写地址**同一个寄存器**) ----
+    //   两个字的顺序: `src_data[31:0]` → 逻辑字 L (先出), `src_data[63:32]` → 逻辑字 L+1。
     always @(posedge rd_clk) begin
         if (src_gnt) begin
             case (wbank)
-                2'd0: mem0[wrow] <= src_data;
-                2'd1: mem1[wrow] <= src_data;
-                2'd2: mem2[wrow] <= src_data;
-                2'd3: mem3[wrow] <= src_data;
+                2'd0: begin mem0[wrow] <= src_data[31:0]; mem1[wrow] <= src_data[63:32]; end
+                2'd1: begin mem1[wrow] <= src_data[31:0]; mem2[wrow] <= src_data[63:32]; end
+                2'd2: begin mem2[wrow] <= src_data[31:0]; mem3[wrow] <= src_data[63:32]; end
+                default: begin mem3[wrow] <= src_data[31:0]; mem0[wrow_n] <= src_data[63:32]; end
             endcase
         end
     end
@@ -91,7 +102,7 @@ module mir_dma_ring #(
     always @(posedge rd_clk or negedge rst_n) begin
         if (!rst_n)          wr_words <= 32'd0;
         else if (clr_pulse)  wr_words <= 32'd0;       // clr ⇒ 计数与写指针同拍归零 ("逻辑字 0")
-        else if (src_gnt)    wr_words <= wr_words + 32'd1;
+        else if (src_gnt)    wr_words <= wr_words + 32'd2;   // ⭐ 一拍 2 个字 (单位仍是 32 位字)
     end
 
     // ---- 读口 (AXI 从机; 1 拍延迟; 4 bank 并行同址 = 一行 128 位) ----

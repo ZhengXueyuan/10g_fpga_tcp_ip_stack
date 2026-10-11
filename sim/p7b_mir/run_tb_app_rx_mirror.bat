@@ -1,11 +1,14 @@
 @echo off
 REM run_tb_app_rx_mirror.bat -- M1 payload-mirror unit gate (self-checking TB, no Python)
-REM   usage: run_tb_app_rx_mirror.bat [real|mut_gate|mut_order]
+REM   usage: run_tb_app_rx_mirror.bat [real|mut_gate|mut_order|mut_cap4]
 REM     real      : compile rtl\app_rx_mirror.v                    -> expect PASS_ALL
 REM     mut_gate  : compile mut\app_rx_mirror_mut_gate.v  (wr_en=have, no !full)
-REM                 -> MUST be caught: expect NOT PASS_ALL
+REM                 -> MUST be caught: expect NOT PASS_ALL (byte-account identity G11c/G8d)
 REM     mut_order : compile mut\app_rx_mirror_mut_order.v (2-byte mv b0/b1 swapped)
-REM                 -> MUST be caught: expect NOT PASS_ALL
+REM                 -> MUST be caught: expect NOT PASS_ALL (hand anchors G3c..)
+REM     mut_cap4  : compile mut\app_rx_mirror_mut_cap4.v  (kk capped at 4 => 4B/cycle cap back)
+REM                 -> MUST be caught: expect NOT PASS_ALL (G13: sustained 8B/beat => drop==0)
+REM   ⭐ P8 阶段三 (2026-10-11): 突变件现由 mut\make_mutants.py 从现役 rtl 生成 (单点 + 命中数核对)。
 REM   exit 0 only when the observed verdict matches the arm's expectation
 REM   (a mutant that PASSES is a gate with no teeth => hard failure, project trap #18).
 REM   Each arm runs in its OWN dir (project trap 7: shared xsim.dir => false failures).
@@ -20,6 +23,8 @@ if /i "%VAR%"=="mut_gate"  set DUT=%ROOT%\sim\p7b_mir\mut\app_rx_mirror_mut_gate
 if /i "%VAR%"=="mut_gate"  set EXPECT=MUT
 if /i "%VAR%"=="mut_order" set DUT=%ROOT%\sim\p7b_mir\mut\app_rx_mirror_mut_order.v
 if /i "%VAR%"=="mut_order" set EXPECT=MUT
+if /i "%VAR%"=="mut_cap4"  set DUT=%ROOT%\sim\p7b_mir\mut\app_rx_mirror_mut_cap4.v
+if /i "%VAR%"=="mut_cap4"  set EXPECT=MUT
 cd /d %~dp0
 if not exist xdir_%VAR% mkdir xdir_%VAR%
 cd xdir_%VAR%

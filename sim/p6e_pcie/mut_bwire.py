@@ -4,7 +4,7 @@
 mut_bwire.py -- M1 **期 B** 的"该红时红"突变件生成器 (给 run_tb_p6e_pcie_mut2.bat 用)
 
 做什么: 把 board/wrapper_p4.v 里**环的写数据口**一行改掉 ——
-        `.src_data  (mir_dout),` -> `.src_data  (32'd0),`
+        `.src_data  (mir_dma_data),` -> `.src_data  (64'd0),` (P8 阶段三: 写口 32b -> 64b)
         落到 sim/p6e_pcie/mut/wrapper_p4_mut_bwire.v。
 
 为什么这么改 (与 mut_srcinv.py 的差别): srcinv 是**期 A** 的突变 (它的红来自期 A 的
@@ -24,8 +24,8 @@ import io, os, sys, argparse
 
 # ⚠️ 锚点**不带换行** —— wrapper_p4.v 是 CRLF 行尾 (带 \n 的锚点会 0 命中; 实测踩过),
 #    而带 \r\n 的锚点又会让本脚本自身行尾敏感 ⇒ 只锚行内容。
-OLD = "        .src_data  (mir_dout),           // FWFT 头字 (与 dma_gnt 同拍有效)"
-NEW = "        .src_data  (32'd0),              // MUT(bwire): ring data pinned 0"
+OLD = "        .src_data  (mir_dma_data),       // ⭐ 64 位 = {后出, 先出} (P8 阶段三; 原 = 32 位头字)"
+NEW = "        .src_data  (64'd0),              // MUT(bwire): ring data pinned 0"
 
 def main():
     ap = argparse.ArgumentParser()

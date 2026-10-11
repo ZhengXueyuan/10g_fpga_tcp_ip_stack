@@ -3717,7 +3717,8 @@ module wrapper_p4 (
     //   ⚠️ **同一时刻只镜像一路** (派单裁定; 同时双路 = 范围外)。切换协议 = 在 cap_en=0 下写 src_sel,
     //      然后重走 `clr → cap_en=1` —— **cap_en=1 中途切换会让字节流跨源拼接** (累加器不 flush;
     //      与 cap_en 中途开关同一已知语义边界, 登记)。
-    // 链: 逐字节 ^0xA5 → 打包 32 位字 → fifo_async (dp_clk → pcie_axi_aclk; 两侧 reset_n)
+    // 链: 逐字节 ^0xA5 → 打包 **64 位字** (P8 阶段三; 原 32 位 = 4B/拍结构上限) →
+    //     fifo_async 64b×256 (dp_clk → pcie_axi_aclk; 两侧 reset_n) → 读侧拆 2×32
     //     → `axi_regs` 的 MIR 读口 (MIR_STATUS/MIR_DATA 读=弹出/MIR_CTRL)。
     // ⛔ **snoop**: 只采样**选中源**的 `tvalid && tready`, **不驱动**任何既有信号
     //   (s_tready 在镜像模块里是只读输入) ⇒ 对既有数据面逐位零影响。
@@ -3783,7 +3784,8 @@ module wrapper_p4 (
     // ---- ⭐ 期 B: aux 读口 ↔ 环 的三根线 (必须声明在 u_mir **之前** —— 坑 24/22:
     //   晚声明 = "already implicitly declared" 硬错, 或静默 1 位隐式线) ----
     wire        mir_dma_req;        // = u_mir_ring.src_req (= dma_en = MIR_CTRL[3])
-    wire        mir_dma_gnt;        // = u_mir.dma_gnt (1 拍: 本拍已弹出一字)
+    wire        mir_dma_gnt;        // = u_mir.dma_gnt (1 拍: 本拍已弹出**2 个逻辑字**)
+    wire [63:0] mir_dma_data;       // ⭐ P8 阶段三: = u_mir.dma_data ({后出, 先出}) → 环写口
     wire        mir_clr_pulse_rd;   // = u_mir.clr_pulse_rd (→ 环的清零)
     wire [9:0]  mir_rr_row_w;       // 环行地址 (ROW_AW=10)
     wire [127:0] mir_rr_dout;       // 环行读数据 (1 拍延迟)
@@ -3816,11 +3818,15 @@ module wrapper_p4 (
         .empty        (mir_empty),
         .level        (mir_level),
         // ---- ⭐ 期 B 的 aux 读口: **已接线** (接线清单 §4.3 ②; TL 裁 P2) ----
-        //   合同 (rtl/app_rx_mirror.v:70-77 + 单元门 G12a..h): dma_req=1 且非空且主机
-        //   本拍没弹出 ⇒ 每拍弹一字 (dma_gnt=1, dout 同拍 = 该字); 与主机弹出冲突时
-        //   **主机优先** (dma_gnt=0)。⛔ 期 B 之前这里写死 1'b0 的 tie 已删。
+        //   ⭐⭐ P8 阶段三 (2026-10-11): 合同从"1 字/拍"改为"**2 字/拍**" —— 源做到 8 B/拍后
+        //   上界 1.25 GB/s > 单字出口的 1 GB/s ⇒ 必须 2 字/拍 (否则 FIFO 结构性必满)。
+        //   现行合同 (rtl/app_rx_mirror.v 头注释 + 单元门 G12a..k): dma_req=1 且 FIFO 非空且
+        //   主机本拍没弹出 ⇒ `dma_gnt=1`, 同拍 `dma_data[63:0]` = 按序的下 2 个逻辑字
+        //   (`[31:0]` 先出); 与主机弹出冲突时 **主机优先** (dma_gnt=0)。
+        //   ⛔ 期 B 之前这里写死 1'b0 的 tie 已删。
         .dma_req      (mir_dma_req),         // = 环的 src_req (= dma_en = MIR_CTRL[3])
-        .dma_gnt      (mir_dma_gnt),         // → 环的 src_gnt (1 拍: 本拍已弹出一字)
+        .dma_gnt      (mir_dma_gnt),         // → 环的 src_gnt (1 拍 = 环写 **2 个字**)
+        .dma_data     (mir_dma_data),        // ⭐ 新端口: 2 个逻辑字 → 环写口 (64 位)
         .clr_pulse_rd (mir_clr_pulse_rd),    // → 环的清零 (与 rd 域 clr 同拍)
         .drop_bytes   (biz_w70),
         .any_drop     (),                    // dp 域 sticky (无消费者; 读域版走 any_drop_rd)
@@ -3828,7 +3834,7 @@ module wrapper_p4 (
     );
 
     // ---- ⭐ 期 B: C2H 采集环 + AXI-MM 只读从机 + H2C 丢弃从机 --------------------
-    //   链: u_mir.FIFO ──(aux 弹出)──> u_mir_ring (16 KB 环, 32b 写口)
+    //   链: u_mir.FIFO ──(aux 弹出 **2 字/拍**)──> u_mir_ring (16 KB 环, **64b 写口**)
     //        u_mir_ring ──(128b 行读, 1 拍延迟)──> u_mir_c2h (AXI-MM 读从机) ──> XDMA C2H
     //   写通道: u_mir_h2c (永远应答并丢弃) —— **结构性消除**"只接读通道是否安全"这个
     //   明文网表核不出的前提 (TL 2026-10-11 裁 P2); ⛔ 邮箱功能不在范围内。
@@ -3836,7 +3842,7 @@ module wrapper_p4 (
     //      m_axi 同域同源)。⚠️ 登记的复位域边界: u_mir 的 **rd 侧**用 `reset_n`
     //      (阶段一既定), 本三件用 `pcie_axi_aresetn` —— 同钟不同复位域, 与阶段一
     //      "u_mir rd 侧 (reset_n) → axi_regs (pcie_axi_aresetn)" 是**同一条既存边界**。
-    //   (本块用到的 5 根线 —— mir_dma_req/gnt/clr_pulse_rd + mir_rr_row_w/rr_dout ——
+    //   (本块用到的 6 根线 —— mir_dma_req/gnt/**data**/clr_pulse_rd + mir_rr_row_w/rr_dout ——
     //    已**声明在 u_mir 之前** (见上), 这里只做例化。)
 
     mir_dma_ring #(.ROW_AW(10)) u_mir_ring (
@@ -3845,11 +3851,11 @@ module wrapper_p4 (
         .en        (mir_ctrl[3]),        // dma_en (MIR_CTRL[3]; 复位默认 0 = 停采)
         .clr_pulse (mir_clr_pulse_rd),
         .src_req   (mir_dma_req),        // 排空请求 = en (镜像侧再与优先级合门)
-        .src_gnt   (mir_dma_gnt),        // 1 拍: dout 同拍 = 被弹出的字
-        .src_data  (mir_dout),           // FWFT 头字 (与 dma_gnt 同拍有效)
+        .src_gnt   (mir_dma_gnt),        // 1 拍 = 写 2 个字 (与 dma_data 同拍有效)
+        .src_data  (mir_dma_data),       // ⭐ 64 位 = {后出, 先出} (P8 阶段三; 原 = 32 位头字)
         .rr_row    (mir_rr_row_w),
         .rr_dout   (mir_rr_dout),
-        .wr_words  (mir_dma_cnt)         // → axi_regs MIR_DMA_CNT (0x148)
+        .wr_words  (mir_dma_cnt)         // → axi_regs MIR_DMA_CNT (0x148; 单位仍 = 32 位字)
     );
 
     aximm_c2h_win #(.ROW_AW(10)) u_mir_c2h (
@@ -3899,6 +3905,7 @@ module wrapper_p4 (
     wire        mir_empty    = 1'b1;
     wire [31:0] mir_dout     = 32'd0;
     wire        mir_any_drop = 1'b0;
+    wire [63:0] mir_dma_data = 64'd0;     // P8 阶段三: 本支无环 ⇒ 常量 (无消费者)
     wire        mir_pop;
     wire [31:0] mir_ctrl;
     wire [31:0] biz_w70      = 32'd0;     // drop = 0
@@ -3922,6 +3929,7 @@ module wrapper_p4 (
     wire        mir_empty    = 1'b1;
     wire [31:0] mir_dout     = 32'd0;
     wire        mir_any_drop = 1'b0;
+    wire [63:0] mir_dma_data = 64'd0;     // P8 阶段三: 本支无环 ⇒ 常量 (无消费者)
     wire        mir_pop;
     wire [31:0] mir_ctrl;
     wire [31:0] biz_w70      = 32'd0;

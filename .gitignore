@@ -839,3 +839,7 @@ sim/p7b_mirdma/mut/
 
 # ---- Vivado synth-only 检查点的 scratch 工程（agent 每轮自建、跑完应删；读数在 .rpt）----
 _proj_10g/notes/p7b_m1*_synth/prj_*/
+_proj_10g/notes/p8_*_synth/prj_*/
+
+# ---- aliasgate 自检工作目录（产物；驱动脚本与判据 .py 已入库）----
+sim/aliasgate/_selftest/
