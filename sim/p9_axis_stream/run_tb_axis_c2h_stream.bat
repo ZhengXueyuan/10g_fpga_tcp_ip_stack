@@ -1,6 +1,6 @@
 @echo off
-REM run_tb_axis_c2h_stream.bat -- P9 unit gate: axis_c2h_stream (+ 7 mutation arms)
-REM   usage: run_tb_axis_c2h_stream.bat [real|mut_last|mut_keep|mut_order|mut_req|mut_cnt|mut_clr|mut_stop]
+REM run_tb_axis_c2h_stream.bat -- P9 unit gate: axis_c2h_stream (+ 12 mutation arms; D4-fix round)
+REM   usage: run_tb_axis_c2h_stream.bat [real|mut_last|mut_keep|mut_order|mut_req|mut_cnt|mut_clr|mut_stop|mut_drain|mut_tlast|mut_quiet|mut_clrdrop|mut_qrst]
 REM     real   : compile rtl\axis_c2h_stream.v                   -> expect PASS_ALL
 REM     mut_*  : compile a single-point mutant from mut_axis.py  -> expect NOT PASS_ALL
 REM   exit 0 only when the observed verdict matches the arm expectation

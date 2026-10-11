@@ -1,0 +1,153 @@
+#-----------------------------------------------------------
+# xsim v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Mon Oct 12 00:00:31 2026
+# Process ID         : 7396
+# Current directory  : D:/repo/XCKU5PMini/udp_hls_10g/sim/p9_axis_stream/xdir_mut_tlast
+# Command line       : xsim.exe -log xsim.log -mode tcl -source {xsim.dir/tb_axis_c2h_stream/xsim_script.tcl}
+# Log file           : D:/repo/XCKU5PMini/udp_hls_10g/sim/p9_axis_stream/xdir_mut_tlast/xsim.log
+# Journal file       : D:/repo/XCKU5PMini/udp_hls_10g/sim/p9_axis_stream/xdir_mut_tlast\xsim.jou
+# Running On         : xyz-intel
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26300
+# Processor Detail   : Intel(R) Core(TM) Ultra 7 265K
+# CPU Frequency      : 3878 MHz
+# CPU Physical cores : 20
+# CPU Logical cores  : 20
+# Host memory        : 68053 MB
+# Swap memory        : 4294 MB
+# Total Virtual      : 72348 MB
+# Available Virtual  : 28047 MB
+#-----------------------------------------------------------
+source xsim.dir/tb_axis_c2h_stream/xsim_script.tcl
+# xsim {tb_axis_c2h_stream} -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+=== tb_axis_c2h_stream: P9 C2H AXIS shaper unit gate ===
+  --- G0: reset state ---
+  [PASS] G0a tvalid == 0 = 0
+  [PASS] G0b dma_words == 0 = 00000000
+  --- G1: pack 2 grants into one 128-bit beat ---
+  [DBG] G1: push=2 rd_abs=2 q_empty=1 dma_req=1 dma_gnt=0 gnt_seen=2 rx_n=1 s0v=0 bv=0
+  [PASS] G1a beats == 1 = 00000001
+  [PASS] b beat == {g2,g1ÿÿÿäÿÿÿ­ÿÿÿ¨ÿÿ) = 44444444333333332222222211111111
+  [PASS] G1c tkeep == FFFFÿÿÿÿÿÿ«ÿÿ) = 0000ffff
+  [PASS] G1d tlast == 0 (ÿÿÿæÿˆ Aÿÿÿ’ 0) = 0
+  [PASS] dma_words == 4 (2 grant x 2 ÿÿ—) = 00000004
+  [PASS] G1f Tÿÿÿ¾§ grant ÿÿ° == 2 = 00000002
+  --- G2: a lone grant does NOT form a beat (stop=0) ---
+  [PASS] G2a tvalid == ÿÿÿåÿÿÿ¸ÿÿÿÿÿ) = 0
+  [PASS] G2b beats == 0 = 00000000
+  [PASS] rantÿÿÿ«ÿÿÿåÿº 1ÿÿÿ¡ÿÿÿšÿÿÿ˜ÿÿŒ) = 00000001
+  [PASS] G2d dma_worÿÿÿèÿÿÿˆÿÿÿ–ÿÿ° (+2) = 00000002
+  --- G3: backpressure -> no req when full -> resume in order ---
+  [PASS] G3a tvalid == ÿÿÿæÿÿÿ‹ÿÿÿ¨ÿÿ‰) = 00000001
+  [PASS] == 3 (2 ÿÿ½ + 1 ÿÿÿèÿ› B = 32 B) = 00000003
+  [PASS] ma_req == 0 ÿÿÿ ÿÿÿéÿÿÿ¸ÿÿÿ·ÿÿ‚) = 0
+  [PASS] G3d beats == ÿÿÿäÿÿÿ¸ÿÿÿ¡ÿÿ¥) = 00000000
+  [PASS] G3e è½½è·/valid åœ¨åœæ”¶æœŸæ’å®š (AXIS ä¿æŒåˆåŒ)
+  [PASS] ÿÿÿåÿ: ÿÿÿäÿÿÿÿÿÿÿÿÿæÿ 3ÿÿÿ = 00000003
+  [PASS]  == {P1, P0} (G2ÿÿÿ„ÿÿÿäÿª + P1) = b2b2b2b2a1a1a1a16666666655555555
+  [PASS] Gÿÿÿæÿ 2 == {P3, P2} = d2d2d2d2c1c1c1c1b4b4b4b4a3a3a3a3
+  [PASS] ÿÿÿ²ÿÿÿ¢ÿÿÿÿÿÿÿÿÿæÿÿÿºÿÿÿ¥ÿÿŠ) = f2f2f2f2e1e1e1e1d4d4d4d4c3c3c3c3
+  [PASS] ÿ dma_rÿÿÿåÿÿÿ‹ÿÿÿèÿÿÿƒÿÿÿ·ÿÿ‚) = 00000001
+  --- G4: stop-flow (en=0): quiet-drain then flush of a half beat ---
+  [PASS] ÿÿÿªÿÿÿäÿÿÿˆÿÿÿ¢ (en=1/cap_en=1) = 00000000
+  [PASS] ÿÿÿ¡ÿÿÿåÿ² +ÿÿÿåÿÿÿ¾„ = aux ÿÿ£) = 00000002
+  [PASS] G4a3 stop 12cyc: no beat yet = 00000000
+  [PASS] G4b flush beat after quiet = 00000001
+  [PASS] G4c fluÿÿÿæÿ = {64'd0,ÿÿÿŠÿÿ} = 00000000000000008888888877777777
+  [PASS] ep == 00FF (ÿÿ¤ LSB ÿÿÿéÿÿÿ…¨ 0) = 000000ff
+  [PASS] G4e flusÿÿÿ‹ tlast == 1 = 1
+  [PASS] ÿÿÿ  fluÿÿÿåÿ˜ (ÿÿÿèÿÿÿ—ÿÿÿ²ÿÿ¡) = 00000012
+  --- G4c: stop-flow (cap_en=0): quiet-drain then flush of a half beat ---
+  [PASS] G4c-ÿÿÿÿÿÿªÿÿÿæÿÿÿ½¢ (cap_en=1) = 00000000
+  [PASS] G4c-b cap_en=0 12cyc: no beat = 00000000
+  [PASS] G4c-b2 short beat after quiet = 00000001
+  [PASS] 4c-cÿÿÿ­ÿÿÿæÿ = {64'd0,ÿÿÿŠÿÿ} = 0000000000000000aa55aa5555aa55aa
+  [PASS] G4c-ÿÿÿŸÿÿÿ«ÿÿ keep == 00FF = 000000ff
+  [PASS] G4c-e ÿÿÿæÿÿÿ‹ tlast == 1 = 1
+  --- G5: stop-flow: full beat formed during stop is a NORMAL beat (last=0) ---
+  [PASS] Gÿÿÿåÿÿÿ”ÿÿÿŸÿÿÿæÿÿÿ¢ÿÿÿ¶ = 00000000
+  [PASS] Gÿÿÿåÿÿÿµÿÿÿÿÿÿäÿ‹ 2ÿÿÿ = 00000002
+  [PASS] ÿÿÿÿÿÿÿÿÿæÿÿÿ½ÿÿÿ‡ÿÿÿÿÿÿ«ÿÿ) = 44444444333333332222222211111111
+  [PASS] G5ÿÿÿ‹ 1 keep == FFFF = 0000ffff
+  [PASS] G5eÿÿÿ 1 last == 0 = 0
+  [PASS]  2 == {P4,P3} (ÿÿÿæÿÿÿœÿÿÿÿÿ¢) = 88888888777777776666666655555555
+  [PASS] 2 keep == FFFF (ÿÿÿæÿÿÿ¸ÿÿÿ©ÿÿ­) = 0000ffff
+  [FAIL] G5h full beat last == 0 = 1 (æœŸæœ› 0)
+  [FAIL] G5h2 tlast total == 0 = 00000001 (æœŸæœ› 00000000)
+  [PASS] ÿÿÿÿÿÿ°ÿÿÿæÿ° += 8 (4 grant x2) = 00000008
+  --- G6: en=0 -> dma_req stays 0 ---
+  [PASS] G6a en=0 æœŸé—´ dma_req æ’ 0 (20 æ‹)
+  [PASS] b enÿÿÿæÿÿÿ—´ grant ÿÿÿèÿÿÿ¶ÿÿÿ¹ = 00000001
+  --- G7: clr = window boundary -> DISCARD residue (no short beat) ---
+  [PASS] G7a half kept in slot (no beat) = 00000000
+  [PASS] G7b dma_words == w0+2 (taken) = 00000002
+  [PASS] G7c0 clr: NO beat (<=2cyc) = 00000000
+  [PASS] G7c clr -> dma_words == 0 = 00000000
+  [PASS] d clr DISCARDS residue (0 beats) = 00000000
+  [PASS] G7e tlast total == 0 = 00000000
+  [PASS] G7f new window: 1 full beat = 00000001
+  [PASS] G7g new head NO stale prefix = ddddddddccccccccbbbbbbbbaaaaaaaa
+  [PASS] G7h new beat keep == FFFF = 0000ffff
+  [PASS] G7i new beat last == 0 = 0
+  [PASS] G7j dma_words == 4 (post-clr) = 00000004
+  --- G7x: clr discards a FORMED-but-unhandshaken beat ---
+  [PASS] G7x-a beat formed and held = 1
+  [PASS] 7x-b 0 beats accepted (tready=0) = 00000000
+  [PASS] c clr -> tvalid == 0 (discarded) = 0
+  [PASS]  0 beats after clr (no old tail) = 00000000
+  [PASS] G7x-e new window packs normally = 00000001
+  [PASS] G7x-f new content, no old tail = 88888888777777776666666655555555
+  --- G8: sustained throughput (>=1 beat / 2 clocks) ---
+  [INFO] G8 beats=149 grants=299 (300 clk)
+  [DBG] G8-end queue push=534 rd_abs=321 used=213
+  [PASS] G8a æŒç»­ç‡ >= 140 æ‹ / 300 æ‹é’Ÿ (ç†è®ºä¸Šé™ 150, å®æµ‹ 149)
+  [PASS] G8ÿÿÿŠÿÿÿ€ÿÿ ÿÿÿºÿÿ) = 10000001200000011000000020000000
+  [PASS] G8ÿÿÿŠÿÿÿ€ÿÿ ÿÿÿºÿÿ) = 10000003200000031000000220000002
+  [PASS] G8ÿÿÿŠÿÿÿ€ÿÿ ÿÿÿºÿÿ) = 10000005200000051000000420000004
+  [PASS] G8ÿÿÿŠÿÿÿ€ÿÿ ÿÿÿºÿÿ) = 10000007200000071000000620000006
+  --- G9: dma_words accounting (counted at the aux port) ---
+  [PASS] G9a ÿÿÿ‹ = 8 grant = 16ÿÿÿ— = 00000010
+  [PASS] G9b Tÿÿÿ¾ÿÿÿÿÿ° == 4 = 00000004
+  [PASS] G9c TB grant ÿÿ° == 8 = 00000008
+  --- G10: pending flush beat stays stable across cap_en changes ---
+  [PASS] G10a0 tail beat formed (tvalid) = 1
+  [PASS] G10a cap_en æ‹‰å›æœŸé—´æœ«æ‹ä¿æŒ (last=1 / keep=00FF / data ä¸å˜)
+  [PASS] 10b ÿÿÿæÿÿÿšÿÿÿ«ÿÿ keep == 00FF = 000000ff
+  [PASS] G1ÿÿÿäÿÿÿŒÿÿÿ„ÿÿÿæÿ last == 1 = 1
+  [PASS] G10d ÿÿÿäÿÿÿÿÿÿÿÿ° == 1 = 00000001
+  [PASS] 10e ÿÿÿåÿ¹ =ÿÿÿÿÿÿªÿÿ ÿÿÿªÿÿŸ) = 0000000000000000deadbeefcafebabe
+  --- G11: stop + multi-grant drain => full packing + ONE short tail ---
+  [PASS] G11a first 2 beats FULL = 00000002
+  [PASS] G11a2 full-beat keep == FFFF = 0000ffff
+  [FAIL] G11a3 full-beat last == 0 = 1 (æœŸæœ› 0)
+  [PASS] G11a4 beat1 == {g2,g1} = b0000001a0000001b0000000a0000000
+  [FAIL] G11a5 tlast total == 0 = 00000002 (æœŸæœ› 00000000)
+  [PASS] G11b ONE short tail (3 beats) = 00000003
+  [PASS] G11b2 tail keep == 00FF = 000000ff
+  [PASS] G11b3 tail last == 1 = 1
+  [PASS] G11b4 tail == {0, half} = 0000000000000000b0000004a0000004
+  [FAIL] G11b5 tlast total == 1 = 00000003 (æœŸæœ› 00000001)
+  [PASS] G11b6 aux-take cnt == 10 = 0000000a
+  --- G11b: long drain (41 grants): zero tlast during drain, exactly one tail ---
+  [PASS] G11b-a 21 beats (20F+1S) = 00000015
+  [FAIL] G11b-b tlast total == 1 = 00000015 (æœŸæœ› 00000001)
+  [FAIL] G11b-j æ’ç©ºæœŸç¬¬ 0 æ‹ä¸æ˜¯ (keep=FFFF, last=0) (keep=ffff last=1)
+  [PASS] G11b-j æ’ç©ºæœŸ 20 æ‹å…¨éƒ¨ (keep=FFFF, last=0)
+  [PASS] G11b-c tail keep == 00FF = 000000ff
+  [PASS] G11b-d tail last == 1 = 1
+  [PASS] G11b-e aux-take cnt == 82 = 00000052
+  --- G12: repeated/nested stop does NOT re-send ---
+  [PASS] G12a hold stop 100cyc: same = 00000015
+  [PASS] G12b tvalid == 0 = 0
+  [PASS] G12c 2nd stop: no beat = 00000015
+  [FAIL] G12d tlast total == 1 = 00000015 (æœŸæœ› 00000001)
+AXIS_C2H_STREAM_GATE: FAIL (8 checks failed)
+=== done ===
+$finish called at time : 5474 ns : File "D:/repo/XCKU5PMini/udp_hls_10g/sim/p9_axis_stream/tb_axis_c2h_stream.v" Line 500
+exit
+INFO: [Common 17-206] Exiting xsim at Mon Oct 12 00:00:33 2026...

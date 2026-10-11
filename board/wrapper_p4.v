@@ -3254,7 +3254,8 @@ module wrapper_p4 (
     //   ⇒ 未实现地址 `0x148 → 0x14C` (三处地址常量同改: check_window.py / tb_biz_win.v /
     //   tb_p6e_pcie_wrapper.v; 读侧脚本的重生成留给构建轮)。
     //   ⭐ P9 (2026-10-11): 几何**不扩** —— 仍 **71 字 / 0x14C**; `MIR_DMA_CNT` 的**口径**
-    //   从"环已写 32 位字数"改为"**已交付 AXIS 口的 32 位字数**" (`u_mir_axis.dma_words`),
+    //   从"环已写 32 位字数"改为"**从镜像 aux 口取走的 32 位字数**" (`u_mir_axis.dma_words`;
+    //   计数点 = `dma_gnt`, 每 grant +2; ⛔ 不是 tvalid&&tready 握手口径 —— D2 订正轮),
     //   地址/单位/名字逐字不变 ⇒ 读侧同步 = **BID-only** (留给构建轮 `0x21→0x22`)。
     localparam SNAP_NW_P6E = 71;        // 总字数 W0..W70 (未实现地址 = 0x14C = word 83)
     // ⭐ P7B-GAP9-TX (2026-10-10): 63 → **65** (W63/W64 = app_pattern 的两个停滞计数器)。
@@ -4661,7 +4662,7 @@ module wrapper_p4 (
         .mir_any_drop   (mir_any_drop),
         .mir_pop        (mir_pop),               // 输出: 读=弹出 (与 !empty 同门)
         .mir_ctrl       (mir_ctrl),              // 输出: [0]=cap_en [1]=clr toggle [2]=src_sel
-        .mir_dma_cnt    (mir_dma_cnt)            // ⭐ P9: 交付 AXIS 字数 → MIR_DMA_CNT (0x148; ¬ 支 = 0)
+        .mir_dma_cnt    (mir_dma_cnt)            // ⭐ P9: aux 取走字数 → MIR_DMA_CNT (0x148; ¬ 支 = 0)
     );
 `endif
 

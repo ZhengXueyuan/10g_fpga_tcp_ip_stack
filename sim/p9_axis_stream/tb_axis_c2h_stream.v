@@ -5,11 +5,18 @@
 // 被测 = rtl/axis_c2h_stream.v (aux 2 字/拍 → 128 位 AXIS 拍 + tkeep/tlast 合同 + 取走计数)
 // ⚠️ 判据名一律**纯 ASCII** (xsim 会把经 [255:0] 端口传的非 ASCII 逐字节损坏)。
 //
-// ⭐ 口径 (TL 2026-10-11 裁定; 本门按它们钉):
+// ⭐ 口径 (TL 2026-10-11 裁定 + **D4 修正轮**; 本门按它们钉):
 //   · `dma_words`/`MIR_DMA_CNT` = **从 aux 口取走 (`dma_gnt`) 的 32 位字数** (每 grant +2),
 //     **不是** tvalid&&tready 的下游字数; `clr` ⇒ 归零。
-//   · 停流触发式 `stop = (!cap_en) || (!en) || clr` ⇒ 半拍以**短末拍**送出 (keep=00FF),
-//     整拍在停流拍上打 `tlast`; `clr` **不再丢弃**残拍 (它只归零计数)。
+//   · 停流触发式 `stop = (!cap_en) || (!en)` —— 它是**允许收尾**, **不是立即收尾**
+//     (D4 修正轮): 非 clr 停流期**继续按满 16 B 打包**把镜像 FIFO 排空, 只有当
+//     "静置 N 拍 (`QUIET_N = 32`) 零成交 + 打包器里留着半拍"才把它作**唯一一拍短拍**
+//     (keep=00FF / last=1) 送出; **其余一律 tlast=0** (含停流排空期成形的整拍)。
+//   · ⭐ `clr` = **窗口边界 ⇒ 丢弃**打包器残留 (b + 两槽; **不发任何拍**) + 计数归零 +
+//     clr 拍**不拉 `dma_req`** (⭐ **D4 板级修正轮**: 板级 0x22 抓到的形态 = clr→cap_en=1
+//     起测瞬间残拍以短拍冒出 ⇒ **EOP 早关描述符 ⇒ 宿主首块出现洞/零填充/超时**;
+//     件名 `p9_board_0x22_20261011/runs/D4_BOUNDARY.txt`)。旧口径"clr 立即送残拍"已废。
+//   · nested/重复 stop 不重复发 (收尾拍成形即清两槽; 新残留必须先有新 grant)。
 //
 // 判据分组 (每条都对着一个具体失效模式):
 //   G0  reset: tvalid=0 / dma_words=0
@@ -17,14 +24,20 @@
 //   G2  半个拍**不成形** (en=1 & cap_en=1 ⇒ stop=0; 1 次 grant ⇒ tvalid=0)
 //   G3 ⭐ 背压: tready=0 ⇒ ① 载荷稳定; ② 暂存满后**不拉 dma_req** (无空间不请求);
 //       ③ 恢复 ⇒ 已持有的拍按序流出, 一拍不丢不错序
-//   G4  `en` 1→0 停流 ⇒ 半拍短末拍 (keep=00FF / last=1 / 内容 = {64'd0, 半拍})
-//   G4c ⭐ `cap_en` 1→0 停流 (TL 点名的"采集被关") ⇒ 同样的短末拍
-//   G5  `en`=0 + 整拍 ⇒ 整拍 keep=FFFF + last=1 (数据不丢)
+//   G4  `en` 1→0 停流 ⇒ **静置排空**后短末拍 (keep=00FF / last=1); 停流 12 拍内**不许**成形
+//   G4c ⭐ `cap_en` 1→0 停流 (TL 点名的"采集被关") ⇒ 同样的静置排空 + 短末拍
+//   G5  `en`=0 + 停流期成形的**整拍** ⇒ keep=FFFF + **last=0** (正常拍, 数据不丢;
+//       收尾只由残拍短拍承担 —— D4 修正轮裁定 ③ 改变了旧版"停流期整拍打 last"的行为)
 //   G6  `en`=0 ⇒ **dma_req 恒 0**
-//   G7  `clr`: **残拍作为短末拍送出** (不丢弃) + `dma_words` 归零
-//   G8  吞吐: 无限 grant + tready=1 ⇒ ≥ 1 拍 / 2 拍钟 (**8 B/cycle @250MHz** 持续率)
+//   G7  ⭐ `clr` = 窗口边界 ⇒ **丢弃**残拍 (**0 拍**) + `dma_words` 归零 + 新窗口头部
+//       **无 pre-clr 字节**; G7x = clr 连**已成形未交付**的拍也丢弃 (软复位式边界)
+//   G8  吞吐: 无限 grant + tready=1 ⇒ rx_n >= 140 / 300 拍 (理论上限 150 / 实测 149;
+//       ⭐ D7: 旧门"标签写 1/2 拍钟、断言却只 96" ⇒ 界收窄到与标签一致)
 //   G9  `dma_words` 口径: 每 grant +2 (= 整拍 +4) / clr 归零
 //   G10 末拍稳定性: 已成形的末拍在握手前**逐拍恒定** (跨 cap_en/en 撤销也不变)
+//   G11 ⭐ 停流 + 多 grant 排空 ⇒ 满 16 B 打包 (整拍 last=0) + **只出一拍短拍** (tlast 总数 == 1)
+//   G11b ⭐ 长排空 (41 grant): 排空期**零** tlast + 收尾恰一拍 (静置检测的牙)
+//   G12 ⭐ 重复/nested stop ⇒ **不重复发** (rx_n / tlast 总数不变)
 //
 // run: sim/p9_axis_stream/run_tb_axis_c2h_stream.bat [real|mut_*]
 //=============================================================================
@@ -127,15 +140,17 @@ module tb_axis_c2h_stream;
     reg [15:0]  rx_keep [0:255];
     reg         rx_last [0:255];
     integer     rx_n = 0;
+    integer     tlast_n = 0;              // ⭐ 带 tlast 的拍数 (D4 修正轮的"一事件一包尾"判据)
     always @(posedge clk) begin
         if (t_valid && tready) begin
             if (rx_n < 256) begin
                 rx_data[rx_n] <= t_data; rx_keep[rx_n] <= t_keep; rx_last[rx_n] <= t_last;
             end
             rx_n = rx_n + 1;
+            if (t_last) tlast_n = tlast_n + 1;
         end
     end
-    task rx_clr; begin rx_n = 0; end endtask
+    task rx_clr; begin rx_n = 0; tlast_n = 0; end endtask
 
     // ⭐ clr 脉冲生成器: **在 negedge 驱动**(非阻塞) —— 工程坑 3/17 的同族:
     //   若写成 `clr = 1; @(posedge clk); clr = 0;`, 那个 `clr = 0` 与 **当拍 posedge**
@@ -230,39 +245,44 @@ module tb_axis_c2h_stream;
         repeat (20) @(posedge clk);
         chk ("G3i 恢复后 dma_req 再拉 (还能请求)", {31'd0, dma_req}, 32'd1);
 
-        // ---------------- G4: 停流 flush (en 1→0; 半个拍) ----------------
-        $display("  --- G4: stop-flow (en=0) flush of a half beat ---");
+        // ---------------- G4: 停流收尾 (en 1→0; 半个拍) —— 静置排空后**一拍**短末拍 ----------------
+        $display("  --- G4: stop-flow (en=0): quiet-drain then flush of a half beat ---");
         rx_clr; q_clr; gnt0 = gnt_seen; w0 = dma_words;
         q_push({32'h88888888, 32'h77777777});   // 一个 grant = 半个拍
         en = 1; repeat (12) @(posedge clk);
         chk ("G4a 半个仍不成形 (en=1/cap_en=1)", rx_n, 0);
         chk ("G4a2 取走计数已 +2 (口径 = aux 口)", dma_words - w0, 32'd2);
         en = 0; repeat (12) @(posedge clk);
-        chk ("G4b flush 拍出现", rx_n, 1);
+        chk ("G4a3 stop 12cyc: no beat yet", rx_n, 0);
+        repeat (36) @(posedge clk);
+        chk ("G4b flush beat after quiet", rx_n, 1);
         chk128("G4c flush 拍 = {64'd0, 半拍}", rx_data[0], {64'd0, 32'h88888888, 32'h77777777});
         chk ("G4d flush 拍 keep == 00FF (挤 LSB 且非全 0)", {16'd0, rx_keep[0]}, 32'h00FF);
         chk1("G4e flush 拍 tlast == 1", rx_last[0], 1'b1);
         chk ("G4f 计数**不再**因 flush 变 (取走时已计)", dma_words, w0 + 32'd2);
 
-        // ---------------- G4c: 停流 flush (cap_en 1→0; TL 点名的"采集被关") ----------------
-        $display("  --- G4c: stop-flow (cap_en=0) flush of a half beat ---");
+        // ---------------- G4c: 停流收尾 (cap_en 1→0; TL 点名的"采集被关") —— 同样静置排空 ----------------
+        $display("  --- G4c: stop-flow (cap_en=0): quiet-drain then flush of a half beat ---");
         rx_clr; q_clr; gnt0 = gnt_seen;
         en = 1; cap_en = 1; repeat (8) @(posedge clk);
         q_push({32'hAA55AA55, 32'h55AA55AA});   // 半个拍
         repeat (12) @(posedge clk);
         chk ("G4c-a 半个不成形 (cap_en=1)", rx_n, 0);
         cap_en = 0; repeat (12) @(posedge clk);
-        chk ("G4c-b cap_en=0 ⇒ 短末拍出现", rx_n, 1);
+        chk ("G4c-b cap_en=0 12cyc: no beat", rx_n, 0);
+        repeat (36) @(posedge clk);
+        chk ("G4c-b2 short beat after quiet", rx_n, 1);
         chk128("G4c-c 短末拍 = {64'd0, 半拍}", rx_data[0], {64'd0, 32'hAA55AA55, 32'h55AA55AA});
         chk ("G4c-d 短末拍 keep == 00FF", {16'd0, rx_keep[0]}, 32'h00FF);
         chk1("G4c-e 短末拍 tlast == 1", rx_last[0], 1'b1);
         cap_en = 1;
 
-        // ---------------- G5: 停流 flush (整拍在停流期成形 ⇒ 末拍) ----------------
+        // ---------------- G5: 停流期整拍 ⇒ **正常拍** (D4 修正轮裁定 ③ 改口径) ----------------
         //   构造: tready=0 ⇒ 拍 A 进 B 被顶住; P3/P4 留在**两槽**; 此时 en=0 (停流) ⇒
-        //   恢复后 A 先出 (它是停流**之前**成形的 ⇒ last=0), 槽里的 {P4,P3} 在停流期成形
-        //   ⇒ **last=1** 且 keep=FFFF (整拍, 数据一个不少)。
-        $display("  --- G5: stop-flow: full beat formed during stop carries tlast ---");
+        //   恢复后 A 先出 (停流**之前**成形的 ⇒ last=0), 槽里的 {P4,P3} 在停流期成形
+        //   ⇒ **last=0** 且 keep=FFFF (整拍 = 正常拍, 数据一个不少) —— 收尾只由**残拍短拍**
+        //   承担; 本例残留恰是整拍 ⇒ 本段**没有**收尾拍 (已登记边界: 该描述符等驱动超时)。
+        $display("  --- G5: stop-flow: full beat formed during stop is a NORMAL beat (last=0) ---");
         rx_clr; q_clr; w0 = dma_words;
         en = 1; cap_en = 1; tready = 0; repeat (8) @(posedge clk);
         q_push({32'h22222222, 32'h11111111});   // P1
@@ -278,10 +298,11 @@ module tb_axis_c2h_stream;
                {32'h44444444, 32'h33333333, 32'h22222222, 32'h11111111});
         chk ("G5d 拍 1 keep == FFFF", {16'd0, rx_keep[0]}, 32'hFFFF);
         chk1("G5e 拍 1 last == 0", rx_last[0], 1'b0);
-        chk128("G5f 拍 2 == {P4,P3} (停流期成形 ⇒ 末拍)", rx_data[1],
+        chk128("G5f 拍 2 == {P4,P3} (停流期成形)", rx_data[1],
                {32'h88888888, 32'h77777777, 32'h66666666, 32'h55555555});
         chk ("G5g 拍 2 keep == FFFF (整拍不缩短)", {16'd0, rx_keep[1]}, 32'hFFFF);
-        chk1("G5h 拍 2 last == 1", rx_last[1], 1'b1);
+        chk1("G5h full beat last == 0", rx_last[1], 1'b0);
+        chk ("G5h2 tlast total == 0", tlast_n, 32'd0);
         chk ("G5i 取走计数 += 8 (4 grant x2)", dma_words - w0, 32'd8);
 
         // ---------------- G6: en=0 ⇒ 不拉 dma_req ----------------
@@ -298,22 +319,54 @@ module tb_axis_c2h_stream;
         repeat (4) @(posedge clk);
         chk ("G6b en=0 期间 grant 未被消费", q_push_cnt - q_rd_abs, 1);
 
-        // ---------------- G7: clr ⇒ 残拍送出 + 计数归零 ----------------
-        //   ⭐ TL 裁定: clr **不丢弃**残拍 (作为短末拍送出) ⇒ packer 残留 = 0
-        $display("  --- G7: clr -> flush residue as short beat + counter zero ---");
-        rx_clr; q_clr;
+        // ---------------- G7: clr = 窗口边界 ⇒ **丢弃**残拍 (不发短拍) + 计数归零 ----------------
+        //   ⭐ D4 板级修正轮 (板级 0x22 实测: clr→cap_en=1 起测瞬间残拍以短拍冒出 ⇒ **EOP 早关
+        //   描述符 ⇒ 宿主首块出现洞/零填充/超时**): clr 丢弃打包器残留 (b + 两槽), clr 拍不拉
+        //   `dma_req` ⇒ **新窗口头部 = 0 B pre-clr 字节**。旧口径"clr 把残拍作短末拍送出"已废。
+        $display("  --- G7: clr = window boundary -> DISCARD residue (no short beat) ---");
+        rx_clr; q_clr; w0 = dma_words;
         en = 1; cap_en = 1; repeat (8) @(posedge clk);
         q_push({32'h12345678, 32'h9ABCDEF0});   // 半个拍在暂存里
         repeat (12) @(posedge clk);
-        chk ("G7a 半个在暂存 (未成形)", rx_n, 0);
-        chk ("G7b 计数非 0 (取走过)", (dma_words != 0), 1);
+        chk ("G7a half kept in slot (no beat)", rx_n, 0);
+        chk ("G7b dma_words == w0+2 (taken)", dma_words - w0, 32'd2);
         do_clr;
+        repeat (2) @(posedge clk);
+        chk ("G7c0 clr: NO beat (<=2cyc)", rx_n, 0);
+        repeat (40) @(posedge clk);
+        chk ("G7c clr -> dma_words == 0", dma_words, 32'd0);
+        chk ("G7d clr DISCARDS residue (0 beats)", rx_n, 0);
+        chk ("G7e tlast total == 0", tlast_n, 32'd0);
+        // 新窗口: 推入新数据 ⇒ 正常打包 (整拍 last=0; 头部无 pre-clr 字节)
+        q_push({32'hBBBBBBBB, 32'hAAAAAAAA});
+        q_push({32'hDDDDDDDD, 32'hCCCCCCCC});
         repeat (12) @(posedge clk);
-        chk ("G7c clr 后计数归零", dma_words, 32'd0);
-        chk ("G7d clr 把残拍作为短末拍送出 (不丢弃)", rx_n, 1);
-        chk128("G7e 短末拍内容 == {64'd0, 半拍}", rx_data[0], {64'd0, 32'h12345678, 32'h9ABCDEF0});
-        chk ("G7f 短末拍 keep == 00FF", {16'd0, rx_keep[0]}, 32'h00FF);
-        chk1("G7g 短末拍 tlast == 1", rx_last[0], 1'b1);
+        chk ("G7f new window: 1 full beat", rx_n, 1);
+        chk128("G7g new head NO stale prefix", rx_data[0],
+               {32'hDDDDDDDD, 32'hCCCCCCCC, 32'hBBBBBBBB, 32'hAAAAAAAA});
+        chk ("G7h new beat keep == FFFF", {16'd0, rx_keep[0]}, 32'hFFFF);
+        chk1("G7i new beat last == 0", rx_last[0], 1'b0);
+        chk ("G7j dma_words == 4 (post-clr)", dma_words, 32'd4);
+
+        // ---------------- G7x: clr 也丢弃**已成形未交付**的拍 (b; 窗口边界 = 软复位式) ----------------
+        $display("  --- G7x: clr discards a FORMED-but-unhandshaken beat ---");
+        rx_clr; q_clr; en = 1; cap_en = 1; tready = 0;
+        q_push({32'h22222222, 32'h11111111});
+        q_push({32'h44444444, 32'h33333333});
+        repeat (8) @(posedge clk);
+        chk1("G7x-a beat formed and held", t_valid, 1'b1);
+        chk ("G7x-b 0 beats accepted (tready=0)", rx_n, 0);
+        do_clr;
+        repeat (4) @(posedge clk);
+        chk1("G7x-c clr -> tvalid == 0 (discarded)", t_valid, 1'b0);
+        tready = 1; repeat (8) @(posedge clk);
+        chk ("G7x-d 0 beats after clr (no old tail)", rx_n, 0);
+        q_push({32'h66666666, 32'h55555555});
+        q_push({32'h88888888, 32'h77777777});
+        repeat (12) @(posedge clk);
+        chk ("G7x-e new window packs normally", rx_n, 1);
+        chk128("G7x-f new content, no old tail", rx_data[0],
+               {32'h88888888, 32'h77777777, 32'h66666666, 32'h55555555});
 
         // ---------------- G8: 吞吐 (无限 grant + tready=1) ----------------
         $display("  --- G8: sustained throughput (>=1 beat / 2 clocks) ---");
@@ -322,8 +375,10 @@ module tb_axis_c2h_stream;
         repeat (300) @(posedge clk);
         $display("  [INFO] G8 beats=%0d grants=%0d (300 clk)", rx_n, gnt_seen);
         $display("  [DBG] G8-end queue push=%0d rd_abs=%0d used=%0d", q_push_cnt, q_rd_abs, q_push_cnt - q_rd_abs);
-        if (rx_n >= 96) $display("  [PASS] G8a 持续率 >= 1 拍 / 2 拍钟 (8 B/cycle @250MHz)");
-        else begin $display("  [FAIL] G8a 持续率不足: %0d 拍 / 300 clk", rx_n); fails = fails + 1; end
+        // ⭐ D7: 旧版标签写 ">= 1 拍 / 2 拍钟" (=150) 而断言只有 96 (带太宽: 一个把吞吐砍到
+        //   2/3 的缺陷仍会绿) ⇒ 界收到 140 (理论 150 / 实测 149; 余量 ~6%, 仍抓 2/3 级回归)。
+        if (rx_n >= 140) $display("  [PASS] G8a 持续率 >= 140 拍 / 300 拍钟 (理论上限 150, 实测 149)");
+        else begin $display("  [FAIL] G8a 持续率不足: %0d 拍 / 300 clk (界 = 140)", rx_n); fails = fails + 1; end
         for (j = 0; j < 4; j = j + 1) begin
             chk128("G8b 抽检拍 (顺序)", rx_data[j],
                    {32'h1000_0000 + 2*j+1, 32'h2000_0000 + 2*j+1,
@@ -332,8 +387,9 @@ module tb_axis_c2h_stream;
 
         // ---------------- G9: dma_words 口径 (取走计数 / clr 归零) ----------------
         $display("  --- G9: dma_words accounting (counted at the aux port) ---");
-        // ⚠️ 先停一手 (`en`=0) 让 DUT 内部流水排空, 再 clr ⇒ 基线干净。
-        //    否则上一段"已取走但未交付"的尾巴会在 clr **之后**才交出来 ⇒ 拍数多 1-2 (不确定)。
+        // ⚠️ 先停一手 (`en`=0) 让下游流水归位; 再 clr (⭐ 新口径: clr **丢弃**残留, 不发拍)
+        //    ⇒ 基线干净。(旧口径下"已取走未交付的尾巴会在 clr 之后才交出来 ⇒ 拍数多 1-2";
+        //    该不确定性已被 D4 板级修正轮结构性消除。)
         en = 0; repeat (20) @(posedge clk);
         do_clr;
         repeat (4) @(posedge clk);
@@ -349,8 +405,9 @@ module tb_axis_c2h_stream;
         rx_clr; q_clr; en = 1; cap_en = 1; tready = 0;
         q_push({32'hDEADBEEF, 32'hCAFEBABE});   // 半个拍
         repeat (8) @(posedge clk);
-        cap_en = 0;                              // 停流 ⇒ 它变成末拍 (但下游没接)
-        repeat (8) @(posedge clk);
+        cap_en = 0;                              // 停流 ⇒ 静置排空后它变成末拍 (下游没接)
+        repeat (40) @(posedge clk);              // >= QUIET_N(32) ⇒ 收尾拍已成形
+        chk1("G10a0 tail beat formed (tvalid)", t_valid, 1'b1);
         stab_d = t_data; stab_k = t_keep; stab_l = t_last; stab_v = t_valid;
         cap_en = 1;                              // cap_en 拉回: 已呈现的末拍**不许变**
         for (i = 0; i < 10; i = i + 1) begin
@@ -367,6 +424,73 @@ module tb_axis_c2h_stream;
         tready = 1; repeat (8) @(posedge clk);
         chk ("G10d 收下后拍数 == 1", rx_n, 1);
         chk128("G10e 内容 == 半个拍 (未损)", rx_data[0], {64'd0, 32'hDEADBEEF, 32'hCAFEBABE});
+
+        // ---------------- G11: ⭐ 停流 + 多 grant 排空 ⇒ 满 16 B 打包 + 只出一拍短拍 ----------------
+        //   D4 修正轮裁定 ②: 非 clr 停流**不碎片化** —— 停流期每 2 次 grant 照成 1 个整拍
+        //   (keep=FFFF / last=0), 排空完成后**只**把最后的半拍作**一拍**短末拍 (00FF/last=1)。
+        //   5 个 grant (奇数) = 2 整拍 + 1 半拍 ⇒ rx_n == 3 / tlast 总数 == 1。
+        //   (旧版行为: 5 个 grant ⇒ 5 拍 8 B 的 tlast 包 —— 本用例就是它的牙。)
+        $display("  --- G11: stop + multi-grant drain => full packing + ONE short tail ---");
+        rx_clr; q_clr; en = 1; cap_en = 1; tready = 1; w0 = dma_words;
+        repeat (8) @(posedge clk);
+        gr_hold = 1'b1;                         // 上游暂供 (数据先入队; 排空确实发生在停流期)
+        for (i = 0; i < 5; i = i + 1) q_push({32'hB000_0000 + i, 32'hA000_0000 + i});
+        repeat (4) @(posedge clk);
+        cap_en = 0;                             // 停流 (采集关; 5 个 grant 还没成交)
+        gr_hold = 1'b0;                         // 放行 ⇒ 停流期排空
+        repeat (20) @(posedge clk);             // 排空 (~5 拍); 静置还没满 ⇒ 无收尾拍
+        chk ("G11a first 2 beats FULL", rx_n, 2);
+        chk ("G11a2 full-beat keep == FFFF", {16'd0, rx_keep[0]}, 32'hFFFF);
+        chk1("G11a3 full-beat last == 0", rx_last[0], 1'b0);
+        chk128("G11a4 beat1 == {g2,g1}", rx_data[0],
+               {32'hB000_0001, 32'hA000_0001, 32'hB000_0000, 32'hA000_0000});
+        chk ("G11a5 tlast total == 0", tlast_n, 32'd0);
+        repeat (48) @(posedge clk);             // 静置 (>= QUIET_N=32) ⇒ 残拍收尾
+        chk ("G11b ONE short tail (3 beats)", rx_n, 3);
+        chk ("G11b2 tail keep == 00FF", {16'd0, rx_keep[2]}, 32'h00FF);
+        chk1("G11b3 tail last == 1", rx_last[2], 1'b1);
+        chk128("G11b4 tail == {0, half}", rx_data[2], {64'd0, 32'hB000_0004, 32'hA000_0004});
+        chk ("G11b5 tlast total == 1", tlast_n, 32'd1);
+        chk ("G11b6 aux-take cnt == 10", dma_words - w0, 32'd10);
+
+        // ---------------- G11b: 长排空 (41 grant): 排空期**零** tlast + 收尾恰一拍 ----------------
+        //   41 个 grant (奇数) = 20 个整拍 + 1 个半拍。排空本身跨 >32 拍 ⇒ 静置计数必须
+        //   在**每次 grant 上归零**, 否则会在排空中途误判"排空完成" ⇒ 中途多冒收尾拍。
+        $display("  --- G11b: long drain (41 grants): zero tlast during drain, exactly one tail ---");
+        rx_clr; q_clr; gnt0 = gnt_seen; w0 = dma_words; en = 1; cap_en = 1; tready = 1;
+        repeat (8) @(posedge clk);
+        gr_hold = 1'b1;
+        for (i = 0; i < 41; i = i + 1) q_push({32'hD000_0000 + i, 32'hC000_0000 + i});
+        repeat (4) @(posedge clk);
+        cap_en = 0;
+        gr_hold = 1'b0;
+        repeat (140) @(posedge clk);            // 排空 ~41 拍 + 静置 32 拍 + 收尾
+        chk ("G11b-a 21 beats (20F+1S)", rx_n, 21);
+        chk ("G11b-b tlast total == 1", tlast_n, 32'd1);
+        for (j = 0; j < 20; j = j + 1) begin
+            if ((rx_keep[j] !== 16'hFFFF) || (rx_last[j] !== 1'b0)) begin
+                $display("  [FAIL] G11b-j 排空期第 %0d 拍不是 (keep=FFFF, last=0) (keep=%04x last=%b)",
+                         j, rx_keep[j], rx_last[j]);
+                fails = fails + 1; j = 100;
+            end
+        end
+        if (j != 100) $display("  [PASS] G11b-j 排空期 20 拍全部 (keep=FFFF, last=0)");
+        chk ("G11b-c tail keep == 00FF", {16'd0, rx_keep[20]}, 32'h00FF);
+        chk1("G11b-d tail last == 1", rx_last[20], 1'b1);
+        chk ("G11b-e aux-take cnt == 82", dma_words - w0, 32'd82);
+
+        // ---------------- G12: ⭐ 重复/nested stop ⇒ 不重复发 ----------------
+        //   G11b 收尾后 stop 仍 = 1 (cap_en=0): 再静置 100 拍不许再冒拍;
+        //   再 cap_en 1→0 二次停流 (无新数据 ⇒ 无新残留) 仍不许冒拍。
+        $display("  --- G12: repeated/nested stop does NOT re-send ---");
+        repeat (100) @(posedge clk);
+        chk ("G12a hold stop 100cyc: same", rx_n, 21);
+        chk1("G12b tvalid == 0", t_valid, 1'b0);
+        cap_en = 1; repeat (8) @(posedge clk);
+        cap_en = 0; repeat (48) @(posedge clk);
+        chk ("G12c 2nd stop: no beat", rx_n, 21);
+        chk ("G12d tlast total == 1", tlast_n, 32'd1);
+        cap_en = 1; repeat (4) @(posedge clk);
 
         // ---------------- 收尾 ----------------
         en = 0; cap_en = 0; do_clr; repeat (4) @(posedge clk);

@@ -111,3 +111,50 @@ P9 (XDMA AXI4-MM -> AXI4-Stream) FPGA 侧实现轮 — PROGRESS / 逐项时间�
     => 7 个 `mut_*_gen.txt` 落在**仓库根** (污染工作树)。已修 (cd 提到最前) + 复跑 real/mut_stop
     两条 (PASS_ALL / MUTANT-CAUGHT), 并把旧生成日志归到 `logs/mutgen/`。
   - 报告/规格件均用 Write 直接落盘成功 (本会话**未遇到**平台拒写 .md 的情况)。
+
+======================================================================
+[追加] D 项修正轮 —— REVIEW.md 的 D2/D3/D4/D5/D6/D7/D8 (+ TL 中途改口径)
+轮次: 2026-10-11 深夜 -> 2026-10-12 凌晨 | 报告件 = FIX_REPORT.md (同目录) | 门日志 = logs_d4fix/
+边界: 不出位流 / 不 bump BID / 不做读侧同步 / 不烧板 / 不碰对端机 (只本机改源码 + xsim 门)
+
+[F1] D4 首版 (按派单原文): stop 含 clr; clr 立即送残拍; 非 clr 停流 = 排空 + 静置 32 拍收尾;
+     TB 新 G11/G11b/G12 + 5 新突变臂 => real PASS_ALL + 12 臂全捕获。
+[F2] 判据名 ASCII 化: xsim 经 [255:0] 端口传 name 串 = 32 字节截尾 + 非 ASCII 逐字节损坏
+     (实测长中文名整条烂、ID 丢失) => 新用例名改纯 ASCII <=30 字节 (红灯面逐条可读)。
+[F3] D2 注释订正 (axi_regs 5 处 + wrapper 2 处) + 机检 (git diff 173b18d 全落 // 行)。
+[F4] D3: 两 bat 改不同名日志 -> 顺序重跑两臂 (只编译)。臂 A (HEAD 件) = 6 条 10-2989
+     (udpapp_* 同名 6 个; @:4187-4192) / 臂 B (诊断副本) = 0 ERROR; 与现文件臂逐名相同
+     => "HEAD 同 6 条签名" 成立且有留存证据。
+[F5] D7: G8a 阈值 96 -> 140 (理论 150 / 实测 149), 标签改准。
+     D8: 核到落点 = sim/p6e_pcie/tb_p6e_pcie_wrapper.v:732 (非派单写的 tb/tb_axis_c2h_stream.v);
+     不在我写面 => 未改, FIX_REPORT 给一行补丁。
+[F6] D5/D6: 现读 RTL 核 "在飞 <=32 B" (b_data 16 B + 两槽 2x8 B; 紧界) 成立;
+     clr 边界界先按"送残拍"口径重推为 <=40 B (在飞 32 + clr 拍未计数取走 8)。
+[F7] **TL 中途修正 (板级 0x22 带回; p9_board_0x22_20261011/runs/D4_BOUNDARY.txt)**:
+     clr 改为 丢弃残拍 (不发拍) + 复位打包态 + clr 拍不拉 dma_req; 停流收尾/正常期规则保留;
+     <=40 B 界随之作废 (新 = 0 B post-clr 头部 pre-clr 字节)。
+     => 第二轮实现: stop 不含 clr; 单点 alias clr_drop 三处用 (b 块 / 槽块 / dma_req 门);
+        mv_last 整拍恒 0; 头注释 (tlast 段 / 触发式块 / clr 块) 全部重写为三条新规则 + 板级引用。
+     => TB: G7 重写 (clr = 丢弃 / 0 拍 / 计数归零 / 新窗口头部无 pre-clr 字节) + 新增 G7x
+        (clr 连已成形未交付的拍也丢弃); mut_clrnow -> mut_clrdrop; mut_axis.py 锚点跟现源。
+[F8] 第三轮门读数 (最终): real = PASS_ALL (100 PASS / 0 FAIL); 12 臂全 MUTANT-CAUGHT
+     (FAIL 数: last 8 / keep 5 / order 13 / req 5 / cnt 10 / clr 3 / stop 9 / drain 16 /
+      tlast 8 / quiet 27 / clrdrop 12 / qrst 6; 红灯集两两不相等)。
+[F9] 连带实测 (非我写面): p6e 全链门 => 6 条 FAIL, 全部是旧口径 clr 判据组
+     (P9-B-5h/5i/5j + P9-B-5m1/5m2/5m3); 其余全过 => 需该文件所有者按新口径改写
+     (5k/5k2/5m4/5m5 读陈旧抓拍缓冲的"白过"行建议一并加 str_n 门)。
+[F10] IMPL_REPORT.md: 文首"订正块 1" + 就地标记 (2-3 / 3 公式块 / 5.1 / 8.4 / 8.5);
+      历史原文保留, 冲突处按订正块读。PROGRESS.txt 本文件 = 追加 (实现轮原文未动)。
+
+坑 (本轮自查):
+KF1. cmd //c vs cmd /c 的条件式 (与工程备忘同款): 带 MSYS_NO_PATHCONV=1 时必须用 `cmd /c`
+     (写 //c => 开交互 cmd、bat 没跑, 输出看着像跑完了)。本轮踩 1 次, 立刻改单斜杠重跑。
+KF2. xsim 的 [255:0] 判据名截尾/损坏 (见 F2): 名字要短 + 纯 ASCII 才能进日志。
+KF3. TL 中途改口径 => D4 首版 12 臂读数整批作废并重跑 (logs_d4fix/ 存的是第三轮)。
+KF4. D3 两臂编译期间不动 rtl/ (files.f 含 rtl/*.v; 半写文件会假红) —— 已等后台臂跑完再改。
+KF5. 自伤: 首发把实现轮的 PROGRESS.txt 覆盖了 => 立即 `git checkout --` 复原 (它在 HEAD 里),
+     改成本文件"追加"。教训 = 追加型交付件先查同名文件是否已有前轮内容。
+
+未定项 (详见 FIX_REPORT.md §8): dma_req 的 !clr_drop 门无专属突变臂 (只有构造性论据 +
+G7 内容判据) · clr 落在"已呈现未握手"时无握手撤销 tvalid (引擎侧未板级观测) ·
+QUIET_N=32 只有构造性论据 · D8/D1 不在写面 · 现役 RTL 与 0x22 位流 clr 语义不同 (下次构建带上)。
