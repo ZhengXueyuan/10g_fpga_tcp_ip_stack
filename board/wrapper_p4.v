@@ -3250,9 +3250,12 @@ module wrapper_p4 (
     //   仍是 [11:0] (**不动**); `snap_idx = r_word[6:0]-8` 最大 70 ⇒ 7 位 ✓ (回绕红线仍 ≥0x200)。
     //   ⚠️ **未实现地址 = 0x14C** (word 83) —— MIR_STATUS/MIR_DATA/MIR_CTRL/MIR_DMA_CNT
     //   四个字 (0x13C/0x140/0x144/0x148) 插在快照末尾与它之间 (见 axi_regs.v 头注释 §M1)。
-    //   ⭐ M1 期 B (2026-10-11): 字数不变 (71), 只多了第四个 MIR 字 (MIR_DMA_CNT @0x148 = 环写字数)
+    //   ⭐ M1 期 B (2026-10-11): 字数不变 (71), 只多了第四个 MIR 字 (MIR_DMA_CNT @0x148)
     //   ⇒ 未实现地址 `0x148 → 0x14C` (三处地址常量同改: check_window.py / tb_biz_win.v /
     //   tb_p6e_pcie_wrapper.v; 读侧脚本的重生成留给构建轮)。
+    //   ⭐ P9 (2026-10-11): 几何**不扩** —— 仍 **71 字 / 0x14C**; `MIR_DMA_CNT` 的**口径**
+    //   从"环已写 32 位字数"改为"**已交付 AXIS 口的 32 位字数**" (`u_mir_axis.dma_words`),
+    //   地址/单位/名字逐字不变 ⇒ 读侧同步 = **BID-only** (留给构建轮 `0x21→0x22`)。
     localparam SNAP_NW_P6E = 71;        // 总字数 W0..W70 (未实现地址 = 0x14C = word 83)
     // ⭐ P7B-GAP9-TX (2026-10-10): 63 → **65** (W63/W64 = app_pattern 的两个停滞计数器)。
     //   预算复算: 65 ≤ 119 (7 位译码上限) ✓; 未实现地址 = 0x20+4*65 = **0x124** (word 73, 真正未实现);
@@ -3718,8 +3721,10 @@ module wrapper_p4 (
     //      然后重走 `clr → cap_en=1` —— **cap_en=1 中途切换会让字节流跨源拼接** (累加器不 flush;
     //      与 cap_en 中途开关同一已知语义边界, 登记)。
     // 链: 逐字节 ^0xA5 → 打包 **64 位字** (P8 阶段三; 原 32 位 = 4B/拍结构上限) →
-    //     fifo_async 64b×256 (dp_clk → pcie_axi_aclk; 两侧 reset_n) → 读侧拆 2×32
-    //     → `axi_regs` 的 MIR 读口 (MIR_STATUS/MIR_DATA 读=弹出/MIR_CTRL)。
+    //     fifo_async 64b×256 (dp_clk → pcie_axi_aclk; 两侧 reset_n) → 读侧拆 2×32, **两条读出口**:
+    //     ① 主机口 → `axi_regs` 的 MIR 读口 (MIR_STATUS/MIR_DATA 读=弹出/MIR_CTRL);
+    //     ② ⭐ P9 (2026-10-11): aux/DMA 口 → `u_mir_axis` (AXIS 成形器) → XDMA `s_axis_c2h`
+    //        (原 = 期 B 的 16 KB 环 + AXI-MM 读从机; 该三件套**保留在树、不再入位流**)。
     // ⛔ **snoop**: 只采样**选中源**的 `tvalid && tready`, **不驱动**任何既有信号
     //   (s_tready 在镜像模块里是只读输入) ⇒ 对既有数据面逐位零影响。
     // ⛔ ¬(APP_MODE ∧ DP_156MHZ) ⇒ 全部接**常量** (v2 §V1.4 的 tie-off 常量表: level=0/empty=1/
@@ -3730,48 +3735,35 @@ module wrapper_p4 (
     //   (与 cap_en 同款; 单 bit 慢变电平 = 标准做法)。⛔ 同一条纪律: 新增 CDC 一律登记
     //   (本条 + 阶段一的两条 = M1 的三条 dp↔pcie 控制 CDC; 载荷/level/sticky 各有自己的通道)。
     // =====================================================================
-    // ⭐⭐ M1 期 B (2026-10-11): XDMA `m_axi` 通路的网线 (三条宏分支**共用一套名**)
+    // ⭐⭐ P9 (2026-10-11): XDMA 从 AXI4-MM 切 **AXI4-Stream** —— 十条 AXIS 信号
+    //      (权威端口表 = `p8_axis_conf_20261011/CONF.md` §3.1, 生成产物 `xdma_st.sv` 逐字;
+    //       MM 臂 75 根 → ST 臂 **50 根**: 消失 35 根 `m_axi_*`, 新增 10 根 AXIS, **无 tuser**)。
     // ---------------------------------------------------------------------
     // 为什么"单点声明、分支只驱动": XDMA 例化在 **PCIE_OBS 内、三层宏之外** (见下方
-    //   `u_pcie_xdma`), 它的 `m_axi_*` 端口必须连到**在任何宏组合下都存在**的线名
+    //   `u_pcie_xdma`), AXIS 端口必须连到**在任何宏组合下都存在**的线名
     //   (按宏叉开写两份端口表的做法本工程已点名禁止 — 坑 8 的同族)。三分支的关系:
-    //     · 请求线 (XDMA 输出; 真支 → 从机, ¬ 支无消费者): 恒由 XDMA 例化驱动;
-    //     · 响应线 (从机输出 → XDMA 输入): 真支由从机驱动; ¬ 支 = 常量;
-    //     · `mir_dma_cnt` (环 `wr_words` → axi_regs 的 MIR_DMA_CNT@0x148): ¬ 支 = 0。
-    //   ⛔ ¬ 支的常量与"期 B 之前的逐字 1'b0 tie-off"**逐位等价** ⇒ 那两支零行为变化。
-    //   ⚠️ 期 B 的从机合同见 `rtl/aximm_c2h_win.v` / `rtl/aximm_h2c_discard.v` 头注释;
-    //      环 + 两从机**整体在 pcie 域** ⇒ 零新增多比特 CDC。
+    //     · C2H 输入线 (本模块输出 → XDMA; 真支由 `u_mir_axis` 驱动): ¬ 支 = 常量表
+    //       (`tvalid=0` + `tdata/tkeep/tlast` 同钉 —— "C2H 一个字节都不发");
+    //     · C2H `tready` = XDMA **输出** (唯一的板内流控输入): 真支接 `u_mir_axis`;
+    //       ¬ 支无消费者 (不驱动, 合法);
+    //     · H2C AXIS: `tready` 由我们**恒 1 吞噬** (→ 结构性消除"等一个永不来的应答";
+    //       与 P2 的 `aximm_h2c_discard` 同一哲学, 但 AXIS 下它只是一个常量 —— 无 B 通道可挂);
+    //       `tvalid/tdata/tkeep/tlast` 接进**本文件声明的悬空线** (端口连上 = 显式;
+    //       内容按吞噬语义忽略 ⇒ 无消费者是预期)。
+    //     · `mir_dma_cnt` (成形器 `dma_words` → axi_regs 的 MIR_DMA_CNT@0x148): ¬ 支 = 0。
+    //   ⛔ ¬ 支的常量与"MM 时代的逐字 tie-off"同哲学 ⇒ 那两支零行为变化 (C2H 静默)。
     // =====================================================================
-    wire [3:0]   mir_axi_arid;      // XDMA → C2H 从机 (读请求)
-    wire [63:0]  mir_axi_araddr;
-    wire [7:0]   mir_axi_arlen;
-    wire [2:0]   mir_axi_arsize;
-    wire [1:0]   mir_axi_arburst;
-    wire         mir_axi_arvalid;
-    wire         mir_axi_rready;    // XDMA → C2H 从机 (R 拍回流)
-    wire [3:0]   mir_axi_awid;      // XDMA → H2C 从机 (写请求)
-    wire [63:0]  mir_axi_awaddr;
-    wire [7:0]   mir_axi_awlen;
-    wire [2:0]   mir_axi_awsize;
-    wire [1:0]   mir_axi_awburst;
-    wire         mir_axi_awvalid;
-    wire [127:0] mir_axi_wdata;
-    wire [15:0]  mir_axi_wstrb;
-    wire         mir_axi_wlast;
-    wire         mir_axi_wvalid;
-    wire         mir_axi_bready;    // XDMA → H2C 从机 (收 B)
-    wire         mir_axi_arready;   // C2H 从机 → XDMA (¬ 支 = 0)
-    wire [3:0]   mir_axi_rid;
-    wire [127:0] mir_axi_rdata;
-    wire [1:0]   mir_axi_rresp;
-    wire         mir_axi_rlast;
-    wire         mir_axi_rvalid;
-    wire         mir_axi_awready;   // H2C 从机 → XDMA (¬ 支 = 0)
-    wire         mir_axi_wready;
-    wire [3:0]   mir_axi_bid;
-    wire [1:0]   mir_axi_bresp;
-    wire         mir_axi_bvalid;
-    wire [31:0]  mir_dma_cnt;       // 环写字数 → MIR_DMA_CNT (0x148; ¬ 支 = 0)
+    wire [127:0] mir_c2h_tdata;     // u_mir_axis → XDMA s_axis_c2h_tdata_0
+    wire [15:0]  mir_c2h_tkeep;     //                     tkeep_0
+    wire         mir_c2h_tlast;     //                     tlast_0
+    wire         mir_c2h_tvalid;    //                     tvalid_0
+    wire         mir_c2h_tready;    // XDMA → u_mir_axis   tready_0 (唯一的板内流控输入)
+    wire [127:0] mir_h2c_tdata;     // XDMA → 悬空 (吞噬: 忽略)
+    wire [15:0]  mir_h2c_tkeep;     // XDMA → 悬空 (忽略)
+    wire         mir_h2c_tlast;     // XDMA → 悬空 (忽略)
+    wire         mir_h2c_tvalid;    // XDMA → 悬空 (忽略)
+    wire         mir_h2c_tready;    // 我们 → XDMA: 恒 1 (吞噬)
+    wire [31:0]  mir_dma_cnt;       // 交付字数 → MIR_DMA_CNT (0x148; ¬ 支 = 0)
 `ifdef APP_MODE
 `ifdef DP_156MHZ
     wire [8:0]  mir_level;          // = u_mir.level (fifo_async.dbg_occ_r; 读域悲观占用)
@@ -3781,14 +3773,12 @@ module wrapper_p4 (
     wire        mir_pop;            // ← axi_regs.mir_pop (读=弹出脉冲)
     wire [31:0] mir_ctrl;           // ← axi_regs.mir_ctrl ([0]=cap_en [1]=clr toggle [2]=src_sel)
     wire [31:0] biz_w70;            // W70 = drop_bytes (dp 域寄存器输出 → p7bdp 槽 30)
-    // ---- ⭐ 期 B: aux 读口 ↔ 环 的三根线 (必须声明在 u_mir **之前** —— 坑 24/22:
+    // ---- ⭐ aux 读口 ↔ 成形器 的四根线 (必须声明在 u_mir **之前** —— 坑 24/22:
     //   晚声明 = "already implicitly declared" 硬错, 或静默 1 位隐式线) ----
-    wire        mir_dma_req;        // = u_mir_ring.src_req (= dma_en = MIR_CTRL[3])
+    wire        mir_dma_req;        // = u_mir_axis.dma_req (有容量才拉; ⇒ 无容量时 FIFO 满 ⇒ W70)
     wire        mir_dma_gnt;        // = u_mir.dma_gnt (1 拍: 本拍已弹出**2 个逻辑字**)
-    wire [63:0] mir_dma_data;       // ⭐ P8 阶段三: = u_mir.dma_data ({后出, 先出}) → 环写口
-    wire        mir_clr_pulse_rd;   // = u_mir.clr_pulse_rd (→ 环的清零)
-    wire [9:0]  mir_rr_row_w;       // 环行地址 (ROW_AW=10)
-    wire [127:0] mir_rr_dout;       // 环行读数据 (1 拍延迟)
+    wire [63:0] mir_dma_data;       // = u_mir.dma_data ({后出, 先出}) → 成形器槽 (8 B/次)
+    wire        mir_clr_pulse_rd;   // = u_mir.clr_pulse_rd (→ 成形器清零, 同钟直连)
     // ---- ⭐ 期 A: src_sel 的 pcie→dp 2FF + 源 mux (snoop 五线: tdata/tkeep/tvalid/tready/tlast) ----
     (* ASYNC_REG = "TRUE" *) reg [1:0] mir_src_sr;
     always @(posedge dp_clk or negedge reset_n) begin
@@ -3817,134 +3807,93 @@ module wrapper_p4 (
         .dout         (mir_dout),
         .empty        (mir_empty),
         .level        (mir_level),
-        // ---- ⭐ 期 B 的 aux 读口: **已接线** (接线清单 §4.3 ②; TL 裁 P2) ----
+        // ---- ⭐ aux 读口 (P8 期 B 起接线; ⭐ P9 起消费者 = `u_mir_axis`) ----
         //   ⭐⭐ P8 阶段三 (2026-10-11): 合同从"1 字/拍"改为"**2 字/拍**" —— 源做到 8 B/拍后
         //   上界 1.25 GB/s > 单字出口的 1 GB/s ⇒ 必须 2 字/拍 (否则 FIFO 结构性必满)。
         //   现行合同 (rtl/app_rx_mirror.v 头注释 + 单元门 G12a..k): dma_req=1 且 FIFO 非空且
         //   主机本拍没弹出 ⇒ `dma_gnt=1`, 同拍 `dma_data[63:0]` = 按序的下 2 个逻辑字
         //   (`[31:0]` 先出); 与主机弹出冲突时 **主机优先** (dma_gnt=0)。
         //   ⛔ 期 B 之前这里写死 1'b0 的 tie 已删。
-        .dma_req      (mir_dma_req),         // = 环的 src_req (= dma_en = MIR_CTRL[3])
-        .dma_gnt      (mir_dma_gnt),         // → 环的 src_gnt (1 拍 = 环写 **2 个字**)
-        .dma_data     (mir_dma_data),        // ⭐ 新端口: 2 个逻辑字 → 环写口 (64 位)
-        .clr_pulse_rd (mir_clr_pulse_rd),    // → 环的清零 (与 rd 域 clr 同拍)
+        .dma_req      (mir_dma_req),         // = u_mir_axis.dma_req (P9: 有容量才拉)
+        .dma_gnt      (mir_dma_gnt),         // → u_mir_axis 的 grant (1 拍 = 8 B = 2 个字)
+        .dma_data     (mir_dma_data),        // 2 个逻辑字 → 成形器槽 (64 位)
+        .clr_pulse_rd (mir_clr_pulse_rd),    // → 成形器清零 (与 rd 域 clr 同拍, 同钟直连)
         .drop_bytes   (biz_w70),
         .any_drop     (),                    // dp 域 sticky (无消费者; 读域版走 any_drop_rd)
         .any_drop_rd  (mir_any_drop)
     );
 
-    // ---- ⭐ 期 B: C2H 采集环 + AXI-MM 只读从机 + H2C 丢弃从机 --------------------
-    //   链: u_mir.FIFO ──(aux 弹出 **2 字/拍**)──> u_mir_ring (16 KB 环, **64b 写口**)
-    //        u_mir_ring ──(128b 行读, 1 拍延迟)──> u_mir_c2h (AXI-MM 读从机) ──> XDMA C2H
-    //   写通道: u_mir_h2c (永远应答并丢弃) —— **结构性消除**"只接读通道是否安全"这个
-    //   明文网表核不出的前提 (TL 2026-10-11 裁 P2); ⛔ 邮箱功能不在范围内。
-    //   ⚠️ 三个模块同用 `pcie_axi_aclk` / `pcie_axi_aresetn` (与 axi_regs、XDMA 的
-    //      m_axi 同域同源)。⚠️ 登记的复位域边界: u_mir 的 **rd 侧**用 `reset_n`
-    //      (阶段一既定), 本三件用 `pcie_axi_aresetn` —— 同钟不同复位域, 与阶段一
-    //      "u_mir rd 侧 (reset_n) → axi_regs (pcie_axi_aresetn)" 是**同一条既存边界**。
-    //   (本块用到的 6 根线 —— mir_dma_req/gnt/**data**/clr_pulse_rd + mir_rr_row_w/rr_dout ——
+    // ---- ⭐ P9 (2026-10-11): C2H = AXIS 成形器 (替代"环 + 两个 AXI-MM 从机"三件套) ----
+    //   链: u_mir.FIFO ──(aux 弹出 2 字/拍 = 8 B)──> u_mir_axis (攒 16 B = 1 个 128 位拍)
+    //       ──> XDMA `s_axis_c2h` (IP 内本就含 1×C2H + 1×H2C 引擎; CONF §2/§3)。
+    //   H2C 侧: `m_axis_h2c_tready` 恒 1 (吞噬) —— 丢弃语义在**本文件**就是一个常量;
+    //   AXIS 下没有 B 通道可挂, 所以不需要 `aximm_h2c_discard` 那种"应答状态机"。
+    //   ⚠️ **丢字节口径 (TL 裁定)**: 本模块**不新增任何丢字节计数器** —— 无容量时
+    //      **不拉 `dma_req`** ⇒ 镜像 FIFO 自然涨满 ⇒ 丢字节**仍全部记在 `W70`**
+    //      (`u_mir.drop_bytes`, dp 域寄存器输出) ⇒ 账目单一来源、快照几何不扩。
+    //      ⇒ "宿主 read 之间的空档" 不被板内缓冲吸收 (首版**不加板内缓冲**): 空档 →
+    //        `tready` 低 → 停止拉 req → FIFO 满 → W70 上涨 (是**可判读数**, 不是静默)。
+    //   ⚠️ 复位域: 本模块用 `pcie_axi_aresetn` (与 axi_regs、XDMA 的 AXIS 口同域同源);
+    //      `u_mir` 的 **rd 侧**仍用 `reset_n` (阶段一既定) —— 同钟不同复位域的**既存
+    //      边界**一字未变 (`clr` 脉冲在同钟域内直连, 无 CDC ⇒ 该边界不被本刀加宽)。
+    //   (本块用到的 5 根线 —— mir_dma_req/gnt/**data**/clr_pulse_rd + **mir_dma_cnt** ——
     //    已**声明在 u_mir 之前** (见上), 这里只做例化。)
 
-    mir_dma_ring #(.ROW_AW(10)) u_mir_ring (
-        .rd_clk    (pcie_axi_aclk),
-        .rst_n     (pcie_axi_aresetn),
-        .en        (mir_ctrl[3]),        // dma_en (MIR_CTRL[3]; 复位默认 0 = 停采)
-        .clr_pulse (mir_clr_pulse_rd),
-        .src_req   (mir_dma_req),        // 排空请求 = en (镜像侧再与优先级合门)
-        .src_gnt   (mir_dma_gnt),        // 1 拍 = 写 2 个字 (与 dma_data 同拍有效)
-        .src_data  (mir_dma_data),       // ⭐ 64 位 = {后出, 先出} (P8 阶段三; 原 = 32 位头字)
-        .rr_row    (mir_rr_row_w),
-        .rr_dout   (mir_rr_dout),
-        .wr_words  (mir_dma_cnt)         // → axi_regs MIR_DMA_CNT (0x148; 单位仍 = 32 位字)
+    axis_c2h_stream u_mir_axis (
+        .clk            (pcie_axi_aclk),
+        .rst_n          (pcie_axi_aresetn),
+        .en             (mir_ctrl[3]),        // dma_en (MIR_CTRL[3]; 0 = 停排空 + 停流)
+        .cap_en         (mir_ctrl[0]),        // ⭐ 采集使能 (MIR_CTRL[0]; 0 = 停流触发之一)
+        .clr            (mir_clr_pulse_rd),   // 镜像 rd 域 clr 脉冲 (停流 + 计数归零)
+        .dma_req        (mir_dma_req),        // → 镜像 (无容量不拉 ⇒ FIFO 满 ⇒ W70 记账)
+        .dma_gnt        (mir_dma_gnt),        // ← 镜像 (1 拍 = 8 B = 2 个逻辑字)
+        .dma_data       (mir_dma_data),       // ← 64 位 = {后出, 先出}
+        .s_axis_c2h_tdata  (mir_c2h_tdata),
+        .s_axis_c2h_tkeep  (mir_c2h_tkeep),
+        .s_axis_c2h_tlast  (mir_c2h_tlast),
+        .s_axis_c2h_tvalid (mir_c2h_tvalid),
+        .s_axis_c2h_tready (mir_c2h_tready),  // XDMA 输出 = 唯一板内流控输入
+        .dma_words      (mir_dma_cnt)         // → axi_regs MIR_DMA_CNT (0x148; 32 位字数)
     );
 
-    aximm_c2h_win #(.ROW_AW(10)) u_mir_c2h (
-        .clk     (pcie_axi_aclk),
-        .rst_n   (pcie_axi_aresetn),
-        .arid    (mir_axi_arid),
-        .araddr  (mir_axi_araddr),
-        .arlen   (mir_axi_arlen),
-        .arsize  (mir_axi_arsize),
-        .arburst (mir_axi_arburst),
-        .arvalid (mir_axi_arvalid),
-        .arready (mir_axi_arready),
-        .rid     (mir_axi_rid),
-        .rdata   (mir_axi_rdata),
-        .rresp   (mir_axi_rresp),
-        .rlast   (mir_axi_rlast),
-        .rvalid  (mir_axi_rvalid),
-        .rready  (mir_axi_rready),
-        .rr_row  (mir_rr_row_w),         // 与环读口共线 (1 拍延迟行读)
-        .rr_dout (mir_rr_dout)
-    );
-
-    aximm_h2c_discard u_mir_h2c (
-        .clk     (pcie_axi_aclk),
-        .rst_n   (pcie_axi_aresetn),
-        .awid    (mir_axi_awid),
-        .awaddr  (mir_axi_awaddr),
-        .awlen   (mir_axi_awlen),
-        .awsize  (mir_axi_awsize),
-        .awburst (mir_axi_awburst),
-        .awvalid (mir_axi_awvalid),
-        .awready (mir_axi_awready),
-        .wdata   (mir_axi_wdata),
-        .wstrb   (mir_axi_wstrb),
-        .wlast   (mir_axi_wlast),
-        .wvalid  (mir_axi_wvalid),
-        .wready  (mir_axi_wready),
-        .bid     (mir_axi_bid),
-        .bresp   (mir_axi_bresp),
-        .bvalid  (mir_axi_bvalid),
-        .bready  (mir_axi_bready)
-    );
+    assign mir_h2c_tready = 1'b1;             // H2C: 恒接收并丢弃 (AXIS 版"永远应答")
 `else
-    // ¬DP_156MHZ: tie-off 常量表 (v2 §V1.4)。MIR_CTRL 写仍被接收, 只落一个死寄存器
-    // (mir_ctrl 在此分支无消费者 ⇒ axi_regs 里对应逻辑被 opt 修剪; 读 MIR_CTRL 照旧回当前值)。
+    // ¬DP_156MHZ: tie-off 常量表 (v2 §V1.4; ⭐ P9 起 = AXIS 版)。MIR_CTRL 写仍被接收,
+    // 只落一个死寄存器 (mir_ctrl 在此分支无消费者 ⇒ axi_regs 里对应逻辑被 opt 修剪;
+    // 读 MIR_CTRL 照旧回当前值)。
     wire [8:0]  mir_level    = 9'd0;
     wire        mir_empty    = 1'b1;
     wire [31:0] mir_dout     = 32'd0;
     wire        mir_any_drop = 1'b0;
-    wire [63:0] mir_dma_data = 64'd0;     // P8 阶段三: 本支无环 ⇒ 常量 (无消费者)
+    wire [63:0] mir_dma_data = 64'd0;     // 本支无成形器 ⇒ 常量 (无消费者)
     wire        mir_pop;
     wire [31:0] mir_ctrl;
     wire [31:0] biz_w70      = 32'd0;     // drop = 0
-    // ⭐ 期 B (2026-10-11): m_axi 从机的响应线 = 常量 (与期 B 之前的 1'b0 tie-off 逐位等价)。
-    //   请求线 (arid/araddr/.../wvalid/bready) 仍由 XDMA 例化驱动、本支无消费者 (不驱动)。
-    assign mir_axi_arready = 1'b0;
-    assign mir_axi_rid     = 4'd0;
-    assign mir_axi_rdata   = 128'd0;
-    assign mir_axi_rresp   = 2'd0;
-    assign mir_axi_rlast   = 1'b0;
-    assign mir_axi_rvalid  = 1'b0;
-    assign mir_axi_awready = 1'b0;
-    assign mir_axi_wready  = 1'b0;
-    assign mir_axi_bid     = 4'd0;
-    assign mir_axi_bresp   = 2'd0;
-    assign mir_axi_bvalid  = 1'b0;
-    assign mir_dma_cnt     = 32'd0;       // MIR_DMA_CNT 读回 0 (环不存在)
+    // ⭐ P9 (2026-10-11): AXIS 常量表 (与 MM 时代的 1'b0 tie-off 同哲学):
+    //   C2H 一个字节都不发 (tvalid=0 且边带同钉 —— 避免"tvalid=0 但 keep/last 悬 X")。
+    //   ⛔ `mir_c2h_tready` 是 IP **输出** ⇒ 本支无消费者 (不驱动, 合法)。
+    assign mir_c2h_tvalid  = 1'b0;
+    assign mir_c2h_tdata   = 128'd0;
+    assign mir_c2h_tkeep   = 16'd0;
+    assign mir_c2h_tlast   = 1'b0;
+    assign mir_h2c_tready  = 1'b1;        // H2C: 恒吞噬 (结构性消除"永不来的应答")
+    assign mir_dma_cnt     = 32'd0;       // MIR_DMA_CNT 读回 0 (成形器不存在)
 `endif
 `else
     wire [8:0]  mir_level    = 9'd0;
     wire        mir_empty    = 1'b1;
     wire [31:0] mir_dout     = 32'd0;
     wire        mir_any_drop = 1'b0;
-    wire [63:0] mir_dma_data = 64'd0;     // P8 阶段三: 本支无环 ⇒ 常量 (无消费者)
+    wire [63:0] mir_dma_data = 64'd0;     // 本支无成形器 ⇒ 常量 (无消费者)
     wire        mir_pop;
     wire [31:0] mir_ctrl;
     wire [31:0] biz_w70      = 32'd0;
-    // ⭐ 期 B: 同 ¬DP_156MHZ 分支 (m_axi 从机不存在 ⇒ 响应线常量)
-    assign mir_axi_arready = 1'b0;
-    assign mir_axi_rid     = 4'd0;
-    assign mir_axi_rdata   = 128'd0;
-    assign mir_axi_rresp   = 2'd0;
-    assign mir_axi_rlast   = 1'b0;
-    assign mir_axi_rvalid  = 1'b0;
-    assign mir_axi_awready = 1'b0;
-    assign mir_axi_wready  = 1'b0;
-    assign mir_axi_bid     = 4'd0;
-    assign mir_axi_bresp   = 2'd0;
-    assign mir_axi_bvalid  = 1'b0;
+    // ⭐ P9: 同 ¬DP_156MHZ 分支 (成形器不存在 ⇒ AXIS 常量表: C2H 不发 / H2C 恒吞噬)
+    assign mir_c2h_tvalid  = 1'b0;
+    assign mir_c2h_tdata   = 128'd0;
+    assign mir_c2h_tkeep   = 16'd0;
+    assign mir_c2h_tlast   = 1'b0;
+    assign mir_h2c_tready  = 1'b1;
     assign mir_dma_cnt     = 32'd0;
 `endif
     // ---- 追加 B (2026-09-30): 重传**会话**的定性观测 (都不新增状态) --------------
@@ -4253,33 +4202,24 @@ module wrapper_p4 (
         .usr_irq_ack    (pcie_irq_ack),
         .msi_enable     (pcie_msi_enable),
         .msi_vector_width(pcie_msi_vec_w),
-        // ---- DMA (m_axi) 通道: ⭐ M1 期 B 起**已接线** (接线清单 §4.3 ②) ----
-        //   读 = `u_mir_c2h` (环的只读窗口) / 写 = `u_mir_h2c` (永远应答并丢弃)。
-        //   ⚠️ 端口连的是**三分支共用的网线** (声明见 M1 块区): 真支由从机驱动,
-        //      ¬(APP_MODE∧DP_156MHZ) 支 = 常量 (与期 B 之前的 1'b0 tie-off 逐位等价)。
-        //   ⚠️ arprot/arlock/arcache / awprot/awlock/awcache 仍**悬空不接** ——
-        //      从机不实现这些属性 (`aximm_c2h_win` 端口表里就没有它们; F3/明文 = 常量)。
-        .m_axi_awready  (mir_axi_awready),
-        .m_axi_wready   (mir_axi_wready),
-        .m_axi_bid      (mir_axi_bid),
-        .m_axi_bresp    (mir_axi_bresp),
-        .m_axi_bvalid   (mir_axi_bvalid),
-        .m_axi_arready  (mir_axi_arready),
-        .m_axi_rid      (mir_axi_rid),
-        .m_axi_rdata    (mir_axi_rdata),
-        .m_axi_rresp    (mir_axi_rresp),
-        .m_axi_rlast    (mir_axi_rlast),
-        .m_axi_rvalid   (mir_axi_rvalid),
-        .m_axi_bready   (mir_axi_bready),   // 输出 → H2C 从机 (收 B)
-        .m_axi_awid     (mir_axi_awid), .m_axi_awaddr(mir_axi_awaddr), .m_axi_awlen(mir_axi_awlen),
-        .m_axi_awsize   (mir_axi_awsize), .m_axi_awburst(mir_axi_awburst), .m_axi_awprot(),
-        .m_axi_awvalid  (mir_axi_awvalid), .m_axi_awlock(),
-        .m_axi_awcache  (), .m_axi_wdata(mir_axi_wdata), .m_axi_wstrb(mir_axi_wstrb),
-        .m_axi_wlast    (mir_axi_wlast), .m_axi_wvalid(mir_axi_wvalid),
-        .m_axi_arid     (mir_axi_arid), .m_axi_araddr(mir_axi_araddr), .m_axi_arlen(mir_axi_arlen),
-        .m_axi_arsize   (mir_axi_arsize), .m_axi_arburst(mir_axi_arburst), .m_axi_arprot(),
-        .m_axi_arvalid  (mir_axi_arvalid), .m_axi_arlock(), .m_axi_arcache(),
-        .m_axi_rready   (mir_axi_rready),
+        // ---- DMA 通道: ⭐ P9 (2026-10-11) 起 = **AXI4-Stream** (IP 侧 `xdma_axi_intf_mm
+        //   {AXI_Stream}`, 配置增量恰好 1 行; BAR / AXI-Lite / 时钟参数逐字不动 —— CONF §2)。
+        //   C2H = `u_mir_axis` 的成形拍 (128 位 / keep 16 位 / tlast 方案 A);
+        //   H2C = 恒 `tready=1` 的吞噬口 (`tvalid/tdata/tkeep/tlast` 接悬空线 = 显式忽略)。
+        //   ⚠️ 端口连的是**三分支共用的网线** (声明见 M1 块区): 真支由 `u_mir_axis` 驱动,
+        //      ¬(APP_MODE∧DP_156MHZ) 支 = 常量表 (C2H 不发一个字节)。
+        //   ⚠️ 权威端口表 = CONF §3.1 (生成产物 `xdma_st.sv` 逐字): 75 根 → **50 根**;
+        //      35 根 `m_axi_*` 全部消失; **没有 tuser** (本配置无 Parity, PG195 Table 15/16)。
+        .s_axis_c2h_tdata_0  (mir_c2h_tdata),
+        .s_axis_c2h_tkeep_0  (mir_c2h_tkeep),
+        .s_axis_c2h_tlast_0  (mir_c2h_tlast),
+        .s_axis_c2h_tvalid_0 (mir_c2h_tvalid),
+        .s_axis_c2h_tready_0 (mir_c2h_tready),   // IP 输出 → 成形器 (唯一板内流控输入)
+        .m_axis_h2c_tdata_0  (mir_h2c_tdata),    // IP 输出 → 悬空 (吞噬: 忽略)
+        .m_axis_h2c_tkeep_0  (mir_h2c_tkeep),
+        .m_axis_h2c_tlast_0  (mir_h2c_tlast),
+        .m_axis_h2c_tvalid_0 (mir_h2c_tvalid),
+        .m_axis_h2c_tready_0 (mir_h2c_tready),   // 我们 → IP: 恒 1
         // ---- user BAR (AXI4-Lite master) -> 我们的寄存器块 ----
         .m_axil_awaddr  (pcie_awaddr), .m_axil_awprot (pcie_awprot),
         .m_axil_awvalid (pcie_awvalid), .m_axil_awready(pcie_awready),
@@ -4673,7 +4613,7 @@ module wrapper_p4 (
         .mir_any_drop   (mir_any_drop),
         .mir_pop        (mir_pop),               // 输出: 读=弹出 (与 !empty 同门)
         .mir_ctrl       (mir_ctrl),              // 输出: [0]=cap_en [1]=clr toggle [2]=src_sel
-        .mir_dma_cnt    (mir_dma_cnt)            // ⭐ 期 B: 环写字数 → MIR_DMA_CNT (0x148; ¬ 支 = 0)
+        .mir_dma_cnt    (mir_dma_cnt)            // ⭐ P9: 交付 AXIS 字数 → MIR_DMA_CNT (0x148; ¬ 支 = 0)
     );
 `endif
 

@@ -1,0 +1,83 @@
+#-----------------------------------------------------------
+# xsim v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Sun Oct 11 21:42:46 2026
+# Process ID         : 32588
+# Current directory  : D:/repo/XCKU5PMini/udp_hls_10g/sim/p6e_pcie
+# Command line       : xsim.exe -log xsim_p6e_cnt.log -mode tcl -source {xsim.dir/tb_p6e_pcie_counters/xsim_script.tcl}
+# Log file           : D:/repo/XCKU5PMini/udp_hls_10g/sim/p6e_pcie/xsim_p6e_cnt.log
+# Journal file       : D:/repo/XCKU5PMini/udp_hls_10g/sim/p6e_pcie\xsim.jou
+# Running On         : xyz-intel
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26300
+# Processor Detail   : Intel(R) Core(TM) Ultra 7 265K
+# CPU Frequency      : 3878 MHz
+# CPU Physical cores : 20
+# CPU Logical cores  : 20
+# Host memory        : 68053 MB
+# Swap memory        : 4294 MB
+# Total Virtual      : 72348 MB
+# Available Virtual  : 34137 MB
+#-----------------------------------------------------------
+source xsim.dir/tb_p6e_pcie_counters/xsim_script.tcl
+# xsim {tb_p6e_pcie_counters} -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+WARNING: File ./udp_echo_mac_tx_process_preamble_ROM_AUTO_1R.dat referenced on D:/repo/XCKU5PMini/udp_hls_10g/board/wrapper_p4.v at line 2119 cannot be opened for reading. Please ensure that this file is available in the current working directory or parent directory of xsim.dir location specified via -xsimdir switch.
+WARNING: File ./udp_echo_mac_tx_process_src_mac_ROM_AUTO_1R.dat referenced on D:/repo/XCKU5PMini/udp_hls_10g/board/wrapper_p4.v at line 2119 cannot be opened for reading. Please ensure that this file is available in the current working directory or parent directory of xsim.dir location specified via -xsimdir switch.
+WARNING: File ./udp_echo_arp_dump_Pipeline_VITIS_LOOP_219_1_p_const_ZZL8arp_dumpRN3hls6streamI11gmii_bcud.dat referenced on D:/repo/XCKU5PMini/udp_hls_10g/board/wrapper_p4.v at line 2119 cannot be opened for reading. Please ensure that this file is available in the current working directory or parent directory of xsim.dir location specified via -xsimdir switch.
+=== tb_p6e_pcie_counters: W16/W17 å¢é‡é€»è¾‘ (æ­£è¯æ® + è´Ÿå¯¹ç…§) ===
+  --- åˆ¤æ® 0: å‰ç½® (è¯»æ•°é€šè·¯ + è¢« force çš„çº¿å¿…é¡»æœ‰é©±åŠ¨æº) ---
+  [PASS] 0a MAGIC (read path self-check) = 1345716225
+  [PASS]  0x1F(M1ÿÿÿœÿÿÿçÿ—) / 63-word=9) = 33
+  [PASS] 0c hls_rx_tready æœ‰ç¡®å®šç”µå¹³ (= 1) â‡’ è¿™æ ¹çº¿ç¡®æœ‰é©±åŠ¨æº (é X/Z)
+  --- åˆ¤æ® A: åŸºçº¿ (æ— ä»»ä½•æ³¨å…¥) ---
+  [INFO] A baseline: W16=0 (Î”0) W17=0 (Î”0) W5=158 W0=0 W19=0
+  --- åˆ¤æ® B: æ­£è¯æ® (tvalid&&tready åŒæ—¶ä¸ºé«˜ 200 æ‹) ---
+  [PASS] B0 producer force ä¼ åˆ° wrapper çº¿ (hls_rx_tvalid = 1)
+  [INFO] B after handshake: W16=200 (Î”200) W17=0 (Î”0) W5=342 W0=0 W19=0
+  [PASS] _RX (1 count per handshake beat) = 200
+  [PASS]  delta == 0 (watchdog untouched) = 0
+  [PASS] 0 delta == 0 (no frame injected) = 0
+  [PASS] W19 delta == 0 (no slow_rx drop) = 0
+  [PASS] B5 gmii åŸŸåœ¨è·‘ (W5 158 -> 342): ä¸Šé¢çš„ +200 ä¸æ˜¯åœæ‘†æ—¶é’Ÿä¸Šçš„å‡æ•°
+  --- åˆ¤æ® C1: åª tvalid (tready=0) 100 æ‹ â‡’ ä¸è®¸è®¡æ•° ---
+  [INFO] C1 after tvalid-only: W16=200 (Î”0) W17=0 (Î”0) W5=447 W0=0 W19=0
+  [PASS] ta == 0 (no count when tready=0) = 0
+  --- åˆ¤æ® C2: åª tready (tvalid=0) 100 æ‹ â‡’ ä¸è®¸è®¡æ•° ---
+  [INFO] C2 after tready-only: W16=200 (Î”0) W17=0 (Î”0) W5=551 W0=0 W19=0
+  [PASS] ta == 0 (no count when tvalid=0) = 0
+  --- åˆ¤æ® D: æ­£è¯æ® (hls_rst_n ä½ 150 æ‹) ---
+  [PASS] D0 producer force ä¼ åˆ° wrapper çº¿ (hls_rst_n = 0)
+  [INFO] D after watchdog-low: W16=200 (Î”0) W17=150 (Î”150) W5=696 W0=0 W19=0
+  [PASS]  == N_HR (1 count per low cycle) = 150
+  [PASS]  0 (rx fifo empty, no handshake) = 0
+  --- åˆ¤æ® E: hls_rst_n å›åˆ°é«˜ â‡’ W17 åœæ¶¨ ---
+  [INFO] E after release: W16=200 (Î”0) W17=150 (Î”0) W5=799 W0=0 W19=0
+  [PASS] delta == 0 (no count while high) = 0
+  --- åˆ¤æ® F: å…¨è¿‡ç¨‹æ€»è´¦ (ç›¸å¯¹åŸºçº¿å¿«ç…§) ---
+  [INFO] F æ€»è´¦: W16 0 -> 200 (Î”200, æœŸæœ› 200); W17 0 -> 150 (Î”150, æœŸæœ› 150)
+  [PASS] F1 W16 total delta == N_RX = 200
+  [PASS] F2 W17 total delta == N_HR = 150
+  --- åˆ¤æ® G: ä» DP ä¾§çŒ 400 æ‹ â‡’ u_txcdc å¿…æ»¡ â‡’ W28 æ°å¥½ = DEPTH ---
+  [PASS] G0 txsrc_tvalid æœ‰ç¡®å®šç”µå¹³ä¸”è·Ÿç€ force èµ° (= 1) â‡’ çº¿æœ‰é©±åŠ¨æº
+  [INFO] G è¯»æ•°: W28=256 W29=90
+  [PASS] ÿÿÿŒÿÿÿåÿÿÿ³ÿÿÿ¼ÿÿÿåÿÿÿ´ÿÿÿ±ÿÿ¦) = 256
+  [PASS] G2 W29 = 90 (>0 ä¸” <= çŒå­—æ‹æ•° 400) â‡’ DP ç¡®å®è¢«çº¿é€Ÿå‹ä½
+  --- åˆ¤æ® H: ä» FE ä¾§çŒ 400 æ‹ + é’‰ä½ DP æ¶ˆè´¹è€… â‡’ u_rxcdc å¿…æ»¡ ---
+  [PASS] H0 rxsrc_tvalid/vs_tready æœ‰ç¡®å®šç”µå¹³ä¸”è·Ÿç€ force èµ°
+  [INFO] H è¯»æ•°(çŒæ»¡å): W26=69 W27=256
+  [PASS] ÿÿÿŒÿÿÿåÿÿÿ³ÿÿÿ¼ÿÿÿåÿÿÿ´ÿÿÿ±ÿÿ¦) = 256
+  [PASS] H2 W26 = 69 (>0: FIFO æ»¡è¿‡, æ»¡æ‹æ•°è¢«è®°ä¸‹æ¥)
+  [INFO] H è¯»æ•°(æ’ç©ºå): W30=257 W31=2056 W0=0
+  [PASS] H3 W30 = 257 >= DEPTH â‡’ è¯»ä¾§ TLAST è®¡æ•°ä¸çŒæ»¡ä¸€è‡´
+  [PASS] ÿÿÿ­ÿÿÿ‚ÿÿÿåÿ, ÿ§7.ÿÿÿšÿÿÿ©ÿÿ±) = 2056
+  [PASS] ac_rÿÿÿ‡ÿÿÿ”ÿÿÿ§ÿÿÿçÿÿÿ¸ÿÿÿ¥ÿÿ¨) = 0
+PASS_ALL  tb_p6e_pcie_counters: W16/W17 + W26/W27/W28/W29/W30/W31 å¢é‡é€»è¾‘å…¨è¿‡
+=== done ===
+$finish called at time : 38194 ns : File "D:/repo/XCKU5PMini/udp_hls_10g/sim/p6e_pcie/tb_p6e_pcie_counters.v" Line 425
+exit
+INFO: xsimkernel Simulation Memory Usage: 114628 KB (Peak: 114628 KB), Simulation CPU Usage: 1858 ms
+INFO: [Common 17-206] Exiting xsim at Sun Oct 11 21:42:50 2026...

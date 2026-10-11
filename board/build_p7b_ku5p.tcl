@@ -97,8 +97,11 @@ import_files -norecurse ${root_dir}/rtl/snap_cdc.v ${root_dir}/_proj_pcie/rtl/ax
                          ${root_dir}/rtl/clk_gen_p6b.v ${root_dir}/rtl/fifo_async.v \
                          ${root_dir}/rtl/snap_seq.v \
                          ${root_dir}/rtl/app_rx_mirror.v \
-                         ${root_dir}/rtl/aximm_c2h_win.v ${root_dir}/rtl/mir_dma_ring.v \
-                         ${root_dir}/rtl/aximm_h2c_discard.v
+                         ${root_dir}/rtl/axis_c2h_stream.v
+# ⛔ P9 (2026-10-11): 期 B 的三件套 (`rtl/mir_dma_ring.v` / `rtl/aximm_c2h_win.v` /
+#   `rtl/aximm_h2c_discard.v`) **不再导入** —— AXIS 改造后 wrapper 不再例化它们
+#   (它们的单元门仍保留在 `sim/p7b_mirdma/` `sim/p7b_h2cdisc/`, 直接编模块本身)。
+#   ⚠️ 文件**保留在树里** (回退/对照用), 只是不进本构建的源清单。
 sec "P7B_ADD_MAC"
 import_files -norecurse ${mac_dir}/crc32_64.v ${mac_dir}/mac_rx_10g.v ${mac_dir}/mac_tx_10g.v
 sec "P7B_ADD_BOARD"
@@ -112,11 +115,32 @@ if {$src_dir eq ""} {
 }
 foreach dat [glob -nocomplain ${hls_dir}/*.dat] { file copy -force $dat $src_dir/ }
 
-# ---- XDMA (参数逐字复制 build_p6e_ku5p.tcl 那份已实测枚举通过的) --------------
+# ---- XDMA (参数逐字复制 build_p6e_ku5p.tcl 那份已实测枚举通过的; ⭐ P9: 接口 = AXI4-Stream) ----
 sec "P7B_ADD_XDMA"
+# ⭐ P9 (2026-10-11): PCIe 用户接口 **AXI4-MM → AXI4-Stream** (唯一配置增量 = 1 行)。
+#   权威 = EDA 确认轮 `_proj_10g/notes/p8_axis_conf_20261011/CONF.md` (§0/§2/§3)。三条纪律:
+#     ① **写法 = CONF 的 "B 臂"**: 12 项基线照抄 (一次 -dict) + **之后单独一行**设接口模式。
+#        (A/B 两臂产物参数集逐字相同; ⛔ 不用实验 1 的"逐条设 + 吞异常"路径 —— 它会在
+#        `axi_data_width` 早于 link 参数落地时被拒; ⛔ 更不许把宽度写 `64_bit` —— 8.0 GT/s ×
+#        X4 下非法 ⇒ 触发**静默回滚**, 回滚态 (64_bit/2.5GT/s/X1/CPLL) 板上完全不可用。)
+#     ② **日志 = 判据**: `IP_Flow 19-3461` / `19-3438`("Restoring to previous valid
+#        configuration") 出现即**硬失败** —— 回读比对**抓不到回滚** (回滚把"我设的"与
+#        "读回的"一起改了; CONF 实验 2 的 D 臂实证: 终态 64_bit 且 `generate_target` RC=0)。
+#        两层牙: (a) `set_msg_config` 把这两条消息**升格为 ERROR** ⇒ set_property 直接抛错;
+#        (b) catch 收 RC + 消息文本扫描 (`Common 17-39` 同族)。
+#     ③ **生成后回读断言** (照上面 pcs64 的不动点范式):
+#        (i) 13 项 CONFIG 逐项比对; (ii) 生成产物 (`synth/xdma_0.sv` 的 CORE_GENERATION_INFO)
+#        6 个展开参数 (DMA_ST=1 / DMA_MM=0 / XDMA_AXI_INTF_MM=0 / AXI_DATA_WIDTH=128 /
+#        USER_CLK_FREQ=2 / XDMA_AXILITE_MASTER=TRUE); (iii) 与**冻结参照转储**逐行 diff ——
+#        "本次 vs MM 参照" 必须**只差 2 行** (`CONFIG.Component_Name` + `CONFIG.xdma_axi_intf_mm`;
+#        = CONF §2.1 的决定性判据), "本次 vs ST 参照" 只差 1 行 (Component_Name)。
+#        ⛔ 参照件缺失 = **硬失败** (判据不静默降级; 参照件在 `p8_axis_conf_20261011/work/`)。
+set_msg_config -id {IP_Flow 19-3461} -new_severity {ERROR}
+set_msg_config -id {IP_Flow 19-3438} -new_severity {ERROR}
+catch { set_msg_config -string {Restoring to previous valid configuration} -new_severity {ERROR} }
 create_ip -name xdma -vendor xilinx.com -library ip -module_name xdma_0
 set xip [get_ips xdma_0]
-set_property -dict [list \
+set XDMA_BASE12 [list \
     CONFIG.pcie_blk_locn              {X0Y0} \
     CONFIG.pf0_device_id              {9034} \
     CONFIG.pf0_subsystem_id           {0007} \
@@ -128,9 +152,109 @@ set_property -dict [list \
     CONFIG.axilite_master_scale       {Megabytes} \
     CONFIG.axilite_master_size        {1} \
     CONFIG.pl_link_cap_max_link_speed {8.0_GT/s} \
-    CONFIG.pl_link_cap_max_link_width {X4} \
-] $xip
+    CONFIG.pl_link_cap_max_link_width {X4} ]
+set XDMA_IF_MODE {AXI_Stream}
+set xdma_bad 0
+set xerr "" ;  set xrc  [catch {set_property -dict $XDMA_BASE12 $xip} xerr]
+puts "P7B_XDMA_RC_BASE = $xrc ; MSG = <$xerr>"
+set xerr2 "" ; set xrc2 [catch {set_property CONFIG.xdma_axi_intf_mm $XDMA_IF_MODE $xip} xerr2]
+puts "P7B_XDMA_RC_INTF = $xrc2 ; MSG = <$xerr2>"
+if {$xrc != 0 || $xrc2 != 0} { set xdma_bad 1 ; puts "P7B_XDMA_CFG_CATCH_FAIL" }
+foreach m [list $xerr $xerr2] {
+    foreach pat {19-3461 19-3438 {Restoring to previous valid configuration} 17-39} {
+        if {[string first $pat $m] >= 0} { puts "P7B_XDMA_MSG_HIT <$pat> MSG=<$m>" ; set xdma_bad 1 }
+    }
+}
+# (i) 13 项逐项回读
+set XDMA_RB [concat $XDMA_BASE12 [list CONFIG.xdma_axi_intf_mm $XDMA_IF_MODE]]
+set xdma_rb_bad 0
+foreach {k v} $XDMA_RB {
+    set gv "<err>" ; catch { set gv [get_property $k $xip] }
+    if {[string trim $gv] ne [string trim $v]} {
+        incr xdma_rb_bad ; puts "P7B_XDMA_RB_MISMATCH $k want=<$v> got=<$gv>"
+    }
+}
+puts "P7B_XDMA_RB_MISMATCH_N = $xdma_rb_bad"
 generate_target all $xip
+# (ii) 生成产物里的展开参数 (权威 = 引擎自己的产物, 不是我对 get_property 的转述)
+set xdma_gen_file ""
+foreach f [list \
+    "${root_dir}/vivado_prj/${project_name}.gen/sources_1/ip/xdma_0/synth/xdma_0.sv" \
+    "${root_dir}/vivado_prj/${project_name}.gen/sources_1/ip/xdma_0/xdma_0_stub.v" \
+    "${root_dir}/vivado_prj/${project_name}.gen/sources_1/ip/xdma_0/sim/xdma_0.sv" ] {
+    if {[file exists $f]} { set xdma_gen_file $f ; break }
+}
+puts "P7B_XDMA_GEN_FILE = $xdma_gen_file"
+set xdma_gen_bad 0
+if {$xdma_gen_file eq ""} {
+    set xdma_gen_bad 1 ; puts "P7B_XDMA_GEN_MISSING (无生成产物可解析)"
+} else {
+    set fh [open $xdma_gen_file r] ; set gtxt [read $fh] ; close $fh
+    foreach t {DMA_ST=1 DMA_MM=0 XDMA_AXI_INTF_MM=0 AXI_DATA_WIDTH=128 USER_CLK_FREQ=2 XDMA_AXILITE_MASTER=TRUE} {
+        if {[string first $t $gtxt] < 0} { incr xdma_gen_bad ; puts "P7B_XDMA_GEN_MISS <$t>" }
+    }
+    puts "P7B_XDMA_GEN_BAD_N = $xdma_gen_bad"
+}
+# (iii) 与冻结参照转储逐行 diff (决定性: "只差预期的那几行")
+proc p7b_cfg_dump {ip path} {
+    set fp [open $path w]
+    foreach p [lsort [list_property $ip]] {
+        if {[string match "CONFIG.*" $p]} {
+            set gv "<err>" ; catch { set gv [get_property $p $ip] }
+            puts $fp "$p = $gv"
+        }
+    }
+    close $fp
+    return $path
+}
+proc p7b_cfg_diff_keys {ref mine} {
+    #  ⚠️ 差异键**必须从 A 里删掉**再进 diffs —— 否则它会被"左表残留"循环**再数一次**
+    #     (排练脚本 `p9_axis_impl_20261011/check_cfgdiff_teeth.tcl` 实测抓到: 2 行被数成 4 行
+    #      ⇒ 构建里会**假红**)。左表残留只会剩"只在参照里、我方没有"的键。
+    array set A {}
+    set fa [open $ref r]
+    while {[gets $fa line] >= 0} { if {[regexp {^(\S+) = (.*)$} $line -> k v]} { set A($k) $v } }
+    close $fa
+    set diffs {}
+    set fb [open $mine r]
+    while {[gets $fb line] >= 0} {
+        if {[regexp {^(\S+) = (.*)$} $line -> k v]} {
+            if {[info exists A($k)] && ($A($k) eq $v)} {
+                unset A($k)
+            } else {
+                lappend diffs $k
+                catch { unset A($k) }
+            }
+        }
+    }
+    close $fb
+    foreach k [lsort [array names A]] { lappend diffs $k }
+    return $diffs
+}
+set xdma_cfg_mine "${script_dir}/p7b_ku5p_xdma_cfg_post_gen.txt"
+p7b_cfg_dump $xip $xdma_cfg_mine
+puts "P7B_XDMA_CFG_DUMP = $xdma_cfg_mine"
+set ref_dir ${root_dir}/_proj_10g/notes/p8_axis_conf_20261011/work
+set xdma_diff_bad 0
+foreach arm [list \
+        [list ST ${ref_dir}/cfg_st_post_gen.txt [list CONFIG.Component_Name]] \
+        [list MM ${ref_dir}/cfg_mm_post_gen.txt [list CONFIG.Component_Name CONFIG.xdma_axi_intf_mm]] ] {
+    set tag  [lindex $arm 0]
+    set ref  [lindex $arm 1]
+    set exp  [lindex $arm 2]
+    if {![file exists $ref]} {
+        incr xdma_diff_bad ; puts "P7B_XDMA_CFGREF_MISSING $tag $ref" ; continue
+    }
+    set dk [p7b_cfg_diff_keys $ref $xdma_cfg_mine]
+    puts "P7B_XDMA_CFGDIFF_${tag}_N = [llength $dk] ; {[join $dk { }]}"
+    foreach k $dk { if {[lsearch -exact $exp $k] < 0} { incr xdma_diff_bad ; puts "P7B_XDMA_CFGDIFF_UNEXPECTED $tag $k" } }
+    foreach k $exp { if {[lsearch -exact $dk $k] < 0} { incr xdma_diff_bad ; puts "P7B_XDMA_CFGDIFF_MISSING $tag $k" } }
+}
+if {$xdma_bad || $xdma_rb_bad != 0 || $xdma_gen_bad != 0 || $xdma_diff_bad != 0} {
+    puts "P7B_VERDICT = XDMA_ST_CFG_FAIL"
+    exit 1
+}
+puts "P7B_XDMA_VERDICT = OK (AXI_Stream / 回读 13/13 / 生成参数 6/6 / 参照 diff 只差预期行)"
 
 # ---- 约束 -------------------------------------------------------------------
 sec "P7B_CONSTR"

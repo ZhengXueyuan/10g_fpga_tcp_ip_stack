@@ -1,0 +1,113 @@
+P9 (XDMA AXI4-MM -> AXI4-Stream) FPGA 侧实现轮 — PROGRESS / 逐项时间线
+轮次目录 = _proj_10g/notes/p9_axis_impl_20261011/
+(全部时间 = 2026-10-11 晚)
+
+[P0] 读件
+  - 权威规格 CONF.md (429 行) 通读; RECON.md 通读 (CONF 已订正它 13 处; 本报告引用一律以 CONF 为准)
+  - 现场核: board/build_p7b_ku5p.tcl / board/wrapper_p4.v (M1 块 + XDMA 例化) /
+    rtl/{mir_dma_ring,aximm_c2h_win,aximm_h2c_discard,app_rx_mirror}.v /
+    _proj_pcie/rtl/axi_regs.v / sim/p6e_pcie/{xdma_0_sim_stub.v,tb_p6e_pcie_wrapper.v,run_tb_p6e_pcie.bat}
+
+[P1] rtl/axis_c2h_stream.v (新)
+  - 首版: aux 2 字/拍 -> 128 位拍; tkeep 非末拍 FFFF; 停流 flush = `!en`; tlast = 方案 A;
+    丢字节口径 = 无容量不拉 dma_req (让镜像 FIFO 满 -> W70); dma_words = 已交付 (tvalid&&tready)。
+  - 首版还加了一次"clr 早沿抢先"修补 (单元门 G7 抓到 clr+dma_en 同笔写会漏 clr 前残拍);
+    ⛔ 该修补在 TL 裁定 (见 [P3]) 后**整体撤回** (方向相反: clr 应当 flush 而不是抢先丢弃)。
+
+[P2] 单元门 + 突变臂 (sim/p9_axis_stream/)
+  - tb_axis_c2h_stream.v (G0..G10) + run_tb_axis_c2h_stream.bat + mut_axis.py (7 臂)
+  - 首轮 15 FAIL: 其中 3 条是**我自己手算模型错** (G3 的 grant 容量应 = 3 不是 4),
+    2 条是 TB 队列模型缺陷, 其余是口径改动后未同步的期望值。逐条查清并修 (见下)。
+  - ⚠️ TB 队列模型连踩三版 (blocking 写 与 NBA 写同一变量 => 同拍 NBA 覆盖 blocking):
+    ① wr==rd 指针判空 => 清队列后出现"假非空" => 幽灵数据; ② 改计数 q_used 但仍混写 => 清不掉;
+    ③ 最终: push 用 task-only blocking 计数 + rd 用 always-only NBA 指针 (空判据 = 计数比较)。
+  - ⚠️ 另一类竞争 (工程坑 3/17 同族): `clr = 1; @(posedge clk); clr = 0;` 的那句 blocking
+    与"当拍 posedge"落在同一时步 => 与 DUT 的 always 竞争 => **clr 脉冲被吞** (G9 实测)。
+    修 = do_clr 任务: **negedge 驱动 + 非阻塞**。
+  - 最终: real = PASS_ALL; 7 突变臂**全部被捕获**, 红灯面互不相同 (FAIL 数 2/4/5/5/6/8/10),
+    每件与源文件 diff = 恰 1 行。
+
+[P3] ⭐ TL 裁定 (2026-10-11, 用户侧口径): 两处改写 (本报告按裁定实现)
+  ① MIR_DMA_CNT 计数点 = **上游 aux 口取走** (dma_gnt, 每 grant +2) —— 不是 tvalid&&tready;
+  ② 停流 flush 触发式 = `stop = (!cap_en) || (!en) || clr` (cap_en 关 / clr 都要 flush;
+     clr **不再丢弃**残拍, 只归零计数) —— 头注释里逐字给出触发式。
+  => rtl/axis_c2h_stream.v 重写对应三段 (计数块 / stop 式 / clr 语义) + 头注释重写;
+     wrapper 增接 `.cap_en(mir_ctrl[0])`, 删掉 clr_tgl 端口 (不再需要)。
+  => 单元门 G4c (cap_en 停流) / G7 (clr flush) 与 p6e P9-B-5m (clr 单独触发) 按新口径重写。
+
+[P4] board/wrapper_p4.v (C 项)
+  - 35 根 m_axi_* 网线整段 -> 10 根 AXIS 网线 (单点声明, 三分支只驱动 — 沿用原"按宏叉开端口表
+    本工程点名禁止"的纪律);
+  - 真支: 三件套 (u_mir_ring/u_mir_c2h/u_mir_h2c) -> **u_mir_axis**; H2C 恒 tready=1 一个常量;
+  - ¬ 支两处: AXIS 常量表 (tvalid=0 + 边带同钉 / h2c_tready=1 / dma_cnt=0);
+  - XDMA 例化: 端口表 75 -> 50 根 (名字逐字取自 xdma_st.sv);
+  - ⛔ 未动: `:1319-1322` app 总线 tie-off / M1 块其它部分 / `:2144` 一带。
+
+[P5] board/build_p7b_ku5p.tcl (A 项)
+  - XDMA 块: B 臂写法 (12 项 -dict 照抄 + 单独一行 intf) + set_msg_config 升格 + catch/文本扫描
+    + 13 项回读 + 生成产物 6 个展开参数 + 与两份冻结参照转储的**逐行 diff** (MM 参照只差 2 行 /
+    ST 参照只差 1 行) => 任一不满足 => `P7B_VERDICT = XDMA_ST_CFG_FAIL` + exit 1 (不出位流)。
+  - 文件清单: -mir_dma_ring/-aximm_c2h_win/-aximm_h2c_discard, +rtl/axis_c2h_stream.v。
+
+[P6] _proj_pcie/rtl/axi_regs.v (D 项): MIR_STATUS.ver 3->4 + MIR_DMA_CNT/dma_en 注释同步 (位域/地址 0 改动)。
+
+[P7] sim/p6e_pcie/xdma_0_sim_stub.v (E 项): 端口表换 50 根 AXIS; C2H 消费者 (可控 str_tready_r
+  + 逐拍记录 + keep/tlast 合同自检) + H2C 生产者 (h2c_valid_r + 吞计数) + 层次任务 4 个。
+
+[P8] sim/p6e_pcie/tb_p6e_pcie_wrapper.v: M1-B (环/AR-R/写通道) 整段 -> P9-B (AXIS 成形器) 8 组:
+  B-1 单拍手算锚 / B-2 多拍逐拍 / B-3 背压=>不拉 req=>W70 记账 (700 字灌入) / B-4 停流 flush /
+  B-5 门与口径 (P9 新口径: 弹出即计) / B-5m clr 单独触发 flush / B-5h..l clr flush 内容 /
+  B-6 H2C 吞噬 (50 拍 + 边带线非 Z)。
+  - 首轮 2 FAIL: (a) 背压灌入量不足 (300 字 = 1200 B < 2048 B FIFO) => 无丢字 => 改 700 字;
+    (b) clr 的"不产生末拍"检查与 TL 新裁定 (clr **应** flush) 冲突 => 按新裁定重写。
+  - 最终: PASS_ALL (0 FAIL)。
+
+[P9] 文档回写 (G 项): rtl/app_rx_mirror.v 头注释两条订正 (⑥-1 解冻沿恰丢 1 拍 / ⑥-3 残余口径
+  acc+stg <= 23/24 B) + _proj_10g/notes/p8_mir_stg_20261011/DESIGN.md §4.1 回写 (generate 形式
+  与实现分叉 + 未掩码 xbeat 与实现分叉)。只改注释/文档。
+
+[P10] synth 检查点 (_proj_10g/notes/p9_axis_synth/, synth-only): 与构建脚本同文件表/同 define/
+  同 XDMA 块 (含全部断言) => 验证"新 IP 能编过 + 新件综合面代价"。读数见 IMPL_REPORT §6。
+
+[P11] 剩余既有门: run_lint_p6e (PCIE_OBS+APP_MODE, 无 DP_156MHZ => 编 ¬DP 支) /
+  ¬APP_MODE 组合的独立编译检查 / 镜像单元门 real / 环门 real+单元门。读数见 IMPL_REPORT §7。
+
+[P10 结果] synth 检查点 (21:26 -> 21:40 量级):
+  - XDMA 断言面: RC_BASE=0 / RC_INTF=0 / RB_MISMATCH_N=0 / GEN_BAD_N=0 => XDMA_VERDICT = OK;
+    xdma_0 的 OOC 综合完成 (dcp 落盘) => 新 IP **真编过** (不只 generate)。
+  - 综合面 (pre-place) A/B vs `p8_stg_synth` 的 p8stg 臂 (同脚本同流程): LUT 84,594 -> 83,978
+    (**-616**); FF 79,147 -> 77,946 (**-1,201**); BRAM 354 -> 350 (**-4**); WNS -0.377 -> **-0.371**
+    (+0.006); WHS -0.661 同; N 文件 444 -> 442。
+  - 全局最差 = DP 域 u_tcp_tx/FSM_sequential_rx_state_reg[0]/C -> u_app/stg_reg[0]/CE (与上一臂
+    **同一源/宿对**) => 不是新件。新件 u_mir_axis: top200 **0 命中**; 定向锥 FROM ≥ +1.531 / TO ≥ +2.120。
+  - IP 级 A/B (两份 OOC 报告): MM 17,322 LUT / 20,484 FF / 38 BRAM => AXIS 16,887 LUT /
+    19,192 FF / 38 BRAM (**-435 LUT / -1,292 FF**) => 侦察件"面积净额小幅减少"被实测坐实 (IP 侧)。
+  - ⛔ 无拆刀臂 (IP 换模式 + RTL 换件同批) => 差值**不归因**; pre-place 与后布线不可比。
+
+[P11 结果] 全绿 + 一条既存缺陷:
+  - counters 门 (新桩): PASS_ALL; lint (¬DP 支): LINT-OK + xelab 建快照;
+    mirror 门: PASS_ALL; 环门: PASS_ALL (45 checks); matrix `-only p5_wrapper`: EXIT=0 (解析面)。
+  - ⛔ **PCIE_OBS ∧ ¬APP_MODE 编不过 = 既存缺陷** (6x VRFC 10-2989 undeclared udpapp_*):
+    两臂证明 (HEAD `dd6fe3d` 的 wrapper 用同一命令 => **完全相同签名**); 诊断副本 (补 6 行常量声明,
+    **不进树**) => xvlog RC=0 + xelab 建快照 => **本刀的 ¬APP_MODE 常量表结构干净**。
+
+[P12] 额外交付 (排练的收益):
+  - `check_cfgdiff_teeth.tcl` 排练构建脚本的 diff 断言 => **抓到构建脚本里一个真 bug**:
+    差异键没从参照表删 => 被"左表残留"循环再数一次 (2 行数成 4) => 构建轮会**假红早退**。
+    已修 (`build_p7b_ku5p.tcl` 的 p7b_cfg_diff_keys) + 复跑 T1/T2/T3 全过 (TEETH = OK)。
+  - `check_buildtcl_syntax.tcl`: 构建脚本 `info complete = 1` (括号/引号/续行平衡) + 323 行。
+
+[P13] 文档回写 (G): rtl/app_rx_mirror.v 头注释 (⑥-1 / ⑥-3) + p8_mir_stg_20261011/DESIGN.md §4.1
+  回写块。只改注释/文档, 逻辑未动 (mirror 门复跑 PASS_ALL 佐证)。
+
+[P14] 日志归档: 24 件进 `logs/` (单元门 real + 7 突变臂 / p6e 全链 / counters / lint xvlog+xelab /
+  ¬APP_MODE 两臂 / mirror / ring / synth stdout + 6 份 rpt)。
+
+[END] 本轮到"上板前"为止: ⛔ 未出位流 / 未 bump BID / 未做读侧同步 / 未烧板。
+  构建轮入口 = `board/run_build_p7b_ku5p.bat` (BID 0x21 -> 0x22 + 读侧同步 pending)。
+
+[P15] 收尾修 (自查):
+  - `sim/p9_axis_stream/run_tb_axis_c2h_stream.bat` 的突变生成重定向发生在 `cd /d %~dp0` **之前**
+    => 7 个 `mut_*_gen.txt` 落在**仓库根** (污染工作树)。已修 (cd 提到最前) + 复跑 real/mut_stop
+    两条 (PASS_ALL / MUTANT-CAUGHT), 并把旧生成日志归到 `logs/mutgen/`。
+  - 报告/规格件均用 Write 直接落盘成功 (本会话**未遇到**平台拒写 .md 的情况)。

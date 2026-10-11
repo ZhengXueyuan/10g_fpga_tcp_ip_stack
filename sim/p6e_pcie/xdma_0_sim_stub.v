@@ -13,21 +13,17 @@
 //         u_dut.u_pcie_xdma.axil_write(addr, data);
 //     用任务而不是端口, 是因为 TB 只能层次**读**子模块端口, 不能对 input wire 做过程赋值
 //     (要驱动就得 force, 那才容易踩 TB 竞争坑)。
-//   ⚠️ 端口名/位宽与真 IP **逐字一致** (来源: _proj_pcie/vivado_prj/pcie_min_prj.gen/
-//      sources_1/ip/xdma_0/xdma_0_stub.v 的 black_box 声明) —— 名字对不上 wrapper 就连不上,
-//      而"连不上"正是本门要抓的那类错, 所以不能靠猜。
+//   ⚠️ 端口名/位宽与真 IP **逐字一致** (来源: `_proj_10g/notes/p8_axis_conf_20261011/
+//      work/evidence/xdma_st.sv` 的 `module xdma_st (...)` 端口清单 —— **P9 (2026-10-11)
+//      AXI4-Stream 版, 50 根**) —— 名字对不上 wrapper 就连不上, 而"连不上"正是本门要抓的
+//      那类错, 所以不能靠猜。
 //   ⚠️ 本文件**只给仿真**, 绝不能出现在构建的文件清单里 (构建用真 IP)。
 //
-// ⭐ M1 期 B (2026-10-11) 扩展: `m_axi` 从"全 tie 0 不驱动"升级为**真的能发事务** ——
-//   两个层次任务 (仍与 axil_* 同款理由: TB 只能层次读子模块端口, 不能对 input wire
-//   做过程赋值):
-//       u_dut.u_pcie_xdma.m_axi_read (addr, len, id);   结果在 mrd_* (数组 mrd_buf / mrd_n /
-//                                                        mrd_resp0 / mrd_rlast_seen / mrd_to)
-//       u_dut.u_pcie_xdma.m_axi_write(addr, len, id);   结果在 mwr_* (mwr_bresp / mwr_bid /
-//                                                        mwr_bvalid_seen / mwr_nbeat / mwr_to)
-//   ⚠️ "只扩必要面": 不模仿真引擎的流水/多笔并发, 只发**单笔、INCR、16 B/拍**的突发 ——
-//      够驱动 `aximm_c2h_win` / `aximm_h2c_discard` 的合同 (其余形态由单元门覆盖)。
-//   ⚠️ 全部等待有界; 越界 ⇒ `*_to = 1` (TB 那边响红, 不许挂死)。
+// ⭐ P9 (2026-10-11) 重写: 接口从 **m_axi (AXI4-MM, 35 根)** 换成 **AXIS (10 根)**。
+//   从"TB 主动发 AR/AW 事务"反过来: **C2H 是 DUT → 替身** (替身 = 消费者), 所以替身做:
+//     · C2H: 按 `str_tready_r` 收拍 (可被 TB 用它造**背压**), 逐拍记进数组 + 计数器;
+//     · H2C: 由 `h2c_valid_r` 造 tvalid; 数"被吞噬"的拍 (见证 wrapper 的恒 tready=1);
+//   ⚠️ 全部等待有界 (TB 侧的 `axis_wait_beats` 超时置 `str_to=1` ⇒ 响红, 不许挂死)。
 //=============================================================================
 module xdma_0 (
     input  wire        sys_clk,
@@ -44,42 +40,18 @@ module xdma_0 (
     output wire [0:0]  usr_irq_ack,
     output wire        msi_enable,
     output wire [2:0]  msi_vector_width,
-    // ---- m_axi (⭐ M1 期 B 起真驱动: 层次任务 m_axi_read / m_axi_write; 见文件下半) ----
-    input  wire        m_axi_awready,
-    input  wire        m_axi_wready,
-    input  wire [3:0]  m_axi_bid,
-    input  wire [1:0]  m_axi_bresp,
-    input  wire        m_axi_bvalid,
-    input  wire        m_axi_arready,
-    input  wire [3:0]  m_axi_rid,
-    input  wire [127:0]m_axi_rdata,
-    input  wire [1:0]  m_axi_rresp,
-    input  wire        m_axi_rlast,
-    input  wire        m_axi_rvalid,
-    output wire [3:0]  m_axi_awid,
-    output wire [63:0] m_axi_awaddr,
-    output wire [7:0]  m_axi_awlen,
-    output wire [2:0]  m_axi_awsize,
-    output wire [1:0]  m_axi_awburst,
-    output wire [2:0]  m_axi_awprot,
-    output wire        m_axi_awvalid,
-    output wire        m_axi_awlock,
-    output wire [3:0]  m_axi_awcache,
-    output wire [127:0]m_axi_wdata,
-    output wire [15:0] m_axi_wstrb,
-    output wire        m_axi_wlast,
-    output wire        m_axi_wvalid,
-    output wire        m_axi_bready,
-    output wire [3:0]  m_axi_arid,
-    output wire [63:0] m_axi_araddr,
-    output wire [7:0]  m_axi_arlen,
-    output wire [2:0]  m_axi_arsize,
-    output wire [1:0]  m_axi_arburst,
-    output wire [2:0]  m_axi_arprot,
-    output wire        m_axi_arvalid,
-    output wire        m_axi_arlock,
-    output wire [3:0]  m_axi_arcache,
-    output wire        m_axi_rready,
+    // ---- C2H AXI4-Stream (⭐ P9: DUT → 替身; 替身 = 消费者, 用 str_tready_r 造背压) ----
+    input  wire [127:0] s_axis_c2h_tdata_0,
+    input  wire         s_axis_c2h_tlast_0,
+    input  wire         s_axis_c2h_tvalid_0,
+    output wire         s_axis_c2h_tready_0,
+    input  wire [15:0]  s_axis_c2h_tkeep_0,
+    // ---- H2C AXI4-Stream (⭐ P9: 替身 → DUT; wrapper 恒 tready=1 吞噬) ----
+    output wire [127:0] m_axis_h2c_tdata_0,
+    output wire         m_axis_h2c_tlast_0,
+    output wire         m_axis_h2c_tvalid_0,
+    input  wire         m_axis_h2c_tready_0,
+    output wire [15:0]  m_axis_h2c_tkeep_0,
     // ---- user BAR (AXI4-Lite master) ----
     output wire [31:0] m_axil_awaddr,
     output wire [2:0]  m_axil_awprot,
@@ -162,127 +134,95 @@ module xdma_0 (
     assign m_axil_arvalid = arvalid_r;
     assign m_axil_rready  = rready_r;
 
-    // ---------------- m_axi 主机 (⭐ M1 期 B 扩展: 层次任务驱动) ----------------
-    //   只扩必要面: 两个任务 + 两个结果面 (数组/标量, TB 层次读)。
-    //   ⚠️ 属性照抄 IP 的明文事实 (F3: arid≡0 / arsize∈{0,4} / arbust[1]≡0 /
-    //      arcache=4'h3 / arlock=0 / arprot=0) —— 从机**不依赖**这些常量 (它显式判合法),
-    //      这里只是"像真引擎那样发"。静默态 (无任务在跑) = 全 0 ⇒ 与旧 tie-off 同形。
-    reg [3:0]   m_arid_r = 4'd0;
-    reg [63:0]  m_araddr_r = 64'd0;
-    reg [7:0]   m_arlen_r = 8'd0;
-    reg         m_arvalid_r = 1'b0;
-    reg         m_rready_r  = 1'b0;
-    reg [3:0]   m_awid_r = 4'd0;
-    reg [63:0]  m_awaddr_r = 64'd0;
-    reg [7:0]   m_awlen_r = 8'd0;
-    reg         m_awvalid_r = 1'b0;
-    reg [127:0] m_wdata_r = 128'd0;
-    reg [15:0]  m_wstrb_r = 16'hFFFF;
-    reg         m_wlast_r = 1'b0;
-    reg         m_wvalid_r = 1'b0;
-    reg         m_bready_r = 1'b0;
+    //=========================================================================
+    // ⭐ P9: C2H AXIS 消费者 (可背压) + 观测面
+    //-------------------------------------------------------------------------
+    // 合同照抄 PG195 (CONF §4.3): 每拍 `tvalid && tready` 收**一整拍** 16 B; `tlast` 界定
+    // 一个包 (方案 A: 只在停流 flush 出现); 非末拍 `tkeep` 必须全 1。
+    // 观测面 (TB 层次读 `u_dut.u_pcie_xdma.str_*`):
+    //   str_n       = 收到的拍数        str_bytes = 收下的**有效字节数** (Σ popcount(tkeep))
+    //   str_last_n  = 带 tlast 的拍数   str_keep_bad = **非末拍 keep != FFFF 的次数** (合同牙)
+    //   str_data[i] = 第 i 拍原文       str_last[i] / str_keep[i] 同拍边带
+    //   str_to      = 1 = TB 的等待越界 (响红)
+    //=========================================================================
+    reg         str_tready_r = 1'b1;         // TB 用 axis_tready_set 改它造背压
+    reg  [127:0] str_data  [0:255];
+    reg  [15:0]  str_keep  [0:255];
+    reg          str_last  [0:255];
+    integer      str_n       = 0;
+    integer      str_bytes   = 0;
+    integer      str_last_n  = 0;
+    integer      str_keep_bad = 0;
+    integer      str_to      = 0;
 
-    assign m_axi_arid    = m_arid_r;
-    assign m_axi_araddr  = m_araddr_r;
-    assign m_axi_arlen   = m_arlen_r;
-    assign m_axi_arsize  = 3'd4;          // F3: size ∈ {0,4}; 本任务只发 16 B/拍
-    assign m_axi_arburst = 2'b01;         // F3: [1] 硬接 0 ⇒ 只可能 00/01
-    assign m_axi_arprot  = 3'd0;
-    assign m_axi_arvalid = m_arvalid_r;
-    assign m_axi_arlock  = 1'b0;
-    assign m_axi_arcache = 4'h3;          // F3: arcache = 4'b0011
-    assign m_axi_rready  = m_rready_r;
-    assign m_axi_awid    = m_awid_r;
-    assign m_axi_awaddr  = m_awaddr_r;
-    assign m_axi_awlen   = m_awlen_r;
-    assign m_axi_awsize  = 3'd4;
-    assign m_axi_awburst = 2'b01;
-    assign m_axi_awprot  = 3'd0;
-    assign m_axi_awvalid = m_awvalid_r;
-    assign m_axi_awlock  = 1'b0;
-    assign m_axi_awcache = 4'h3;
-    assign m_axi_wdata   = m_wdata_r;
-    assign m_axi_wstrb   = m_wstrb_r;
-    assign m_axi_wlast   = m_wlast_r;
-    assign m_axi_wvalid  = m_wvalid_r;
-    assign m_axi_bready  = m_bready_r;
+    assign s_axis_c2h_tready_0 = str_tready_r;
 
-    // ---- 读任务的结果面 (TB 层次读: u_dut.u_pcie_xdma.mrd_*) ----
-    reg [127:0] mrd_buf [0:255];
-    integer     mrd_n = 0;            // 收到的 R 拍数
-    reg [1:0]   mrd_resp0 = 2'd0;     // 第一拍 rresp (每 R 拍同值; 抽首拍即可)
-    reg         mrd_rlast_seen = 1'b0;
-    integer     mrd_to = 0;           // 1 = 有等待越界 (AR 或 R)
-
-    task m_axi_read(input [63:0] addr, input [7:0] len, input [3:0] id);
-        integer i;
-        begin
-            mrd_n = 0; mrd_resp0 = 2'd0; mrd_rlast_seen = 1'b0; mrd_to = 0;
-            @(negedge aclk);
-            m_araddr_r <= addr; m_arlen_r <= len; m_arid_r <= id;
-            m_arvalid_r <= 1'b1; m_rready_r <= 1'b0;
-            i = 0;
-            while (!m_axi_arready && i < 1000) begin @(posedge aclk); i = i + 1; end
-            if (i >= 1000) mrd_to = 1;
-            @(negedge aclk); m_arvalid_r <= 1'b0; m_rready_r <= 1'b1;
-            i = 0;
-            while (!mrd_rlast_seen && i < 100000) begin
-                @(posedge aclk);
-                if (m_axi_rvalid && m_rready_r) begin
-                    if (mrd_n == 0) mrd_resp0 = m_axi_rresp;
-                    if (mrd_n < 256) mrd_buf[mrd_n] <= m_axi_rdata;
-                    if (m_axi_rlast) mrd_rlast_seen = 1'b1;
-                    mrd_n = mrd_n + 1;
-                end
-                i = i + 1;
+    wire str_go = s_axis_c2h_tvalid_0 && str_tready_r;
+    always @(posedge aclk) begin
+        if (str_go) begin
+            if (str_n < 256) begin
+                str_data[str_n] <= s_axis_c2h_tdata_0;
+                str_keep[str_n] <= s_axis_c2h_tkeep_0;
+                str_last[str_n] <= s_axis_c2h_tlast_0;
             end
-            if (!mrd_rlast_seen) mrd_to = 1;
-            @(negedge aclk); m_rready_r <= 1'b0;
+            str_n      = str_n + 1;
+            str_bytes  = str_bytes + s_axis_c2h_tkeep_0[0] + s_axis_c2h_tkeep_0[1]
+                                   + s_axis_c2h_tkeep_0[2] + s_axis_c2h_tkeep_0[3]
+                                   + s_axis_c2h_tkeep_0[4] + s_axis_c2h_tkeep_0[5]
+                                   + s_axis_c2h_tkeep_0[6] + s_axis_c2h_tkeep_0[7]
+                                   + s_axis_c2h_tkeep_0[8] + s_axis_c2h_tkeep_0[9]
+                                   + s_axis_c2h_tkeep_0[10] + s_axis_c2h_tkeep_0[11]
+                                   + s_axis_c2h_tkeep_0[12] + s_axis_c2h_tkeep_0[13]
+                                   + s_axis_c2h_tkeep_0[14] + s_axis_c2h_tkeep_0[15];
+            if (s_axis_c2h_tlast_0) str_last_n = str_last_n + 1;
+            // 非末拍 keep 必须全 1 (PG195 p.27 合同; "同拍 tlast 或全 1" 之外都记一次)
+            if (!s_axis_c2h_tlast_0 && (s_axis_c2h_tkeep_0 !== 16'hFFFF)) str_keep_bad = str_keep_bad + 1;
+            // 末拍 keep 不允许全 0 (PG195 p.27: "tlast 且 keep 全 0 不是合法组合")
+            if (s_axis_c2h_tlast_0 && (s_axis_c2h_tkeep_0 === 16'h0000)) str_keep_bad = str_keep_bad + 1;
+        end
+    end
+
+    task axis_tready_set(input v);
+        begin str_tready_r <= v; end
+    endtask
+
+    task axis_mon_clear;
+        begin
+            str_n = 0; str_bytes = 0; str_last_n = 0; str_keep_bad = 0; str_to = 0;
         end
     endtask
 
-    // ---- 写任务的结果面 ----
-    integer   mwr_to = 0;             // 1 = 有等待越界
-    reg [1:0] mwr_bresp = 2'd0;
-    reg [3:0] mwr_bid = 4'd0;
-    reg       mwr_bvalid_seen = 1'b0;
-    integer   mwr_nbeat = 0;          // 本笔实际送出的 W 拍数
-
-    task m_axi_write(input [63:0] addr, input [7:0] len, input [3:0] id);
-        integer k, t;
+    // 等 n 拍被收下 (有界; 越界 ⇒ str_to=1, 不挂死)
+    task axis_wait_beats(input integer n, input integer tmo);
+        integer i, j;
         begin
-            mwr_bresp = 2'd0; mwr_bid = 4'd0; mwr_bvalid_seen = 1'b0;
-            mwr_to = 0; mwr_nbeat = 0;
-            // AW 先发 (从机对到达顺序无关; 这里取"AW 先"这一支, "W 先"由单元门覆盖)
-            @(negedge aclk);
-            m_awaddr_r <= addr; m_awlen_r <= len; m_awid_r <= id; m_awvalid_r <= 1'b1;
-            m_bready_r <= 1'b1;
-            t = 0;
-            while (!m_axi_awready && t < 1000) begin @(posedge aclk); t = t + 1; end
-            if (t >= 1000) mwr_to = 1;
-            @(negedge aclk); m_awvalid_r <= 1'b0;
-            // W 拍逐拍送 (末拍 wlast)
-            for (k = 0; k <= len; k = k + 1) begin
-                @(negedge aclk);
-                m_wdata_r <= {96'd0, id, k[31:0]}; m_wstrb_r <= 16'hFFFF;
-                m_wlast_r <= (k == len); m_wvalid_r <= 1'b1;
-                t = 0;
-                while (!m_axi_wready && t < 1000) begin @(posedge aclk); t = t + 1; end
-                if (t >= 1000) mwr_to = 1;
-                @(negedge aclk); m_wvalid_r <= 1'b0; m_wlast_r <= 1'b0;
-                mwr_nbeat = mwr_nbeat + 1;
-            end
-            // 等 B (有界) 并收下
-            t = 0;
-            while (!m_axi_bvalid && t < 1000) begin @(posedge aclk); t = t + 1; end
-            if (t >= 1000) mwr_to = 1;
-            else begin
-                mwr_bresp = m_axi_bresp; mwr_bid = m_axi_bid;
-                mwr_bvalid_seen = 1'b1;
-                @(posedge aclk);                    // B 握手 (bready 已举)
-            end
-            @(negedge aclk); m_bready_r <= 1'b0;
+            j = 0;
+            while ((str_n < n) && (j < tmo)) begin @(posedge aclk); j = j + 1; end
+            if (str_n < n) str_to = 1;
         end
+    endtask
+
+    //=========================================================================
+    // ⭐ P9: H2C AXIS 生产者 (见证 wrapper 的"恒 tready=1 吞噬")
+    //   tvalid 由 TB 经 h2c_valid_set 造; 每拍 `tvalid && tready` 记一次 h2c_go_n。
+    //=========================================================================
+    reg         h2c_valid_r = 1'b0;
+    integer     h2c_go_n    = 0;             // 被吞噬 (即 tready=1) 的拍数
+    assign m_axis_h2c_tdata_0  = 128'hC0DE_0000_0000_0000_0000_0000_0000_ABCD;
+    assign m_axis_h2c_tkeep_0  = 16'hFFFF;
+    assign m_axis_h2c_tlast_0  = 1'b1;
+    assign m_axis_h2c_tvalid_0 = h2c_valid_r;
+
+    always @(posedge aclk) begin
+        if (h2c_valid_r && m_axis_h2c_tready_0) h2c_go_n = h2c_go_n + 1;
+    end
+
+    task h2c_valid_set(input v);
+        begin h2c_valid_r <= v; end
+    endtask
+
+    task h2c_mon_clear;
+        begin h2c_go_n = 0; end
     endtask
 
     // AXI4-Lite 写: AW/W 同拍发, 等 B (与 tb_axi_regs 的主机同风格)

@@ -1,0 +1,84 @@
+#-----------------------------------------------------------
+# xsim v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Sun Oct 11 21:43:01 2026
+# Process ID         : 30892
+# Current directory  : D:/repo/XCKU5PMini/udp_hls_10g/sim/p7b_mirdma/xdir_real
+# Command line       : xsim.exe -log xsim.log -mode tcl -source {xsim.dir/tb_mir_dma/xsim_script.tcl}
+# Log file           : D:/repo/XCKU5PMini/udp_hls_10g/sim/p7b_mirdma/xdir_real/xsim.log
+# Journal file       : D:/repo/XCKU5PMini/udp_hls_10g/sim/p7b_mirdma/xdir_real\xsim.jou
+# Running On         : xyz-intel
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26300
+# Processor Detail   : Intel(R) Core(TM) Ultra 7 265K
+# CPU Frequency      : 3878 MHz
+# CPU Physical cores : 20
+# CPU Logical cores  : 20
+# Host memory        : 68053 MB
+# Swap memory        : 4294 MB
+# Total Virtual      : 72348 MB
+# Available Virtual  : 35313 MB
+#-----------------------------------------------------------
+source xsim.dir/tb_mir_dma/xsim_script.tcl
+# xsim {tb_mir_dma} -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+=== tb_mir_dma: ring + AXI-MM read slave unit gate ===
+  [PASS] src_req=ÿÿÿåÿÿÿ‡ÿÿÿ ÿÿÿÿÿÿæÿ‚') = 0
+  [PASS] H0b enÿÿÿâÿ’ src_req=1 = 1
+  --- I: ç©ºç¯è¯» (å†…å®¹ä¸åˆ¤, åªåˆ¤'å‘æ»¡æ‹+å› IDLE') ---
+  [PASS] Iÿÿÿ©ÿÿÿ¯ÿÿÿæÿÿÿÿÿÿ¡ = 2
+  [PASS] ÿÿÿçÿÿÿ¯ rlast ÿÿÿçÿ¬ 2ÿÿÿ = 1
+  [PASS] Iÿÿÿ©ÿÿÿ¯ resp = OKAY = 0
+  [PASS] I4 ÿÿ IDLE (arready=1) = 1
+  --- A: åŸºæœ¬ INCR 8 æ‹ (id=0xA) ---
+  [PASS] A0 wr_words == 32 = 32
+  [PASS] A1ÿÿÿÿÿ° == 8 = 8
+  [PASS] A2 rlast ÿÿÿåÿÿÿœÿÿÿ = 7
+  [PASS] A3 rlastÿÿÿªÿÿÿçÿ° 1ÿÿÿ¡ = 1
+  [INFO] A4/A5/A6 é€æ‹åˆ¤è¿‡ (8 æ‹ Ã— 3 é¡¹)
+  [PASS] A7 ÿÿ IDLE = 1
+  --- G: å•æ‹çªå‘ (arlen=0) + ä¹‹åç«‹åˆ»æ¥ä¸‹ä¸€ç¬” ---
+  [PASS] ÿÿÿæÿ° 1ÿÿÿ = 1
+  [PASS] G2 rlaÿÿÿåÿÿÿ¯ÿÿÿ = 0
+  [PASS] G3 idÿÿÿÿÿ« == 3 = 3
+  [PASS] ÿÿÿåÿÿÿ®¹ = row1 = 11935946411669258244
+  [PASS] ÿÿ IDLEÿÿÿÿÿÿ‹ÿÿÿæÿÿÿ¸ÿÿÿ€ÿÿ”) = 1
+  [PASS] Gÿÿÿ¬ÿÿÿŒÿÿÿäÿÿÿÿÿÿ¡ = 2
+  --- C: èƒŒå‹ (rready ä½ â‡’ rvalid/data ä¿æŒ) ---
+  [PASS] ÿÿÿèÿÿÿÿÿÿ‹ rvalid ÿÿÿæÿ 1 = 1
+  [PASS] ÿÿÿèÿÿÿÿÿÿ‹ rvalid ÿÿÿæÿ¯ 1 = 1
+  [PASS] Cÿÿÿƒÿÿÿ‹ÿÿ‹ rdatÿÿÿ¸ÿÿÿ˜ = 11935946446028996620
+  [PASS] ÿÿÿèÿÿÿÿÿÿ‹ÿÿÿæÿÿÿ¸ÿÿÿ¨ = 3
+  [PASS] Cÿÿÿÿÿÿÿÿÿæÿ° 8ÿÿÿ = 8
+  [PASS] ÿÿÿæÿÿÿ¤ÿÿÿ rlaÿÿÿåÿÿÿœÿÿÿ = 7
+  [PASS] ÿÿÿæÿÿÿÿÿÿ€ÿÿÿåÿÿÿ®ÿÿÿ¹ÿÿÿ¡Œ 7) = 11935946514748473372
+  --- E: FIXED çªå‘ (4 æ‹åŒä¸€è¡Œ) ---
+  [PASS] ÿÿÿÿÿÿ¡ÿÿÿæÿ + rlaÿÿÿåÿÿÿœÿÿÿ = 3
+  --- D: ä¸åˆæ³• â‡’ SLVERR (çª—å¤–/æœªå¯¹é½/size/WRAP) ---
+  [PASS] D1a ÿÿÿåÿ–: ÿÿÿæÿ¡ 4ÿÿÿ = 4
+  [PASS] D1ÿÿÿªÿÿÿ–ÿÿÿ…¨ SLVERR = 170
+  [PASS] D1cÿÿÿ—ÿÿ–: rlaÿÿÿåÿÿÿœÿÿÿ = 3
+  [PASS] D1d ÿÿÿåÿ–: ÿÿ IDLE = 1
+  [PASS] Dÿÿÿæÿÿÿ¯ÿÿÿ: SLVERR = 2
+  [PASS] D2b ÿÿÿåÿÿÿ½: rlast = 0
+  [PASS] D3a size=2: SLVERR = 2
+  [PASS] D4a WRAP: ÿÿÿæÿ¡ 4ÿÿÿ = 4
+  [PASS] D4b WRAPÿÿÿ…¨ SLVERR = 2
+  --- B: è·¨ç¯å°¾å›ç»• (è¯»ä»ç‰©ç† 4088 èµ·, ç»•åˆ° 0) ---
+  [PASS] B0 wr_words == 4160 = 4160
+  [PASS] B1 ÿÿÿæÿ° 4 = 4
+  [INFO] B2 é€æ‹æŒ‰'ç‰©ç†ä½æœ€åè¢«å†™çš„é€»è¾‘å­—'åˆ¤è¿‡
+  --- H: å¹‚ç­‰ (åŒå€é‡è¯») + clr (è®¡æ•°/é€»è¾‘ 0 åŒæ‹å½’é›¶) ---
+  [PASS] ÿÿÿÿÿÿÿÿÿéÿÿÿ½ÿÿÿ¸ÿÿŒ ÿÿÿ‚ÿÿ‰) = 6510533740594860016
+  [PASS] H2 cÿÿÿâÿ’ wr_words == 0 = 0
+  [PASS] H3 clÿÿÿÿÿÿ¡ÿÿÿäÿ 0ÿÿÿ· = 2
+  [PASS] ÿÿ—0 = 11AA22BB ÿÿÿ¨ beat[31:0]) = 296362683
+  [PASS] ÿ—1 = 33CC44DD (ÿÿ¨ beat[63:32]) = 869024989
+MIR_DMA_GATE PASS_ALL tb_mir_dma (checks=45)
+=== done ===
+$finish called at time : 17154 ns : File "D:/repo/XCKU5PMini/udp_hls_10g/tb/tb_mir_dma.v" Line 338
+exit
+INFO: [Common 17-206] Exiting xsim at Sun Oct 11 21:43:03 2026...

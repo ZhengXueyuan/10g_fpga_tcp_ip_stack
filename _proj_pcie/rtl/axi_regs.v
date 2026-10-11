@@ -58,8 +58,11 @@
 //                  [16]   unf_sticky  (空读 MIR_DATA 的 sticky; 权威证据 = 它; clr 写清)
 //                  [17]   any_drop_sticky (镜像侧丢字节 sticky 的读域版; clr 写清)
 //                  [18]   capture_on (= MIR_CTRL[0], 主机写的同一域)
-//                  [22:19] ver = 4'd3 ([31:24] = 0; ver 1→2: 期 A 加 src_sel;
-//                            ⭐ 期 B 2→3: MIR_CTRL 加 bit3 = dma_en + 新字 MIR_DMA_CNT)
+//                  [22:19] ver = 4'd4 ([31:24] = 0; ver 1→2: 期 A 加 src_sel;
+//                            ⭐ 期 B 2→3: MIR_CTRL 加 bit3 = dma_en + 新字 MIR_DMA_CNT;
+//                            ⭐ P9 3→4: **MIR_DMA_CNT 的口径变更** (环已写字数 →
+//                            已交付 AXIS 口的 32 位字数; pcie 侧从 AXI-MM 切 AXIS 流)。
+//                            ⚠️ 位语义变就 bump (既定规则), **但地址表/位域 0 改动**)
 //                  [23]   src_sel 读回 (= MIR_CTRL[2] 的同一域直引 ⇒ 零新增 CDC)
 //   0x140 RO     MIR_DATA  = **读=弹出**: 返回一个 32 位载荷字 (4 字节, 小端顺序:
 //                  w[7:0] = 该 4 字节里最先收到的那个字节)。
@@ -72,17 +75,25 @@
 //                                       清 FIFO (排空式冲刷) + 字节累加器 + 两个 sticky)
 //                            [2] src_sel (⭐ 期 A: 0=UDP app 口 / 1=TCP app 口; 默认 0;
 //                                       采集侧 2FF 电平同步 (同 cap_en 风格))
-//                            [3] dma_en  (⭐ 期 B: 1 = 排空器把镜像 FIFO 搬进 C2H 环
-//                                       (mir_dma_ring); 复位默认 0 = 停采。
-//                                       ⚠️ **电平, 同域直引** (环 + 从机都在 pcie 域 ⇒
-//                                       零新增 CDC); 与 cap_en 独立)
+//                            [3] dma_en  (⭐ 期 B: 1 = 排空器把镜像 FIFO 搬出到 C2H 通路;
+//                                       ⭐ P9: 消费者 = `rtl/axis_c2h_stream.v` (AXIS 成形器;
+//                                       期 B = `mir_dma_ring`)。复位默认 0 = 停采。
+//                                       ⚠️ **电平, 同域直引** (成形器在 pcie 域 ⇒
+//                                       零新增 CDC); 与 cap_en 独立。
+//                                       ⚠️ P9 语义补充: **1→0 的下降沿 = "停流 flush"**
+//                                       (成形器把暂存残拍以 `tlast` 送出, 关闭描述符包尾);
+//                                       0 期间**不拉 `dma_req`** ⇒ 镜像 FIFO 满 ⇒ 丢字节
+//                                       仍记 `W70` (账目单一来源, 不新增计数器))
 //                            其余位 0; 读回 = 当前值。起测协议: ① 写 clr → ② 写 cap_en=1 → ③ 发包。
 //                            切源协议: cap_en=0 下写 src_sel, 然后重走 ①→②。
-//   0x148 RO     MIR_DMA_CNT = ⭐ 期 B 新加: C2H 环的**已写字数** (32 位, mod 2^32 自然回绕;
-//                  = `mir_dma_ring.wr_words`, 环是"逻辑字 L → 物理字 L mod 4096"的
-//                  16 KB 环)。主机侧协议 = 起读前取一份、每段重取 + clobber 检查
-//                  (见 `_proj_pcie/p7b_biz/p7b_mir_dump.cpp` 的 `--dma` 路径)。
-//                  ⚠️ 未接环的构建 (¬(APP_MODE∧PCIE_OBS∧DP_156MHZ)) 里此线 = 常量 0
+//   0x148 RO     MIR_DMA_CNT = ⭐ 期 B 新加 / ⭐ **P9 口径变更**: **已交付 AXIS 口的 32 位
+//                  字数** (32 位, mod 2^32 自然回绕; P9 起 = `axis_c2h_stream.dma_words`,
+//                  计数点 = `s_axis_c2h_tvalid && tready` 的握手拍 ⇒ 整拍 +4 / 停流末拍 +2)。
+//                  ⛔ **P9 起不再是"环已写字数"** (环已不再入位流) ⇒ 宿主侧**没有 clobber/
+//                  回绕检查**这条语义了: "落后"表现为**丢字节** (`ΔW70`), 不是覆盖。
+//                  主机侧协议 = 起读前取一份、判据 = 宿主实收字节 == 4 × ΔMIR_DMA_CNT
+//                  (+ `ΔW70` 当丢字节的独立见证)。
+//                  ⚠️ 未接成形器的构建 (¬(APP_MODE∧PCIE_OBS∧DP_156MHZ)) 里此线 = 常量 0
 //                     ⇒ 读回 **0** (不是 0xffffffff —— 地址本身是**已实现**的);
 //                     0xffffffff 只在"整块 MIR 都不存在"的旧位流上出现 (read-side 身份门用)。
 //   ⚠️ 未实现地址 (SLVERR) = `MIR_LAST_IDX+1` = 0x14C (word 83; 7 位译码红线: 绝不 ≥0x200)。
@@ -183,7 +194,7 @@ module axi_regs #(
     input  wire        mir_empty,     // fifo_async.empty (读域)
     input  wire [31:0] mir_dout,      // fifo_async.dout (FWFT: !empty 时 = 头字)
     input  wire        mir_any_drop,  // drop sticky 的读域 2FF 电平版
-    input  wire [31:0] mir_dma_cnt,   // ⭐ 期 B: 环写字数 (MIR_DMA_CNT@0x148; ¬ 支 = 0)
+    input  wire [31:0] mir_dma_cnt,   // ⭐ P9: 已交付 AXIS 口的 32 位字数 (MIR_DMA_CNT@0x148; ¬ 支 = 0)
     output wire        mir_pop,       // 1 拍: 读=弹出 (与"装载 rdata"同拍、每笔恰好一次)
     output wire [31:0] mir_ctrl       // RW: [0]=cap_en [1]=clr toggle [2]=src_sel [3]=dma_en
 );
@@ -200,7 +211,7 @@ module axi_regs #(
     localparam integer MIR_STATUS_IDX  = SNAP_LAST_IDX + 1;  // 0x13C = "W71" (文档口径)
     localparam integer MIR_DATA_IDX    = SNAP_LAST_IDX + 2;  // 0x140 = "W72"
     localparam integer MIR_CTRL_IDX    = SNAP_LAST_IDX + 3;  // 0x144 = "W73"
-    localparam integer MIR_DMA_CNT_IDX = SNAP_LAST_IDX + 4;  // 0x148 = "W74" (期 B: 环写字数)
+    localparam integer MIR_DMA_CNT_IDX = SNAP_LAST_IDX + 4;  // 0x148 = "W74" (⭐ P9: 已交付 AXIS 字数)
     localparam integer MIR_LAST_IDX    = MIR_DMA_CNT_IDX;    // 实现边界 (SLVERR 判据改用它)
     // 空读哨兵: **响亮值**, 不是"唯一性"保证 (数据可以是任何值) —— 权威证据 = unf_sticky。
     localparam [31:0]  MIR_SENT       = 32'h5A5A_5A5A;
@@ -304,12 +315,13 @@ module axi_regs #(
     // MIR_STATUS = {8'd0, src_sel, ver[3:0], capture_on, any_drop_sticky, unf_sticky, level[15:0]}
     //   = 8+1+4+1+1+1+16 = **恰好 32 位** (v2 §V2-S7-③; v1 的 38 位示例作废)
     //   · src_sel (bit23) = ⭐ 期 A: MIR_CTRL[2] 的读回 (同一域直引 ⇒ 零新增 CDC)
-    //   · ver = 4'd3 (期 A: 1→2 [加 src_sel]; ⭐ 期 B: 2→3 [MIR_CTRL 加 bit3 = dma_en
-    //     + 新读字 MIR_DMA_CNT@0x148] —— 依"位语义变了就 bump"的既定规则, 见 v2 §V1.1)
+    //   · ver = 4'd4 (期 A: 1→2 [加 src_sel]; ⭐ 期 B: 2→3 [MIR_CTRL 加 bit3 = dma_en
+    //     + 新读字 MIR_DMA_CNT@0x148]; ⭐ **P9: 3→4** [MIR_DMA_CNT 口径变更: 环已写字数 →
+    //     已交付 AXIS 口的 32 位字数] —— 依"位语义变了就 bump"的既定规则, 见 v2 §V1.1)
     //   · capture_on = 控制寄存器位 (主机写入的同一域 ⇒ 零新增 CDC)
     //   · any_drop_sticky = 镜像内 dp sticky 的读域 2FF 电平版
     //   · level = fifo_async.dbg_occ_r 直引 (读域 2FF 同步、**悲观少报** ⇒ 读 level 个字不可能下溢)
-    wire [31:0] mir_status = {8'd0, mir_ctrl_r[2], 4'd3, mir_ctrl_r[0], mir_any_drop, mir_unf_sticky,
+    wire [31:0] mir_status = {8'd0, mir_ctrl_r[2], 4'd4, mir_ctrl_r[0], mir_any_drop, mir_unf_sticky,
                               {7'd0, mir_level}};
 
     // ---------------- 数据面快照寄存器 (0x18-0x3C) ----------------
