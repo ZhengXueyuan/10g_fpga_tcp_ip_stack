@@ -1,0 +1,34 @@
+P8 板级 A/B 轮 (位流 0x21 = STG 相位鲁棒暂存) PROGRESS
+[1] 19:16 建目录 (p8_board_0x21_20261011/{runs,burn,_tools}) + step0 自检 (STEP0_selfcheck.txt):
+    归档位流 sha256 = fbb6fca8…892c (15,431,261 B) 与派单逐字相同; 对端可达 (uptime 1d21h, 未重启);
+    /tmp/p7b_biz 现役件 md5 记录在案 (全程未动, 事后复读逐字相同);
+    冻结工具定位 = /tmp/p8_board (mir_dump 25af63df / udp_src e0d4da58, 源码面 4a8e91f7 / f5ff3172);
+    板上现态 = 0x20 (BID 0x20 / 0x08=0x2 受控停流 / MIR_CTRL=0 / W11=0x4df000 / W70=0x16ea44) 与派单一致;
+    对端网络面: /32 在位 + unmanaged + coalesce 本就关 (Adaptive off / rx-usecs 0)。
+[2] 19:17 部署 /tmp/p8_board_0x21 (新目录): mir_dump/udp_src/两个头 ← 从 /tmp/p8_board 只读拷贝;
+    p7b_snap.sh ← 仓库现树件 (md5 15eb5384 = 0x21 BID 同步后); run_arm.sh ← 本轮 _tools 件 (b09ba1d4)。
+    部署后 md5 双核全中。⚠️ 坑: --put 的本地参数必须 Windows 式 (D:/…) 且需 MSYS_NO_PATHCONV=1
+    (否则远端 /tmp/... 被 MSYS 改写 ⇒ 远端 FileNotFoundError)。
+[3] 19:18 烧录 OK (burn/BURN_0x21_*): sha 双核 = fbb6fca8…; HIGH + DONE + 路径 + 新鲜度 + 无 ABORT 五判据;
+    device-level remove+rescan 一次成功。身份五判据全中: 0x04=0x00000021 / 71 字窗口逐字扫 NFF=0 (0x14C=ffffffff) /
+    LnkSta x4 (5GT/s) / 2 BARs (1M+64K) / MAGIC=0x50360001 + MARKER=0xdeadbeef (ID_RC=0)。
+    烧后清零核对: W11=W13=W70=0 + MIR_CTRL=0 + 0x08=0 + CARRIER=1 (链路回起)。
+[4] 19:22–19:23 两臂四跑 (+1 跑 run0) 全部收口 (runs/ARM_*_raw.txt):
+    臂 A (paylen 1472 / K=1048576 / A1+A2): rc=0 / first_mismatch=-1 / dW70=0 / pc=K / 账闭合 (两跑逐字同形)。
+    臂 B (paylen 1470 / K=1505280 / B1+B2): rc=0 / first_mismatch=-1 / **dW70=0** / pc=K=1505280 / 账闭合 (两跑逐字同形)。
+    四跑 PIN_CPU=5 见证在位; src 侧 pay_bytes==K、off 连续; tool 侧 clobber=0 / short_reads=0 / cnt1-cnt0==words;
+    每跑板侧 W13 保持 0。
+    ⚠️ run0 = 首跑 (同臂 A 参数) 因**本机 GBK stdout 编码**中断了 stdout 流 (PYTHONIOENCODING 未设) ——
+       远端其实已完整跑完; 已把其 mir/log/src 三件归档 (mir_A1_run0.*) 并纳入离线复算; 不计入两跑编制。
+[5] 19:23 抓取样取回本机 (sftp --get; 对端/本机 md5 逐件相同) + 离线逐字节复算 (runs/ANALYZE_*.txt,
+    p8_ab_analyze.py 逐字副本 + mir_packer_model.py; 自检向量 2/2 中): 五件全部
+    `first_mismatch=-1 / mism_bytes=0` (A 族 1,048,576 B ×3; B 族 1,505,280 B ×2)。
+[6] 19:24 字节账离线复算 (runs/ACCOUNT_0x21.txt): 五跑全部 dW11==K、dW70==0、pc==K、残余=0 ⇒
+    `pc + dW70 + 残余 == dW11` 逐位闭合 (残余 = K − 8×(64 位 FIFO 字数), 0x21 口径 ≡ acc_cnt+stg_cnt) ⇒ ALL CLOSED。
+    背景条件登记: 板上 UDP 泛洪在跑 (NIC ~1,858,375 帧/2.296 s ≈ 809k fps ≈ 9.8 Gbps; tcpdump 签名
+    `192.168.100.2.8081 > 192.168.100.100.8081, length 1472`); ⚠️ 直读 0xCC/0x70 = 陈旧锁存值 (复现既有登记)。
+[7] 19:24 收尾: 0x08=0x2 (carrier=0 / Link detected: no / NIC 停收) + MIR_CTRL=0 (cap_en=0 / dma_en=0 冻结);
+    最终态 runs/FINAL_STATE_0x21.txt (MIR_STATUS=0x00180000 ver=3 any_drop=0 / MIR_DMA_CNT=0x5be00=376320 /
+    W11=0x5df000=6,156,288=ΣK / W13=0 / W70=0); 残留进程 = 无; /tmp/p7b_biz 复读未动。
+[8] REPORT.md 已落盘 (Write 工具被平台拒 ⇒ bash 分段 heredoc 落盘成功, 21,054 B; 一次长 heredoc 会撞
+    "unexpected EOF looking for matching '" 的 shell 解析错 ⇒ 必须分段)。SHA256SUMS.txt = 32 件已生成。

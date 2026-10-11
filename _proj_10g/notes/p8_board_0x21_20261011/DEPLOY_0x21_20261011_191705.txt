@@ -1,0 +1,43 @@
+=== DEPLOY_BEGIN 1791717425.604040000
+--- ① 部署前: /tmp/p7b_biz md5 (现役; 部署后要复读证明未动) ---
+a3faafd37ed2e21e0acd3cc925e9c98c  /tmp/p7b_biz/p7b_udp_src
+ba2faf79f409302d1e542450db402975  /tmp/p7b_biz/p7b_snap.sh
+b2f2e9627bac53bf3b4ab2b565afe872  /tmp/p7b_biz/p7b_pattern.h
+b03222792d20443138515ba2804b0d87  /tmp/p7b_biz/p7b_affinity.h
+4f6b8d28711fae40651d8dbb7ee003e1  -
+--- ② 建本轮目录 + 从 /tmp/p8_board 只读拷贝冻结工具 ---
+CP_OK
+--- ③ sftp put: 仓库 p7b_snap.sh (0x21 读侧件) + 本轮 run_arm.sh ---
+peer_ssh: FileNotFoundError: [WinError 3] 系统找不到指定的路径。: '/d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_snap.sh'
+peer_ssh: FileNotFoundError: [WinError 3] 系统找不到指定的路径。: '/d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p8_board_0x21_20261011/_tools/run_arm.sh'
+--- ④ 部署后 md5 双核 (对端 vs 本机期望) ---
+[对端]
+md5sum: p7b_snap.sh: No such file or directory
+md5sum: run_arm.sh: No such file or directory
+25af63df72993195469761d167005533  p7b_mir_dump
+e0d4da5834cb95d67afb0cc523d1f92f  p7b_udp_src
+b2f2e9627bac53bf3b4ab2b565afe872  p7b_pattern.h
+b03222792d20443138515ba2804b0d87  p7b_affinity.h
+total 1148
+drwxrwxr-x  2 a    a      4096 Oct 11 19:17 .
+drwxrwxrwt 38 root root 901120 Oct 11 19:17 ..
+-rw-rw-r--  1 a    a     65142 Oct 11 12:17 p7b_affinity.h
+-rwxrwxr-x  1 a    a     41936 Oct 11 12:33 p7b_mir_dump
+-rw-rw-r--  1 a    a     21578 Oct 11 12:17 p7b_pattern.h
+-rwxrwxr-x  1 a    a    128048 Oct 11 12:17 p7b_udp_src
+[本机期望]
+15eb5384d188a31eeaa40529aff28858 */d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_snap.sh
+b09ba1d46d57b9612ba60b1978a7ac8a */d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p8_board_0x21_20261011/_tools/run_arm.sh
+EXPECT: mir_dump=25af63df72993195469761d167005533 udp_src=e0d4da5834cb95d67afb0cc523d1f92f snape=15eb5384d188a31eeaa40529aff28858
+--- ⑤ 复读 /tmp/p7b_biz (与 ① 逐字比 = 未动) ---
+a3faafd37ed2e21e0acd3cc925e9c98c  /tmp/p7b_biz/p7b_udp_src
+ba2faf79f409302d1e542450db402975  /tmp/p7b_biz/p7b_snap.sh
+b2f2e9627bac53bf3b4ab2b565afe872  /tmp/p7b_biz/p7b_pattern.h
+b03222792d20443138515ba2804b0d87  /tmp/p7b_biz/p7b_affinity.h
+63a6369acb47af3e63321be74152f538  -
+--- ⑥ 复读 /tmp/p8_board 与 /tmp/p8_board_0x20 (只读核对 = 未动) ---
+25af63df72993195469761d167005533  /tmp/p8_board/p7b_mir_dump
+e0d4da5834cb95d67afb0cc523d1f92f  /tmp/p8_board/p7b_udp_src
+25af63df72993195469761d167005533  /tmp/p8_board_0x20/p7b_mir_dump
+e0d4da5834cb95d67afb0cc523d1f92f  /tmp/p8_board_0x20/p7b_udp_src
+=== DEPLOY_END 1791717431.334077700

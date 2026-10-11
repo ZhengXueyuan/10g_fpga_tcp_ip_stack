@@ -1,0 +1,49 @@
+=== FINAL_STATE_BEGIN 1791717878.704263900
+--- 停流前: NIC 收速率 (2 s 窗) + carrier ---
+     port_rx_bytes: 24146228656950
+     port_rx_packets: 15966926821
+-- 2s later --
+     port_rx_bytes: 24149049670200
+     port_rx_packets: 15968785196
+CARRIER=1
+--- 写 0x08 = 0x2 (受控停流) ---
+Write 32-bits value 0x00000002 to 0x8 (0x0x7fc636d5e008)
+--- 写 MIR_CTRL = 0 (采集口回冻结默认态: cap_en=0 / dma_en=0) ---
+Write 32-bits value 0x00000000 to 0x144 (0x0x74cbe32aa144)
+--- 停流后: NIC 收速率 (2 s 窗) + carrier + 最终态寄存器 ---
+netlink error: Operation not permitted
+     port_rx_bytes: 24150672651478
+     port_rx_packets: 15969854362
+-- 2s later --
+     port_rx_bytes: 24150672651478
+     port_rx_packets: 15969854362
+CARRIER=0
+LINK_DETECTED=Link detected: no
+MAGIC_0x00=Read 32-bit value at address 0x0 (0x7335b4e46000): 0x50360001
+BID_0x04=Read 32-bit value at address 0x4 (0x7e2d3bcf4004): 0x00000021
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x7567acbf4008): 0x00000002
+UNIMPL_0x14C=Read 32-bit value at address 0x14c (0x7bc4352cc14c): 0xffffffff
+MIR_STATUS_0x13C=Read 32-bit value at address 0x13c (0x780bc69be13c): 0x00180000
+MIR_CTRL_0x144=Read 32-bit value at address 0x144 (0x7feaa8969144): 0x00000002
+MIR_DMA_CNT_0x148=Read 32-bit value at address 0x148 (0x7e6240a73148): 0x0005be00
+--- 最终态快照 (触发式; W5/W11/W13/W70) ---
+SNAP_BEGIN final gen=26
+W5   0x34   gmii_free_FE           0x2278e5b9
+W11  0x4C   udpapp_rx_bytes        0x005df000
+W13  0x54   udpapp_mismatch        0x00000000
+W70  0x138  mir_drop_bytes         0x00000000
+SNAP_END final nff=0
+--- 残留进程 (对端) ---
+PROC_SCAN_DONE
+--- /tmp/p7b_biz 复读 (全程未动) ---
+a3faafd37ed2e21e0acd3cc925e9c98c  /tmp/p7b_biz/p7b_udp_src
+ba2faf79f409302d1e542450db402975  /tmp/p7b_biz/p7b_snap.sh
+b2f2e9627bac53bf3b4ab2b565afe872  /tmp/p7b_biz/p7b_pattern.h
+b03222792d20443138515ba2804b0d87  /tmp/p7b_biz/p7b_affinity.h
+--- /tmp/p8_board 与 /tmp/p8_board_0x20 复读 (只读核对) ---
+25af63df72993195469761d167005533  /tmp/p8_board/p7b_mir_dump
+e0d4da5834cb95d67afb0cc523d1f92f  /tmp/p8_board/p7b_udp_src
+25af63df72993195469761d167005533  /tmp/p8_board_0x20/p7b_mir_dump
+e0d4da5834cb95d67afb0cc523d1f92f  /tmp/p8_board_0x20/p7b_udp_src
+37e5c2e6d16bca82f84a68555e07be3d  /tmp/p8_board_0x20/run_arm.sh
+=== FINAL_STATE_END 1791717894.905350000

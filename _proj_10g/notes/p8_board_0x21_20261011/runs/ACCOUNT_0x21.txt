@@ -1,0 +1,13 @@
+== 身份式 (离线复算; 工具 --dma 路径不打印 dW11/dW70 => 逐跑自算) ==
+tag                    K        dW11     pc       dW70    resid=K-8*w64  账: pc+dW70+resid==dW11   acct(c1-c0==w32)
+A0(run0,paylen1472)     1048576  1048576  1048576       0       0        1048576==1048576 True      True
+A1(paylen1472)          1048576  1048576  1048576       0       0        1048576==1048576 True      True
+A2(paylen1472)          1048576  1048576  1048576       0       0        1048576==1048576 True      True
+B1(paylen1470)          1505280  1505280  1505280       0       0        1505280==1505280 True      True
+B2(paylen1470)          1505280  1505280  1505280       0       0        1505280==1505280 True      True
+
+== 关键口径 ==
+· 残余 (0x21) := acc_cnt_r + stg_cnt, 范围 [0,24] B; K ≡ 0 mod 8 且无丢 => 期望残余 == 0
+· 8×(FIFO 字数) 恰等于 pc (工具全排空) => resid == K - pc - dW70; 上表两式同值
+· 五跑 (含 run0) 全部: dW11==K, dW70==0, pc==K, resid==0, acct 闭合 => 逐位闭合
+· OVERALL: ALL CLOSED

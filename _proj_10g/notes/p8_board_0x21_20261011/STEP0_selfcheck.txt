@@ -1,0 +1,98 @@
+### STEP0_BEGIN 2026-10-11T19:16:28+0800
+
+### A) 归档位流 0x21 (派单指定源; 只烧本目录副本)
+fbb6fca81076a28b80fcc7a794de698c4253cc36961b7b682887818e1514892c */d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p8_build_0x21/wrapper_p4.bit
+BIT /d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p8_build_0x21/wrapper_p4.bit size=15431261 mtime=2026-10-11 18:33:32.375013200 +0800
+49:fbb6fca81076a28b80fcc7a794de698c4253cc36961b7b682887818e1514892c *./wrapper_p4.bit
+WANT_0x21=fbb6fca81076a28b80fcc7a794de698c4253cc36961b7b682887818e1514892c
+
+### B) 对端可达 + 部署件 md5 (只读核对: /tmp/p7b_biz 现役 / /tmp/p8_board{,0x20} 上轮件)
+PEER_OK
+a-MS-7850
+Sun Oct 11 07:16:31 PM CST 2026
+ 19:16:31 up 1 day, 21:38,  5 users,  load average: 0.02, 0.02, 0.00
+--- /tmp/p7b_biz (现役工具; 一字未动, 只读核对) ---
+a3faafd37ed2e21e0acd3cc925e9c98c  p7b_udp_src
+ba2faf79f409302d1e542450db402975  p7b_snap.sh
+b2f2e9627bac53bf3b4ab2b565afe872  p7b_pattern.h
+b03222792d20443138515ba2804b0d87  p7b_affinity.h
+--- /tmp/p8_board (镜像轮部署件; 只读核对) ---
+25af63df72993195469761d167005533  /tmp/p8_board/p7b_mir_dump
+4a8e91f7e7e5151e209b8e6acff589d7  /tmp/p8_board/p7b_mir_dump.cpp
+e0d4da5834cb95d67afb0cc523d1f92f  /tmp/p8_board/p7b_udp_src
+f5ff317288b59b3e3c91988ca07446c9  /tmp/p8_board/p7b_udp_src.cpp
+5af4c61911a8cc2cb4821456f5c43845  /tmp/p8_board/p7b_snap.sh
+b2f2e9627bac53bf3b4ab2b565afe872  /tmp/p8_board/p7b_pattern.h
+b03222792d20443138515ba2804b0d87  /tmp/p8_board/p7b_affinity.h
+--- /tmp/p8_board_0x20 (上一轮 0x20 部署件; 只读核对) ---
+25af63df72993195469761d167005533  /tmp/p8_board_0x20/p7b_mir_dump
+e0d4da5834cb95d67afb0cc523d1f92f  /tmp/p8_board_0x20/p7b_udp_src
+5af4c61911a8cc2cb4821456f5c43845  /tmp/p8_board_0x20/p7b_snap.sh
+37e5c2e6d16bca82f84a68555e07be3d  /tmp/p8_board_0x20/run_arm.sh
+--- 仓库侧对照 md5 (现核) ---
+f5ff317288b59b3e3c91988ca07446c9 */d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_udp_src.cpp
+4a8e91f7e7e5151e209b8e6acff589d7 */d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_mir_dump.cpp
+b2f2e9627bac53bf3b4ab2b565afe872 */d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_pattern.h
+b03222792d20443138515ba2804b0d87 */d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_affinity.h
+15eb5384d188a31eeaa40529aff28858 */d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_snap.sh
+--- 对端 g++ ---
+g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+
+### C) 网络面 (每次测量前现取): /32 路由 + 托管位 + link + coalesce + neigh
+netlink error: Operation not permitted
+4: enp1s0f1np1: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc mq state DOWN group default qlen 1000
+    inet 192.168.100.100/32 scope global enp1s0f1np1
+---
+GENERAL.STATE:                          10 (unmanaged)
+GENERAL.CONNECTION:                     --
+---
+192.168.100.2 dev enp1s0f1np1 src 192.168.100.100 uid 1000 
+    cache 
+---
+---
+	Speed: 10000Mb/s
+	Link detected: no
+---
+Adaptive RX: off  TX: n/a
+rx-usecs:	0
+rx-usecs-irq:	0
+rx-usecs-low:	n/a
+
+### C2) 背景泛洪量 (板 -> 对端): NIC rx 计数 2 s 差分 + 板侧 W43/W20 两次读
+     port_rx_bytes: 24003821151964
+     port_rx_packets: 15873114224
+--- 2s later ---
+     port_rx_bytes: 24003821151964
+     port_rx_packets: 15873114224
+W43a=Read 32-bit value at address 0xcc (0x7ccb99b4b0cc): 0xf8dd70a6
+W20a=Read 32-bit value at address 0x70 (0x722641f5e070): 0x07f8c395
+W43b=Read 32-bit value at address 0xcc (0x71b143fa90cc): 0xf8dd70a6
+W20b=Read 32-bit value at address 0x70 (0x76726ba2f070): 0x07f8c395
+
+### D) 板上现态 (烧 0x21 之前) —— 期望: 上一轮留下的 0x20 (受控停流 0x08=0x2)
+MAGIC_0x00=Read 32-bit value at address 0x0 (0x700281496000): 0x50360001
+BID_0x04=Read 32-bit value at address 0x4 (0x7be08bdbc004): 0x00000020
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x768ae5996008): 0x00000002
+UNIMPL_0x14C=Read 32-bit value at address 0x14c (0x717ef792514c): 0xffffffff
+W11_0x4C=Read 32-bit value at address 0x4c (0x7f612a2f204c): 0x004df000
+W70_0x138=Read 32-bit value at address 0x138 (0x7adb7226b138): 0x0016ea44
+MIR_STATUS_0x13C=Read 32-bit value at address 0x13c (0x7ddcda33c13c): 0x001a0000
+MIR_CTRL_0x144=Read 32-bit value at address 0x144 (0x7031c1b8c144): 0x00000000
+CARRIER=0
+	Region 0: Memory at df200000 (32-bit, non-prefetchable) [size=1M]
+	Region 1: Memory at df300000 (32-bit, non-prefetchable) [size=64K]
+		LnkSta:	Speed 5GT/s (downgraded), Width x4
+
+### E) /dev/xdma* 节点 + 残留进程 (对端)
+crw------- 1 root root 235, 36 Oct 11 16:53 /dev/xdma0_c2h_0
+crw------- 1 root root 235, 32 Oct 11 16:53 /dev/xdma0_h2c_0
+crw------- 1 root root 235,  0 Oct 11 16:53 /dev/xdma0_user
+---节点总数---
+21
+PROC_SCAN_DONE
+[155762.076840] xdma:identify_bars: 2 BARs: config 1, user 0, bypass -1.
+[155762.076978] xdma:pci_keep_intx_enabled: 0000:02:00.0: clear INTX_DISABLE, 0x406 -> 0x6.
+[155762.076997] xdma:probe_one: 0000:02:00.0 xdma0, pdev 0x0000000006b9a25b, xdev 0x000000006291ed83, 0x0000000049b40894, usr 16, ch 1,1.
+[155762.077956] xdma:cdev_xvc_init: xcdev 0x00000000d10c2a95, bar 0, offset 0x40000.
+
+### STEP0_END 2026-10-11T19:16:43+0800

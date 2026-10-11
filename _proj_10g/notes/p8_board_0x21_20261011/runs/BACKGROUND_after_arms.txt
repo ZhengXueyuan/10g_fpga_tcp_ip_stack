@@ -1,0 +1,11 @@
+19:24:12.638213 00:0a:35:01:fe:c0 > 00:0f:53:2c:68:01, ethertype IPv4 (0x0800), length 1514: 192.168.100.2.8081 > 192.168.100.100.8081: UDP, length 1472
+19:24:12.638213 00:0a:35:01:fe:c0 > 00:0f:53:2c:68:01, ethertype IPv4 (0x0800), length 1514: 192.168.100.2.8081 > 192.168.100.100.8081: UDP, length 1472
+19:24:12.638213 00:0a:35:01:fe:c0 > 00:0f:53:2c:68:01, ethertype IPv4 (0x0800), length 1514: 192.168.100.2.8081 > 192.168.100.100.8081: UDP, length 1472
+19:24:12.638213 00:0a:35:01:fe:c0 > 00:0f:53:2c:68:01, ethertype IPv4 (0x0800), length 1514: 192.168.100.2.8081 > 192.168.100.100.8081: UDP, length 1472
+--- W43/W20 2s 差分 ---
+W43a=Read 32-bit value at address 0xcc (0x752b089580cc): 0x4684f963
+W20a=Read 32-bit value at address 0x70 (0x752ccfdc9070): 0x026f1591
+W43b=Read 32-bit value at address 0xcc (0x720b9492a0cc): 0x4684f963
+W20b=Read 32-bit value at address 0x70 (0x7156eced7070): 0x026f1591
+PAIR flood W43 mtx_stat_tx_words A=0xf1a4f853 (gen=22) B=0x04615f0e (gen=23) T1=1791717860.924998271 T2=1791717862.937858767
+PAIR flood20 W20 mac_tx_frames A=0x05048ee2 (gen=24) B=0x051d6af1 (gen=25) T1=1791717868.609689476 T2=1791717870.624580263
