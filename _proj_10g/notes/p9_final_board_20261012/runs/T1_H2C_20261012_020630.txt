@@ -1,0 +1,191 @@
+=== T1_DEPLOY 1791741990.927838300
+total 1996
+drwxrwxr-x  2 a    a       4096 Oct 12 02:06 .
+drwxrwxrwt 43 root root  901120 Oct 12 02:06 ..
+-rw-rw-r--  1 a    a    1048576 Oct 12 02:06 h2c_1048576.bin
+-rw-rw-r--  1 a    a       4096 Oct 12 02:06 h2c_4096.bin
+-rw-rw-r--  1 a    a      65536 Oct 12 02:06 h2c_65536.bin
+-rwxrwxr-x  1 a    a      14471 Oct 12 02:06 p7b_snap.sh
+--- snap md5 (与 /tmp/p7b_biz 冻结件对照) ---
+ba2faf79f409302d1e542450db402975  /tmp/p9_final/p7b_snap.sh
+ba2faf79f409302d1e542450db402975  /tmp/p7b_biz/p7b_snap.sh
+--- put t1_remote_step.sh ---
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_final_board_20261012/_tools/t1_remote_step.sh -> /tmp/p9_final/t1_remote_step.sh
+--- 生成 H2C 数据件 (/dev/urandom) + 指纹 ---
+-rw-rw-r-- 1 a a 1048576 Oct 12 02:06 h2c_1048576.bin
+-rw-rw-r-- 1 a a    4096 Oct 12 02:06 h2c_4096.bin
+-rw-rw-r-- 1 a a   65536 Oct 12 02:06 h2c_65536.bin
+46f510929e722780ff8531719bb328e07df968105b70440a8bb8900e4950f510  h2c_1048576.bin
+8876f4d1eaf3bfb6ab6796e8e0f3d0fd6a537669d37d3478e7fa5bb2c92e5945  h2c_4096.bin
+fb07903b57559d62305bdaa1d00c83830db30c4082f8af11e1a9f24ab31c7ab0  h2c_65536.bin
+b5c9563adef91ab3e44d98425b142458  t1_remote_step.sh
+
+############ T1 档 size=4096 ############
+=== T1STEP t1_4096 size=4096 UQ=t1_4096_4096_1791741995 begin=1791741995.090941922
+--- 写前触发式快照 ---
+SNAP_BEGIN t1_4096_pre gen=4
+W53  0xF4   app_rx_bytes           0x00000000
+W54  0xF8   app_mismatch           0x00000000
+W70  0x138  ?                      0x00000000
+W11  0x4C   udpapp_rx_bytes        0x00000000
+W13  0x54   udpapp_mismatch        0x00000000
+W5   0x34   gmii_free_FE           0xdc6d1e50
+W43  0xCC   mtx_stat_tx_words      0xdc661257
+W20  0x70   mac_tx_frames          0x00000015
+SNAP_END t1_4096_pre nff=0
+--- 写前寄存器 ---
+PRE MIR_STATUS=0x00200000 MIR_CTRL=0x00000000 MIR_DMA_CNT=0x00000000 SCRATCH_0x08=0x00000002 BID=0x00000023
+DMESG_LINES_BEFORE=3288
+--- dma_to_device (-d /dev/xdma0_h2c_0 -f h2c_4096.bin -s 4096 -c 1; timeout 60) ---
+dev /dev/xdma0_h2c_0, addr 0x0, aperture 0x0, size 0x1000, offset 0x0, count 1
+host buffer 0x2000 = 0x606aa754e000
+#0: CLOCK_MONOTONIC 0.000073517 sec. write 4096 bytes
+** Avg time device /dev/xdma0_h2c_0, total time 73517 nsec, avg_time = 73517.000000, size = 4096, BW = 55.715004 
+/dev/xdma0_h2c_0 ** Average BW = 4096, 55.715004
+DMA_TO_DEVICE_RC=0 UQ=t1_4096_4096_1791741995
+ELAPSED_SEC=0.002030
+DMESG_LINES_AFTER=3288
+--- dmesg 新增行 (逐字; 无则 NEWDMESG_COUNT=0) ---
+NEWDMESG_COUNT=0
+--- dmesg 尾部 12 行 (整段看上下文) ---
+[188572.650435] pci 0000:02:00.0: BAR 1 [mem 0xdf300000-0xdf30ffff]: assigned
+[188572.650516] serial 0000:02:00.0: enabling device (0000 -> 0002)
+[188572.650736] xdma:xdma_device_open: xdma device 0000:02:00.0, 0x0000000006b9a25b.
+[188572.650814] xdma:map_single_bar: BAR0 at 0xdf200000 mapped at 0x0000000003a6375a, length=1048576(/1048576)
+[188572.650828] xdma:map_single_bar: BAR1 at 0xdf300000 mapped at 0x0000000047cda06f, length=65536(/65536)
+[188572.650833] xdma:map_bars: config bar 1, pos 1.
+[188572.650835] xdma:identify_bars: 2 BARs: config 1, user 0, bypass -1.
+[188572.650962] xdma:pci_keep_intx_enabled: 0000:02:00.0: clear INTX_DISABLE, 0x406 -> 0x6.
+[188572.650981] xdma:probe_one: 0000:02:00.0 xdma0, pdev 0x0000000006b9a25b, xdev 0x000000006291ed83, 0x0000000049b40894, usr 16, ch 1,1.
+[188572.651998] xdma:cdev_xvc_init: xcdev 0x00000000d10c2a95, bar 0, offset 0x40000.
+[188602.787182] sfc 0000:01:00.1 enp1s0f1np1: link down
+[188602.906056] sfc 0000:01:00.1 enp1s0f1np1: link down
+--- 写后寄存器 ---
+POST MIR_STATUS=0x00200000 MIR_CTRL=0x00000000 MIR_DMA_CNT=0x00000000 SCRATCH_0x08=0x00000002 BID=0x00000023
+--- 写后触发式快照 ---
+SNAP_BEGIN t1_4096_post gen=5
+W53  0xF4   app_rx_bytes           0x00000000
+W54  0xF8   app_mismatch           0x00000000
+W70  0x138  ?                      0x00000000
+W11  0x4C   udpapp_rx_bytes        0x00000000
+W13  0x54   udpapp_mismatch        0x00000000
+W5   0x34   gmii_free_FE           0xdd6c68a7
+W43  0xCC   mtx_stat_tx_words      0xdd655c0c
+W20  0x70   mac_tx_frames          0x00000015
+SNAP_END t1_4096_post nff=0
+=== T1STEP_END t1_4096 UQ=t1_4096_4096_1791741995 end=1791741995.236777170
+LOCAL_STEP_RC=0 (size=4096)
+
+############ T1 档 size=65536 ############
+=== T1STEP t1_65536 size=65536 UQ=t1_65536_65536_1791741996 begin=1791741996.108938644
+--- 写前触发式快照 ---
+SNAP_BEGIN t1_65536_pre gen=6
+W53  0xF4   app_rx_bytes           0x00000000
+W54  0xF8   app_mismatch           0x00000000
+W70  0x138  ?                      0x00000000
+W11  0x4C   udpapp_rx_bytes        0x00000000
+W13  0x54   udpapp_mismatch        0x00000000
+W5   0x34   gmii_free_FE           0xe5e82734
+W43  0xCC   mtx_stat_tx_words      0xe5e1152f
+W20  0x70   mac_tx_frames          0x00000015
+SNAP_END t1_65536_pre nff=0
+--- 写前寄存器 ---
+PRE MIR_STATUS=0x00200000 MIR_CTRL=0x00000000 MIR_DMA_CNT=0x00000000 SCRATCH_0x08=0x00000002 BID=0x00000023
+DMESG_LINES_BEFORE=3288
+--- dma_to_device (-d /dev/xdma0_h2c_0 -f h2c_65536.bin -s 65536 -c 1; timeout 60) ---
+dev /dev/xdma0_h2c_0, addr 0x0, aperture 0x0, size 0x10000, offset 0x0, count 1
+host buffer 0x11000 = 0x575e9cd34000
+#0: CLOCK_MONOTONIC 0.000113364 sec. write 65536 bytes
+** Avg time device /dev/xdma0_h2c_0, total time 113364 nsec, avg_time = 113364.000000, size = 65536, BW = 578.102417 
+/dev/xdma0_h2c_0 ** Average BW = 65536, 578.102417
+DMA_TO_DEVICE_RC=0 UQ=t1_65536_65536_1791741996
+ELAPSED_SEC=0.002075
+DMESG_LINES_AFTER=3288
+--- dmesg 新增行 (逐字; 无则 NEWDMESG_COUNT=0) ---
+NEWDMESG_COUNT=0
+--- dmesg 尾部 12 行 (整段看上下文) ---
+[188572.650435] pci 0000:02:00.0: BAR 1 [mem 0xdf300000-0xdf30ffff]: assigned
+[188572.650516] serial 0000:02:00.0: enabling device (0000 -> 0002)
+[188572.650736] xdma:xdma_device_open: xdma device 0000:02:00.0, 0x0000000006b9a25b.
+[188572.650814] xdma:map_single_bar: BAR0 at 0xdf200000 mapped at 0x0000000003a6375a, length=1048576(/1048576)
+[188572.650828] xdma:map_single_bar: BAR1 at 0xdf300000 mapped at 0x0000000047cda06f, length=65536(/65536)
+[188572.650833] xdma:map_bars: config bar 1, pos 1.
+[188572.650835] xdma:identify_bars: 2 BARs: config 1, user 0, bypass -1.
+[188572.650962] xdma:pci_keep_intx_enabled: 0000:02:00.0: clear INTX_DISABLE, 0x406 -> 0x6.
+[188572.650981] xdma:probe_one: 0000:02:00.0 xdma0, pdev 0x0000000006b9a25b, xdev 0x000000006291ed83, 0x0000000049b40894, usr 16, ch 1,1.
+[188572.651998] xdma:cdev_xvc_init: xcdev 0x00000000d10c2a95, bar 0, offset 0x40000.
+[188602.787182] sfc 0000:01:00.1 enp1s0f1np1: link down
+[188602.906056] sfc 0000:01:00.1 enp1s0f1np1: link down
+--- 写后寄存器 ---
+POST MIR_STATUS=0x00200000 MIR_CTRL=0x00000000 MIR_DMA_CNT=0x00000000 SCRATCH_0x08=0x00000002 BID=0x00000023
+--- 写后触发式快照 ---
+SNAP_BEGIN t1_65536_post gen=7
+W53  0xF4   app_rx_bytes           0x00000000
+W54  0xF8   app_mismatch           0x00000000
+W70  0x138  ?                      0x00000000
+W11  0x4C   udpapp_rx_bytes        0x00000000
+W13  0x54   udpapp_mismatch        0x00000000
+W5   0x34   gmii_free_FE           0xe6e68f00
+W43  0xCC   mtx_stat_tx_words      0xe6df7c58
+W20  0x70   mac_tx_frames          0x00000015
+SNAP_END t1_65536_post nff=0
+=== T1STEP_END t1_65536 UQ=t1_65536_65536_1791741996 end=1791741996.254293704
+LOCAL_STEP_RC=0 (size=65536)
+
+############ T1 档 size=1048576 ############
+=== T1STEP t1_1048576 size=1048576 UQ=t1_1048576_1048576_1791741997 begin=1791741997.283166584
+--- 写前触发式快照 ---
+SNAP_BEGIN t1_1048576_pre gen=8
+W53  0xF4   app_rx_bytes           0x00000000
+W54  0xF8   app_mismatch           0x00000000
+W70  0x138  ?                      0x00000000
+W11  0x4C   udpapp_rx_bytes        0x00000000
+W13  0x54   udpapp_mismatch        0x00000000
+W5   0x34   gmii_free_FE           0xf0d7e440
+W43  0xCC   mtx_stat_tx_words      0xf0d0cb41
+W20  0x70   mac_tx_frames          0x00000015
+SNAP_END t1_1048576_pre nff=0
+--- 写前寄存器 ---
+PRE MIR_STATUS=0x00200000 MIR_CTRL=0x00000000 MIR_DMA_CNT=0x00000000 SCRATCH_0x08=0x00000002 BID=0x00000023
+DMESG_LINES_BEFORE=3288
+--- dma_to_device (-d /dev/xdma0_h2c_0 -f h2c_1048576.bin -s 1048576 -c 1; timeout 60) ---
+dev /dev/xdma0_h2c_0, addr 0x0, aperture 0x0, size 0x100000, offset 0x0, count 1
+host buffer 0x101000 = 0x7843c16fe000
+#0: CLOCK_MONOTONIC 0.000808839 sec. write 1048576 bytes
+** Avg time device /dev/xdma0_h2c_0, total time 808839 nsec, avg_time = 808839.000000, size = 1048576, BW = 1296.396484 
+/dev/xdma0_h2c_0 ** Average BW = 1048576, 1296.396484
+DMA_TO_DEVICE_RC=0 UQ=t1_1048576_1048576_1791741997
+ELAPSED_SEC=0.003159
+DMESG_LINES_AFTER=3288
+--- dmesg 新增行 (逐字; 无则 NEWDMESG_COUNT=0) ---
+NEWDMESG_COUNT=0
+--- dmesg 尾部 12 行 (整段看上下文) ---
+[188572.650435] pci 0000:02:00.0: BAR 1 [mem 0xdf300000-0xdf30ffff]: assigned
+[188572.650516] serial 0000:02:00.0: enabling device (0000 -> 0002)
+[188572.650736] xdma:xdma_device_open: xdma device 0000:02:00.0, 0x0000000006b9a25b.
+[188572.650814] xdma:map_single_bar: BAR0 at 0xdf200000 mapped at 0x0000000003a6375a, length=1048576(/1048576)
+[188572.650828] xdma:map_single_bar: BAR1 at 0xdf300000 mapped at 0x0000000047cda06f, length=65536(/65536)
+[188572.650833] xdma:map_bars: config bar 1, pos 1.
+[188572.650835] xdma:identify_bars: 2 BARs: config 1, user 0, bypass -1.
+[188572.650962] xdma:pci_keep_intx_enabled: 0000:02:00.0: clear INTX_DISABLE, 0x406 -> 0x6.
+[188572.650981] xdma:probe_one: 0000:02:00.0 xdma0, pdev 0x0000000006b9a25b, xdev 0x000000006291ed83, 0x0000000049b40894, usr 16, ch 1,1.
+[188572.651998] xdma:cdev_xvc_init: xcdev 0x00000000d10c2a95, bar 0, offset 0x40000.
+[188602.787182] sfc 0000:01:00.1 enp1s0f1np1: link down
+[188602.906056] sfc 0000:01:00.1 enp1s0f1np1: link down
+--- 写后寄存器 ---
+POST MIR_STATUS=0x00200000 MIR_CTRL=0x00000000 MIR_DMA_CNT=0x00000000 SCRATCH_0x08=0x00000002 BID=0x00000023
+--- 写后触发式快照 ---
+SNAP_BEGIN t1_1048576_post gen=9
+W53  0xF4   app_rx_bytes           0x00000000
+W54  0xF8   app_mismatch           0x00000000
+W70  0x138  ?                      0x00000000
+W11  0x4C   udpapp_rx_bytes        0x00000000
+W13  0x54   udpapp_mismatch        0x00000000
+W5   0x34   gmii_free_FE           0xf1da1d2f
+W43  0xCC   mtx_stat_tx_words      0xf1d3038b
+W20  0x70   mac_tx_frames          0x00000015
+SNAP_END t1_1048576_post nff=0
+=== T1STEP_END t1_1048576 UQ=t1_1048576_1048576_1791741997 end=1791741997.429882264
+LOCAL_STEP_RC=0 (size=1048576)
+
+=== T1_DONE 1791741997.332724800

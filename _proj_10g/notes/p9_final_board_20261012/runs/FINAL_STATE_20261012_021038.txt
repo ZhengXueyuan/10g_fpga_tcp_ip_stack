@@ -1,0 +1,77 @@
+=== FINAL_STATE_BEGIN 1791742238.491441700
+--- ① 停流前: NIC 收速率 (2 s 窗) + carrier ---
+     port_rx_bytes: 25424583063552
+     port_rx_packets: 16809061364
+-- 2s later --
+     port_rx_bytes: 25424583063552
+     port_rx_packets: 16809061364
+CARRIER=1
+--- ② 写 0x08 = 0x2 (受控停流) ---
+Write 32-bits value 0x00000002 to 0x8 (0x0x7c03217bd008)
+--- ③ 写 MIR_CTRL = 0 (cap_en=0 / clr 电平 0 / src_sel=0 / dma_en=0) ---
+Write 32-bits value 0x00000000 to 0x144 (0x0x7f3e843cd144)
+--- ④ 撤临时 fq 根 qdisc (回 mq) ---
+qdisc mq 0: root 
+qdisc fq_codel 0: parent :4 limit 10240p flows 1024 quantum 1514 target 5ms interval 100ms memory_limit 32Mb ecn drop_batch 64 
+qdisc fq_codel 0: parent :3 limit 10240p flows 1024 quantum 1514 target 5ms interval 100ms memory_limit 32Mb ecn drop_batch 64 
+--- ⑤ 停流后: NIC 速率 (2 s 窗) + carrier + link ---
+netlink error: Operation not permitted
+     port_rx_bytes: 25424583063552
+     port_rx_packets: 16809061364
+-- 2s later --
+     port_rx_bytes: 25424583063552
+     port_rx_packets: 16809061364
+CARRIER=0
+LINK=Link detected: no
+--- ⑥ 最终态寄存器 ---
+MAGIC_0x00=Read 32-bit value at address 0x0 (0x71457ce73000): 0x50360001
+BID_0x04=Read 32-bit value at address 0x4 (0x7f8f6a0d8004): 0x00000023
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x74ef7ba65008): 0x00000002
+MIR_STATUS_0x13C=Read 32-bit value at address 0x13c (0x799ec446c13c): 0x00200000
+MIR_CTRL_0x144=Read 32-bit value at address 0x144 (0x7fa632d71144): 0x00000002
+MIR_DMA_CNT_0x148=Read 32-bit value at address 0x148 (0x790df4a72148): 0x00010002
+UNIMPL_0x14C=Read 32-bit value at address 0x14c (0x7b731bf6f14c): 0xffffffff
+--- ⑦ 最终态快照 (触发式) ---
+SNAP_BEGIN final gen=43
+W53  0xF4   app_rx_bytes           0x00240008
+W54  0xF8   app_mismatch           0x00000000
+W70  0x138  mir_drop_bytes         0x00000000
+W11  0x4C   udpapp_rx_bytes        0x00000000
+W13  0x54   udpapp_mismatch        0x00000000
+W5   0x34   gmii_free_FE           0x41c538f1
+W43  0xCC   mtx_stat_tx_words      0x41b82e7a
+W20  0x70   mac_tx_frames          0x000014a7
+SNAP_END final nff=0
+--- ⑧ 残留进程 (对端) ---
+PROC_SCAN_DONE
+--- ⑨ /tmp/p7b_biz 复读 (全程未动; 开工基线 = a3faafd3…/ba2faf79…/b2f2e962…/b0322279…) ---
+a3faafd37ed2e21e0acd3cc925e9c98c  /tmp/p7b_biz/p7b_udp_src
+ba2faf79f409302d1e542450db402975  /tmp/p7b_biz/p7b_snap.sh
+b2f2e9627bac53bf3b4ab2b565afe872  /tmp/p7b_biz/p7b_pattern.h
+b03222792d20443138515ba2804b0d87  /tmp/p7b_biz/p7b_affinity.h
+--- ⑩ 历史目录只读核对 (未动) ---
+5ea97067cd90f93c8c47d1f272b04667  /tmp/p9_board_0x23/p7b_mir_dump
+e0d4da5834cb95d67afb0cc523d1f92f  /tmp/p9_board_0x23/p7b_udp_src
+6325658a0ff62cf6d26095e567b084bc  /tmp/p9_board_0x23/p7b_snap.sh
+25af63df72993195469761d167005533  /tmp/p8_tcp_0x21/p7b_mir_dump
+79be2a09024206b7c678dc13a3b9051d  /tmp/p8_tcp_0x21/p7b_tcp_src
+--- ⑪ 对端改动台账 (全部可回退) ---
+1) 新增目录 /tmp/p9_final/ (本轮部署: 工具只读拷贝 + t1/t2 远端脚本 + h2c_*.bin + mir_*/src_*/ss_* 日志与抓样); 回退 = rm -rf /tmp/p9_final
+2) 板上 0x08: 0x2 → 0x0 (T2 恢复 carrier; 02:09 段) → 已写回 0x2 (本步 ②)
+3) 板上 MIR_CTRL (0x144): 被 t2 工具 arm/收尾若干次 → 已写回 0x0 (本步 ③)
+4) 临时 fq 根 qdisc (T2 pacing 前置) → 已撤 (本步 ④)
+5) sysctl/nmcli/coalesce 未动: 10 (unmanaged)
+Adaptive RX: off  TX: n/a
+rx-usecs:	0
+6) 网络面:     inet 192.168.100.100/32 scope global enp1s0f1np1
+--- ⑫ dmesg 尾部 (本轮是否有新报错; T1 三档 0 新行) ---
+3289
+[188572.651998] xdma:cdev_xvc_init: xcdev 0x00000000d10c2a95, bar 0, offset 0x40000.
+[188602.787182] sfc 0000:01:00.1 enp1s0f1np1: link down
+[188602.906056] sfc 0000:01:00.1 enp1s0f1np1: link down
+[189074.210219] sfc 0000:01:00.1 enp1s0f1np1: link down
+[189074.210838] sfc 0000:01:00.1 enp1s0f1np1: link down
+[189074.210842] sfc 0000:01:00.1 enp1s0f1np1: link up at 10000Mbps full-duplex (MTU 1500)
+[189171.227465] sfc 0000:01:00.1 enp1s0f1np1: link down
+[189171.228450] sfc 0000:01:00.1 enp1s0f1np1: link down
+=== FINAL_STATE_END 1791742257.903106500

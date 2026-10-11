@@ -1,0 +1,14 @@
+--- SS_SAMPLE_1 1791742155.900590968
+State Recv-Q Send-Q   Local Address:Port   Peer Address:PortProcess
+ESTAB 14600  206664 192.168.100.100:43484 192.168.100.2:8080 users:(("p7b_tcp_src",pid=317125,fd=3))
+	 cubic rto:201 rtt:0.067/0.01 ato:40 mss:1460 pmtu:1500 rcvmss:1460 advmss:1460 cwnd:48 bytes_sent:103224 bytes_acked:55481 bytes_received:191260 segs_out:136 segs_in:173 data_segs_out:71 data_segs_in:134 send 8367761194bps pacing_rate 20000000bps/20000000bps delivery_rate 23952832bps delivered:39 busy:15ms unacked:33 rcv_rtt:0.023 rcv_space:68620 rcv_ssthresh:133424 notsent:158920 minrtt:0.035 rcv_ooopack:22 snd_wnd:49152
+--- SS_SAMPLE_2 1791742156.173641858
+State Recv-Q Send-Q   Local Address:Port   Peer Address:PortProcess
+ESTAB 0      307620 192.168.100.100:43484 192.168.100.2:8080 users:(("p7b_tcp_src",pid=317125,fd=3))
+	 cubic rto:201 rtt:0.083/0.015 ato:40 mss:1460 pmtu:1500 rcvmss:1460 advmss:1460 cwnd:66 bytes_sent:779956 bytes_acked:740957 bytes_received:1137340 segs_out:1186 segs_in:1659 data_segs_out:538 data_segs_in:1147 send 9287710843bps lastsnd:4 lastrcv:4 lastack:1 pacing_rate 20000000bps/20000000bps delivery_rate 21539880bps delivered:512 busy:292ms rwnd_limited:7ms(2.4%) unacked:27 rcv_rtt:0.023 rcv_space:68620 rcv_ssthresh:138954 notsent:268620 minrtt:0.035 rcv_ooopack:22 snd_wnd:49152
+--- SS_SAMPLE_3 1791742156.451402201
+State Recv-Q Send-Q Local Address:Port Peer Address:PortProcess
+--- SS_SAMPLE_4 1791742156.723613076
+State Recv-Q Send-Q Local Address:Port Peer Address:PortProcess
+--- SS_SAMPLE_5 1791742156.996445464
+State Recv-Q Send-Q Local Address:Port Peer Address:PortProcess

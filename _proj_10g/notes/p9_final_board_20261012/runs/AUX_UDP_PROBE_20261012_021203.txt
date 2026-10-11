@@ -1,0 +1,34 @@
+=== AUX_BEGIN 1791742323.102677600
+e0d4da5834cb95d67afb0cc523d1f92f  p7b_udp_src
+e0d4da5834cb95d67afb0cc523d1f92f  /tmp/p9_board_0x23/p7b_udp_src
+--- 探针前基线 (NIC 2 s 窗 + CARRIER) ---
+     port_rx_bytes: 25424583063552
+     port_rx_packets: 16809061364
+-- 2s later --
+     port_rx_bytes: 25424583063552
+     port_rx_packets: 16809061364
+CARRIER=0
+--- ① 发小 UDP 探针 (8081; 64 B × 少量; 停流态下) ---
+PIN_RULE=avoid-nic PIN_DEGRADED=none PIN_CPU=5 PIN_CORES_ONLINE=0-7 PIN_NIC_IFACE=enp1s0f0np0,enp1s0f1np1 PIN_NIC_CPUS=0,1,2,3,4,5 PIN_NIC_EXCLUDED=none PIN_CORE_LOAD=184949995 PIN_ALLOWED_MASK=20 PIN_GETCPU_START=5 PIN_FREQ_START_KHZ=3798289 PIN_GOV=schedutil PIN_NIC_IRQLINES=12 PIN_NIC_IFACE_SRC=auto PIN_TUPLE_ORDER=own_sib_t PIN_PAIR_RULE=n/a PIN_PAIR_DEGRADED=n/a PIN_CPU_IO=n/a PIN_CPU_WORK=n/a PIN_PC_IO=n/a PIN_PC_WORK=n/a PIN_PAIR_EXCL=n/a PIN_PAIR_REQ=n/a
+UDP_SUM pkts=64 pay_bytes=4096 dur_s=0.058 pps=1097 pay_Mbps=0.561 wire_Mbps=0.930 off_start=0 off_end=4096 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+--- ② 恢复 carrier (0x08=0) 后看泛洪是否起 (3 s 窗) ---
+Write 32-bits value 0x00000000 to 0x8 (0x0x739049a6c008)
+     port_rx_bytes: 25424583063552
+     port_rx_packets: 16809061364
+-- 3s later --
+     port_rx_bytes: 25424583063552
+     port_rx_packets: 16809061364
+CARRIER=1
+--- ③ 收尾: 0x08=0x2 (受控停流) + 冻结复核 ---
+Write 32-bits value 0x00000002 to 0x8 (0x0x7230e9acf008)
+     port_rx_bytes: 25424583063552
+     port_rx_packets: 16809061364
+-- 2s later --
+     port_rx_bytes: 25424583063552
+     port_rx_packets: 16809061364
+CARRIER=0
+--- 板上寄存器复核 ---
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x70e6eeab4008): 0x00000002
+MIR_CTRL_0x144=Read 32-bit value at address 0x144 (0x7a9fb2fff144): 0x00000002
+BID_0x04=Read 32-bit value at address 0x4 (0x7836a0e52004): 0x00000023
+=== AUX_END 1791742347.024291900

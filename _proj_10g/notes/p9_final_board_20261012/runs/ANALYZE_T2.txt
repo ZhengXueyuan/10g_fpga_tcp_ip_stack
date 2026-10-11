@@ -1,0 +1,8 @@
+SELFTEST off0_15    7f0b02e536a14ed61ab049b856add63f OK
+SELFTEST off1460_67 0300422d9b47cac0 OK
+SELFTEST_PASS=True  (FALSE ⇒ 本脚本无资格判, 下面读数全部作废)
+T2A: pc=1048576 md5=c859f418aa6da7f69e85792ab5c784d1 first_mismatch=-1 mism_bytes=0  head16=daaea7409304eb73bf15ec1df308739a  tail16=33e3b4d1ff343385f57515fb54b9a0be
+T2B: pc=1048576 md5=c859f418aa6da7f69e85792ab5c784d1 first_mismatch=-1 mism_bytes=0  head16=daaea7409304eb73bf15ec1df308739a  tail16=33e3b4d1ff343385f57515fb54b9a0be
+T2C: pc=262144 md5=d7ce0acfc25981fdfb6920c34c8d04d6 first_mismatch=-1 mism_bytes=0  head16=daaea7409304eb73bf15ec1df308739a  tail16=67122b79c4007195c99542855ec3e006
+MD5_T2A_EQ_T2B=True  (T2A=c859f418aa6da7f69e85792ab5c784d1 T2B=c859f418aa6da7f69e85792ab5c784d1)
+T2C: 抓取样尾后 8 B (图案 [262144,262152)) = a6af48c234f08abf (残拍见证: 这 8 B 只进 式A)

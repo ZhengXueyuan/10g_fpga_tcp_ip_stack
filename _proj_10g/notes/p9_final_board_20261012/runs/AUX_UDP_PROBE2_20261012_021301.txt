@@ -1,0 +1,39 @@
+=== AUX2_BEGIN 1791742381.209905300
+--- ① 邻居表 / 路由 / NIC ---
+192.168.100.2 dev enp1s0f1np1 src 192.168.100.100 uid 1000 
+    cache 
+CARRIER=0
+--- ② 先恢复 carrier (0x08=0) ---
+Write 32-bits value 0x00000000 to 0x8 (0x0x702394bab008)
+netlink error: Operation not permitted
+CARRIER=1
+LINK=Link detected: yes
+--- ③ 起测前 W11/W13 (板侧 UDP app 账) ---
+SNAP_BEGIN pre gen=44
+W11  0x4C   udpapp_rx_bytes        0x00000000
+W13  0x54   udpapp_mismatch        0x00000000
+SNAP_END pre nff=0
+--- ④ 发 UDP 探针 (8081; 4096 B) ---
+UDP_SUM pkts=64 pay_bytes=4096 dur_s=0.058 pps=1108 pay_Mbps=0.567 wire_Mbps=0.939 off_start=0 off_end=4096 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+--- ⑤ 探针后 W11/W13 + 邻居表 ---
+SNAP_BEGIN post gen=45
+W11  0x4C   udpapp_rx_bytes        0x00001000
+W13  0x54   udpapp_mismatch        0x00000000
+SNAP_END post nff=0
+192.168.100.2 dev enp1s0f1np1 lladdr 00:0a:35:01:fe:c0 REACHABLE 
+--- ⑥ NIC 3 s 窗 (泛洪是否起) ---
+     port_rx_bytes: 25429092325120
+     port_rx_packets: 16812031885
+-- 3s later --
+     port_rx_bytes: 25432775519866
+     port_rx_packets: 16814458232
+--- ⑦ 收尾: 0x08=0x2 + 冻结复核 + 寄存器 ---
+Write 32-bits value 0x00000002 to 0x8 (0x0x7289a881a008)
+CARRIER=0
+     port_rx_bytes: 25435087301698
+-- 2s later --
+     port_rx_bytes: 25435087301698
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x72ce7de3e008): 0x00000002
+MIR_CTRL_0x144=Read 32-bit value at address 0x144 (0x7b8284dc3144): 0x00000002
+BID_0x04=Read 32-bit value at address 0x4 (0x7adc8d28a004): 0x00000023
+=== AUX2_END 1791742404.587065200

@@ -1,0 +1,64 @@
+=== STEP0_BEGIN 1791741892.437741300
+--- ① 归档位流 sha256 (本轮不烧; 期望 066a3923…3126) ---
+-rw-r--r-- 1 zhxue 197609 15431261 Oct 12 00:55 /d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_build_0x23/wrapper_p4.bit
+066a3923351b8f539a986b88d96f1093a686da57f95938e0c8837b13d30a3126 */d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_build_0x23/wrapper_p4.bit
+--- (副本目录 p9_board_0x23/burn) ---
+066a3923351b8f539a986b88d96f1093a686da57f95938e0c8837b13d30a3126 */d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_board_0x23_20261011/burn/wrapper_p4_0x23.bit
+--- ② 对端连通 + 本机/对端时钟 ---
+1791741893.481190539
+ 02:04:53 up 2 days,  4:27,  6 users,  load average: 0.00, 0.06, 0.08
+--- ③ 残留进程 ---
+PROC_SCAN_DONE
+--- ④ 板上身份五判据 (现读) ---
+MAGIC_0x00=Read 32-bit value at address 0x0 (0x790c5753f000): 0x50360001
+BID_0x04=Read 32-bit value at address 0x4 (0x79e65d95f004): 0x00000023
+UNIMPL_0x14C=Read 32-bit value at address 0x14c (0x7d2c59f5014c): 0xffffffff
+MIR_STATUS_0x13C=Read 32-bit value at address 0x13c (0x73a4e914e13c): 0x00200000
+MIR_CTRL_0x144=Read 32-bit value at address 0x144 (0x7e8e3224f144): 0x00000000
+MIR_DMA_CNT_0x148=Read 32-bit value at address 0x148 (0x750d60757148): 0x00000000
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x7c8df6efa008): 0x00000002
+--- 71 字窗口逐字扫 (0x20..0x138; 期望 0 个 ffffffff) ---
+WINDOW_SCAN_NFF=0
+--- 几何 71 字: 0x20+4*71 = 0x13C = MIR_STATUS (窗口内最后一字) ---
+--- PCIe 面 ---
+02:00.0 Serial controller: Xilinx Corporation Device 9034
+	Region 0: Memory at df200000 (32-bit, non-prefetchable) [size=1M]
+	Region 1: Memory at df300000 (32-bit, non-prefetchable) [size=64K]
+crw------- 1 root root 235, 36 Oct 12 02:00 /dev/xdma0_c2h_0
+crw------- 1 root root 235,  1 Oct 12 02:00 /dev/xdma0_control
+crw------- 1 root root 235, 32 Oct 12 02:00 /dev/xdma0_h2c_0
+crw------- 1 root root 235,  0 Oct 12 02:00 /dev/xdma0_user
+--- ⑤ 现态快照 (触发式; W53 W54 W70 W11 W13 W5) ---
+SNAP_BEGIN step0 gen=3
+W53  0xF4   app_rx_bytes           0x00000000
+W54  0xF8   app_mismatch           0x00000000
+W70  0x138  mir_drop_bytes         0x00000000
+W11  0x4C   udpapp_rx_bytes        0x00000000
+W13  0x54   udpapp_mismatch        0x00000000
+W5   0x34   gmii_free_FE           0x68c13258
+SNAP_END step0 nff=0
+--- ⑥ NIC / 网络面 / carrier ---
+netlink error: Operation not permitted
+    inet 192.168.100.100/32 scope global enp1s0f1np1
+10 (unmanaged)
+CARRIER=0
+	Speed: 10000Mb/s
+	Link detected: no
+     port_rx_bytes: 25424577469502
+     port_rx_packets: 16809056108
+--- ⑦ dmesg 尾部基线 (T1 对照用) ---
+3288
+[188572.650828] xdma:map_single_bar: BAR1 at 0xdf300000 mapped at 0x0000000047cda06f, length=65536(/65536)
+[188572.650833] xdma:map_bars: config bar 1, pos 1.
+[188572.650835] xdma:identify_bars: 2 BARs: config 1, user 0, bypass -1.
+[188572.650962] xdma:pci_keep_intx_enabled: 0000:02:00.0: clear INTX_DISABLE, 0x406 -> 0x6.
+[188572.650981] xdma:probe_one: 0000:02:00.0 xdma0, pdev 0x0000000006b9a25b, xdev 0x000000006291ed83, 0x0000000049b40894, usr 16, ch 1,1.
+[188572.651998] xdma:cdev_xvc_init: xcdev 0x00000000d10c2a95, bar 0, offset 0x40000.
+[188602.787182] sfc 0000:01:00.1 enp1s0f1np1: link down
+[188602.906056] sfc 0000:01:00.1 enp1s0f1np1: link down
+--- /tmp/p7b_biz md5 基线 (全程只读核对) ---
+a3faafd37ed2e21e0acd3cc925e9c98c  /tmp/p7b_biz/p7b_udp_src
+ba2faf79f409302d1e542450db402975  /tmp/p7b_biz/p7b_snap.sh
+b2f2e9627bac53bf3b4ab2b565afe872  /tmp/p7b_biz/p7b_pattern.h
+b03222792d20443138515ba2804b0d87  /tmp/p7b_biz/p7b_affinity.h
+=== STEP0_END 1791741903.331553400

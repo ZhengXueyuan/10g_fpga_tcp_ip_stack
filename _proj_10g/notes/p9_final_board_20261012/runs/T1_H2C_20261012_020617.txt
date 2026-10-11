@@ -1,0 +1,32 @@
+=== T1_DEPLOY 1791741977.156977300
+total 904
+drwxrwxr-x  2 a    a      4096 Oct 12 02:06 .
+drwxrwxrwt 43 root root 901120 Oct 12 02:06 ..
+-rwxrwxr-x  1 a    a     14471 Oct 12 02:06 p7b_snap.sh
+--- snap md5 (与 /tmp/p7b_biz 冻结件对照) ---
+ba2faf79f409302d1e542450db402975  /tmp/p9_final/p7b_snap.sh
+ba2faf79f409302d1e542450db402975  /tmp/p7b_biz/p7b_snap.sh
+--- put t1_remote_step.sh ---
+peer_ssh: FileNotFoundError: [WinError 3] 系统找不到指定的路径。: '/d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_final_board_20261012/_tools/t1_remote_step.sh'
+--- 生成 H2C 数据件 (/dev/urandom) + 指纹 ---
+md5sum: t1_remote_step.sh: No such file or directory
+-rw-rw-r-- 1 a a 1048576 Oct 12 02:06 h2c_1048576.bin
+-rw-rw-r-- 1 a a    4096 Oct 12 02:06 h2c_4096.bin
+-rw-rw-r-- 1 a a   65536 Oct 12 02:06 h2c_65536.bin
+e374b3599b716c006032ec346ca09541c45a714433f3fb223929f12950dd474b  h2c_1048576.bin
+00fe04f032b81cae346b9b2d33ddac041a2587064e9a70b34e4c4a20b733e625  h2c_4096.bin
+03715bbd06e4af43ddd878193682626d0cf59d6bf9f6fbb4cdb6080f7b9c1037  h2c_65536.bin
+
+############ T1 档 size=4096 ############
+bash: /tmp/p9_final/t1_remote_step.sh: No such file or directory
+LOCAL_STEP_RC=127 (size=4096)
+
+############ T1 档 size=65536 ############
+bash: /tmp/p9_final/t1_remote_step.sh: No such file or directory
+LOCAL_STEP_RC=127 (size=65536)
+
+############ T1 档 size=1048576 ############
+bash: /tmp/p9_final/t1_remote_step.sh: No such file or directory
+LOCAL_STEP_RC=127 (size=1048576)
+
+=== T1_DONE 1791741983.064611700
