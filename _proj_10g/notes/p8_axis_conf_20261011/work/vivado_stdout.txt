@@ -1,0 +1,229 @@
+
+****** Vivado v2025.2 (64-bit)
+  **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+  **** Start of session at: Sun Oct 11 20:53:56 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source {D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p8_axis_conf_20261011\work\mk_axis_ip.tcl}
+# set wd [file normalize [file dirname [info script]]]
+# puts "P8AXIS_WD = $wd"
+P8AXIS_WD = D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p8_axis_conf_20261011/work
+# puts "P8AXIS_VIVADO = [version -short]"
+P8AXIS_VIVADO = 2025.2
+# create_project -force scratch_axis $wd/prj -part xcku5p-ffvb676-1-e
+# set_property target_language Verilog [current_project]
+# puts "P8AXIS_PART = [get_property PART [current_project]]"
+P8AXIS_PART = xcku5p-ffvb676-1-e
+# set BASE [list \
+#     CONFIG.pcie_blk_locn              {X0Y0} \
+#     CONFIG.pf0_device_id              {9034} \
+#     CONFIG.pf0_subsystem_id           {0007} \
+#     CONFIG.ref_clk_freq               {100_MHz} \
+#     CONFIG.mode_selection             {Basic} \
+#     CONFIG.axi_data_width             {128_bit} \
+#     CONFIG.num_queues                 {1} \
+#     CONFIG.axilite_master_en          {true} \
+#     CONFIG.axilite_master_scale       {Megabytes} \
+#     CONFIG.axilite_master_size        {1} \
+#     CONFIG.pl_link_cap_max_link_speed {8.0_GT/s} \
+#     CONFIG.pl_link_cap_max_link_width {X4} ]
+# proc dump_cfg {ip tag} {
+#     global wd
+#     set fp [open $wd/cfg_${tag}.txt w]
+#     foreach p [lsort [list_property $ip]] {
+#         if {[string match "CONFIG.*" $p]} {
+#             set gv "<err>"; catch {set gv [get_property $p $ip]}
+#             puts $fp "$p = $gv"
+#         }
+#     }
+#     close $fp
+#     puts "P8AXIS_DUMP $tag -> $wd/cfg_${tag}.txt"
+# }
+# proc mp_read {ip name} {
+#     set gv "<err>"; catch {set gv [get_property MODELPARAM_VALUE.${name} $ip]}
+#     return $gv
+# }
+# proc fixed_point {ip desired tag} {
+#     set conv -1
+#     for {set rnd 1} {$rnd <= 8} {incr rnd} {
+#         foreach {k v} $desired { catch {set_property $k $v $ip} e }
+#         set bad 0
+#         foreach {k v} $desired {
+#             set gv "<err>"; catch {set gv [get_property $k $ip]}
+#             if {[string trim $gv] ne [string trim $v]} {
+#                 incr bad
+#                 puts "P8AXIS_RB_MISMATCH ${tag} $k want=<$v> got=<$gv>"
+#             }
+#         }
+#         puts "P8AXIS_ROUND ${tag} #$rnd MISMATCH_N = $bad"
+#         if {$bad == 0} { set conv $rnd ; break }
+#     }
+#     puts "P8AXIS_CONVERGED_AT_ROUND ${tag} = $conv"
+#     return $conv
+# }
+# puts "\nP8AXIS >>>>>>>>>> ARM_MM"
+
+P8AXIS >>>>>>>>>> ARM_MM
+# create_ip -name xdma -vendor xilinx.com -library ip -module_name xdma_mm
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1704] No user IP repositories specified
+INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'C:/AMDDesignTools/2025.2/Vivado/data/ip'.
+# set ipmm [get_ips xdma_mm]
+# set mm_defaults [list]
+# foreach p [lsort [list_property $ipmm]] {
+#     if {[string match "CONFIG.*" $p]} { lappend mm_defaults $p [get_property $p $ipmm] }
+# }
+# puts "P8AXIS_MM_DEFAULTS_CAPTURED = [expr {[llength $mm_defaults]/2}]"
+P8AXIS_MM_DEFAULTS_CAPTURED = 1001
+# dump_cfg $ipmm "mm_defaults"
+P8AXIS_DUMP mm_defaults -> D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p8_axis_conf_20261011/work/cfg_mm_defaults.txt
+# set e ""
+# set rc [catch {set_property -dict $BASE $ipmm} e]
+# puts "P8AXIS_MM_SET_RC = $rc"
+P8AXIS_MM_SET_RC = 0
+# puts "P8AXIS_MM_SET_MSG = <$e>"
+P8AXIS_MM_SET_MSG = <>
+# fixed_point $ipmm $BASE "MM"
+P8AXIS_ROUND MM #1 MISMATCH_N = 0
+P8AXIS_CONVERGED_AT_ROUND MM = 1
+# dump_cfg $ipmm "mm_pre_gen"
+P8AXIS_DUMP mm_pre_gen -> D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p8_axis_conf_20261011/work/cfg_mm_pre_gen.txt
+# puts "\nP8AXIS >>>>>>>>>> ARM_ST"
+
+P8AXIS >>>>>>>>>> ARM_ST
+# create_ip -name xdma -vendor xilinx.com -library ip -module_name xdma_st
+# set ipst [get_ips xdma_st]
+# set e2 ""
+# set rc2 [catch {set_property CONFIG.xdma_axi_intf_mm {AXI_Stream} $ipst} e2]
+# puts "P8AXIS_ST_SET_INTF_RC = $rc2"
+P8AXIS_ST_SET_INTF_RC = 0
+# puts "P8AXIS_ST_SET_INTF_MSG = <$e2>"
+P8AXIS_ST_SET_INTF_MSG = <AXI_Stream>
+# set rb ""
+# catch {set rb [get_property CONFIG.xdma_axi_intf_mm $ipst]}
+# puts "P8AXIS_ST_INTF_READBACK_IMMEDIATE = <$rb>"
+P8AXIS_ST_INTF_READBACK_IMMEDIATE = <AXI_Stream>
+# set DESIRED "$BASE CONFIG.xdma_axi_intf_mm {AXI_Stream}"
+# fixed_point $ipst $DESIRED "ST"
+ERROR: [IP_Flow 19-3461] Value '128_bit' is out of the range for parameter 'AXI Data width(axi_data_width)' for IP 'xdma_st' . Valid values are - 64_bit
+INFO: [IP_Flow 19-3438] Customization errors found on 'xdma_st'. Restoring to previous valid configuration.
+P8AXIS_ROUND ST #1 MISMATCH_N = 0
+P8AXIS_CONVERGED_AT_ROUND ST = 1
+# dump_cfg $ipst "st_pre_gen"
+P8AXIS_DUMP st_pre_gen -> D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p8_axis_conf_20261011/work/cfg_st_pre_gen.txt
+# puts "\nP8AXIS >>>>>>>>>> GENERATE"
+
+P8AXIS >>>>>>>>>> GENERATE
+# set eg ""
+INFO: [IP_Flow 19-1686] Generating 'Instantiation Template' target for IP 'xdma_mm'...
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'xdma_mm'...
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'xdma_mm'...
+INFO: [IP_Flow 19-1686] Generating 'Implementation' target for IP 'xdma_mm'...
+INFO: [IP_Flow 19-1686] Generating 'Change Log' target for IP 'xdma_mm'...
+generate_target: Time (s): cpu = 00:00:04 ; elapsed = 00:00:06 . Memory (MB): peak = 800.109 ; gain = 0.000
+# set rcg [catch {generate_target all $ipmm} eg]
+# puts "P8AXIS_GEN_MM_RC = $rcg ; MSG = <$eg>"
+P8AXIS_GEN_MM_RC = 0 ; MSG = <>
+# set eg2 ""
+INFO: [IP_Flow 19-1686] Generating 'Instantiation Template' target for IP 'xdma_st'...
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'xdma_st'...
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'xdma_st'...
+INFO: [IP_Flow 19-1686] Generating 'Implementation' target for IP 'xdma_st'...
+INFO: [IP_Flow 19-1686] Generating 'Change Log' target for IP 'xdma_st'...
+# set rcg2 [catch {generate_target all $ipst} eg2]
+# puts "P8AXIS_GEN_ST_RC = $rcg2 ; MSG = <$eg2>"
+P8AXIS_GEN_ST_RC = 0 ; MSG = <>
+# dump_cfg $ipmm "mm_post_gen"
+P8AXIS_DUMP mm_post_gen -> D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p8_axis_conf_20261011/work/cfg_mm_post_gen.txt
+# dump_cfg $ipst "st_post_gen"
+P8AXIS_DUMP st_post_gen -> D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p8_axis_conf_20261011/work/cfg_st_post_gen.txt
+# foreach {tag ip} [list MM $ipmm ST $ipst] {
+#     puts "P8AXIS_POSTGEN_${tag}_INTF_MM   = <[mp_read $ip XDMA_AXI_INTF_MM]>"
+#     puts "P8AXIS_POSTGEN_${tag}_DMA_MM    = <[mp_read $ip DMA_MM]>"
+#     puts "P8AXIS_POSTGEN_${tag}_DMA_ST    = <[mp_read $ip DMA_ST]>"
+#     puts "P8AXIS_POSTGEN_${tag}_AXI_DATA_WIDTH = <[mp_read $ip AXI_DATA_WIDTH]>"
+#     puts "P8AXIS_POSTGEN_${tag}_AXI_ADDR_WIDTH = <[mp_read $ip AXI_ADDR_WIDTH]>"
+#     puts "P8AXIS_POSTGEN_${tag}_USER_CLK_FREQ  = <[mp_read $ip USER_CLK_FREQ]>"
+#     puts "P8AXIS_POSTGEN_${tag}_EN_WCHNL_0 = <[mp_read $ip EN_WCHNL_0]>"
+#     puts "P8AXIS_POSTGEN_${tag}_EN_RCHNL_0 = <[mp_read $ip EN_RCHNL_0]>"
+#     puts "P8AXIS_POSTGEN_${tag}_C2H_NUM_CHNL = <[mp_read $ip C_C2H_NUM_CHNL]>"
+#     puts "P8AXIS_POSTGEN_${tag}_H2C_NUM_CHNL = <[mp_read $ip C_H2C_NUM_CHNL]>"
+#     puts "P8AXIS_POSTGEN_${tag}_AXILITE_MASTER = <[mp_read $ip XDMA_AXILITE_MASTER]>"
+#     puts "P8AXIS_POSTGEN_${tag}_DSC_BYPASS_RD = <[mp_read $ip DSC_BYPASS_RD]>"
+#     puts "P8AXIS_POSTGEN_${tag}_DSC_BYPASS_WR = <[mp_read $ip DSC_BYPASS_WR]>"
+#     puts "P8AXIS_POSTGEN_${tag}_XDMA_AXIST_BYPASS = <[mp_read $ip XDMA_AXIST_BYPASS]>"
+#     puts "P8AXIS_POSTGEN_${tag}_IS_LOCKED = <[get_property IS_LOCKED $ip]>"
+# }
+ERROR: [Vivado 12-1341] Failed to get property 'MODELPARAM_VALUE.XDMA_AXI_INTF_MM' on IP 'xdma_mm'.
+P8AXIS_POSTGEN_MM_INTF_MM   = <<err>>
+ERROR: [Vivado 12-1341] Failed to get property 'MODELPARAM_VALUE.DMA_MM' on IP 'xdma_mm'.
+P8AXIS_POSTGEN_MM_DMA_MM    = <<err>>
+ERROR: [Vivado 12-1341] Failed to get property 'MODELPARAM_VALUE.DMA_ST' on IP 'xdma_mm'.
+P8AXIS_POSTGEN_MM_DMA_ST    = <<err>>
+ERROR: [Vivado 12-1341] Failed to get property 'MODELPARAM_VALUE.AXI_DATA_WIDTH' on IP 'xdma_mm'.
+P8AXIS_POSTGEN_MM_AXI_DATA_WIDTH = <<err>>
+ERROR: [Vivado 12-1341] Failed to get property 'MODELPARAM_VALUE.AXI_ADDR_WIDTH' on IP 'xdma_mm'.
+P8AXIS_POSTGEN_MM_AXI_ADDR_WIDTH = <<err>>
+ERROR: [Vivado 12-1341] Failed to get property 'MODELPARAM_VALUE.USER_CLK_FREQ' on IP 'xdma_mm'.
+P8AXIS_POSTGEN_MM_USER_CLK_FREQ  = <<err>>
+ERROR: [Vivado 12-1341] Failed to get property 'MODELPARAM_VALUE.EN_WCHNL_0' on IP 'xdma_mm'.
+P8AXIS_POSTGEN_MM_EN_WCHNL_0 = <<err>>
+ERROR: [Vivado 12-1341] Failed to get property 'MODELPARAM_VALUE.EN_RCHNL_0' on IP 'xdma_mm'.
+P8AXIS_POSTGEN_MM_EN_RCHNL_0 = <<err>>
+ERROR: [Vivado 12-1341] Failed to get property 'MODELPARAM_VALUE.C_C2H_NUM_CHNL' on IP 'xdma_mm'.
+P8AXIS_POSTGEN_MM_C2H_NUM_CHNL = <<err>>
+ERROR: [Vivado 12-1341] Failed to get property 'MODELPARAM_VALUE.C_H2C_NUM_CHNL' on IP 'xdma_mm'.
+P8AXIS_POSTGEN_MM_H2C_NUM_CHNL = <<err>>
+ERROR: [Vivado 12-1341] Failed to get property 'MODELPARAM_VALUE.XDMA_AXILITE_MASTER' on IP 'xdma_mm'.
+P8AXIS_POSTGEN_MM_AXILITE_MASTER = <<err>>
+ERROR: [Vivado 12-1341] Failed to get property 'MODELPARAM_VALUE.DSC_BYPASS_RD' on IP 'xdma_mm'.
+P8AXIS_POSTGEN_MM_DSC_BYPASS_RD = <<err>>
+ERROR: [Vivado 12-1341] Failed to get property 'MODELPARAM_VALUE.DSC_BYPASS_WR' on IP 'xdma_mm'.
+P8AXIS_POSTGEN_MM_DSC_BYPASS_WR = <<err>>
+ERROR: [Vivado 12-1341] Failed to get property 'MODELPARAM_VALUE.XDMA_AXIST_BYPASS' on IP 'xdma_mm'.
+P8AXIS_POSTGEN_MM_XDMA_AXIST_BYPASS = <<err>>
+P8AXIS_POSTGEN_MM_IS_LOCKED = <0>
+ERROR: [Vivado 12-1341] Failed to get property 'MODELPARAM_VALUE.XDMA_AXI_INTF_MM' on IP 'xdma_st'.
+P8AXIS_POSTGEN_ST_INTF_MM   = <<err>>
+ERROR: [Vivado 12-1341] Failed to get property 'MODELPARAM_VALUE.DMA_MM' on IP 'xdma_st'.
+P8AXIS_POSTGEN_ST_DMA_MM    = <<err>>
+ERROR: [Vivado 12-1341] Failed to get property 'MODELPARAM_VALUE.DMA_ST' on IP 'xdma_st'.
+P8AXIS_POSTGEN_ST_DMA_ST    = <<err>>
+ERROR: [Vivado 12-1341] Failed to get property 'MODELPARAM_VALUE.AXI_DATA_WIDTH' on IP 'xdma_st'.
+P8AXIS_POSTGEN_ST_AXI_DATA_WIDTH = <<err>>
+ERROR: [Vivado 12-1341] Failed to get property 'MODELPARAM_VALUE.AXI_ADDR_WIDTH' on IP 'xdma_st'.
+P8AXIS_POSTGEN_ST_AXI_ADDR_WIDTH = <<err>>
+ERROR: [Vivado 12-1341] Failed to get property 'MODELPARAM_VALUE.USER_CLK_FREQ' on IP 'xdma_st'.
+P8AXIS_POSTGEN_ST_USER_CLK_FREQ  = <<err>>
+ERROR: [Vivado 12-1341] Failed to get property 'MODELPARAM_VALUE.EN_WCHNL_0' on IP 'xdma_st'.
+P8AXIS_POSTGEN_ST_EN_WCHNL_0 = <<err>>
+ERROR: [Vivado 12-1341] Failed to get property 'MODELPARAM_VALUE.EN_RCHNL_0' on IP 'xdma_st'.
+P8AXIS_POSTGEN_ST_EN_RCHNL_0 = <<err>>
+ERROR: [Vivado 12-1341] Failed to get property 'MODELPARAM_VALUE.C_C2H_NUM_CHNL' on IP 'xdma_st'.
+P8AXIS_POSTGEN_ST_C2H_NUM_CHNL = <<err>>
+ERROR: [Vivado 12-1341] Failed to get property 'MODELPARAM_VALUE.C_H2C_NUM_CHNL' on IP 'xdma_st'.
+P8AXIS_POSTGEN_ST_H2C_NUM_CHNL = <<err>>
+ERROR: [Vivado 12-1341] Failed to get property 'MODELPARAM_VALUE.XDMA_AXILITE_MASTER' on IP 'xdma_st'.
+P8AXIS_POSTGEN_ST_AXILITE_MASTER = <<err>>
+ERROR: [Vivado 12-1341] Failed to get property 'MODELPARAM_VALUE.DSC_BYPASS_RD' on IP 'xdma_st'.
+P8AXIS_POSTGEN_ST_DSC_BYPASS_RD = <<err>>
+ERROR: [Vivado 12-1341] Failed to get property 'MODELPARAM_VALUE.DSC_BYPASS_WR' on IP 'xdma_st'.
+P8AXIS_POSTGEN_ST_DSC_BYPASS_WR = <<err>>
+ERROR: [Vivado 12-1341] Failed to get property 'MODELPARAM_VALUE.XDMA_AXIST_BYPASS' on IP 'xdma_st'.
+P8AXIS_POSTGEN_ST_XDMA_AXIST_BYPASS = <<err>>
+P8AXIS_POSTGEN_ST_IS_LOCKED = <0>
+# foreach {tag ip} [list mm xdma_mm st xdma_st] {
+#     set gdir [get_property IP_DIR $ip]
+#     puts "P8AXIS_IPDIR_${tag} = $gdir"
+#     set fp [open $wd/gendir_${tag}.txt w]
+#     foreach f [glob -nocomplain $gdir/*] { puts $fp $f }
+#     foreach f [glob -nocomplain $gdir/synth/*] { puts $fp $f }
+#     foreach f [glob -nocomplain $gdir/hdl/*] { puts $fp $f }
+#     close $fp
+# }
+ERROR: [Common 17-161] Invalid option value 'xdma_mm' specified for 'object'.
+INFO: [Common 17-206] Exiting Vivado at Sun Oct 11 20:55:19 2026...
+P8AXIS_EXITCODE=1

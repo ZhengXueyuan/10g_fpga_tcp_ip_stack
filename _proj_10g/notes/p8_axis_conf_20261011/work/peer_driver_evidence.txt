@@ -1,0 +1,227 @@
+# P8 AXIS 确认轮 · 驱动侧事实核 (对端 192.168.0.38, 只读)
+# 入口 = D:\repo\XCKU5PMini\udp_hls_10g\tools\peer_ssh.py   (用户 a, 密钥登录; PEER_PW 只用于 --sudo)
+# 本文件 = 逐条命令 + stdout 原文摘录 (长输出按行号裁剪, 裁剪处标 ...)。
+# ⛔ 本轮对端零写入 (只有 cat/grep/sed/ls/modinfo/dmesg)。
+
+##############################################################################
+## [CMD-1] 驱动版本 / 源码位置 / 候选模块
+##############################################################################
+$ python tools/peer_ssh.py --timeout 60 "uname -r; lsmod | grep -i xdma; modinfo xdma | head -20; ls /home/a/xdma_test/; ls /home/a/xdma_test/dma_ip_drivers-patched/XDMA/linux-kernel/"
+
+7.0.0-38-generic
+---LSMOD
+xdma                  110592  0
+---MODINFO
+filename:       /lib/modules/7.0.0-38-generic/kernel/drivers/dma/xilinx/xdma.ko.zst
+license:        GPL
+author:         XRT Team <runtimeca39d@amd.com>
+description:    AMD XDMA driver
+srcversion:     8F61105E6B60B5A7A441D9A
+intree:         Y
+...                       (modinfo 按名搜索 => 命中 in-tree 件; 见 CMD-2 的 srcversion 判决)
+---LS SRCDIR
+/home/a/xdma_test/: build_clean.log ... dma_ip_drivers-master dma_ip_drivers-patched e4_probe.sh ...
+---LS XDMA SRC
+COPYING include LICENSE readme.txt RELEASE tests tools xdma
+
+##############################################################################
+## [CMD-2] 已加载模块 = out-of-tree patched 件 (决定性判据: srcversion 逐字相同)
+##############################################################################
+$ python tools/peer_ssh.py --timeout 90 "ls -la /dev/xdma* | head -8; cat .../XDMA/linux-kernel/RELEASE; cat /sys/module/xdma/srcversion; modinfo -F srcversion .../xdma/xdma.ko; modinfo -F vermagic .../xdma/xdma.ko"
+
+/dev/xdma0_c2h_0  crw------- 1 root root 235, 36 Oct 11 19:20        (== 21 个节点, 板级现核一致)
+...
+RELEASE: v2025.2.0  (最新条目)
+  v2024.1.0 / v2020.2.0 ... (历史条目, 关键: "turn off the ST C2H credit as default
+                             (i.e., enable_st_c2h_credit = 0)" 与 "-e ... EOP" 说明)
+---LSMOD_SRCVER
+E2C680AF6D8BF5E3A2F6ACB          <- /sys/module/xdma/srcversion (当前已加载)
+---KOINFO
+E2C680AF6D8BF5E3A2F6ACB          <- /home/a/xdma_test/dma_ip_drivers-patched/.../xdma.ko
+---KO_VERMAGIC
+7.0.0-38-generic SMP preempt mod_unload modversions
+
+=> 【结论】已加载 = out-of-tree, dma_ip_drivers-patched (XDMA v2025.2.0), 不是 modinfo 按名找到的
+   in-tree 件。⚠️ `modinfo xdma` 会显示 in-tree 路径 = 假线索; 判身份必须用 srcversion。
+
+##############################################################################
+## [CMD-3] 驱动对 ST(streaming) 的支持面
+##         ⚠️ 侦察件 §3.2-b 给的路径少一层 xdma/ ⇒ 原样跑会 "No such file or directory";
+##            下面用修正后的 $L (= .../linux-kernel/xdma)
+##############################################################################
+$ python tools/peer_ssh.py "L=.../linux-kernel/xdma; grep -c -i stream \$L/libxdma.c \$L/libxdma.h \$L/cdev_sgdma.c ..."
+
+libxdma.c:16   libxdma.h:2   cdev_sgdma.c:2   cdev_sgdma.h:0   xdma_mod.h:1   xdma_mod.c:0
+
+$ ... "grep -n -i 'stream' \$L/libxdma.c"
+551:  if (enable_st_c2h_credit && engine->streaming &&
+720:  /* Add credits for Streaming mode C2H */
+721:  if (enable_st_c2h_credit && engine->streaming &&
+2611: if (enable_st_c2h_credit && engine->streaming &&
+2731: * @streaming Whether the engine is attached to AXI ST (rather than MM)
+2773: if (enable_st_c2h_credit && engine->streaming &&
+2817: if (engine->streaming && engine->dir == DMA_FROM_DEVICE) {
+2863:   engine->streaming = 1;
+2869:   engine->streaming ? "ST" : "MM");
+2871: if (enable_st_c2h_credit && engine->streaming &&
+2948: if (engine->streaming && engine->dir == DMA_FROM_DEVICE) {     (transfer_build: 覆写 src_addr = 回写结果缓冲)
+3196: if (engine->streaming) {
+3613/3760: /* For C2H streaming use writeback results */ if (engine->streaming && ...
+libxdma.h:444 struct xdma_result *res_virt;   /* virt addr of result, c2h streaming */
+libxdma.h:512 u8 streaming:1;
+cdev_sgdma.c:904  if (engine->streaming && engine->dir == DMA_FROM_DEVICE) {   (char_sgdma_open)
+cdev_sgdma.c:909    engine->eop_flush = (file->f_flags & O_TRUNC) ? 1 : 0;
+cdev_sgdma.c:927  if (engine->streaming && engine->dir == DMA_FROM_DEVICE)   (char_sgdma_close)
+
+##############################################################################
+## [CMD-4] ST/MM 判定的唯一来源 = 引擎 identifier 寄存器 bit15 (运行期读硬件, 非编译期)
+##############################################################################
+$ ... "sed -n '2725,2880p' \$L/libxdma.c"     (engine_init_regs / engine_init)
+    val = read_register(&engine->regs->identifier);
+    if (val & 0x8000U)
+            engine->streaming = 1;
+    engine->dir = dir;
+    snprintf(engine->name, sizeof(engine->name), "%d-%s%d-%s", xdev->idx,
+            (dir == DMA_TO_DEVICE) ? "H2C" : "C2H", channel,
+            engine->streaming ? "ST" : "MM");
+    if (enable_st_c2h_credit && engine->streaming && engine->dir == DMA_FROM_DEVICE)
+            engine->desc_max = XDMA_ENGINE_CREDIT_XFER_MAX_DESC;   /* 0x3FF = 1023 */
+    else
+            engine->desc_max = XDMA_ENGINE_XFER_MAX_DESC;          /* 0x800 = 2048 */
+      (同函数: only enable credit mode for AXI-ST C2H => 写 credit_mode_enable_w1s @0x600+)
+
+$ ... "grep -n 'H2C_CHANNEL_OFFSET\|CHANNEL_SPACING\|XDMA_ID_' \$L/libxdma.h"
+#define XDMA_ID_H2C 0x1fc0U        (libxdma.h:190)
+#define XDMA_ID_C2H 0x1fc1U        (libxdma.h:191)
+#define H2C_CHANNEL_OFFSET 0x1000  (libxdma.h:217)
+#define CHANNEL_SPACING 0x100      (libxdma.h:219)
+$ ... "sed -n '4334,4360p' \$L/libxdma.c"  (probe_for_engine)
+    /* read channels at 0x0000, write channels at 0x1000, channels at 0x100 interval */
+    if (dir == DMA_TO_DEVICE) { offset = channel*CHANNEL_SPACING ; H2C }
+    else                      { offset += H2C_CHANNEL_OFFSET      ; C2H }
+get_engine_id()          => (identifier & 0xffff0000) >> 16      (== 0x1fc0 / 0x1fc1)
+get_engine_channel_id()  => (identifier & 0x00000f00) >> 8
+
+对齐寄存器: engine_alignments() { w = read_register(&engine->regs->alignments);
+    align_bytes = (w>>16)&0xff ; granularity = (w>>8)&0xff ; address_bits = w&0xff ;
+    if (w) {engine->addr_align=align_bytes; ...} else {addr_align=1; len_granularity=1; addr_bits=64;} }
+  ⇒ struct engine_regs 偏移: identifier 0x00 / control 0x04 / status 0x40 /
+     completed_desc_count 0x48 / **alignments 0x4C**
+
+##############################################################################
+## [CMD-5] 板上现态 = 驱动视角 (dmesg, 仅读; 需 --sudo)
+##############################################################################
+$ PEER_PW=... python tools/peer_ssh.py --sudo "dmesg | grep -i -E 'xdma' | tail -25"
+[140094.614600] xdma:engine_reg_dump: 0-C2H0-MM: ioread32(...) = 0x00f83e1e (interrupt_enable_mask)
+[140094.614604] xdma:transfer_abort: abort transfer ..., desc 1, engine desc queued 0.
+[155762.076823] xdma:map_single_bar: BAR0 at 0xdf200000 ... length=1048576(/1048576)
+[155762.076834] xdma:map_single_bar: BAR1 at 0xdf300000 ... length=65536(/65536)
+[155762.076840] xdma:identify_bars: 2 BARs: config 1, user 0, bypass -1.
+[155762.076997] xdma:probe_one: 0000:02:00.0 xdma0, ..., usr 16, ch 1,1.
+[155762.077956] xdma:cdev_xvc_init: xcdev ..., bar 0, offset 0x40000.
+(同两行重复于 164546 一次 remove+rescan 之后)
+
+=> 【结论】(1) 引擎名逐字 = "0-C2H0-MM" (由 engine->name 打出) ⇒ 当前硬件被驱动判为 MM;
+   (2) BAR0 = 1 MiB / BAR1 = 64 KiB / config bar = BAR1 / 2 BARs —— 与板级身份门一致;
+   (3) usr irq 16, 1xH2C + 1xC2H。
+
+##############################################################################
+## [CMD-6] read() 语义: f_pos / 对齐 / 完成条件  (cdev_sgdma.c + libxdma.c)
+##############################################################################
+$ ... "sed -n '204,258p' \$L/cdev_sgdma.c"      (check_transfer_align)
+static int check_transfer_align(engine, buf, count, pos, sync) {
+        /* AXI ST or AXI MM non-incremental addressing mode? */
+        if (engine->non_incr_addr) {
+                int buf_lsb = (int)((uintptr_t)buf) & (engine->addr_align - 1);
+                size_t len_lsb = count & ((size_t)engine->len_granularity - 1);
+                int pos_lsb = (int)pos & (engine->addr_align - 1);
+                if (buf_lsb != 0) return -EINVAL;
+                if ((pos_lsb != 0) && (sync)) return -EINVAL;
+                if (len_lsb != 0) return -EINVAL;
+        } else {  /* AXI MM incremental addressing mode */
+                int buf_lsb = (int)((uintptr_t)buf) & (engine->addr_align - 1);
+                int pos_lsb = (int)pos & (engine->addr_align - 1);
+                if (buf_lsb != pos_lsb) return -EINVAL;
+        }
+        return 0;
+}
+
+$ ... "sed -n '386,425p' \$L/cdev_sgdma.c"       (char_sgdma_read_write)
+        rv = check_transfer_align(engine, buf, count, *pos, 1);
+        ...
+        cb.ep_addr = (u64)*pos;
+        res = xdma_xfer_submit(xdev, engine->channel, write, *pos, &cb.sgt, 0,
+                               write ? h2c_timeout*1000 : c2h_timeout*1000);
+
+$ ... "sed -n '609,620p' / '4774,4797p' \$L/libxdma.c"   (non_incr_addr)
+  control 寄存器:  if (engine->non_incr_addr) w |= XDMA_CTRL_NON_INCR_ADDR;
+  int engine_addrmode_set(engine,arg) { get_user(dst,...); engine->non_incr_addr = !!dst; ... engine_alignments(engine); }
+      (ioctl IOCTL_XDMA_ADDRMODE_SET; 默认 = 0 —— BSS 零初值, 无模块参数, 只有 ioctl 能开)
+
+$ ... "sed -n '/static void xdma_desc_set/,/^}/p' \$L/libxdma.c"     (ST 下 f_pos 去哪了)
+  dir == DMA_FROM_DEVICE(C2H):  desc->src_addr = ep_addr ; desc->dst_addr = rc_bus_addr(宿主缓冲)
+  但 transfer_build (2948-2957, streaming C2H) 随后 **覆写**:
+        xfer->desc_virt[j].src_addr_lo = cpu_to_le32(PCI_DMA_L(bus));   /* bus = cyclic_result 回写缓冲 */
+        xfer->desc_virt[j].src_addr_hi = cpu_to_le32(PCI_DMA_H(bus));
+        bus += sizeof(struct xdma_result);
+  ⇒ ST C2H 下 ep_addr(=f_pos) 写进描述符后立刻被覆盖 ⇒ **不再作为地址使用**
+    (仅剩 check_transfer_align 里的 pos_lsb 这一处用途)。
+
+$ ... "sed -n '3010,3025p' \$L/libxdma.c"      (描述符控制位)
+    last = desc_max - 1;  control = XDMA_DESC_STOPPED | XDMA_DESC_EOP | XDMA_DESC_COMPLETED;
+    xdma_desc_control_set(xfer->desc_virt + last, control);
+    if (engine->eop_flush) { for (i=0;i<last;i++) set(COMPLETED); xfer->desc_cmpl_th = 1; }
+    else                     xfer->desc_cmpl_th = desc_max;
+
+$ ... "sed -n '954,975p' \$L/libxdma.c"        (eop_flush 的完成判定)
+    if (*pdesc_completed < transfer->desc_num) {
+            if (engine->eop_flush) {
+                    for (i=0;i<max;i++) if (result[i].status & RX_STATUS_EOP) flags |= XFER_FLAG_ST_C2H_EOP_RCVED;
+                    if (!(flags & XFER_FLAG_ST_C2H_EOP_RCVED)) return NULL;   /* 没等到 EOP 就继续等 */
+            }
+    }
+
+##############################################################################
+## [CMD-7] 单次 read 上限 / 内部缓冲 (libxdma.c / libxdma.h)
+##############################################################################
+$ ... "sed -n '30,55p' \$L/libxdma.c; sed -n '93,100p' \$L/libxdma.h"
+static unsigned int enable_st_c2h_credit = 0;      /* 默认 0 = credit 关 */
+unsigned int desc_blen_max = XDMA_DESC_BLEN_MAX;   /* = (1<<28)-1 = 268,435,455 */
+#define XDMA_ENGINE_XFER_MAX_DESC         0x800     /* 2048 描述符 / 单次 transfer */
+#define XDMA_ENGINE_CREDIT_XFER_MAX_DESC  0x3FF     /* 1023 (credit=1 时) */
+#define XDMA_DESC_BLEN_BITS 28 ; #define XDMA_DESC_BLEN_MAX ((1<<28)-1)
+struct xdma_result { u32 status; u32 length; u32 reserved_1[6]; } __packed;   /* 32 B */
+
+$ ... "sed -n '3547,3560p' \$L/libxdma.c"     (同步路径的分段循环)
+    nents = req->sw_desc_cnt;  while (nents) { transfer_init(engine, req, &req->tfer[0]); ...
+                                                nents -= xfer->desc_num; ... }
+$ ... "sed -n '3975,3982p' \$L/libxdma.c"     (异步路径同款注释)
+    /* use multiple transfers per request if we could not fit all data within single descriptor chain. */
+struct xdma_request_cb { ... struct xdma_transfer tfer[2]; /* Use two transfers in case single request needs to be split */ ... }
+
+=> 【结论】单次 read() 大小 无 64 KB 级硬顶: 用户缓冲按页切成 sw_desc (每段 <= min(page, desc_blen_max)),
+   每 2048 个描述符构成 1 个 transfer, 由 tfer[2] 乒乓 + while(nents) 链式续跑。
+   内部缓冲 (ST C2H) = cyclic_result 回写数组 desc_max * sizeof(struct xdma_result) = 2048*32 B = 64 KB。
+
+##############################################################################
+## [CMD-8] 工具面 (对端)
+##############################################################################
+$ ... "ls .../linux-kernel/tools/"
+dma_from_device  dma_from_device.c  dma_to_device  dma_to_device.c  dma_utils.c
+Makefile  performance  performance.c  reg_rw  reg_rw.c  test_chrdev  test_chrdev.c
+
+$ ... "grep -n 'eop_flush|case .e.|long_opts' .../tools/dma_from_device.c"
+43:  {"eop_flush", no_argument, NULL, 'e'},
+85:  "  -%c (--%s) end dma when ST end-of-packet(eop) is rcved\n",
+116: getopt_long(argc, argv, "vhec:f:d:a:k:s:o:", long_opts, ...)
+153: case 'e': eop_flush = 1;
+
+=> `-e/--eop_flush` 在工具侧 = 以 O_TRUNC 打开 (见 cdev_sgdma.c:909) ⇒ 驱动 eop_flush=1 ⇒
+   "收到 EOP 或收满指定字节即结束"。
+
+##############################################################################
+## [未做] 明确不做的检查 (留待板级轮)
+##   (1) 板上读引擎 identifier (ST 后应为 bit15=1) / alignments 寄存器 —— 需 ST 位流;
+##    (2) dmesg 在 ST 位流下应打 "0-C2H0-ST";
+##    (3) 无 ST 位流前, 不改任何对端状态 (本轮零写入)。
+##############################################################################
