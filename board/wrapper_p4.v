@@ -2141,7 +2141,7 @@ module wrapper_p4 (
         end
     end
 
-    // ⭐ 现役构建配置 (persist 自 **0x1D** 起开; 本版 **0x21** 沿用):
+    // ⭐ 现役构建配置 (persist 自 **0x1D** 起开; 本版 **0x22** 沿用):
     //   `.PERSIST_EN(1'b1)` = persist **开**
     //   (发送侧**零窗探询** —— RFC 1122 §4.2.2.17 **MUST-36**; 设计件
     //    `_proj_10g/notes/P7B_PERSIST_DESIGN.md` v3 §1.1 候选 A)。
@@ -4269,8 +4269,56 @@ module wrapper_p4 (
 
     axi_regs #(
         .MAGIC_V    (32'h50360001),
-        .BUILD_ID_V (32'h00000021),     // ⚠️ 每次改动自增 (前置闸读这一项认位流; 构建 F = 0x1A)
-                                        //   ⭐ 本轮构建 (2026-10-11): **0x20 → 0x21**。
+        .BUILD_ID_V (32'h00000022),     // ⚠️ 每次改动自增 (前置闸读这一项认位流; 构建 F = 0x1A)
+                                        //   ⭐ 本轮构建 (2026-10-11): **0x21 → 0x22**。
+                                        //      0x22 内容 = **P9 XDMA 用户接口 AXI4-MM → AXI4-Stream**
+                                        //      (产品级接口改造, 不是单点修复):
+                                        //      · 新件 `rtl/axis_c2h_stream.v` (C2H AXIS 成形器):
+                                        //        上游 aux 合同**一字不改**; 2 grant = 16 B =
+                                        //        **1 个 128 位拍** (`tdata = {g2,g1}`); `tkeep`
+                                        //        非末拍 `FFFF` / 短末拍 `00FF` (PG195 p.27);
+                                        //        `tlast` **方案 A** (恒 0 + 停流 flush);
+                                        //        计数点 = **上游 aux 口取走** (`dma_gnt`,
+                                        //        每 grant +2); 丢字节口径 = **无容量不拉
+                                        //        `dma_req`** ⇒ 无新计数器, 丢字节仍只记 `W70`。
+                                        //      · `board/wrapper_p4.v`: 35 根 `m_axi_*` →
+                                        //        **10 根 AXIS**; 真支 = `u_mir_axis`;
+                                        //        两个 ¬ 支 = AXIS **常量表**;
+                                        //        XDMA 例化端口表 **75 → 50**。
+                                        //      · `board/build_p7b_ku5p.tcl`: XDMA 配置增量
+                                        //        **恰好 1 行** (`CONFIG.xdma_axi_intf_mm`) +
+                                        //        两层日志牙 (`19-3461`/`19-3438` 升格 ERROR +
+                                        //        消息文本扫描) + 13 项回读 + 生成产物 6 参数 +
+                                        //        与两份**冻结参照转储**逐行 diff; 文件清单
+                                        //        −3 个 MM 件 + 新件。
+                                        //      · `_proj_pcie/rtl/axi_regs.v`: `MIR_STATUS.ver`
+                                        //        **3 → 4** (位域/地址表 **0 改动**)。
+                                        //      几何**不变** (仍 **71 字 / 0x14C**) ⇒ 读侧只需
+                                        //      `EXPECT_BID` **0x21 → 0x22** (已同批落盘:
+                                        //      `apply_readside_bid1c.py --bid 0x22` = 24 处 /
+                                        //      14 文件, 阶段 ⑦)。
+                                        //      门 = 新件单元门 `PASS_ALL` + **7 突变臂全捕获**
+                                        //      (红灯面互不相同); p6e 真 wrapper 全链 `PASS_ALL`
+                                        //      (0 FAIL); counters / mirror / ring `PASS_ALL`;
+                                        //      lint (¬DP) OK。
+                                        //      synth 检查点 (pre-place): LUT **−616** /
+                                        //      FF **−1,201** / BRAM **−4**; `u_mir_axis`
+                                        //      top200 **0 命中**, 定向锥 FROM ≥ **+1.531** /
+                                        //      TO ≥ **+2.120**。
+                                        //      ⛔ 回退点 = 烧 0x21 归档位流
+                                        //      (`fbb6fca8…892c`) / `git revert 173b18d`;
+                                        //      **不在同一 wrapper 里并存两套端口表**。
+                                        //      EDA 权威 = `_proj_10g/notes/p8_axis_conf_20261011/
+                                        //      CONF.md`; 实施 = `_proj_10g/notes/
+                                        //      p9_axis_impl_20261011/IMPL_REPORT.md`。
+                                        //      历史链: 0x21 = P8-STG 16 B 弹性暂存 (71 字 / 0x14C) /
+                                        //      0x20 = 镜像采集侧 8 B/拍修复 (71 字 / 0x14C) /
+                                        //      0x1F = M1 载荷镜像窗 (71 字 / 0x14C) /
+                                        //      0x1E = snd_wnd 写入守卫 / 0x1D = persist 刀 /
+                                        //      0x1C = 缺陷刀 / 0x1B = 已分配、从未构建 /
+                                        //      0x1A = 构建 F (70 字窗口)。
+                                        //   ---- (以下为历史, 逐字保留) ----
+                                        //   ⭐ 上一版 (2026-10-11): **0x20 → 0x21**。
                                         //      0x21 内容 = **P8-STG 镜像采集侧 16 B 字节粒度弹性暂存**:
                                         //      `rtl/app_rx_mirror.v` 采集侧 8 B 单槽 → **16 B 暂存**
                                         //      (`stg_data[127:0]` + `stg_cnt[4:0]`): 每拍从头部搬

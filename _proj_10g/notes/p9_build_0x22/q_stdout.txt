@@ -1,0 +1,366 @@
+
+****** Vivado v2025.2 (64-bit)
+  **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+  **** Start of session at: Sun Oct 11 22:40:37 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source {D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_build_0x22\q_0x22.tcl}
+# set dcp [lindex $argv 0]
+# set out [lindex $argv 1]
+# file mkdir $out
+# open_checkpoint $dcp
+Command: open_checkpoint {D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_build_0x22\wrapper_p4_routed.dcp}
+
+Starting open_checkpoint Task
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.032 . Memory (MB): peak = 325.645 ; gain = 3.742
+INFO: [Device 21-403] Loading part xcku5p-ffvb676-1-e
+Netlist sorting complete. Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.893 . Memory (MB): peak = 1681.637 ; gain = 0.000
+INFO: [Netlist 29-17] Analyzing 7888 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 2 CPU seconds
+INFO: [Project 1-479] Netlist was created with Vivado 2025.2
+INFO: [Project 1-570] Preparing netlist for logic optimization
+Read ShapeDB Complete: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.242 . Memory (MB): peak = 1894.160 ; gain = 33.305
+INFO: [Timing 38-478] Restoring timing data from binary archive.
+INFO: [Timing 38-479] Binary timing data restore complete.
+INFO: [Project 1-856] Restoring constraints from binary archive.
+INFO: [Constraints 18-5170] The checkpoint was created with non-default parameter values which do not match the current Vivado settings.  Mismatching parameters are:
+  general.maxThreads
+INFO: [Project 1-853] Binary constraint restore complete.
+INFO: [Designutils 20-5722] Start Reading Physical Databases.
+Reading placement.
+Read Netlist Cache: Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.127 . Memory (MB): peak = 4134.082 ; gain = 0.000
+Reading placer database...
+Read Device Cache: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.028 . Memory (MB): peak = 4134.082 ; gain = 0.000
+Read PlaceDB: Time (s): cpu = 00:00:04 ; elapsed = 00:00:04 . Memory (MB): peak = 4134.082 ; gain = 0.000
+Read PulsedLatchDB: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 4134.082 ; gain = 0.000
+Reading routing.
+Read RouteStorage: Time (s): cpu = 00:00:03 ; elapsed = 00:00:02 . Memory (MB): peak = 4134.082 ; gain = 0.000
+Read Physdb Files: Time (s): cpu = 00:00:08 ; elapsed = 00:00:06 . Memory (MB): peak = 4134.082 ; gain = 0.000
+Restored from archive | CPU: 8.000000 secs | Memory: 0.000000 MB |
+Finished XDEF File Restore: Time (s): cpu = 00:00:08 ; elapsed = 00:00:07 . Memory (MB): peak = 4134.082 ; gain = 0.000
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.061 . Memory (MB): peak = 4134.082 ; gain = 0.000
+INFO: [Project 1-111] Unisim Transformation Summary:
+  A total of 1407 instances were transformed.
+  DSP48E2 => DSP48E2 (DSP_ALU, DSP_A_B_DATA, DSP_C_DATA, DSP_MULTIPLIER, DSP_M_DATA, DSP_OUTPUT, DSP_PREADD, DSP_PREADD_DATA): 4 instances
+  IBUF => IBUF (IBUFCTRL, INBUF): 1 instance 
+  IBUFDS => IBUFDS (DIFFINBUF, IBUFCTRL): 1 instance 
+  RAM16X1D => RAM32X1D (RAMD32(x2)): 35 instances
+  RAM16X1S => RAM32X1S (RAMS32): 224 instances
+  RAM256X1S => RAM256X1S (MUXF7(x2), MUXF8, RAMS64E(x4)): 8 instances
+  RAM32M => RAM32M (RAMD32(x6), RAMS32(x2)): 41 instances
+  RAM32M16 => RAM32M16 (RAMD32(x14), RAMS32(x2)): 153 instances
+  RAM32X1D => RAM32X1D (RAMD32(x2)): 13 instances
+  RAM64M => RAM64M (RAMD64E(x4)): 241 instances
+  RAM64M8 => RAM64M8 (RAMD64E(x8)): 554 instances
+  RAM64X1D => RAM64X1D (RAMD64E(x2)): 132 instances
+
+INFO: [Project 1-604] Checkpoint was created with Vivado v2025.2 (64-bit) build 6299465
+WARNING: [Vivado 12-23575] Critical violations of the methodology design rules detected. Critical violations may contribute to timing failures or cause functional issues in hardware. Run report_methodology for more information.
+open_checkpoint: Time (s): cpu = 00:01:23 ; elapsed = 00:01:12 . Memory (MB): peak = 4134.082 ; gain = 3821.754
+# catch {report_timing -delay_type max -max_paths 5 -sort_by slack -file $out/global_top5.rpt}
+INFO: [Timing 38-91] UpdateTimingParams: Speed grade: -1, Temperature grade: E, Delay Type: max.
+INFO: [Timing 38-191] Multithreading enabled for timing update using a maximum of 2 CPUs
+INFO: [Timing 38-78] ReportTimingParams: -max_paths 5 -nworst 1 -delay_type max -sort_by slack.
+report_timing: Time (s): cpu = 00:01:04 ; elapsed = 00:00:34 . Memory (MB): peak = 4176.047 ; gain = 41.965
+# set gp [get_timing_paths -delay_type max -max_paths 5 -sort_by slack -quiet]
+# set i 0
+# foreach p $gp {
+#   incr i
+#   puts "G #$i slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+# }
+G #1 slack=0.025 lvl=16 sp=u_tcp_tx/u_fifo_b/rptr_reg[1]/C ep=u_tcb/rcv_nxt_r_reg[1][17]/D
+G #2 slack=0.064 lvl=13 sp=u_pcs/inst/i_pcs64_top_1/i_pcs64_CORE/i_RX_TOP/i_RX_DESTRIPER/i_CLK_COMP/dataout_reg[12]/C ep=u_mac_rx/stat_crc_err_reg[20]/CE
+G #3 slack=0.064 lvl=13 sp=u_pcs/inst/i_pcs64_top_1/i_pcs64_CORE/i_RX_TOP/i_RX_DESTRIPER/i_CLK_COMP/dataout_reg[12]/C ep=u_mac_rx/stat_crc_err_reg[21]/CE
+G #4 slack=0.064 lvl=13 sp=u_pcs/inst/i_pcs64_top_1/i_pcs64_CORE/i_RX_TOP/i_RX_DESTRIPER/i_CLK_COMP/dataout_reg[12]/C ep=u_mac_rx/stat_crc_err_reg[22]/CE
+G #5 slack=0.064 lvl=13 sp=u_pcs/inst/i_pcs64_top_1/i_pcs64_CORE/i_RX_TOP/i_RX_DESTRIPER/i_CLK_COMP/dataout_reg[12]/C ep=u_mac_rx/stat_crc_err_reg[23]/CE
+# puts "G_DONE n=[llength $gp]"
+G_DONE n=5
+# catch {report_timing -group g_hw.clk_out0 -delay_type max -max_paths 10 -sort_by slack -file $out/dp_top10.rpt}
+INFO: [Timing 38-78] ReportTimingParams: -max_paths 10 -nworst 1 -delay_type max -sort_by slack.
+# catch {report_timing -group g_hw.clk_out0 -delay_type max -max_paths 50 -sort_by slack -file $out/dp_top50.rpt}
+INFO: [Timing 38-78] ReportTimingParams: -max_paths 50 -nworst 1 -delay_type max -sort_by slack.
+# set dp [get_timing_paths -group g_hw.clk_out0 -delay_type max -max_paths 10 -sort_by slack -quiet]
+# set i 0
+# foreach p $dp {
+#   incr i
+#   puts "DP #$i slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+# }
+DP #1 slack=0.025 lvl=16 sp=u_tcp_tx/u_fifo_b/rptr_reg[1]/C ep=u_tcb/rcv_nxt_r_reg[1][17]/D
+DP #2 slack=0.073 lvl=20 sp=u_app_udp/u_txf/dout_reg[64]/C ep=u_udp_tx/ip_csum_r_reg[0][13]/D
+DP #3 slack=0.073 lvl=16 sp=u_tcp_tx/u_fifo_b/rptr_reg[1]/C ep=u_tcb/snd_nxt_r_reg[15][25]/D
+DP #4 slack=0.088 lvl=16 sp=u_tcp_tx/u_fifo_b/rptr_reg[1]/C ep=u_tcb/rcv_nxt_r_reg[11][17]/D
+DP #5 slack=0.090 lvl=16 sp=u_tcp_tx/u_fifo_b/rptr_reg[1]/C ep=u_tcb/snd_una_r_reg[7][22]/CE
+DP #6 slack=0.095 lvl=16 sp=u_tcp_tx/u_fifo_b/rptr_reg[1]/C ep=u_tcb/snd_una_r_reg[7][17]/CE
+DP #7 slack=0.098 lvl=19 sp=u_tcp_tx/rx_bank_reg_rep__0/C ep=u_app/stg_reg[16]/CE
+DP #8 slack=0.098 lvl=19 sp=u_tcp_tx/rx_bank_reg_rep__0/C ep=u_app/stg_reg[22]/CE
+DP #9 slack=0.098 lvl=19 sp=u_tcp_tx/rx_bank_reg_rep__0/C ep=u_app/stg_reg[25]/CE
+DP #10 slack=0.098 lvl=19 sp=u_tcp_tx/rx_bank_reg_rep__0/C ep=u_app/stg_reg[28]/CE
+# puts "DP_DONE n=[llength $dp]"
+DP_DONE n=10
+# set dw [get_timing_paths -group g_hw.clk_out0 -delay_type max -max_paths 1 -sort_by slack -quiet]
+# if {[llength $dw] > 0} {
+#   set p [lindex $dw 0]
+#   puts "DPWNS slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+# } else { puts "DPWNS NOPATH" }
+DPWNS slack=0.025 lvl=16 sp=u_tcp_tx/u_fifo_b/rptr_reg[1]/C ep=u_tcb/rcv_nxt_r_reg[1][17]/D
+# proc fam {tag pat} {
+#   set cells [get_cells -hier -quiet -filter "NAME =~ $pat"]
+#   puts "F $tag ncell=[llength $cells]"
+#   if {[llength $cells] == 0} { puts "F $tag NOCELL"; return }
+#   set pf [get_timing_paths -delay_type max -max_paths 1 -sort_by slack -quiet -from $cells]
+#   if {[llength $pf] > 0} {
+#     set p [lindex $pf 0]
+#     puts "F $tag from_worst slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+#   } else { puts "F $tag from_NOPATH" }
+#   set pt [get_timing_paths -delay_type max -max_paths 1 -sort_by slack -quiet -to $cells]
+#   if {[llength $pt] > 0} {
+#     set p [lindex $pt 0]
+#     puts "F $tag to_worst slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+#   } else { puts "F $tag to_NOPATH" }
+# }
+# fam m1_all      {*u_mir*}
+F m1_all ncell=2164
+F m1_all from_worst slack=0.499 lvl=6 sp=u_mir/u_fifo/rbin_r_reg[4]_rep/C ep=u_pcie_regs/s_axil_rdata_reg[29]/D
+F m1_all to_worst slack=0.524 lvl=13 sp=u_udp_split/u_uf/wptr_reg[0]/C ep=u_mir/stg_data_reg[63]/D
+# fam m1_app_core {*u_mir/*}
+F m1_app_core ncell=1798
+F m1_app_core from_worst slack=0.499 lvl=6 sp=u_mir/u_fifo/rbin_r_reg[4]_rep/C ep=u_pcie_regs/s_axil_rdata_reg[29]/D
+F m1_app_core to_worst slack=0.524 lvl=13 sp=u_udp_split/u_uf/wptr_reg[0]/C ep=u_mir/stg_data_reg[63]/D
+# fam m1_ring     {*u_mir_ring*}
+F m1_ring ncell=0
+F m1_ring NOCELL
+# fam m1_c2h      {*u_mir_c2h*}
+F m1_c2h ncell=0
+F m1_c2h NOCELL
+# fam m1_h2c      {*u_mir_h2c*}
+F m1_h2c ncell=0
+F m1_h2c NOCELL
+# fam m1_axi_cell {*mir_axi*}
+F m1_axi_cell ncell=365
+F m1_axi_cell from_worst slack=0.914 lvl=7 sp=u_mir_axis/b_v_reg/C ep=u_pcie_xdma/inst/udma_wrapper/dma_top/dma_enable.axist.dma_axist/axist_c2h[0].dma_axist_slv/axi_rdy_100_reg/D
+F m1_axi_cell to_worst slack=0.648 lvl=3 sp=u_mir/u_fifo/rbin_r_reg[0]/C ep=u_mir_axis/s1_data_reg[34]/D
+# fam axis_inst   {*u_mir_axis*}
+F axis_inst ncell=365
+F axis_inst from_worst slack=0.914 lvl=7 sp=u_mir_axis/b_v_reg/C ep=u_pcie_xdma/inst/udma_wrapper/dma_top/dma_enable.axist.dma_axist/axist_c2h[0].dma_axist_slv/axi_rdy_100_reg/D
+F axis_inst to_worst slack=0.648 lvl=3 sp=u_mir/u_fifo/rbin_r_reg[0]/C ep=u_mir_axis/s1_data_reg[34]/D
+# fam axis_ip     {*udma_wrapper*dma_axist*}
+F axis_ip ncell=844
+F axis_ip from_worst slack=0.635 lvl=8 sp=u_pcie_xdma/inst/udma_wrapper/dma_top/dma_enable.axist.dma_axist/axist_c2h[0].dma_axist_slv/axi_rem_100_reg[2]/C ep=u_pcie_xdma/inst/udma_wrapper/dma_top/dma_enable.axist.dma_axist/axist_c2h[0].dma_axist_slv/axi_rdy_100_reg/D
+F axis_ip to_worst slack=0.635 lvl=8 sp=u_pcie_xdma/inst/udma_wrapper/dma_top/dma_enable.axist.dma_axist/axist_c2h[0].dma_axist_slv/axi_rem_100_reg[2]/C ep=u_pcie_xdma/inst/udma_wrapper/dma_top/dma_enable.axist.dma_axist/axist_c2h[0].dma_axist_slv/axi_rdy_100_reg/D
+# fam axis_slave  {*axist_c2h*}
+F axis_slave ncell=566
+F axis_slave from_worst slack=0.635 lvl=8 sp=u_pcie_xdma/inst/udma_wrapper/dma_top/dma_enable.axist.dma_axist/axist_c2h[0].dma_axist_slv/axi_rem_100_reg[2]/C ep=u_pcie_xdma/inst/udma_wrapper/dma_top/dma_enable.axist.dma_axist/axist_c2h[0].dma_axist_slv/axi_rdy_100_reg/D
+F axis_slave to_worst slack=0.635 lvl=8 sp=u_pcie_xdma/inst/udma_wrapper/dma_top/dma_enable.axist.dma_axist/axist_c2h[0].dma_axist_slv/axi_rem_100_reg[2]/C ep=u_pcie_xdma/inst/udma_wrapper/dma_top/dma_enable.axist.dma_axist/axist_c2h[0].dma_axist_slv/axi_rdy_100_reg/D
+# fam axis_all    {*axis_c2h*}
+F axis_all ncell=0
+F axis_all NOCELL
+# fam stg_cnt     {*stg_cnt_reg*}
+F stg_cnt ncell=5
+F stg_cnt from_worst slack=1.442 lvl=6 sp=u_mir/stg_cnt_reg[0]/C ep=u_mir/u_fifo/mem_reg_128_191_14_20/RAMA/I
+F stg_cnt to_worst slack=1.693 lvl=13 sp=u_udp_split/u_uf/wptr_reg[0]/C ep=u_mir/stg_cnt_reg[3]/D
+# fam stg_data    {*stg_data_reg*}
+F stg_data ncell=128
+F stg_data from_worst slack=2.578 lvl=2 sp=u_mir/stg_data_reg[111]/C ep=u_mir/u_fifo/mem_reg_0_63_35_41/RAME/I
+F stg_data to_worst slack=0.524 lvl=13 sp=u_udp_split/u_uf/wptr_reg[0]/C ep=u_mir/stg_data_reg[63]/D
+# fam acc_cnt_r   {*acc_cnt_r_reg*}
+F acc_cnt_r ncell=4
+F acc_cnt_r from_worst slack=1.239 lvl=6 sp=u_mir/acc_cnt_r_reg[0]/C ep=u_mir/u_fifo/mem_reg_128_191_14_20/RAMA/I
+F acc_cnt_r to_worst slack=2.564 lvl=5 sp=u_mir/acc_cnt_r_reg[0]/C ep=u_mir/acc_cnt_r_reg[0]/CE
+# fam ps_timer    {*ps_timer_reg*}
+F ps_timer ncell=420
+F ps_timer from_worst slack=1.395 lvl=7 sp=u_tcp_tx/ps_timer_reg[6][19]/C ep=u_tcp_tx/u_retx/ra_o_r_reg[11]_rep/D
+F ps_timer to_worst slack=0.396 lvl=1 sp=u_clkgen/rel_sr_reg[3]/C ep=u_tcp_tx/ps_timer_reg[13][14]/CLR
+# fam ps_phase    {*ps_phase_reg*}
+F ps_phase ncell=48
+F ps_phase from_worst slack=1.937 lvl=7 sp=u_tcp_tx/ps_phase_reg[2][2]/C ep=u_tcp_tx/ps_timer_reg[8][15]/D
+F ps_phase to_worst slack=0.402 lvl=1 sp=u_clkgen/rel_sr_reg[3]/C ep=u_tcp_tx/ps_phase_reg[1][0]/CLR
+# fam ps_stage    {*ps_stage_*}
+F ps_stage ncell=173
+F ps_stage from_worst slack=0.869 lvl=14 sp=u_tcp_tx/ps_stage_rdy_reg/C ep=u_tcb/rcv_nxt_r_reg[1][17]/D
+F ps_stage to_worst slack=0.228 lvl=11 sp=u_tcp_tx/u_retx/g_byte[1].mem_e_reg_2_bram_0/CLKBWRCLK ep=u_tcp_tx/ps_stage_byte_reg[2]/D
+# fam ps_rd_d1    {*ps_rd_d1_reg*}
+F ps_rd_d1 ncell=1
+F ps_rd_d1 from_worst slack=6.106 lvl=1 sp=u_tcp_tx/ps_rd_d1_reg/C ep=u_tcp_tx/ps_rd_d2_reg/D
+F ps_rd_d1 to_worst slack=0.769 lvl=1 sp=u_clkgen/rel_sr_reg[3]/C ep=u_tcp_tx/ps_rd_d1_reg/CLR
+# fam ps_rd_d2    {*ps_rd_d2_reg*}
+F ps_rd_d2 ncell=1
+F ps_rd_d2 from_worst slack=4.173 lvl=0 sp=u_tcp_tx/ps_rd_d2_reg/C ep=u_tcp_tx/ps_stage_byte_reg[2]/CE
+F ps_rd_d2 to_worst slack=0.769 lvl=1 sp=u_clkgen/rel_sr_reg[3]/C ep=u_tcp_tx/ps_rd_d2_reg/CLR
+# fam ctrl_probe  {*ctrl_probe*}
+F ctrl_probe ncell=7
+F ctrl_probe from_worst slack=0.944 lvl=16 sp=u_tcp_tx/ctrl_probe_reg/C ep=u_tcp_tx/ctrl_tcpcsum_reg[10]/D
+F ctrl_probe to_worst slack=0.552 lvl=1 sp=u_clkgen/rel_sr_reg[3]/C ep=u_tcp_tx/ctrl_probe_reg/CLR
+# fam tx_is_probe {*tx_is_probe*}
+F tx_is_probe ncell=2
+F tx_is_probe from_worst slack=3.411 lvl=4 sp=u_tcp_tx/tx_is_probe_reg/C ep=u_tcp_tx/m_axis_tdata_reg[53]/D
+F tx_is_probe to_worst slack=0.538 lvl=1 sp=u_clkgen/rel_sr_reg[3]/C ep=u_tcp_tx/tx_is_probe_reg/CLR
+# fam ctrl_pld    {*ctrl_pld_reg*}
+F ctrl_pld ncell=8
+F ctrl_pld from_worst slack=1.961 lvl=12 sp=u_tcp_tx/ctrl_pld_reg[3]/C ep=u_tcp_tx/ctrl_tcpcsum_reg[10]/D
+F ctrl_pld to_worst slack=0.481 lvl=1 sp=u_clkgen/rel_sr_reg[3]/C ep=u_tcp_tx/ctrl_pld_reg[3]/CLR
+# fam probe_net   {*probe_sel*}
+F probe_net ncell=0
+F probe_net NOCELL
+# fam whi_r       {*whi_r_reg*}
+F whi_r ncell=512
+F whi_r from_worst slack=2.364 lvl=9 sp=u_tcp_tx/whi_r_reg[13][4]/C ep=u_tcp_tx/ring_hi_reg[2]/D
+F whi_r to_worst slack=0.316 lvl=1 sp=u_clkgen/rel_sr_reg[3]/C ep=u_tcp_tx/whi_r_reg[0][20]/CLR
+# fam ring_hi     {*ring_hi_reg*}
+F ring_hi ncell=132
+F ring_hi from_worst slack=1.851 lvl=9 sp=u_tcp_tx/ring_hi_reg[2]/C ep=u_tcb/rcv_nxt_r_reg[1][17]/D
+F ring_hi to_worst slack=0.438 lvl=1 sp=u_clkgen/rel_sr_reg[3]/C ep=u_tcp_tx/ring_hi_reg[2]/CLR
+# fam pend_wnd    {*pend_wnd*}
+F pend_wnd ncell=123
+F pend_wnd from_worst slack=3.387 lvl=3 sp=u_tcp_rx/pend_wnd_val_reg[1]/C ep=u_tcb/rcv_nxt_r_reg[3][1]/D
+F pend_wnd to_worst slack=0.414 lvl=1 sp=u_clkgen/rel_sr_reg[3]/C ep=u_tcp_rx/pend_wnd_val_reg[14]/CLR
+# fam ackok       {*ackok*}
+F ackok ncell=194
+F ackok from_worst slack=4.257 lvl=2 sp=u_tcp_rx/ackok_l_reg/C ep=u_tcp_rx/pend_id_reg[0]/CE
+F ackok to_worst slack=0.568 lvl=1 sp=u_clkgen/rel_sr_reg[3]/C ep=u_tcp_rx/ackok_l_reg/CLR
+# fam ack_adv     {*ack_adv*}
+F ack_adv ncell=277
+F ack_adv from_worst slack=3.641 lvl=2 sp=u_tcp_rx/ack_adv_l_reg/C ep=u_tcp_rx/dup_cnt_reg[13][1]/CE
+F ack_adv to_worst slack=0.529 lvl=1 sp=u_clkgen/rel_sr_reg[3]/C ep=u_tcp_rx/stat_ack_adv_reg[10]/CLR
+# fam dup_l_reg   {*dup_l_reg*}
+F dup_l_reg ncell=75
+F dup_l_reg from_worst slack=3.986 lvl=2 sp=u_tcp_rx/dup_l_reg/C ep=u_tcp_rx/dup_cnt_reg[13][1]/CE
+F dup_l_reg to_worst slack=0.558 lvl=1 sp=u_clkgen/rel_sr_reg[3]/C ep=u_tcp_rx/dup_l_reg/CLR
+# foreach nfam {mir_c2h mir_axi} {
+#   set mnets [get_nets -hier -quiet -filter "NAME =~ *${nfam}*"]
+#   puts "N ${nfam}_nets=[llength $mnets]"
+#   if {[llength $mnets] > 0} {
+#     set mpins [get_pins -quiet -of_objects $mnets]
+#     puts "N ${nfam}_pins=[llength $mpins]"
+#     if {[llength $mpins] > 0} {
+#       set pf [get_timing_paths -delay_type max -max_paths 1 -sort_by slack -quiet -from $mpins]
+#       if {[llength $pf] > 0} { set p [lindex $pf 0]
+#         puts "N ${nfam} from_worst slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+#       } else { puts "N ${nfam} from_NOPATH" }
+#       set pt [get_timing_paths -delay_type max -max_paths 1 -sort_by slack -quiet -to $mpins]
+#       if {[llength $pt] > 0} { set p [lindex $pt 0]
+#         puts "N ${nfam} to_worst slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+#       } else { puts "N ${nfam} to_NOPATH" }
+#     }
+#   }
+# }
+N mir_c2h_nets=134
+N mir_c2h_pins=287
+N mir_c2h from_worst slack=0.914 lvl=7 sp=u_mir_axis/b_v_reg/C ep=u_pcie_xdma/inst/udma_wrapper/dma_top/dma_enable.axist.dma_axist/axist_c2h[0].dma_axist_slv/axi_rdy_100_reg/D
+N mir_c2h to_NOPATH
+N mir_axi_nets=469
+N mir_axi_pins=1967
+N mir_axi from_worst slack=0.914 lvl=7 sp=u_mir_axis/b_v_reg/C ep=u_pcie_xdma/inst/udma_wrapper/dma_top/dma_enable.axist.dma_axist/axist_c2h[0].dma_axist_slv/axi_rdy_100_reg/D
+N mir_axi to_worst slack=0.648 lvl=3 sp=u_mir/u_fifo/rbin_r_reg[0]/C ep=u_mir_axis/s1_data_reg[34]/D
+# set m1 [get_cells -hier -quiet -filter {NAME =~ *u_mir*}]
+# puts "M m1_cells=[llength $m1]"
+M m1_cells=2164
+# if {[llength $m1] > 0} {
+#   set pf [get_timing_paths -group g_hw.clk_out0 -delay_type max -max_paths 1 -sort_by slack -quiet -from $m1]
+#   if {[llength $pf] > 0} { set p [lindex $pf 0]
+#     puts "M m1_dp_from slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+#   } else { puts "M m1_dp_from NOPATH" }
+#   set pt [get_timing_paths -group g_hw.clk_out0 -delay_type max -max_paths 1 -sort_by slack -quiet -to $m1]
+#   if {[llength $pt] > 0} { set p [lindex $pt 0]
+#     puts "M m1_dp_to slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+#   } else { puts "M m1_dp_to NOPATH" }
+#   # ÂÖ®Êó∂ÈíüÈù¢ (‰∏çÂàÜÁª?) ‚Äî‚Ä? Âê? pcie Âü?
+#   set pf2 [get_timing_paths -delay_type max -max_paths 3 -sort_by slack -quiet -from $m1]
+#   set k 0
+#   foreach p $pf2 { incr k
+#     puts "M m1_any_from #$k slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+#   }
+#   set pt2 [get_timing_paths -delay_type max -max_paths 3 -sort_by slack -quiet -to $m1]
+#   set k 0
+#   foreach p $pt2 { incr k
+#     puts "M m1_any_to #$k slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+#   }
+# } else { puts "M SKIP (no m1 cells)" }
+M m1_dp_from slack=1.239 lvl=6 sp=u_mir/acc_cnt_r_reg[0]/C ep=u_mir/u_fifo/mem_reg_128_191_14_20/RAMA/I
+M m1_dp_to slack=0.524 lvl=13 sp=u_udp_split/u_uf/wptr_reg[0]/C ep=u_mir/stg_data_reg[63]/D
+M m1_any_from #1 slack=0.499 lvl=6 sp=u_mir/u_fifo/rbin_r_reg[4]_rep/C ep=u_pcie_regs/s_axil_rdata_reg[29]/D
+M m1_any_from #2 slack=0.648 lvl=3 sp=u_mir/u_fifo/rbin_r_reg[0]/C ep=u_mir_axis/s1_data_reg[34]/D
+M m1_any_from #3 slack=0.662 lvl=3 sp=u_mir/u_fifo/rbin_r_reg[0]/C ep=u_mir_axis/s0_data_reg[34]/D
+M m1_any_to #1 slack=0.524 lvl=13 sp=u_udp_split/u_uf/wptr_reg[0]/C ep=u_mir/stg_data_reg[63]/D
+M m1_any_to #2 slack=0.543 lvl=13 sp=u_udp_split/u_uf/wptr_reg[0]/C ep=u_mir/stg_data_reg[15]/D
+M m1_any_to #3 slack=0.648 lvl=3 sp=u_mir/u_fifo/rbin_r_reg[0]/C ep=u_mir_axis/s1_data_reg[34]/D
+# foreach pat {*u_mir* *u_mir_axis* *u_mir_ring* *u_mir_c2h* *u_mir_h2c*} {
+#   set cells [get_cells -hier -quiet -filter "NAME =~ $pat"]
+#   puts "E pat=$pat ncell=[llength $cells]"
+#   set k 0
+#   foreach c $cells {
+#     incr k
+#     if {$k <= 30} { puts "E   cell=[get_property NAME $c] ref=[get_property REF_NAME $c]" }
+#   }
+# }
+E pat=*u_mir* ncell=2164
+E   cell=u_mir ref=app_rx_mirror
+E   cell=u_mir_axis ref=axis_c2h_stream
+E   cell=u_mir/GND ref=GND
+E   cell=u_mir/GND_1 ref=GND
+E   cell=u_mir/VCC ref=VCC
+E   cell=u_mir/acc_cnt_r[0]_i_1 ref=LUT3
+E   cell=u_mir/acc_cnt_r[1]_i_1 ref=LUT5
+E   cell=u_mir/acc_cnt_r[2]_i_1 ref=LUT4
+E   cell=u_mir/acc_cnt_r[2]_i_2 ref=LUT2
+E   cell=u_mir/acc_cnt_r[3]_i_8 ref=LUT4
+E   cell=u_mir/acc_cnt_r_reg[0] ref=FDCE
+E   cell=u_mir/acc_cnt_r_reg[1] ref=FDCE
+E   cell=u_mir/acc_cnt_r_reg[2] ref=FDCE
+E   cell=u_mir/acc_cnt_r_reg[3] ref=FDCE
+E   cell=u_mir/acc_r_reg[0] ref=FDCE
+E   cell=u_mir/acc_r_reg[10] ref=FDCE
+E   cell=u_mir/acc_r_reg[11] ref=FDCE
+E   cell=u_mir/acc_r_reg[12] ref=FDCE
+E   cell=u_mir/acc_r_reg[13] ref=FDCE
+E   cell=u_mir/acc_r_reg[14] ref=FDCE
+E   cell=u_mir/acc_r_reg[15] ref=FDCE
+E   cell=u_mir/acc_r_reg[16] ref=FDCE
+E   cell=u_mir/acc_r_reg[17] ref=FDCE
+E   cell=u_mir/acc_r_reg[18] ref=FDCE
+E   cell=u_mir/acc_r_reg[19] ref=FDCE
+E   cell=u_mir/acc_r_reg[1] ref=FDCE
+E   cell=u_mir/acc_r_reg[20] ref=FDCE
+E   cell=u_mir/acc_r_reg[21] ref=FDCE
+E   cell=u_mir/acc_r_reg[22] ref=FDCE
+E   cell=u_mir/acc_r_reg[23] ref=FDCE
+E pat=*u_mir_axis* ncell=365
+E   cell=u_mir_axis ref=axis_c2h_stream
+E   cell=u_mir_axis/VCC ref=VCC
+E   cell=u_mir_axis/b_data[100]_i_1 ref=LUT2
+E   cell=u_mir_axis/b_data[101]_i_1 ref=LUT2
+E   cell=u_mir_axis/b_data[102]_i_1 ref=LUT2
+E   cell=u_mir_axis/b_data[103]_i_1 ref=LUT2
+E   cell=u_mir_axis/b_data[104]_i_1 ref=LUT2
+E   cell=u_mir_axis/b_data[105]_i_1 ref=LUT2
+E   cell=u_mir_axis/b_data[106]_i_1 ref=LUT2
+E   cell=u_mir_axis/b_data[107]_i_1 ref=LUT2
+E   cell=u_mir_axis/b_data[108]_i_1 ref=LUT2
+E   cell=u_mir_axis/b_data[109]_i_1 ref=LUT2
+E   cell=u_mir_axis/b_data[110]_i_1 ref=LUT2
+E   cell=u_mir_axis/b_data[111]_i_1 ref=LUT2
+E   cell=u_mir_axis/b_data[112]_i_1 ref=LUT2
+E   cell=u_mir_axis/b_data[113]_i_1 ref=LUT2
+E   cell=u_mir_axis/b_data[114]_i_1 ref=LUT2
+E   cell=u_mir_axis/b_data[115]_i_1 ref=LUT2
+E   cell=u_mir_axis/b_data[116]_i_1 ref=LUT2
+E   cell=u_mir_axis/b_data[117]_i_1 ref=LUT2
+E   cell=u_mir_axis/b_data[118]_i_1 ref=LUT2
+E   cell=u_mir_axis/b_data[119]_i_1 ref=LUT2
+E   cell=u_mir_axis/b_data[120]_i_1 ref=LUT2
+E   cell=u_mir_axis/b_data[121]_i_1 ref=LUT2
+E   cell=u_mir_axis/b_data[122]_i_1 ref=LUT2
+E   cell=u_mir_axis/b_data[123]_i_1 ref=LUT2
+E   cell=u_mir_axis/b_data[124]_i_1 ref=LUT2
+E   cell=u_mir_axis/b_data[125]_i_1 ref=LUT2
+E   cell=u_mir_axis/b_data[126]_i_1 ref=LUT2
+E   cell=u_mir_axis/b_data[127]_i_1 ref=LUT5
+E pat=*u_mir_ring* ncell=0
+E pat=*u_mir_c2h* ncell=0
+E pat=*u_mir_h2c* ncell=0
+# puts "N_DONE"
+N_DONE
+INFO: [Common 17-206] Exiting Vivado at Sun Oct 11 22:43:58 2026...

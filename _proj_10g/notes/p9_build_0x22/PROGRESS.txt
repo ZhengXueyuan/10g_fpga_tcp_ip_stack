@@ -1,0 +1,18 @@
+[21:49:46] P9 build agent start (BID 0x22, XDMA=AXIS)
+[2026-10-11 21:52] 侦察完成: HEAD=eb4007b / wrapper BID=0x21(:4272) / 读侧哨兵=0x21(已=阶段⑥末态) / 读侧脚本末代=0x21(需扩⑦)
+[2026-10-11 21:52] 现状扫描(0x21 dry-run): A表长5/5 OK; B 未登记命中 9 件(p8_board_0x21 ×3 / p8_tcp_0x21 ×5 / p9 head_negapp ×2) = 本轮 B 面分类对象
+[2026-10-11 21:56] A 读侧同步 0x21→0x22 完成: 脚本 +阶段⑦(EDITS_22, 24处/14文件; 生成器 gen_edits22.py + splice_phase7.py; +109/-2 行) + ALLOW 5 条(p8_board_0x21/p8_tcp_0x21/p9 head_negapp/p9_build_0x22/tb_uart_dbg 侥幸命中)
+[2026-10-11 21:56] A 读数: dry-run 24/24 hits=1/1 · rehearse OK 0 fail · negctl×4 全有牙(RC=1) · neg_rehearse 恰1红 · apply RC=0 0 fail · assert RC=0 · face 280行/139文件 · postapply negctl×4 有牙 · neg_rehearse 恰1红; 14/14 件 SHA 全变; 交叉核对 13/14 与 0x21 轮 POSTAPPLY 逐字同(TB wrapper 因 P9 提交 173b18d 改过 ⇒ 差异已定位)
+[2026-10-11 21:57] B wrapper BID 0x21→0x22 完成: 2 hunk(:2144 版本戳 + :4272 BID/注释块), +51/-3; 新 sha256=416e0b3deb3d7e119c343e99fabf7319865c688e812d34c2e0b7c2cb370c606d (4778 行); tie-off(:1320-1321)与 AXIS 端口表 diff 0 命中
+[2026-10-11 21:54] C 构建已启动 (MSYS_NO_PATHCONV=1 cmd /c 单斜杠式); 本次独有串 = ARCHIVE_DONE 20261011_215445 files=19 (归档的是 0x21 版 impl 产物, 位流 sha fbb6fca8… 已核); wrapper mtime 21:54:32 → 构建 21:54:45
+[2026-10-11 21:58] C 构建中: XDMA 断言组已出并全过 —— RC_BASE=0/RC_INTF=0 · RB_MISMATCH_N=0(13项) · GEN_BAD_N=0(6参数) · CFGDIFF_ST_N=1{Component_Name} · CFGDIFF_MM_N=2{+xdma_axi_intf_mm}(= 预期) · 无 MSG_HIT(19-3461/19-3438/17-39 全 0) · P7B_XDMA_VERDICT=OK; pcs64 P7B_ROUND #1=5 → #2=0 (与上一轮同形); 现等 synth_1
+[2026-10-11 22:34] C 构建收口: BUILD_EXIT=0/BAT_RC=0/BITSTREAM-OK (一次收口: P7B_ROUND #1 恰1 · BUILD_EXIT 恰1 · P7B DONE 恰1 · 3 条 Exiting Vivado = synth 22:07:40/impl 22:33:09/父 22:34:25); P7B_WNS=0.025 P7B_WHS=0.010 三类失败端点 0/0/0 (257,862 / 257,862 / 83,887); 位流 c2e48a69…635a 15,431,261 B; 资源(plated, board 口径) LUT 78,006 / FF 74,200 / BRAM 348 (R36 317+R18 62) / URAM 0; DP 域 WNS +0.025 = 全局最差 (u_tcp_tx/u_fifo_b/rptr_reg[1]/C → u_tcb/rcv_nxt_r_reg[1][17]/D, lvl 16, logic 1.549/route 4.728); DRC 0 Error/0 Critical; 硬门 12 键全 0 命中
+[2026-10-11 22:40] 归档: wrapper_p4.bit + wrapper_p4_routed.dcp(62,829,797 B) + board_rpt/(13 件) + board_stdout.txt 落盘
+[2026-10-11 22:41] 定向查询 q_0x22.tcl 启动 (vivado batch; 与矩阵严格串行)
+[2026-10-11 23:12] D 矩阵 17/17 EXIT=0 (gates run 17/17 · gates failed 0 · VERDICT FROZEN · MATRIX_RC=0; DIGEST_COMPILE/ALL before=after; GIT_HEAD before=after=447f76f); 静默门复核: unit_retx ALL 7 GROUPS PASS · unit_fifo C=616302 与基线逐字同 · p5_wrapper OK
+[2026-10-11 23:14] D 指纹绑定核对: 257 件逐件 == 盘上现读; rtl/ 27 件 == HEAD (git diff HEAD -- rtl/ = 0); board/wrapper_p4.v = 工作树(B 项, 未提交) ⇒ 差异恰 = B 项 2 hunk; 读侧 15 件不在指纹集内
+[2026-10-11 23:15] D 覆盖声明: 本刀三件 RTL 在 6 manifest 命中 0 (wrapper_p4.v 只在 p5wrapper_src.f, 而它 -d APP_MODE ONLY 不含 DP_156MHZ; u_mir_axis 例化被 APP_MODE∧DP_156MHZ 双包) ⇒ 17/17 对本刀=空证据
+[2026-10-11 23:16] E 归档完成: 40 件 + board_rpt/(13) + query_out/(3) + SHA256SUMS.txt; wrapper_p4.bit c2e48a69…635a (15,431,261 B) + routed.dcp (62,829,797 B) 已落盘 (本轮之内, #54)
+[2026-10-11 23:17] F REPORT.md 落盘 (313 行); ⛔ 未烧板/未写 QSPI/未改 rtl/未改 tb/未改 build tcl
+[2026-10-11 23:20] E 收尾: REPORT.md 就地订正 3 处 (笔误/端点数对照/WPWS 同形说明) + 数值订正 2 处 (比值≈20× · DP top10 同源 5 条) ⇒ 313 行; SHA256SUMS.txt 56 件重生成
+[2026-10-11 23:20] F 完: 全部读数/归档/口径/未定项见 REPORT.md; 归档自核 = wrapper_p4.bit 与 routed.dcp sha256 已在 SHA256SUMS.txt

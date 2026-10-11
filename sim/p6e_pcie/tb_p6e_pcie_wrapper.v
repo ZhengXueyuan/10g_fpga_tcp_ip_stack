@@ -200,7 +200,7 @@ module tb_p6e_pcie_wrapper;
         //    `BUILD_ID_V = 32'h0000001E` (snd_wnd 守卫构建, 已收口); 本刀**不 bump BID**
         //    (bump 留给阶段二构建) ⇒ 该常量必须等于**当前树的**地图版本, 否则判据 2 结构性假红。
         //    ⚠️ 与下面判据 9 的地址是同一次"跟地图走"订正 (设计件 v2 §V5-A-2 点名两条)。
-        u_dut.u_pcie_xdma.axil_read(32'h04, v); chk("2  BUILD_ID (P8-STG 16 B 弹性暂存构建 = 0x21)", v, 32'h00000021);
+        u_dut.u_pcie_xdma.axil_read(32'h04, v); chk("2  BUILD_ID (P9 XDMA MM→AXIS 构建 = 0x22)", v, 32'h00000022);
         u_dut.u_pcie_xdma.axil_read(32'h14, v); chk("3  MARKER", v, 32'hDEADBEEF);
         // HW_STATUS 字段: [7:5]=msi_vec_w [4]=msi_enable [3]=user_lnk_up [2:0]=0
         u_dut.u_pcie_xdma.axil_read(32'h10, v);

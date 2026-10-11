@@ -8,7 +8,8 @@
   ⚠️ **本头顶注释只写到阶段 ② 为止（历史）**: 链上**后来又追加了** ③ `0x1E`（snd_wnd 守卫 /
      BID-only）/ ④ `0x1F`（M1 镜像窗 / BID+几何 71 字 / 未实现地址 0x14C）/ ⑤ `0x20`
      （P8 镜像 8 B/拍 / **BID-only**, 几何同 ④）/ ⑥ `0x21`（**P8-STG 16 B 字节粒度弹性暂存** /
-     **BID-only**, 几何同 ④⑤）—— **权威阶段表 = 文件中部 `STAGES = [...]`**
+     **BID-only**, 几何同 ④⑤）/ ⑦ `0x22`（**P9 XDMA MM→AXIS** / **BID-only**, 几何同 ④⑤⑥）——
+     **权威阶段表 = 文件中部 `STAGES = [...]`**
      （每个阶段各自的说明块在 `EDITS_xx` 定义处）。
 
   两个阶段都是 **BID-only**（与 F 轮不同: 这两刀**都不加字**）:
@@ -59,6 +60,7 @@ EDITS_1E = []          # 阶段 ③: 0x1D 树 -> 0x1E 树 (snd_wnd 守卫; BID-o
 EDITS_1F = []          # 阶段 ④: 0x1E 树 -> 0x1F 树 (M1 镜像窗; **BID + 几何**: NW 70→71 + 未实现地址迁移)
 EDITS_20 = []          # 阶段 ⑤: 0x1F 树 -> 0x20 树 (P8 镜像 8 B/拍修复; **BID-only**: 几何不变 71/0x14C)
 EDITS_21 = []          # 阶段 ⑥: 0x20 树 -> 0x21 树 (P8-STG 16 B 字节粒度弹性暂存; **BID-only**: 几何不变 71/0x14C)
+EDITS_22 = []          # 阶段 ⑦: 0x21 树 -> 0x22 树 (P9 XDMA MM→AXIS; **BID-only**: 几何不变 71/0x14C)
 
 
 def E3(rel, old, new, n=1):
@@ -77,6 +79,10 @@ def E6(rel, old, new, n=1):
     EDITS_21.append((rel, old, new, n))
 
 
+def E7(rel, old, new, n=1):
+    EDITS_22.append((rel, old, new, n))
+
+
 # 目标 BID ⇒ 阶段链 (链上每阶段的 old 侧 = 上一阶段的 new 侧)。
 # ⚠️ 列表对象身份共享 ⇒ 这里的引用能看见后面的 append (定义顺序无关)。
 STAGES = [("0x0000001C", EDITS_1C, "缺陷刀 (2026-10-11)", 70, 0x138),
@@ -84,7 +90,8 @@ STAGES = [("0x0000001C", EDITS_1C, "缺陷刀 (2026-10-11)", 70, 0x138),
           ("0x0000001E", EDITS_1E, "snd_wnd 守卫 (2026-10-11)", 70, 0x138),
           ("0x0000001F", EDITS_1F, "M1 镜像窗 (2026-10-11)", 71, 0x14C),
           ("0x00000020", EDITS_20, "P8 镜像 8 B/拍 (2026-10-11)", 71, 0x14C),
-          ("0x00000021", EDITS_21, "P8-STG 16 B 弹性暂存 (2026-10-11)", 71, 0x14C)]
+          ("0x00000021", EDITS_21, "P8-STG 16 B 弹性暂存 (2026-10-11)", 71, 0x14C),
+          ("0x00000022", EDITS_22, "P9 XDMA MM→AXIS (2026-10-11)", 71, 0x14C)]
 #   ⚠️ 每个阶段带**自己的**几何 (nw, unimpl): 0x1F 起 M1 把快照扩到 71 字并在快照末字后插 4 个
 #      MIR 字 (0x13C/0x140/0x144/0x148) ⇒ 未实现地址 = **0x20 + 4*NW + 16** = 0x14C (不再等于 0x20+4*NW)。
 #      ⇒ 断言按**目标代**的几何比, 不按现读 wrapper (它可能已在更后的代上)。
@@ -986,6 +993,91 @@ E6("_proj_10g/notes/p7b_a3_negctl_20261010/step0_selfcheck.sh",
 
 
 # ===========================================================================
+# ⑬ 阶段 ⑦ (0x21 → 0x22, **P9 XDMA MM→AXIS**; **BID-only**, 几何不变 = 71 字 / 0x14C)
+#
+#   内容 = `board/wrapper_p4.v` 的 PCIe 用户接口 **AXI4-MM → AXI4-Stream** 改造
+#   (新件 `rtl/axis_c2h_stream.v` + 端口表 75→50 + `board/build_p7b_ku5p.tcl` 的 XDMA 配置/
+#   断言块 + `_proj_pcie/rtl/axi_regs.v` ver 3→4 + sim 桩/TB); 实施 + EDA 读数 =
+#   `_proj_10g/notes/p9_axis_impl_20261011/IMPL_REPORT.md` (+ `p8_axis_conf_20261011/CONF.md`)。
+#   BID 面 = stage ⑥ 的 BID 清单逐条 +1 代 = **本阶段 24 处 / 14 文件** (与 ⑥/⑤ 同名同形):
+#     · 几何**一字不动** (71 字 / 未实现地址 0x14C; 快照不扩 —— IMPL_REPORT §0-2);
+#     · 生成方式 = ⑥ 的 new 侧逐条 +1 代 (生成器 `p9_build_0x22/gen_edits22.py`;
+#       old 侧锚点自检 = 24/24 逐字命中盘上现状)。
+# ===========================================================================
+E7('_proj_10g/notes/p7b_affinity/j6_r6fix.sh',
+  'EXPECT_BID=${EXPECT_BID:-0x00000021}   # 2026-10-11 P8-STG 16 B 弹性暂存 (71 字; 原 0x00000020 = P8 镜像 8 B/拍 / 0x1F = M1 镜像窗 / 0x1E = snd_wnd 守卫)',
+  'EXPECT_BID=${EXPECT_BID:-0x00000022}   # 2026-10-11 P9 XDMA MM→AXIS (71 字; 原 0x00000021 = P8-STG 16 B 弹性暂存 / 0x20 = P8 镜像 8 B/拍 / 0x1F = M1 镜像窗)', 1)
+E7('_proj_10g/notes/p7b_biz_tcpreg/tcpreg_j6.sh',
+  'EXPECT_BID=${EXPECT_BID:-0x00000021}   # 2026-10-11 P8-STG 16 B 弹性暂存 (71 字; 原 0x00000020 = P8 镜像 8 B/拍 / 0x1F = M1 镜像窗 / 0x1E = snd_wnd 守卫)',
+  'EXPECT_BID=${EXPECT_BID:-0x00000022}   # 2026-10-11 P9 XDMA MM→AXIS (71 字; 原 0x00000021 = P8-STG 16 B 弹性暂存 / 0x20 = P8 镜像 8 B/拍 / 0x1F = M1 镜像窗)', 1)
+E7('_proj_10g/notes/p7b_affinity/j6_r6fix.sh',
+  '  "71|0x00000021|61 62|P8-STG 16 B 弹性暂存 (2026-10-11) 71 字 / BID 0x21 (采集侧 8 B 单槽 → 16 B 字节粒度弹性暂存, 相位鲁棒; 几何/未实现地址 0x14C 不变)"\n  "71|0x00000020|61 62|P8 镜像 8 B/拍 (2026-10-11) 71 字 / BID 0x20 (采集侧写口 4 → 8 B/拍修复; 几何/未实现地址 0x14C 不变)"',
+  '  "71|0x00000022|61 62|P9 XDMA MM→AXIS (2026-10-11) 71 字 / BID 0x22 (XDMA 用户接口 MM→AXIS: 新件 `axis_c2h_stream` + 端口表 75→50; 几何/未实现地址 0x14C 不变)"\n  "71|0x00000021|61 62|P8-STG 16 B 弹性暂存 (2026-10-11) 71 字 / BID 0x21 (采集侧 8 B 单槽 → 16 B 字节粒度弹性暂存, 相位鲁棒; 几何/未实现地址 0x14C 不变)"\n  "71|0x00000020|61 62|P8 镜像 8 B/拍 (2026-10-11) 71 字 / BID 0x20 (采集侧写口 4 → 8 B/拍修复; 几何/未实现地址 0x14C 不变)"', 1)
+E7('_proj_10g/notes/p7b_biz_tcpreg/tcpreg_j6.sh',
+  '  "71|0x00000021|61 62|P8-STG 16 B 弹性暂存 (2026-10-11) 71 字 / BID 0x21 (采集侧 8 B 单槽 → 16 B 字节粒度弹性暂存, 相位鲁棒; 几何/未实现地址 0x14C 不变)"\n  "71|0x00000020|61 62|P8 镜像 8 B/拍 (2026-10-11) 71 字 / BID 0x20 (采集侧写口 4 → 8 B/拍修复; 几何/未实现地址 0x14C 不变)"',
+  '  "71|0x00000022|61 62|P9 XDMA MM→AXIS (2026-10-11) 71 字 / BID 0x22 (XDMA 用户接口 MM→AXIS: 新件 `axis_c2h_stream` + 端口表 75→50; 几何/未实现地址 0x14C 不变)"\n  "71|0x00000021|61 62|P8-STG 16 B 弹性暂存 (2026-10-11) 71 字 / BID 0x21 (采集侧 8 B 单槽 → 16 B 字节粒度弹性暂存, 相位鲁棒; 几何/未实现地址 0x14C 不变)"\n  "71|0x00000020|61 62|P8 镜像 8 B/拍 (2026-10-11) 71 字 / BID 0x20 (采集侧写口 4 → 8 B/拍修复; 几何/未实现地址 0x14C 不变)"', 1)
+E7('_proj_pcie/p7b_biz/p7b_snap.sh',
+  'EXPECT_BID=${EXPECT_BID:-0x00000021}',
+  'EXPECT_BID=${EXPECT_BID:-0x00000022}', 1)
+E7('_proj_pcie/p7b_biz/p7b_snap.sh',
+  '# p7b_snap.sh -- 板侧快照窗口取数器 (**现役 = 71 字 / BID 0x21**; 标题原文 = "板侧 **63** 字\n#   快照窗口的取数器 (P7b Stage C: BID=10 / SNAP_NW=63)" —— 那一代已过时, 见下逐代订正)\n#   ⭐ P8-STG 16 B 弹性暂存 (2026-10-11): 身份 0x20 → **0x21** (**字长/未实现地址不变** = 71 字 / 0x14C;\n#      采集侧 `app_rx_mirror` 8 B 单槽 → 16 B 字节粒度弹性暂存, 任意相位可续接)。\n#   ⭐ P8 镜像 8 B/拍 (2026-10-11): 身份 0x1F → **0x20** (**字长/未实现地址不变** = 71 字 / 0x14C;\n#      采集侧 `app_rx_mirror` 写口 4 → 8 B/拍修复)。\n',
+  '# p7b_snap.sh -- 板侧快照窗口取数器 (**现役 = 71 字 / BID 0x22**; 标题原文 = "板侧 **63** 字\n#   快照窗口的取数器 (P7b Stage C: BID=10 / SNAP_NW=63)" —— 那一代已过时, 见下逐代订正)\n#   ⭐ P9 XDMA MM→AXIS (2026-10-11): 身份 0x21 → **0x22** (**字长/未实现地址不变** = 71 字 / 0x14C;\n#      XDMA 用户接口 MM→AXIS: 新件 `axis_c2h_stream` + 端口表 75→50)。\n#   ⭐ P8-STG 16 B 弹性暂存 (2026-10-11): 身份 0x20 → **0x21** (**字长/未实现地址不变** = 71 字 / 0x14C;\n#      采集侧 `app_rx_mirror` 8 B 单槽 → 16 B 字节粒度弹性暂存, 任意相位可续接)。\n#   ⭐ P8 镜像 8 B/拍 (2026-10-11): 身份 0x1F → **0x20** (**字长/未实现地址不变** = 71 字 / 0x14C;\n#      采集侧 `app_rx_mirror` 写口 4 → 8 B/拍修复)。\n', 1)
+E7('_proj_pcie/p6e_snap_check.sh',
+  'EXPECT_BID=${EXPECT_BID:-0x00000021}       # ⛔ 2026-10-11 P8-STG 16 B 弹性暂存: 原默认 0x00000020 (P8 镜像 8 B/拍) / 0x1F (M1 镜像窗) / 0x0A (Stage C)',
+  'EXPECT_BID=${EXPECT_BID:-0x00000022}       # ⛔ 2026-10-11 P9 XDMA MM→AXIS: 原默认 0x00000021 (P8-STG 16 B 弹性暂存) / 0x20 (P8 镜像 8 B/拍) / 0x0A (Stage C)', 1)
+E7('_proj_pcie/p7b_gate4_accept.sh',
+  'EXPECT_BID=${EXPECT_BID:-0x00000021}      # P8-STG 16 B 弹性暂存 = 0x21 (源码 board/wrapper_p4.v 的 BUILD_ID_V; 原 0x20 = P8 镜像 8 B/拍 / 0x1F = M1 镜像窗)',
+  'EXPECT_BID=${EXPECT_BID:-0x00000022}      # P9 XDMA MM→AXIS = 0x22 (源码 board/wrapper_p4.v 的 BUILD_ID_V; 原 0x21 = P8-STG 16 B 弹性暂存 / 0x20 = P8 镜像 8 B/拍)', 1)
+E7('_proj_pcie/p7b_gate4_selftest.sh',
+  '  #    而"正例必须 0 FAIL"是本脚本的断言⑤)。现役 = **0x21** (P8-STG 16 B 弹性暂存 71 字 —— ⛔ 2026-10-11 同步轮: 原 0x20 = P8 镜像 8 B/拍 /\n  #    0x1F = M1 镜像窗 / 0x1E = snd_wnd 守卫 / 原句 = 现役 17 (构建 C 65 字) / 10 (P7b Stage C)); 跑旧口径时\n  #    FAKE_BID=0x00000020 (P8 镜像 8 B/拍; SNAP_WORDS=71) / 0x0000001F (M1 镜像窗; 71) / 0x00000017 / 0x00000008。\n',
+  '  #    而"正例必须 0 FAIL"是本脚本的断言⑤)。现役 = **0x22** (P9 XDMA MM→AXIS 71 字 —— ⛔ 2026-10-11 同步轮: 原 0x21 = P8-STG 16 B 弹性暂存 /\n  #    0x20 = P8 镜像 8 B/拍 / 0x1F = M1 镜像窗 / 原句 = 现役 17 (构建 C 65 字) / 10 (P7b Stage C)); 跑旧口径时\n  #    FAKE_BID=0x00000021 (P8-STG 16 B 弹性暂存; SNAP_WORDS=71) / 0x00000020 (P8 镜像 8 B/拍; 71) / 0x00000017 / 0x00000008。\n', 1)
+E7('_proj_pcie/p7b_gate4_selftest.sh',
+  '  0X04) V=\\${FAKE_BID:-0x00000021};;\n',
+  '  0X04) V=\\${FAKE_BID:-0x00000022};;\n', 1)
+E7('_proj_pcie/p7b_gate4_negctrl.sh',
+  '# 几何: **71 字 (W0..W70)** —— P8-STG 16 B 弹性暂存 (2026-10-11, BID=0x21 / 未实现 0x14C);\n#       (原句: "71 字 (W0..W70) —— P8 镜像 8 B/拍 (2026-10-11, BID=0x20 / 未实现 0x14C)" = 历史代, 逐字保留于下)\n#       (原句: "71 字 (W0..W70) —— M1 镜像窗 (2026-10-11, BID=0x1F / 未实现 0x14C)" = 历史代, 逐字保留于下)\n#       (原句: "70 字 (W0..W69) —— snd_wnd 守卫 (2026-10-11, BID=0x1E / 未实现 0x138)" = 历史代, 逐字保留于下)\n',
+  '# 几何: **71 字 (W0..W70)** —— P9 XDMA MM→AXIS (2026-10-11, BID=0x22 / 未实现 0x14C);\n#       (原句: "71 字 (W0..W70) —— P8-STG 16 B 弹性暂存 (2026-10-11, BID=0x21 / 未实现 0x14C)" = 历史代, 逐字保留于下)\n#       (原句: "71 字 (W0..W70) —— P8 镜像 8 B/拍 (2026-10-11, BID=0x20 / 未实现 0x14C)" = 历史代, 逐字保留于下)\n#       (原句: "71 字 (W0..W70) —— M1 镜像窗 (2026-10-11, BID=0x1F / 未实现 0x14C)" = 历史代, 逐字保留于下)\n#       (原句: "70 字 (W0..W69) —— snd_wnd 守卫 (2026-10-11, BID=0x1E / 未实现 0x138)" = 历史代, 逐字保留于下)\n', 1)
+E7('_proj_pcie/p7b_gate4_negctrl.sh',
+  '    echo "MAGIC 0x50360001"; echo "BID 0x00000021"; echo "MARKER 0xdeadbeef"   # P8-STG 16 B 弹性暂存: 原 0x20 = P8 镜像 8 B/拍 / 0x1F = M1 镜像窗 / 0x1E = snd_wnd 守卫',
+  '    echo "MAGIC 0x50360001"; echo "BID 0x00000022"; echo "MARKER 0xdeadbeef"   # P9 XDMA MM→AXIS: 原 0x21 = P8-STG 16 B 弹性暂存 / 0x20 = P8 镜像 8 B/拍 / 0x1F = M1 镜像窗', 1)
+E7('_proj_pcie/p7b_gate4_livefake.sh',
+  '    #   ⛔ 2026-10-11 (P8 镜像 8 B/拍 → P8-STG 16 B 弹性暂存): 71 字槽的身份 0x20 → **0x21** (字长没动 ⇒ 槽号仍 71);\n    #      兜底值同改 0x21 (现役代)。⚠️ 本字典**按 NW 索引** ⇒ 读 0x1F/0x20 归档位流时须配套回改。\n    #   ⛔ 2026-10-11 (M1 镜像窗 → P8 镜像 8 B/拍): 71 字槽的身份 0x1F → **0x20** (字长没动 ⇒ 槽号仍 71);\n    #      兜底值同改 0x20 (当时的现役代)。⚠️ 本字典**按 NW 索引** ⇒ 读 0x1F 归档位流时须配套回改。\n',
+  '    #   ⛔ 2026-10-11 (P8-STG 16 B 弹性暂存 → P9 XDMA MM→AXIS): 71 字槽的身份 0x21 → **0x22** (字长没动 ⇒ 槽号仍 71);\n    #      兜底值同改 0x22 (现役代)。⚠️ 本字典**按 NW 索引** ⇒ 读 0x1F/0x20/0x21 归档位流时须配套回改。\n    #   ⛔ 2026-10-11 (P8 镜像 8 B/拍 → P8-STG 16 B 弹性暂存): 71 字槽的身份 0x20 → **0x21** (字长没动 ⇒ 槽号仍 71);\n    #      兜底值同改 0x21 (当时的现役代)。⚠️ 本字典**按 NW 索引** ⇒ 读 0x1F/0x20 归档位流时须配套回改。\n    #   ⛔ 2026-10-11 (M1 镜像窗 → P8 镜像 8 B/拍): 71 字槽的身份 0x1F → **0x20** (字长没动 ⇒ 槽号仍 71);\n    #      兜底值同改 0x20 (当时的现役代)。⚠️ 本字典**按 NW 索引** ⇒ 读 0x1F 归档位流时须配套回改。\n', 1)
+E7('_proj_pcie/p7b_gate4_livefake.sh',
+  '    bid = {71: "0x00000021", 70: "0x0000001E", 67: "0x00000019", 66: "0x00000018", 65: "0x00000017", 63: "0x0000000A", 61: "0x00000008", 51: "0x00000007"}.get(nw, "0x00000021")',
+  '    bid = {71: "0x00000022", 70: "0x0000001E", 67: "0x00000019", 66: "0x00000018", 65: "0x00000017", 63: "0x0000000A", 61: "0x00000008", 51: "0x00000007"}.get(nw, "0x00000022")', 1)
+E7('_proj_pcie/p6e_snap_selftest_fix2.sh',
+  '  0X04) V=\\${FAKE_BID:-0x00000021};;   # P8-STG 16 B 弹性暂存 = 0x21 (⛔ 原 0x20 = P8 镜像 8 B/拍 / 0x1F = M1 镜像窗 / 0x0A = Stage C);',
+  '  0X04) V=\\${FAKE_BID:-0x00000022};;   # P9 XDMA MM→AXIS = 0x22 (⛔ 原 0x21 = P8-STG 16 B 弹性暂存 / 0x20 = P8 镜像 8 B/拍 / 0x0A = Stage C);', 1)
+E7('_proj_10g/notes/p7b_gate4_3/final_state.sh',
+  'EXPECT_BID=${EXPECT_BID:-0x00000021}   # ⛔ 2026-10-11 P8-STG 16 B 弹性暂存 (71 字); 原 0x20 = P8 镜像 8 B/拍',
+  'EXPECT_BID=${EXPECT_BID:-0x00000022}   # ⛔ 2026-10-11 P9 XDMA MM→AXIS (71 字); 原 0x21 = P8-STG 16 B 弹性暂存', 1)
+E7('_proj_10g/notes/p7b_gate4_criteria/gen_inputs.py',
+  '         ⚠️ 几何 = **71 字 / BID 0x21** (P8-STG 16 B 弹性暂存, 2026-10-11 同步轮从 71 字/BID 0x20 同步)\n            ⛔ 2026-10-11 P8-STG 同步: 上一行原写 "几何 = 71 字 / BID 0x20 (P8 镜像 8 B/拍)";\n            ⛔ 2026-10-11 P8 同步: 那一行的上一行原写 "几何 = 71 字 / BID 0x1F (P7b M1 镜像窗)";\n',
+  '         ⚠️ 几何 = **71 字 / BID 0x22** (P9 XDMA MM→AXIS, 2026-10-11 同步轮从 71 字/BID 0x21 同步)\n            ⛔ 2026-10-11 P9-AXIS 同步: 上一行原写 "几何 = 71 字 / BID 0x21 (P8-STG 16 B 弹性暂存)";\n            ⛔ 2026-10-11 P8-STG 同步: 那一行的上一行原写 "几何 = 71 字 / BID 0x20 (P8 镜像 8 B/拍)";\n            ⛔ 2026-10-11 P8 同步: 那一行的上一行原写 "几何 = 71 字 / BID 0x1F (P7b M1 镜像窗)";\n', 1)
+E7('_proj_10g/notes/p7b_gate4_criteria/gen_inputs.py',
+  '# 现应读作 "不同代 ⇒ 假红": 本夹具现 = **71 字 / BID 0x21**, accept 默认也已是 71 字 / BID 0x21\n',
+  '# 现应读作 "不同代 ⇒ 假红": 本夹具现 = **71 字 / BID 0x22**, accept 默认也已是 71 字 / BID 0x22\n', 1)
+E7('_proj_10g/notes/p7b_gate4_criteria/gen_inputs.py',
+  '# 66 字/0x18 (构建 D) → 67 字/0x19 (构建 E) → 70 字/0x1A (构建 F) → 70 字/0x1C (缺陷刀) → 70 字/0x1D (persist 刀) → 70 字/0x1E (snd_wnd 守卫) → 71 字/0x1F (M1 镜像窗) → 71 字/0x20 (P8 镜像 8 B/拍) → **71 字/0x21 (P8-STG 16 B 弹性暂存, 未实现地址 0x14C 不变)**。\n',
+  '# 66 字/0x18 (构建 D) → 67 字/0x19 (构建 E) → 70 字/0x1A (构建 F) → 70 字/0x1C (缺陷刀) → 70 字/0x1D (persist 刀) → 70 字/0x1E (snd_wnd 守卫) → 71 字/0x1F (M1 镜像窗) → 71 字/0x20 (P8 镜像 8 B/拍) → 71 字/0x21 (P8-STG 16 B 弹性暂存) → **71 字/0x22 (P9 XDMA MM→AXIS, 未实现地址 0x14C 不变)**。\n', 1)
+E7('_proj_10g/notes/p7b_gate4_criteria/gen_inputs.py',
+  'BID_FIX = 0x00000021       # 位流身份 (P8-STG 16 B 弹性暂存) —— ⛔ 2026-10-11: 原值 0x00000020 (P8 镜像 8 B/拍)',
+  'BID_FIX = 0x00000022       # 位流身份 (P9 XDMA MM→AXIS) —— ⛔ 2026-10-11: 原值 0x00000021 (P8-STG 16 B 弹性暂存)', 1)
+E7('sim/p6e_pcie/tb_p6e_pcie_counters.v',
+  'u_dut.u_pcie_xdma.axil_read(32\'h04, v); chk("0b BUILD_ID (P8-STG 16 B 弹性暂存 71-word = 0x21; 原 71-word=0x20(P8 镜像 8 B/拍) / 0x1F(M1 镜像窗) / 63-word=9)", v, 32\'h00000021);',
+  'u_dut.u_pcie_xdma.axil_read(32\'h04, v); chk("0b BUILD_ID (P9 XDMA MM→AXIS 71-word = 0x22; 原 71-word=0x21(P8-STG 16 B 弹性暂存) / 0x20(P8 镜像 8 B/拍) / 63-word=9)", v, 32\'h00000022);', 1)
+E7('sim/p6e_pcie/tb_p6e_pcie_wrapper.v',
+  'u_dut.u_pcie_xdma.axil_read(32\'h04, v); chk("2  BUILD_ID (P8-STG 16 B 弹性暂存构建 = 0x21)", v, 32\'h00000021);',
+  'u_dut.u_pcie_xdma.axil_read(32\'h04, v); chk("2  BUILD_ID (P9 XDMA MM→AXIS 构建 = 0x22)", v, 32\'h00000022);', 1)
+E7('_proj_10g/notes/p7b_a3_negctl_20261010/step0_selfcheck.sh',
+  '#     (i)  缺省档 (NW=71 / 0x14C / BID 0x21) 对 D **响亮失败** (且失败点只在 BID = 档位错, 不是板错);',
+  '#     (i)  缺省档 (NW=71 / 0x14C / BID 0x22) 对 D **响亮失败** (且失败点只在 BID = 档位错, 不是板错);', 1)
+E7('_proj_10g/notes/p7b_a3_negctl_20261010/step0_selfcheck.sh',
+  'echo "### C-a) 默认档 (NW=71 / 0x14C / BID 0x21) —— 对 D 位流: 期望 ID_FAIL 且失败点=身份不符 (BID 0x18 != 0x21)"',
+  'echo "### C-a) 默认档 (NW=71 / 0x14C / BID 0x22) —— 对 D 位流: 期望 ID_FAIL 且失败点=身份不符 (BID 0x18 != 0x22)"', 1)
+
+# ===========================================================================
 # ⑧ 【读侧加固】三条结构性断言 (照搬 F 轮; 判据必须**走到退出码**)
 #
 #   动机 (F 轮同源): "同步"以前只靠一份**手写清单** + "锚点命中数" ⇒ 连翻三轮车
@@ -1251,6 +1343,25 @@ ALLOW = [
      "旧位流读法: P8 板级轮现场 (烧的是 **0x1F** 归档位流 ⇒ `burn_0x1F.sh` 的 `EXPBID=0x1F`/`NW=71` 与 "
      "`_tools/` 部署件快照里的 M1 几何地址(0x13C/0x140/0x144/0x14C)都是**那一代的真值**, 由 `WANT` sha256 钉死; "
      "改它反而毁掉该轮取证 —— 登记为 2026-10-11 阶段 ⑤ (0x20) 的新命中)"),
+    (r"^_proj_10g/notes/p8_board_0x21_20261011/",
+     "旧位流读法: P8 板级轮 0x21 现场 (烧的是 **0x21** 归档位流 ⇒ `burn_0x21.sh` 的 "
+     "`WANT=fbb6fca8…`(0x21 位流 sha256)/`EXPBID=0x00000021`/`NW=71` 与 `_tools/run_arm.sh` 的 "
+     "`BID=${BID:-0x00000021}`、`final_state.sh` 的 `EXPECT_BID=0x00000021` 都是**那一代的真值**, "
+     "由 `WANT` sha256 钉死; 改它反而毁掉该轮取证 —— 登记为 2026-10-11 阶段 ⑦ (0x22) 的新命中)"),
+    (r"^_proj_10g/notes/p8_tcp_0x21_20261011/",
+     "旧位流读法: P8/TCP 板级轮 0x21 现场 (同上; `_tools/run_tcp_*.sh` 的 `BID=${BID:-0x00000021}` / "
+     "`final_state_tcp.sh` 的 `EXPECT_BID=0x00000021` = 那一代真值) —— 阶段 ⑦ (0x22) 的新命中"),
+    (r"^_proj_10g/notes/p9_axis_impl_20261011/head_negapp/",
+     "诊断副本: P9 实现轮的 **HEAD wrapper 工作副本** (+ ¬APP_MODE 打补丁版) —— "
+     "`wrapper_p4_head.v` = 被 copy 的那一刻的 HEAD (BID `0x21` / NW 71 / `SNAP_NW_P6E` 行), "
+     "`wrapper_p4_negapp_patched.v` = 在其上打 ¬APP_MODE 的探针副本; 两者都是**编过就丢的一次性副本** "
+     "(证据 = 同目录 `xelab_negapp.log`), ⛔ 改它们 = 伪造那次排练的产物 ⇒ 只登记不动"),
+    (r"^_proj_10g/notes/p9_build_0x22/",
+     "现役: 本轮 (阶段 ⑦ = 0x22) 构建轮目录 (读数/归档/生成器; 含各代 BID 字符串与各代断言输出)"),
+    (r"^tb/tb_uart_dbg\.v$",
+     "侥幸命中 (同名不同物 —— 与位流身份无关): UART diag TB 的 `sc = 32'h00000021` = **SC 计数器初值** "
+     "(P4c diag18 行, 十进制 33; 同族 `sd=…22`/`sf=…23`/`sp=…24`), 只是 8 位零填充形态撞上旧值族 "
+     "⇒ 不是读侧默认值; 改它会改动该门的激励 ⇒ 只登记不动"),
     (r"^_proj_10g/notes/p8_board_0x20_20261011/",
      "旧位流读法: P8 板级轮 0x20 现场 (烧的是 **0x20** 归档位流 ⇒ `burn_0x20.sh` 的 "
      "`WANT=998ff90f…`(0x20 位流 sha256)/`EXPBID=0x00000020`/`NW=71` 与 `_tools/run_arm.sh` 的 "
