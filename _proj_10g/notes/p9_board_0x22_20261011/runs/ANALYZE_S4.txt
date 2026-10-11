@@ -1,0 +1,19 @@
+=== ① LFSR 自检 (p7b_pattern.h 的两条向量) ===
+SELFTEST off0_15    7f0b02e536a14ed61ab049b856add63f OK
+SELFTEST off1460_67 0300422d9b47cac0 OK
+=== ② 对账 ===
+file=runs/mir_S4.bin bytes=1044488 对账长度=1044488 pat_off=3602440 xor=0xA5
+--- 恒等假设 (tdata[7:0] = 宿主 byte 0) ---
+IDENTITY        first_mismatch=0 mism_bytes=1040314 of 1044488 (x)
+--- 三个候选失配形态 (同一份数据, 换重排假设) ---
+Traceback (most recent call last):
+  File "D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_board_0x22_20261011\_tools\byteorder_analyze.py", line 135, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_board_0x22_20261011\_tools\byteorder_analyze.py", line 91, in main
+    fm2, m2 = count_mismatch(got[:N], exp, fn(N))
+              ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_board_0x22_20261011\_tools\byteorder_analyze.py", line 54, in count_mismatch
+    if got[gi] != pat[i]:
+       ~~~^^^^
+IndexError: index out of range

@@ -1,0 +1,58 @@
+=== FINAL_STATE_BEGIN 1791732781.397016800
+--- 停流前: NIC 收速率 (2 s 窗) + carrier ---
+     port_rx_bytes: 25077364121138
+     port_rx_packets: 16580325270
+-- 2s later --
+     port_rx_bytes: 25079819592592
+     port_rx_packets: 16581942843
+CARRIER=1
+--- 写 0x08 = 0x2 (受控停流) ---
+Write 32-bits value 0x00000002 to 0x8 (0x0x7b36715f1008)
+--- 写 MIR_CTRL = 0 (采集口回冻结默认态: cap_en=0 / dma_en=0) ---
+Write 32-bits value 0x00000000 to 0x144 (0x0x73a75b84e144)
+--- 停流后: NIC 收速率 (2 s 窗) + carrier + link ---
+netlink error: Operation not permitted
+     port_rx_bytes: 25080938952634
+     port_rx_packets: 16582680244
+-- 2s later --
+     port_rx_bytes: 25080938952634
+     port_rx_packets: 16582680244
+CARRIER=0
+LINK=Link detected: no
+--- 最终态寄存器 ---
+MAGIC_0x00=Read 32-bit value at address 0x0 (0x7e63b6eba000): 0x50360001
+BID_0x04=Read 32-bit value at address 0x4 (0x785771db6004): 0x00000022
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x707b2c5d7008): 0x00000002
+MIR_STATUS_0x13C=Read 32-bit value at address 0x13c (0x72aecf71c13c): 0x00200000
+MIR_CTRL_0x144=Read 32-bit value at address 0x144 (0x77e3111e4144): 0x00000002
+MIR_DMA_CNT_0x148=Read 32-bit value at address 0x148 (0x7a91a9039148): 0x00040000
+UNIMPL_0x14C=Read 32-bit value at address 0x14c (0x7794b48f414c): 0xffffffff
+--- 最终态快照 (触发式; W5/W11/W13/W70) ---
+SNAP_BEGIN final gen=43
+W5   0x34   gmii_free_FE           0x12395403
+W11  0x4C   udpapp_rx_bytes        0x0056f808
+W13  0x54   udpapp_mismatch        0x00000000
+W70  0x138  mir_drop_bytes         0x00000008
+SNAP_END final nff=0
+--- 残留进程 (对端) ---
+PROC_SCAN_DONE
+--- /tmp/p7b_biz 复读 (全程未动; 期望 = 开工时 md5) ---
+a3faafd37ed2e21e0acd3cc925e9c98c  /tmp/p7b_biz/p7b_udp_src
+ba2faf79f409302d1e542450db402975  /tmp/p7b_biz/p7b_snap.sh
+b2f2e9627bac53bf3b4ab2b565afe872  /tmp/p7b_biz/p7b_pattern.h
+b03222792d20443138515ba2804b0d87  /tmp/p7b_biz/p7b_affinity.h
+8980988a3c40cc8e0c72f52bc443c6b0  -
+--- 历史目录只读核对 (未动) ---
+25af63df72993195469761d167005533  /tmp/p8_board_0x21/p7b_mir_dump
+e0d4da5834cb95d67afb0cc523d1f92f  /tmp/p8_board_0x21/p7b_udp_src
+--- 对端改动台账 (全部可回退) ---
+1) 新增目录 /tmp/p9_board_0x22/ (本轮部署+抓样); 回退 = rm -rf /tmp/p9_board_0x22
+2) 设备级 remove+rescan (烧后恢复 PCIe); 状态 = 生效中
+3) 本轮另建 /tmp/p9_board_0x22/{tmo.bin,drain.bin} (探针产物); 随 1) 一起回退
+4) sysctl/qdisc/coalesce/nmcli 未动: qdisc mq 0: root 
+qdisc fq_codel 0: parent :4 limit 10240p flows 1024 quantum 1514 target 5ms interval 100ms memory_limit 32Mb ecn drop_batch 64 
+Adaptive RX: off  TX: n/a
+rx-usecs:	0
+5) 网络面:     inet 192.168.100.100/32 scope global enp1s0f1np1
+10 (unmanaged)
+=== FINAL_STATE_END 1791732799.634119000

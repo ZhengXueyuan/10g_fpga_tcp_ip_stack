@@ -1,0 +1,48 @@
+=== ARM S1 K=1048576 PAYLEN=1472 OFF=auto MBPS=20 BATCH=1 SECS=30 1791732471.076097142
+--- 起测前快照 (W11=udpapp_rx_bytes / W13=app_mismatch / W70=mir_drop_bytes) ---
+SNAP_BEGIN S1_pre gen=2
+W5   0x34   gmii_free_FE           0x3230ab2b
+W11  0x4C   udpapp_rx_bytes        0x00000000
+W13  0x54   udpapp_mismatch        0x00000000
+W70  0x138  mir_drop_bytes         0x00000000
+SNAP_END S1_pre nff=0
+OFF_AUTO: W11=0x00000000 ⇒ OFF=0
+--- 起 mir_dump (--stream, --pat-off 0) ---
+--- 起发端 (p7b_udp_src, --bytes 1048576 --mbps 20 --batch 1 --paylen 1472 --off 0) ---
+SRC_RC=0
+TOOL_RC=0
+--- mir_dump 日志 (逐字) ---
+MIR_ID magic=50360001 (exp 50360001) bid=00000022 (exp 00000022)
+MIR_SRC src_sel=0 readback=0
+MIR_STATUS ver=4 src_sel=0 cap=0 any_drop=0 unf=0 level=0
+MIR_VER ver=4 path=stream expect=4 unimpl=0x14C
+MIR_UNIMPL addr=14c val=ffffffff (exp ffffffff)
+MIR_STREAM_BUF bytes=134217728 mb=128 prefault=1 aligned=4096
+MIR_STREAM_CFG dev=/dev/xdma0_c2h_0 bytes=1048576 chunk=1048576 resid_max_shaper=32 resid_max_mirror=24 k_bytes=0 settle=1.00 sample_ms=50.0 arm=1 src=0
+MIR_STREAM_ALIGN want_mod_64=0 chunk_mod_64=0 (PG195: 描述符长度须 64 B 倍数)
+MIR_STREAM_WATCHDOG secs=30.0 (0=off; SIGALRM 打断阻塞 read)
+MIR_STREAM_DONE pc=1048576 reads=1 partial=0 nonmul64=0 short=0 ended_early=0 read_error=0 secs=2.429 rate_Bps=431744
+MIR_STREAM_ACCT pc=1048576 taken_bytes=1048576 dW70=0 w70a=0 w70b=0 words0=0 words1=262144 dwords=262144 K=1048576
+MIR_STREAM_QUIESCE level_end=0 quiesced=1 premise_level0=1 waited_ms=0.0 settle_s=1.00 strict=1 (前提: FIFO 尾部已排空; 打包器残留由 FPGA 侧停流 flush 清)
+MIR_STREAM_IDA 式A(成形器) taken_bytes - pc == shaper_resid -> 0  band=[0,32] closed_a=1
+MIR_STREAM_IDB 式B(镜像/K) K - taken_bytes - dW70 == mirror_resid -> 0  band=[0,24] closed_b=1 (K 来源=--bytes; --resid-max 旧名未用)
+MIR_STREAM_WRAP words0=0 words1=262144 wrap_seen=0 dword_max_step=262144 (回卷余量: 单步 <2^32)
+MIR_STREAM_SAMPLE i=0 t=0.000 pc=0 drop=0 words=0 dword_acc=0
+MIR_STREAM_SAMPLE i=1 t=2.429 pc=1048576 drop=0 words=262144 dword_acc=262144
+MIR_STREAM_SAMPLE i=2 t=2.429 pc=1048576 drop=0 words=262144 dword_acc=262144
+MIR_STREAM_GAP first=0 last=0 max=0 nondecreasing=1 host_miss_bytes=0 host_miss_pct=0.0000 (= (taken-pc)/taken; 宿主跟不上的比例)
+MIR_STREAM_NOTE 采样本身在流上=自造空档 (3 点); 首版板内不加缓冲 ⇒ 宿主空档直接变丢字节
+MIR_VERIFY rc=0 first_mismatch=-1 of pc=1048576 (want=1048576; 不足量看式B)
+--- 发端日志 (PIN_CPU 见证行 + UDP_SUM) ---
+PIN_RULE=avoid-nic PIN_DEGRADED=none PIN_CPU=5 PIN_CORES_ONLINE=0-7 PIN_NIC_IFACE=enp1s0f0np0,enp1s0f1np1 PIN_NIC_CPUS=0,1,2,3,4,5 PIN_NIC_EXCLUDED=none PIN_CORE_LOAD=184946031 PIN_ALLOWED_MASK=20 PIN_GETCPU_START=5 PIN_FREQ_START_KHZ=2867909 PIN_GOV=schedutil PIN_NIC_IRQLINES=12 PIN_NIC_IFACE_SRC=auto PIN_TUPLE_ORDER=own_sib_t PIN_PAIR_RULE=n/a PIN_PAIR_DEGRADED=n/a PIN_CPU_IO=n/a PIN_CPU_WORK=n/a PIN_PC_IO=n/a PIN_PC_WORK=n/a PIN_PAIR_EXCL=n/a PIN_PAIR_REQ=n/a
+UDP_SUM pkts=713 pay_bytes=1048576 dur_s=0.475 pps=1502 pay_Mbps=17.669 wire_Mbps=18.173 off_start=0 off_end=1048576 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+--- 快照 (after) ---
+SNAP_BEGIN S1_post gen=9
+W5   0x34   gmii_free_FE           0x49abadae
+W11  0x4C   udpapp_rx_bytes        0x00100000
+W13  0x54   udpapp_mismatch        0x00000000
+W70  0x138  mir_drop_bytes         0x00000000
+SNAP_END S1_post nff=0
+--- 文件 ---
+-rw-r--r-- 1 root root 1048576 Oct 11 23:27 mir_S1.bin
+=== END S1 1791732473.625570289

@@ -1,0 +1,90 @@
+=== COPY 1791732219.845544800
+--- 源 (归档) ---
+c2e48a6961fdb26ad453aa71198b8552e4bdd9c47bbdaf287a7dbd145127635a */d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_build_0x22/wrapper_p4.bit
+--- 副本 (烧录件) ---
+c2e48a6961fdb26ad453aa71198b8552e4bdd9c47bbdaf287a7dbd145127635a */d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_board_0x22_20261011/burn/wrapper_p4_0x22.bit
+SHA_WANT want=c2e48a6961fdb26ad453aa71198b8552e4bdd9c47bbdaf287a7dbd145127635a
+SHA_OK copy==archive (c2e48a6961fdb26ad453aa71198b8552e4bdd9c47bbdaf287a7dbd145127635a)
+LOCAL_BIT /d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_board_0x22_20261011/burn/wrapper_p4_0x22.bit size=15431261 mtime=2026-10-11 23:23:39.867162900 +0800
+=== 板上烧前身份 (现读 0x04; 期望 = 0x21)
+Read 32-bit value at address 0x4 (0x76c46037b004): 0x00000021
+--- 烧前 MM 臂 ST-身份面预读 (0x21 上的对照基线) ---
+ctrl 0x0000=Read 32-bit value at address 0x0 (0x727b4cd95000): 0x1fc00006
+ctrl 0x1000=Read 32-bit value at address 0x1000 (0x7a7359768000): 0x1fc10006
+ctrl 0x004C=Read 32-bit value at address 0x4c (0x7ed1d831904c): 0x00010140
+ctrl 0x104C=Read 32-bit value at address 0x104c (0x7c7a67ab704c): 0x00010140
+=== BURN 1791732221.868880200
+BURN_STDOUT=/d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p7b_biz_tcpreg/tcpreg_program_stdout.txt mtime=1791732354 T0=1791732221
+--- burn stdout (关键行逐字) ---
+# puts "TCPREG_BIT = $bit"
+TCPREG_BIT = D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_board_0x22_20261011\burn\wrapper_p4_0x22.bit
+# puts "TCPREG_BIT_EXISTS = [file exists $bit]"
+TCPREG_BIT_EXISTS = 1
+# puts "TCPREG_BIT_MTIME = [file mtime $bit]"
+TCPREG_BIT_MTIME = 1791732219
+# puts "TCPREG_PROG device=$dev freq=1MHz"
+TCPREG_PROG device=xcku5p_0 freq=1MHz
+# if {![file exists $bit]} { puts "TCPREG-ABORT: bitstream missing"; exit 1 }
+# if {[catch {program_hw_devices $dev} em]} { puts "TCPREG-ABORT PROGRAM FAILED: $em"; exit 1 }
+INFO: [Labtools 27-3164] End of startup status: HIGH
+# puts "TCPREG_PROG_DONE (检查上�? 'End of startup status: HIGH')"
+TCPREG_PROG_DONE (检查上�? 'End of startup status: HIGH')
+--- end ---
+BURN_OK (HIGH+DONE+bit路径+新鲜度+无ABORT 五判据)
+=== RESCAN 1791732354.545901300
+--- lspci ---
+02:00.0 Serial controller: Xilinx Corporation Device 9034
+	Region 0: Memory at df200000 (32-bit, non-prefetchable) [size=1M]
+	Region 1: Memory at df300000 (32-bit, non-prefetchable) [size=64K]
+		LnkSta:	Speed 5GT/s (downgraded), Width x4
+--- dev ---
+crw------- 1 root root 235, 36 Oct 11 23:25 /dev/xdma0_c2h_0
+crw------- 1 root root 235,  1 Oct 11 23:25 /dev/xdma0_control
+crw------- 1 root root 235, 32 Oct 11 23:25 /dev/xdma0_h2c_0
+crw------- 1 root root 235,  0 Oct 11 23:25 /dev/xdma0_user
+--- dmesg (probe + identify_bars + engine 名 = ST 身份第①条) ---
+[140094.614589] xdma:engine_reg_dump: 0-C2H0-MM: ioread32(0x00000000f0b47fde) = 0x23c60620 (first_desc_lo)
+[140094.614592] xdma:engine_reg_dump: 0-C2H0-MM: ioread32(0x00000000786b1451) = 0x00000002 (first_desc_hi)
+[140094.614594] xdma:engine_reg_dump: 0-C2H0-MM: ioread32(0x0000000022a89c9c) = 0x00000000 (first_desc_adjacent).
+[140094.614597] xdma:engine_reg_dump: 0-C2H0-MM: ioread32(0x000000005120b24a) = 0x00000000 (completed_desc_count).
+[140094.614600] xdma:engine_reg_dump: 0-C2H0-MM: ioread32(0x0000000047213f29) = 0x00f83e1e (interrupt_enable_mask)
+[140094.614603] xdma:engine_status_dump: SG engine 0-C2H0-MM status: 0x00000000:
+[155762.076840] xdma:identify_bars: 2 BARs: config 1, user 0, bypass -1.
+[155762.076997] xdma:probe_one: 0000:02:00.0 xdma0, pdev 0x0000000006b9a25b, xdev 0x000000006291ed83, 0x0000000049b40894, usr 16, ch 1,1.
+[164546.400141] xdma:identify_bars: 2 BARs: config 1, user 0, bypass -1.
+[164546.400339] xdma:probe_one: 0000:02:00.0 xdma0, pdev 0x0000000006b9a25b, xdev 0x000000006291ed83, 0x0000000049b40894, usr 16, ch 1,1.
+[179286.818716] xdma:identify_bars: 2 BARs: config 1, user 0, bypass -1.
+[179286.818862] xdma:probe_one: 0000:02:00.0 xdma0, pdev 0x0000000006b9a25b, xdev 0x000000006291ed83, 0x0000000049b40894, usr 16, ch 1,1.
+=== ID (五判据) 1791732361.369723800
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x00000022   (want 0x00000022 = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1791732364.178818254
+ID_RC=0
+MAGIC_0x00=Read 32-bit value at address 0x0 (0x7b522a6e1000): 0x50360001
+BID_0x04=Read 32-bit value at address 0x4 (0x7443c5473004): 0x00000022
+UNIMPL_0x14C=Read 32-bit value at address 0x14c (0x70566f23b14c): 0xffffffff
+MARKER_读法=Read 32-bit value at address 0xc (0x71c093b5700c): 0x7dcd7f17
+MIR_STATUS_0x13C=Read 32-bit value at address 0x13c (0x7eba876c513c): 0x00200000
+MIR_CTRL_0x144=Read 32-bit value at address 0x144 (0x7ba58ec88144): 0x00000000
+MIR_DMA_CNT_0x148=Read 32-bit value at address 0x148 (0x7ddf8940b148): 0x00000000
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x7da846381008): 0x00000000
+CARRIER=1
+--- 71 字窗口逐字扫 (0x20..0x138; 期望无 0xffffffff) + 未实现 0x14C ---
+WINDOW_SCAN_NFF=0
+--- ⭐ ST 身份三条 (CONF §⑦): ① dmesg 引擎名(见上) ② identifier bit15 ③ alignments ---
+H2C0_identifier_0x0000=Read 32-bit value at address 0x0 (0x77e79c7fe000): 0x1fc08006
+C2H0_identifier_0x1000=Read 32-bit value at address 0x1000 (0x71a7bd483000): 0x1fc18006
+H2C0_alignments_0x004C=Read 32-bit value at address 0x4c (0x7aaa8a48504c): 0x00010140
+C2H0_alignments_0x104C=Read 32-bit value at address 0x104c (0x7caa8534704c): 0x00010140
+--- 烧后清零核对 (W11/W13/W70 应 0; MIR_CTRL=0; MIR_DMA_CNT=0) ---
+SNAP_BEGIN post_burn gen=1
+W5   0x34   gmii_free_FE           0x686c3ab9
+W11  0x4C   udpapp_rx_bytes        0x00000000
+W13  0x54   udpapp_mismatch        0x00000000
+W70  0x138  mir_drop_bytes         0x00000000
+SNAP_END post_burn nff=0
+MIR_CTRL readback=Read 32-bit value at address 0x144 (0x723873e72144): 0x00000000
+MIR_DMA_CNT readback=Read 32-bit value at address 0x148 (0x738d1a99c148): 0x00000000
+=== BURN_PHASE_DONE 1791732365.968091100

@@ -1,0 +1,37 @@
+# P9 板级首测 (位流 0x22 / XDMA MM→AXIS) —— 进度台账
+# 轮次: 2026-10-11 夜 (接构建轮 p9_build_0x22 之后)   出口: REPORT.md (已落盘)
+# 边界: 只 JTAG 烧归档副本 / 绝不写 QSPI / 未改 rtl,tb,board,工具源码 / /tmp/p7b_biz 与历史目录只读
+
+[23:21] step0 自检: 位流 sha256 c2e48a69…635a 双核 OK; 工具 f5e8d486… OK;
+        对端 192.168.0.38 连通; 无残留进程; 板前态 = 0x21 / 0x08=2 / CARRIER=0;
+        ⭐ MM 对照臂寄存器基线现场取到: id 0x1fc00006 / 0x1fc10006 (bit15=0), alignments 0x00010140
+[23:22] 部署 /tmp/p9_board_0x22/ (6 件 put + 现编 2 件): mir_dump md5 5ea97067… = 工具报告记录值;
+        selftest T1–T14 全 OK RC=0; 前后 md5 双核; /tmp/p7b_biz 四件逐字未变
+[23:25] 烧 0x22 (运行 run_program_tcpreg.bat, TCPREG_BIT=burn\wrapper_p4_0x22.bit);
+        五判据: HIGH + TCPREG_PROG_DONE + 路径匹配 + 新鲜(mtime 1791732219) + 无 ABORT ⇒ BURN_OK
+[23:26] 设备级 remove+rescan; 身份五判据全中 (0x04=0x22 / 71 字 NFF=0 / 0x14C=ffffffff /
+        LnkSta x4 / 2 BARs); MAGIC 0x50360001 + MARKER 0xdeadbeef; 烧后 W11=W13=W70=0 / MIR_CTRL=0 /
+        MIR_DMA_CNT=0; MIR_STATUS ver=4
+[23:28] ST 身份①: 诱导 C2H 超时 (dma_from_device -s4096 无数据, 10 s) ⇒ dmesg 打出 0-C2H0-ST
+        (对照 = 更早会话的 0-C2H0-MM); ② id bit15: 0x1fc00006→0x1fc08006 / 0x1fc10006→0x1fc18006;
+        ③ alignments 0x004C/0x104C 两模式逐字相同 0x00010140
+[23:27] S1: paylen1472 / K=1MiB / OFF=0 ⇒ rc=0 fm=-1 · 式A=0 式B=0 · ΔW70=0 · level=0 · 1 读无 partial
+[23:28] 离线复算 S1 (独立 LFSR + 自检向量): 恒等 0 失配/1,048,576; 三形态 99.61–99.62%;
+        车道发现 [0..15] 恒等 (16/16 唯一 100%) ⇒ **字节序判决 = 假设成立**
+[23:29] S2: paylen1470 (相位 6) / K=1,505,280 / OFF=1,048,576 ⇒ rc=0 fm=-1 · 式A=B=0 · ΔW70=0
+[23:30] 离线复算 S2: 恒等 0 失配/1,505,280; 车道发现恒等
+[23:31] S3: K抓=1,048,576 / --k-bytes=1,048,584 (源交付≡8 mod 16) ⇒ 式A=8 (残拍见证) 式B=0 fm=-1
+[23:32] S4 (D4 探针): 起测瞬间残拍以短拍(tlast)冒出 ⇒ pc=1,044,488 / taken=1,048,568 / ΔW70=8 /
+        式A=4,080 判红 / 第二次 read(4,088) 超时 10 s RC=1;
+        离线解剖: 头8B = S3 残拍(图案3602432) 逐字节 MATCH · [8,4096) 全零 · 体 [4096..) = 图案
+        [3602440..) 0 失配 ⇒ 内容无损、布局有洞 + 尾截 8,176 B
+[23:33] stop 探针 (MIR_CTRL=0x8 ⇒ dma_from_device -s16): 驱动打 read underflow 0x8/0x10;
+        捞回 8 B = 图案 4651008 唯一命中 = S4 源流末 8 B
+[23:34] S5 (恢复跑): 排空后逐项全绿 (pc=taken=K / 式A=B=0 / fm=-1 / level=0) ⇒ D4 形态 = 一次性
+[23:36] 收尾: 0x08=0x2 (受控停流, CARRIER=0 / Link no / NIC 计数冻结) + MIR_CTRL=0 (回读 0x2 = clr
+        toggle 位); 无残留进程; /tmp/p7b_biz 与历史目录复读未动
+[23:38] REPORT.md / SHA256SUMS.txt 落盘
+
+未定项 (详见 REPORT §7): S4 尾截层级不可观测 · ΔW70=8 位置不可观测 · read#2 超时未拆分 ·
+CONF §7-⑥ 未答 · 回卷/WRAP 未触发 · 烧回 0x21 往返臂未做 · tcp 源 / H2C / 高码率 / 长时不 tlast 未做 ·
+udp_src 二进制双 md5 未追 · /tmp/p7b_biz 的 ls 哈希差 = 父目录 mtime (非改动)

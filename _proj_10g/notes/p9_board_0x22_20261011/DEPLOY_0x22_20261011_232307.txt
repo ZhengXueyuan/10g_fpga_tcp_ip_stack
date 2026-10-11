@@ -1,0 +1,73 @@
+=== DEPLOY_BEGIN 1791732187.108187800
+--- ① 部署前: 现役/历史目录指纹 (只读; 部署后要复读证明未动) ---
+a3faafd37ed2e21e0acd3cc925e9c98c  /tmp/p7b_biz/p7b_udp_src
+ba2faf79f409302d1e542450db402975  /tmp/p7b_biz/p7b_snap.sh
+b2f2e9627bac53bf3b4ab2b565afe872  /tmp/p7b_biz/p7b_pattern.h
+b03222792d20443138515ba2804b0d87  /tmp/p7b_biz/p7b_affinity.h
+49ad10770cf88dd4c818ccb2fcaf412f  -
+25af63df72993195469761d167005533  /tmp/p8_board_0x21/p7b_mir_dump
+e0d4da5834cb95d67afb0cc523d1f92f  /tmp/p8_board_0x21/p7b_udp_src
+--- ② 建本轮目录 + put 源件 (仓库现树) ---
+MKDIR_OK
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_mir_dump.cpp -> /tmp/p9_board_0x22/p7b_mir_dump.cpp
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_pattern.h -> /tmp/p9_board_0x22/p7b_pattern.h
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_affinity.h -> /tmp/p9_board_0x22/p7b_affinity.h
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_udp_src.cpp -> /tmp/p9_board_0x22/p7b_udp_src.cpp
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_snap.sh -> /tmp/p9_board_0x22/p7b_snap.sh
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_board_0x22_20261011/_tools/run_arm.sh -> /tmp/p9_board_0x22/run_arm.sh
+--- ③ 对端现编 (口径 = g++ -O3 -pthread -Wall; -Wall 只作零告警见证) ---
+In file included from p7b_udp_src.cpp:40:
+p7b_affinity.h:851:13: warning: ‘void p7baff_pin_self_thread(const char*, int, bool)’ defined but not used [-Wunused-function]
+  851 | static void p7baff_pin_self_thread(const char *name, int cpu, bool print) {
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+MIR_BUILD_RC=0
+SRC_BUILD_RC=0
+g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+--- ④ 自检 (--selftest; 期望 T1–T14 全 OK / RC=0) ---
+SELFTEST_RC=0
+MIR_SELFTEST T14 subproc buf-mb 0         rc=2 (期望 2) 含'--buf-mb'=1 OK
+MIR_SELFTEST T14 subproc stream+dma       rc=2 (期望 2) 含'互斥'=1 OK
+MIR_SELFTEST PASS
+44
+SRC_SELFTEST_RC=0
+--- ⑤ 部署后 md5 双核 ---
+[对端]
+5ea97067cd90f93c8c47d1f272b04667  p7b_mir_dump
+e0d4da5834cb95d67afb0cc523d1f92f  p7b_udp_src
+ee8b829fdb6648f1072f11d65f9fb67b  p7b_mir_dump.cpp
+c40289dfa664ec62b82c8d6aaab9c15f  p7b_snap.sh
+b2f2e9627bac53bf3b4ab2b565afe872  p7b_pattern.h
+b03222792d20443138515ba2804b0d87  p7b_affinity.h
+72d38975a6de88c3296e97244068f898  run_arm.sh
+total 1328
+drwxrwxr-x  2 a    a      4096 Oct 11 23:23 .
+drwxrwxrwt 41 root root 901120 Oct 11 23:23 ..
+-rw-rw-r--  1 a    a     65142 Oct 11 23:23 p7b_affinity.h
+-rwxrwxr-x  1 a    a     75848 Oct 11 23:23 p7b_mir_dump
+-rw-rw-r--  1 a    a     95520 Oct 11 23:23 p7b_mir_dump.cpp
+-rw-rw-r--  1 a    a     21578 Oct 11 23:23 p7b_pattern.h
+-rw-rw-r--  1 a    a     15933 Oct 11 23:23 p7b_snap.sh
+-rwxrwxr-x  1 a    a    128048 Oct 11 23:23 p7b_udp_src
+-rw-rw-r--  1 a    a     16392 Oct 11 23:23 p7b_udp_src.cpp
+-rw-rw-r--  1 a    a      2776 Oct 11 23:23 run_arm.sh
+-rw-rw-r--  1 a    a      4264 Oct 11 23:23 selftest_mir.txt
+-rw-rw-r--  1 a    a       810 Oct 11 23:23 selftest_src.txt
+[本机期望 (仓库现树)]
+ee8b829fdb6648f1072f11d65f9fb67b */d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_mir_dump.cpp
+c40289dfa664ec62b82c8d6aaab9c15f */d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_snap.sh
+b2f2e9627bac53bf3b4ab2b565afe872 */d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_pattern.h
+f5ff317288b59b3e3c91988ca07446c9 */d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_udp_src.cpp
+72d38975a6de88c3296e97244068f898 */d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_board_0x22_20261011/_tools/run_arm.sh
+--- ⑥ 复读 /tmp/p7b_biz 与历史目录 (与 ① 逐字比 = 未动) ---
+a3faafd37ed2e21e0acd3cc925e9c98c  /tmp/p7b_biz/p7b_udp_src
+ba2faf79f409302d1e542450db402975  /tmp/p7b_biz/p7b_snap.sh
+b2f2e9627bac53bf3b4ab2b565afe872  /tmp/p7b_biz/p7b_pattern.h
+b03222792d20443138515ba2804b0d87  /tmp/p7b_biz/p7b_affinity.h
+8980988a3c40cc8e0c72f52bc443c6b0  -
+25af63df72993195469761d167005533  /tmp/p8_board_0x21/p7b_mir_dump
+e0d4da5834cb95d67afb0cc523d1f92f  /tmp/p8_board_0x21/p7b_udp_src
+--- ⑦ 网络面 (每次测量前现取) ---
+    inet 192.168.100.100/32 scope global enp1s0f1np1
+	Speed: 10000Mb/s
+	Link detected: no
+=== DEPLOY_END 1791732212.879643700
