@@ -7,10 +7,11 @@
 // 协议 (设计件 v2 §V1.1/§V1.3; 地址全部见 `axi_regs.v` 头注释 §M1):
 //   0x00 MAGIC (0x50360001) · 0x04 BUILD_ID (必须 == --bid) · 0x18 触发快照 (写 1)
 //   0x1C SNAP_STATUS (bit1 done) · 0x13C MIR_STATUS · 0x140 MIR_DATA (读=弹出) · 0x144 MIR_CTRL
-//   ⭐ 期 B: 0x148 MIR_DMA_CNT (环写字数) · **未实现地址 = 0x14C** (MIR 四字之后第一格)
+//   0x148 MIR_DMA_CNT · **未实现地址 = 0x14C** (MIR 四字之后第一格)
 //   MIR_STATUS = {[31:24]=0, [23]src_sel, [22:19]ver, [18]capture_on, [17]any_drop_sticky,
 //                 [16]unf_sticky, [15:0]level}
-//   MIR_CTRL   = [0]cap_en [1]clr toggle [2]src_sel; 起测顺序 = ① 写 clr=1 → ② 写 cap_en=1 → ③ 发包
+//   MIR_CTRL   = [0]cap_en [1]clr toggle [2]src_sel [3]dma_en;
+//                起测顺序 = ① 写 clr=1 (+dma_en) → ② 写 cap_en=1 (+dma_en) → ③ 发包
 //                (⭐ 期 A: `--src` 只改 [2], 不动 [0]/[1] 的协议)
 //
 // ⛔ 四条纪律 (全是本工程踩过的坑):
@@ -22,6 +23,8 @@
 //      **不得当板子能力引用** (若后续要用它做速率判据, 必须先补绑核见证, 全局 #62)。
 //   ④ `--bytes K` 前置条件 **K % 4 == 0** (v2 §V1.2; 累加器不在 tlast flush ⇒ 尾部
 //      <4B 结构性不可观测) ⇒ 不满足时立刻 exit(2) 响亮失败, 不"尽量读"。
+//      ⭐ P9-ST 追加: `--stream` 路径的前置条件**更严** = **K % 8 == 0** (P8-STG 起镜像按
+//      64 位字打包, 见 `rtl/app_rx_mirror.v:34` "发端总字节数 K 的前置条件 = K % 8 == 0")。
 //
 // ⭐⭐ 期 B (2026-10-11): `--dma` = C2H DMA 环读路径 (取代 user-BAR 逐字搬运)
 //   · 通道 = XDMA 的 C2H 引擎 (`/dev/xdma0_c2h_0`) → 我们自写的 AXI-MM 读从机
@@ -37,8 +40,48 @@
 //   · 新鲜度协议: 环会被写者**回绕覆盖** ⇒ 本工具在**每次环读之后**重读字计数器
 //     (`MIR_DMA_CNT`, 0x148), 若 `(cnt_after - span_start) >= RING_WORDS` 则把这一段
 //     记成 `clobber` 事件 (**检测, 非静默**; 定速演示下应为 0)。
-//   · ⚠️ `MIR_DMA_CNT` 只在**接了 C2H 环的构建**里存在 (未接 = 读回 `0xffffffff`) ⇒
-//     本工具在身份步**响亮退出** (不会把"寄存器不存在"读成计数器 0)。
+//   · ⚠️ `MIR_DMA_CNT` 只在**接了 C2H 环的构建**里是"环已写字数" (未接 = 读回 `0xffffffff`)
+//     ⇒ 本工具在身份步**响亮退出**。
+//
+// ⭐⭐⭐ P9 (2026-10-11): `--stream` = **PCIe 用户接口 MM→AXIS 之后的新路径** (与 `--dma`/`--bar`
+//   **并存**, 旧两路逐字保留 ⇒ 0x21 旧位流仍可跑对照)。
+//   语义变化 (权威口径 = `_proj_10g/notes/p8_axis_conf_20261011/CONF.md` §①③④ + §5-C;
+//   规格背景 = `p8_axis_recon_20261011/RECON.md` §3.3/§4):
+//     · **`lseek` 无意义** (ST C2H 下 `f_pos` 写进描述符后立刻被回写缓冲地址覆盖)
+//       ⇒ 取数 = **平铺 `read(fd, buf, n)`** 连续流, **不做任何地址/16 B 对齐假设**;
+//     · **16 B 对齐约束消失** (那是我们的 MM 从机造的; PG195 Table 11: AXI4-Stream 地址限制 = None);
+//     · **PG195 硬约束: C2H 描述符长度须为 64 B 的整数倍** ⇒ 本工具的 read 长度策略**照顾**它
+//       (见下 `--chunk`; 只有"最后一段不足 chunk"的那一笔可能非 64 倍数, 且逐跑打出见证);
+//     · 完成条件默认 = 收满 `count` (不给 `O_TRUNC`); 单次 read 无 64 KB 硬顶 (链式)。
+//   ⭐ 板内首版**不加缓冲** (用户裁定 "先不加, 测完以后加") ⇒ 宿主两次 `read()` 之间的空档
+//      直接表现为**板侧丢字节** (记在快照 `W70` = `app_rx_mirror.drop_bytes`)。
+//      ⇒ 本路径的记账必须把 **交付量 (板侧)** 与 **抓取量 (宿主)** 分开, 逐项打原始值。
+//   ⭐ 记账三件 + 闭合式 (U1: 三项全部打印, 不许只打一项):
+//        pc            = 抓取字节数 (宿主实际 read 到的字节)
+//        ΔW70          = 板侧丢字节 (快照 W70 首末差; 32 位, 见"跨回卷")
+//        交付字节       = Δ`MIR_DMA_CNT` × 4 (P9 口径: **已交付 AXIS 口的 32 位字数**;
+//                        P8/期 B 的老口径 = "环已写字数" —— 两者**不是同一个量**, 见下)
+//        闭合式:  **pc + ΔW70 + 残余 == 交付字节**  (mod 2^32 意义下的字节账)
+//        残余口径 = `rtl/app_rx_mirror.v` 头注释: **`acc_cnt_r + stg_cnt`, 0..24 B**
+//        (P8-STG 口径位移; 旧版 `acc_cnt(+pend)`)。⚠️ 残余**板上不可读** ⇒ 本工具把它
+//        **蕴含出来** (`resid_implied = 交付字节 − pc − ΔW70`), 并断言它落在
+//        `[0, --resid-max]` 带内 (默认 24 B; **AXIS 侧新件若另有尾拍残留, 须按该件头注释
+//        把带宽放宽** —— 新件未落盘时无法读取, 见 TOOL_REPORT 的未定项)。
+//        ⭐ **计数点 = 上游 (已裁, TL 2026-10-11 夜; FPGA 侧同批执行)**: `MIR_DMA_CNT` 数
+//        **从镜像取走 (`dma_gnt`) 的 32 位字数**, **不是** `tvalid&&tready` 下游字数
+//        (FPGA 侧实现"内部不丢、无空间不取" ⇒ 两个口径本该相等, 但**上游才是设计口径**)
+//        ⇒ 上面那条闭合式**就是**设计口径下的恒等式, 不需要换式。
+//        ⭐ **闭合式的**另一个前提 = **`level == 0`** (FIFO 尾部已排空): 停流序列下的残差上界
+//        = 镜像 `acc+stg` (≤24 B) —— 打包器残留由 FPGA 侧"停流 flush 一拍短拍"清掉, FIFO 尾部
+//        由本工具的**有界等待 + 见证**清掉。⇒ 终样本前等 `MIR_STATUS.level == 0` (触发式快照读),
+//        **等到/超时都打实际值** (`MIR_STREAM_QUIESCE ... premise_level0=`); 超时 = 前提未见证
+//        ⇒ 账本**不可判** ⇒ 响亮 (rc=1), 除非显式 `--no-strict-quiesce` (放行也打见证)。
+//   ⚠️ 原"计数器跳变 > 环 4096"那条 FATAL **在 ST 下失去载体** (无环, 且"落后"表现为丢字节
+//      不是回绕) ⇒ 它**只留在 `--dma` 路径** (run_dma 内), **不搬进本路径**。
+//      ST 路径的替代异常判据 = ① 闭合式 (上) ② **交付-抓取差的时间序列** (能否被宿主跟上:
+//      差随采样单调增 ⇒ 宿主跟不上的比例要打出来, 不静默)。见 `--sample-ms` / `MIR_STREAM_SAMPLE`。
+//   ⚠️ **两条读出口不许混用** (`rtl/app_rx_mirror.v:117-122`): `--stream`(DMA/AXIS 排空) 与
+//      `--bar`(`MIR_DATA` 读=弹出) 抢同一条队列 ⇒ 同一次运行里只用一条。
 //
 // 用法:
 //   sudo ./p7b_mir_dump --bid 0x1F --bytes 1048576 [--dev /dev/xdma0_user] [--out /tmp/mir.bin]
@@ -46,8 +89,11 @@
 //                       [--src udp|tcp]        # 期 A: 源选择 (读回 MIR_STATUS[23] 作身份门)
 //   sudo ./p7b_mir_dump --bid 0x1F --bytes 1048576 --dma [--dma-dev /dev/xdma0_c2h_0]
 //                       [--src udp|tcp] [--out /tmp/mir.bin] [--seconds 30]
+//   sudo ./p7b_mir_dump --bid 0x22 --bytes 67108864 --stream [--stream-dev /dev/xdma0_c2h_0]
+//                       [--buf-mb 128] [--chunk 1048576] [--resid-max 24] [--settle 1.0]
+//                       [--sample-ms 50] [--allow-ver-mismatch] [--src udp|tcp] [--out /tmp/mir.bin]
 //   ./p7b_mir_dump --selftest [--bytes 65536]      # 无板自检 (内存 mock; 含负对照)
-// 退出码: 0 = 全好 / 1 = 内容失配或字节不足 / 2 = 用法或身份失败 (响亮)。
+// 退出码: 0 = 全好 / 1 = 内容失配、字节不足或不闭合 / 2 = 用法或身份失败 (响亮)。
 // 编译 (部署口径 = _proj_10g/notes/p7b_affinity/BUILD.md §2):
 //   g++ -O3 -pthread -o p7b_mir_dump p7b_mir_dump.cpp
 // ⚠️ mingw-w64 (本机自检编译用): 让 <unistd.h> 声明 pread/pwrite —— 只影响 Windows 侧,
@@ -61,6 +107,11 @@
 #include <sys/mman.h>      // ⭐ 2026-10-11: user BAR 走 mmap (现核: ctrl_fops 无 llseek)
 #include <time.h>
 #include <unistd.h>
+
+#ifndef _WIN32
+#include <signal.h>        // ⭐ P9: --seconds 看门狗 (SIGALRM 打断阻塞 read)
+#include <sys/wait.h>      // ⭐ P9: T14 子进程退出码自检
+#endif
 
 #include <cerrno>
 #include <cstdint>
@@ -87,6 +138,14 @@ static const uint32_t MAGIC = 0x50360001u;
 // ⭐ 期 B: 环几何 —— 必须与 `rtl/mir_dma_ring.v` 的 `ROW_AW` 参数同代 (16 KB = 4096 字 × 4 行/拍)
 static const uint32_t RING_WORDS = 4096u;
 static const uint32_t RING_BYTES = RING_WORDS * 4u;
+
+// ⭐⭐ P9: `MIR_STATUS.ver` 的代际 (位语义变了就 bump; 见 `axi_regs.v:56-63`)
+//   ver=3 = 期 B (MM 引擎 + 环; MIR_DMA_CNT = **环已写字数**)
+//   ver=4 = P9-ST (AXIS 引擎;  MIR_DMA_CNT = **已交付 AXIS 口的 32 位字数**)
+//   ⇒ 两代的 0x148 语义不同 ⇒ **路径必须与 ver 配对** (见 path_ver_ok; 越轨 = 响亮拒)
+static const uint32_t VER_MM = 3, VER_ST = 4;
+// 残余带宽 (P8-STG: acc_cnt_r + stg_cnt ∈ 0..24 B; 见 rtl/app_rx_mirror.v 头注释)
+static const uint32_t RESID_MAX_DEF = 24;
 
 // ---------------------------------------------------------------------------
 // 寄存器 IO 抽象: 真设备 (pread/pwrite) | 内存 mock (--selftest)
@@ -126,14 +185,17 @@ struct MemIo : RegIo {
     uint32_t dma_cnt = 0;          // ⭐ 期 B: 环字计数器 (mock 直接给)
     uint32_t dma_auto = 0;         // ⭐ 期 B: >0 = 每被读一次就前进这么多字 (模拟并发写者)
     uint32_t bid = 0x1F;
+    uint32_t ver = 4;              // ⭐ P9: MIR_STATUS[22:19] (默认 4 = ST 代; 老用例语义不变)
+    uint32_t w70 = 0;              // ⭐ P9: 快照 W70 (drop_bytes) 的 mock 读回值
     uint32_t rd(uint32_t a) override {
         if (a == A_MAGIC) return MAGIC;
         if (a == A_BID) return bid;
         if (a == A_SNAP_ST) return 0x2;                     // done=1 (快照即刻完成)
+        if (a == A_W70) return w70;                         // ⭐ P9
         if (a == A_MIR_STATUS) {
             uint32_t lv = (nbytes - wpos) / 4;
             if (lv > 0xFFFF) lv = 0xFFFF;
-            return (srcsel << 23) | (4u << 19) | (cap << 18) | (anyd << 17) | (unf << 16) | lv;
+            return (srcsel << 23) | (ver << 19) | (cap << 18) | (anyd << 17) | (unf << 16) | lv;
         }
         if (a == A_MIR_DATA) {
             if (wpos + 4 <= nbytes) {
@@ -316,6 +378,7 @@ static DmaRes run_dma(RegIo &io, RingIo &rio, uint64_t want, double tmo_s, bool 
         uint32_t av = (uint32_t)(c1 - cur);
         // 结构守卫: 一次能拿到的量不可能超过环容量 ⇒ 超过 = clr 换代 / 计数器跳变 / 落后超一环
         // (落后超一环 = 这一段数据已被覆盖 ⇒ 读回的是垃圾; 响亮退出, 不静默读垃圾)
+        // ⛔ P9: 这条**只属于 MM 环路径** (ST/--stream 下无环 ⇒ 该判据失去载体, 不搬过去)。
         if (av > RING_WORDS) {
             fprintf(stderr, "FATAL: 计数器跳变 %u 字 > 环容量 %u (clr 换代? 或已落后 > 1 环 = 该段数据已被覆盖)\n",
                     av, RING_WORDS);
@@ -358,6 +421,227 @@ static DmaRes run_dma(RegIo &io, RingIo &rio, uint64_t want, double tmo_s, bool 
     return r;
 }
 
+// ---------------------------------------------------------------------------
+// ⭐⭐⭐ P9: `--stream` = MM→AXIS 之后的平铺 C2H 流路径
+// ---------------------------------------------------------------------------
+// 取数合同 (与 `--dma` 的 lseek+read **完全不同**):
+//   · 平铺 `read(fd, buf, n)`; **不 lseek**、**不做任何地址/16 B 对齐假设**
+//     (ST C2H 下 `f_pos` 不再当地址: `libxdma.c:2948-2957` 用回写缓冲地址覆盖它);
+//   · read 长度策略 (照顾 PG195 "C2H 描述符长度须为 64 B 的整数倍"):
+//       - `--chunk N` (默认 1 MiB) **必须是 64 的倍数** ⇒ 所有"满块读"合规;
+//       - 只有"剩余不足一块"的**最后一笔**可能是非 64 倍数 (K % 64 != 0 时), 逐跑打出见证
+//         (`MIR_STREAM_READS nonmul64=`); 理由: (a) 驱动按**页**切 SG (`CONF.md` §5-C),
+//         用户侧的 read 长度不直接等于描述符长度; (b) 把 K 强制成 64 的倍数会让"抓 K 字节"
+//         这个语义变形 (多抓或少抓) —— 宁愿**少而可见**地偏离一次, 也不静默改语义。
+//   · 完成条件 = 收满 `count` (驱动默认; 不给 `O_TRUNC`/`EOP`);
+//   · 单次 read 无 64 KB 硬顶 (链式 transfer), 但仍然按 `--chunk` 分块:
+//     好处 = ① 大缓冲里线性落笔 ② 每块之间能采一次寄存器 (序列) ③ 块大小可控。
+struct StreamIo {
+    virtual ~StreamIo() {}
+    // 平铺读: 返回本次拿到的字节数 (>=0); <0 = 错 (errno 由实现打印); EINTR 由实现重试
+    virtual long long rd(uint8_t *dst, size_t n) = 0;
+};
+
+// 看门狗 (只有 --seconds > 0 时武装): SIGALRM 打断阻塞 read ⇒ 不永久挂死。
+#ifndef _WIN32
+static volatile sig_atomic_t g_alarm_fired = 0;
+static void on_alarm(int) { g_alarm_fired = 1; }
+#endif
+static bool wd_fired() {
+#ifndef _WIN32
+    return g_alarm_fired != 0;
+#else
+    return false;
+#endif
+}
+
+// 快照读 (定义在下方; run_stream 先用 ⇒ 前置声明)
+static void snap_read(RegIo &io, uint32_t &w11, uint32_t &w70);
+
+struct FdStreamIo : StreamIo {
+    int fd = -1;
+    explicit FdStreamIo(const char *path) {
+        fd = open(path, O_RDONLY);
+        if (fd < 0) { fprintf(stderr, "FATAL: open(%s): %s\n", path, strerror(errno)); exit(2); }
+    }
+    long long rd(uint8_t *dst, size_t n) override {
+        for (;;) {
+            ssize_t r = read(fd, dst, n);
+            if (r < 0 && errno == EINTR) {
+#ifndef _WIN32
+                if (!g_alarm_fired) continue;                   // 别的信号 ⇒ 重试
+#endif
+                errno = EINTR;
+                return -1;
+            }
+            return (long long)r;
+        }
+    }
+};
+
+// mock 流 (--selftest 用): 一块内存 = "宿主可见"的字节流 (已含丢字节造成的洞);
+// 每次交出字节时同步推进 mock 板侧的交付计数 (= 源交付量口径) ⇒ 与闭合式同构。
+struct MemStreamIo : StreamIo {
+    MemIo   *reg = nullptr;
+    const uint8_t *data = nullptr;
+    uint64_t len = 0, pos = 0;
+    uint64_t hole_at = 0;           // 可见流上"丢字节发生"的位置 (W70 从这一刻起记)
+    uint32_t drop_total = 0;        // 板侧丢掉的字节数 (进 mock 的 W70)
+    uint32_t resid = 0;             // 板内残余 (acc_cnt_r + stg_cnt)
+    uint32_t dma_bias_words = 0;    // 负对照: **源停那一刻**把交付计数打偏这么多字
+    uint32_t dma_base = 0;          // 计数器起点 (做"跑中回卷"用例: base 贴近 2^32)
+    size_t   max_per_read = 0;      // 0 = 一次给完; >0 = 单次最多给这么多字节 (模拟碎片读)
+    // mock 的板侧模型 (与闭合式同构): 源交付量 = 可见字节 + 丢字节 + 残余
+    //   起测时刻 (pos==0) 交付增量 = 0; 走完 (pos==len) 增量 = len + drop + resid (+ 故意打偏项)
+    uint32_t dma_cnt_now() const {
+        uint64_t offered = pos;
+        if (pos > 0)    offered += drop_total;                  // 丢字节也经过采集通道
+        if (pos >= len) offered += resid;                       // 源停后残余定格在采集侧
+        uint32_t w = (uint32_t)(offered / 4);
+        if (pos >= len) w += dma_bias_words;                    // 负对照只改终值
+        return (uint32_t)(dma_base + w);                        // mod 2^32 (跑中回卷)
+    }
+    uint32_t w70_now() const { return (pos >= hole_at) ? drop_total : 0u; }
+    void arm() {                    // 起测时刻的初值 (tool 在 arm 后读 words0/w70a)
+        if (reg) { reg->w70 = w70_now(); reg->dma_cnt = dma_cnt_now(); }
+    }
+    long long rd(uint8_t *dst, size_t n) override {
+        uint64_t av = len - pos;
+        if (!av) return 0;
+        if (n > av) n = (size_t)av;
+        if (max_per_read && n > max_per_read) n = max_per_read;
+        memcpy(dst, data + pos, n);
+        pos += n;
+        if (reg) { reg->dma_cnt = dma_cnt_now(); reg->w70 = w70_now(); }
+        return (long long)n;
+    }
+};
+
+struct StreamSample { double t; uint64_t pc; uint32_t words; uint32_t w70; uint64_t dacc; };
+struct StreamRes {
+    uint64_t bytes = 0;                 // pc = 抓取字节数
+    uint64_t reads = 0, partial = 0, nonmul64 = 0;
+    uint32_t words0 = 0, words1 = 0;    // MIR_DMA_CNT 原始端点值
+    uint32_t w70a = 0, w70b = 0;        // 快照 W70 原始端点值
+    uint64_t dwords = 0, drop = 0;      // **跨回卷累计** (逐段 mod 2^32 差分再相加)
+    uint64_t delivered = 0;             // = dwords * 4 (交付字节)
+    long long resid = 0;                // 蕴含残余 = delivered - pc - drop (派生量, 逐项原始值另打)
+    bool closed = false;                // 闭合式是否成立 (0 <= resid <= resid_max)
+    uint32_t dword_max_step = 0;        // 单次采样间隔内交付字数的最大增量 (回卷余量见证)
+    uint32_t level_end = 0;
+    bool quiesced = false;              // 终样本前 level==0 达成 (源已停时这才可能)
+    bool premise_level0 = false;        // = quiesced: "残余上界 24 B" 的见证前提 (TL 裁定 3)
+    double wait_ms = 0;                 // 静默窗实际等待时长 (见证)
+    bool armed = false;
+    int short_reads = 0;                // rd() 返回 0 或负
+    bool timed_out = false;
+    double secs = 0;
+    std::vector<StreamSample> series;
+};
+
+// 闭合式 (纯函数; selftest 直接打表):
+//   交付字节 == pc + ΔW70 + 残余   ⇒   resid_implied = 交付字节 − pc − ΔW70 ∈ [0, resid_max]
+static bool closure_eval(uint64_t pc, uint64_t drop, uint64_t delivered,
+                         uint32_t resid_max, long long *resid_out) {
+    long long ri = (long long)delivered - (long long)pc - (long long)drop;
+    if (resid_out) *resid_out = ri;
+    return (ri >= 0 && ri <= (long long)resid_max);
+}
+
+struct StreamOpts {
+    uint64_t want = 0;
+    uint64_t chunk = 1u << 20;
+    uint32_t resid_max = RESID_MAX_DEF;
+    double   settle_s = 1.0;
+    double   sample_ms = 50.0;
+    bool     arm = true;
+    int      src_sel = -1;
+    bool     strict_quiesce = true;     // ⭐ 前提未见证 (level!=0) ⇒ 调用侧必须判 FAIL (可用 --no-strict-quiesce 显式放行)
+};
+
+// 静默窗判定 (**前提未见证 ⇒ 必须响亮的牙**; 纯函数, 自检直接打表):
+//   返回 1 = 调用侧应判 FAIL (前提未见证且未被显式放行); 0 = 不因此项判红。
+static int quiesce_verdict(bool quiesced, bool strict) {
+    return (!quiesced && strict) ? 1 : 0;
+}
+
+// 平铺流采集 (设备与 mock 共用同一段代码 —— 这就是 selftest 的意义)
+static StreamRes run_stream(RegIo &io, StreamIo &sio, uint8_t *dst, size_t cap, const StreamOpts &o) {
+    StreamRes r;
+    uint32_t sb = (o.src_sel > 0) ? 4u : 0u;
+    double t0 = now_s();
+    if (o.arm) {
+        io.wr(A_MIR_CTRL, 0x2u | 0x8u | sb);   // ① clr + dma_en(bit3) [+ src_sel]
+        io.wr(A_MIR_CTRL, 0x1u | 0x8u | sb);   // ② cap_en + dma_en [+ src_sel]
+    }
+    r.armed = o.arm;
+    // 端点基线 (arm 之后立刻取; clr 应已把交付计数/丢字节的**增量**基线定住)
+    uint32_t last_words = io.rd(A_MIR_DMA_CNT);
+    uint32_t w11a, last_w70;
+    snap_read(io, w11a, last_w70);
+    r.words0 = last_words; r.w70a = last_w70;
+    double last_s = -1e9;
+    // 采样: 只在**两次 read 块之间**做 (寄存器是 AXI-Lite, 与数据面不吃同一条流);
+    //   ⚠️ 采样本身在流上=自造一个空档 ⇒ 采样周期别设得太密 (默认 50 ms)。
+    auto sample = [&](bool force) {
+        double t = now_s() - t0;
+        if (!force && (t - last_s) * 1000.0 < o.sample_ms) return;
+        uint32_t w11, w70;
+        snap_read(io, w11, w70);
+        uint32_t wd = io.rd(A_MIR_DMA_CNT);
+        uint32_t step = (uint32_t)(wd - last_words);
+        if (step > r.dword_max_step) r.dword_max_step = step;
+        r.dwords += step;                                   // 跨回卷: 逐段 mod 2^32 差分再相加
+        r.drop   += (uint32_t)(w70 - last_w70);
+        last_words = wd; last_w70 = w70;
+        if (r.series.size() < 20000) r.series.push_back(StreamSample{t, r.bytes, wd, w70, r.dwords});
+        last_s = t;
+    };
+    sample(true);                                            // 起点样本 (pc=0)
+    while (r.bytes < o.want) {
+        uint64_t remain = o.want - r.bytes;
+        size_t n = (remain < o.chunk) ? (size_t)remain : (size_t)o.chunk;
+        if (!n) break;
+        if (n % 64u != 0) r.nonmul64++;
+        long long got = sio.rd(dst + r.bytes, n);
+        if (got < 0) {
+            fprintf(stderr, "FAIL: stream read 出错 (n=%zu): %s%s\n", n, strerror(errno),
+                    wd_fired() ? " [看门狗已响]" : "");
+            r.timed_out = wd_fired();
+            r.short_reads++;
+            break;
+        }
+        if (got == 0) { r.short_reads++; fprintf(stderr, "FAIL: stream read 返回 0 (流提前结束?)\n"); break; }
+        r.reads++;
+        if ((uint64_t)got < (uint64_t)n) r.partial++;
+        r.bytes += (uint64_t)got;
+        sample(false);
+    }
+    // 静默窗 (有界) + **见证**: 等 `MIR_STATUS.level == 0` —— 只有"源已停 + 全部交付被取走"时
+    //   才可能成立。它是"残余上界 = 镜像 acc+stg (≤24 B)"这条的**前提** (TL 2026-10-11 裁定 3:
+    //   打包器残留由 FPGA 侧停流 flush 清掉, FIFO 尾部由这一刻清掉) ⇒ **不许静默**:
+    //   等到/超时都打实际 level 值, 超时由调用侧按 `quiesce_verdict` 判红 (除非显式放行)。
+    //   ⭐ "触发式快照读 MIR_STATUS.level": 每轮先写 SNAP_CTRL 触发一次快照, 再读 level。
+    double tb = now_s();
+    for (;;) {
+        io.wr(A_SNAP_CTRL, 0x1u);                       // 触发式快照 (与 W11/W70 同一机制)
+        (void)io.rd(A_SNAP_ST);
+        uint32_t s = io.rd(A_MIR_STATUS);
+        r.level_end = s & 0xFFFFu;
+        if (r.level_end == 0) { r.quiesced = true; break; }
+        if (o.settle_s <= 0 || now_s() - tb > o.settle_s) break;
+        { struct timespec ts = {0, 2000000}; nanosleep(&ts, nullptr); }   // 2 ms
+    }
+    r.wait_ms = (now_s() - tb) * 1000.0;
+    r.premise_level0 = r.quiesced;
+    sample(true);                                            // 终样本
+    r.words1 = last_words; r.w70b = last_w70;
+    r.delivered = r.dwords * 4u;
+    r.closed = closure_eval(r.bytes, r.drop, r.delivered, o.resid_max, &r.resid);
+    r.secs = now_s() - t0;
+    return r;
+}
+
 // 读一次快照并取两个字 (W11 = 板侧 UDP 收口字节账; W70 = 镜像拒收字节数)
 static void snap_read(RegIo &io, uint32_t &w11, uint32_t &w70) {
     io.wr(A_SNAP_CTRL, 0x1u);
@@ -377,13 +661,78 @@ static int verify(const std::vector<uint8_t> &got, uint64_t want, uint8_t xorc, 
     return 0;
 }
 
+// ⭐ P9: 指针版 verify (--stream 抓在大缓冲里, 不做一次 128 MB 拷贝)
+static int verify_buf(const uint8_t *got, uint64_t n, uint64_t want, uint8_t xorc, uint64_t pat_off,
+                      long long *first_mis) {
+    P7bPat pat(pat_off);
+    *first_mis = -1;
+    for (uint64_t i = 0; i < n; i++) {
+        uint8_t e = (uint8_t)(pat.next() ^ xorc);
+        if (got[i] != e) { *first_mis = (long long)i; return 1; }
+    }
+    if (n < want) return 2;                             // 字节不足 (超时/停流)
+    return 0;
+}
+
+// ---------------------------------------------------------------------------
+// ⭐ P9: 参数/身份门的**纯函数** (main 与 --selftest 共跑同一段 ⇒ 自检有真牙)
+// ---------------------------------------------------------------------------
+enum StreamArgErr {
+    SA_OK = 0, SA_BUF0, SA_CHUNK0, SA_CHUNK64, SA_WANT0, SA_WANT8, SA_WANT_BUF
+};
+// --stream 的参数校验 (返回 SA_OK 或首个违规项; *msg 给 stderr 用)
+static int stream_args_check(uint64_t want, uint64_t buf_bytes, uint64_t chunk,
+                             char *msg, size_t msgn) {
+    if (buf_bytes == 0) { snprintf(msg, msgn, "--buf-mb 为 0 (PC 缓冲不能为空)"); return SA_BUF0; }
+    if (chunk == 0)     { snprintf(msg, msgn, "--chunk 为 0"); return SA_CHUNK0; }
+    if (chunk % 64u)    { snprintf(msg, msgn, "--chunk %llu 不是 64 的倍数 (PG195 描述符长度约束的口径)",
+                                   (unsigned long long)chunk); return SA_CHUNK64; }
+    if (want == 0)      { snprintf(msg, msgn, "--bytes 为 0"); return SA_WANT0; }
+    if (want % 8u)      { snprintf(msg, msgn, "--bytes %llu 不是 8 的倍数 (镜像按 64 位字打包: "
+                                   "K %% 8 == 0 是 P8-STG 起的合同)", (unsigned long long)want); return SA_WANT8; }
+    if (want > buf_bytes) { snprintf(msg, msgn, "--bytes %llu > PC 缓冲 %llu B (--buf-mb 要够大)",
+                                     (unsigned long long)want, (unsigned long long)buf_bytes); return SA_WANT_BUF; }
+    return SA_OK;
+}
+
+// 路径 ↔ ver 配对门: 0 = bar (两代都真), 1 = dma (要求 MM/ver=3), 2 = stream (要求 ST/ver=4)
+static bool path_ver_ok(int path, uint32_t ver) {
+    if (path == 2) return ver == VER_ST;
+    if (path == 1) return ver == VER_MM;
+    return true;
+}
+
+// PC 侧大缓冲: **预分配一次** (页对齐 + 预触页)。理由:
+//   · 页对齐 = 驱动 `get_user_pages` 按页切 SG 的天然对齐 (少一类"对齐未知");
+//   · 预触页 (memset) = 把首次触碰的缺页全部挪到起测**之前** —— 否则缺页发生流中间
+//     就是一次宿主空档, 而空档直接变板侧丢字节 (自造的假缺陷);
+//   · 失败 (bytes==0 或分配失败) ⇒ 返回 nullptr, 调用侧**响亮退出** (不静默降级)。
+static uint8_t *buf_alloc(size_t bytes, bool prefault) {
+    if (bytes == 0) return nullptr;
+    void *p = nullptr;
+    if (posix_memalign(&p, 4096, bytes) != 0 || !p) return nullptr;
+    if (prefault) memset(p, 0, bytes);
+    return (uint8_t *)p;
+}
+
 int main(int argc, char **argv) {
+    // ⭐ P9: stdout 行缓冲 —— 本工具的日志是"账本" (stdout 记账 + stderr 的 FAIL 交错),
+    //   重定向到文件时默认块缓冲会把 FAIL 行冲到前面 (2026-10-11 实测) ⇒ 逐行刷。
+    setvbuf(stdout, nullptr, _IOLBF, 0);
     const char *dev = "/dev/xdma0_user", *out = "/tmp/mir.bin", *dma_dev = "/dev/xdma0_c2h_0";
     uint64_t want = 0, pat_off = 0; double secs = 30.0;
     uint32_t bid = 0; bool have_bid = false, selftest = false, noverify = false, noarm = false;
     bool use_dma = false;
     int  src_sel = -1;                    // ⭐ 期 A: -1 = 不显式给 (默认不动该位)
     uint8_t xorc = 0xA5;
+    // ⭐ P9 (--stream) 的新参数
+    bool use_stream = false, allow_ver_mismatch = false, secs_given = false;
+    bool strict_quiesce = true;            // ⭐ 前提未见证 (level!=0) ⇒ 判红; --no-strict-quiesce 显式放行
+    uint32_t buf_mb = 128;                 // PC 侧大缓冲默认 128 MB 量级 (用户裁定)
+    uint64_t chunk = 1u << 20;             // 1 MiB (64 的倍数)
+    uint32_t resid_max = RESID_MAX_DEF;    // 残余带宽上界 (P8-STG 口径 24 B)
+    double settle_s = 1.0, sample_ms = 50.0;
+    const char *stream_dev = nullptr;
     for (int i = 1; i < argc; i++) {
         std::string a = argv[i];
         auto nxt = [&](void) -> const char * { return (i + 1 < argc) ? argv[++i] : nullptr; };
@@ -391,7 +740,7 @@ int main(int argc, char **argv) {
         else if (a == "--out") { const char *p = nxt(); if (p) out = p; }
         else if (a == "--bytes") { const char *p = nxt(); if (p) want = strtoull(p, nullptr, 0); }
         else if (a == "--bid") { const char *p = nxt(); if (p) { bid = (uint32_t)strtoul(p, nullptr, 0); have_bid = true; } }
-        else if (a == "--seconds") { const char *p = nxt(); if (p) secs = atof(p); }
+        else if (a == "--seconds") { const char *p = nxt(); if (p) { secs = atof(p); secs_given = true; } }
         else if (a == "--xor") { const char *p = nxt(); if (p) xorc = (uint8_t)strtoul(p, nullptr, 0); }
         else if (a == "--pat-off") { const char *p = nxt(); if (p) pat_off = strtoull(p, nullptr, 0); }
         else if (a == "--selftest") selftest = true;
@@ -399,6 +748,15 @@ int main(int argc, char **argv) {
         else if (a == "--no-arm") noarm = true;
         else if (a == "--dma") use_dma = true;                                  // ⭐ 期 B
         else if (a == "--dma-dev") { const char *p = nxt(); if (p) dma_dev = p; } // ⭐ 期 B
+        else if (a == "--stream") use_stream = true;                            // ⭐⭐ P9
+        else if (a == "--stream-dev") { const char *p = nxt(); if (p) stream_dev = p; } // ⭐⭐ P9
+        else if (a == "--buf-mb") { const char *p = nxt(); if (p) buf_mb = (uint32_t)strtoul(p, nullptr, 0); }
+        else if (a == "--chunk") { const char *p = nxt(); if (p) chunk = strtoull(p, nullptr, 0); }
+        else if (a == "--resid-max") { const char *p = nxt(); if (p) resid_max = (uint32_t)strtoul(p, nullptr, 0); }
+        else if (a == "--settle") { const char *p = nxt(); if (p) settle_s = atof(p); }
+        else if (a == "--sample-ms") { const char *p = nxt(); if (p) sample_ms = atof(p); }
+        else if (a == "--allow-ver-mismatch") allow_ver_mismatch = true;        // ⭐⭐ P9
+        else if (a == "--no-strict-quiesce") strict_quiesce = false;            // ⭐ P9 (TL 裁定 3)
         else if (a == "--src") {                                                // ⭐ 期 A
             const char *p = nxt();
             if (!p) { fprintf(stderr, "FATAL: --src 需要 udp|tcp\n"); return 2; }
@@ -409,15 +767,26 @@ int main(int argc, char **argv) {
         else { fprintf(stderr, "usage: %s --bid <hex> --bytes <K> [--dev D] [--out F] [--seconds T]\n"
                                "       %*s --xor <hex> [--pat-off N] [--no-verify] [--no-arm]\n"
                                "       %*s [--src udp|tcp] | --dma [--dma-dev /dev/xdma0_c2h_0]\n"
+                               "       %*s | --stream [--stream-dev /dev/xdma0_c2h_0] [--buf-mb 128]\n"
+                               "       %*s   [--chunk 1048576] [--resid-max 24] [--settle 1.0]\n"
+                               "       %*s   [--sample-ms 50] [--allow-ver-mismatch] [--no-strict-quiesce]\n"
                                "       %s --selftest [--bytes K]\n", argv[0], (int)strlen(argv[0]), "",
-                               (int)strlen(argv[0]), "", argv[0]);
+                               (int)strlen(argv[0]), "", (int)strlen(argv[0]), "",
+                               (int)strlen(argv[0]), "", (int)strlen(argv[0]), "", argv[0]);
                return 2; }
     }
+    if (use_stream && use_dma) { fprintf(stderr, "FATAL: --stream 与 --dma 互斥 (同一次跑只走一条读出口)\n"); return 2; }
     if (want == 0) want = selftest ? 65536 : 0;
     if (want == 0) { fprintf(stderr, "FATAL: --bytes 必填 (或 --selftest 用默认 65536)\n"); return 2; }
     // ⛔ 冻结前置条件: K % 4 == 0 (v2 §V1.2)
     if (want % 4 != 0) { fprintf(stderr, "FATAL: --bytes %llu 不是 4 的倍数 (K%%4==0 是 v2 §V1.2 前置条件)\n",
                                 (unsigned long long)want); return 2; }
+    // ⭐⭐ P9: --stream 的参数门 (在**打开设备之前** ⇒ 纯参数错误不需要板子就能响亮失败)
+    if (use_stream && !selftest) {
+        char msg[256] = {0};
+        int rc = stream_args_check(want, (uint64_t)buf_mb << 20, chunk, msg, sizeof(msg));
+        if (rc != SA_OK) { fprintf(stderr, "FATAL: --stream 参数不合规: %s\n", msg); return 2; }
+    }
 
     // ---------------- --selftest: 内存 mock, 跑**同一段** dump/verify 代码 ----------------
     if (selftest) {
@@ -502,6 +871,262 @@ int main(int argc, char **argv) {
                    (d7.clobber > 0) ? "OK" : "FAIL");
             if (!(d7.clobber > 0)) bad = 1;
         }
+        // ================= ⭐⭐⭐ P9: --stream 路径的自检 (T8 起) =================
+        // T8 闭合式的算法例 (纯函数打表; 含**带内边界**与**必然不闭合**两类)
+        {
+            struct { uint64_t pc, drop, deliv; uint32_t band; bool want; long long wres; const char *tag; } C[] = {
+                {0,          0, 0,                       24, true,   0,    "zero"},
+                {1024,       8, 1024 + 8 + 6,            24, true,   6,    "clean+resid6"},
+                {1024,       0, 1024 + 24,               24, true,  24,    "resid==band(edge)"},
+                {1024,       0, 1024 + 25,               24, false, 25,    "resid=band+1(必须红)"},
+                {1024,      12, 1024 + 12 - 4,           24, false, -4,    "negative(必须红)"},
+                {0,          0, 4096,                    24, false, 4096,  "delivered-only(必须红)"},
+            };
+            int nb = 0; std::string det;
+            for (auto &c : C) {
+                long long ri = -12345; bool ok = closure_eval(c.pc, c.drop, c.deliv, c.band, &ri);
+                bool pass = (ok == c.want) && (ri == c.wres);
+                if (!pass) { nb++; det += std::string(" [") + c.tag + ":]"; }
+                printf("MIR_SELFTEST T8 closure %-24s pc=%llu drop=%llu deliv=%llu -> closed=%d resid=%lld (期望 %d/%lld) %s\n",
+                       c.tag, (unsigned long long)c.pc, (unsigned long long)c.drop,
+                       (unsigned long long)c.deliv, (int)ok, ri, (int)c.want, c.wres,
+                       pass ? "OK" : "FAIL");
+            }
+            if (nb) { printf("MIR_SELFTEST T8 %d 条 FAIL:%s\n", nb, det.c_str()); bad = 1; }
+        }
+        // T9 --stream 端到端 (mock 板: 干净档): pc==K / 账闭 / 内容逐字节 / 读碎片被计数
+        //   账模型 (与闭合式同构): 源交付量 = 可见字节 + 丢字节 + 残余; mock 的交付计数 = 源交付量/4
+        {
+            const uint64_t K = 65536;
+            static MemIo m8; static MemStreamIo st8; static std::vector<uint8_t> vis8;
+            m8.bid = 0x22; m8.ver = VER_ST;
+            const uint32_t R = 4;                       // 残余 (0..24 带内)
+            vis8.resize((size_t)K);
+            { P7bPat p(pat_off); for (uint64_t i = 0; i < K; i++) vis8[(size_t)i] = (uint8_t)(p.next() ^ xorc); }
+            st8.reg = &m8; st8.data = vis8.data(); st8.len = K; st8.resid = R;
+            st8.max_per_read = 8192;                    // 强制碎片读 (每次最多 8 KB)
+            st8.arm();
+            StreamOpts o; o.want = K; o.chunk = 65536; o.resid_max = resid_max;
+            o.settle_s = 0.0; o.sample_ms = 0.0;        // 每块都采样 (自检里不介意开销)
+            std::vector<uint8_t> dst8((size_t)K + 64);
+            StreamRes sr8 = run_stream(m8, st8, dst8.data(), dst8.size(), o);
+            fm = -1;
+            int rc8 = verify_buf(dst8.data(), sr8.bytes, K, xorc, pat_off, &fm);
+            bool pass8 = (sr8.bytes == K) && (rc8 == 0) && (fm == -1) && (sr8.closed == true) &&
+                         (sr8.resid == (long long)R) && (sr8.w70b == 0) && (sr8.drop == 0) &&
+                         (sr8.delivered == K + R) && (sr8.partial > 0) && (sr8.series.size() >= 2) &&
+                         (sr8.nonmul64 == 0) && (sr8.premise_level0 == true) && (sr8.quiesced == true);
+            printf("MIR_SELFTEST T9 stream clean: pc=%llu rc=%d fm=%lld closed=%d resid=%lld "
+                   "deliv=%llu drop=%llu reads=%llu partial=%llu nonmul64=%llu premise=%d series=%zu %s\n",
+                   (unsigned long long)sr8.bytes, rc8, fm, (int)sr8.closed, sr8.resid,
+                   (unsigned long long)sr8.delivered, (unsigned long long)sr8.drop,
+                   (unsigned long long)sr8.reads, (unsigned long long)sr8.partial,
+                   (unsigned long long)sr8.nonmul64, (int)sr8.premise_level0, sr8.series.size(),
+                   pass8 ? "OK" : "FAIL");
+            if (!pass8) bad = 1;
+        }
+        // T10 --stream 端到端 (mock 板: **真有丢字节**): 账仍闭、内容在第 1000 字节处必红
+        //   ⇒ 证明"交付量 vs 抓取量"被分开记账 (丢的字节不吞掉: 它进 ΔW70, 不进 pc)
+        {
+            const uint64_t K = 65536, G = 1000; const uint32_t D = 8, R = 4;
+            static MemIo m9; static MemStreamIo st9; static std::vector<uint8_t> vis9;
+            m9.bid = 0x22; m9.ver = VER_ST;
+            vis9.resize((size_t)K);
+            {   // 可见流 = 图案在 G 处**挖掉 D 个字节** (板上丢字节的真实形态: 字节没了)
+                P7bPat p(pat_off); uint64_t o = 0, i = 0;
+                while (i < K) {
+                    uint8_t b = (uint8_t)(p.next() ^ xorc);
+                    if (o >= G && o < G + D) { o++; continue; }   // 丢掉的字节不进可见流
+                    vis9[(size_t)i++] = b; o++;
+                }
+            }
+            st9.reg = &m9; st9.data = vis9.data(); st9.len = K; st9.hole_at = G;
+            st9.drop_total = D; st9.resid = R; st9.max_per_read = 0; st9.arm();
+            StreamOpts o; o.want = K; o.chunk = 65536; o.resid_max = resid_max;
+            o.settle_s = 0.0; o.sample_ms = 0.0;
+            std::vector<uint8_t> dst9((size_t)K + 64);
+            StreamRes sr9 = run_stream(m9, st9, dst9.data(), dst9.size(), o);
+            fm = -1;
+            int rc9 = verify_buf(dst9.data(), sr9.bytes, K, xorc, pat_off, &fm);
+            bool pass9 = (sr9.bytes == K) && (rc9 == 1) && (fm == (long long)G) &&
+                         (sr9.closed == true) && (sr9.resid == (long long)R) &&
+                         (sr9.drop == D) && (sr9.w70b == D) &&
+                         (sr9.delivered == K + D + R);
+            printf("MIR_SELFTEST T10 stream drop: pc=%llu rc=%d fm=%lld(期望 %llu) closed=%d resid=%lld "
+                   "drop=%llu deliv=%llu %s\n",
+                   (unsigned long long)sr9.bytes, rc9, fm, (unsigned long long)G, (int)sr9.closed,
+                   sr9.resid, (unsigned long long)sr9.drop, (unsigned long long)sr9.delivered,
+                   pass9 ? "OK" : "FAIL");
+            if (!pass9) bad = 1;
+        }
+        // T10b ⭐ **负对照: 构造一个必然不闭合的输入 ⇒ 必须报红** (交付计数凭空多 64 字 = 256 B)
+        {
+            const uint64_t K = 65536;
+            const uint32_t R = 4, BIASW = 64;
+            static MemIo ma; static MemStreamIo sta; static std::vector<uint8_t> visa;
+            ma.bid = 0x22; ma.ver = VER_ST;
+            visa.resize((size_t)K);
+            { P7bPat p(pat_off); for (uint64_t i = 0; i < K; i++) visa[(size_t)i] = (uint8_t)(p.next() ^ xorc); }
+            sta.reg = &ma; sta.data = visa.data(); sta.len = K; sta.resid = R;
+            sta.dma_bias_words = BIASW; sta.arm();
+            StreamOpts o; o.want = K; o.chunk = 65536; o.resid_max = resid_max;
+            o.settle_s = 0.0; o.sample_ms = 0.0;
+            std::vector<uint8_t> dsta((size_t)K + 64);
+            StreamRes sra = run_stream(ma, sta, dsta.data(), dsta.size(), o);
+            long long exp_resid = (long long)R + (long long)BIASW * 4;
+            bool passa = (sra.closed == false) && (sra.resid == exp_resid);
+            printf("MIR_SELFTEST T10b stream NOT-closing (bias=+%u 字): closed=%d resid=%lld (期望 0/%lld) %s\n",
+                   BIASW, (int)sra.closed, sra.resid, exp_resid, passa ? "OK" : "FAIL");
+            if (!passa) bad = 1;
+        }
+        // T10c ⭐ 跑中**回卷** (全局 #55): 交付计数起点贴近 2^32 ⇒ 跑中翻过 0 ⇒
+        //   跨回卷累计必须仍给出正确的 Δ (真板 1.7 GB/s 下 ~10 s 就翻一次)
+        {
+            const uint64_t K = 65536; const uint32_t R = 4;
+            static MemIo mb; static MemStreamIo stb; static std::vector<uint8_t> visb;
+            mb.bid = 0x22; mb.ver = VER_ST;
+            visb.resize((size_t)K);
+            { P7bPat p(pat_off); for (uint64_t i = 0; i < K; i++) visb[(size_t)i] = (uint8_t)(p.next() ^ xorc); }
+            stb.reg = &mb; stb.data = visb.data(); stb.len = K; stb.resid = R;
+            stb.dma_base = 0xFFFFF000u;                 // 距回卷 4096 字 (< 本跑的 K/4 = 16384 字)
+            stb.arm();
+            StreamOpts o; o.want = K; o.chunk = 8192; o.resid_max = resid_max;
+            o.settle_s = 0.0; o.sample_ms = 0.0;
+            std::vector<uint8_t> dstb((size_t)K + 64);
+            StreamRes srb = run_stream(mb, stb, dstb.data(), dstb.size(), o);
+            bool passb = (srb.bytes == K) && (srb.dwords == (K + R) / 4) && (srb.delivered == K + R) &&
+                         (srb.closed == true) && (srb.words1 < srb.words0);   // 确实翻过 0
+            printf("MIR_SELFTEST T10c stream wrap: words0=%u words1=%u(wrapped=%d) dwords=%llu "
+                   "deliv=%llu closed=%d %s\n",
+                   srb.words0, srb.words1, (int)(srb.words1 < srb.words0),
+                   (unsigned long long)srb.dwords, (unsigned long long)srb.delivered,
+                   (int)srb.closed, passb ? "OK" : "FAIL");
+            if (!passb) bad = 1;
+        }
+        // T10d ⭐ 静默窗前提 (TL 2026-10-11 裁定 3): level != 0 ⇒ 前提未见证 ⇒
+        //   ① run_stream 必须如实报 quiesced=0/premise=0 且**实际等满** settle 窗;
+        //   ② `quiesce_verdict` 在 strict 下必须返回 1 (= 调用侧判红) ⇒ 这就是新前提的牙。
+        {
+            const uint64_t K = 16384;
+            static MemIo mc; static MemStreamIo stc; static std::vector<uint8_t> visc;
+            mc.bid = 0x22; mc.ver = VER_ST;
+            mc.nbytes = 4096;                          // ⇒ mock 的 level = (4096-0)/4 = 1024 ≠ 0
+            visc.resize((size_t)K);
+            { P7bPat p(pat_off); for (uint64_t i = 0; i < K; i++) visc[(size_t)i] = (uint8_t)(p.next() ^ xorc); }
+            stc.reg = &mc; stc.data = visc.data(); stc.len = K; stc.arm();
+            StreamOpts o; o.want = K; o.chunk = 4096; o.resid_max = resid_max;
+            o.settle_s = 0.05; o.sample_ms = 0.0;      // 有界静默窗 = 50 ms
+            std::vector<uint8_t> dstc((size_t)K + 64);
+            StreamRes src = run_stream(mc, stc, dstc.data(), dstc.size(), o);
+            bool passc = (src.bytes == K) && (!src.quiesced) && (!src.premise_level0) &&
+                         (src.level_end == 1024u) && (src.wait_ms >= 40.0) &&
+                         (quiesce_verdict(src.quiesced, true) == 1) &&     // strict ⇒ 判红
+                         (quiesce_verdict(src.quiesced, false) == 0) &&    // 显式放行 ⇒ 不判红
+                         (quiesce_verdict(true, true) == 0);               // 见证到 ⇒ 不判红
+            printf("MIR_SELFTEST T10d quiesce premise: level_end=%u quiesced=%d premise=%d waited_ms=%.1f "
+                   "verdict(strict)=%d verdict(lax)=%d %s\n",
+                   src.level_end, (int)src.quiesced, (int)src.premise_level0, src.wait_ms,
+                   quiesce_verdict(src.quiesced, true), quiesce_verdict(src.quiesced, false),
+                   passc ? "OK" : "FAIL");
+            if (!passc) bad = 1;
+        }
+        // T11 ver 两态 × 三路径的门矩阵 (6 格; 越轨必须被拒)
+        {
+            struct { int path; uint32_t ver; bool want; const char *tag; } V[] = {
+                {2, VER_ST, true,  "stream+ver4"},
+                {2, VER_MM, false, "stream+ver3(必须拒)"},
+                {1, VER_MM, true,  "dma+ver3"},
+                {1, VER_ST, false, "dma+ver4(必须拒)"},
+                {0, VER_MM, true,  "bar+ver3"},
+                {0, VER_ST, true,  "bar+ver4"},
+            };
+            int nb = 0;
+            for (auto &v : V) {
+                bool ok = path_ver_ok(v.path, v.ver);
+                bool pass = (ok == v.want);
+                if (!pass) nb++;
+                printf("MIR_SELFTEST T11 ver-gate %-18s path=%d ver=%u -> %d (期望 %d) %s\n",
+                       v.tag, v.path, v.ver, (int)ok, (int)v.want, pass ? "OK" : "FAIL");
+            }
+            if (nb) bad = 1;
+        }
+        // T12 --stream 参数校验 (每条违规都必须被**指名**拒掉 = 有牙)
+        {
+            struct { uint64_t want, buf, chunk; int want_rc; const char *tag; } A[] = {
+                {8192,       (uint64_t)128 << 20, 1u << 20, SA_OK,      "defaults"},
+                {8192,       0,                   1u << 20, SA_BUF0,    "buf=0"},
+                {8192,       (uint64_t)128 << 20, 0,        SA_CHUNK0,  "chunk=0"},
+                {8192,       (uint64_t)128 << 20, 100,      SA_CHUNK64, "chunk=100 (非 64 倍数)"},
+                {0,          (uint64_t)128 << 20, 1u << 20, SA_WANT0,  "want=0"},
+                {65540,      (uint64_t)128 << 20, 1u << 20, SA_WANT8,  "want%8=4"},
+                {(uint64_t)256 << 20, (uint64_t)128 << 20, 1u << 20, SA_WANT_BUF, "want>buf"},
+            };
+            int nb = 0;
+            for (auto &a : A) {
+                char msg[256] = {0};
+                int rc = stream_args_check(a.want, a.buf, a.chunk, msg, sizeof(msg));
+                bool pass = (rc == a.want_rc) && (rc == SA_OK || msg[0] != 0);
+                if (!pass) nb++;
+                printf("MIR_SELFTEST T12 sargs %-24s -> rc=%d (期望 %d) %s %s\n", a.tag, rc, a.want_rc,
+                       pass ? "OK" : "FAIL", (rc == SA_OK) ? "" : msg);
+            }
+            if (nb) bad = 1;
+        }
+        // T13 PC 大缓冲 (与 main 同一段 buf_alloc): 预分配 + 预触页 + 失败路径
+        {
+            const size_t B = (size_t)buf_mb << 20;
+            uint8_t *p = buf_alloc(B, true);
+            bool ok1 = (p != nullptr);
+            bool ok2 = true;
+            if (p) {                                       // 预触页见证: 首/中/尾都已是 0
+                p[0] = 7; p[B / 2] = 7; p[B - 1] = 7;
+                memset(p, 0, B);                           // (还原 —— 检验可写且无 SIGBUS)
+                ok2 = (p[0] == 0 && p[B / 2] == 0 && p[B - 1] == 0);
+                free(p);
+            }
+            uint8_t *q = buf_alloc(0, true);
+            bool ok3 = (q == nullptr);                     // 失败路径必须**返回空** (调用侧响亮退出)
+            printf("MIR_SELFTEST T13 bigbuf mb=%u alloc=%d writable=%d zero-fail-path=%d %s\n",
+                   buf_mb, (int)ok1, (int)ok2, (int)ok3, (ok1 && ok2 && ok3) ? "OK" : "FAIL");
+            if (!(ok1 && ok2 && ok3)) bad = 1;
+        }
+#ifndef _WIN32
+        // T14 (子进程) --stream 参数门的**退出码**有牙: 违规必须在打开设备之前 RC=2 且打 FATAL
+        //   只用"参数错误"的用例 (不碰板子); argv[0] 不可执行时按 SKIP 记 (不伪造通过)
+        {
+            const char *a0 = argv[0];
+            bool usable = (a0 && *a0) && (access(a0, X_OK) == 0);
+            if (!usable) {
+                printf("MIR_SELFTEST T14 subprocess RC gate: SKIP (argv[0]=%s 不可执行)\n", a0 ? a0 : "(null)");
+            } else {
+                struct { const char *args; int want_rc; const char *needle; const char *tag; } S[] = {
+                    {"--stream --chunk 100 --bid 0x22 --bytes 8192",    2, "--chunk",  "chunk non-64"},
+                    {"--stream --bytes 65540 --bid 0x22",               2, "--bytes",  "want%8!=0"},
+                    {"--stream --bytes 8192 --buf-mb 0 --bid 0x22",     2, "--buf-mb", "buf-mb 0"},
+                    {"--stream --dma --bid 0x22 --bytes 8192",          2, "互斥",     "stream+dma"},
+                };
+                int nb = 0;
+                for (auto &t : S) {
+                    char cmd[512];
+                    snprintf(cmd, sizeof(cmd), "%s %s 2>&1 </dev/null", a0, t.args);
+                    FILE *fp = popen(cmd, "r");
+                    int got_rc = -1; std::string outp;
+                    if (fp) {
+                        char line[512];
+                        while (fgets(line, sizeof(line), fp)) outp += line;
+                        int st = pclose(fp);
+                        got_rc = (st == -1) ? -1 : (WIFEXITED(st) ? WEXITSTATUS(st) : -1);
+                    }
+                    bool pass = (got_rc == t.want_rc) && (outp.find(t.needle) != std::string::npos);
+                    if (!pass) nb++;
+                    printf("MIR_SELFTEST T14 subproc %-16s rc=%d (期望 %d) 含'%s'=%d %s\n",
+                           t.tag, got_rc, t.want_rc, t.needle,
+                           (int)(outp.find(t.needle) != std::string::npos), pass ? "OK" : "FAIL");
+                }
+                if (nb) bad = 1;
+            }
+        }
+#endif
         printf("MIR_SELFTEST %s\n", bad ? "FAIL" : "PASS");
         return bad ? 1 : 0;
     }
@@ -529,8 +1154,162 @@ int main(int argc, char **argv) {
     uint32_t s0 = io.rd(A_MIR_STATUS);
     printf("MIR_STATUS ver=%u src_sel=%u cap=%u any_drop=%u unf=%u level=%u\n",
            (s0 >> 19) & 0xF, (s0 >> 23) & 1u, (s0 >> 18) & 1, (s0 >> 17) & 1, (s0 >> 16) & 1, s0 & 0xFFFF);
+    // ---- ⭐⭐ P9: ver 身份门 (接受 {3,4}; 再按路径判配对; 越轨 = 响亮, 除非显式 override) ----
+    {
+        uint32_t ver = (s0 >> 19) & 0xF;
+        const char *pname = use_stream ? "stream" : (use_dma ? "dma" : "bar");
+        uint32_t vexp = use_stream ? VER_ST : (use_dma ? VER_MM : 0u);
+        printf("MIR_VER ver=%u path=%s expect=%u unimpl=0x14C\n", ver, pname, vexp);
+        if (ver != VER_MM && ver != VER_ST) {
+            fprintf(stderr, "FATAL: MIR_STATUS.ver=%u 不在 {3,4} (老/未知代位流? 读侧几何不同代?)\n", ver);
+            return 2;
+        }
+        if (!path_ver_ok(use_stream ? 2 : (use_dma ? 1 : 0), ver)) {
+            if (!allow_ver_mismatch) {
+                fprintf(stderr, "FATAL: 路径 %s 与位流 ver=%u 不配对 (ver3 = MM 环, ver4 = AXIS 流)"
+                                " —— 走错读出口会静默读错东西; 确要跑请显式 --allow-ver-mismatch\n", pname, ver);
+                return 2;
+            }
+            printf("MIR_VER_GATE override=1 path=%s ver=%u (显式放行)\n", pname, ver);
+        }
+    }
     uint32_t w11a, w70a, w11b, w70b;
     snap_read(io, w11a, w70a);
+
+    // ---- ⭐⭐⭐ P9: --stream (平铺 C2H 流) ----
+    if (use_stream) {
+        // 边界身份门: 未实现地址 (0x14C) 必须回 0xffffffff (证 0x148 是真字、不是别名; 几何不扩)
+        uint32_t un = io.rd(A_UNIMPL);
+        printf("MIR_UNIMPL addr=%03x val=%08x (exp ffffffff)\n", A_UNIMPL, un);
+        if (un != 0xFFFFFFFFu) {
+            fprintf(stderr, "FATAL: 未实现地址 0x%03x 回 %08x != 0xffffffff —— 读侧几何不同代?\n", A_UNIMPL, un);
+            return 2;
+        }
+        // PC 侧大缓冲: 预分配一次 (声明在循环外; 全程**不重分配**)
+        const size_t buf_bytes = (size_t)buf_mb << 20;
+        uint8_t *buf = buf_alloc(buf_bytes, true);
+        if (!buf) {
+            fprintf(stderr, "FATAL: 预分配 %zu B PC 缓冲失败 (--buf-mb %u) —— 不降级、不静默\n",
+                    buf_bytes, buf_mb);
+            return 2;
+        }
+        printf("MIR_STREAM_BUF bytes=%zu mb=%u prefault=1 aligned=4096\n", buf_bytes, buf_mb);
+        printf("MIR_STREAM_CFG dev=%s bytes=%llu chunk=%llu resid_max=%u settle=%.2f sample_ms=%.1f "
+               "arm=%d src=%d\n",
+               stream_dev ? stream_dev : dma_dev, (unsigned long long)want, (unsigned long long)chunk,
+               resid_max, settle_s, sample_ms, (int)!noarm, src_sel);
+        printf("MIR_STREAM_ALIGN want_mod_64=%llu chunk_mod_64=%llu (PG195: 描述符长度须 64 B 倍数)\n",
+               (unsigned long long)(want % 64u), (unsigned long long)(chunk % 64u));
+        // 看门狗 (只有显式 --seconds 才武装; 默认 0 = 不武装 → 阻塞 read 可能久等)
+        double wd_s = secs_given ? secs : 0.0;
+        printf("MIR_STREAM_WATCHDOG secs=%.1f (0=off; SIGALRM 打断阻塞 read)\n", wd_s);
+#ifndef _WIN32
+        if (wd_s > 0) {
+            struct sigaction sa; memset(&sa, 0, sizeof(sa));
+            sa.sa_handler = on_alarm;                 // 不置 SA_RESTART ⇒ 阻塞 read 被 EINTR 打断
+            sigaction(SIGALRM, &sa, nullptr);
+            alarm((unsigned)(wd_s + 0.999));
+        }
+#endif
+        FdStreamIo sio(stream_dev ? stream_dev : dma_dev);
+        StreamOpts so;
+        so.want = want; so.chunk = chunk; so.resid_max = resid_max;
+        so.settle_s = settle_s; so.sample_ms = sample_ms;
+        so.arm = !noarm; so.src_sel = src_sel; so.strict_quiesce = strict_quiesce;
+        StreamRes sr = run_stream(io, sio, buf, buf_bytes, so);
+#ifndef _WIN32
+        if (wd_s > 0) alarm(0);
+#endif
+        // ---- 三件记账全部打原始值 (U1) ----
+        printf("MIR_STREAM_DONE pc=%llu reads=%llu partial=%llu nonmul64=%llu short=%d secs=%.3f "
+               "rate_Bps=%.0f\n",
+               (unsigned long long)sr.bytes, (unsigned long long)sr.reads,
+               (unsigned long long)sr.partial, (unsigned long long)sr.nonmul64, sr.short_reads,
+               sr.secs, sr.secs > 0 ? (double)sr.bytes / sr.secs : 0.0);
+        printf("MIR_STREAM_ACCT pc=%llu dW70=%llu w70a=%u w70b=%u words0=%u words1=%u dwords=%llu "
+               "delivered_bytes=%llu\n",
+               (unsigned long long)sr.bytes, (unsigned long long)sr.drop, sr.w70a, sr.w70b,
+               sr.words0, sr.words1, (unsigned long long)sr.dwords,
+               (unsigned long long)sr.delivered);
+        printf("MIR_STREAM_QUIESCE level_end=%u quiesced=%d premise_level0=%d waited_ms=%.1f settle_s=%.2f "
+               "strict=%d (前提: FIFO 尾部已排空 ⇒ 残余上界 = 镜像 acc+stg ≤%u B; 打包器残留由 FPGA 侧停流 flush 清)\n",
+               sr.level_end, (int)sr.quiesced, (int)sr.premise_level0, sr.wait_ms, settle_s,
+               (int)strict_quiesce, resid_max);
+        printf("MIR_STREAM_CLOSURE pc + dW70 + resid == delivered_bytes  ->  resid_implied=%lld "
+               "band=[0,%u] closed=%d premise_level0=%d (残余口径 = app_rx_mirror 头注释 acc_cnt_r+stg_cnt)\n",
+               sr.resid, resid_max, (int)sr.closed, (int)sr.premise_level0);
+        printf("MIR_STREAM_WRAP words0=%u words1=%u wrap_seen=%d dword_max_step=%u (回卷余量: 单步 <2^32)\n",
+               sr.words0, sr.words1, (int)(sr.words1 < sr.words0), sr.dword_max_step);
+        // 序列 (交付-抓取差随时间; 单调增 ⇒ 宿主跟不上)
+        {
+            uint64_t gap0 = 0, gapN = 0, gapmax = 0; int nondec = 1; uint64_t prevg = 0;
+            for (size_t i = 0; i < sr.series.size(); i++) {
+                const StreamSample &sp = sr.series[i];
+                // "交付-抓取"差用**跨回卷累计**值算 (单点原始 words 会在回卷后塌, 只作展示)
+                long long gs = (long long)(sp.dacc * 4u) - (long long)sp.pc;
+                uint64_t g = (gs > 0) ? (uint64_t)gs : 0ull;
+                if (i == 0) gap0 = g;
+                if (i + 1 == sr.series.size()) gapN = g;
+                if (g > gapmax) gapmax = g;
+                if (i > 0 && g < prevg) nondec = 0;
+                prevg = g;
+                if (i < 40 || i + 2 >= sr.series.size()) {
+                    printf("MIR_STREAM_SAMPLE i=%zu t=%.3f pc=%llu drop=%u words=%u dword_acc=%llu\n",
+                           i, sp.t, (unsigned long long)sp.pc, sp.w70, sp.words,
+                           (unsigned long long)sp.dacc);
+                } else if (i == 40) {
+                    printf("MIR_STREAM_SAMPLE ... (共 %zu 点, 只逐点打到第 40 点)\n", sr.series.size());
+                }
+            }
+            {
+                uint64_t miss = sr.delivered > sr.bytes ? sr.delivered - sr.bytes : 0;
+                double pct = sr.delivered ? (double)miss * 100.0 / (double)sr.delivered : 0.0;
+                printf("MIR_STREAM_GAP first=%llu last=%llu max=%llu nondecreasing=%d host_miss_bytes=%llu "
+                       "host_miss_pct=%.4f (= (delivered-pc)/delivered; 与 dW70+残余 的差 = 在飞/未取走)\n",
+                       (unsigned long long)gap0, (unsigned long long)gapN, (unsigned long long)gapmax,
+                       nondec, (unsigned long long)miss, pct);
+            }
+        }
+        printf("MIR_STREAM_NOTE 采样本身在流上=自造空档 (%zu 点); 首版板内不加缓冲 ⇒ 宿主空档直接变丢字节\n",
+               sr.series.size());
+        // 落盘
+        if (sr.bytes) {
+            FILE *f = fopen(out, "wb");
+            if (!f) { fprintf(stderr, "FATAL: fopen(%s): %s\n", out, strerror(errno)); return 2; }
+            fwrite(buf, 1, (size_t)sr.bytes, f); fclose(f);
+        }
+        long long fm2 = -1; int rc = 0;
+        if (!noverify) rc = verify_buf(buf, sr.bytes, want, xorc, pat_off, &fm2);
+        if (!noverify) printf("MIR_VERIFY rc=%d first_mismatch=%lld of %llu\n", rc, fm2,
+                              (unsigned long long)want);
+        int fail = 0;
+        if (sr.short_reads) { fprintf(stderr, "FAIL: %d 次短读/读错 (流提前结束或看门狗截断)\n", sr.short_reads); fail = 1; }
+        if (rc == 1) { fprintf(stderr, "FAIL: content mismatch at %lld\n", fm2); fail = 1; }
+        if (rc == 2) { fprintf(stderr, "FAIL: short (got %llu of %llu bytes)\n",
+                              (unsigned long long)sr.bytes, (unsigned long long)want); fail = 1; }
+        if (!sr.closed) {
+            fprintf(stderr, "FAIL: 闭合式不成立: pc=%llu + dW70=%llu + 残余(蕴含)=%lld != 交付字节=%llu "
+                            "(带宽 [0,%u]; 可能 = 位流口径不同代 / 有未记账的丢字节)\n",
+                    (unsigned long long)sr.bytes, (unsigned long long)sr.drop, sr.resid,
+                    (unsigned long long)sr.delivered, resid_max);
+            fail = 1;
+        }
+        // ⭐ 前提断言 (TL 2026-10-11 裁定 3): level==0 是"残余上界 ≤24 B"的见证前提 ⇒ 未见证
+        //   一律响亮 (rc=1); 非静默场景要用, 就显式 --no-strict-quiesce (放行也打见证, 不静默)
+        if (quiesce_verdict(sr.quiesced, strict_quiesce)) {
+            fprintf(stderr, "FAIL: 静默窗未达 level==0 (level_end=%u, 实等 %.1f ms / settle=%.2f s): "
+                            "\"残余上界 ≤%u B\" 的前提未获见证 ⇒ 本跑账本按\"不可判\"读 "
+                            "(非静默场景请显式 --no-strict-quiesce)\n",
+                    sr.level_end, sr.wait_ms, settle_s, resid_max);
+            fail = 1;
+        } else if (!sr.quiesced) {
+            printf("MIR_STREAM_QUIESCE_OVERRIDE strict=0 level_end=%u (显式放行: 前提未见证, 账本按\"不可判\"读)\n",
+                   sr.level_end);
+        }
+        free(buf);
+        return fail ? 1 : 0;
+    }
+
     if (use_dma) {
         // ⭐⭐ 期 B: C2H 环读路径 —— 身份门 = MIR_DMA_CNT 可读 (未接该环的构建回 0xffffffff)
         //   ⭐ 2026-10-11 接线轮: 再加一条**边界身份门** —— 未实现地址 (0x14C) 必须回 0xffffffff

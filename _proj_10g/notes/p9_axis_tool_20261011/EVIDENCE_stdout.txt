@@ -1,0 +1,129 @@
+===== [1] 编译环境与命令 (BUILD.md §2 口径; 加 -Wall 只为见证零告警) =====
+g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+CMD: g++ -O3 -pthread -Wall -o p7b_mir_dump p7b_mir_dump.cpp
+===== [2] 指纹 (源 = 仓库现树, 经 --put 原样字节; p7b_pattern.h 与 BUILD.md §3 表逐字相同) =====
+514c02a8cc623893e1632349718ff17d  p7b_mir_dump.cpp
+b2f2e9627bac53bf3b4ab2b565afe872  p7b_pattern.h
+b505a34664c082b22e20554556ccbdc3  p7b_mir_dump
+3df42fcc27e901dc9cbe42ab3766e1c8e170c6c95af13cccb2db5353e7786873  p7b_mir_dump.cpp
+===== [3] 重编 (零告警; 见证 = 本段为空) =====
+REBUILD_RC=0
+===== [4] --selftest (T1-T14; T8-T14 = P9 新增; T10d = 静默窗前提高/低两臂) =====
+MIR_SELFTEST T1 bytes=65536 words=16384 rc=0 first_mis=-1 OK
+MIR_SELFTEST T2 (corrupt byte 57) rc=1 first_mis=57 bytes=65536 OK
+MIR_SELFTEST T3 K%4 check: want=65536 want%4=0 OK(本例合法)
+MIR_SELFTEST T4 sentinel=5a5a5a5a (exp 5a5a5a5a) unf=1 OK
+MIR_SELFTEST T4b src_sel rb: set=1 clr=0 OK
+MIR_SELFTEST T5 (ring wrap, cnt0=3648) words=1024 bytes=4096 rc=0 fm=-1 clob=0 short=0 lag=128 OK
+MIR_SELFTEST T6 (corrupt first ring word) rc=1 fm=2 OK
+MIR_SELFTEST T7 (writer wraps during read) clob=1 OK
+MIR_SELFTEST T8 closure zero                     pc=0 drop=0 deliv=0 -> closed=1 resid=0 (期望 1/0) OK
+MIR_SELFTEST T8 closure clean+resid6             pc=1024 drop=8 deliv=1038 -> closed=1 resid=6 (期望 1/6) OK
+MIR_SELFTEST T8 closure resid==band(edge)        pc=1024 drop=0 deliv=1048 -> closed=1 resid=24 (期望 1/24) OK
+MIR_SELFTEST T8 closure resid=band+1(必须红)  pc=1024 drop=0 deliv=1049 -> closed=0 resid=25 (期望 0/25) OK
+MIR_SELFTEST T8 closure negative(必须红)      pc=1024 drop=12 deliv=1032 -> closed=0 resid=-4 (期望 0/-4) OK
+MIR_SELFTEST T8 closure delivered-only(必须红) pc=0 drop=0 deliv=4096 -> closed=0 resid=4096 (期望 0/4096) OK
+MIR_SELFTEST T9 stream clean: pc=65536 rc=0 fm=-1 closed=1 resid=4 deliv=65540 drop=0 reads=8 partial=7 nonmul64=0 premise=1 series=10 OK
+MIR_SELFTEST T10 stream drop: pc=65536 rc=1 fm=1000(期望 1000) closed=1 resid=4 drop=8 deliv=65548 OK
+MIR_SELFTEST T10b stream NOT-closing (bias=+64 字): closed=0 resid=260 (期望 0/260) OK
+MIR_SELFTEST T10c stream wrap: words0=4294963200 words1=12289(wrapped=1) dwords=16385 deliv=65540 closed=1 OK
+MIR_SELFTEST T10d quiesce premise: level_end=1024 quiesced=0 premise=0 waited_ms=50.7 verdict(strict)=1 verdict(lax)=0 OK
+MIR_SELFTEST T11 ver-gate stream+ver4        path=2 ver=4 -> 1 (期望 1) OK
+MIR_SELFTEST T11 ver-gate stream+ver3(必须拒) path=2 ver=3 -> 0 (期望 0) OK
+MIR_SELFTEST T11 ver-gate dma+ver3           path=1 ver=3 -> 1 (期望 1) OK
+MIR_SELFTEST T11 ver-gate dma+ver4(必须拒) path=1 ver=4 -> 0 (期望 0) OK
+MIR_SELFTEST T11 ver-gate bar+ver3           path=0 ver=3 -> 1 (期望 1) OK
+MIR_SELFTEST T11 ver-gate bar+ver4           path=0 ver=4 -> 1 (期望 1) OK
+MIR_SELFTEST T12 sargs defaults                 -> rc=0 (期望 0) OK 
+MIR_SELFTEST T12 sargs buf=0                    -> rc=1 (期望 1) OK --buf-mb 为 0 (PC 缓冲不能为空)
+MIR_SELFTEST T12 sargs chunk=0                  -> rc=2 (期望 2) OK --chunk 为 0
+MIR_SELFTEST T12 sargs chunk=100 (非 64 倍数) -> rc=3 (期望 3) OK --chunk 100 不是 64 的倍数 (PG195 描述符长度约束的口径)
+MIR_SELFTEST T12 sargs want=0                   -> rc=4 (期望 4) OK --bytes 为 0
+MIR_SELFTEST T12 sargs want%8=4                 -> rc=5 (期望 5) OK --bytes 65540 不是 8 的倍数 (镜像按 64 位字打包: K % 8 == 0 是 P8-STG 起的合同)
+MIR_SELFTEST T12 sargs want>buf                 -> rc=6 (期望 6) OK --bytes 268435456 > PC 缓冲 134217728 B (--buf-mb 要够大)
+MIR_SELFTEST T13 bigbuf mb=128 alloc=1 writable=1 zero-fail-path=1 OK
+MIR_SELFTEST T14 subproc chunk non-64     rc=2 (期望 2) 含'--chunk'=1 OK
+MIR_SELFTEST T14 subproc want%8!=0        rc=2 (期望 2) 含'--bytes'=1 OK
+MIR_SELFTEST T14 subproc buf-mb 0         rc=2 (期望 2) 含'--buf-mb'=1 OK
+MIR_SELFTEST T14 subproc stream+dma       rc=2 (期望 2) 含'互斥'=1 OK
+MIR_SELFTEST PASS
+SELFTEST_RC=0
+===== [5] 负对照 A: 假设备 静态交付计数=0 ⇒ 闭合式必须报红 (rc=1) =====
+MIR_ID magic=50360001 (exp 50360001) bid=00000022 (exp 00000022)
+MIR_STATUS ver=4 src_sel=0 cap=0 any_drop=0 unf=0 level=0
+MIR_VER ver=4 path=stream expect=4 unimpl=0x14C
+MIR_UNIMPL addr=14c val=ffffffff (exp ffffffff)
+MIR_STREAM_BUF bytes=134217728 mb=128 prefault=1 aligned=4096
+MIR_STREAM_CFG dev=./fakestream.bin bytes=65536 chunk=1048576 resid_max=24 settle=0.10 sample_ms=50.0 arm=1 src=-1
+MIR_STREAM_ALIGN want_mod_64=0 chunk_mod_64=0 (PG195: 描述符长度须 64 B 倍数)
+MIR_STREAM_WATCHDOG secs=0.0 (0=off; SIGALRM 打断阻塞 read)
+MIR_STREAM_DONE pc=65536 reads=1 partial=0 nonmul64=0 short=0 secs=0.000 rate_Bps=3584138956
+MIR_STREAM_ACCT pc=65536 dW70=0 w70a=0 w70b=0 words0=0 words1=0 dwords=0 delivered_bytes=0
+MIR_STREAM_QUIESCE level_end=0 quiesced=1 premise_level0=1 waited_ms=0.0 settle_s=0.10 strict=1 (前提: FIFO 尾部已排空 ⇒ 残余上界 = 镜像 acc+stg ≤24 B; 打包器残留由 FPGA 侧停流 flush 清)
+MIR_STREAM_CLOSURE pc + dW70 + resid == delivered_bytes  ->  resid_implied=-65536 band=[0,24] closed=0 premise_level0=1 (残余口径 = app_rx_mirror 头注释 acc_cnt_r+stg_cnt)
+MIR_STREAM_WRAP words0=0 words1=0 wrap_seen=0 dword_max_step=0 (回卷余量: 单步 <2^32)
+MIR_STREAM_SAMPLE i=0 t=0.000 pc=0 drop=0 words=0 dword_acc=0
+MIR_STREAM_SAMPLE i=1 t=0.000 pc=65536 drop=0 words=0 dword_acc=0
+MIR_STREAM_GAP first=0 last=0 max=0 nondecreasing=1 host_miss_bytes=0 host_miss_pct=0.0000 (= (delivered-pc)/delivered; 与 dW70+残余 的差 = 在飞/未取走)
+MIR_STREAM_NOTE 采样本身在流上=自造空档 (2 点); 首版板内不加缓冲 ⇒ 宿主空档直接变丢字节
+FAIL: 闭合式不成立: pc=65536 + dW70=0 + 残余(蕴含)=-65536 != 交付字节=0 (带宽 [0,24]; 可能 = 位流口径不同代 / 有未记账的丢字节)
+RC=1
+===== [5b] 负对照 C: level=7 (静默窗不达) ⇒ 前提未见证必须报红 (rc=1) =====
+MIR_ID magic=50360001 (exp 50360001) bid=00000022 (exp 00000022)
+MIR_STATUS ver=4 src_sel=0 cap=0 any_drop=0 unf=0 level=7
+MIR_VER ver=4 path=stream expect=4 unimpl=0x14C
+MIR_UNIMPL addr=14c val=ffffffff (exp ffffffff)
+MIR_STREAM_BUF bytes=134217728 mb=128 prefault=1 aligned=4096
+MIR_STREAM_CFG dev=./fakestream.bin bytes=65536 chunk=1048576 resid_max=24 settle=0.10 sample_ms=50.0 arm=1 src=-1
+MIR_STREAM_ALIGN want_mod_64=0 chunk_mod_64=0 (PG195: 描述符长度须 64 B 倍数)
+MIR_STREAM_WATCHDOG secs=0.0 (0=off; SIGALRM 打断阻塞 read)
+MIR_STREAM_DONE pc=65536 reads=1 partial=0 nonmul64=0 short=0 secs=0.101 rate_Bps=648320
+MIR_STREAM_ACCT pc=65536 dW70=0 w70a=0 w70b=0 words0=0 words1=0 dwords=0 delivered_bytes=0
+MIR_STREAM_QUIESCE level_end=7 quiesced=0 premise_level0=0 waited_ms=101.1 settle_s=0.10 strict=1 (前提: FIFO 尾部已排空 ⇒ 残余上界 = 镜像 acc+stg ≤24 B; 打包器残留由 FPGA 侧停流 flush 清)
+MIR_STREAM_CLOSURE pc + dW70 + resid == delivered_bytes  ->  resid_implied=-65536 band=[0,24] closed=0 premise_level0=0 (残余口径 = app_rx_mirror 头注释 acc_cnt_r+stg_cnt)
+MIR_STREAM_WRAP words0=0 words1=0 wrap_seen=0 dword_max_step=0 (回卷余量: 单步 <2^32)
+MIR_STREAM_SAMPLE i=0 t=0.000 pc=0 drop=0 words=0 dword_acc=0
+MIR_STREAM_SAMPLE i=1 t=0.101 pc=65536 drop=0 words=0 dword_acc=0
+MIR_STREAM_GAP first=0 last=0 max=0 nondecreasing=1 host_miss_bytes=0 host_miss_pct=0.0000 (= (delivered-pc)/delivered; 与 dW70+残余 的差 = 在飞/未取走)
+MIR_STREAM_NOTE 采样本身在流上=自造空档 (2 点); 首版板内不加缓冲 ⇒ 宿主空档直接变丢字节
+FAIL: 闭合式不成立: pc=65536 + dW70=0 + 残余(蕴含)=-65536 != 交付字节=0 (带宽 [0,24]; 可能 = 位流口径不同代 / 有未记账的丢字节)
+FAIL: 静默窗未达 level==0 (level_end=7, 实等 101.1 ms / settle=0.10 s): "残余上界 ≤24 B" 的前提未获见证 ⇒ 本跑账本按"不可判"读 (非静默场景请显式 --no-strict-quiesce)
+RC=1
+===== [5c] 同上 + --no-strict-quiesce (显式放行: 出 QUIESCE_OVERRIDE 见证; 剩下的 FAIL 只剩闭合式) =====
+MIR_ID magic=50360001 (exp 50360001) bid=00000022 (exp 00000022)
+MIR_STATUS ver=4 src_sel=0 cap=0 any_drop=0 unf=0 level=7
+MIR_VER ver=4 path=stream expect=4 unimpl=0x14C
+MIR_UNIMPL addr=14c val=ffffffff (exp ffffffff)
+MIR_STREAM_BUF bytes=134217728 mb=128 prefault=1 aligned=4096
+MIR_STREAM_CFG dev=./fakestream.bin bytes=65536 chunk=1048576 resid_max=24 settle=0.10 sample_ms=50.0 arm=1 src=-1
+MIR_STREAM_ALIGN want_mod_64=0 chunk_mod_64=0 (PG195: 描述符长度须 64 B 倍数)
+MIR_STREAM_WATCHDOG secs=0.0 (0=off; SIGALRM 打断阻塞 read)
+MIR_STREAM_DONE pc=65536 reads=1 partial=0 nonmul64=0 short=0 secs=0.101 rate_Bps=646106
+MIR_STREAM_ACCT pc=65536 dW70=0 w70a=0 w70b=0 words0=0 words1=0 dwords=0 delivered_bytes=0
+MIR_STREAM_QUIESCE level_end=7 quiesced=0 premise_level0=0 waited_ms=101.4 settle_s=0.10 strict=0 (前提: FIFO 尾部已排空 ⇒ 残余上界 = 镜像 acc+stg ≤24 B; 打包器残留由 FPGA 侧停流 flush 清)
+MIR_STREAM_CLOSURE pc + dW70 + resid == delivered_bytes  ->  resid_implied=-65536 band=[0,24] closed=0 premise_level0=0 (残余口径 = app_rx_mirror 头注释 acc_cnt_r+stg_cnt)
+MIR_STREAM_WRAP words0=0 words1=0 wrap_seen=0 dword_max_step=0 (回卷余量: 单步 <2^32)
+MIR_STREAM_SAMPLE i=0 t=0.000 pc=0 drop=0 words=0 dword_acc=0
+MIR_STREAM_SAMPLE i=1 t=0.101 pc=65536 drop=0 words=0 dword_acc=0
+MIR_STREAM_GAP first=0 last=0 max=0 nondecreasing=1 host_miss_bytes=0 host_miss_pct=0.0000 (= (delivered-pc)/delivered; 与 dW70+残余 的差 = 在飞/未取走)
+MIR_STREAM_NOTE 采样本身在流上=自造空档 (2 点); 首版板内不加缓冲 ⇒ 宿主空档直接变丢字节
+FAIL: 闭合式不成立: pc=65536 + dW70=0 + 残余(蕴含)=-65536 != 交付字节=0 (带宽 [0,24]; 可能 = 位流口径不同代 / 有未记账的丢字节)
+MIR_STREAM_QUIESCE_OVERRIDE strict=0 level_end=7 (显式放行: 前提未见证, 账本按"不可判"读)
+RC=1
+===== [6] 负对照 B: 路径↔ver 门 (两向都必须 rc=2) =====
+MIR_ID magic=50360001 (exp 50360001) bid=00000022 (exp 00000022)
+MIR_STATUS ver=4 src_sel=0 cap=0 any_drop=0 unf=0 level=0
+MIR_VER ver=4 path=dma expect=3 unimpl=0x14C
+FATAL: 路径 dma 与位流 ver=4 不配对 (ver3 = MM 环, ver4 = AXIS 流) —— 走错读出口会静默读错东西; 确要跑请显式 --allow-ver-mismatch
+RC=2
+MIR_ID magic=50360001 (exp 50360001) bid=00000021 (exp 00000021)
+MIR_STATUS ver=3 src_sel=0 cap=0 any_drop=0 unf=0 level=0
+MIR_VER ver=3 path=stream expect=4 unimpl=0x14C
+FATAL: 路径 stream 与位流 ver=3 不配对 (ver3 = MM 环, ver4 = AXIS 流) —— 走错读出口会静默读错东西; 确要跑请显式 --allow-ver-mismatch
+RC=2
+===== [7] 正控: 默认 (user-BAR) 路径在 ver=4 假设备上必须放行 (身份后 level 语义照旧; 无板 ⇒ 超时 rc=1 属预期) =====
+MIR_ID magic=50360001 (exp 50360001) bid=00000022 (exp 00000022)
+MIR_STATUS ver=4 src_sel=0 cap=0 any_drop=0 unf=0 level=0
+MIR_VER ver=4 path=bar expect=0 unimpl=0x14C
+MIR_DONE bytes=0 words=0 secs=1.000 rate_Bps=0 out=/tmp/mir.bin drop_seen=0 unf_seen=0
+===== END =====
