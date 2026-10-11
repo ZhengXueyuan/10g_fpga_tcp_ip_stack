@@ -1,0 +1,688 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version      : Vivado v.2025.2 (win64) Build 6299465 Fri Nov 14 19:35:11 GMT 2025
+| Date              : Sun Oct 11 18:34:59 2026
+| Host              : xyz-intel running 64-bit major release  (build 9200)
+| Command           : report_timing -delay_type max -max_paths 5 -sort_by slack -file {D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p8_build_0x21\query_out/global_top5.rpt}
+| Design            : wrapper_p4
+| Device            : xcku5p-ffvb676
+| Speed File        : -1  PRODUCTION 1.29 05-01-2022
+| Design State      : Routed
+| Temperature Grade : E
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Timing Report
+
+Slack (MET) :             0.044ns  (required time - arrival time)
+  Source:                 u_tcp_tx/u_fifo_b/rptr_reg[0]/C
+                            (rising edge-triggered cell FDCE clocked by g_hw.clk_out0  {rise@0.000ns fall@3.200ns period=6.400ns})
+  Destination:            u_tcb/rcv_nxt_r_reg[0][22]/CE
+                            (rising edge-triggered cell FDCE clocked by g_hw.clk_out0  {rise@0.000ns fall@3.200ns period=6.400ns})
+  Path Group:             g_hw.clk_out0
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            6.400ns  (g_hw.clk_out0 rise@6.400ns - g_hw.clk_out0 rise@0.000ns)
+  Data Path Delay:        6.062ns  (logic 1.410ns (23.261%)  route 4.652ns (76.739%))
+  Logic Levels:           15  (CARRY8=2 LUT3=2 LUT4=2 LUT5=1 LUT6=8)
+  Clock Path Skew:        -0.190ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    5.964ns = ( 12.364 - 6.400 ) 
+    Source Clock Delay      (SCD):    5.913ns
+    Clock Pessimism Removal (CPR):    -0.240ns
+  Clock Uncertainty:      0.062ns  ((TSJ^2 + DJ^2)^1/2) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Discrete Jitter          (DJ):    0.101ns
+    Phase Error              (PE):    0.000ns
+  Clock Net Delay (Source):      2.832ns (routing 1.428ns, distribution 1.404ns)
+  Clock Net Delay (Destination): 2.514ns (routing 1.305ns, distribution 1.209ns)
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock g_hw.clk_out0 rise edge)
+                                                      0.000     0.000 r  
+    T25                                               0.000     0.000 r  sys_clk_p (IN)
+                         net (fo=0)                   0.100     0.100    u_clkgen/g_hw.u_ibufds/I
+    HPIOBDIFFINBUF_X0Y37 DIFFINBUF (Prop_DIFFINBUF_HPIOBDIFFINBUF_DIFF_IN_P_O)
+                                                      0.479     0.579 r  u_clkgen/g_hw.u_ibufds/DIFFINBUF_INST/O
+                         net (fo=1, routed)           0.050     0.629    u_clkgen/g_hw.u_ibufds/OUT
+    T25                  IBUFCTRL (Prop_IBUFCTRL_HPIOB_M_I_O)
+                                                      0.000     0.629 r  u_clkgen/g_hw.u_ibufds/IBUFCTRL_INST/O
+                         net (fo=1, routed)           0.345     0.974    u_clkgen/g_hw.clk_in_ibuf
+    BUFGCE_X0Y41         BUFGCE (Prop_BUFCE_BUFGCE_I_O)
+                                                      0.028     1.002 r  u_clkgen/g_hw.u_bufg_in/O
+                         net (fo=485, routed)         1.902     2.904    u_clkgen/clk_in_100
+    MMCM_X0Y1            MMCME4_ADV (Prop_MMCM_CLKIN1_CLKOUT0)
+                                                     -0.106     2.798 r  u_clkgen/g_hw.u_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.256     3.054    u_clkgen/g_hw.clk_out0
+    BUFGCE_X0Y31         BUFGCE (Prop_BUFCE_BUFGCE_I_O)
+                                                      0.028     3.082 r  u_clkgen/g_hw.u_bufg_out/O
+    X3Y2 (CLOCK_ROOT)    net (fo=51285, routed)       2.832     5.913    u_tcp_tx/u_fifo_b/dp_clk
+    SLICE_X88Y117        FDCE                                         r  u_tcp_tx/u_fifo_b/rptr_reg[0]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X88Y117        FDCE (Prop_HFF_SLICEL_C_Q)
+                                                      0.096     6.009 r  u_tcp_tx/u_fifo_b/rptr_reg[0]/Q
+                         net (fo=24, routed)          0.214     6.224    u_tcp_tx/u_fifo_b/rptr_reg_n_53_[0]
+    SLICE_X89Y119        LUT4 (Prop_E6LUT_SLICEM_I0_O)
+                                                      0.115     6.339 r  u_tcp_tx/u_fifo_b/pfl_l_i_5/O
+                         net (fo=2, routed)           0.446     6.785    u_tcp_tx/u_fifo_b/pfl_l_i_5_n_53
+    SLICE_X80Y120        LUT6 (Prop_A6LUT_SLICEL_I2_O)
+                                                      0.064     6.849 r  u_tcp_tx/u_fifo_b/stat_winstall[0]_i_10/O
+                         net (fo=1, routed)           0.048     6.897    u_tcp_tx/u_fifo_a/fu_b
+    SLICE_X80Y120        LUT5 (Prop_C6LUT_SLICEL_I4_O)
+                                                      0.038     6.935 r  u_tcp_tx/u_fifo_a/stat_winstall[0]_i_5/O
+                         net (fo=3, routed)           0.333     7.268    u_tcp_tx/u_ackq/o_win_at_winstall_reg[31]_1
+    SLICE_X79Y123        LUT6 (Prop_G6LUT_SLICEM_I3_O)
+                                                      0.039     7.307 r  u_tcp_tx/u_ackq/ctrl_doff[3]_i_1/O
+                         net (fo=103, routed)         0.250     7.557    u_tcp_tx/u_ackq/win_open_reg
+    SLICE_X78Y125        LUT6 (Prop_F6LUT_SLICEL_I4_O)
+                                                      0.039     7.596 r  u_tcp_tx/u_ackq/f_seq[1][31]_i_7/O
+                         net (fo=91, routed)          0.637     8.233    u_tcb/f_seq_reg[1][31]
+    SLICE_X82Y125        LUT6 (Prop_C6LUT_SLICEM_I2_O)
+                                                      0.062     8.295 r  u_tcb/f_seq[1][15]_i_2/O
+                         net (fo=3, routed)           0.170     8.465    u_tcb/f_seq[1][15]_i_2_n_53
+    SLICE_X82Y125        LUT6 (Prop_H6LUT_SLICEM_I0_O)
+                                                      0.100     8.565 r  u_tcb/f_seq[1][15]_i_1/O
+                         net (fo=20, routed)          0.497     9.062    u_tcb/snd_nxt_r_reg[15][31]_0[15]
+    SLICE_X76Y124        LUT6 (Prop_F6LUT_SLICEL_I1_O)
+                                                      0.177     9.239 r  u_tcb/stat_retx[0]_i_13/O
+                         net (fo=1, routed)           0.012     9.251    u_tcb/stat_retx[0]_i_13_n_53
+    SLICE_X76Y124        CARRY8 (Prop_CARRY8_SLICEL_S[5]_CO[7])
+                                                      0.197     9.448 r  u_tcb/stat_retx_reg[0]_i_7/CO[7]
+                         net (fo=1, routed)           0.028     9.476    u_tcb/stat_retx_reg[0]_i_7_n_53
+    SLICE_X76Y125        CARRY8 (Prop_CARRY8_SLICEL_CI_CO[2])
+                                                      0.073     9.549 r  u_tcb/stat_retx_reg[0]_i_6/CO[2]
+                         net (fo=5, routed)           0.207     9.756    u_tcp_tx/ps_timer_reg[3][0]_0[0]
+    SLICE_X75Y126        LUT3 (Prop_G6LUT_SLICEM_I2_O)
+                                                      0.039     9.795 f  u_tcp_tx/stat_retx[0]_i_4/O
+                         net (fo=34, routed)          0.457    10.252    u_tcp_tx/u_ackq/snd_una_r_reg[14][31]
+    SLICE_X84Y132        LUT4 (Prop_E6LUT_SLICEL_I3_O)
+                                                      0.039    10.291 r  u_tcp_tx/u_ackq/fc_rr[3]_i_4/O
+                         net (fo=53, routed)          0.208    10.500    u_tcp_rx/tx_upd_wr
+    SLICE_X82Y133        LUT6 (Prop_A6LUT_SLICEM_I2_O)
+                                                      0.040    10.540 f  u_tcp_rx/rcv_nxt_r[0][31]_i_16/O
+                         net (fo=1, routed)           0.182    10.722    u_tcp_tx/u_ackq/rcv_nxt_r_reg[15][31]
+    SLICE_X82Y138        LUT3 (Prop_C6LUT_SLICEM_I2_O)
+                                                      0.113    10.835 f  u_tcp_tx/u_ackq/rcv_nxt_r[0][31]_i_4/O
+                         net (fo=122, routed)         0.561    11.395    u_tcp_tx/u_ackq/tcb_id[0]
+    SLICE_X84Y144        LUT6 (Prop_H6LUT_SLICEL_I1_O)
+                                                      0.179    11.574 r  u_tcp_tx/u_ackq/rcv_nxt_r[0][31]_i_1/O
+                         net (fo=32, routed)          0.401    11.975    u_tcb/E[0]
+    SLICE_X86Y145        FDCE                                         r  u_tcb/rcv_nxt_r_reg[0][22]/CE
+  -------------------------------------------------------------------    -------------------
+
+                         (clock g_hw.clk_out0 rise edge)
+                                                      6.400     6.400 r  
+    T25                                               0.000     6.400 r  sys_clk_p (IN)
+                         net (fo=0)                   0.079     6.479    u_clkgen/g_hw.u_ibufds/I
+    HPIOBDIFFINBUF_X0Y37 DIFFINBUF (Prop_DIFFINBUF_HPIOBDIFFINBUF_DIFF_IN_P_O)
+                                                      0.398     6.877 r  u_clkgen/g_hw.u_ibufds/DIFFINBUF_INST/O
+                         net (fo=1, routed)           0.040     6.917    u_clkgen/g_hw.u_ibufds/OUT
+    T25                  IBUFCTRL (Prop_IBUFCTRL_HPIOB_M_I_O)
+                                                      0.000     6.917 r  u_clkgen/g_hw.u_ibufds/IBUFCTRL_INST/O
+                         net (fo=1, routed)           0.304     7.221    u_clkgen/g_hw.clk_in_ibuf
+    BUFGCE_X0Y41         BUFGCE (Prop_BUFCE_BUFGCE_I_O)
+                                                      0.024     7.245 r  u_clkgen/g_hw.u_bufg_in/O
+                         net (fo=485, routed)         1.709     8.954    u_clkgen/clk_in_100
+    MMCM_X0Y1            MMCME4_ADV (Prop_MMCM_CLKIN1_CLKOUT0)
+                                                      0.644     9.598 r  u_clkgen/g_hw.u_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.228     9.826    u_clkgen/g_hw.clk_out0
+    BUFGCE_X0Y31         BUFGCE (Prop_BUFCE_BUFGCE_I_O)
+                                                      0.024     9.850 r  u_clkgen/g_hw.u_bufg_out/O
+    X3Y2 (CLOCK_ROOT)    net (fo=51285, routed)       2.514    12.364    u_tcb/dp_clk
+    SLICE_X86Y145        FDCE                                         r  u_tcb/rcv_nxt_r_reg[0][22]/C
+                         clock pessimism             -0.240    12.124    
+                         clock uncertainty           -0.062    12.062    
+    SLICE_X86Y145        FDCE (Setup_DFF_SLICEM_C_CE)
+                                                     -0.043    12.019    u_tcb/rcv_nxt_r_reg[0][22]
+  -------------------------------------------------------------------
+                         required time                         12.019    
+                         arrival time                         -11.975    
+  -------------------------------------------------------------------
+                         slack                                  0.044    
+
+Slack (MET) :             0.044ns  (required time - arrival time)
+  Source:                 u_tcp_tx/u_fifo_b/rptr_reg[0]/C
+                            (rising edge-triggered cell FDCE clocked by g_hw.clk_out0  {rise@0.000ns fall@3.200ns period=6.400ns})
+  Destination:            u_tcb/rcv_nxt_r_reg[0][28]/CE
+                            (rising edge-triggered cell FDCE clocked by g_hw.clk_out0  {rise@0.000ns fall@3.200ns period=6.400ns})
+  Path Group:             g_hw.clk_out0
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            6.400ns  (g_hw.clk_out0 rise@6.400ns - g_hw.clk_out0 rise@0.000ns)
+  Data Path Delay:        6.062ns  (logic 1.410ns (23.261%)  route 4.652ns (76.739%))
+  Logic Levels:           15  (CARRY8=2 LUT3=2 LUT4=2 LUT5=1 LUT6=8)
+  Clock Path Skew:        -0.190ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    5.964ns = ( 12.364 - 6.400 ) 
+    Source Clock Delay      (SCD):    5.913ns
+    Clock Pessimism Removal (CPR):    -0.240ns
+  Clock Uncertainty:      0.062ns  ((TSJ^2 + DJ^2)^1/2) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Discrete Jitter          (DJ):    0.101ns
+    Phase Error              (PE):    0.000ns
+  Clock Net Delay (Source):      2.832ns (routing 1.428ns, distribution 1.404ns)
+  Clock Net Delay (Destination): 2.514ns (routing 1.305ns, distribution 1.209ns)
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock g_hw.clk_out0 rise edge)
+                                                      0.000     0.000 r  
+    T25                                               0.000     0.000 r  sys_clk_p (IN)
+                         net (fo=0)                   0.100     0.100    u_clkgen/g_hw.u_ibufds/I
+    HPIOBDIFFINBUF_X0Y37 DIFFINBUF (Prop_DIFFINBUF_HPIOBDIFFINBUF_DIFF_IN_P_O)
+                                                      0.479     0.579 r  u_clkgen/g_hw.u_ibufds/DIFFINBUF_INST/O
+                         net (fo=1, routed)           0.050     0.629    u_clkgen/g_hw.u_ibufds/OUT
+    T25                  IBUFCTRL (Prop_IBUFCTRL_HPIOB_M_I_O)
+                                                      0.000     0.629 r  u_clkgen/g_hw.u_ibufds/IBUFCTRL_INST/O
+                         net (fo=1, routed)           0.345     0.974    u_clkgen/g_hw.clk_in_ibuf
+    BUFGCE_X0Y41         BUFGCE (Prop_BUFCE_BUFGCE_I_O)
+                                                      0.028     1.002 r  u_clkgen/g_hw.u_bufg_in/O
+                         net (fo=485, routed)         1.902     2.904    u_clkgen/clk_in_100
+    MMCM_X0Y1            MMCME4_ADV (Prop_MMCM_CLKIN1_CLKOUT0)
+                                                     -0.106     2.798 r  u_clkgen/g_hw.u_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.256     3.054    u_clkgen/g_hw.clk_out0
+    BUFGCE_X0Y31         BUFGCE (Prop_BUFCE_BUFGCE_I_O)
+                                                      0.028     3.082 r  u_clkgen/g_hw.u_bufg_out/O
+    X3Y2 (CLOCK_ROOT)    net (fo=51285, routed)       2.832     5.913    u_tcp_tx/u_fifo_b/dp_clk
+    SLICE_X88Y117        FDCE                                         r  u_tcp_tx/u_fifo_b/rptr_reg[0]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X88Y117        FDCE (Prop_HFF_SLICEL_C_Q)
+                                                      0.096     6.009 r  u_tcp_tx/u_fifo_b/rptr_reg[0]/Q
+                         net (fo=24, routed)          0.214     6.224    u_tcp_tx/u_fifo_b/rptr_reg_n_53_[0]
+    SLICE_X89Y119        LUT4 (Prop_E6LUT_SLICEM_I0_O)
+                                                      0.115     6.339 r  u_tcp_tx/u_fifo_b/pfl_l_i_5/O
+                         net (fo=2, routed)           0.446     6.785    u_tcp_tx/u_fifo_b/pfl_l_i_5_n_53
+    SLICE_X80Y120        LUT6 (Prop_A6LUT_SLICEL_I2_O)
+                                                      0.064     6.849 r  u_tcp_tx/u_fifo_b/stat_winstall[0]_i_10/O
+                         net (fo=1, routed)           0.048     6.897    u_tcp_tx/u_fifo_a/fu_b
+    SLICE_X80Y120        LUT5 (Prop_C6LUT_SLICEL_I4_O)
+                                                      0.038     6.935 r  u_tcp_tx/u_fifo_a/stat_winstall[0]_i_5/O
+                         net (fo=3, routed)           0.333     7.268    u_tcp_tx/u_ackq/o_win_at_winstall_reg[31]_1
+    SLICE_X79Y123        LUT6 (Prop_G6LUT_SLICEM_I3_O)
+                                                      0.039     7.307 r  u_tcp_tx/u_ackq/ctrl_doff[3]_i_1/O
+                         net (fo=103, routed)         0.250     7.557    u_tcp_tx/u_ackq/win_open_reg
+    SLICE_X78Y125        LUT6 (Prop_F6LUT_SLICEL_I4_O)
+                                                      0.039     7.596 r  u_tcp_tx/u_ackq/f_seq[1][31]_i_7/O
+                         net (fo=91, routed)          0.637     8.233    u_tcb/f_seq_reg[1][31]
+    SLICE_X82Y125        LUT6 (Prop_C6LUT_SLICEM_I2_O)
+                                                      0.062     8.295 r  u_tcb/f_seq[1][15]_i_2/O
+                         net (fo=3, routed)           0.170     8.465    u_tcb/f_seq[1][15]_i_2_n_53
+    SLICE_X82Y125        LUT6 (Prop_H6LUT_SLICEM_I0_O)
+                                                      0.100     8.565 r  u_tcb/f_seq[1][15]_i_1/O
+                         net (fo=20, routed)          0.497     9.062    u_tcb/snd_nxt_r_reg[15][31]_0[15]
+    SLICE_X76Y124        LUT6 (Prop_F6LUT_SLICEL_I1_O)
+                                                      0.177     9.239 r  u_tcb/stat_retx[0]_i_13/O
+                         net (fo=1, routed)           0.012     9.251    u_tcb/stat_retx[0]_i_13_n_53
+    SLICE_X76Y124        CARRY8 (Prop_CARRY8_SLICEL_S[5]_CO[7])
+                                                      0.197     9.448 r  u_tcb/stat_retx_reg[0]_i_7/CO[7]
+                         net (fo=1, routed)           0.028     9.476    u_tcb/stat_retx_reg[0]_i_7_n_53
+    SLICE_X76Y125        CARRY8 (Prop_CARRY8_SLICEL_CI_CO[2])
+                                                      0.073     9.549 r  u_tcb/stat_retx_reg[0]_i_6/CO[2]
+                         net (fo=5, routed)           0.207     9.756    u_tcp_tx/ps_timer_reg[3][0]_0[0]
+    SLICE_X75Y126        LUT3 (Prop_G6LUT_SLICEM_I2_O)
+                                                      0.039     9.795 f  u_tcp_tx/stat_retx[0]_i_4/O
+                         net (fo=34, routed)          0.457    10.252    u_tcp_tx/u_ackq/snd_una_r_reg[14][31]
+    SLICE_X84Y132        LUT4 (Prop_E6LUT_SLICEL_I3_O)
+                                                      0.039    10.291 r  u_tcp_tx/u_ackq/fc_rr[3]_i_4/O
+                         net (fo=53, routed)          0.208    10.500    u_tcp_rx/tx_upd_wr
+    SLICE_X82Y133        LUT6 (Prop_A6LUT_SLICEM_I2_O)
+                                                      0.040    10.540 f  u_tcp_rx/rcv_nxt_r[0][31]_i_16/O
+                         net (fo=1, routed)           0.182    10.722    u_tcp_tx/u_ackq/rcv_nxt_r_reg[15][31]
+    SLICE_X82Y138        LUT3 (Prop_C6LUT_SLICEM_I2_O)
+                                                      0.113    10.835 f  u_tcp_tx/u_ackq/rcv_nxt_r[0][31]_i_4/O
+                         net (fo=122, routed)         0.561    11.395    u_tcp_tx/u_ackq/tcb_id[0]
+    SLICE_X84Y144        LUT6 (Prop_H6LUT_SLICEL_I1_O)
+                                                      0.179    11.574 r  u_tcp_tx/u_ackq/rcv_nxt_r[0][31]_i_1/O
+                         net (fo=32, routed)          0.401    11.975    u_tcb/E[0]
+    SLICE_X86Y145        FDCE                                         r  u_tcb/rcv_nxt_r_reg[0][28]/CE
+  -------------------------------------------------------------------    -------------------
+
+                         (clock g_hw.clk_out0 rise edge)
+                                                      6.400     6.400 r  
+    T25                                               0.000     6.400 r  sys_clk_p (IN)
+                         net (fo=0)                   0.079     6.479    u_clkgen/g_hw.u_ibufds/I
+    HPIOBDIFFINBUF_X0Y37 DIFFINBUF (Prop_DIFFINBUF_HPIOBDIFFINBUF_DIFF_IN_P_O)
+                                                      0.398     6.877 r  u_clkgen/g_hw.u_ibufds/DIFFINBUF_INST/O
+                         net (fo=1, routed)           0.040     6.917    u_clkgen/g_hw.u_ibufds/OUT
+    T25                  IBUFCTRL (Prop_IBUFCTRL_HPIOB_M_I_O)
+                                                      0.000     6.917 r  u_clkgen/g_hw.u_ibufds/IBUFCTRL_INST/O
+                         net (fo=1, routed)           0.304     7.221    u_clkgen/g_hw.clk_in_ibuf
+    BUFGCE_X0Y41         BUFGCE (Prop_BUFCE_BUFGCE_I_O)
+                                                      0.024     7.245 r  u_clkgen/g_hw.u_bufg_in/O
+                         net (fo=485, routed)         1.709     8.954    u_clkgen/clk_in_100
+    MMCM_X0Y1            MMCME4_ADV (Prop_MMCM_CLKIN1_CLKOUT0)
+                                                      0.644     9.598 r  u_clkgen/g_hw.u_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.228     9.826    u_clkgen/g_hw.clk_out0
+    BUFGCE_X0Y31         BUFGCE (Prop_BUFCE_BUFGCE_I_O)
+                                                      0.024     9.850 r  u_clkgen/g_hw.u_bufg_out/O
+    X3Y2 (CLOCK_ROOT)    net (fo=51285, routed)       2.514    12.364    u_tcb/dp_clk
+    SLICE_X86Y145        FDCE                                         r  u_tcb/rcv_nxt_r_reg[0][28]/C
+                         clock pessimism             -0.240    12.124    
+                         clock uncertainty           -0.062    12.062    
+    SLICE_X86Y145        FDCE (Setup_CFF_SLICEM_C_CE)
+                                                     -0.043    12.019    u_tcb/rcv_nxt_r_reg[0][28]
+  -------------------------------------------------------------------
+                         required time                         12.019    
+                         arrival time                         -11.975    
+  -------------------------------------------------------------------
+                         slack                                  0.044    
+
+Slack (MET) :             0.071ns  (required time - arrival time)
+  Source:                 u_tcp_tx/u_ackq/wptr_reg[1]/C
+                            (rising edge-triggered cell FDCE clocked by g_hw.clk_out0  {rise@0.000ns fall@3.200ns period=6.400ns})
+  Destination:            u_app/stg_reg[12]/CE
+                            (rising edge-triggered cell FDCE clocked by g_hw.clk_out0  {rise@0.000ns fall@3.200ns period=6.400ns})
+  Path Group:             g_hw.clk_out0
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            6.400ns  (g_hw.clk_out0 rise@6.400ns - g_hw.clk_out0 rise@0.000ns)
+  Data Path Delay:        6.134ns  (logic 2.159ns (35.195%)  route 3.975ns (64.805%))
+  Logic Levels:           20  (CARRY8=1 LUT3=2 LUT4=2 LUT5=3 LUT6=10 MUXF7=1 MUXF8=1)
+  Clock Path Skew:        -0.091ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    6.118ns = ( 12.518 - 6.400 ) 
+    Source Clock Delay      (SCD):    5.968ns
+    Clock Pessimism Removal (CPR):    -0.240ns
+  Clock Uncertainty:      0.062ns  ((TSJ^2 + DJ^2)^1/2) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Discrete Jitter          (DJ):    0.101ns
+    Phase Error              (PE):    0.000ns
+  Clock Net Delay (Source):      2.887ns (routing 1.428ns, distribution 1.459ns)
+  Clock Net Delay (Destination): 2.668ns (routing 1.305ns, distribution 1.363ns)
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock g_hw.clk_out0 rise edge)
+                                                      0.000     0.000 r  
+    T25                                               0.000     0.000 r  sys_clk_p (IN)
+                         net (fo=0)                   0.100     0.100    u_clkgen/g_hw.u_ibufds/I
+    HPIOBDIFFINBUF_X0Y37 DIFFINBUF (Prop_DIFFINBUF_HPIOBDIFFINBUF_DIFF_IN_P_O)
+                                                      0.479     0.579 r  u_clkgen/g_hw.u_ibufds/DIFFINBUF_INST/O
+                         net (fo=1, routed)           0.050     0.629    u_clkgen/g_hw.u_ibufds/OUT
+    T25                  IBUFCTRL (Prop_IBUFCTRL_HPIOB_M_I_O)
+                                                      0.000     0.629 r  u_clkgen/g_hw.u_ibufds/IBUFCTRL_INST/O
+                         net (fo=1, routed)           0.345     0.974    u_clkgen/g_hw.clk_in_ibuf
+    BUFGCE_X0Y41         BUFGCE (Prop_BUFCE_BUFGCE_I_O)
+                                                      0.028     1.002 r  u_clkgen/g_hw.u_bufg_in/O
+                         net (fo=485, routed)         1.902     2.904    u_clkgen/clk_in_100
+    MMCM_X0Y1            MMCME4_ADV (Prop_MMCM_CLKIN1_CLKOUT0)
+                                                     -0.106     2.798 r  u_clkgen/g_hw.u_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.256     3.054    u_clkgen/g_hw.clk_out0
+    BUFGCE_X0Y31         BUFGCE (Prop_BUFCE_BUFGCE_I_O)
+                                                      0.028     3.082 r  u_clkgen/g_hw.u_bufg_out/O
+    X3Y2 (CLOCK_ROOT)    net (fo=51285, routed)       2.887     5.968    u_tcp_tx/u_ackq/dp_clk
+    SLICE_X70Y124        FDCE                                         r  u_tcp_tx/u_ackq/wptr_reg[1]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X70Y124        FDCE (Prop_CFF_SLICEL_C_Q)
+                                                      0.097     6.065 r  u_tcp_tx/u_ackq/wptr_reg[1]/Q
+                         net (fo=55, routed)          0.146     6.211    u_tcp_tx/u_ackq/wptr_reg_n_53_[1]
+    SLICE_X71Y124        LUT6 (Prop_G6LUT_SLICEM_I5_O)
+                                                      0.179     6.390 r  u_tcp_tx/u_ackq/stat_wu[0]_i_9/O
+                         net (fo=2, routed)           0.235     6.626    u_tcp_tx/u_ackq/stat_wu[0]_i_9_n_53
+    SLICE_X74Y124        LUT6 (Prop_H6LUT_SLICEM_I0_O)
+                                                      0.066     6.692 f  u_tcp_tx/u_ackq/start_ack_d1_i_2/O
+                         net (fo=4, routed)           0.125     6.817    u_tcp_tx/u_ackq/start_ack2
+    SLICE_X75Y124        LUT6 (Prop_F6LUT_SLICEM_I1_O)
+                                                      0.113     6.930 f  u_tcp_tx/u_ackq/ctrl_doff[3]_i_2/O
+                         net (fo=1, routed)           0.227     7.157    u_tcp_tx/u_ackq/ctrl_doff[3]_i_2_n_53
+    SLICE_X79Y123        LUT6 (Prop_G6LUT_SLICEM_I2_O)
+                                                      0.148     7.305 r  u_tcp_tx/u_ackq/ctrl_doff[3]_i_1/O
+                         net (fo=103, routed)         0.144     7.448    u_tcp_tx/u_ackq/win_open_reg
+    SLICE_X78Y123        LUT5 (Prop_G6LUT_SLICEL_I1_O)
+                                                      0.114     7.562 r  u_tcp_tx/u_ackq/f_seq[1][31]_i_10/O
+                         net (fo=5, routed)           0.103     7.665    u_tcp_tx/u_ackq/f_seq[1][31]_i_10_n_53
+    SLICE_X77Y123        LUT5 (Prop_F6LUT_SLICEL_I4_O)
+                                                      0.039     7.704 r  u_tcp_tx/u_ackq/f_seq[1][31]_i_5/O
+                         net (fo=180, routed)         0.607     8.311    u_tcb/cam_rd_id[2]
+    SLICE_X64Y108        MUXF7 (Prop_F7MUX_EF_SLICEL_S_O)
+                                                      0.086     8.397 f  u_tcb/wa_o_r_reg[0]_rep_i_20/O
+                         net (fo=1, routed)           0.000     8.397    u_tcb/wa_o_r_reg[0]_rep_i_20_n_53
+    SLICE_X64Y108        MUXF8 (Prop_F8MUX_TOP_SLICEL_I1_O)
+                                                      0.027     8.424 f  u_tcb/wa_o_r_reg[0]_rep_i_9/O
+                         net (fo=4, routed)           0.217     8.641    u_tcb/rb_state[2]
+    SLICE_X64Y108        LUT6 (Prop_A6LUT_SLICEL_I4_O)
+                                                      0.149     8.790 f  u_tcb/wa_o_r[0]_rep_i_3/O
+                         net (fo=7, routed)           0.109     8.900    u_tcp_tx/u_fifo_a/m_data_r_reg[68]_0
+    SLICE_X63Y108        LUT6 (Prop_A6LUT_SLICEL_I3_O)
+                                                      0.039     8.939 r  u_tcp_tx/u_fifo_a/op_sent_i_3/O
+                         net (fo=31, routed)          0.122     9.061    u_app/op_sent_reg_2
+    SLICE_X63Y106        LUT3 (Prop_A6LUT_SLICEL_I0_O)
+                                                      0.039     9.100 r  u_app/stat_tx_bytes[0]_i_1/O
+                         net (fo=97, routed)          0.559     9.659    u_app/pw_take
+    SLICE_X56Y101        LUT5 (Prop_C6LUT_SLICEM_I1_O)
+                                                      0.062     9.721 r  u_app/tx_lfsr[63]_i_20/O
+                         net (fo=1, routed)           0.023     9.744    u_app/tx_lfsr[63]_i_20_n_53
+    SLICE_X56Y101        CARRY8 (Prop_CARRY8_SLICEM_S[2]_O[7])
+                                                      0.253     9.997 f  u_app/tx_lfsr_reg[63]_i_9/O[7]
+                         net (fo=1, routed)           0.231    10.228    u_app/tx_lfsr_reg[63]_i_9_n_61
+    SLICE_X56Y102        LUT6 (Prop_G6LUT_SLICEM_I0_O)
+                                                      0.179    10.407 f  u_app/bcnt[3]_i_25/O
+                         net (fo=1, routed)           0.055    10.462    u_app/bcnt[3]_i_25_n_53
+    SLICE_X56Y102        LUT4 (Prop_H6LUT_SLICEM_I3_O)
+                                                      0.117    10.579 r  u_app/bcnt[3]_i_8/O
+                         net (fo=7, routed)           0.146    10.725    u_app/bcnt[3]_i_8_n_53
+    SLICE_X55Y102        LUT3 (Prop_H6LUT_SLICEM_I0_O)
+                                                      0.066    10.791 r  u_app/tx_lfsr[63]_i_13/O
+                         net (fo=1, routed)           0.105    10.896    u_app/tx_lfsr[63]_i_13_n_53
+    SLICE_X54Y102        LUT6 (Prop_F6LUT_SLICEL_I0_O)
+                                                      0.098    10.994 r  u_app/tx_lfsr[63]_i_8__0/O
+                         net (fo=1, routed)           0.099    11.093    u_app/tx_lfsr[63]_i_8__0_n_53
+    SLICE_X54Y101        LUT6 (Prop_E6LUT_SLICEL_I0_O)
+                                                      0.100    11.193 r  u_app/tx_lfsr[63]_i_3__0/O
+                         net (fo=34, routed)          0.131    11.325    u_app/tx_lfsr[63]_i_3__0_n_53
+    SLICE_X54Y102        LUT6 (Prop_A6LUT_SLICEL_I5_O)
+                                                      0.039    11.364 r  u_app/bcnt[3]_i_3__2/O
+                         net (fo=102, routed)         0.230    11.594    u_app/bcnt[3]_i_3__2_n_53
+    SLICE_X54Y103        LUT4 (Prop_B6LUT_SLICEL_I3_O)
+                                                      0.149    11.743 r  u_app/stg[63]_i_1/O
+                         net (fo=64, routed)          0.360    12.103    u_app/stg[63]_i_1_n_53
+    SLICE_X54Y104        FDCE                                         r  u_app/stg_reg[12]/CE
+  -------------------------------------------------------------------    -------------------
+
+                         (clock g_hw.clk_out0 rise edge)
+                                                      6.400     6.400 r  
+    T25                                               0.000     6.400 r  sys_clk_p (IN)
+                         net (fo=0)                   0.079     6.479    u_clkgen/g_hw.u_ibufds/I
+    HPIOBDIFFINBUF_X0Y37 DIFFINBUF (Prop_DIFFINBUF_HPIOBDIFFINBUF_DIFF_IN_P_O)
+                                                      0.398     6.877 r  u_clkgen/g_hw.u_ibufds/DIFFINBUF_INST/O
+                         net (fo=1, routed)           0.040     6.917    u_clkgen/g_hw.u_ibufds/OUT
+    T25                  IBUFCTRL (Prop_IBUFCTRL_HPIOB_M_I_O)
+                                                      0.000     6.917 r  u_clkgen/g_hw.u_ibufds/IBUFCTRL_INST/O
+                         net (fo=1, routed)           0.304     7.221    u_clkgen/g_hw.clk_in_ibuf
+    BUFGCE_X0Y41         BUFGCE (Prop_BUFCE_BUFGCE_I_O)
+                                                      0.024     7.245 r  u_clkgen/g_hw.u_bufg_in/O
+                         net (fo=485, routed)         1.709     8.954    u_clkgen/clk_in_100
+    MMCM_X0Y1            MMCME4_ADV (Prop_MMCM_CLKIN1_CLKOUT0)
+                                                      0.644     9.598 r  u_clkgen/g_hw.u_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.228     9.826    u_clkgen/g_hw.clk_out0
+    BUFGCE_X0Y31         BUFGCE (Prop_BUFCE_BUFGCE_I_O)
+                                                      0.024     9.850 r  u_clkgen/g_hw.u_bufg_out/O
+    X3Y2 (CLOCK_ROOT)    net (fo=51285, routed)       2.668    12.518    u_app/dp_clk
+    SLICE_X54Y104        FDCE                                         r  u_app/stg_reg[12]/C
+                         clock pessimism             -0.240    12.278    
+                         clock uncertainty           -0.062    12.216    
+    SLICE_X54Y104        FDCE (Setup_BFF2_SLICEL_C_CE)
+                                                     -0.042    12.174    u_app/stg_reg[12]
+  -------------------------------------------------------------------
+                         required time                         12.174    
+                         arrival time                         -12.103    
+  -------------------------------------------------------------------
+                         slack                                  0.071    
+
+Slack (MET) :             0.071ns  (required time - arrival time)
+  Source:                 u_tcp_tx/u_ackq/wptr_reg[1]/C
+                            (rising edge-triggered cell FDCE clocked by g_hw.clk_out0  {rise@0.000ns fall@3.200ns period=6.400ns})
+  Destination:            u_app/stg_reg[20]/CE
+                            (rising edge-triggered cell FDCE clocked by g_hw.clk_out0  {rise@0.000ns fall@3.200ns period=6.400ns})
+  Path Group:             g_hw.clk_out0
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            6.400ns  (g_hw.clk_out0 rise@6.400ns - g_hw.clk_out0 rise@0.000ns)
+  Data Path Delay:        6.134ns  (logic 2.159ns (35.195%)  route 3.975ns (64.805%))
+  Logic Levels:           20  (CARRY8=1 LUT3=2 LUT4=2 LUT5=3 LUT6=10 MUXF7=1 MUXF8=1)
+  Clock Path Skew:        -0.091ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    6.118ns = ( 12.518 - 6.400 ) 
+    Source Clock Delay      (SCD):    5.968ns
+    Clock Pessimism Removal (CPR):    -0.240ns
+  Clock Uncertainty:      0.062ns  ((TSJ^2 + DJ^2)^1/2) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Discrete Jitter          (DJ):    0.101ns
+    Phase Error              (PE):    0.000ns
+  Clock Net Delay (Source):      2.887ns (routing 1.428ns, distribution 1.459ns)
+  Clock Net Delay (Destination): 2.668ns (routing 1.305ns, distribution 1.363ns)
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock g_hw.clk_out0 rise edge)
+                                                      0.000     0.000 r  
+    T25                                               0.000     0.000 r  sys_clk_p (IN)
+                         net (fo=0)                   0.100     0.100    u_clkgen/g_hw.u_ibufds/I
+    HPIOBDIFFINBUF_X0Y37 DIFFINBUF (Prop_DIFFINBUF_HPIOBDIFFINBUF_DIFF_IN_P_O)
+                                                      0.479     0.579 r  u_clkgen/g_hw.u_ibufds/DIFFINBUF_INST/O
+                         net (fo=1, routed)           0.050     0.629    u_clkgen/g_hw.u_ibufds/OUT
+    T25                  IBUFCTRL (Prop_IBUFCTRL_HPIOB_M_I_O)
+                                                      0.000     0.629 r  u_clkgen/g_hw.u_ibufds/IBUFCTRL_INST/O
+                         net (fo=1, routed)           0.345     0.974    u_clkgen/g_hw.clk_in_ibuf
+    BUFGCE_X0Y41         BUFGCE (Prop_BUFCE_BUFGCE_I_O)
+                                                      0.028     1.002 r  u_clkgen/g_hw.u_bufg_in/O
+                         net (fo=485, routed)         1.902     2.904    u_clkgen/clk_in_100
+    MMCM_X0Y1            MMCME4_ADV (Prop_MMCM_CLKIN1_CLKOUT0)
+                                                     -0.106     2.798 r  u_clkgen/g_hw.u_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.256     3.054    u_clkgen/g_hw.clk_out0
+    BUFGCE_X0Y31         BUFGCE (Prop_BUFCE_BUFGCE_I_O)
+                                                      0.028     3.082 r  u_clkgen/g_hw.u_bufg_out/O
+    X3Y2 (CLOCK_ROOT)    net (fo=51285, routed)       2.887     5.968    u_tcp_tx/u_ackq/dp_clk
+    SLICE_X70Y124        FDCE                                         r  u_tcp_tx/u_ackq/wptr_reg[1]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X70Y124        FDCE (Prop_CFF_SLICEL_C_Q)
+                                                      0.097     6.065 r  u_tcp_tx/u_ackq/wptr_reg[1]/Q
+                         net (fo=55, routed)          0.146     6.211    u_tcp_tx/u_ackq/wptr_reg_n_53_[1]
+    SLICE_X71Y124        LUT6 (Prop_G6LUT_SLICEM_I5_O)
+                                                      0.179     6.390 r  u_tcp_tx/u_ackq/stat_wu[0]_i_9/O
+                         net (fo=2, routed)           0.235     6.626    u_tcp_tx/u_ackq/stat_wu[0]_i_9_n_53
+    SLICE_X74Y124        LUT6 (Prop_H6LUT_SLICEM_I0_O)
+                                                      0.066     6.692 f  u_tcp_tx/u_ackq/start_ack_d1_i_2/O
+                         net (fo=4, routed)           0.125     6.817    u_tcp_tx/u_ackq/start_ack2
+    SLICE_X75Y124        LUT6 (Prop_F6LUT_SLICEM_I1_O)
+                                                      0.113     6.930 f  u_tcp_tx/u_ackq/ctrl_doff[3]_i_2/O
+                         net (fo=1, routed)           0.227     7.157    u_tcp_tx/u_ackq/ctrl_doff[3]_i_2_n_53
+    SLICE_X79Y123        LUT6 (Prop_G6LUT_SLICEM_I2_O)
+                                                      0.148     7.305 r  u_tcp_tx/u_ackq/ctrl_doff[3]_i_1/O
+                         net (fo=103, routed)         0.144     7.448    u_tcp_tx/u_ackq/win_open_reg
+    SLICE_X78Y123        LUT5 (Prop_G6LUT_SLICEL_I1_O)
+                                                      0.114     7.562 r  u_tcp_tx/u_ackq/f_seq[1][31]_i_10/O
+                         net (fo=5, routed)           0.103     7.665    u_tcp_tx/u_ackq/f_seq[1][31]_i_10_n_53
+    SLICE_X77Y123        LUT5 (Prop_F6LUT_SLICEL_I4_O)
+                                                      0.039     7.704 r  u_tcp_tx/u_ackq/f_seq[1][31]_i_5/O
+                         net (fo=180, routed)         0.607     8.311    u_tcb/cam_rd_id[2]
+    SLICE_X64Y108        MUXF7 (Prop_F7MUX_EF_SLICEL_S_O)
+                                                      0.086     8.397 f  u_tcb/wa_o_r_reg[0]_rep_i_20/O
+                         net (fo=1, routed)           0.000     8.397    u_tcb/wa_o_r_reg[0]_rep_i_20_n_53
+    SLICE_X64Y108        MUXF8 (Prop_F8MUX_TOP_SLICEL_I1_O)
+                                                      0.027     8.424 f  u_tcb/wa_o_r_reg[0]_rep_i_9/O
+                         net (fo=4, routed)           0.217     8.641    u_tcb/rb_state[2]
+    SLICE_X64Y108        LUT6 (Prop_A6LUT_SLICEL_I4_O)
+                                                      0.149     8.790 f  u_tcb/wa_o_r[0]_rep_i_3/O
+                         net (fo=7, routed)           0.109     8.900    u_tcp_tx/u_fifo_a/m_data_r_reg[68]_0
+    SLICE_X63Y108        LUT6 (Prop_A6LUT_SLICEL_I3_O)
+                                                      0.039     8.939 r  u_tcp_tx/u_fifo_a/op_sent_i_3/O
+                         net (fo=31, routed)          0.122     9.061    u_app/op_sent_reg_2
+    SLICE_X63Y106        LUT3 (Prop_A6LUT_SLICEL_I0_O)
+                                                      0.039     9.100 r  u_app/stat_tx_bytes[0]_i_1/O
+                         net (fo=97, routed)          0.559     9.659    u_app/pw_take
+    SLICE_X56Y101        LUT5 (Prop_C6LUT_SLICEM_I1_O)
+                                                      0.062     9.721 r  u_app/tx_lfsr[63]_i_20/O
+                         net (fo=1, routed)           0.023     9.744    u_app/tx_lfsr[63]_i_20_n_53
+    SLICE_X56Y101        CARRY8 (Prop_CARRY8_SLICEM_S[2]_O[7])
+                                                      0.253     9.997 f  u_app/tx_lfsr_reg[63]_i_9/O[7]
+                         net (fo=1, routed)           0.231    10.228    u_app/tx_lfsr_reg[63]_i_9_n_61
+    SLICE_X56Y102        LUT6 (Prop_G6LUT_SLICEM_I0_O)
+                                                      0.179    10.407 f  u_app/bcnt[3]_i_25/O
+                         net (fo=1, routed)           0.055    10.462    u_app/bcnt[3]_i_25_n_53
+    SLICE_X56Y102        LUT4 (Prop_H6LUT_SLICEM_I3_O)
+                                                      0.117    10.579 r  u_app/bcnt[3]_i_8/O
+                         net (fo=7, routed)           0.146    10.725    u_app/bcnt[3]_i_8_n_53
+    SLICE_X55Y102        LUT3 (Prop_H6LUT_SLICEM_I0_O)
+                                                      0.066    10.791 r  u_app/tx_lfsr[63]_i_13/O
+                         net (fo=1, routed)           0.105    10.896    u_app/tx_lfsr[63]_i_13_n_53
+    SLICE_X54Y102        LUT6 (Prop_F6LUT_SLICEL_I0_O)
+                                                      0.098    10.994 r  u_app/tx_lfsr[63]_i_8__0/O
+                         net (fo=1, routed)           0.099    11.093    u_app/tx_lfsr[63]_i_8__0_n_53
+    SLICE_X54Y101        LUT6 (Prop_E6LUT_SLICEL_I0_O)
+                                                      0.100    11.193 r  u_app/tx_lfsr[63]_i_3__0/O
+                         net (fo=34, routed)          0.131    11.325    u_app/tx_lfsr[63]_i_3__0_n_53
+    SLICE_X54Y102        LUT6 (Prop_A6LUT_SLICEL_I5_O)
+                                                      0.039    11.364 r  u_app/bcnt[3]_i_3__2/O
+                         net (fo=102, routed)         0.230    11.594    u_app/bcnt[3]_i_3__2_n_53
+    SLICE_X54Y103        LUT4 (Prop_B6LUT_SLICEL_I3_O)
+                                                      0.149    11.743 r  u_app/stg[63]_i_1/O
+                         net (fo=64, routed)          0.360    12.103    u_app/stg[63]_i_1_n_53
+    SLICE_X54Y104        FDCE                                         r  u_app/stg_reg[20]/CE
+  -------------------------------------------------------------------    -------------------
+
+                         (clock g_hw.clk_out0 rise edge)
+                                                      6.400     6.400 r  
+    T25                                               0.000     6.400 r  sys_clk_p (IN)
+                         net (fo=0)                   0.079     6.479    u_clkgen/g_hw.u_ibufds/I
+    HPIOBDIFFINBUF_X0Y37 DIFFINBUF (Prop_DIFFINBUF_HPIOBDIFFINBUF_DIFF_IN_P_O)
+                                                      0.398     6.877 r  u_clkgen/g_hw.u_ibufds/DIFFINBUF_INST/O
+                         net (fo=1, routed)           0.040     6.917    u_clkgen/g_hw.u_ibufds/OUT
+    T25                  IBUFCTRL (Prop_IBUFCTRL_HPIOB_M_I_O)
+                                                      0.000     6.917 r  u_clkgen/g_hw.u_ibufds/IBUFCTRL_INST/O
+                         net (fo=1, routed)           0.304     7.221    u_clkgen/g_hw.clk_in_ibuf
+    BUFGCE_X0Y41         BUFGCE (Prop_BUFCE_BUFGCE_I_O)
+                                                      0.024     7.245 r  u_clkgen/g_hw.u_bufg_in/O
+                         net (fo=485, routed)         1.709     8.954    u_clkgen/clk_in_100
+    MMCM_X0Y1            MMCME4_ADV (Prop_MMCM_CLKIN1_CLKOUT0)
+                                                      0.644     9.598 r  u_clkgen/g_hw.u_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.228     9.826    u_clkgen/g_hw.clk_out0
+    BUFGCE_X0Y31         BUFGCE (Prop_BUFCE_BUFGCE_I_O)
+                                                      0.024     9.850 r  u_clkgen/g_hw.u_bufg_out/O
+    X3Y2 (CLOCK_ROOT)    net (fo=51285, routed)       2.668    12.518    u_app/dp_clk
+    SLICE_X54Y104        FDCE                                         r  u_app/stg_reg[20]/C
+                         clock pessimism             -0.240    12.278    
+                         clock uncertainty           -0.062    12.216    
+    SLICE_X54Y104        FDCE (Setup_CFF2_SLICEL_C_CE)
+                                                     -0.042    12.174    u_app/stg_reg[20]
+  -------------------------------------------------------------------
+                         required time                         12.174    
+                         arrival time                         -12.103    
+  -------------------------------------------------------------------
+                         slack                                  0.071    
+
+Slack (MET) :             0.071ns  (required time - arrival time)
+  Source:                 u_tcp_tx/u_ackq/wptr_reg[1]/C
+                            (rising edge-triggered cell FDCE clocked by g_hw.clk_out0  {rise@0.000ns fall@3.200ns period=6.400ns})
+  Destination:            u_app/stg_reg[22]/CE
+                            (rising edge-triggered cell FDCE clocked by g_hw.clk_out0  {rise@0.000ns fall@3.200ns period=6.400ns})
+  Path Group:             g_hw.clk_out0
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            6.400ns  (g_hw.clk_out0 rise@6.400ns - g_hw.clk_out0 rise@0.000ns)
+  Data Path Delay:        6.139ns  (logic 2.159ns (35.167%)  route 3.980ns (64.833%))
+  Logic Levels:           20  (CARRY8=1 LUT3=2 LUT4=2 LUT5=3 LUT6=10 MUXF7=1 MUXF8=1)
+  Clock Path Skew:        -0.086ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    6.123ns = ( 12.523 - 6.400 ) 
+    Source Clock Delay      (SCD):    5.968ns
+    Clock Pessimism Removal (CPR):    -0.240ns
+  Clock Uncertainty:      0.062ns  ((TSJ^2 + DJ^2)^1/2) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Discrete Jitter          (DJ):    0.101ns
+    Phase Error              (PE):    0.000ns
+  Clock Net Delay (Source):      2.887ns (routing 1.428ns, distribution 1.459ns)
+  Clock Net Delay (Destination): 2.673ns (routing 1.305ns, distribution 1.368ns)
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock g_hw.clk_out0 rise edge)
+                                                      0.000     0.000 r  
+    T25                                               0.000     0.000 r  sys_clk_p (IN)
+                         net (fo=0)                   0.100     0.100    u_clkgen/g_hw.u_ibufds/I
+    HPIOBDIFFINBUF_X0Y37 DIFFINBUF (Prop_DIFFINBUF_HPIOBDIFFINBUF_DIFF_IN_P_O)
+                                                      0.479     0.579 r  u_clkgen/g_hw.u_ibufds/DIFFINBUF_INST/O
+                         net (fo=1, routed)           0.050     0.629    u_clkgen/g_hw.u_ibufds/OUT
+    T25                  IBUFCTRL (Prop_IBUFCTRL_HPIOB_M_I_O)
+                                                      0.000     0.629 r  u_clkgen/g_hw.u_ibufds/IBUFCTRL_INST/O
+                         net (fo=1, routed)           0.345     0.974    u_clkgen/g_hw.clk_in_ibuf
+    BUFGCE_X0Y41         BUFGCE (Prop_BUFCE_BUFGCE_I_O)
+                                                      0.028     1.002 r  u_clkgen/g_hw.u_bufg_in/O
+                         net (fo=485, routed)         1.902     2.904    u_clkgen/clk_in_100
+    MMCM_X0Y1            MMCME4_ADV (Prop_MMCM_CLKIN1_CLKOUT0)
+                                                     -0.106     2.798 r  u_clkgen/g_hw.u_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.256     3.054    u_clkgen/g_hw.clk_out0
+    BUFGCE_X0Y31         BUFGCE (Prop_BUFCE_BUFGCE_I_O)
+                                                      0.028     3.082 r  u_clkgen/g_hw.u_bufg_out/O
+    X3Y2 (CLOCK_ROOT)    net (fo=51285, routed)       2.887     5.968    u_tcp_tx/u_ackq/dp_clk
+    SLICE_X70Y124        FDCE                                         r  u_tcp_tx/u_ackq/wptr_reg[1]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X70Y124        FDCE (Prop_CFF_SLICEL_C_Q)
+                                                      0.097     6.065 r  u_tcp_tx/u_ackq/wptr_reg[1]/Q
+                         net (fo=55, routed)          0.146     6.211    u_tcp_tx/u_ackq/wptr_reg_n_53_[1]
+    SLICE_X71Y124        LUT6 (Prop_G6LUT_SLICEM_I5_O)
+                                                      0.179     6.390 r  u_tcp_tx/u_ackq/stat_wu[0]_i_9/O
+                         net (fo=2, routed)           0.235     6.626    u_tcp_tx/u_ackq/stat_wu[0]_i_9_n_53
+    SLICE_X74Y124        LUT6 (Prop_H6LUT_SLICEM_I0_O)
+                                                      0.066     6.692 f  u_tcp_tx/u_ackq/start_ack_d1_i_2/O
+                         net (fo=4, routed)           0.125     6.817    u_tcp_tx/u_ackq/start_ack2
+    SLICE_X75Y124        LUT6 (Prop_F6LUT_SLICEM_I1_O)
+                                                      0.113     6.930 f  u_tcp_tx/u_ackq/ctrl_doff[3]_i_2/O
+                         net (fo=1, routed)           0.227     7.157    u_tcp_tx/u_ackq/ctrl_doff[3]_i_2_n_53
+    SLICE_X79Y123        LUT6 (Prop_G6LUT_SLICEM_I2_O)
+                                                      0.148     7.305 r  u_tcp_tx/u_ackq/ctrl_doff[3]_i_1/O
+                         net (fo=103, routed)         0.144     7.448    u_tcp_tx/u_ackq/win_open_reg
+    SLICE_X78Y123        LUT5 (Prop_G6LUT_SLICEL_I1_O)
+                                                      0.114     7.562 r  u_tcp_tx/u_ackq/f_seq[1][31]_i_10/O
+                         net (fo=5, routed)           0.103     7.665    u_tcp_tx/u_ackq/f_seq[1][31]_i_10_n_53
+    SLICE_X77Y123        LUT5 (Prop_F6LUT_SLICEL_I4_O)
+                                                      0.039     7.704 r  u_tcp_tx/u_ackq/f_seq[1][31]_i_5/O
+                         net (fo=180, routed)         0.607     8.311    u_tcb/cam_rd_id[2]
+    SLICE_X64Y108        MUXF7 (Prop_F7MUX_EF_SLICEL_S_O)
+                                                      0.086     8.397 f  u_tcb/wa_o_r_reg[0]_rep_i_20/O
+                         net (fo=1, routed)           0.000     8.397    u_tcb/wa_o_r_reg[0]_rep_i_20_n_53
+    SLICE_X64Y108        MUXF8 (Prop_F8MUX_TOP_SLICEL_I1_O)
+                                                      0.027     8.424 f  u_tcb/wa_o_r_reg[0]_rep_i_9/O
+                         net (fo=4, routed)           0.217     8.641    u_tcb/rb_state[2]
+    SLICE_X64Y108        LUT6 (Prop_A6LUT_SLICEL_I4_O)
+                                                      0.149     8.790 f  u_tcb/wa_o_r[0]_rep_i_3/O
+                         net (fo=7, routed)           0.109     8.900    u_tcp_tx/u_fifo_a/m_data_r_reg[68]_0
+    SLICE_X63Y108        LUT6 (Prop_A6LUT_SLICEL_I3_O)
+                                                      0.039     8.939 r  u_tcp_tx/u_fifo_a/op_sent_i_3/O
+                         net (fo=31, routed)          0.122     9.061    u_app/op_sent_reg_2
+    SLICE_X63Y106        LUT3 (Prop_A6LUT_SLICEL_I0_O)
+                                                      0.039     9.100 r  u_app/stat_tx_bytes[0]_i_1/O
+                         net (fo=97, routed)          0.559     9.659    u_app/pw_take
+    SLICE_X56Y101        LUT5 (Prop_C6LUT_SLICEM_I1_O)
+                                                      0.062     9.721 r  u_app/tx_lfsr[63]_i_20/O
+                         net (fo=1, routed)           0.023     9.744    u_app/tx_lfsr[63]_i_20_n_53
+    SLICE_X56Y101        CARRY8 (Prop_CARRY8_SLICEM_S[2]_O[7])
+                                                      0.253     9.997 f  u_app/tx_lfsr_reg[63]_i_9/O[7]
+                         net (fo=1, routed)           0.231    10.228    u_app/tx_lfsr_reg[63]_i_9_n_61
+    SLICE_X56Y102        LUT6 (Prop_G6LUT_SLICEM_I0_O)
+                                                      0.179    10.407 f  u_app/bcnt[3]_i_25/O
+                         net (fo=1, routed)           0.055    10.462    u_app/bcnt[3]_i_25_n_53
+    SLICE_X56Y102        LUT4 (Prop_H6LUT_SLICEM_I3_O)
+                                                      0.117    10.579 r  u_app/bcnt[3]_i_8/O
+                         net (fo=7, routed)           0.146    10.725    u_app/bcnt[3]_i_8_n_53
+    SLICE_X55Y102        LUT3 (Prop_H6LUT_SLICEM_I0_O)
+                                                      0.066    10.791 r  u_app/tx_lfsr[63]_i_13/O
+                         net (fo=1, routed)           0.105    10.896    u_app/tx_lfsr[63]_i_13_n_53
+    SLICE_X54Y102        LUT6 (Prop_F6LUT_SLICEL_I0_O)
+                                                      0.098    10.994 r  u_app/tx_lfsr[63]_i_8__0/O
+                         net (fo=1, routed)           0.099    11.093    u_app/tx_lfsr[63]_i_8__0_n_53
+    SLICE_X54Y101        LUT6 (Prop_E6LUT_SLICEL_I0_O)
+                                                      0.100    11.193 r  u_app/tx_lfsr[63]_i_3__0/O
+                         net (fo=34, routed)          0.131    11.325    u_app/tx_lfsr[63]_i_3__0_n_53
+    SLICE_X54Y102        LUT6 (Prop_A6LUT_SLICEL_I5_O)
+                                                      0.039    11.364 r  u_app/bcnt[3]_i_3__2/O
+                         net (fo=102, routed)         0.230    11.594    u_app/bcnt[3]_i_3__2_n_53
+    SLICE_X54Y103        LUT4 (Prop_B6LUT_SLICEL_I3_O)
+                                                      0.149    11.743 r  u_app/stg[63]_i_1/O
+                         net (fo=64, routed)          0.365    12.108    u_app/stg[63]_i_1_n_53
+    SLICE_X53Y104        FDCE                                         r  u_app/stg_reg[22]/CE
+  -------------------------------------------------------------------    -------------------
+
+                         (clock g_hw.clk_out0 rise edge)
+                                                      6.400     6.400 r  
+    T25                                               0.000     6.400 r  sys_clk_p (IN)
+                         net (fo=0)                   0.079     6.479    u_clkgen/g_hw.u_ibufds/I
+    HPIOBDIFFINBUF_X0Y37 DIFFINBUF (Prop_DIFFINBUF_HPIOBDIFFINBUF_DIFF_IN_P_O)
+                                                      0.398     6.877 r  u_clkgen/g_hw.u_ibufds/DIFFINBUF_INST/O
+                         net (fo=1, routed)           0.040     6.917    u_clkgen/g_hw.u_ibufds/OUT
+    T25                  IBUFCTRL (Prop_IBUFCTRL_HPIOB_M_I_O)
+                                                      0.000     6.917 r  u_clkgen/g_hw.u_ibufds/IBUFCTRL_INST/O
+                         net (fo=1, routed)           0.304     7.221    u_clkgen/g_hw.clk_in_ibuf
+    BUFGCE_X0Y41         BUFGCE (Prop_BUFCE_BUFGCE_I_O)
+                                                      0.024     7.245 r  u_clkgen/g_hw.u_bufg_in/O
+                         net (fo=485, routed)         1.709     8.954    u_clkgen/clk_in_100
+    MMCM_X0Y1            MMCME4_ADV (Prop_MMCM_CLKIN1_CLKOUT0)
+                                                      0.644     9.598 r  u_clkgen/g_hw.u_mmcm/CLKOUT0
+                         net (fo=1, routed)           0.228     9.826    u_clkgen/g_hw.clk_out0
+    BUFGCE_X0Y31         BUFGCE (Prop_BUFCE_BUFGCE_I_O)
+                                                      0.024     9.850 r  u_clkgen/g_hw.u_bufg_out/O
+    X3Y2 (CLOCK_ROOT)    net (fo=51285, routed)       2.673    12.523    u_app/dp_clk
+    SLICE_X53Y104        FDCE                                         r  u_app/stg_reg[22]/C
+                         clock pessimism             -0.240    12.283    
+                         clock uncertainty           -0.062    12.221    
+    SLICE_X53Y104        FDCE (Setup_AFF2_SLICEM_C_CE)
+                                                     -0.042    12.179    u_app/stg_reg[22]
+  -------------------------------------------------------------------
+                         required time                         12.179    
+                         arrival time                         -12.108    
+  -------------------------------------------------------------------
+                         slack                                  0.071    
+
+
+
+

@@ -1,0 +1,8 @@
+[2026-10-11 17:50:26] P8 构建轮 0x21 开工：侦察完成（HEAD=889cd28 / wrapper BID=0x20 / 读侧哨兵=0x20）
+[2026-10-11 17:53:11] A 读侧同步 0x20→0x21 完成：脚本 +阶段⑥(24处/14文件 +2 条 ALLOW)；dry-run/rehearse/negctl×4/apply/assert/face/neg_rehearse 全跑，apply RC=0 0 fail；14/14 件 SHA 全变
+[2026-10-11 17:53:11] B wrapper BID 0x20→0x21 完成：2 hunk（:2144 版本戳 + :4332 BID/注释块），+36/−3；新 sha256=bd8f608cc4fce9283f5e14018a1cdf8101667aa2d63ae36d8be2e767254fd7d0（304,144 B）
+[2026-10-11 17:59:56] C 构建已启动（MSYS_NO_PATHCONV=1 cmd /c 单斜杠式）；本次独有串 = ARCHIVE_DONE 20261011_175317 files=19（归档的是 0x20 版 impl 产物，位流 sha 998ff90f… 已核）；wrapper mtime 17:53:06 → 构建 17:53:15
+[2026-10-11 18:33:35] C 构建收口：BUILD_EXIT=0/BAT_RC=0/BITSTREAM-OK；P7B_WNS=0.044 P7B_WHS=0.010 三类失败端点 0/0/0（setup 0/261,899 · hold 0/261,899 · pw 0/84,934）；位流 fbb6fca8… 15,431,261 B；资源 LUT 78,699 / FF 74,795 / BRAM 352 / URAM 0；DP 域 WNS +0.044 = 全局最差（u_tcp_tx/u_fifo_b/rptr_reg[0]/C → u_tcb/rcv_nxt_r_reg[0][22]/CE, lvl 15）；归档已落 board_rpt/ + bit + routed.dcp
+[2026-10-11 18:36:19] D 矩阵启动：bash sim/p4sim/run_matrix_p4dfix.sh（真 runner = sim/p4gates/run_matrix_p4dfix.bat）；跑动期间不写任何源文件（#57）
+[2026-10-11 19:06:32] D 矩阵 17/17 EXIT=0（gates failed:0 / FROZEN / MATRIX_RC=0；指纹 before=after，GIT_HEAD=70d5ba4 前后同）；指纹里 wrapper sha=bd8f608c… = 工作树现读（绑定工作树；HEAD 面=8d9374c5… 未提交）
+[2026-10-11 19:06:32] E/F 归档 + REPORT.md 落盘（213 行 / 20,832 B）+ SHA256SUMS.txt（49 件）。⛔ 未烧板/未写 QSPI/未改 rtl/
