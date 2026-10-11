@@ -75,7 +75,7 @@ LT=\$(cat "$W/latch")
 freecnt(){ awk -v t="\$1" -v f="\$2" 'BEGIN{ n=int((t-1700000000)*f)%4294967296; if(n<0) n+=4294967296; printf "0x%08x", n }'; }
 case "\$A" in
   0X00) V=0x50360001;;
-  0X04) V=\${FAKE_BID:-0x00000022};;   # P9 XDMA MM→AXIS = 0x22 (⛔ 原 0x21 = P8-STG 16 B 弹性暂存 / 0x20 = P8 镜像 8 B/拍 / 0x0A = Stage C);
+  0X04) V=\${FAKE_BID:-0x00000023};;   # P9 D4 clr 口径修正 = 0x23 (⛔ 原 0x22 = P9 XDMA MM→AXIS / 0x21 = P8-STG 16 B 弹性暂存 / 0x0A = Stage C);
                                        # 必须与被验的 p6e_snap_check.sh 默认 EXPECT_BID **同代**
                                        # (否则 case ① 正对照因判据 1.2 身份不符**假红**); 可覆盖。
   0X08) V=0x00000000;;
