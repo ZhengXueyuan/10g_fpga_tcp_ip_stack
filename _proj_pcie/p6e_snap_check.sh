@@ -57,7 +57,7 @@ LOG=/tmp/p6e_snap_check.log
 #      BIZ 61 字 = `EXPECT_BID=0x00000008 SNAP_WORDS=61 UNIMPL_ADDR=0x114`。
 # ⚠️ 期望值按 **board/wrapper_p4.v 的 `.BUILD_ID_V`** 填 (源码是唯一权威); 以现场 0x04 读数为准,
 #    若与源码不符 ⇒ 先查是不是烧了别人的位流, 别改这里的数去"迁就"读数。
-EXPECT_BID=${EXPECT_BID:-0x0000001F}       # ⛔ 2026-10-11 M1 镜像窗: 原默认 0x0000001E (snd_wnd 守卫) / 0x1D (persist 刀) / 0x0A (Stage C)
+EXPECT_BID=${EXPECT_BID:-0x00000020}       # ⛔ 2026-10-11 P8 镜像 8 B/拍: 原默认 0x0000001F (M1 镜像窗) / 0x1E (snd_wnd 守卫) / 0x0A (Stage C)
 
 # ---- 快照窗口几何 (**单一来源**: 只写"字数", 其他全部由它派生) -------------------------
 # ⚠️ 旧版把 44 个地址**手抄**成一行 ⇒ 只到 0xAC (漏 W36..W50) **且尾部 8 项重复** (36 字时代的笔误)。

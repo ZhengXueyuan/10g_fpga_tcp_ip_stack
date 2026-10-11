@@ -142,12 +142,12 @@ V=0xffffffff
 case "\$A" in
   0X00) V=0x50360001;;
   # ⚠️ 假板子的 BID 必须与 p6e_snap_check.sh 的 EXPECT_BID **同代** (否则正例的判据 1.2 假 FAIL,
-  #    而"正例必须 0 FAIL"是本脚本的断言⑤)。现役 = **0x1F** (M1 镜像窗 71 字 —— ⛔ 2026-10-11 同步轮: 原 0x1E = snd_wnd 守卫 /
-  #    0x1D = persist 刀 / 0x1C = 缺陷刀 / 原句 = 现役 17 (构建 C 65 字) / 10 (P7b Stage C)); 跑旧口径时
-  #    FAKE_BID=0x0000001E (snd_wnd 守卫; SNAP_WORDS=70) / 0x0000001D (persist 刀; 70) / 0x00000017 / 0x00000008。
+  #    而"正例必须 0 FAIL"是本脚本的断言⑤)。现役 = **0x20** (P8 镜像 8 B/拍 71 字 —— ⛔ 2026-10-11 同步轮: 原 0x1F = M1 镜像窗 /
+  #    0x1E = snd_wnd 守卫 / 0x1D = persist 刀 / 原句 = 现役 17 (构建 C 65 字) / 10 (P7b Stage C)); 跑旧口径时
+  #    FAKE_BID=0x0000001F (M1 镜像窗; SNAP_WORDS=71) / 0x0000001E (snd_wnd 守卫; 70) / 0x00000017 / 0x00000008。
   #    ⚠️ 注释里**不许出现反引号/$( )** —— 这是**无引号 heredoc**, 它们会被当场求值
   #       (实测: 反引号里的 EXPECT_BID 被当命令执行, 报 "command not found")。
-  0X04) V=\${FAKE_BID:-0x0000001F};;
+  0X04) V=\${FAKE_BID:-0x00000020};;
   0X08) V=0x00000000;;
   0X0C) V=\$(awk -v t="\$T" 'BEGIN{printf "0x%08x", int(t*250000000)%4294967296}');;
   0X10) V=0x00000018;;

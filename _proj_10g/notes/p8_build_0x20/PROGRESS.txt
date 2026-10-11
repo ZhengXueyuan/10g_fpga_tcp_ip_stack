@@ -1,0 +1,41 @@
+# P8 构建轮 (BID 0x20) 进度 — agent 自记 (每一步一条)
+[1] 15:27 开工。核到: HEAD=193f06a (与派单一致)。读侧脚本 apply_readside_bid1c.py **只到 0x1F**
+    (STAGES 末代 = 0x1F)，**没有 0x20 阶段** ⇒ 需新增阶段 ⑤ (EDITS_20) 才能跑 "0x1F→0x20"。
+[2] 核对照: sim/p6e_pcie/run_tb_p6e_pcie_counters.bat **本身不含任何 BID 常量** (grep 0 命中);
+    BID 期望常量在其驱动的 sim/p6e_pcie/tb_p6e_pcie_counters.v:206 (= 32'h0000001F, 已由上一轮
+    阶段 ④ 同步过, 不落后)。
+[3] 15:35 读侧阶段 ⑤ 已写入脚本 (EDITS_20 / STAGES + 24 处 edit + ALLOW 新增 p8_board_20261011 一条)。
+[4] 15:37 dry-run: 24 处 hits=1/1 全 OK; A(表长) 全 OK; B 搜索面 3 条未登记命中
+    (p8_board_20261011/burn_0x1F.sh ×2 族 + _tools/static_protocol_probe.sh ×1 族) ⇒ 归类为
+    "旧位流读法(烧的是 0x1F 归档位流; 由 WANT sha256 钉死)" ⇒ 加 ALLOW (不改那两个文件)。
+[5] 15:38 rehearse RC=0 全绿 (applied=24/skipped=0; 4 族 249 命中文件 全登记; EDIT_COVERAGE 14/14)。
+[6] 15:40 negctl ×4 全"有牙"(RC=1) + neg_rehearse 有牙(恰好漏的那处红)。
+[7] 15:42 --apply RC=0; 落盘后 14/14 件 SHA 全变; --assert RC=0 全绿; postapply negctl ×4 有牙(各恰 1 条红);
+    neg_rehearse postapply 有牙; --face 249 行/123 文件。
+[8] 15:45 B 项: wrapper_p4.v BUILD_ID_V 0x1F→0x20 (+该行注释块加 0x20 段、0x1F 降为历史) +
+    :2144 persist 注释头 "本版 0x1E 沿用"→"本版 0x20 沿用"(版本戳性质, 已核)。
+[9] 15:47 启动完整构建 (board/run_build_p7b_ku5p.bat, 后台; 日志 = build_console.txt + board/p7b_ku5p_stdout.txt)。
+[10] 15:32 ⛔ **第一次构建启动 = 没跑** —— 派单给的调用式 `MSYS_NO_PATHCONV=1 cmd //c '...'`
+     **静默不执行**: 控制台只有 cmd banner + 一个光标提示符, bat 一行没跑; `$?` 仍 = 0。
+     取证 = board/p7b_ku5p_stdout.txt **mtime 仍是上一次构建 (12:01)** + 控制台无 ARCHIVE_*/P7B_*。
+     三式对照实测: `MSYS_NO_PATHCONV=1 cmd /c` ✅ / `cmd //c` (无 env) ✅ /
+     `MSYS_NO_PATHCONV=1 cmd //c` ❌ (= 两个保护互相抵消, `//c` 原样传给 cmd ⇒ 变交互式)。
+     ⇒ 改用 `MSYS_NO_PATHCONV=1 cmd /c 'D:\...\run_build_p7b_ku5p.bat'`。
+[11] 15:33 构建真启动: ARCHIVE_SHA256_OK + ARCHIVE_DONE 20261011_153318 files=19 (归档 = 上一版 0x1F
+     的 impl 产物) + board/p7b_ku5p_stdout.txt 重建 (mtime 15:33 = 新鲜)。
+[12] 16:07:58 构建完成: BUILD_EXIT=0 / BAT_RC=0 / BITSTREAM-OK / 一次收口 (无重跑)。
+     P7B_WNS=+0.154 / P7B_WHS=+0.010; 三类失败端点 (timing_summary) = setup 0/261754, hold 0/261754,
+     pulse-width 0/84862 ⇒ "All user specified timing constraints are met."; DRC 69 checks 全 Warning
+     (0 Error / 0 Critical); 位流 sha256 998ff90f31907750f31024d2aa62828a8e08c3cd097b03fc9eb15a82b037d244
+     (15,431,261 B); 资源 LUT 78156 / FF 74723 / BRAM tile 352 (R36 321 + R18 62) / URAM 0 / DSP 4 / BUFGCE 4。
+     DP 域 (g_hw.clk_out0) setup WNS = +0.154 = 全局最差 (sp=u_tcp_tx/u_fifo_a/rptr_reg[3]/C →
+     ep=u_tcb/rcv_nxt_r_reg[5][9]/CE, lvl=16)。
+[13] 16:10 归档 (impl_1 → notes/p8_build_0x20: bit + routed dcp + 8 rpt) + 定向查询 q_0x20.tcl RC=0:
+     M1 族在 DP 组内最紧 slack = +0.515 (u_mir/acc_cnt_r_reg[0]/C → u_mir/u_fifo/mem_reg_64_127_35_41/RAMA/WE)
+     ⇒ 与 DP WNS 隔离度 = 0.361 ns (3.34×); M1 族全钟面最紧 = +0.161 (lvl=0 异步复位 CLR 路径, 非 DP setup)。
+[14] 16:12 启动 17 门矩阵 (bash sim/p4sim/run_matrix_p4dfix.sh, 后台)。
+[15] 16:37 矩阵 17/17 全 EXIT=0 / MATRIX_RC=0 / FROZEN; 静默门复核 OK; 指纹逐条对: 指纹 = 工作树 8d9374c5,
+     HEAD(CRLF 口径) = a3f49322 ⇒ **FROZEN 绑工作树、非 HEAD**(本轮未提交)。HEAD 并发由 193f06a→20d880f(文档 only)。
+[16] 16:41 REPORT.md 落盘 (191 行) + SHA256SUMS.txt (50 件) 重生成。本轮收口: A(读侧 0x1F→0x20, 24 处/14 文件)
+     / B(BUILD_ID_V=0x20 + persist 注释头) / C(构建 0x20 位流 998ff90f…, WNS +0.154 / 0/0/0) / D(矩阵 17/17)
+     / E(归档) 全做完; 未烧板/未写 QSPI/未提交 (git 只读)。
