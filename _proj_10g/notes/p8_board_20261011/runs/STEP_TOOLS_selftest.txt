@@ -1,0 +1,29 @@
+### STEP_TOOLS selftest 2026-10-11T12:22:49+0800
+--- [1] mir_dump --selftest ---
+MIR_SELFTEST T1 bytes=65536 words=16384 rc=0 first_mis=-1 OK
+MIR_SELFTEST T2 (corrupt byte 57) rc=1 first_mis=57 bytes=65536 OK
+MIR_SELFTEST T3 K%4 check: want=65536 want%4=0 OK(本例合法)
+MIR_SELFTEST T4 sentinel=5a5a5a5a (exp 5a5a5a5a) unf=1 OK
+MIR_SELFTEST T4b src_sel rb: set=1 clr=0 OK
+MIR_SELFTEST T5 (ring wrap, cnt0=3648) words=1024 bytes=4096 rc=0 fm=-1 clob=0 short=0 lag=128 OK
+MIR_SELFTEST T6 (corrupt first ring word) rc=1 fm=2 OK
+MIR_SELFTEST T7 (writer wraps during read) clob=1 OK
+MIR_SELFTEST PASS
+SELFTEST_RC=0
+
+--- [2] K%4 gate (expect rc=2 + FATAL) ---
+PIN_RULE=none PIN_DEGRADED=n/a PIN_CPU=none PIN_CORES_ONLINE=0-7 PIN_NIC_IFACE=n/a PIN_NIC_CPUS=n/a PIN_NIC_EXCLUDED=n/a PIN_CORE_LOAD=n/a PIN_ALLOWED_MASK=ff PIN_GETCPU_START=4 PIN_FREQ_START_KHZ=3889452 PIN_GOV=schedutil UNPINNED=1 PIN_NIC_IRQLINES=n/a PIN_NIC_IFACE_SRC=n/a PIN_TUPLE_ORDER=n/a PIN_PAIR_RULE=n/a PIN_PAIR_DEGRADED=n/a PIN_CPU_IO=n/a PIN_CPU_WORK=n/a PIN_PC_IO=n/a PIN_PC_WORK=n/a PIN_PAIR_EXCL=n/a PIN_PAIR_REQ=n/a
+FATAL: --bytes 1000003 不是 4 的倍数 (M1 前置条件 K%4==0)
+GATE_RC=2
+
+--- [3] 本地 UDP 精确 K + 连续性 (1 MiB) ---
+UDP_SUM pkts=713 pay_bytes=1048576 dur_s=0.175 pps=4068 pay_Mbps=47.863 wire_Mbps=49.230 off_start=0 off_end=1048576 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+RXCHK_LISTEN port=18092 want=1048576
+RXCHK bytes=1048576 want=1048576 secs=1.177 rc=0 first_mismatch=-1 mism=0
+
+--- [4] mock A/B (续发路径; 同脚本两臂) ---
+MOCKTEST fix src_entry_main rc=0
+MOCKTEST fix wire_bytes=1048576 expect=1048576 first_mismatch=-1 mism=0 calls=77 partials=45 eagain=8 OK
+MOCKFIX_EXIT=0
+MOCKTEST orig(cap) wire_bytes=2110848 expect=0 first_mismatch=1472 mism=2101243 calls=109 partials=65 eagain=11 FAIL
+MOCKORIG_EXIT=0

@@ -1,0 +1,8 @@
+FAIL: content mismatch at 8
+MIR_ID magic=50360001 (exp 50360001) bid=0000001f (exp 0000001f)
+MIR_SRC src_sel=0 readback=0
+MIR_STATUS ver=3 src_sel=0 cap=0 any_drop=1 unf=0 level=0
+MIR_DONE bytes=131072 words=32768 secs=30.001 rate_Bps=4369 out=/tmp/p8_board/mir_bar2.bin drop_seen=1 unf_seen=0
+MIR_RATE_NOTE not-a-rate-benchmark (user-BAR window; ~4-10MB/s class; no PIN_CPU witness)
+MIR_ACCT dW11=262144 dW70=131072 pc_bytes=131072 (want: (pc + dW70) == dW11  [mod 2^32])
+MIR_VERIFY rc=1 first_mismatch=8 of 262144

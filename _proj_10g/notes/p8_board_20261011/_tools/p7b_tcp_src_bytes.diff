@@ -1,0 +1,98 @@
+diff --git a/_proj_pcie/p7b_biz/p7b_tcp_src.cpp b/_proj_pcie/p7b_biz/p7b_tcp_src.cpp
+index 1a7bd66..7d66aaf 100644
+--- a/_proj_pcie/p7b_biz/p7b_tcp_src.cpp
++++ b/_proj_pcie/p7b_biz/p7b_tcp_src.cpp
+@@ -30,9 +30,11 @@
+ 
+ #include <arpa/inet.h>
+ #include <fcntl.h>
++#include <linux/sockios.h>
+ #include <netinet/in.h>
+ #include <netinet/tcp.h>
+ #include <poll.h>
++#include <sys/ioctl.h>
+ #include <sys/socket.h>
+ #include <time.h>
+ #include <unistd.h>
+@@ -79,6 +81,7 @@ int main(int argc, char **argv) {
+     const char *host = "192.168.100.2";
+     int port = 8080, secs = 30, chunk = 65536, poll_ms = 200;
+     long long pace = 0;
++    long long want_bytes = 0;     // ⭐ P8: --bytes K (0 = 不限; K%4==0 硬前置)
+     bool selftest = false, verify_down = true;
+     for (int i = 1; i < argc; i++) {
+         std::string k = argv[i];
+@@ -88,6 +91,7 @@ int main(int argc, char **argv) {
+         else if (k == "--seconds") secs = atoi(nx());
+         else if (k == "--chunk") chunk = atoi(nx());
+         else if (k == "--pace-bps") pace = atoll(nx());
++        else if (k == "--bytes") want_bytes = atoll(nx());          // ⭐ P8
+         else if (k == "--poll-ms") poll_ms = atoi(nx());
+         else if (k == "--no-verify-down") verify_down = false;
+         else if (k == "--selftest") selftest = true;
+@@ -102,6 +106,11 @@ int main(int argc, char **argv) {
+     }
+     if (selftest) return p7b_pattern_selftest("p7b_tcp_src");
+     if (poll_ms < 1) poll_ms = 1;
++    // ⭐ P8: K%4==0 硬前置 (镜像窗 v2 §V1.2; 不满足 ⇒ 响亮 exit(2))
++    if (want_bytes < 0 || (want_bytes > 0 && want_bytes % 4 != 0)) {
++        fprintf(stderr, "FATAL: --bytes %lld 非法 (K%%4==0 是 M1 前置条件)\n", want_bytes);
++        return 2;
++    }
+ 
+     int fd = socket(AF_INET, SOCK_STREAM, 0);
+     if (fd < 0) { perror("socket"); return 2; }
+@@ -120,13 +129,29 @@ int main(int argc, char **argv) {
+     P7bPat tx(0);                 // 上行: 每连接偏移 0 起
+     P7bPat rx(0);                 // 下行: 板侧每连接偏移 0 起
+     std::vector<uint8_t> sbuf(chunk), rbuf(1 << 20);
++    // ⭐ P8/M1 (2026-10-11): `--bytes K` 精确发满 K 字节即停 + **ppos-续发** (少发不重填,
++    //   防 partial send 在图案流里挖洞; 设计件 §V1.2 的前置条件 K%4==0 同 UDP 源)。
++    size_t cur_len = (size_t)chunk, tx_off = 0;      // 本段长度 / 本段已发出字节
+     long long tx_bytes = 0, rx_bytes = 0, rx_mism_bytes = 0, rx_first_mis = -1;
+     long long poll_tmo = 0, poll_err = 0;
+     double t0 = now_s(), t_eof = 0;
+     int eof_seen = 0, send_err = 0;
+     double next_report = t0 + 1.0;
++    double t_drain = -1;                  // ⭐ P8: 达到 K 后的"排空等待"起点
+ 
+     while (now_s() - t0 < secs) {
++        // ⭐ P8: 达到 K ⇒ **等发送队列排空再退**。否则进程秒退: 对端下行泛洪撞上正在关闭的
++        //   套接字 ⇒ 内核回 RST ⇒ 板侧连接被拆, 已排队未上线的数据整段作废 (实测两跑都只
++        //   送达 ~1 个窗口 ≈44–88 KB)。
++        if (want_bytes > 0 && tx_bytes >= want_bytes) {
++            int outq = -1;
++            (void)ioctl(fd, TIOCOUTQ, &outq);
++            if (outq == 0) { printf("SRC_DRAINED tx_bytes=%lld\n", tx_bytes); break; }
++            if (t_drain < 0) t_drain = now_s();
++            else if (now_s() - t_drain > 20.0) {
++                printf("SRC_DRAIN_TIMEOUT outq=%d tx_bytes=%lld\n", outq, tx_bytes); break;
++            }
++        }
+         struct pollfd p{fd, 0, 0};
+         p.events = POLLIN;
+         if (!send_err) p.events |= POLLOUT;
+@@ -149,10 +174,19 @@ int main(int argc, char **argv) {
+                 printf("SRC_RECV_ERR errno=%d\n", errno);
+             }
+         }
+-        if (pr > 0 && (p.revents & (POLLOUT | POLLERR | POLLHUP)) && !send_err) {
+-            tx.fill(sbuf.data(), (size_t)chunk);
+-            ssize_t n = send(fd, sbuf.data(), (size_t)chunk, MSG_NOSIGNAL);
+-            if (n > 0) tx_bytes += n;
++        if (pr > 0 && (p.revents & (POLLOUT | POLLERR | POLLHUP)) && !send_err
++            && (want_bytes == 0 || tx_bytes < want_bytes)) {   // ⭐ P8: 达 K 后不再发 (走排空等待)
++            if (tx_off == 0) {                       // ⭐ 只在"新一段"时定长+填充 (续发语义)
++                size_t send_len = (size_t)chunk;
++                if (want_bytes > 0) {
++                    long long rem = want_bytes - tx_bytes;
++                    if ((long long)send_len > rem) send_len = (size_t)rem;
++                }
++                cur_len = send_len;
++                tx.fill(sbuf.data(), cur_len);
++            }
++            ssize_t n = send(fd, sbuf.data() + tx_off, cur_len - tx_off, MSG_NOSIGNAL);
++            if (n > 0) { tx_bytes += n; tx_off += (size_t)n; if (tx_off >= cur_len) tx_off = 0; }
+             else if (n < 0 && errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR) {
+                 send_err = errno; printf("SRC_SEND_ERR errno=%d tx_bytes=%lld\n", errno, tx_bytes);
+             }

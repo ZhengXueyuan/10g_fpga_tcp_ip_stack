@@ -1,0 +1,105 @@
+### STEP0_BEGIN 2026-10-11T12:23:16+0800
+
+### A) 归档位流 0x1F (派单指定源; 只烧这个目录里的 wrapper_p4.bit)
+e365c5ca4fd25335f6713b2a960b4de5af5b42e0bda238c20d41011ca7460133 */d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p7b_build_0x1F/wrapper_p4.bit
+BIT /d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p7b_build_0x1F/wrapper_p4.bit size=15431261 mtime=2026-10-11 12:00:07.179537400 +0800
+21:e365c5ca4fd25335f6713b2a960b4de5af5b42e0bda238c20d41011ca7460133 *wrapper_p4.bit
+WANT_0x1F=e365c5ca4fd25335f6713b2a960b4de5af5b42e0bda238c20d41011ca7460133
+
+### B) 对端可达 + 本部署件 md5 (新目录 /tmp/p8_board; 现役 /tmp/p7b_biz 只读不动)
+PEER_OK
+a-MS-7850
+Sun Oct 11 12:23:18 PM CST 2026
+ 12:23:18 up 1 day, 14:45,  5 users,  load average: 0.15, 0.12, 0.04
+--- 现役 /tmp/p7b_biz (只读核对, 不许改) ---
+ba2faf79f409302d1e542450db402975  /tmp/p7b_biz/p7b_snap.sh
+c6b624205d64f1f4bd723d8fd5cc6414  /tmp/p7b_biz/p7b_tcp_sink
+--- 本轮新部署 /tmp/p8_board ---
+--来源源码 md5--
+4db1928d1311d482a4bd03ce9baceb82  p7b_mir_dump.cpp
+f5ff317288b59b3e3c91988ca07446c9  p7b_udp_src.cpp
+074321cfbb31827c84a30cd86abeab84  p7b_udp_src_orig.cpp
+a591459cc082d2f5b8e8dbd392e4dd44  p8_mocktest_udp_src.cpp
+783900850f0658d2d9003c649dcb60fc  p8_udp_rx_check.cpp
+b03222792d20443138515ba2804b0d87  p7b_affinity.h
+b2f2e9627bac53bf3b4ab2b565afe872  p7b_pattern.h
+7c7f385f0c00a4dcd91dcc7fa2661628  p8_mock_sendmmsg.h
+5af4c61911a8cc2cb4821456f5c43845  p7b_snap.sh
+--编译件 md5--
+c489f946e61144d3e67819128ce7f7a1  p7b_mir_dump
+e0d4da5834cb95d67afb0cc523d1f92f  p7b_udp_src
+f9e131f99c8fa29fdd98bcbc2fc15d8d  p8_udp_rx_check
+7834a8de6b4b3dd7cc0442552dd97c10  p8_mocktest_fix
+7350154452128111fbc89a730a02de14  p8_mocktest_orig
+--二进制大小--
+p7b_mir_dump 41704
+p7b_udp_src 128048
+p8_udp_rx_check 21888
+--- 仓库侧对照 md5 (现核) ---
+f5ff317288b59b3e3c91988ca07446c9 */d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_udp_src.cpp
+4db1928d1311d482a4bd03ce9baceb82 */d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_mir_dump.cpp
+b2f2e9627bac53bf3b4ab2b565afe872 */d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_pattern.h
+b03222792d20443138515ba2804b0d87 */d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_affinity.h
+5af4c61911a8cc2cb4821456f5c43845 */d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_snap.sh
+--- read-side 默认值 (仓库 p7b_snap.sh, 已同步 0x1F?) ---
+55:NW=${NW:-71}
+56:UNIMPL_ADDR=${UNIMPL_ADDR:-$(printf '0x%X' $(( 0x20 + 4*NW + 16 )))}   # 71 ⇒ 0x14C (M1 期B 起; 70 字及更早 = 0x138/0x12C/0x124/0x11C/0x114/0xEC —— 读旧位流须显式覆盖)
+57:EXPECT_BID=${EXPECT_BID:-0x0000001F}
+--- 对端 g++ / python3 / 空间 ---
+g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+Python 3.12.3
+/dev/sdb3       1.8T  205G  1.5T  12% /
+
+### C) 网络面 (每次测量前现取): /32 路由 + NetworkManager 托管位 + link + coalesce + neigh
+netlink error: Operation not permitted
+4: enp1s0f1np1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
+    inet 192.168.100.100/32 scope global enp1s0f1np1
+---
+GENERAL.STATE:                          10 (unmanaged)
+GENERAL.CONNECTION:                     --
+---
+192.168.100.2 dev enp1s0f1np1 src 192.168.100.100 uid 1000 
+    cache 
+---
+192.168.100.2 dev enp1s0f1np1 lladdr 00:0a:35:01:fe:c0 STALE 
+---
+	Speed: 10000Mb/s
+	Link detected: yes
+---
+Adaptive RX: off  TX: n/a
+rx-usecs:	0
+rx-usecs-irq:	0
+rx-usecs-low:	n/a
+
+### D) 板上现态 (烧 0x1F 之前) —— 期望: sndwnd 轮留下的 0x1E / 70 字
+BID_0x04=Read 32-bit value at address 0x4 (0x710e8586c004): 0x0000001e
+MAGIC_0x00=Read 32-bit value at address 0x0 (0x7a80145fa000): 0x50360001
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x77ef8ba65008): 0x00000000
+UNIMPL_0x138=Read 32-bit value at address 0x138 (0x7026d6407138): 0xffffffff
+CARRIER=1
+	Region 0: Memory at df200000 (32-bit, non-prefetchable) [size=1M]
+	Region 1: Memory at df300000 (32-bit, non-prefetchable) [size=64K]
+		LnkSta:	Speed 5GT/s (downgraded), Width x4
+
+### E) 零构建项 ①: /dev/xdma* 节点 (我们的位流下 c2h_0/h2c_0 是否存在)
+crw------- 1 root root 235, 36 Oct 11 08:42 /dev/xdma0_c2h_0
+crw------- 1 root root 235,  1 Oct 11 08:42 /dev/xdma0_control
+crw------- 1 root root 235, 32 Oct 11 08:42 /dev/xdma0_h2c_0
+crw------- 1 root root 235,  0 Oct 11 08:42 /dev/xdma0_user
+---节点总数---
+21
+[126279.729504] xdma:xdma_device_open: xdma device 0000:02:00.0, 0x0000000006b9a25b.
+[126279.729608] xdma:map_single_bar: BAR0 at 0xdf200000 mapped at 0x0000000003a6375a, length=1048576(/1048576)
+[126279.729623] xdma:map_single_bar: BAR1 at 0xdf300000 mapped at 0x000000004cc96117, length=65536(/65536)
+[126279.729631] xdma:map_bars: config bar 1, pos 1.
+[126279.729634] xdma:identify_bars: 2 BARs: config 1, user 0, bypass -1.
+[126279.729809] xdma:pci_keep_intx_enabled: 0000:02:00.0: clear INTX_DISABLE, 0x406 -> 0x6.
+[126279.729835] xdma:probe_one: 0000:02:00.0 xdma0, pdev 0x0000000006b9a25b, xdev 0x0000000091293a46, 0x000000000b002614, usr 16, ch 1,1.
+[126279.730932] xdma:cdev_xvc_init: xcdev 0x000000006960aaaa, bar 0, offset 0x40000.
+
+### F) 残留进程 (对端: sink/tcpdump/探针/我轮工具; 本地: python/vivado/xsim)
+(空 = 无残留)
+--- 本地 ---
+python.exe                   34460 Console                    1     49,388 K
+
+### STEP0_END 2026-10-11T12:23:25+0800

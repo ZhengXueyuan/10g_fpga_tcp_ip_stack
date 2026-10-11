@@ -16,6 +16,16 @@
 //
 // 用法: p7b_udp_src --host 192.168.100.2 --port 8081 --seconds 20 --paylen 1472
 //                    [--mbps 0(满速)|N] [--slow-mbps N --slow-secs S] [--batch 32] [--teach]
+//                    [--bytes K]   ⭐ P8/M1 (2026-10-11): 精确发满 K 字节即停 (K%4==0 硬前置)
+//
+// ⭐ 2026-10-11 (P8/M1 载荷镜像轮) 两个最小改动:
+//   ① `--bytes K`: 精确发满 **K 字节**停机 (K % 4 == 0 硬前置, 不满足 ⇒ exit(2);
+//      末 datagram 允许是"部分帧" = K − 已发, 使总字节恰为 K)。0 = 旧行为 (只受 --seconds 界)。
+//   ② **续发语义** (防 partial send 挖洞): 填充与"本批已发出"解耦 —— `sendmmsg` 少发 (r<n)
+//      或 EAGAIN 未发时**不重填**, 下一轮从 `sent_i` **续发同一批**已填缓冲。
+//      旧行为 = 每轮无条件重填 ⇒ 未发 datagram 的图案字节被整段跳过 (洞) ⇒ 板侧连续校验器
+//      与镜像窗逐字节判据都会以 first_mismatch 照出来 (现象会误指向链路/板卡)。
+//      ⚠️ 本改动只影响"少发/未发"这一路径; 全部发清时与旧行为逐字节等价 (每轮 = 填满+发满)。
 //
 // ⭐ 2026-10-09 (R1/R2 用户要求落地): socket 一律 **非阻塞 + 电平触发 poll(LT)**。
 //   * fd 建好立刻 `set_nonblock` (旧版**根本没设 O_NONBLOCK**, 只靠每次调用的 MSG_DONTWAIT);
@@ -100,6 +110,7 @@ int main(int argc, char **argv) {
     //             `ΔW13 ≈ (S − OFF) × (1 − 1/256)`(偶然命中 ≈1/256; 精确值离线复算)
     //    这条同时验证了 **W13 真的在数失配** 与 **它的量级口径**(不是个"通用值")。
     long long skip_at = -1;
+    long long want_bytes = 0;            // ⭐ P8: --bytes K (0 = 不限; K%4==0 硬前置)
     bool teach = false, selftest = false;
     for (int i = 1; i < argc; i++) {
         std::string k = argv[i];
@@ -114,6 +125,7 @@ int main(int argc, char **argv) {
         else if (k == "--slow-mbps") slow_mbps = strtod(nx(), nullptr);
         else if (k == "--slow-secs") slow_secs = strtod(nx(), nullptr);
         else if (k == "--off") off0 = atoll(nx());
+        else if (k == "--bytes") want_bytes = atoll(nx());          // ⭐ P8
         else if (k == "--skip-at") skip_at = atoll(nx());
         else if (k == "--teach") teach = true;
         else if (k == "--selftest") selftest = true;
@@ -121,6 +133,7 @@ int main(int argc, char **argv) {
             printf("p7b_udp_src --host H [--port 8081] [--seconds S(可为小数)] [--paylen 1472]\n"
                    "            [--mbps 0|N(线上Mbps, 可小数)] [--slow-mbps N --slow-secs S]\n"
                    "            [--batch 32] [--off N] [--skip-at OFF] [--poll-ms 1000]\n"
+                   "            [--bytes K (⭐ P8: 精确发 K 字节即停; K%%4==0 硬前置)]\n"
                    "            [--skip-at OFF (⭐ 可复算负对照: 在流偏移 OFF 处丢 1 个 datagram)]\n"
                    "            [--teach (旧负对照: 重发同一段前缀 -> 只给'通用值', 已降级)]\n"
                    "  --mbps 0 = 满速; 载荷流从 --off 起 (重烧后应为 0)\n");
@@ -131,6 +144,13 @@ int main(int argc, char **argv) {
     if (paylen < 1 || paylen > 1472) { fprintf(stderr, "--paylen 1..1472 (MTU1500)\n"); return 2; }
     if (batch < 1) batch = 1;
     if (poll_ms < 1) poll_ms = 1;
+    // ⭐ P8: --bytes 的硬前置 = K % 4 == 0 (镜像窗 v2 §V1.2: 板侧累加器不在 tlast flush
+    //   ⇒ 尾部 <4B 结构性不可观测) ⇒ 不满足时**响亮** exit(2), 不"尽量发"。
+    if (want_bytes < 0) { fprintf(stderr, "FATAL: --bytes 必须 >= 0 (给了 %lld)\n", want_bytes); return 2; }
+    if (want_bytes > 0 && want_bytes % 4 != 0) {
+        fprintf(stderr, "FATAL: --bytes %lld 不是 4 的倍数 (M1 前置条件 K%%4==0)\n", want_bytes);
+        return 2;
+    }
 
     int fd = socket(AF_INET, SOCK_DGRAM, 0);
     if (fd < 0) { perror("socket"); return 2; }
@@ -167,9 +187,14 @@ int main(int argc, char **argv) {
     long long pkts = 0, bytes = 0, call_errors = 0, poll_tmo = 0;
     long long skip_pkts = 0, skip_bytes = 0, skip_actual = -1;
     double next_ok = t0;                 // 限速用的"理论最早下一拍"
+    // ⭐ P8: 本批填充/已发游标 —— "本批发完才重填" = 续发语义 (防 partial send 挖洞, 见头注释)
+    int    prep_n  = 0;                     // 本批已填充的 datagram 数
+    int    sent_i  = 0;                     // 本批已发出的 datagram 数
+    size_t cur_len = (size_t)paylen;        // 本批每个 datagram 的载荷长 (末批可为部分帧)
     for (;;) {
         double t = now_s();
         if (t >= t_end) break;
+        if (want_bytes > 0 && bytes >= want_bytes) break;   // ⭐ P8: 精确停在 K
         double lim = (t < t_switch) ? slow_mbps : mbps;   // Mbps (0 = 满速)
         if (lim > 0) {
             // ⚠️ 这里的 nanosleep 是**节奏控制**(限速), 不是 socket 等待 —— R1 不适用
@@ -185,20 +210,33 @@ int main(int argc, char **argv) {
                    skip_actual, skip_at, paylen);
             fflush(stdout);
         }
-        for (int i = 0; i < batch; i++) {
-            pat.fill(pl[i].data(), (size_t)paylen);
-            iv[i].iov_base = pl[i].data();
-            iv[i].iov_len = (size_t)paylen;
-            mm[i].msg_hdr.msg_iov = &iv[i];
-            mm[i].msg_hdr.msg_iovlen = 1;
-            mm[i].msg_hdr.msg_name = &a;
-            mm[i].msg_hdr.msg_namelen = sizeof(a);
-            mm[i].msg_len = 0;
+        if (sent_i >= prep_n) {                 // ⭐ P8: 本批已发完 ⇒ 才重新填充 (续发语义)
+            sent_i = 0;
+            long long nb  = batch;
+            size_t    len = (size_t)paylen;
+            if (want_bytes > 0) {
+                long long rem   = want_bytes - bytes;
+                long long nfull = rem / paylen;                 // 还能送几个整 datagram
+                if (nfull <= 0) { nb = 1; len = (size_t)rem; }  // 末批: 部分帧 ⇒ 总字节恰为 K
+                else if (nfull < nb) nb = nfull;
+            }
+            if (nb <= 0) break;
+            prep_n = (int)nb; cur_len = len;
+            for (int i = 0; i < prep_n; i++) {
+                pat.fill(pl[i].data(), cur_len);
+                iv[i].iov_base = pl[i].data();
+                iv[i].iov_len = cur_len;
+                mm[i].msg_hdr.msg_iov = &iv[i];
+                mm[i].msg_hdr.msg_iovlen = 1;
+                mm[i].msg_hdr.msg_name = &a;
+                mm[i].msg_hdr.msg_namelen = sizeof(a);
+                mm[i].msg_len = 0;
+            }
         }
-        int r = sendmmsg(fd, mm.data(), (unsigned)batch, MSG_DONTWAIT);
+        int r = sendmmsg(fd, mm.data() + sent_i, (unsigned)(prep_n - sent_i), MSG_DONTWAIT);
         if (r > 0) {
-            pkts += r; bytes += (long long)r * paylen;
-            if (lim > 0) next_ok = t + (double)r * (paylen + 42) * 8.0 / (lim * 1e6);
+            pkts += r; bytes += (long long)r * (long long)cur_len; sent_i += r;
+            if (lim > 0) next_ok = t + (double)r * ((double)cur_len + 42.0) * 8.0 / (lim * 1e6);
             else        next_ok = t;
         } else if (r < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
             // ⭐ R1: 发送队列满 ⇒ poll(POLLOUT) 电平触发等可写 (旧版 = 盲等 200 µs 轮询)

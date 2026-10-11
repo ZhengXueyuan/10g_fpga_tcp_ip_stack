@@ -1,0 +1,9 @@
+FAIL: content mismatch at 8
+MIR_ID magic=50360001 (exp 50360001) bid=0000001f (exp 0000001f)
+MIR_SRC src_sel=0 readback=0
+MIR_STATUS ver=3 src_sel=0 cap=0 any_drop=1 unf=0 level=0
+MIR_UNIMPL addr=14c val=ffffffff (exp ffffffff)
+MIR_DMA_DONE bytes=524288 words=131072 secs=60.002 rate_Bps=8738 out=/tmp/p8_board/mir_dma3.bin
+MIR_DMA_ACCT cnt0=0 cnt1=131072 lag_max=736 clobber=0 short_reads=0 (want: clobber==0 & short==0 & cnt1-cnt0==words[mod 2^32])
+MIR_DMA_NOTE ring=16KB idempotent-read; access=lseek+read on /dev/xdma0_c2h_0 (pread 未现核, 见文件头)
+MIR_VERIFY rc=1 first_mismatch=8 of 1048576 (pat_off_eff=0)

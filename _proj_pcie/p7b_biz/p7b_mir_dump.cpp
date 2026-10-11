@@ -26,10 +26,12 @@
 // ⭐⭐ 期 B (2026-10-11): `--dma` = C2H DMA 环读路径 (取代 user-BAR 逐字搬运)
 //   · 通道 = XDMA 的 C2H 引擎 (`/dev/xdma0_c2h_0`) → 我们自写的 AXI-MM 读从机
 //     (`rtl/aximm_c2h_win.v`) → 板内 16 KB 环 (`rtl/mir_dma_ring.v`)。
-//   · **取法 = `lseek(fd, 卡内字节偏移, SEEK_SET)` + `read(fd, buf, len)`** —— 与对端现役
-//     `reg_rw` 的做法同构 (不依赖 pread 在该驱动上的可用性; 单线程工具不需要原子偏移)。
-//     ⚠️ **该驱动是否支持 `pread`/`mmap` 未现核** (设计件 §V1.5-② 的"半可定"项);
-//     要换 pread 只需把 `FdRingIo::read_at` 的一行改掉 —— **取法必须在板上现核后再定稿**。
+//   · **取法 = `lseek(fd, 卡内字节偏移, SEEK_SET)` + `read(fd, buf, len)`** —— ⭐⭐ 2026-10-11
+//     **板上现核已定稿** (p8_io_probe / p8_c2h_one, 0x1F): c2h 的 `sgdma_fops` 有 llseek;
+//     **偏移必须 16 B 对齐** (off=4/8 ⇒ 首次 -1 再读挂死, dmesg `xdma_xfer_submit timed out`),
+//     且**每次读固定 ~1 ms 开销** ⇒ 取法 = 16 B 对齐取 + 最小读块 (见 FdRingIo / run_dma);
+//     **user BAR 的 `ctrl_fops` 没有 llseek ⇒ lseek 报 ESPIPE**, 故寄存器取法改用 **mmap**
+//     (见 FdIo; 与 `reg_rw` 同款)。设计件 §V1.5-② 的"半可定"项就此关闭。
 //   · 环 = **幂等只读** (读不移动任何指针) ⇒ 与 BAR 窗口的"读=弹出"语义**不同**:
 //     读同一地址两次得同一数据, 多读者/重读/进程重启都安全 (S3 的三类残余在这条路上不存在)。
 //   · 新鲜度协议: 环会被写者**回绕覆盖** ⇒ 本工具在**每次环读之后**重读字计数器
@@ -56,6 +58,7 @@
 #include "p7b_pattern.h"
 
 #include <fcntl.h>
+#include <sys/mman.h>      // ⭐ 2026-10-11: user BAR 走 mmap (现核: ctrl_fops 无 llseek)
 #include <time.h>
 #include <unistd.h>
 
@@ -96,24 +99,22 @@ struct RegIo {
 
 struct FdIo : RegIo {
     int fd = -1;
+    // ⭐⭐ 2026-10-11 板上现核 (p8_io_probe, 0x1F 位流): **user BAR 的 ctrl_fops 没有 llseek**
+    //   (`xdma/cdev_ctrl.c:262` 表里无 .llseek) ⇒ lseek+read 实测 `ESPIPE (Illegal seek)`;
+    //   而 **mmap 与 pread 都可用** (实测 magic/bid/0x14C 三值全中)。`reg_rw` 一直用 mmap
+    //   ⇒ 本工具同款 (BAR0 = 1 MB; 32 位单笔 volatile 访问 —— 宽读会被拆成多笔 ⇒ MIR_DATA 多弹)。
+    //   ⛔ 原注释"与对端现役 reg_rw 逐字同构"**与现核不符** (reg_rw 用 mmap, 不是 lseek)。
+    static const uint32_t MAP_BYTES = 1u << 20;
+    volatile uint32_t *map = nullptr;
     explicit FdIo(const char *path) {
-        fd = open(path, O_RDWR);
+        fd = open(path, O_RDWR | O_SYNC);
         if (fd < 0) { fprintf(stderr, "FATAL: open(%s): %s\n", path, strerror(errno)); exit(2); }
+        void *m = mmap(nullptr, MAP_BYTES, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+        if (m == MAP_FAILED) { fprintf(stderr, "FATAL: mmap(%s): %s\n", path, strerror(errno)); exit(2); }
+        map = (volatile uint32_t *)m;
     }
-    // ⚠️ 访问法 = **lseek + read/write 各 4 字节** —— 与对端现役 `reg_rw` 的做法逐字同构
-    //   (移植性最好: 不依赖 pread/pwrite 可用性; 单线程工具不需要原子偏移语义)。
-    uint32_t rd(uint32_t a) override {
-        uint32_t v = 0xFFFFFFFFu;
-        if (lseek(fd, (off_t)a, SEEK_SET) < 0 || read(fd, &v, 4) != 4) {
-            fprintf(stderr, "FATAL: read @0x%03x: %s\n", a, strerror(errno)); exit(2);
-        }
-        return v;
-    }
-    void wr(uint32_t a, uint32_t v) override {
-        if (lseek(fd, (off_t)a, SEEK_SET) < 0 || write(fd, &v, 4) != 4) {
-            fprintf(stderr, "FATAL: write @0x%03x: %s\n", a, strerror(errno)); exit(2);
-        }
-    }
+    uint32_t rd(uint32_t a) override { return map[a >> 2]; }   // 32 位单笔
+    void wr(uint32_t a, uint32_t v) override { map[a >> 2] = v; }
 };
 
 // 内存 mock: **只实现本工具用到的寄存器与语义** (够跑 --selftest 的正/负对照)。
@@ -221,16 +222,31 @@ struct RingIo {
 
 struct FdRingIo : RingIo {
     int fd = -1;
+    std::vector<uint8_t> tmp;      // 16 B 对齐取数的中转缓冲
     explicit FdRingIo(const char *path) {
         fd = open(path, O_RDONLY);
         if (fd < 0) { fprintf(stderr, "FATAL: open(%s): %s\n", path, strerror(errno)); exit(2); }
     }
-    // 取法 = lseek(卡内字节偏移) + read —— 与对端现役 `reg_rw` 同构 (见文件头注释 ⭐⭐)
+    // ⭐⭐ 2026-10-11 板上现核 (p8_io_probe + p8_c2h_one, 0x1F 位流):
+    //   · lseek 可用 (`sgdma_fops.llseek`, `xdma/cdev_sgdma.c:159/949`, f_pos 直接当地址);
+    //   · **卡内偏移必须 16 B 对齐**: off=0/16/4096/16368 ⇒ ok; **off=4/8 ⇒ 首次 -1, 再读挂住**
+    //     (dmesg `xdma_xfer_submit ... timed out` + `transfer_abort`) —— 因为从机合法性②
+    //     要求 `araddr[3:0]==0`, 而引擎收到 SLVERR **不是干净报错** ⇒ 驱动 ~8 s 超时。
+    //     (`check_transfer_align`: 宿主缓冲须 16 B 对齐且 `buf_lsb == pos_lsb (mod addr_align)`。)
+    //   ⇒ 取法 = **起点向下对齐到 4 字 (16 B)、长度向上补齐到 4 字, 多读的字节丢弃**
+    //     (环是幂等只读 ⇒ 多读无害)。调用侧保证 `phys+nwords <= RING_WORDS` ⇒
+    //     `roundup4(...) <= RING_WORDS` ⇒ 永不越窗 (越窗 = 合法性① SLVERR = 同样挂)。
+    //   · 每次读**固定 ~1 ms 开销** (4 B 与 16 KB 同价) ⇒ 调用侧必须按大块读 (见 run_dma)。
     int read_at(uint32_t phys_word, uint32_t nwords, uint8_t *dst) override {
-        off_t off = (off_t)phys_word * 4;
-        size_t want = (size_t)nwords * 4;
-        if (lseek(fd, off, SEEK_SET) < 0) return -1;
-        return (read(fd, dst, want) == (ssize_t)want) ? 0 : -1;
+        uint32_t astart = phys_word & ~3u;                    // 4 字 = 16 B
+        uint32_t head   = phys_word - astart;                 // 0..3 字
+        uint32_t total  = (head + nwords + 3u) & ~3u;          // 补齐到 4 字
+        size_t   want   = (size_t)total * 4;
+        if (tmp.size() < want) tmp.resize(want);
+        if (lseek(fd, (off_t)astart * 4, SEEK_SET) < 0) return -1;
+        if (read(fd, tmp.data(), want) != (ssize_t)want) return -1;
+        memcpy(dst, tmp.data() + (size_t)head * 4, (size_t)nwords * 4);
+        return 0;
     }
 };
 
@@ -315,9 +331,20 @@ static DmaRes run_dma(RegIo &io, RingIo &rio, uint64_t want, double tmo_s, bool 
         }
         uint64_t need_w = (want - buf.size()) / 4;
         uint32_t n = ((uint64_t)av < need_w) ? av : (uint32_t)need_w;
+        // ⭐ 2026-10-11 现核: 每次 C2H 读固定 ~1 ms 开销 (与长度无关) ⇒ 读太碎 = 带宽塌成
+        //   B/s 级 (dma2 实测 61 B/s)。最小读块 = 1024 字 (4 KB) ⇒ 容量 ≈ 4 MB/s。
+        //   ⚠️ 多读的字节**不进 buf** (只进 scratch): 未写字的陈旧值不许进流 (会被 verify 抓)。
+        uint32_t nread = n;
+        if (nread < 1024u) {
+            uint32_t cap = ((uint64_t)need_w < 1024u) ? (uint32_t)need_w : 1024u;
+            if (nread < cap) nread = cap;
+        }
+        static std::vector<uint8_t> scratch;
+        if (scratch.size() < (size_t)nread * 4) scratch.resize((size_t)nread * 4);
+        if (ring_read(rio, cur, nread, scratch.data(), &r.short_reads) != 0) break;
         size_t off = buf.size();
         buf.resize(off + (size_t)n * 4);
-        if (ring_read(rio, cur, n, &buf[off], &r.short_reads) != 0) break;
+        memcpy(&buf[off], scratch.data(), (size_t)n * 4);
         // 新鲜度门: 这一段的起点是否已被写者回绕越过 (读期间/读之前都可能)
         uint32_t c2 = io.rd(A_MIR_DMA_CNT);
         if ((uint32_t)(c2 - cur) >= RING_WORDS) r.clobber++;
