@@ -843,3 +843,7 @@ _proj_10g/notes/p8_*_synth/prj_*/
 
 # ---- aliasgate 自检工作目录（产物；驱动脚本与判据 .py 已入库）----
 sim/aliasgate/_selftest/
+
+# ---- P8 板级抓取样（证据在盘；按既定策略"位流/抓包不入库"）----
+_proj_10g/notes/p8_board_0x20_20261011/runs/*.bin
+_proj_10g/notes/p8_board_0x20_20261011/runs/*.bin.b64

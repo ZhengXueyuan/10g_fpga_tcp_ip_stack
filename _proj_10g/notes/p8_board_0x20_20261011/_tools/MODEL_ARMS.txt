@@ -1,0 +1,4 @@
+ARM-A: K=1048576 paylen=1472 frames=713 (末帧=512)
+   预测: drop=0 (0.000%) out_bytes=1048576 acc_end=0 first_mismatch=-1  账=True
+ARM-B: K=1505280 paylen=1470 frames=1024 (末帧=1470)
+   预测: drop=750882 (49.883%) out_bytes=754392 acc_end=6 first_mismatch=1478  账=True

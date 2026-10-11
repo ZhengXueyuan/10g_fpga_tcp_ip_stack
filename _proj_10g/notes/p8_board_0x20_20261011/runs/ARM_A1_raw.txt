@@ -1,0 +1,35 @@
+=== ARM A1 K=1048576 PAYLEN=1472 OFF=auto MBPS=20 BATCH=1 SECS=30 1791708855.040920351
+--- 起测前快照 (W11=udpapp_rx_bytes / W13=app_mismatch / W70=mir_drop_bytes) ---
+SNAP_BEGIN A1_pre gen=2
+W5   0x34   gmii_free_FE           0xe375c137
+W11  0x4C   udpapp_rx_bytes        0x00000000
+W13  0x54   udpapp_mismatch        0x00000000
+W70  0x138  mir_drop_bytes         0x00000000
+SNAP_END A1_pre nff=0
+OFF_AUTO: W11=0x00000000 ⇒ OFF=0
+--- 起 mir_dump (--dma, --pat-off 0) ---
+--- 起发端 (p7b_udp_src, --bytes 1048576 --mbps 20 --batch 1 --paylen 1472 --off 0) ---
+SRC_RC=0
+TOOL_RC=0
+--- mir_dump 日志 (逐字) ---
+MIR_ID magic=50360001 (exp 50360001) bid=00000020 (exp 00000020)
+MIR_SRC src_sel=0 readback=0
+MIR_STATUS ver=3 src_sel=0 cap=0 any_drop=0 unf=0 level=0
+MIR_UNIMPL addr=14c val=ffffffff (exp ffffffff)
+MIR_DMA_DONE bytes=1048576 words=262144 secs=2.479 rate_Bps=422994 out=./mir_A1.bin
+MIR_DMA_ACCT cnt0=0 cnt1=262144 lag_max=368 clobber=0 short_reads=0 (want: clobber==0 & short==0 & cnt1-cnt0==words[mod 2^32])
+MIR_DMA_NOTE ring=16KB idempotent-read; access=lseek+read on /dev/xdma0_c2h_0 (pread 未现核, 见文件头)
+MIR_VERIFY rc=0 first_mismatch=-1 of 1048576 (pat_off_eff=0)
+--- 发端日志 (PIN_CPU 见证行 + UDP_SUM) ---
+PIN_RULE=avoid-nic PIN_DEGRADED=none PIN_CPU=5 PIN_CORES_ONLINE=0-7 PIN_NIC_IFACE=enp1s0f0np0,enp1s0f1np1 PIN_NIC_CPUS=0,1,2,3,4,5 PIN_NIC_EXCLUDED=none PIN_CORE_LOAD=184938867 PIN_ALLOWED_MASK=20 PIN_GETCPU_START=5 PIN_FREQ_START_KHZ=800000 PIN_GOV=schedutil PIN_NIC_IRQLINES=12 PIN_NIC_IFACE_SRC=auto PIN_TUPLE_ORDER=own_sib_t PIN_PAIR_RULE=n/a PIN_PAIR_DEGRADED=n/a PIN_CPU_IO=n/a PIN_CPU_WORK=n/a PIN_PC_IO=n/a PIN_PC_WORK=n/a PIN_PAIR_EXCL=n/a PIN_PAIR_REQ=n/a
+UDP_SUM pkts=713 pay_bytes=1048576 dur_s=0.477 pps=1495 pay_Mbps=17.591 wire_Mbps=18.094 off_start=0 off_end=1048576 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+--- 快照 (after) ---
+SNAP_BEGIN A1_post gen=5
+W5   0x34   gmii_free_FE           0x0432d899
+W11  0x4C   udpapp_rx_bytes        0x00100000
+W13  0x54   udpapp_mismatch        0x00000000
+W70  0x138  mir_drop_bytes         0x00000000
+SNAP_END A1_post nff=0
+--- 文件 ---
+-rw-r--r-- 1 root root 1048576 Oct 11 16:54 mir_A1.bin
+=== END A1 1791708858.585504208

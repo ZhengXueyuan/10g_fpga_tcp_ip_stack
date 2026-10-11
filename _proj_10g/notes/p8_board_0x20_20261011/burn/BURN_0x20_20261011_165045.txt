@@ -1,0 +1,20 @@
+=== COPY 1791708645.870575700
+--- 源 (归档) ---
+998ff90f31907750f31024d2aa62828a8e08c3cd097b03fc9eb15a82b037d244 */d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p8_build_0x20/wrapper_p4.bit
+--- 副本 (烧录件) ---
+998ff90f31907750f31024d2aa62828a8e08c3cd097b03fc9eb15a82b037d244 */d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p8_board_0x20_20261011/burn/wrapper_p4_0x20.bit
+SHA_WANT want=998ff90f31907750f31024d2aa62828a8e08c3cd097b03fc9eb15a82b037d244
+SHA_OK copy==archive (998ff90f31907750f31024d2aa62828a8e08c3cd097b03fc9eb15a82b037d244)
+LOCAL_BIT /d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p8_board_0x20_20261011/burn/wrapper_p4_0x20.bit size=15431261 mtime=2026-10-11 16:50:45.890581100 +0800
+=== 板上烧前身份 (现读 0x04)
+Read 32-bit value at address 0x4 (0x7b11ac41f004): 0x0000001f
+=== BURN 1791708646.945391400
+BURN_STDOUT=/d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p7b_biz_tcpreg/tcpreg_program_stdout.txt mtime=1791708654 T0=1791708646
+--- burn stdout (关键行逐字) ---
+# puts "TCPREG_BIT = $bit"
+TCPREG_BIT = D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p8_board_0x20_20261011\burn$BS
+# puts "TCPREG_BIT_EXISTS = [file exists $bit]"
+TCPREG_BIT_EXISTS = 0
+"puts "TCPREG_BIT_MTIME = [file mtime $bit]""
+--- end ---
+BURN_FAIL (无 HIGH)

@@ -1,0 +1,5 @@
+# model: K=1505280 paylen=1470 frames=1024 (末帧=1470)
+# file=../runs/mir_B2.bin bytes=754392 pat_off=3602432
+NO_DROP_CHECK first_mismatch=1478 mism_bytes=749934 of 754392
+MODEL_CHECK  len_model=754392 len_file=754392 比对长度=754392 first_mismatch=-1 mism_bytes=0
+MODEL_PRED   drop=750882 out_bytes=754392 acc_end=6 first_mismatch=1478

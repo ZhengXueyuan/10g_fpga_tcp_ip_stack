@@ -1,0 +1,40 @@
+=== FINAL_STATE_BEGIN 1791709008.553729200
+--- 停流前: NIC 收速率 (2 s 窗) + carrier ---
+     port_rx_bytes: 23999992981746
+     port_rx_packets: 15870592361
+-- 2s later --
+     port_rx_bytes: 24002448453070
+     port_rx_packets: 15872209932
+CARRIER=1
+--- 写 0x08 = 0x2 (受控停流) ---
+Write 32-bits value 0x00000002 to 0x8 (0x0x75f105dc1008)
+--- 停流后: NIC 收速率 (2 s 窗) + carrier + 最终态寄存器 ---
+netlink error: Operation not permitted
+     port_rx_bytes: 24003821151964
+     port_rx_packets: 15873114224
+-- 2s later --
+     port_rx_bytes: 24003821151964
+     port_rx_packets: 15873114224
+CARRIER=0
+LINK_DETECTED=Link detected: no
+MAGIC_0x00=Read 32-bit value at address 0x0 (0x7a6dd8936000): 0x50360001
+BID_0x04=Read 32-bit value at address 0x4 (0x7214a2549004): 0x00000020
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x7cd18a4c8008): 0x00000002
+UNIMPL_0x14C=Read 32-bit value at address 0x14c (0x74e1a99d114c): 0xffffffff
+MIR_STATUS_0x13C=Read 32-bit value at address 0x13c (0x78c91bdd413c): 0x001e0000
+MIR_CTRL_0x144=Read 32-bit value at address 0x144 (0x7630b0c37144): 0x00000009
+MIR_DMA_CNT_0x148=Read 32-bit value at address 0x148 (0x765af0ba1148): 0x0002e0b6
+SNAP_BEGIN final gen=18
+W5   0x34   gmii_free_FE           0xf8e0c97d
+W11  0x4C   udpapp_rx_bytes        0x004df000
+W13  0x54   udpapp_mismatch        0x00000000
+W70  0x138  mir_drop_bytes         0x0016ea44
+SNAP_END final nff=0
+--- 残留进程 (对端) ---
+PROC_SCAN_DONE
+=== FINAL_STATE_END 1791709021.776599700
+Write 32-bits value 0x00000000 to 0x144 (0x0x726211def144)
+MIR_CTRL_after=Read 32-bit value at address 0x144 (0x7561d2b64144): 0x00000000
+BID=Read 32-bit value at address 0x4 (0x78041d014004): 0x00000020
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x78582be3e008): 0x00000002
+CARRIER=0

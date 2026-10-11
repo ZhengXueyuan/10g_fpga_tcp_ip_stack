@@ -1,0 +1,88 @@
+### STEP0_BEGIN 2026-10-11T16:49:33+0800
+
+### A) 归档位流 0x20 (派单指定源; 只烧这个目录里的 wrapper_p4.bit)
+998ff90f31907750f31024d2aa62828a8e08c3cd097b03fc9eb15a82b037d244 */d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p8_build_0x20/wrapper_p4.bit
+BIT /d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p8_build_0x20/wrapper_p4.bit size=15431261 mtime=2026-10-11 16:09:28.226256800 +0800
+50:998ff90f31907750f31024d2aa62828a8e08c3cd097b03fc9eb15a82b037d244 *./wrapper_p4.bit
+WANT_0x20=998ff90f31907750f31024d2aa62828a8e08c3cd097b03fc9eb15a82b037d244
+
+### B) 对端可达 + 部署件 md5 (现役 /tmp/p8_board; 只读核对)
+PEER_OK
+a-MS-7850
+Sun Oct 11 04:49:35 PM CST 2026
+ 16:49:35 up 1 day, 19:11,  5 users,  load average: 0.44, 0.42, 0.38
+--- /tmp/p8_board 部署件 md5 (期望 = 上轮记录: mir_dump 25af63df… / udp_src e0d4da58…) ---
+25af63df72993195469761d167005533  p7b_mir_dump
+e0d4da5834cb95d67afb0cc523d1f92f  p7b_udp_src
+5af4c61911a8cc2cb4821456f5c43845  p7b_snap.sh
+b2f2e9627bac53bf3b4ab2b565afe872  p7b_pattern.h
+b03222792d20443138515ba2804b0d87  p7b_affinity.h
+--- size ---
+p7b_mir_dump 41936
+p7b_udp_src 128048
+--- 仓库侧对照 md5 (现核; ★ = 上轮记录的源码 md5) ---
+f5ff317288b59b3e3c91988ca07446c9 */d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_udp_src.cpp
+4a8e91f7e7e5151e209b8e6acff589d7 */d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_mir_dump.cpp
+b2f2e9627bac53bf3b4ab2b565afe872 */d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_pattern.h
+b03222792d20443138515ba2804b0d87 */d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_affinity.h
+bc4ec0ffd4b4db829f70cfff44190e5e */d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_snap.sh
+--- 对端 g++ ---
+g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+
+### C) 网络面 (每次测量前现取): /32 路由 + 托管位 + link + coalesce + neigh
+netlink error: Operation not permitted
+4: enp1s0f1np1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
+    inet 192.168.100.100/32 scope global enp1s0f1np1
+---
+GENERAL.STATE:                          10 (unmanaged)
+GENERAL.CONNECTION:                     --
+---
+192.168.100.2 dev enp1s0f1np1 src 192.168.100.100 uid 1000 
+    cache 
+---
+192.168.100.2 dev enp1s0f1np1 lladdr 00:0a:35:01:fe:c0 REACHABLE 
+---
+	Speed: 10000Mb/s
+	Link detected: yes
+---
+Adaptive RX: off  TX: n/a
+rx-usecs:	0
+rx-usecs-irq:	0
+rx-usecs-low:	n/a
+
+### C2) 背景泛洪量 (板 -> 对端): NIC rx 计数 2 s 差分 + 板侧 W43/W20 两次读
+     port_rx_bytes: 23653881148474
+     port_rx_packets: 15642587174
+--- 2s later ---
+     port_rx_bytes: 23656336618216
+     port_rx_packets: 15644204744
+W43a=Read 32-bit value at address 0xcc (0x7dc7336b80cc): 0xd5c5bbc9
+W20a=Read 32-bit value at address 0x70 (0x7c652bf4e070): 0x395f3e93
+W43b=Read 32-bit value at address 0xcc (0x7ad4631600cc): 0xd5c5bbc9
+W20b=Read 32-bit value at address 0x70 (0x72f80a9b3070): 0x395f3e93
+
+### D) 板上现态 (烧 0x20 之前) —— 期望: 上轮留下的 0x1F
+MAGIC_0x00=Read 32-bit value at address 0x0 (0x705116444000): 0x50360001
+BID_0x04=Read 32-bit value at address 0x4 (0x7bde23010004): 0x0000001f
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x793a82160008): 0x00000000
+UNIMPL_0x14C=Read 32-bit value at address 0x14c (0x7485d8e8214c): 0xffffffff
+W11_0x4C=Read 32-bit value at address 0x4c (0x7dac8bf7104c): 0x004e0000
+W70_0x138=Read 32-bit value at address 0x138 (0x7bf067795138): 0x00256000
+CARRIER=1
+	Region 0: Memory at df200000 (32-bit, non-prefetchable) [size=1M]
+	Region 1: Memory at df300000 (32-bit, non-prefetchable) [size=64K]
+		LnkSta:	Speed 5GT/s (downgraded), Width x4
+
+### E) /dev/xdma* 节点 + 残留进程 (对端)
+crw------- 1 root root 235, 36 Oct 11 12:26 /dev/xdma0_c2h_0
+crw------- 1 root root 235, 32 Oct 11 12:26 /dev/xdma0_h2c_0
+crw------- 1 root root 235,  0 Oct 11 12:26 /dev/xdma0_user
+---节点总数---
+21
+PROC_SCAN_DONE
+[140094.614597] xdma:engine_reg_dump: 0-C2H0-MM: ioread32(0x000000005120b24a) = 0x00000000 (completed_desc_count).
+[140094.614600] xdma:engine_reg_dump: 0-C2H0-MM: ioread32(0x0000000047213f29) = 0x00f83e1e (interrupt_enable_mask)
+[140094.614603] xdma:engine_status_dump: SG engine 0-C2H0-MM status: 0x00000000:
+[140094.614604] xdma:transfer_abort: abort transfer 0x0000000081b05723, desc 1, engine desc queued 0.
+
+### STEP0_END 2026-10-11T16:49:46+0800

@@ -1,0 +1,13 @@
+P8 板级 A/B 轮 (位流 0x20) PROGRESS
+[1] 16:48:58 建目录 (p8_board_0x20_20261011/{runs,burn,_tools}) + PROGRESS.txt; 旧目录 p8_board_20261011 未动。
+[2] step0 完成 (STEP0_selfcheck.txt): 位流 sha 核对中; 对端工具 md5 = 上轮记录 (mir_dump 25af63df / udp_src e0d4da58); 网络面 /32 + unmanaged + link 10G up + coalesce off; 板上现态 = 0x1F; 背景: 板在泛洪 (~9.8Gbps/809kpps, tcpdump 见 192.168.100.2:8081 -> .100:8081 1472B); ⚠️ 直读快照字是"陈旧锁存值"⇒ 一切快照字走 p7b_snap.sh。
+[3] 烧录 OK (burn_run_console2.txt / burn/BURN_0x20_*): sha 998ff90f 双核; HIGH+DONE+路径+新鲜度+无ABORT; 身份五判据全中 (0x04=0x00000020 / 71字窗口 NFF=0 + 0x14C=ffffffff / LnkSta x4 / 2 BARs / MAGIC+MARKER); 烧后 W11=W13=W70=0, MIR_CTRL=0(cap_en=0), 0x08=0(carrier=1)。
+[4] 对端部署 /tmp/p8_board_0x20 (md5 = 上轮件) + run_arm.sh (md5 37e5c2e6)。模型复算完成: MODEL_ARMS.txt (ARM-A 预测 drop=0/fm=-1; ARM-B 预测 drop=750882/49.883%/fm=1478)。
+[5] 两臂各 2 跑全部收口 (runs/ARM_{A1,A2,B1,B2}_raw.txt):
+    臂 A (paylen 1472 / K=1048576): MIR_VERIFY rc=0 first_mismatch=-1 (A1/A2 逐字同); dW70=0; MIR_DMA_ACCT cnt1-cnt0=262144=words, clobber=0 short=0; dW11=K; dW13=0。
+    臂 B (paylen 1470 / K=1505280): rc=1 first_mismatch=1478 (B1/B2 逐字同); dW70=750882 (=K 的 49.883%); bytes=754392 words=188598; clobber=0 short=0; dW11=K; dW13=0; 账: pc+dW70+6(累加器残余)==dW11。
+[6] 抓取样取回本机 (runs/mir_*.bin, base64) + 离线逐字节复算 (runs/ANALYZE_*.txt, _tools/p8_ab_analyze.py):
+    臂 A/B 的抓取流与"逐拍模型输出流"**逐字节全等** (mism_bytes=0 / 1048576 与 754392, 各两跑); 模型预测 drop/bytes/fm 三项与板级读数逐位相同。
+    模型 = _tools/mir_packer_model.py (从 rtl/app_rx_mirror.v 独立重写; 与审查件 C2 同模型) + MODEL_ARMS.txt。
+[7] 收尾: 0x08=0x2 (carrier=0, NIC 停收, Link detected: no) + MIR_CTRL=0 (采集口回冻结默认态, 额外写一次); 最终态 runs/FINAL_STATE_0x20.txt; 残留进程 = 无。
+[8] REPORT.md 被平台拒写 (subagent 禁写 report .md) ⇒ 全文回传 TL (本目录不落 REPORT.md; SHA256SUMS.txt 已生成)。
