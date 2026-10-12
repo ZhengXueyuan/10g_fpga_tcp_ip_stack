@@ -699,7 +699,7 @@ end
 
 **资源代价（估算，未经综合验证）**：256×77 = 19,712 bit ⇒ 约 308 个 RAM64X1
 （≈ 308–800 LUT，取决于读口 mux 树），相对 P6a 已用的 46,842 LUT
-（`p6a_ku5p_verify/p6a_t8p0_utilization_routed.rpt`）可接受。
+（`agent_docs/p6a_ku5p_verify/p6a_t8p0_utilization_routed.rpt`）可接受。
 ⚠️ **施工后必须在 `report_utilization` 里确认走的是 LUTRAM（`RAM64X1`/`RAM32X1`），不是 FF 阵列**；
 并在 `report_timing` 里看跨这两个 FIFO 的路径（`vlan_strip`/`mac_tx_64` 的输入侧）。
 
@@ -875,8 +875,8 @@ grep -rn "BIT_LAST\|GAP_TICKS\|GAP_LAST\|WDOG\|RTO_LIM\|FIN_TO_LIM\|FIN_GRACE\|T
 （模块 `tcp_parse_opts`）。**这条在 P6b 下不需要重新裁决**：
 闸 G 的 t6p4 档把**整设计（含 HLS）**按 6.400 ns 约束综合+实现，读数是
 **WNS +0.426 / 0 setup 失败端点 / 0 hold 失败端点**
-（`p6a_ku5p_verify/p6a_t6p4_failing_endpoints.txt` 只有表头、无数据行；
-`p6a_ku5p_verify/p6a_t6p4_clocks.rpt` 显示 `phy1_rxc`/`gmii_clk` 都是 6.400 ns）
+（`agent_docs/p6a_ku5p_verify/p6a_t6p4_failing_endpoints.txt` 只有表头、无数据行；
+`agent_docs/p6a_ku5p_verify/p6a_t6p4_clocks.rpt` 显示 `phy1_rxc`/`gmii_clk` 都是 6.400 ns）
 ⇒ **HLS 在 6.4 ns 下已实测收口**，HLS 的 6.373 ns 估计是布局前悲观值。
 
 ---
@@ -1289,8 +1289,8 @@ set_clock_groups -asynchronous \
 | 判据 | 期望 | 若不成立怎么立刻归因 |
 |---|---|---|
 | setup 失败端点 | **0** | 看 `report_timing` 的域：若失败端点**全在 dp_clk** ⇒ 156.25 域太长；若在 `gmii_clk` ⇒ 前端被动过（不该发生） |
-| hold 失败端点 | **0** | P6a 基线的 hold 只有 +0.012/+0.013（`p6a_ku5p_verify/p6a_t6p4_hold_400.rpt`）⇒ 改数据通路就会先在这里塌。查 `report_timing -delay_type min -max_paths 400` 三族 |
-| **`IDDRE1/C\|CB` Min-Period 违例数** | **0（闸 G 那 16 条必须消失）** | 若不为 0 ⇒ 前端**没有**被 8.000ns 约束（`create_clock -period 8.000` 丢了 / `phy1_rxc` 名字变了）。闸 G 的 16 条全部是 `required=8.000ns` 的 HDIO 器件上限（`p6a_ku5p_verify/p6a_t6p4_*.rpt`），P6b 前端留 125MHz ⇒ 该检查自然满足 |
+| hold 失败端点 | **0** | P6a 基线的 hold 只有 +0.012/+0.013（`agent_docs/p6a_ku5p_verify/p6a_t6p4_hold_400.rpt`）⇒ 改数据通路就会先在这里塌。查 `report_timing -delay_type min -max_paths 400` 三族 |
+| **`IDDRE1/C\|CB` Min-Period 违例数** | **0（闸 G 那 16 条必须消失）** | 若不为 0 ⇒ 前端**没有**被 8.000ns 约束（`create_clock -period 8.000` 丢了 / `phy1_rxc` 名字变了）。闸 G 的 16 条全部是 `required=8.000ns` 的 HDIO 器件上限（`agent_docs/p6a_ku5p_verify/p6a_t6p4_*.rpt`），P6b 前端留 125MHz ⇒ 该检查自然满足 |
 | Clock Summary 带内周期 | **恰好 {8.000, 6.400}** | 多出第三个 ⇒ 见 §8.3 的 200MHz 警告 |
 | 报告自述 | `All user specified timing constraints are met.` | — |
 | **一条命令验证全部** | `python board/check_p6b_timing.py <rpt> --expect dual` 退出码 **0** | 判据 2 会自动发现两个域并按周期打印；判据 3 会点名 `IDDRE1/C\|CB` 的条数 |

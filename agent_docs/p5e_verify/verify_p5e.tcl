@@ -5,8 +5,8 @@ if {![file exists [file join $REPO_ROOT CLAUDE.md]]} {
 #=============================================================================
 # verify_p5e.tcl — P5e 出口验证 (只读, 不改工程/不改 RTL)
 #   open_checkpoint routed.dcp -> report_timing_summary / utilization / drc /
-#   route_status, 全部写到 p5e_verify/
-# 用法: vivado -mode batch -source p5e_verify/verify_p5e.tcl -log ...
+#   route_status, 全部写到 agent_docs/p5e_verify/
+# 用法: vivado -mode batch -source agent_docs/p5e_verify/verify_p5e.tcl -log ...
 #=============================================================================
 set root_dir  %REPO_ROOT%
 set out_dir   ${root_dir}/p5e_verify

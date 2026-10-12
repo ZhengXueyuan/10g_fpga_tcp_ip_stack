@@ -1,7 +1,7 @@
 #=============================================================================
 # eco_holdfix.xdc -- P5f 保持余量加固 (RX 字节通路板级字节改写缺陷的候选修复)
 #------------------------------------------------------------------------------
-# 依据: p5f_verify/p5e_timing_routed.rpt (当前位流, routed dcp):
+# 依据: agent_docs/p5f_verify/p5e_timing_routed.rpt (当前位流, routed dcp):
 #   WNS = +0.153 ns, WHS = **+0.048 ns** —— 保持余量实际上为 0。
 #   最差保持路径 = app UDP TX FIFO 写数据 (u_app_udp/txf_in_reg[*] ->
 #   u_app_udp/u_txf/mem_*), 0.048~0.064 ns; RX 字节通路全域 0.10~0.14 ns:

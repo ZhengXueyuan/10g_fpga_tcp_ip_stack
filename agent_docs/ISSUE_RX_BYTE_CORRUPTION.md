@@ -150,7 +150,7 @@
 做的实验 (零 RTL 改动, 只加约束):
 - `board/eco_holdfix.xdc`: `set_clock_uncertainty -hold 0.200 [get_clocks gmii_clk]`
 - `board/build_p5_holdfix.tcl` (复用 p5_prj, 保留 `Performance_ExtraTimingOpt` 策略)
-- 结果 (`p5f_verify/holdfix_timing.rpt`): **WNS +0.183 / WHS +0.007** ⇒ 裸保持余量 ≥0.2 ns (原 0.048)
+- 结果 (`agent_docs/p5f_verify/holdfix_timing.rpt`): **WNS +0.183 / WHS +0.007** ⇒ 裸保持余量 ≥0.2 ns (原 0.048)
 - **板级交错 A/B** (每轮复位, 8.39 MB 线速):
 
 | 轮次 | ORIG 位流 | HOLDFIX 位流 |
@@ -188,7 +188,7 @@
 - 板侧 TX 方向对照 — peer `--udp-rx-only`, 8.39/83.9 MB 零失配
 
 ### 5.3 时序分析 (只读)
-- `p5f_verify/p5e_timing_routed.rpt` — 逐 v2025.2 重跑 routed DCP 取 P5f 位流的时序
+- `agent_docs/p5f_verify/p5e_timing_routed.rpt` — 逐 v2025.2 重跑 routed DCP 取 P5f 位流的时序
 - 那批寄存器的 hold 余量 (§2.3) — `report_timing -to <reg>`
 
 ### 5.4 约束实验
@@ -257,7 +257,7 @@ python tools/board_p5b_check.py --port COM9
 | **嫌疑模块** | `rtl/mac_rx_64.v` (`:65` CRC 输入 / `:178-199` 发射搬移寄存器) · `rtl/udp_rx.v` · `rtl/udp_split.v` · `rtl/app_udp_pattern.v` |
 | **观测** | `rtl/app_status_uart.v` (UART 状态行 304 字符) · `tools/board_p5b_check.py` |
 | **仿真门** | `sim/udprx/` · `sim/udprx_chain/` · `sim/p5e_rate/` |
-| **时序** | `p5f_verify/p5e_timing_routed.rpt` · `p5f_verify/holdfix_timing.rpt` |
+| **时序** | `agent_docs/p5f_verify/p5e_timing_routed.rpt` · `agent_docs/p5f_verify/holdfix_timing.rpt` |
 | **约束实验** | `board/eco_holdfix.xdc` · `board/build_p5_holdfix.tcl` |
 | **位流** | `vivado_prj/p5_prj.runs/impl_1/wrapper_p4.bit` (现为 HOLDFIX 版) · `.../wrapper_p4_orig_whs048.bit` (回滚版) |
 | **工具** | `tools/cpp_peer/peer.cpp` (UDP 模式) · `tools/pc_wire_pattern_check.py` |
@@ -279,7 +279,7 @@ python tools/board_p5b_check.py --port COM9
 
 ### 10.1 §4.3 已定案 —— 「抖动吃 setup」这一支**关闭**
 
-对 routed DCP 只读 `report_timing` 取那批寄存器的 **setup** 余量 (p5f_verify/rxsetup.tcl,
+对 routed DCP 只读 `report_timing` 取那批寄存器的 **setup** 余量 (agent_docs/p5f_verify/rxsetup.tcl,
 `RXSETUP` 行)：
 
 | 寄存器 | worst setup | worst hold (同一 DCP) |
@@ -350,7 +350,7 @@ python tools/board_p5b_check.py --port COM9
 
 ### 10.6 载荷帧缓冲 `u_udp_split/u_uf` 的静态余量是**健康**的 (排除)
 
-`p5f_verify/ufpin.tcl` 逐引脚取 `u_uf` 的 BRAM 端口余量:
+`agent_docs/p5f_verify/ufpin.tcl` 逐引脚取 `u_uf` 的 BRAM 端口余量:
 
 | 端口 | worst hold | 源寄存器 |
 |---|---|---|
@@ -436,7 +436,7 @@ C:/Users/zhxue/anaconda3/python.exe tools/board_p5b_check.py --port COM9 --lines
 | `BC` 占多数 | 整字节替换 (取到别的字节/别的地址) |
 | `DD > 0` | 「重复上一字节」签名计数 —— 陈旧型损坏的直接度量 |
 
-**对照基线**: 同一板/同一天先测 HOLDFIX 位流 (`p5f_verify/keep/wrapper_p4_holdfix.bit`)
+**对照基线**: 同一板/同一天先测 HOLDFIX 位流 (`agent_docs/p5f_verify/keep/wrapper_p4_holdfix.bit`)
 拿当次错误率; 诊断位流的 `UMM` 若在同量级 ⇒ 仪器未扰动被测现象, 读数可信。
 
 **判读工具** (离线, 不是速率测试):
@@ -477,7 +477,7 @@ C:/Users/zhxue/anaconda3/python.exe tools/rxp_classify.py --ii 3A98 --gg 5F --ee
 
 诊断位流 (`p5diag_prj`, `RXP_DIAG`) 烧入后跑线速图案, **每轮重新烧录 = 复位**
 (快照粘滞, 不复位读的是上一轮)。`--udp-send-pattern 8388608 --udp-paylen 1472 --rate-mbps 0`。
-5 轮原始状态行存 `p5diag_verify/samples.txt`。
+5 轮原始状态行存 `agent_docs/p5diag_verify/samples.txt`。
 
 ### 11.2 结果
 
@@ -551,7 +551,7 @@ C:/Users/zhxue/anaconda3/python.exe tools/rxp_classify.py --ii 3A98 --gg 5F --ee
 
 ### 11.6 ★★ 决定性签名 (第二轮采样 6 轮, 独立复核): **坏字节 = 下一帧同偏移的图案值**
 
-第二轮板级采样 (`p5diag_verify/samples_512.txt`, 6 轮, **512B 与 1472B 交替**以隔离热漂移),
+第二轮板级采样 (`agent_docs/p5diag_verify/samples_512.txt`, 6 轮, **512B 与 1472B 交替**以隔离热漂移),
 与 §11.2 的 5 轮合并共 **11 轮**。我**独立重算** (自己实现图案流, 不看 agent 结论):
 
 | 轮 | `II` | 该轮实际帧长 | `EE == pattern[II]` | 命中 `GG == pattern[II+k]` |
@@ -983,7 +983,7 @@ RXPV3 P8 rc=1 vc=1 vx=184 vs=0 vr=184 vn=1 | 冻结值=0 影子=0 wptr=0 rptr=18
 > 请用**本仓根**下的相对路径 `cmd //c 'board\run_program_p5_diag.bat'`。
 > ⚠️ 本板 (KU5P) 无 UART、COM9 状态行不可观测 —— 见 `agent_docs/P6E_OBS.md` 与 README 相关注记。
 
-1. **等构建结束** → 读 `p5diag_verify/diag_timing.rpt` 确认 **0 失败端点**。
+1. **等构建结束** → 读 `agent_docs/p5diag_verify/diag_timing.rpt` 确认 **0 失败端点**。
 2. **烧 v3** → `cmd //c 'D:\repo\ECO\udp_hls_10g\board\run_program_p5_diag.bat'`
    ⚠️ **只在没有构建在跑时烧** (见 §15.4 坑 1)。
 3. **灌图案** (与 v1/v2 同口径):
@@ -1018,7 +1018,7 @@ RXPV3 P8 rc=1 vc=1 vx=184 vs=0 vr=184 vn=1 | 冻结值=0 影子=0 wptr=0 rptr=18
 `vivado_prj/p5diag_prj.runs/impl_1/wrapper_p4.bit` 在构建的**数分钟内不存在**。
 此时 `run_program_p5_diag.bat` 静默失败 (若再把输出重定向到 /dev/null 就完全看不见) ⇒
 **板子从未复位** ⇒ 图案相位丢失 ⇒ `UMM` ≈ 送出字节数、且**每轮 `II` 完全相同**。
-- **正确做法**: 从留档位流烧 —— `board/run_program_p5_keep.bat <p5diag_verify\keep\ 下的文件名>`;
+- **正确做法**: 从留档位流烧 —— `board/run_program_p5_keep.bat <agent_docs/p5diag_verify\keep\ 下的文件名>`;
   该脚本**自己断言 `PROGRAM_OK`**, 没报 OK 就 `exit 1`。
 - **另**: 构建与 JTAG 编程不要并行 (hw_server 争用), 这是早先就写进计划的纪律, 本次被自己违反。
 
@@ -1032,8 +1032,8 @@ P3 `UMM` 区间), **不过闸就不输出派生结论**。已用那次垃圾数�
 
 | 类别 | 路径 |
 |---|---|
-| **位流留档** | `p5diag_verify/keep/wrapper_p4_diag_v1.bit` (`22400c1e…`) · `…_v2.bit` (`309cd021…`) · `…_holdfix.bit` |
-| **原始读数** | `p5diag_verify/samples.txt` (v1, 5 轮) · `samples_512.txt` (v1, 6 轮) · `samples_v2_model.txt` (v2, 7 轮) · `samples_long.txt` (**无效, 保留作反面教材**) |
+| **位流留档** | `agent_docs/p5diag_verify/keep/wrapper_p4_diag_v1.bit` (`22400c1e…`) · `…_v2.bit` (`309cd021…`) · `…_holdfix.bit` |
+| **原始读数** | `agent_docs/p5diag_verify/samples.txt` (v1, 5 轮) · `samples_512.txt` (v1, 6 轮) · `samples_v2_model.txt` (v2, 7 轮) · `samples_long.txt` (**无效, 保留作反面教材**) |
 | **仪器门** | `sim/rxpdiag/run_tb_rxp_diag.bat` (v1+v2 格式/功能 8 相位) · `sim/rxpdiag/run_tb_rxp_v3.bat` (v3 功能 9 相位) · `sim/p5e_udp/run_tb_p5e_udp_wrapper_diag.bat` (真 wrapper) |
 | **判读工具** | `tools/rxp_classify.py` (含 v2/v3 全字段判读) · `tools/rxp_round_check.py` (前置闸) |
 | **构建/烧录** | `board/build_p5_diag.tcl` · `run_build_p5_diag.bat` · `run_program_p5_diag.bat` · **`run_program_p5_keep.bat`** |
@@ -1056,7 +1056,7 @@ P3 `UMM` 区间), **不过闸就不输出派生结论**。已用那次垃圾数�
 
 ### 16.2 位流、时序、留档
 
-- 构建 `vivado_build_p5diag3.log` exit 0; `p5diag_verify/diag_timing.rpt`:
+- 构建 `vivado_build_p5diag3.log` exit 0; `agent_docs/p5diag_verify/diag_timing.rpt`:
   **`WNS +0.073 / TNS 0.000 / 0 失败端点`**, `WHS 0.000 / 0 失败端点`。
   ⚠️ **旁注**: `WHS 0.000` 比 HOLDFIX baseline 的 `+0.007` **更紧** (但未违反)。
   这不影响本节结论 —— §10 已用 HOLDFIX 构建 (真实 hold 裕量 ≥0.2ns) 仍以 0.218% 损坏,
@@ -1144,7 +1144,7 @@ P3 `UMM` 区间), **不过闸就不输出派生结论**。已用那次垃圾数�
 
 真正要分开的是「健康 ≈3e3–2.4e4」与「没复位 ≈8.4e6 (= 送出字节数)」—— 相差 **350×**。
 ⇒ 改为**数量级口径** `[1000, 150000]` (下留 3×、上留 6× 余量, 仍比病理模态低 56×),
-并用**合成的"没复位"行** (`p5diag_verify/_ctl_noreset.line`, `UMM=0x800000`) 做负对照
+并用**合成的"没复位"行** (`agent_docs/p5diag_verify/_ctl_noreset.line`, `UMM=0x800000`) 做负对照
 证明它**仍然开火** —— 闸改宽而不再有判别力, 等于把闸废掉。
 第 1 轮的 `UMM=2934` 差 6 越出旧下界, 是这次标定错的**触发器**, 但**修它的理由不依赖那一轮**
 (上界否掉已知好数据这一条独立成立)。
@@ -1159,9 +1159,9 @@ P3 `UMM` 区间), **不过闸就不输出派生结论**。已用那次垃圾数�
 **③ 一条被误用的证据 (审查 agent 的"铁证"用错了文件)**。它发现了一条**重要的方法学事实**:
 `ds_*`/`v3_*` 快照是**每次复位只采一次**(`app_udp_pattern.v:610-619` 的 `ds_v_r` 粘滞 +
 `udp_split.v:798-811`), 因此**未复位的运行会拿上一次运行的快照冒充本次读数**。
-但它引的"铁证" `p5diag_verify/_ctl_noreset.line` 是**我手工造的合成负对照** (拷贝 round1 只改
+但它引的"铁证" `agent_docs/p5diag_verify/_ctl_noreset.line` 是**我手工造的合成负对照** (拷贝 round1 只改
 `UMM`/桶字段), 不是板级读数 —— 那些字段与 round1 相同是**我造的**, 不是板子给的。
-**结论仍然成立, 但证据要换成真数据** `p5diag_verify/samples_long.txt` (那次无复位长跑):
+**结论仍然成立, 但证据要换成真数据** `agent_docs/p5diag_verify/samples_long.txt` (那次无复位长跑):
 `II=005B7600` **三轮逐位相同**, 而 `UMM` 33.4M → 66.9M → 100.3M **单调累加** ⇒
 快照粘滞 + 计数器不复位, 两者同现。⇒ 这条已并入 §15.4 坑 2 的家族:
 **先过外部前置闸, 且不可跨轮次引用快照字段**。
@@ -1194,10 +1194,10 @@ P3 `UMM` 区间), **不过闸就不输出派生结论**。已用那次垃圾数�
 |---|---|
 | 单轮驱动 | `tools/board_round_v3.sh` (烧录→灌图案→读→**强制过闸**→判读; 任一步失败即中止) |
 | 前置闸 (已重标定) | `tools/rxp_round_check.py` (数量级口径 `[1000,150000]` + 负对照已验证) |
-| 原始读数 | `p5diag_verify/v3_round{1,2,3,4}.line` |
-| 反面对照 | `p5diag_verify/_ctl_noreset.line` (合成病理行, 用于证明闸仍有判别力) |
-| 位流留档 | `p5diag_verify/keep/wrapper_p4_diag_v3.bit` (`d1fca4b5…`) |
-| 时序/DRC | `p5diag_verify/diag_timing.rpt` (0 失败端点) · `diag_drc_routed.rpt` |
+| 原始读数 | `agent_docs/p5diag_verify/v3_round{1,2,3,4}.line` |
+| 反面对照 | `agent_docs/p5diag_verify/_ctl_noreset.line` (合成病理行, 用于证明闸仍有判别力) |
+| 位流留档 | `agent_docs/p5diag_verify/keep/wrapper_p4_diag_v3.bit` (`d1fca4b5…`) |
+| 时序/DRC | `agent_docs/p5diag_verify/diag_timing.rpt` (0 失败端点) · `diag_drc_routed.rpt` |
 | 修复的脚本 | `board/run_program_p5_keep.bat` · `run_program_p5_diag.bat` · `run_program_p5.bat` (三者 `-log` 前置) |
 | 补的门 | `sim/rxpdiag/tb_rxp_v3.v` 新增 `P10` (读侧单独注入 + `SW != GW` 存在性证明); md5 `0c50cc8033ca3b1d182e607ac2a33384` |
 | 变异留档 | `/tmp/rxpv3_bak/` (变异前备份 + 两次变异运行日志 `xsim_v3_MUT*.log`) |
@@ -1354,7 +1354,7 @@ P10 真正补上的是**直接的正存在性证明** (同一帧位置上 SW 与
 
 | 类别 | 路径 |
 |---|---|
-| 长跑原始读数 | `p5diag_verify/v3_long{1,2}.line` |
+| 长跑原始读数 | `agent_docs/p5diag_verify/v3_long{1,2}.line` |
 | 摘要工具 (**新, 把 §16.10 判据固化为可重跑检查**) | `tools/rxp_digest.py` (`--window` 全搜 + 整字精确匹配 + 桶剖面比对) |
 
 ---
@@ -1367,10 +1367,10 @@ P10 真正补上的是**直接的正存在性证明** (同一帧位置上 SW 与
 先在分支 `p5f-rx-corruption` 上提交,再 **`--ff-only` 快进到 `master`**(历史线性,零冲突)。
 ⚠️ **只在本机** —— merge 后 `master` 是 `ahead 1 of origin/master`,**未 push**。
 
-**不含**(都有理由): `p5diag_verify/keep/*.bit`(4×11 MB, 项目全局忽略 `*.bit`;留盘上, md5 见 §16.8)·
+**不含**(都有理由): `agent_docs/p5diag_verify/keep/*.bit`(4×11 MB, 项目全局忽略 `*.bit`;留盘上, md5 见 §16.8)·
 `sim/rxpdiag/_mutbak/`(变异测试的 RTL 备份脚手架 —— 进库会让同名 RTL 出现两份, 且文档未引用)·
 `xsim.dir/`·`*.wdb`·`hs_err_*.dmp`·`dfx_runtime.txt`(产物)· 历史杂物(pcapng/FPGA/etl 等)。
-`.gitignore` 按既有风格补了 `sim/rxpdiag/` 与 `p5diag_verify/` 两段规则。
+`.gitignore` 按既有风格补了 `sim/rxpdiag/` 与 `agent_docs/p5diag_verify/` 两段规则。
 
 **git 身份**:本机原先**未配置**任何 `user.name/email` ⇒ 首次提交被拒 (`Author identity unknown`)。
 已按仓库既有提交的署名设为**全局** `ZhengXueyuan <zh.xue.yuan@hotmail.com>` (用户授权) + 本仓库 local 同值。
@@ -1538,9 +1538,9 @@ WARNING: [VRFC 10-3645] port 'v4_ne' remains unconnected [... board/wrapper_p4.v
 - **测试夹具**(进库, 三个都是 `*.line`):
   | 文件 | 用途 |
   |---|---|
-  | `p5diag_verify/fixture_v4_layout.line` | 门里那条 805 字符的 v4 行, 用于量偏移/查键污染 |
-  | `p5diag_verify/fixture_v4_knownanswer.line` | **已知答案**: 帧 3→+1、帧 4→+1(与 3 相邻)、帧 6→−1;`NE=3 NR=2 MR=2`  ⇒ 工具判出"存在连续段"+ 各自符号 |
-  | `p5diag_verify/fixture_v4_gatepos.line` / `..._gateneg.line` | 前置闸 P4 的**正/负对照**: 负对照把 `NE` 从 8 改成 9 ⇒ 闸同时报 `NE != OZ` 与"静默丢弃" |
+  | `agent_docs/p5diag_verify/fixture_v4_layout.line` | 门里那条 805 字符的 v4 行, 用于量偏移/查键污染 |
+  | `agent_docs/p5diag_verify/fixture_v4_knownanswer.line` | **已知答案**: 帧 3→+1、帧 4→+1(与 3 相邻)、帧 6→−1;`NE=3 NR=2 MR=2`  ⇒ 工具判出"存在连续段"+ 各自符号 |
+  | `agent_docs/p5diag_verify/fixture_v4_gatepos.line` / `..._gateneg.line` | 前置闸 P4 的**正/负对照**: 负对照把 `NE` 从 8 改成 9 ⇒ 闸同时报 `NE != OZ` 与"静默丢弃" |
 
 ### 17.7 **预注册**假设 (在 v4 板级数据之前写下, 事后不得改判据)
 

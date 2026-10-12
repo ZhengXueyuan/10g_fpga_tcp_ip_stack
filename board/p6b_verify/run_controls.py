@@ -9,8 +9,8 @@
 #
 #   输入全部是**仓里已有的真实报告** (不自己编造"像样"的报告):
 #     正对照  board/p6e_ku5p_timing.rpt                       (P6e 8.0ns 单约束, 0 失败端点)
-#     负对照  p6a_ku5p_verify/p6a_t6p4_timing_summary_routed.rpt (整设计 6.400ns ⇒ 16 条 Min-Period 违例)
-#     旁证    p6a_ku5p_verify/p6a_t8p0_...rpt, board/p6e_verify/p6e_timing_summary.routed.rpt
+#     负对照  agent_docs/p6a_ku5p_verify/p6a_t6p4_timing_summary_routed.rpt (整设计 6.400ns ⇒ 16 条 Min-Period 违例)
+#     旁证    agent_docs/p6a_ku5p_verify/p6a_t8p0_...rpt, board/p6e_verify/p6e_timing_summary.routed.rpt
 #   病理样本 = 从上面真实报告**逐字改一处**生成 (人工构造, 文件里带 SYNTHETIC 标记):
 #     path_setup_fail1 / path_hold_fail2 / path_clock_5ns / path_verdict_notmet
 #     SYNTH_dual_ok  (给 p6e 补一个干净的 6.400ns 域 ⇒ 演示"双域报告判 PASS"这条路)
@@ -177,7 +177,7 @@ def main():
            "# 每一行 = 一次真实的工具调用; 产物 = 同名 .txt (原始 stdout)。",
            "# 判据: 退出码 与 期望一致, 且期望出现的串出现 / 禁止出现的串不出现。",
            "# 重跑: python board/p6b_verify/run_controls.py",
-           "# 输入: 仓里已有的真实报告 (board/p6e_ku5p_timing.rpt / p6a_ku5p_verify/*) +",
+           "# 输入: 仓里已有的真实报告 (board/p6e_ku5p_timing.rpt / agent_docs/p6a_ku5p_verify/*) +",
            "#       path/*.rpt (人工构造的病理样本, 由本脚本一键重建, 删了也没关系)", ""]
     n_bad = 0
     for name, rpt, exp, want_rc, must, must_not in cases:

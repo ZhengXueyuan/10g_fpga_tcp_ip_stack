@@ -8,7 +8,7 @@
 ⇒ GT 跑的是 **raw**，**PCS/gearbox 一层是空白**。
 
 **本规格书的状态**：所有"工具能力/器件参数"结论都附**工具原始输出**；闸 0 **未烧板**（板子载着 P6b 冻结位流）；
-所有 Vivado 实验都在独立 scratch 工程 `udp_hls_10g/_p7a_probe/` 里做，**只跑 OOC 综合 + 布局**，未跑 `launch_runs` 全流程。
+所有 Vivado 实验都在独立 scratch 工程 `udp_hls_10g/agent_docs/_p7a_probe/` 里做，**只跑 OOC 综合 + 布局**，未跑 `launch_runs` 全流程。
 
 ---
 
@@ -31,7 +31,7 @@
 
 ### 1.1 IP 存在、版本、器件支持
 
-原始输出（`_p7a_probe/p1_stdout.txt`）：
+原始输出（`agent_docs/_p7a_probe/p1_stdout.txt`）：
 
 ```
 CMD: get_ipdefs -filter {NAME == gtwizard_ultrascale}
@@ -53,7 +53,7 @@ IPDEF_SUPPORTED_FAMILIES = <kintexuplus:ALL:Production>
 
 ### 1.2 license 结论（含读数的区分能力）
 
-**结论：在位 license 下 gtwizard 是干净的。** 原始输出（`_p7a_probe/p5_stdout.txt`，一次原子配置后 generate）：
+**结论：在位 license 下 gtwizard 是干净的。** 原始输出（`agent_docs/_p7a_probe/p5_stdout.txt`，一次原子配置后 generate）：
 
 ```
 GENERATE_ALL rc = 0
@@ -349,7 +349,7 @@ ST_LINK_UP  : if (prbs_error) begin
 
 ### 3.1 端口清单
 
-来自 `_p7a_probe/pj_fin/p5_fin.gen/sources_1/ip/gt_10gbr/synth/gt_10gbr.v`（模块端口声明，原文）：
+来自 `agent_docs/_p7a_probe/pj_fin/p5_fin.gen/sources_1/ip/gt_10gbr/synth/gt_10gbr.v`（模块端口声明，原文）：
 
 ```
 input  wire [0 : 0]     gtwiz_userclk_tx_reset_in;
@@ -454,7 +454,7 @@ foreach c [get_cells -hier -filter {REF_NAME =~ GTYE4_CHANNEL*}] {
 }
 ```
 
-**闸 0 实测结果**（`_p7a_probe/p7_stdout.txt`，两个构建都跑了 OOC 综合 **+ `place_design` rc=0**）：
+**闸 0 实测结果**（`agent_docs/_p7a_probe/p7_stdout.txt`，两个构建都跑了 OOC 综合 **+ `place_design` rc=0**）：
 
 | 读回项 | 10GBASE-R 构建 | **RAW 构建（负对照）** |
 |---|---|---|
@@ -791,7 +791,7 @@ iBERT 的观测方式（`get_hw_sio_gts` 读 `RX_BER` / `RX_RECEIVED_BIT_COUNT`�
 
 ---
 
-## 10. 本阶段产生的文件（都在 `udp_hls_10g/_p7a_probe/`）
+## 10. 本阶段产生的文件（都在 `udp_hls_10g/agent_docs/_p7a_probe/`）
 
 > ⚠️ **2026-09-29 TL 更正**：本节原写"工具核实用，**不进 git**" —— 那会与 §1.1/§1.2/§1.3/§3.1
 > **本规格书自己引用的 `p*_stdout.txt`** 冲突（引文都在那些文件里，不入库就**证据索引悬空**）。

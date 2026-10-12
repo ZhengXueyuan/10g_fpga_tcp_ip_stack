@@ -3,7 +3,7 @@
 # 每一行 = 一次真实的工具调用; 产物 = 同名 .txt (原始 stdout)。
 # 判据: 退出码 与 期望一致, 且期望出现的串出现 / 禁止出现的串不出现。
 # 重跑: python board/p6b_verify/run_controls.py
-# 输入: 仓里已有的真实报告 (board/p6e_ku5p_timing.rpt / p6a_ku5p_verify/*) +
+# 输入: 仓里已有的真实报告 (board/p6e_ku5p_timing.rpt / agent_docs/p6a_ku5p_verify/*) +
 #       path/*.rpt (人工构造的病理样本, 由本脚本一键重建, 删了也没关系)
 
   [OK  ] pos_p6e_8ns.auto           --expect auto   rc=0 (期望 0)  p6e_ku5p_timing.rpt

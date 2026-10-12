@@ -22,13 +22,13 @@
 ## 1. 变更全貌（本轮 P7a 只新增 + 改三份文档）
 
 ```
-$ git status --porcelain -unormal | grep -v '^?? _proj_10g/\|^?? _p7a_probe/'
+$ git status --porcelain -unormal | grep -v '^?? _proj_10g/\|^?? agent_docs/_p7a_probe/'
  M agent_docs/PORT_NOTES.md          <- 本轮追加 "2026-09-29 P7a" 一节
  M README.md              <- 本轮: 状态块一句 + 里程碑表 P7a 行 + 归档索引两行
 ?? agent_docs/P7A_RESULT.md          <- 本轮新增（板级验收原件）
 ?? agent_docs/P7A_SPEC.md            <- P7a 施工规格（既有，本轮未改一字）
 ?? _proj_10g/             <- 本轮新增（设计/门/脚本/原始读数；125 MB，其中 ~123 MB 是产物）
-?? _p7a_probe/            <- 本轮新增（工具核实探针工程；17 MB，其中 ~16.7 MB 是产物）
+?? agent_docs/_p7a_probe/            <- 本轮新增（工具核实探针工程；17 MB，其中 ~16.7 MB 是产物）
 ?? _tmp_*.py  (11 个)     <- **不是本轮的**，见 §0.6
 ```
 
@@ -52,7 +52,7 @@ $ git status --porcelain -unormal | grep -v '^?? _proj_10g/\|^?? _p7a_probe/'
 | # | 主题 | 文件数（现有清单） | 依赖 |
 |---|---|---|---|
 | **C0** | `.gitignore`：P7a 的排除规则 + `_p7a_probe` 的 4 条放行 | 1 | 必须最先（放行规则先于 `add`） |
-| **C1** | `_proj_10g/` 的**设计 + 门 + 脚本 + 规格**（+ 单元门读数 + `_p7a_probe` 工具核实读数） | 67 | 需 C0 先落地（`_p7a_probe/*` 否则被 `add` 静默忽略） |
+| **C1** | `_proj_10g/` 的**设计 + 门 + 脚本 + 规格**（+ 单元门读数 + `_p7a_probe` 工具核实读数） | 67 | 需 C0 先落地（`agent_docs/_p7a_probe/*` 否则被 `add` 静默忽略） |
 | **C2** | **板级证据 + 文档**（全部原始读数 + `agent_docs/P7A_RESULT.md` + README + agent_docs/PORT_NOTES + 本文件） | 36 | 需 C1（读数要引用设计文件） |
 
 **为什么不是 2 条**：证据批里 `_proj_10g/reports/` 与 `*_scratch/logs/` 是"跨阶段汇总"，
@@ -77,7 +77,7 @@ git add -- .gitignore
 # 实测体积: `_proj_10g/` 125 MB 里 ~123 MB 是产物 (60M 构建工程 + 42M 两个 license
 #   负对照工程 + 15.4M iBERT 对照件位流[已被全局 *.bit 覆盖] + 3.6M 网表转储);
 #   **设计(RTL/XDC/脚本) + 门 + 全部原始读数 ≈ 2 MB, 全部入库**(本工程靠文本证据存档)。
-# `_p7a_probe/` 17 MB 同理: 只留 agent_docs/P7A_SPEC §1 逐字引用的那批文本读数 (324 KB)。
+# `agent_docs/_p7a_probe/` 17 MB 同理: 只留 agent_docs/P7A_SPEC §1 逐字引用的那批文本读数 (324 KB)。
 # ============================================================================
 
 # ---- license 负对照的两个 Vivado 工程 (可重建: _proj_10g/tcl/lic_deny_p7a.tcl;
@@ -102,14 +102,14 @@ _proj_10g/tcl/lint/files.f
 _proj_10g/reports/p7a_post_route_netlist.v
 
 # ---- P7a 工具核实的一次性探针工程: 三个 Vivado 工程 + 两个网表转储 = 17 MB 的主体 ----
-_p7a_probe/.Xil/
-_p7a_probe/pj_fin/
-_p7a_probe/rb_pos/
-_p7a_probe/rb_raw/
-_p7a_probe/nl_pos.v
-_p7a_probe/nl_raw.v
-_p7a_probe/*.log
-_p7a_probe/*.jou
+agent_docs/_p7a_probe/.Xil/
+agent_docs/_p7a_probe/pj_fin/
+agent_docs/_p7a_probe/rb_pos/
+agent_docs/_p7a_probe/rb_raw/
+agent_docs/_p7a_probe/nl_pos.v
+agent_docs/_p7a_probe/nl_raw.v
+agent_docs/_p7a_probe/*.log
+agent_docs/_p7a_probe/*.jou
 #   ⭐ 放行 agent_docs/P7A_SPEC §1.1/§1.2/§1.3/§10 逐字引用的**文本读数**(合计 324 KB):
 #      *_stdout.txt      = 每轮探针的 stdout (已核实 §1 的每一条引用都能在其中找到:
 #                          p1_stdout.txt:160 = TX_PROTOCOL 不存在; p2_stdout.txt:253 = 12-4371;
@@ -117,10 +117,10 @@ _p7a_probe/*.jou
 #      *.tcl / run_p*.bat= 探针脚本本身 (可复跑)
 #      clockInfo.txt     = 时钟读数
 #   ⚠️ 这一条与 agent_docs/P7A_SPEC §10 的 "不进 git" 有冲突 —— 见本文 §6.2 (建议一并改 §10 一句话)
-!_p7a_probe/*_stdout.txt
-!_p7a_probe/*.tcl
-!_p7a_probe/run_p*.bat
-!_p7a_probe/clockInfo.txt
+!agent_docs/_p7a_probe/*_stdout.txt
+!agent_docs/_p7a_probe/*.tcl
+!agent_docs/_p7a_probe/run_p*.bat
+!agent_docs/_p7a_probe/clockInfo.txt
 ```
 
 **提交信息**：
@@ -130,7 +130,7 @@ gitignore: P7a 归档的排除规则 (license 负对照工程 / 探针工程 / *
 
 本轮 P7a 归档新增两块工作区:
 - `_proj_10g/` 125 MB (设计 + 门 + 脚本 + 全部原始读数; ~123 MB 是产物)
-- `_p7a_probe/` 17 MB (工具核实探针: 三个 Vivado 工程 + 两个网表转储)
+- `agent_docs/_p7a_probe/` 17 MB (工具核实探针: 三个 Vivado 工程 + 两个网表转储)
 
 本提交只加**排除**规则, 一条 `!` 放行都没有 —— 原因是**已核实**(`git check-ignore -v`
 逐条跑过)要入库的每一份文本读数**当前都不被任何规则挡住**, 所以不需要放行;
@@ -193,31 +193,31 @@ git add -- agent_docs/P7A_SPEC.md \
   _proj_10g/ctrl_scratch/run_ctrl_ibert_v3.bat \
   _proj_10g/ctrl_scratch/run_extra_gate_diag.bat \
   _proj_10g/ctrl_scratch/run_reflash_p7a.bat \
-  _p7a_probe/clockInfo.txt \
-  _p7a_probe/p1_stdout.txt \
-  _p7a_probe/p2_stdout.txt \
-  _p7a_probe/p3_stdout.txt \
-  _p7a_probe/p4_stdout.txt \
-  _p7a_probe/p5_stdout.txt \
-  _p7a_probe/p6_stdout.txt \
-  _p7a_probe/p7_stdout.txt \
-  _p7a_probe/p1_wizard.tcl \
-  _p7a_probe/p2_wizard.tcl \
-  _p7a_probe/p3_wizard.tcl \
-  _p7a_probe/p4_matrix.tcl \
-  _p7a_probe/p5_final.tcl \
-  _p7a_probe/p6_readback.tcl \
-  _p7a_probe/p7_readback2.tcl \
-  _p7a_probe/run_p1.bat \
-  _p7a_probe/run_p2.bat \
-  _p7a_probe/run_p3.bat \
-  _p7a_probe/run_p4.bat \
-  _p7a_probe/run_p5.bat \
-  _p7a_probe/run_p6.bat \
-  _p7a_probe/run_p7.bat
+  agent_docs/_p7a_probe/clockInfo.txt \
+  agent_docs/_p7a_probe/p1_stdout.txt \
+  agent_docs/_p7a_probe/p2_stdout.txt \
+  agent_docs/_p7a_probe/p3_stdout.txt \
+  agent_docs/_p7a_probe/p4_stdout.txt \
+  agent_docs/_p7a_probe/p5_stdout.txt \
+  agent_docs/_p7a_probe/p6_stdout.txt \
+  agent_docs/_p7a_probe/p7_stdout.txt \
+  agent_docs/_p7a_probe/p1_wizard.tcl \
+  agent_docs/_p7a_probe/p2_wizard.tcl \
+  agent_docs/_p7a_probe/p3_wizard.tcl \
+  agent_docs/_p7a_probe/p4_matrix.tcl \
+  agent_docs/_p7a_probe/p5_final.tcl \
+  agent_docs/_p7a_probe/p6_readback.tcl \
+  agent_docs/_p7a_probe/p7_readback2.tcl \
+  agent_docs/_p7a_probe/run_p1.bat \
+  agent_docs/_p7a_probe/run_p2.bat \
+  agent_docs/_p7a_probe/run_p3.bat \
+  agent_docs/_p7a_probe/run_p4.bat \
+  agent_docs/_p7a_probe/run_p5.bat \
+  agent_docs/_p7a_probe/run_p6.bat \
+  agent_docs/_p7a_probe/run_p7.bat
 ```
 
-> ⚠️ **最后那 22 个 `_p7a_probe/*` 文件必须显式列出**：C0 的 `!` 放行只是"解除忽略"，
+> ⚠️ **最后那 22 个 `agent_docs/_p7a_probe/*` 文件必须显式列出**：C0 的 `!` 放行只是"解除忽略"，
 > **不会**把它们加进索引 —— 不列就是"放行了但没人加"，`agent_docs/P7A_SPEC.md` §1.1/§1.2/§1.3 的引用照样悬空
 > （这正是本工程反复踩的"静默不生效"家族）。
 
@@ -257,7 +257,7 @@ P7a 的目标是补上 09-27 iBERT 轮留下的最大空白: 那一轮 `TXGEARBO
 - `board_scratch/dryrun_stub.tcl`: 无板干跑台架 —— 上面那两条护栏就是它抓出来的。
 - `ctrl_scratch/ctrl_ibert_v3.tcl` + `extra_gate_diag.tcl`: 对照件恢复与归因诊断。
 - `agent_docs/P7A_SPEC.md`: 闸 0 施工规格(工具事实核实 / 判据设计 / 风险表 / 未确证清单)。
-- `_p7a_probe/*`(22 个文本文件, 324 KB): §1 逐字引用的工具原始输出(IP 存在性/器件支持/
+- `agent_docs/_p7a_probe/*`(22 个文本文件, 324 KB): §1 逐字引用的工具原始输出(IP 存在性/器件支持/
   license 读数/TX_PROTOCOL 不存在/预设文件加密 等)与探针脚本。
   ⚠️ 该目录的**Vivado 工程与网表转储(17 MB 里的绝大部分)不入库**(见 .gitignore 那一条);
   agent_docs/P7A_SPEC §10 原本写"不进 git", 与 §1 的引用冲突 ⇒ **建议在本提交里把 §10 补一句话**
@@ -364,11 +364,11 @@ Co-Authored-By: Claude Code <noreply@anthropic.com>
 
 `_proj_10g/lic_deny_prj/` · `_proj_10g/lic_deny_ctrl_prj/` · `_proj_10g/tcl/probe_xdc_prj/` ·
 `_proj_10g/tcl/lint/files.f` · `*.ltx` · `_proj_10g/reports/p7a_post_route_netlist.v` ·
-`_p7a_probe/` 的工程与网表（+ 尾部四条 `!` 放行，见 §6.2）。
+`agent_docs/_p7a_probe/` 的工程与网表（+ 尾部四条 `!` 放行，见 §6.2）。
 
 ### 4.3 ⭐ 需要**放行**吗？—— **本方案结论：一条都不需要**（除 `_p7a_probe` 的文本读数）
 
-`P6b` 那轮给 `p6b_accept_final/*.log`、`board/p6b_verify/*.log`、`_proj_pcie/{smoke,soak}_scratch/*.log`
+`P6b` 那轮给 `agent_docs/p6b_accept_final/*.log`、`board/p6b_verify/*.log`、`_proj_pcie/{smoke,soak}_scratch/*.log`
 加了窄口径放行，理由是"报告逐字引用了那些 `.log`"。**本轮的形态不同，逐条核实过**：
 
 | 候选 | 核实结论 | 处置 |
@@ -378,7 +378,7 @@ Co-Authored-By: Claude Code <noreply@anthropic.com>
 | `_proj_10g/ctrl_scratch/logs/*.log` | `ctrl_console{,_run2,_v4,_xdiag}.txt` + `reflash_console.txt` 是同一批读数的捕获（实测 `ctrl_console_v4.txt:336,359,376` 与 `ctrl_ibert_v3.log:350,373,390` 逐字同值）⇒ **`agent_docs/P7A_RESULT.md` 的引用已全部按入库的 `.txt` 捕获给行号**（并在它 §9 写明"行号口径"）⇒ 不放行也不会留下悬空引用 | **不放行** |
 | `_proj_10g/tcl/lint/xvlog.txt` | **当前不被任何规则挡** | 无需放行（已入 C1） |
 | `_proj_10g/ctrl_scratch/logs/m8_vivado.log.ref` | 扩展名 `.log.ref`，`*.log` 不匹配 | 无需放行（已入 C2） |
-| `_p7a_probe/*_stdout.txt` / `*.tcl` / `run_p*.bat` / `clockInfo.txt` | **被 C0 新规则挡住 ⇒ 必须放行**（`agent_docs/P7A_SPEC.md` §1.1/§1.2/§1.3/§10 逐字引用它们） | **C0 尾部四条 `!`** |
+| `agent_docs/_p7a_probe/*_stdout.txt` / `*.tcl` / `run_p*.bat` / `clockInfo.txt` | **被 C0 新规则挡住 ⇒ 必须放行**（`agent_docs/P7A_SPEC.md` §1.1/§1.2/§1.3/§10 逐字引用它们） | **C0 尾部四条 `!`** |
 
 ### 4.4 三条**取舍**（默认按推荐做，TL 可改）
 
@@ -386,7 +386,7 @@ Co-Authored-By: Claude Code <noreply@anthropic.com>
    推荐**排除**（它是 readback tcl 的转储，判据读数已逐字进 `p7a_readback.txt` §[1]/§[1c]）。
    若要留档 ⇒ 在 C0 里加 `!_proj_10g/reports/p7a_post_route_netlist.v`。
 2. **`*.ltx` 用全局规则还是窄规则**：推荐全局（实测现库 0 个已跟踪 `.ltx`；位流本身也不跟踪）。
-   若想更保守 ⇒ 改成 `_proj_10g/**/*.ltx` + `_p7a_probe/**/*.ltx`。
+   若想更保守 ⇒ 改成 `_proj_10g/**/*.ltx` + `agent_docs/_p7a_probe/**/*.ltx`。
 3. **那批 `.log` 到底放不放行**：本方案选"不放行"（读数已在 `.txt` 捕获里，且引用已改造到 `.txt`）。
    ⚠️ 但要知道**"不放行"不是本仓的唯一先例**：现库里有 **265 个已跟踪的 `*.log`**
    （历史遗留 + 显式 `add -f`；gitignore 不作用于已跟踪文件）。
@@ -412,9 +412,9 @@ Co-Authored-By: Claude Code <noreply@anthropic.com>
 | `_proj_10g/ctrl_scratch/ibert_top_v3_corrected_map.bit` | 15.4 M | 对照件位流（全局 `*.bit` 挡住） |
 | `_proj_10g/tcl/probe_xdc_prj/` | 7 文件 | XDC 缺陷的最小复现工程（脚本可重建，stdout 已归档） |
 | `_proj_10g/reports/p7a_post_route_netlist.v` | 3.6 M | 网表转储（见 §4.4） |
-| `_p7a_probe/{pj_fin,rb_pos,rb_raw}/` + `nl_{pos,raw}.v` + `.Xil/` | ~16.7 M | 三个探针 Vivado 工程 + 两个网表转储 |
+| `agent_docs/_p7a_probe/{pj_fin,rb_pos,rb_raw}/` + `nl_{pos,raw}.v` + `.Xil/` | ~16.7 M | 三个探针 Vivado 工程 + 两个网表转储 |
 | `*/xsim.dir/` `*.wdb` `*.pb` `*.log` `*.jou` | — | 仿真/工具产物（全局规则） |
-| `_p7a_probe/*_vivado.log`（7 个） | ~270 K | 与 `*_stdout.txt` 近乎重复（实测：`p2_stdout.txt:253` 已有引用的 12-4371 报错；`p1_stdout.txt:160` 已有 TX_PROTOCOL 报错） |
+| `agent_docs/_p7a_probe/*_vivado.log`（7 个） | ~270 K | 与 `*_stdout.txt` 近乎重复（实测：`p2_stdout.txt:253` 已有引用的 12-4371 报错；`p1_stdout.txt:160` 已有 TX_PROTOCOL 报错） |
 
 ### 5.3 一条**顺序**约束（同 P6b §4.3 的同族）
 
@@ -433,13 +433,13 @@ Co-Authored-By: Claude Code <noreply@anthropic.com>
 
 ### 6.2 ⚠️ 需要拍板：`agent_docs/P7A_SPEC.md` §10 与"放行 `_p7a_probe` 文本读数"冲突
 
-`agent_docs/P7A_SPEC.md` §10 写的是"本阶段产生的文件（都在 `udp_hls_10g/_p7a_probe/`，工具核实用，**不进 git**）"，
-而同一份文件的 §1.1/§1.2/§1.3 又逐字引用 `_p7a_probe/p{1,2,5}_stdout.txt` 作为原始输出。
+`agent_docs/P7A_SPEC.md` §10 写的是"本阶段产生的文件（都在 `udp_hls_10g/agent_docs/_p7a_probe/`，工具核实用，**不进 git**）"，
+而同一份文件的 §1.1/§1.2/§1.3 又逐字引用 `agent_docs/_p7a_probe/p{1,2,5}_stdout.txt` 作为原始输出。
 两条不能同时为真。**本方案选的是"放行那 324 KB 文本读数"**（与 `.gitignore` 里既有的
 "报告引用的东西真的在库里"原则一致）。若 TL 采纳 ⇒ **建议在 C1 里给 §10 补一句话**：
 
 ```
-> ⚠️ 2026-09-29 更正: `_p7a_probe/` 的**Vivado 工程与网表转储**不入库 (17 MB 里的绝大部分),
+> ⚠️ 2026-09-29 更正: `agent_docs/_p7a_probe/` 的**Vivado 工程与网表转储**不入库 (17 MB 里的绝大部分),
 > 但本文件 §1.1/§1.2/§1.3 **逐字引用**的那批**文本读数** (`*_stdout.txt` / 探针 `*.tcl` /
 > `run_p*.bat` / `clockInfo.txt`, 合计 324 KB) **已入库** —— 否则本文件的引用悬空。
 ```
@@ -451,7 +451,7 @@ Co-Authored-By: Claude Code <noreply@anthropic.com>
 
 ```bash
 # ① 工作区应只剩"不提交"的那两类 + 产物
-git status --porcelain                      # 期望: 只剩 _tmp_*.py (11) 与 _p7a_probe/ 被忽略的工程
+git status --porcelain                      # 期望: 只剩 _tmp_*.py (11) 与 agent_docs/_p7a_probe/ 被忽略的工程
 
 # ② 证据齐全性: agent_docs/P7A_RESULT.md 引用的 14 份读数是否都在库里
 git ls-files _proj_10g/reports _proj_10g/board_scratch/logs _proj_10g/ctrl_scratch | wc -l

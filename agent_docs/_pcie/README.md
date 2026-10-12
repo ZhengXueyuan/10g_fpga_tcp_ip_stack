@@ -1,4 +1,4 @@
-# `_pcie/` — KU5P 的 PCIe/XDMA 观测通道：验证结论与**用法**
+# `agent_docs/_pcie/` — KU5P 的 PCIe/XDMA 观测通道：验证结论与**用法**
 
 > 背景：KU5P 板上**没有 UART**（见 `XCKU5PMini/CLAUDE.md`），P6 的观测通道定为
 > **PCIe / XDMA**（`p6_spec.md` §P6e 与风险 U4）。本目录是 2026-09-28 那次验证的产物与用法。

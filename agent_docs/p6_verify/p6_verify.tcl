@@ -12,7 +12,7 @@ if {![file exists [file join $REPO_ROOT CLAUDE.md]]} {
 #     report_utilization (+hier)-> LUT/FF/BRAM/DSP
 #     report_route_status
 #     failing-endpoint census  -> per-hierarchy grouping (R2 input)
-#   Usage: vivado -mode batch -source p6_verify/p6_verify.tcl -log ... -nojournal
+#   Usage: vivado -mode batch -source agent_docs/p6_verify/p6_verify.tcl -log ... -nojournal
 #   Does NOT modify any project or RTL. ASCII only.
 #=============================================================================
 set root_dir %REPO_ROOT%

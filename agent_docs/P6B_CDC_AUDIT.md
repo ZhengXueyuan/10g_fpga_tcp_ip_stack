@@ -2,7 +2,7 @@
 
 > 审计对象 = `board/wrapper_p4.v` 里**两个新插进来的跨域 FIFO**（`u_rxcdc` / `u_txcdc`）
 > 及其上/下游的握手，重点是"**会不会静默丢字/说谎**"（上一个 FIFO 的 F4(b) 形态）。
-> **本 agent 只写了本文件 + `audit_scratch/`；未改 `rtl/`、`board/`、`tb/`、`_proj_pcie/` 任何既有文件；
+> **本 agent 只写了本文件 + `agent_docs/audit_scratch/`；未改 `rtl/`、`board/`、`tb/`、`_proj_pcie/` 任何既有文件；
 > 未 commit；未烧板；未跑综合。** 全部结论都有 xsim 原始读数（证据文件见 §7）。
 >
 > **被审版本（锁定）**：`fifo_async.v 1c21c0244b49b6ed5310b9346fe7cc25`、
@@ -117,16 +117,16 @@ TX: 数据面 →u_tx_arb(tx_arb, dp_clk) ──AXIS 直连──▶ u_txcdc(73/
 
 ---
 
-## 8. 证据文件索引（全部在 `audit_scratch/`，可复跑）
+## 8. 证据文件索引（全部在 `agent_docs/audit_scratch/`，可复跑）
 
 | 门 | 源码 | 运行 | 原始日志 |
 |---|---|---|---|
-| C9 位级/字段跨域（+2 变异） | `audit_scratch/t1_bits/tb_cdc_bits.v` | `cmd //c 'D:\repo\XCKU5PMini\udp_hls_10g\audit_scratch\run_t1.bat' pos\|mutw75\|mutswap` | `t1_bits/case_*/xsim_*.log` |
-| A1-A5/C10 RX 整链（+2 负对照） | `audit_scratch/t2_rxcdc/tb_rx_cdc_chain.v` | `... run_t2.bat pos\|neg_late\|neg_nobp` | `t2_rxcdc/case_*/xsim_*.log` |
-| B6-B8 TX 整链 + F11 判定 | `audit_scratch/t3_txcdc/tb_tx_cdc_chain.v` | `... run_t3.bat pos` | `t3_txcdc/case_pos/xsim_pos.log` |
-| C11/C12 复位与停钟 | `audit_scratch/t4_reset/tb_cdc_reset.v` | `... run_t4.bat` | `t4_reset/case/xsim.log` |
+| C9 位级/字段跨域（+2 变异） | `agent_docs/audit_scratch/t1_bits/tb_cdc_bits.v` | `cmd //c 'D:\repo\XCKU5PMini\udp_hls_10g\agent_docs/audit_scratch\run_t1.bat' pos\|mutw75\|mutswap` | `t1_bits/case_*/xsim_*.log` |
+| A1-A5/C10 RX 整链（+2 负对照） | `agent_docs/audit_scratch/t2_rxcdc/tb_rx_cdc_chain.v` | `... run_t2.bat pos\|neg_late\|neg_nobp` | `t2_rxcdc/case_*/xsim_*.log` |
+| B6-B8 TX 整链 + F11 判定 | `agent_docs/audit_scratch/t3_txcdc/tb_tx_cdc_chain.v` | `... run_t3.bat pos` | `t3_txcdc/case_pos/xsim_pos.log` |
+| C11/C12 复位与停钟 | `agent_docs/audit_scratch/t4_reset/tb_cdc_reset.v` | `... run_t4.bat` | `t4_reset/case/xsim.log` |
 
-（`audit_scratch/` 里另有我自己的 TB 踩坑留痕：复位释放窗口、NBA 下标竞争、`buf` 是 Verilog 关键字、
+（`agent_docs/audit_scratch/` 里另有我自己的 TB 踩坑留痕：复位释放窗口、NBA 下标竞争、`buf` 是 Verilog 关键字、
 `xvlog.log` 命名冲突、指针 mod-512 假象 —— 这些都在 TB 注释里写明，便于后人复跑时不再踩。）
 
 ---
@@ -136,7 +136,7 @@ TX: 数据面 →u_tx_arb(tx_arb, dp_clk) ──AXIS 直连──▶ u_txcdc(73/
 ## A.1 F-2 已修：`rtl/mac_tx_64.v`（**本次唯一改动的 RTL 文件**）
 
 **修前** `mac_tx_64.v md5=50d606947d28207f6776694316cd5374`（原样留档在
-`audit_scratch/rtl_orig/mac_tx_64.v`，用于 A/B 与回归对照）；**修后 `md5=7e385623cfcb83ccd38be6348fc5dfce`**。
+`agent_docs/audit_scratch/rtl_orig/mac_tx_64.v`，用于 A/B 与回归对照）；**修后 `md5=7e385623cfcb83ccd38be6348fc5dfce`**。
 
 **修复形态**：新增状态 `S_FLUSH`（唯一入口 = `S_DATA` 的 `!fempty` 中止分支）+ 两个计数器输出
 `stat_flush_words`（冲刷期被丢弃的输入字数）/ `stat_flush_done`（冲刷完成次数 = 重对齐到帧边界的次数）。
@@ -151,7 +151,7 @@ TX: 数据面 →u_tx_arb(tx_arb, dp_clk) ──AXIS 直连──▶ u_txcdc(73/
 ③ 唯一"TLAST 永不到来"的情形 = DP 被复位/弃帧 ⇒ 冲刷会连下一帧整帧一起吃掉（代价 = 丢 1 帧，
 **有界、自愈、有计数**，仍绝不发坏帧）；④ 不触发中止 ⇒ `S_FLUSH` 不可达 ⇒ 数据通路逐位不变（见 A.2 的指纹）。
 
-## A.2 F-2 的判据读数（同一 TB `audit_scratch/t3_txcdc/`，同一激励，只换 RTL）
+## A.2 F-2 的判据读数（同一 TB `agent_docs/audit_scratch/t3_txcdc/`，同一激励，只换 RTL）
 
 | 运行 | 线上帧 | ghost | flush_words / flush_done | 线上指纹 `wf` |
 |---|---|---|---|---|
@@ -163,7 +163,7 @@ TX: 数据面 →u_tx_arb(tx_arb, dp_clk) ──AXIS 直连──▶ u_txcdc(73/
 ⇒ ① 幽灵帧 0 ✓；② 撤回修复 ⇒ FAIL（`TXCHAIN FAIL: F-2 幽灵帧 = 1`）✓ 判据有牙；
 ③ **无中止路径逐位不变**（同指纹 + 新 RTL 的 flush 计数器为 0 = 冲刷从未运行的正证据，非"读不到"）✓。
 
-**工程既有单元门回归**（`tools/run_mac_tx_tb.py` 的等价重跑，见 `audit_scratch/regress_mactx.py`，
+**工程既有单元门回归**（`tools/run_mac_tx_tb.py` 的等价重跑，见 `agent_docs/audit_scratch/regress_mactx.py`，
 逐拍比对 gmii 流 + stats）：`main` 模式 **修前/修后都 PASS**（254 拍全等，独立 Python 模型）；
 `abort` 模式：修前 PASS、修后 **FAIL @10002**（= 残字到达的那一拍）——因为
 `tools/gen_stim_tx.py:6,161` 的参考模型**把缺陷写进了期望**（"残余 2 词开新帧"）⇒
@@ -174,7 +174,7 @@ TX: 数据面 →u_tx_arb(tx_arb, dp_clk) ──AXIS 直连──▶ u_txcdc(73/
 
 ## A.3 F-3 实测（协调者要求"不再是推断"）：**改接线不足以解决；且字面建议有害**
 
-TB：`audit_scratch/t9_f3restart/tb_f3_restart.v`（GMII 帧源 → mac_rx_64 → u_rxcdc 76/256 →
+TB：`agent_docs/audit_scratch/t9_f3restart/tb_f3_restart.v`（GMII 帧源 → mac_rx_64 → u_rxcdc 76/256 →
 **真 vlan_strip** → DP 水槽；重启模型 = 停 DP 钟 + 断言 `dp_rst_dp`，1500 gclk 后恢复钟、4 个 DP 沿释放，
 与 `clk_gen_p6b.v:224-237` 同形）。帧内容 = `(f*67 + k*29)&0xFF` ⇒ 任 (帧,偏移) 组合可唯一反解。
 `W_snap` = 重启瞬间 DUT 已接受的字数；判据 `stale_words = dw_all − (dut_acc_final − W_snap)`
@@ -208,7 +208,7 @@ t3/t9 的最新读数是在**新版本**上跑出来的（行为与旧版一致�
 # 附录 B（2026-09-29 11:4x）：`tools/gen_stim_tx.py` 参考模型修正（把缺陷当金标准的镜像）
 
 ## B.1 改动
-`tools/gen_stim_tx.py`：修前 `md5=37af591692307d63d44b8be6db0dd90f`（留档 `audit_scratch/tools_orig/`）
+`tools/gen_stim_tx.py`：修前 `md5=37af591692307d63d44b8be6db0dd90f`（留档 `agent_docs/audit_scratch/tools_orig/`）
 → 修后 `md5=b4ee17da968d5c5c3d038b20a901666f`。仅改 **abort 模式**的期望模型（+ 文件头注释）：
 ① 中止后进 `FLUSH`（不再 `IDLE`）；② 冲刷期 `en/txd = 0/0x07`，逐拍弹掉 FIFO 头字直到吞掉本帧 TLAST；
 ③ 吞到 TLAST 后再等 `flush_cnt` 数到 12（IFG）才回 `IDLE`；④ 此后没有任何帧（残字永不成为新帧内容）。
@@ -218,7 +218,7 @@ t3/t9 的最新读数是在**新版本**上跑出来的（行为与旧版一致�
 | 运行 | 读数 |
 |---|---|
 | **正例**（修后 `rtl/mac_tx_64.v 7e385623…`） | `[new/abort] PASS: 10005 拍比对一致, stats (0, 1)` |
-| **负对照**（副本 `audit_scratch/rtl_orig/mac_tx_64.v` = **撤回 S_FLUSH**） | `[orig/abort] FAIL @10002: resp (1, '55') exp (0, '07')` —— resp 在期望空闲处**起了新帧前导**（幽灵帧的形态）|
+| **负对照**（副本 `agent_docs/audit_scratch/rtl_orig/mac_tx_64.v` = **撤回 S_FLUSH**） | `[orig/abort] FAIL @10002: resp (1, '55') exp (0, '07')` —— resp 在期望空闲处**起了新帧前导**（幽灵帧的形态）|
 | `main`（两侧 RTL） | 都 `PASS: 254 拍比对一致, stats (3, 0)` |
 `abort` 期望 trace：改前 10088 拍 / 改后 10007 拍，首个分歧 @10004（改前 `1 55` = 幽灵帧前导，改后 `0 07` = 空闲），改后尾部全 idle ✓。
 
@@ -233,7 +233,7 @@ t3/t9 的最新读数是在**新版本**上跑出来的（行为与旧版一致�
   `gen_stim_p4_slowrx.py` 建模的是**慢路径 RX** 的 rollback 契约（不同模块、非本次范围）。⇒ **没有第二处**。
 - ⚠️ **同类的另一个地雷（不是"把缺陷当期望"，而是"测错仓库"）**：`tools/run_mac_tx_tb.py` 调用的
   `sim/run_tb_tx.bat` 里仍写着 `cd /d D:\repo\ECO\udp_hls_10g\sim` ⇒ 直接跑它会在**另一个 checkout**
-  上编译+仿真并给出 PASS/FAIL。本目录的 `audit_scratch/regress_mactx.py` 用自定位路径重写了这一步
+  上编译+仿真并给出 PASS/FAIL。本目录的 `agent_docs/audit_scratch/regress_mactx.py` 用自定位路径重写了这一步
   （`sim/run_tb_tx.bat` 属 `sim/`，不在本次授权内 ⇒ **未改，报备**；建议按 `sim/p4gates/p4env.bat` 的
   自定位风格修那一行）。
 

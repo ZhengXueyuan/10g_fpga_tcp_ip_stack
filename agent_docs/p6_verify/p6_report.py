@@ -15,7 +15,7 @@ OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.dirname(
     os.path.abspath(__file__))
 TAGS = ["t8p0", "t6p4"]
 
-# Longest-known-prefix cone list, copied verbatim from p5e_verify/rank_cones.py
+# Longest-known-prefix cone list, copied verbatim from agent_docs/p5e_verify/rank_cones.py
 # (same convention as the P5d/P5e worst-400 cone ranking).
 CONES_2 = {
     "u_tcp_tx/u_retx", "u_tcp_tx/u_ackq", "u_tcp_tx/u_csum", "u_tcp_tx/u_fifo",

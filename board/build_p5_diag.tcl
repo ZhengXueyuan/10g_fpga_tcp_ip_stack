@@ -15,7 +15,7 @@ if {![file exists [file join $REPO_ROOT CLAUDE.md]]} {
 #   ③ 追加 board/eco_holdfix.xdc —— **刻意与当前 impl_1 位流同约束**:
 #      现 impl_1 的 wrapper_p4.bit 是 HOLDFIX 版 (§4.2 实验位流)。诊断位流与它
 #      只差 RXP_DIAG 一项 ⇒ 板级错误率可直接对比, 隔离"仪器本身是否扰动被测现象"。
-#   ④ 报告写到 p5diag_verify/ (不污染 p5f_verify/)
+#   ④ 报告写到 agent_docs/p5diag_verify/ (不污染 agent_docs/p5f_verify/)
 #
 # 回归保护: RXP_DIAG 未定义时, app_udp_pattern / app_status_uart / wrapper_p4
 #   的端口与逻辑**逐字不变** (app_udp_pattern 的新端口恒 0, app_status_uart 与

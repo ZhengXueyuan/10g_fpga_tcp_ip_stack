@@ -136,7 +136,7 @@ _proj_10g/notes/p7b_implicit_repro/*/
 _proj_10g/xxv_gate2/
 
 # ---- audit_scratch 的 xsim 轮转备份 (产物) ----------------------------------
-#      ⚠️ 这条排除规则**必须写在文件末尾** —— 既有 `!audit_scratch/**/*.log` 在本文件靠后的
+#      ⚠️ 这条排除规则**必须写在文件末尾** —— 既有 `!agent_docs/audit_scratch/**/*.log` 在本文件靠后的
 #      位置(第 46x 行), 而 gitignore **最后匹配者胜** ⇒ 写在这里会被那条否定行反过来覆盖。
 #      (2026-09-29 实测踩过: 写在这里时 `git check-ignore -q` 返回 1 = 没被排除。)
 #      有效规则见文件末尾。
@@ -229,9 +229,9 @@ sim/d2run/
 sim/p4spot/
 
 # P5d 大产物: WHS 探针实验 (189MB) / 时序锥查询报告 / 板级 D6 A-B 证据
-# (whs_reroll_probe/ 整目录忽略, 不进库)
-whs_reroll_probe/
-p5d_verify/
+# (agent_docs/whs_reroll_probe/ 整目录忽略, 不进库)
+agent_docs/whs_reroll_probe/
+agent_docs/p5d_verify/
 
 # P5e-T3/T4/T5 UDP app 门目录: 只保留驱动/门源码/检查脚本, 其余 (memh/wdb/xsim.dir/日志) 是产物
 sim/p5e_udp/*
@@ -258,18 +258,18 @@ sim/rxpdiag/dfx_runtime.txt
 # *.rpt 时序与 DRC), 其余 (.tmp/g*.txt/p8_run.txt/日志) 是临时产物。
 # ⚠️ 位流本身 (**keep/*.bit, 每个 11 MB**) 靠全局 `*.bit` 规则排除 —— 项目既定策略是不跟踪位流;
 # 它们是板级复现的留档, 留在盘上, md5 记在 ISSUE §16.8 / §15.5。
-p5diag_verify/*
-!p5diag_verify/*.line
-!p5diag_verify/samples*.txt
-!p5diag_verify/*.rpt
-# 逐仪器代次的读数在子目录里 (p5diag_verify/v4|v5|v6/*.line) —— 上面的放行只匹配一层,
+agent_docs/p5diag_verify/*
+!agent_docs/p5diag_verify/*.line
+!agent_docs/p5diag_verify/samples*.txt
+!agent_docs/p5diag_verify/*.rpt
+# 逐仪器代次的读数在子目录里 (agent_docs/p5diag_verify/v4|v5|v6/*.line) —— 上面的放行只匹配一层,
 # 所以必须单独放行。⚠️ **gitignore 的经典陷阱: 父目录被排除时无法放行其内容**
 # (git 根本不下降进被忽略的目录) ⇒ 必须先把子目录本身放行, 再重新排除其内容, 再逐类放行。
-# 2026-09-27 实测: 只写 `!p5diag_verify/*/*.line` 时 `git add p5diag_verify/v5` 静默无效果。
-!p5diag_verify/*/
-p5diag_verify/*/*
-!p5diag_verify/*/*.line
-!p5diag_verify/*/*.sm
+# 2026-09-27 实测: 只写 `!agent_docs/p5diag_verify/*/*.line` 时 `git add agent_docs/p5diag_verify/v5` 静默无效果。
+!agent_docs/p5diag_verify/*/
+agent_docs/p5diag_verify/*/*
+!agent_docs/p5diag_verify/*/*.line
+!agent_docs/p5diag_verify/*/*.sm
 
 sim/udprx/*
 !sim/udprx/*.v
@@ -281,11 +281,11 @@ sim/udprx_chain/*
 !sim/udprx_chain/*.bat
 !sim/udprx_chain/*.tcl
 !sim/udprx_chain/*.py
-p5f_verify/*
-!p5f_verify/*.rpt
-!p5f_verify/*.tcl
-!p5f_verify/*.py
-!p5f_verify/*.log
+agent_docs/p5f_verify/*
+!agent_docs/p5f_verify/*.rpt
+!agent_docs/p5f_verify/*.tcl
+!agent_docs/p5f_verify/*.py
+!agent_docs/p5f_verify/*.log
 
 # P5e-T1/T2 门目录 (sim/p5udp = T1 分流器单元门; sim/p5e_t2 = T2 目标锁存守卫 + 真 wrapper
 # 全链门): 只保留驱动 (bat/tcl/py/sh), 其余 (memh/wdb/xsim.dir/hls_files_w.f/日志/warn_*.txt) 是产物
@@ -307,9 +307,9 @@ sim/p5e_pre/*
 !sim/p5e_pre/*.v
 
 # P5e 后验核对 (布线后时序/时序锥/DRC/层次面积报告 + 探针): 只保留查询脚本, 报告是产物
-p5e_verify/*
-!p5e_verify/*.tcl
-!p5e_verify/*.py
+agent_docs/p5e_verify/*
+!agent_docs/p5e_verify/*.tcl
+!agent_docs/p5e_verify/*.py
 
 # 仿真顶层 console 转储 (P5 对抗集的控制台输出等)
 sim/*.txt
@@ -336,7 +336,7 @@ sim/p5e_rate/*
 
 # ---- Routed checkpoint
 # ⚠️ 全局 `*.bit` 只挡位流, **`.dcp` 一直漏网** ——
-# p5f_verify/keep/wrapper_p4_holdfix_routed.dcp 单个就有 39 MB。
+# agent_docs/p5f_verify/keep/wrapper_p4_holdfix_routed.dcp 单个就有 39 MB。
 *.dcp
 
 # ---- cpp_peer: peer.exe 已有规则, udpsend.exe 没有
@@ -367,7 +367,7 @@ sim/p6a_ku5p/negctl/*
 #   P6a-T2 实证探针的日志是**证据** (含决定性 DRC 报错行), 单独放行
 !board/ku5p_probe/*.log
 #   PCIe 验证的 JTAG 证据 (含 End of startup status: HIGH = DONE 判据)
-!_pcie/*.log
+!agent_docs/_pcie/*.log
 #   KU5P 配置的 xvlog 预检 (可复跑: 只留 bat 与文件清单)
 !sim/p6a_ku5p/pf/
 sim/p6a_ku5p/pf/*
@@ -417,7 +417,7 @@ sim/p4gates/evidence/negctl/
 # P6b 收尾归档 (2026-09-29): 仿真/构建**产物**的通用排除规则
 #
 # 背景: 本轮盘点时仍有 **209 MB** 未跟踪且未被忽略的条目, 绝大部分躺在各 agent 的
-#   临时目录 (int_scratch/ agent_docs/review_scratch/ audit_scratch/ p6b_final_verify/ …) 里,
+#   临时目录 (agent_docs/int_scratch/ agent_docs/review_scratch/ agent_docs/audit_scratch/ agent_docs/p6b_final_verify/ …) 里,
 #   主体是 xsim 的编译目录与波形。历史教训: 上一轮有 119 MB 仿真残渣差点进库 (见上)。
 #   本次不再逐个门目录列举, 改按**目录名/扩展名**通用排除。
 #
@@ -443,12 +443,12 @@ xsim.dir/
 *.pcap
 
 # ---- 临时证据目录下的仿真激励/响应向量 -------------------------------------
-#     *_scratch/ 与 p6b_final_verify/ 是**证据目录**(文本读数要入库), 但里面的
+#     *_scratch/ 与 agent_docs/p6b_final_verify/ 是**证据目录**(文本读数要入库), 但里面的
 #     .memh 是生成器可重建的激励/响应 (单目录 8 MB 级) ⇒ 只挡这一类。
 #     ⚠️ 不写全局 `*.memh`: sim/tx_*.memh 等是**已跟踪**的黄金向量, 全局规则会挡住
 #     将来对它们的重新登记 (虽然不影响已跟踪文件, 但会误导后人)。
 *_scratch/**/*.memh
-p6b_final_verify/**/*.memh
+agent_docs/p6b_final_verify/**/*.memh
 
 # ---- Vivado 工程产物 (probe/diag 目录里新建的工程也按此排除) ----------------
 *_prj.runs/
@@ -460,7 +460,7 @@ sim/*_p6b/
 
 # ---- ⭐ 放行**归档级**的原始日志 --------------------------------------------------
 #     全局 `*.log` (本文件第 35 行) 会把下面这些也挡在库外, 但它们是**本工程的归档物**:
-#     · p6b_accept_final/*.log  = P6b 板级验收的原始 stdout, agent_docs/P6B_ACCEPT.md §7.1 逐条登记了
+#     · agent_docs/p6b_accept_final/*.log  = P6b 板级验收的原始 stdout, agent_docs/P6B_ACCEPT.md §7.1 逐条登记了
 #       sha256 (cb474fbe…/cb3f13dc…), 是"验收确实跑过"的第一手物证;
 #     · board/p6b_verify/*.log  = P6b 四道门 (全链/计数器/snap_seq/snap_cdc/axi_regs/fifo_async)
 #       的 PASS 读数;
@@ -468,8 +468,8 @@ sim/*_p6b/
 #       `W0=270 / W6=269` 是 agent_docs/P6B_ACCEPT.md §4.1 唯一一条独立数据 (E4 方向校正的依据)。
 #     ⚠️ **只放行这三个目录** (合计 < 80 KB)。`sim/*/*.log` 那一大批 (xsim 控制台) 仍按产物排除
 #     —— 它们的读数已被提练进同目录的 `*.txt` 判据文件 (如 sim/f4sim/VERDICT_*.txt)。
-!p6b_accept_final/*.log
-!p6b_accept_final/*.err
+!agent_docs/p6b_accept_final/*.log
+!agent_docs/p6b_accept_final/*.err
 !board/p6b_verify/*.log
 !_proj_pcie/smoke_scratch/*.log
 
@@ -480,9 +480,9 @@ sim/*_p6b/
 #     的原始读数 ⇒ 不入库就**证据索引悬空**。
 #     取舍：合计 ~2.8 MB（audit 1.8 + int 0.3 + review 0.17 + 余），换"报告引用的东西真的在库里"。
 #     ⚠️ 仍排除它们里面的 `*.memh` / `xsim.dir/` / `*.wdb`（见上面 `*_scratch/**/*.memh`）。
-!audit_scratch/**/*.log
+!agent_docs/audit_scratch/**/*.log
 !agent_docs/review_scratch/**/*.log
-!int_scratch/**/*.log
+!agent_docs/int_scratch/**/*.log
 
 # ---- ⭐ 2026-09-29 再补：长时"失聪"探针的原始读数 ----------------------------------------
 #     `_proj_pcie/soak_scratch/soak_stdout.log` 是 **348 行逐轮全表**（t/ping/W0..W35/守恒律/NIC 增量），
@@ -496,7 +496,7 @@ sim/*_p6b/
 # 实测体积: `_proj_10g/` 125 MB 里 ~123 MB 是产物 (60M 构建工程 + 42M 两个 license
 #   负对照工程 + 15.4M iBERT 对照件位流[已被全局 *.bit 覆盖] + 3.6M 网表转储);
 #   **设计(RTL/XDC/脚本) + 门 + 全部原始读数 ≈ 2 MB, 全部入库**(本工程靠文本证据存档)。
-# `_p7a_probe/` 17 MB 同理: 只留 agent_docs/P7A_SPEC §1 逐字引用的那批文本读数 (324 KB)。
+# `agent_docs/_p7a_probe/` 17 MB 同理: 只留 agent_docs/P7A_SPEC §1 逐字引用的那批文本读数 (324 KB)。
 # ============================================================================
 
 # ---- license 负对照的两个 Vivado 工程 (可重建: _proj_10g/tcl/lic_deny_p7a.tcl;
@@ -521,14 +521,14 @@ _proj_10g/tcl/lint/files.f
 _proj_10g/reports/p7a_post_route_netlist.v
 
 # ---- P7a 工具核实的一次性探针工程: 三个 Vivado 工程 + 两个网表转储 = 17 MB 的主体 ----
-_p7a_probe/.Xil/
-_p7a_probe/pj_fin/
-_p7a_probe/rb_pos/
-_p7a_probe/rb_raw/
-_p7a_probe/nl_pos.v
-_p7a_probe/nl_raw.v
-_p7a_probe/*.log
-_p7a_probe/*.jou
+agent_docs/_p7a_probe/.Xil/
+agent_docs/_p7a_probe/pj_fin/
+agent_docs/_p7a_probe/rb_pos/
+agent_docs/_p7a_probe/rb_raw/
+agent_docs/_p7a_probe/nl_pos.v
+agent_docs/_p7a_probe/nl_raw.v
+agent_docs/_p7a_probe/*.log
+agent_docs/_p7a_probe/*.jou
 #   ⭐ 放行 agent_docs/P7A_SPEC §1.1/§1.2/§1.3/§10 逐字引用的**文本读数**(合计 324 KB):
 #      *_stdout.txt      = 每轮探针的 stdout (已核实 §1 的每一条引用都能在其中找到:
 #                          p1_stdout.txt:160 = TX_PROTOCOL 不存在; p2_stdout.txt:253 = 12-4371)
@@ -536,10 +536,10 @@ _p7a_probe/*.jou
 #      clockInfo.txt     = 时钟读数
 #   ⚠️ 这一条与 agent_docs/P7A_SPEC §10 原写的"不进 git"冲突 —— **已由 TL 改判**: §10 已更正为
 #      "被引用的小体积文本读数入库"(与 P6b 那轮同一条原则: 报告引用的东西必须真的在库里)。
-!_p7a_probe/*_stdout.txt
-!_p7a_probe/*.tcl
-!_p7a_probe/run_p*.bat
-!_p7a_probe/clockInfo.txt
+!agent_docs/_p7a_probe/*_stdout.txt
+!agent_docs/_p7a_probe/*.tcl
+!agent_docs/_p7a_probe/run_p*.bat
+!agent_docs/_p7a_probe/clockInfo.txt
 
 # ============================================================================
 # P7b (2026-09-29): 官方 `xxv_ethernet` 探针工程 —— 排除生成工程, 保留被引用的读数
@@ -578,10 +578,10 @@ _proj_10g/xxv_probe/logs/*.jou
 # ⚠️ 必须放在**文件末尾**的规则 (gitignore = 最后匹配者胜)
 # ============================================================================
 # ---- audit_scratch 的 xsim 轮转备份 (产物): 7 个 / 485 KB --------------------
-#      既有 `!audit_scratch/**/*.log`(第 46x 行, 为本工程"归档级原始日志"而写)把
+#      既有 `!agent_docs/audit_scratch/**/*.log`(第 46x 行, 为本工程"归档级原始日志"而写)把
 #      `*.backup.log` 一并放行了 —— 与既有 `sim/**/*.backup.log` 同性质, 补挡。
 #      ⚠️ 位置敏感: 必须排在那条 `!` 行**之后**, 否则会被它覆盖(2026-09-29 实测踩过)。
-audit_scratch/**/*.backup.log
+agent_docs/audit_scratch/**/*.backup.log
 
 # ============================================================================
 # P7b 第二轮 (2026-09-30): 链级门 / 延迟测量 / MAC 判据修复

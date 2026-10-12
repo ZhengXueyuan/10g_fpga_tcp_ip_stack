@@ -6,7 +6,7 @@
 #   位流身份: 烧的是本目录的**冻结副本** (不是 build 树里的路径) —— 免得别的进程重建时把它覆盖,
 #             副本 sha256 = c17700868b08170865f4a4ae0292ebb636aed03070e2875f6dbb005123a948ca
 #             (原始 = vivado_prj/p6b_final_ku5p_prj.runs/impl_1/wrapper_p4.bit, 同一 sha256)
-set bit D:/repo/XCKU5PMini/udp_hls_10g/p6b_accept_final/frozen_p6b_final.bit
+set bit D:/repo/XCKU5PMini/udp_hls_10g/agent_docs/p6b_accept_final/frozen_p6b_final.bit
 
 open_hw_manager
 connect_hw_server -url 192.168.0.38:3121

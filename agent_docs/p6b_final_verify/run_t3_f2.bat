@@ -1,7 +1,7 @@
 @echo off
 REM run_t3_f2.bat -- F-2 (mac_tx_64 mid-frame abort residue) verdict gate, re-run on the
-REM   FROZEN tree. Lifted from audit_scratch/run_t3.bat (copied, not modified); all work
-REM   dirs live under p6b_final_verify/t3_f2 so nothing outside this dir is touched.
+REM   FROZEN tree. Lifted from agent_docs/audit_scratch/run_t3.bat (copied, not modified); all work
+REM   dirs live under agent_docs/p6b_final_verify/t3_f2 so nothing outside this dir is touched.
 REM usage: run_t3_f2.bat [pos^|orig^|nostall_new^|nostall_orig]   (default pos)
 REM   pos / nostall_new   : NEW rtl/mac_tx_64.v  -^> expect PASS (ghost=0)
 REM   orig / nostall_orig : OLD mac_tx_64_orig.v -^> negative control, MUST FAIL (ghost=1)
@@ -9,7 +9,7 @@ REM   nostall_* pair      : FPRINT of the wire stream must MATCH (proves no-regr
 setlocal
 set XV=C:\AMDDesignTools\2025.2\Vivado\bin
 set ROOT=D:\repo\XCKU5PMini\udp_hls_10g
-set P=%ROOT%\p6b_final_verify\t3_f2
+set P=%ROOT%\agent_docs/p6b_final_verify\t3_f2
 set CASE=%1
 if "%CASE%"=="" set CASE=pos
 set RTL=%ROOT%\rtl\mac_tx_64.v

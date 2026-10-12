@@ -3542,7 +3542,7 @@ route 报告的前 10 名里, 且有 1128 个 cell 实证没被裁。代价: 相
 | 时序 (routed, 133723 端点) | **WNS +0.290 / TNS 0.000 / WHS +0.051 / THS 0.000 / 0 失败端点**; "All user specified timing constraints are met" (WPWS +0.264 / TPWS 0) |
 | 面积 | LUT **51588** (25.31%) / FF **41513** (10.18%) / BRAM **312** (70.11%) / DSP 4 / IOB 19 |
 | DRC (routed) | **0 error** — 89 项全为 Warning/Advisory (REQP-1839/1840 RAMB 异步控制、DPOR-1 异步加载、DPIP/DPOP 流水等既有族); 静态侧 `implicit` 命中 **0** (4 个 xelab/xvlog 日志 grep) |
-| route | **78014/78014 全布通**, routing errors **0**; 报告落 `p5e_verify/` (`verify_p5e.tcl`) |
+| route | **78014/78014 全布通**, routing errors **0**; 报告落 `agent_docs/p5e_verify/` (`verify_p5e.tcl`) |
 
 **app 侧锥确实上榜 (T1/T2 点名要复核的那一项)**: `report_timing_summary -max_paths 20` 里 **9/20**
 条落在 `u_app_udp/pw_keep_reg[5] → u_udp_tx/ip_csum_r_reg[*]` (**#3/4/5/8/9/10/11/12/13**, 最差
@@ -3761,7 +3761,7 @@ P5d 记录的新风险族 `app_ctrl.c_snd_wnd → app_pattern` 同样**完全退
    `board/wrapper_p4.v` 加 `` `ifdef DEV_USP `` 三处 (端口表去掉 `fpga_gclk` / 去掉 MMCM+IDELAYCTRL /
    前端实例换模块名 —— 端口名一致故只需换名); `board/ku5p_p6a_{t8p0,t6p4}.xdc` (与 K7 闸 B 的 XDC
    **逐项同构**, 差异 = LVCMOS33 / **generated clock 不带 -invert** / 无 fpga_gclk);
-   `board/build_p6a_ku5p.tcl` + `run_build_p6a_ku5p.bat [t8p0|t6p4]`; `p6a_ku5p_verify/` (只读校验, 同 K7 的 p6_verify)。
+   `board/build_p6a_ku5p.tcl` + `run_build_p6a_ku5p.bat [t8p0|t6p4]`; `agent_docs/p6a_ku5p_verify/` (只读校验, 同 K7 的 p6_verify)。
 
 ### 本轮踩到的坑 (按坑的"咬人程度"排序)
 1. **判据的假通过路径 (最贵)**: 初版 `tb_rgmii_phy_model.v` 把 `ctl_fall_bad` 只打印、不进 PASS 条件,
@@ -3806,7 +3806,7 @@ P5d 记录的新风险族 `app_ctrl.c_snd_wnd → app_pattern` 同样**完全退
 
 构建口径: 与 K7 闸 B **逐项同构** (`build_p6a_ku5p.tcl` 同文件清单 / `APP_MODE=1` /
 `Performance_ExtraTimingOpt` / `launch_runs` 全流程 / XDC 同构, 只换器件+前端模块+引脚),
-两跑 `P6A_TAG=t8p0|t6p4` 只改 `create_clock` 的周期。读数脚本 `p6a_ku5p_verify/`(只读)。
+两跑 `P6A_TAG=t8p0|t6p4` 只改 `create_clock` 的周期。读数脚本 `agent_docs/p6a_ku5p_verify/`(只读)。
 
 | 指标 | **KU5P @8.000ns (真实 1G)** | **KU5P @6.400ns (10G 时钟尖峰)** | K7 @6.400ns (闸 B, 对照) |
 |---|---|---|---|
@@ -3844,7 +3844,7 @@ P5d 记录的新风险族 `app_ctrl.c_snd_wnd → app_pattern` 同样**完全退
 **背景**: KU5P 板上**没有 UART** ⇒ P6 的观测通道定为 **PCIe / XDMA**。此前状态: 驱动"能编译+能链接"
 已证, "**能加载 + 能搬数据**"未证 (全程未 insmod, 无 sudo)。本轮把后者关掉。
 
-### 结论 (证据: `_pcie/README.md` 与对端机 `/tmp/pcie_verify.log`)
+### 结论 (证据: `agent_docs/_pcie/README.md` 与对端机 `/tmp/pcie_verify.log`)
 
 | 项 | 读数 |
 |---|---|
@@ -3889,7 +3889,7 @@ P5d 记录的新风险族 `app_ctrl.c_snd_wnd → app_pattern` 同样**完全退
 
 ## 2026-09-28 P6e 最小版: **我们自己的** PCIe/XDMA 观测通道 — 板级通过
 
-**动机**: `_pcie/` 那轮验的是**厂商设计**上的 PCIe 通道, 但厂商 BD 的 `axilite_master_en=false`
+**动机**: `agent_docs/_pcie/` 那轮验的是**厂商设计**上的 PCIe 通道, 但厂商 BD 的 `axilite_master_en=false`
 ⇒ 只有 config BAR ⇒ **读不到我们自己的任何状态**。P6e 要的是"我们自己的寄存器窗口 + 前置闸"。
 本轮把它做出来并上板验穿 (全程约 2 小时, 从建工程到读数)。
 
@@ -4194,7 +4194,7 @@ report_clock_interaction + 时序/资源, 全只读)。
 > `agent_docs/P6B_SUMMARY.md`（一页式总览）· `agent_docs/P6B_SPEC.md`（施工规格 + 勘误节）· `agent_docs/P6B_ACCEPT.md`（**板级验收原始记录**）·
 > `agent_docs/P6B_CDC_AUDIT.md`（跨域审计 + F-1/F-2/F-3）· `agent_docs/P6B_REVIEW.md`（对抗审查 F1–F13 + 附录 R 的 F4 复核）·
 > `agent_docs/P6B_INTEGRATION_REVIEW.md`（集成与"空门"核实）· `agent_docs/P6E_OBS.md`（**36 字寄存器表**，现役）·
-> `sim/p4gates/evidence/`（P4 硬化与负对照的全部原始读数）· `p6b_accept_final/`（验收归档物）。
+> `sim/p4gates/evidence/`（P4 硬化与负对照的全部原始读数）· `agent_docs/p6b_accept_final/`（验收归档物）。
 
 ### ① 目标与最终形状
 
@@ -4232,8 +4232,8 @@ DEPTH=256 / FWFT=1）跨域；时钟由 `rtl/clk_gen_p6b.v` 从核心板 **Y1 10
 | **F4(a)**（🔴 高，**P6b 前就有**）| `mac_rx_64` 的丢帧分支在**已经 push 过字之后**才丢 ⇒ 流里留下**孤儿字**（有 `popc`、无 TLAST）⇒ `W31` 永久多算、下游只能靠"下一个 SOP"兜底重同步 | 新增 **TERM 收尾字**（`tdata=0, tkeep=8'h00, tlast=1, tuser=0, tcrs=0, terr=1`）+ `term_pend` 优先门 ⇒ 每个 SOP 与下一个 SOP 之间**恰一个** TLAST | **W32/W33/W34**（新计数器）+ 结构式 `W30==W0+W32` / `W31==W1−4·W0+W33`（`rtl/mac_rx_64.v:50` 明文）；E7/E8d 全 0 |
 | **F4(b)**（🔴 高，**P6b 前就有**，更严重）| 帧尾那一拍的 `push` 决策用的是**寄存器化的 `full`**（FIFO 7/8，判得"对"）⇒ `stat_frames`/`stat_bytes` **谎报成功**；而**同一拍**完成字的 push 把 `wptr` 推到满，**下一拍** `fifo_sync` 的 `wr && !full` 判假 ⇒ **TLAST 字被静默丢弃**（`fifo_sync` 无溢出保护）| 空间门一律换成 `fifo_sync.full_next`（**下一拍满的精确预测**，含在飞写与本拍读）：`push_ok = !full_next`；并给 `fifo_sync` 加 `ovf_pulse` 自检回读 | **W35**（`rx_stat_fifo_ovf`，**结构上恒 0**，非 0 = 修复失效）+ 逐拍轨迹（`agent_docs/P6B_REVIEW.md` §3.4）；`sim/f4sim/` 的门 + `tb/tb_mac_rx_f4.v` |
 | **F4-2**（🟠，**修 F4 时自己引入的**，被对抗复核抓到）| `hwv && !push_ok` 时**无条件**进 `S_TERM`，而 `term_pend` 只在 `first_done` 时置 ⇒ **`term_pend==0` 空入 `S_TERM`** ⇒ 下一个（空间充足、完全正常的）帧被吞掉并计成丢帧 | **一行**：`state <= first_done ? S_TERM : S_IDLE;`（`rtl/mac_rx_64.v:250-261`）| `agent_docs/P6B_REVIEW.md` **附录 R.4** 的 A/B（同一激励、同一 tready 表）：修复前 `frames=1 drop=2` → 修复后 `frames=2 drop=1`（**白丢的那一帧回来了**）。⚠️ **原门永远测不到它**：`tools/gen_f4_stim.py` 的帧尺寸最小 = 60 ⇒ 该分支覆盖率 0（**"同一个 agent 写门又写修复"的缺口，只能靠独立复核补**）|
-| **F-2**（🟠 中，**P6b 前就有**）| `mac_tx_64` 帧内中止（源断供）后**残字被当成新帧的开头发出去** ⇒ 线上出现一个 **FCS 完全正确的"幽灵帧"**，载荷是被中止帧的**中段残字**（对端无法分辨）| 新增 **`S_FLUSH`** 状态（唯一入口 = `S_DATA` 的 `!fempty` 中止分支）：中止后**一个字都不发**，逐字弹掉输入 FIFO 直到吞掉**本帧自己的 TLAST**，再等够 IFG 12 字节才回 `S_IDLE`；新增 `stat_flush_words/stat_flush_done`。**时序要点**：判据必须是 `frd && !fempty && fdout[0]`（本拍真弹且弹的就是 TLAST），用"上一拍看到的 tlast"会多弹一个字 | `audit_scratch/t3_txcdc/`：**幽灵帧 0**（撤回修复 ⇒ **FAIL**）；**无中止路径指纹逐位不变**（`33f82978` 修前/修后相同 + flush 计数器为 0 = 冲刷从未运行的正证据）；E3 的 `W20−W7 ∈{0,1}` **且** `W21==0` |
-| **F-1**（🟠 中，P6b 期新写模块的契约漏洞）| `fifo_async` 的 `full` 在**写域复位释放窗口**里读 0（复位值），而此时的 `wr_en` 被**静默丢弃**（无写入、无计数、无探针）⇒ `!full` 这个唯一闸门在此期间不可信；`fifo_sync` 有 `ovf_pulse` 自检，`fifo_async` **什么都没有** | 新增 **`ovf_pulse` + `ovf_cnt`** 端口（与 `fifo_sync` 的 `ovf_pulse` **同形同义**）：**拒写不再静默**，`ovf_cnt` 恒 0 才叫"无丢字" | `sim/fifoasync/run_all.bat` 的 **12 个基础门 + 7 个变异**；关键负对照 `run_mut_noovf.bat`（把 `ovf_pulse` 钉 0 = **撤回 F-1 修复**）实测 **FAIL（3 条判据不成立）**；`audit_scratch/t4_reset/` 的实测 `model_acc=3999 vs dut_acc=3996`（3 字静默丢弃）|
+| **F-2**（🟠 中，**P6b 前就有**）| `mac_tx_64` 帧内中止（源断供）后**残字被当成新帧的开头发出去** ⇒ 线上出现一个 **FCS 完全正确的"幽灵帧"**，载荷是被中止帧的**中段残字**（对端无法分辨）| 新增 **`S_FLUSH`** 状态（唯一入口 = `S_DATA` 的 `!fempty` 中止分支）：中止后**一个字都不发**，逐字弹掉输入 FIFO 直到吞掉**本帧自己的 TLAST**，再等够 IFG 12 字节才回 `S_IDLE`；新增 `stat_flush_words/stat_flush_done`。**时序要点**：判据必须是 `frd && !fempty && fdout[0]`（本拍真弹且弹的就是 TLAST），用"上一拍看到的 tlast"会多弹一个字 | `agent_docs/audit_scratch/t3_txcdc/`：**幽灵帧 0**（撤回修复 ⇒ **FAIL**）；**无中止路径指纹逐位不变**（`33f82978` 修前/修后相同 + flush 计数器为 0 = 冲刷从未运行的正证据）；E3 的 `W20−W7 ∈{0,1}` **且** `W21==0` |
+| **F-1**（🟠 中，P6b 期新写模块的契约漏洞）| `fifo_async` 的 `full` 在**写域复位释放窗口**里读 0（复位值），而此时的 `wr_en` 被**静默丢弃**（无写入、无计数、无探针）⇒ `!full` 这个唯一闸门在此期间不可信；`fifo_sync` 有 `ovf_pulse` 自检，`fifo_async` **什么都没有** | 新增 **`ovf_pulse` + `ovf_cnt`** 端口（与 `fifo_sync` 的 `ovf_pulse` **同形同义**）：**拒写不再静默**，`ovf_cnt` 恒 0 才叫"无丢字" | `sim/fifoasync/run_all.bat` 的 **12 个基础门 + 7 个变异**；关键负对照 `run_mut_noovf.bat`（把 `ovf_pulse` 钉 0 = **撤回 F-1 修复**）实测 **FAIL（3 条判据不成立）**；`agent_docs/audit_scratch/t4_reset/` 的实测 `model_acc=3999 vs dut_acc=3996`（3 字静默丢弃）|
 
 ⚠️ **F-1 / F-2 的板级缺口都没有闭环**（**必须记，否则后人会以为它们已经可观测**）：`rtl/fifo_async.v` 有了探针，
 但 `board/wrapper_p4.v` 的两个例化 `.ovf_cnt()` **悬空**、快照字里**没有**对应字 ⇒ 板上仍**无法归因 CDC
@@ -4241,17 +4241,17 @@ FIFO 自身的丢字**。板上的 `W35` 是 `mac_rx_64` **内部那个 8 深 `f
 ⚠️ **同族缺口（F-2，2026-09-29 复核补记）**：`mac_tx_64` 的 **`stat_flush_words` / `stat_flush_done`**
 （声明在 `rtl/mac_tx_64.v:48-49`）在 `board/wrapper_p4.v` 里**未连接**（该文件内这两个名字**零出现**，
 全仓 grep 证实），36 字快照窗口里也**没有**对应字 ⇒ **F-2 修复在板级不可观测**：
-它只在仿真 TB 里被接过并判过（`audit_scratch/t3_txcdc/tb_tx_cdc_chain.v:109-110`、
-`p6b_final_verify/t3_f2/tb_tx_cdc_chain.v:109-110`），**板级从未观测过**（唯一痕迹是 xelab 的
+它只在仿真 TB 里被接过并判过（`agent_docs/audit_scratch/t3_txcdc/tb_tx_cdc_chain.v:109-110`、
+`agent_docs/p6b_final_verify/t3_f2/tb_tx_cdc_chain.v:109-110`），**板级从未观测过**（唯一痕迹是 xelab 的
 `VRFC 10-3645` 未连接告警）。含义：**F-2 是"仿真里验过的修复"，不是"板上验过的修复"。**
 **F-1 当前也不是活缺陷**（可达性论证：RX 侧最早 push 在复位释放后 ≥19 个 gmii 拍；TX 侧功能逻辑的释放
 含 `~locked` ⇒ 恒不早于 FIFO 写域释放），但它把"不丢字"押在一个**隐含时序假设**上。
 
 **F4/F4-2 的连带修正（"把缺陷当金标准"）**：`tools/gen_stim_tx.py` 的参考模型**把 F-2 缺陷写进了期望**
 （"残余 2 词开新帧"）⇒ `abort` 模式的门在修复后反而变红。已按 `S_FLUSH` 同形更新（现 `md5 b4ee17da…`，
-旧版留档 `audit_scratch/tools_orig/`）；`main` 模式**逐字节不变**（改前/改后模型相同 = 无扰动证据）。
+旧版留档 `agent_docs/audit_scratch/tools_orig/`）；`main` 模式**逐字节不变**（改前/改后模型相同 = 无扰动证据）。
 ⚠️ 同类地雷（**未改，已报备**）：`sim/run_tb_tx.bat` 里仍写着 `cd /d D:\repo\ECO\udp_hls_10g\sim`
-（**另一个 checkout**）—— `audit_scratch/regress_mactx.py` 用自定位路径绕过了它。
+（**另一个 checkout**）—— `agent_docs/audit_scratch/regress_mactx.py` 用自定位路径绕过了它。
 
 ### ④ F-3：**已知限制，未修**（触发条件 / 后果 / 为什么三种接线都无解）
 
@@ -4259,7 +4259,7 @@ FIFO 自身的丢字**。板上的 `W35` 是 `mac_rx_64` **内部那个 8 深 `f
 （`clk_gen_p6b` 产生，**`locked` 参与**：`rst_async = (~locked_raw) | rst_ext`）⇒ **MMCM 失锁/重锁**时
 DP 功能逻辑重启，而 FIFO 的**指针与内容保留** ⇒ DP 侧会在**帧中**重启。
 
-**实测（`audit_scratch/t9_f3restart/`，三种接线都跑了，不是推断）**：
+**实测（`agent_docs/audit_scratch/t9_f3restart/`，三种接线都跑了，不是推断）**：
 
 | 变体 | 重启后首个交付帧 | `stale_words` | 带 `tcrs=1` 的截断帧 | 契约 |
 |---|---|---|---|---|
@@ -4391,8 +4391,8 @@ FTDI/MAX3232、无 USB 口、无调试排针；见 `../XCKU5PMini/CLAUDE.md`「�
 `board/ku5p_p6b_sysclk.xdc` · `board/ku5p_p6b_cdc.xdc` · `board/build_p6b_ku5p.tcl` ·
 `board/build_p6b_final_ku5p.tcl` · `board/check_p6b_timing.py` · `sim/fifoasync/` · `sim/clkgen/` ·
 `sim/snapseq/` · `sim/f4sim/` · `sim/f4chain/` · `sim/p4gates/`（P4 硬化工具链 + 证据）·
-`_proj_pcie/p6b_accept.sh` + `p6b_smoke_*` · `p6b_accept_final/`（**验收归档**）· `board/p6b_verify/` ·
-`P6B_*.md`。（另有 `audit_scratch/` `agent_docs/review_scratch/` `int_scratch/` 三个**审查/审计 agent 的原始证据目录**，
+`_proj_pcie/p6b_accept.sh` + `p6b_smoke_*` · `agent_docs/p6b_accept_final/`（**验收归档**）· `board/p6b_verify/` ·
+`P6B_*.md`。（另有 `agent_docs/audit_scratch/` `agent_docs/review_scratch/` `agent_docs/int_scratch/` 三个**审查/审计 agent 的原始证据目录**，
 按纪律**保留**；它们的 `.txt` 读数与 TB 源码要入库，`xsim.dir/`/`*.wdb`/`*.memh` 等产物已由 `.gitignore` 排除
 —— 见 `agent_docs/P6B_COMMIT_PLAN.md`。）
 
@@ -4404,7 +4404,7 @@ FTDI/MAX3232、无 USB 口、无调试排针；见 `../XCKU5PMini/CLAUDE.md`「�
 ② `paths.txt` 的 `FINGERPRINT_GLOBS` 只哈希原件（⇒ 删镜像**不改**矩阵指纹）；
 ③ 唯一有独立价值的 `sim/p4sim_p6b/matrix_p4_p6b.log` 与归档副本
 `board/p6b_verify/p4_matrix_local_repo.log` **md5 逐字节相同**（`a8079bfc4398dcf1ef1612ed5a147eea`）；
-④ 全仓**活代码**里对镜像的引用 = **0**（只剩 `int_scratch/chk_mirror.py` 这个**审查用的核对脚本**，
+④ 全仓**活代码**里对镜像的引用 = **0**（只剩 `agent_docs/int_scratch/chk_mirror.py` 这个**审查用的核对脚本**，
 它因此不能再跑 —— 但它的结论已固化在 `agent_docs/P6B_INTEGRATION_REVIEW.md` §5.2：「镜像脚本忠实：9 个镜像 bat
 逆向还原后与原件**逐字节相同**、`XCKU5PMini` 出现 26/26/26/26/26/3/1/3/1 次、**ECO 残留 0 处**」）；
 ⑤ 另加了 `.gitignore` 规则 `sim/*_p6b/` **防复发**。
@@ -6289,7 +6289,7 @@ P6a(数据面移植到 KU5P) ✅ / P6e(我们自己的 PCIe 观测通道) ✅ / 
 
 - **cell 探针 (P5e 新增块)**: `u_udp_split=1927 / u_udp_tx=1890 / u_udp_tx_cfg=336 /
   u_app_udp=1128 / u_tx_udp_arb=8` ⇒ app 侧逻辑**确实在网表里** (没被当无消费者裁掉)。
-  层次面积 (`p5e_verify/p5e_util_hier.rpt`): `u_udp_split` **869 LUT** (含 222 LUTRAM) + 1 BRAM /
+  层次面积 (`agent_docs/p5e_verify/p5e_util_hier.rpt`): `u_udp_split` **869 LUT** (含 222 LUTRAM) + 1 BRAM /
   `u_app_udp` **460 LUT** / `u_udp_tx_cfg` **122 LUT**; 参照 **`u_hls` = 19953 LUT = 全设计 38.7%**
   (10G 决策点 E 的输入: 慢路径比整个 UDP app 支重一个数量级)。
 - **app 侧锥进 setup 最差族**: `report_timing_summary -max_paths 20` 里 **9/20** 条是

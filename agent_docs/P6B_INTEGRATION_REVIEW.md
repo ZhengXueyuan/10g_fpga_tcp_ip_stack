@@ -4,7 +4,7 @@
 > `board/ku5p_p6b_cdc.xdc`、`board/build_p6b_ku5p.tcl`、`board/wrapper_p4.v`、
 > `_proj_pcie/rtl/axi_regs.v`、以及同批并入的 F4 修复 `rtl/mac_rx_64.v` / `rtl/fifo_sync.v`）。
 > **原则**：不信自述。每条结论都给**我自己跑出来的**原始证据（命令 + 读数 + file:line）。
-> **我写过的路径**：只有本文件 + `int_scratch/`（未改动 `rtl/` `board/` `tb/` `_proj_pcie/` `sim/`
+> **我写过的路径**：只有本文件 + `agent_docs/int_scratch/`（未改动 `rtl/` `board/` `tb/` `_proj_pcie/` `sim/`
 > 下任何既有文件；未 commit、未烧板、未跑综合/实现）。
 > 时间：2026-09-29。工具：`C:\AMDDesignTools\2025.2\Vivado\bin\{xvlog,xelab,xsim}.bat`（仅仿真）。
 
@@ -34,9 +34,9 @@
 
 ### 1.1 我自己的门（不复用施工方的 TB）
 
-* TB：`int_scratch/tb_int_axr36.v`（自己写；直连 `_proj_pcie/rtl/axi_regs.v`，假快照源把
+* TB：`agent_docs/int_scratch/tb_int_axr36.v`（自己写；直连 `_proj_pcie/rtl/axi_regs.v`，假快照源把
   **第 i 个字**写成 `32'hC0DE0000+i`，触发后逐字 AXI 读回）。
-* 运行：`int_scratch/sim_axr36/`（唯一命名，避开 `xsim.dir` 文件锁）。
+* 运行：`agent_docs/int_scratch/sim_axr36/`（唯一命名，避开 `xsim.dir` 文件锁）。
 * 结果（44 笔读）：
 
 ```
@@ -56,8 +56,8 @@ PASS_ALL tb_int_axr36 (reads=44)
 
 | 变异体 | 文件 | 结果 |
 |---|---|---|
-| **`snap_idx` 改回 5 位**（`wire [4:0] snap_idx = r_word[4:0] - 5'd8;`） | `int_scratch/neg5/axi_regs.v` | **FAIL**：`W32@0xa0 got=c0de0000 (=W0)`、`W33→W1`、`W34→W2`、`W35→W3`（+`C3b 0xAC` 连带 FAIL）= **5 条** |
-| **`snap_base` 改回 10 位**（`wire [9:0] snap_base`） | `int_scratch/negbase/axi_regs.v` | **FAIL**：同样的 W32..W35 → W0..W3，5 条 |
+| **`snap_idx` 改回 5 位**（`wire [4:0] snap_idx = r_word[4:0] - 5'd8;`） | `agent_docs/int_scratch/neg5/axi_regs.v` | **FAIL**：`W32@0xa0 got=c0de0000 (=W0)`、`W33→W1`、`W34→W2`、`W35→W3`（+`C3b 0xAC` 连带 FAIL）= **5 条** |
+| **`snap_base` 改回 10 位**（`wire [9:0] snap_base`） | `agent_docs/int_scratch/negbase/axi_regs.v` | **FAIL**：同样的 W32..W35 → W0..W3，5 条 |
 
 两条变异的 `xvlog` **位宽告警 `10-3091` 计数都是 0、`implicitly` 计数也是 0** (⚠️ 后者 2026-09-29 实测已是**死关键字**, 0 命中 = 无话可说, 不能当证据; 见 `_proj_10g/notes/P7B_IMPLICIT_GATE_FIX.md`)
 ⇒ 这正是那条"lint 全程沉默、只有例化真 DUT 逐字读回才抓得到"的静默回绕。**判据有区分能力。**
@@ -82,7 +82,7 @@ PASS_ALL tb_int_axr36 (reads=44)
 
 ### 1.4 链式顺序（`rtl/snap_seq.v`）—— 我自己独立做的
 
-* TB：`int_scratch/tb_int_snapseq.v`。**映射表是我手工写死的 36 行**（来源 = 上面 §1.3 从 wrapper
+* TB：`agent_docs/int_scratch/tb_int_snapseq.v`。**映射表是我手工写死的 36 行**（来源 = 上面 §1.3 从 wrapper
   拼接**逐项读出**的结论），**不复用** `snap_seq` 自己的 `fe_idx_of/dp_idx_of`（自带 TB 复用它们
   ⇒ 抄错会跟 DUT 一起错）。顺序判据用**墙钟时间戳**（假 CDC 模型在各自 b 域捕获 `$time`）。
 * 假 CDC 模型 = **忠实照抄 `rtl/snap_cdc.v` 的 toggle 握手**（`toggle_a` 电平翻转 + 3FF 同步 +
@@ -98,7 +98,7 @@ INFO M5 触发 42 次 / 完成 41 次               ← 背靠背那一发被丢
 PASS_ALL tb_int_snapseq (样本=41)
 ```
 
-* **负对照（我自己重做，不是照抄施工方的 1188/1142.4）**：副本 `int_scratch/mutseq/snap_seq.v`
+* **负对照（我自己重做，不是照抄施工方的 1188/1142.4）**：副本 `agent_docs/int_scratch/mutseq/snap_seq.v`
   把 FSM 改成 **DP 先 → FE 后**（`S_IDLE→req_dp→S_WDP→req_fe→S_WFE→assemble`），装配仍用
   `assemble(dout_fe,dout_dp)`（只反转顺序，隔离变量）：
 
@@ -244,7 +244,7 @@ WNS **+0.373**、WHS **+0.010**、WPWS **+0.000**、失败端点 **0/220748**、
 
 ### 3.6 我自己做的时序闸负对照（证明它不是"永远 PASS"）
 
-| 变异（在 `int_scratch/mut/` 的副本上做） | 结果 |
+| 变异（在 `agent_docs/int_scratch/mut/` 的副本上做） | 结果 |
 |---|---|
 | (a) 总表 setup 失败端点 `0 → 1` | `rc=1` `TIMING-FAIL: FAIL=2` ✅ 有牙 |
 | (b2) **彻底删掉数据面时钟**（所有含 `clk_out0` 的行 + 全部 `6.400`） | `rc=1`，判据2 `FAIL 缺 ~6.400ns 域 (数据面 156.25MHz) —— 数据面**没搬到**新域` ✅ 有牙 |
@@ -272,7 +272,7 @@ WNS **+0.373**、WHS **+0.010**、WPWS **+0.000**、失败端点 **0/220748**、
 
 ⇒ 四种组合**全部编过且能 elaborate**（四组合都没报 undeclared / implicit / 位宽）。
   ⚠️ **2026-09-29 订正**: 这里的 "implicit" 是**死关键字** ⇒ 该项实际只能证 "没有**表达式形式**的未声明"，**不能证 "没有隐式网"**（端口连接形式在 xvlog 里全静默）。见 `_proj_10g/notes/P7B_IMPLICIT_GATE_FIX.md`。
-`int_scratch/mac/files.f` 是 211 个文件的清单；每个组合在 `int_scratch/mac_<tag>/` 独立目录跑（避文件锁）。
+`agent_docs/int_scratch/mac/files.f` 是 211 个文件的清单；每个组合在 `agent_docs/int_scratch/mac_<tag>/` 独立目录跑（避文件锁）。
 
 ### 4.2 "P4 默认构建与 P6b 之前逐位相同" —— **我能证到什么程度（不含糊）**
 
@@ -433,7 +433,7 @@ WNS **+0.373**、WHS **+0.010**、WPWS **+0.000**、失败端点 **0/220748**、
 
 ```bash
 # 1) 36 字窗口逐字读回 (+ 两个负对照)
-cd D:/repo/XCKU5PMini/udp_hls_10g/int_scratch/sim_axr36   # 及 sim_neg5 / sim_negbase
+cd D:/repo/XCKU5PMini/udp_hls_10g/agent_docs/int_scratch/sim_axr36   # 及 sim_neg5 / sim_negbase
 xvlog.bat -work xil_defaultlib ../neg5/axi_regs.v ../tb_int_axr36.v
 xelab.bat -debug typical xil_defaultlib.tb_int_axr36 -s tb_int_axr36
 xsim.bat  tb_int_axr36 -runall
@@ -449,13 +449,13 @@ xelab.bat -debug typical -L unisims_ver xil_defaultlib.wrapper_p4 xil_defaultlib
 
 # 4) 时序闸 + 我自己的 3 个负对照
 python board/check_p6b_timing.py board/p6b_ku5p_timing.rpt --expect dual          # rc=0
-python board/check_p6b_timing.py int_scratch/mut/a_setupfail.rpt --expect dual     # rc=1
-python board/check_p6b_timing.py int_scratch/mut/b2_nodp.rpt     --expect dual     # rc=1 判据2 FAIL
-python board/check_p6b_timing.py int_scratch/mut/c_iddre.rpt     --expect dual     # rc=1
+python board/check_p6b_timing.py agent_docs/int_scratch/mut/a_setupfail.rpt --expect dual     # rc=1
+python board/check_p6b_timing.py agent_docs/int_scratch/mut/b2_nodp.rpt     --expect dual     # rc=1 判据2 FAIL
+python board/check_p6b_timing.py agent_docs/int_scratch/mut/c_iddre.rpt     --expect dual     # rc=1
 
 # 5) 镜像忠实性 / P4 空门取证
-python int_scratch/chk_mirror.py        # 9 个 bat 逆向还原 == 原件 -> MIRROR_FAITHFUL
-python int_scratch/chk_p4files.py       # (行级版; blob 版见 §5.1.4)
+python agent_docs/int_scratch/chk_mirror.py        # 9 个 bat 逆向还原 == 原件 -> MIRROR_FAITHFUL
+python agent_docs/int_scratch/chk_p4files.py       # (行级版; blob 版见 §5.1.4)
 git -C /d/repo/ECO/udp_hls_10g log --oneline -2 ; git -C ... status --short
 ```
 
@@ -463,11 +463,11 @@ git -C /d/repo/ECO/udp_hls_10g log --oneline -2 ; git -C ... status --short
 
 ```
 agent_docs/P6B_INTEGRATION_REVIEW.md          ← 本文件
-int_scratch/tb_int_axr36.v         tb_int_snapseq.v   probe_seq.v
-int_scratch/chk_mirror.py          chk_p4files.py     scan_consts.py
-int_scratch/neg5/axi_regs.v        negbase/axi_regs.v mutseq/snap_seq.v
-int_scratch/mut/{a_setupfail,b_no6p4,b2_nodp,c_iddre}.rpt
-int_scratch/mac/files.f   int_scratch/sim_*/   int_scratch/mac_*/
+agent_docs/int_scratch/tb_int_axr36.v         tb_int_snapseq.v   probe_seq.v
+agent_docs/int_scratch/chk_mirror.py          chk_p4files.py     scan_consts.py
+agent_docs/int_scratch/neg5/axi_regs.v        negbase/axi_regs.v mutseq/snap_seq.v
+agent_docs/int_scratch/mut/{a_setupfail,b_no6p4,b2_nodp,c_iddre}.rpt
+agent_docs/int_scratch/mac/files.f   agent_docs/int_scratch/sim_*/   agent_docs/int_scratch/mac_*/
 ```
 
 **未做**：`git add/commit/push`、烧板、跑综合/实现、修改任何既有文件、碰 `D:\repo\perfv`。

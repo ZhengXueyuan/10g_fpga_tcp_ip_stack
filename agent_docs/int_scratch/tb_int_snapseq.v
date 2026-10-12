@@ -3,7 +3,7 @@
 // tb_int_snapseq.v — 独立审查 agent 的 snap_seq 链式顺序门 (**独立于 rtl/snap_seq.v 自带
 //   的 tb_snap_seq.v**: 自带 TB 复用它自己的 fe_idx_of/dp_idx_of 当期望值 ⇒ 表抄错时它
 //   跟 DUT 一起错。本门把 36 行映射**手工写死** (来源 = board/wrapper_p4.v 的 fe_src/dp_src
-//   拼接逐项读出, 见 int_scratch/NOTES 的推导), 且顺序判据用**墙钟时间戳**, 不是它自己的量)。
+//   拼接逐项读出, 见 agent_docs/int_scratch/NOTES 的推导), 且顺序判据用**墙钟时间戳**, 不是它自己的量)。
 //
 // 判据:
 //   M1 逐字映射: 36 个字里每一个都必须来自我写死的那张表的 (束, 槽)
@@ -130,7 +130,7 @@ module tb_int_snapseq;
 
     //=========================================================================
     // 我手工写死的 36 行映射 —— 来源: board/wrapper_p4.v 的 fe_src/dp_src 拼接
-    //   (拼接最右项 = fe[0]/dp[0]; 逐项往上读 ⇒ 见 int_scratch/NOTES_map.md)
+    //   (拼接最右项 = fe[0]/dp[0]; 逐项往上读 ⇒ 见 agent_docs/int_scratch/NOTES_map.md)
     //   src: 0 = FE 束, 1 = DP 束
     //=========================================================================
     integer exp_src [0:35];

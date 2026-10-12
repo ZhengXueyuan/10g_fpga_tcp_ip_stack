@@ -33,7 +33,7 @@ fi
 set -u
 cd %REPO_ROOT% || exit 1
 BIT="${1:-wrapper_p4_diag_v6.bit}"
-P=p5diag_verify/v6
+P=agent_docs/p5diag_verify/v6
 mkdir -p "$P"
 
 run () {   # $1=tag $2=bytes $3=frames $4=paylen

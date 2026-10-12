@@ -72,7 +72,7 @@ set_property strategy Performance_ExtraTimingOpt [get_runs impl_1]
 launch_runs impl_1 -jobs 8
 wait_on_run impl_1
 
-# ---- 读数走独立脚本 (与 K7 的 build/verify 分离同构): p6a_ku5p_verify/p6a_verify.tcl ----
+# ---- 读数走独立脚本 (与 K7 的 build/verify 分离同构): agent_docs/p6a_ku5p_verify/p6a_verify.tcl ----
 #      (读 p6a_ku5p_<tag>_prj.runs/impl_1/wrapper_p4_routed.dcp, 不改工程)
 
 launch_runs impl_1 -to_step write_bitstream -jobs 8

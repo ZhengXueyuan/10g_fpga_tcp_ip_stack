@@ -36,7 +36,7 @@
 | `_proj_pcie/` | 观测通道 36 字 + 验收/冒烟脚本 | 10 | 6 + `smoke_scratch/` |
 | `board/` | 顶层/约束/构建/板级报告 | 34 | 24 + 2 目录 |
 | `sim/`+`tools/` | P6b 门、工具、**P4 矩阵硬化工具链** | 155 | ~250 |
-| `p5e_verify/` `p5f_verify/` `p6_verify/` `hls/` | **纯路径硬化** | 19 | 0 |
+| `agent_docs/p5e_verify/` `agent_docs/p5f_verify/` `agent_docs/p6_verify/` `hls/` | **纯路径硬化** | 19 | 0 |
 | 文档 | `P6B_*.md` `agent_docs/P6E_OBS.md` `agent_docs/PORT_NOTES.md` `README.md` `.gitignore` | 5 | 6 |
 | 三个 scratch 目录 | 审查/审计/集成 agent 的原始证据 | 0 | ~150（文本） |
 
@@ -62,8 +62,8 @@
 | **C3** | `board/`（内容） | 顶层双域搬迁 + 两个新 XDC + `build_p6b*.tcl` + P6b 构建/时序报告 | 24 文件 + 2 目录 |
 | **C4** | `sim/`（**P6b 门**）+ `tools/`（**F4 工具**） | `fifoasync` / `clkgen` / `snapseq` / `f4sim` / `f4chain` / `p6b_lint` / `p6e_pcie` + `tools/f4_*` | ~250 文件 |
 | **C5** | `sim/p4gates/` | **P4 矩阵的路径硬化工具链**（`p4env.bat`/`p4gate.py`/`paths.txt`/runner + evidence 全部原始读数） | 1 目录 |
-| **C6** | 硬化批（**169 个已跟踪文件**） | **把 243 个"真空门"改成自定位 + 装守卫/绊线**（`board/` `sim/` `tools/` `hls/` `p5*_verify/` `p6_verify/`） | 169 文件 |
-| **C7** | 证据归档批 | `board/p6b_verify/` + `p6b_accept_final/` + 三个 scratch 目录的文本证据 + `sim/p4sim` 指纹 | 3 目录 + 3 目录 + 文件 |
+| **C6** | 硬化批（**169 个已跟踪文件**） | **把 243 个"真空门"改成自定位 + 装守卫/绊线**（`board/` `sim/` `tools/` `hls/` `p5*_verify/` `agent_docs/p6_verify/`） | 169 文件 |
+| **C7** | 证据归档批 | `board/p6b_verify/` + `agent_docs/p6b_accept_final/` + 三个 scratch 目录的文本证据 + `sim/p4sim` 指纹 | 3 目录 + 3 目录 + 文件 |
 | **C8** | 文档批 | `agent_docs/P6B_SUMMARY.md`（新）+ `agent_docs/P6B_SPEC/ACCEPT/CDC_AUDIT/REVIEW/INTEGRATION_REVIEW.md` + `agent_docs/P6E_OBS.md` + `agent_docs/PORT_NOTES.md` + `README.md` | 11 文件 |
 
 **为什么 C6 单独一条**：它是**一次机械的、全仓范围的**改动（同一个守卫模式应用 169 次），
@@ -86,14 +86,14 @@
 gitignore: 仿真/构建产物的通用排除规则 (xsim.dir / *.wdb / *.pcap / scratch 下 *.memh / *_prj.runs)
 
 本轮盘点时仍有 209 MB 未跟踪且未被忽略的条目, 主要躺在各 agent 的临时目录
-(int_scratch/ agent_docs/review_scratch/ audit_scratch/ p6b_final_verify/ …) 里, 主体是 xsim 的
+(agent_docs/int_scratch/ agent_docs/review_scratch/ agent_docs/audit_scratch/ agent_docs/p6b_final_verify/ …) 里, 主体是 xsim 的
 编译目录与波形 (单个 xsimk.exe 10 MB 级) —— 历史教训是上一轮有 119 MB 仿真残渣差点进库。
 
 改动:
 - xsim.dir/ 与 *.wdb/*.vcd/*.dmp 改成**任何层级**通用规则 (此前只逐处列了 sim/ rtl/ board/ 三处,
   *_scratch/ 下的 xsim.dir/ 全部漏网);
 - *.pcap 与已有的 *.pcapng/*.etl 对齐 (抓包一律不入库);
-- *_scratch/**/*.memh 与 p6b_final_verify/**/*.memh (生成器可重建的激励/响应);
+- *_scratch/**/*.memh 与 agent_docs/p6b_final_verify/**/*.memh (生成器可重建的激励/响应);
 - *_prj.runs/ (probe/diag 目录里新建的 Vivado 工程);
 - sim/*_p6b/ (已退役的镜像工具链; 规则留着防复发)。
 
@@ -101,7 +101,7 @@ gitignore: 仿真/构建产物的通用排除规则 (xsim.dir / *.wdb / *.pcap /
 门驱动**不受影响**。实测确认: 0 个已跟踪文件命中本段任何一条规则, 也没有 git rm 任何东西。
 
 **放行** (同一条提交里): 全局 `*.log` 原本会把**归档级**的原始日志也挡在库外, 现窄口径放行三个目录:
-- p6b_accept_final/*.log (+*.err) —— P6b 板级验收的原始 stdout, agent_docs/P6B_ACCEPT.md §7.1 逐条登记了
+- agent_docs/p6b_accept_final/*.log (+*.err) —— P6b 板级验收的原始 stdout, agent_docs/P6B_ACCEPT.md §7.1 逐条登记了
   sha256 (cb474fbe…/cb3f13dc…);
 - board/p6b_verify/*.log —— P6b 四道门的 PASS 读数;
 - _proj_pcie/smoke_scratch/*.log —— 冒烟轮读数 (p6b_smoke_account.log 的 W0=270/W6=269 是
@@ -137,7 +137,7 @@ tools/gen_stim_tx.py   # 参考模型同步 F-2 的 S_FLUSH (原先把缺陷当�
 tools/parse_mac_rx.py  # 判读器识别 TERM 帧 (tkeep==0 归入 partials, 拆掉"TERM 当外来帧"的地雷)
 ```
 **边界说明**：`rtl/` 与 `tb/` **不在**路径硬化的 364 文件清单里（硬化只覆盖 `sim/ board/ tools/
-p5*_verify/ p6_verify/ hls/ whs_reroll_probe/` + 3 个根 `_tmp_*.py`）⇒ **这一条是纯行为改动**，
+p5*_verify/ agent_docs/p6_verify/ hls/ agent_docs/whs_reroll_probe/` + 3 个根 `_tmp_*.py`）⇒ **这一条是纯行为改动**，
 评审时应逐行读。两个 `tools/*.py` 放这里而不是 C4，因为它们是**修复的配套**（不这样改，
 F-2/F4 的门会给出错误的红/绿）。
 
@@ -186,7 +186,7 @@ P6b: 数据面搬 156.25MHz (新 clk_gen_p6b/fifo_async/snap_seq) + 四个数据
 - F4   : W32/W33/W34/W35 (新计数器) + 结构式 W30==W0+W32 / W31==W1-4*W0+W33。见 sim/f4sim/、sim/f4chain/、
          agent_docs/P6B_REVIEW.md §3.4 与附录 R (含"撤回修复即 FAIL"的负对照)。
 - F4-2 : agent_docs/P6B_REVIEW.md R.4 的 A/B (同一激励: 修复前 frames=1 drop=2 -> 修复后 frames=2 drop=1)。
-- F-2  : audit_scratch/t3_txcdc/ —— 幽灵帧 0; 撤回修复 => FAIL; 无中止路径指纹逐位不变
+- F-2  : agent_docs/audit_scratch/t3_txcdc/ —— 幽灵帧 0; 撤回修复 => FAIL; 无中止路径指纹逐位不变
          (33f82978 修前/修后相同 + flush 计数器为 0 = 冲刷从未运行的正证据)。
 - F-1  : sim/fifoasync/ 12 门 + 7 变异; 关键负对照 run_mut_noovf.bat (撤回探针) 实测 FAIL(3 条)。
 
@@ -226,7 +226,7 @@ P6e/P6b 观测通道: 快照窗口 24 -> 36 字 (BUILD_ID=6) + 读数脚本跟�
 
 - _proj_pcie/rtl/axi_regs.v: 36 字需要**同时**加宽 snap_idx (5->6) 与 snap_base (10->11)
   —— 只加宽一处会让 0xA0..0xAC 静默回绕读回 W0..W3 = **假 PASS 而不是 FAIL**
-  (agent_docs/P6B_REVIEW.md 附录 R.5 预先算出了这条硬顶; 审查方另写了独立门 int_scratch/tb_int_axr36.v
+  (agent_docs/P6B_REVIEW.md 附录 R.5 预先算出了这条硬顶; 审查方另写了独立门 agent_docs/int_scratch/tb_int_axr36.v
    + 两条回绕负对照, 都实测 FAIL)。
 - 新增字: W26..W31 (两个异步 FIFO 的满拍/占用峰值/DP 等线/RX 侧读帧与读字节) 与
   W32..W35 (F4 的四个丢帧守恒计数器, 全部属 FE 束)。域归属与生产者节点逐字核对见
@@ -238,7 +238,7 @@ P6e/P6b 观测通道: 快照窗口 24 -> 36 字 (BUILD_ID=6) + 读数脚本跟�
   "读失败被 $(( )) 当成 0" 会静默伪造出"计数冻结"的结论 (真凶是脚本自己的变量名撞车)。
 
 判据: sim/p6e_pcie/run_tb_p6e_pcie.bat = 34 字 force 成互不相同的常数后逐字读回 +
-W24/W25 的动态判据 + 0xB0 边界; int_scratch/tb_int_axr36.v 为审查方独立复现 (reads=44)。
+W24/W25 的动态判据 + 0xB0 边界; agent_docs/int_scratch/tb_int_axr36.v 为审查方独立复现 (reads=44)。
 ```
 
 ### C3 — `board/`：顶层双域 + 约束 + 构建
@@ -413,8 +413,8 @@ printf '%s\n' \
   board/run_program_p5_diag.bat board/run_program_p5_keep.bat board/run_program_p5a0.bat \
   board/run_program_tcp.bat board/run_sysmon.bat board/run_timing_p5.bat board/timing_p5.tcl \
   hls/run_hls.bat hls/run_hls_active.bat hls/run_hls_active_board.bat \
-  p5e_verify/cone_rank_p5e.tcl p5e_verify/hier_util_p5e.tcl p5e_verify/inst_check_p5e.tcl \
-  p5e_verify/verify_p5e.tcl p5f_verify/*.tcl p6_verify/*.tcl p6_verify/run_p6_*.bat p6_verify/p6_report.py \
+  agent_docs/p5e_verify/cone_rank_p5e.tcl agent_docs/p5e_verify/hier_util_p5e.tcl agent_docs/p5e_verify/inst_check_p5e.tcl \
+  agent_docs/p5e_verify/verify_p5e.tcl agent_docs/p5f_verify/*.tcl agent_docs/p6_verify/*.tcl agent_docs/p6_verify/run_p6_*.bat agent_docs/p6_verify/p6_report.py \
   sim/adv_run4.sh sim/adv_run5.sh sim/adv_run6.sh sim/adv_run_case.sh sim/run_all_adv4.sh \
   sim/p5e_udp/run_regress.sh \
   sim/p4sim/run_tb_p4_burst.bat sim/p4sim/run_tb_p4_burst_vlan.bat sim/p4sim/run_tb_p4_chain.bat \
@@ -465,7 +465,7 @@ git diff -- <file> | grep -E '^[+-]' | grep -vE '^[+-]{3}' \
 
 未修: 23 个（Python(手工) 类为主, 含 tools/capture_rate_test.ps1）—— 逐条清单与原因见
 sim/p4gates/evidence/inventory_eco_class.txt 的 NOT FIXED 行。已知的一个活地雷:
-sim/run_tb_tx.bat 仍 cd 到 ECO 仓（audit_scratch/regress_mactx.py 用自定位绕过了它）。
+sim/run_tb_tx.bat 仍 cd 到 ECO 仓（agent_docs/audit_scratch/regress_mactx.py 用自定位绕过了它）。
 
 配套的负对照在 sim/p4gates（C5）: negctl_A/B 实测 RC=1 / EXIT=97, 不装守卫则全是 exit 0。
 ```
@@ -476,17 +476,17 @@ sim/run_tb_tx.bat 仍 cd 到 ECO 仓（audit_scratch/regress_mactx.py 用自定�
 ```
 board/p6b_verify/     # 板级门读数 + 时序闸负对照 + CONTROLS.txt + p4_matrix_local_repo.log
                       #   (*.log 已由 .gitignore 放行 ⇒ 会入库; *.rpt 本来就是跟踪的)
-p6b_accept_final/     # **验收归档**: 位流(*.bit)与抓包(*.pcap)仍被忽略(既定策略),
+agent_docs/p6b_accept_final/     # **验收归档**: 位流(*.bit)与抓包(*.pcap)仍被忽略(既定策略),
                       #   *.log/*.err 已放行 ⇒ 入库的是脚本 + 全部原始日志
-int_scratch/          # 审查方独立门 (tb_int_axr36.v / tb_int_snapseq.v) + 回绕负对照
+agent_docs/int_scratch/          # 审查方独立门 (tb_int_axr36.v / tb_int_snapseq.v) + 回绕负对照
 agent_docs/review_scratch/       # 对抗审查的原始读数与变异体 (F4 复核附录 R 的 A/B 读数在这里)
-audit_scratch/        # 跨域审计的门 + 原始读数 + rtl_orig/ 与 tools_orig/ 的**撤回对照副本**
+agent_docs/audit_scratch/        # 跨域审计的门 + 原始读数 + rtl_orig/ 与 tools_orig/ 的**撤回对照副本**
 sim/p4sim/P4_MATRIX_FINGERPRINT_*.txt   # ⚠️ 等矩阵跑完
 sim/p4sim/matrix_p4dfix.log             # ⚠️ 等矩阵跑完
 ```
 > ⚠️ 三个 scratch 目录里的原始 **xsim 控制台日志 (`*.log`) 仍被排除**（读数已提练进同目录的
 > `*.txt` 判据文件）。若 TL 认为审计/审查的 `.log` 也该入库（`agent_docs/P6B_CDC_AUDIT.md` §8 的证据索引
-> 指向 `t1_bits/case_*/xsim_*.log`），加一行 `!audit_scratch/**/*.log` 即可 ——
+> 指向 `t1_bits/case_*/xsim_*.log`），加一行 `!agent_docs/audit_scratch/**/*.log` 即可 ——
 > **这是刻意的窄口径选择，不是遗漏**（audit_scratch 的 `.log` 合计 1.8 MB，review 0.17 MB，int 0.3 MB）。
 **提交信息**：
 ```
@@ -495,16 +495,16 @@ sim/p4sim/matrix_p4dfix.log             # ⚠️ 等矩阵跑完
 本仓的存档策略是"**文本证据入库**"（读数、判据输出、负对照原始 stdout），产物（波形/位流/抓包/
 xsim.dir）不入库。这次归档三类:
 
-1 board/p6b_verify/ + p6b_accept_final/
+1 board/p6b_verify/ + agent_docs/p6b_accept_final/
   板级验收的原始日志与脚本（位流**不入库** —— 项目既定策略不跟踪位流, sha256 记在 agent_docs/P6B_ACCEPT.md §1.1）。
   注意: 冒烟轮烧的是**过期位流** 03f9c6d0…fe5a0d（不含 F-1/F-2）, 引用它的数字必须注明这一点。
 
-2 audit_scratch/ agent_docs/review_scratch/ int_scratch/
+2 agent_docs/audit_scratch/ agent_docs/review_scratch/ agent_docs/int_scratch/
   三个独立 agent（跨域审计 / 对抗审查 / 集成审查）的门与原始读数, 含:
-  - audit_scratch/rtl_orig/mac_tx_64.v 与 tools_orig/gen_stim_tx.py: **撤回修复用的对照副本**
+  - agent_docs/audit_scratch/rtl_orig/mac_tx_64.v 与 tools_orig/gen_stim_tx.py: **撤回修复用的对照副本**
     （"撤回修复即 FAIL"这条负对照靠它复现）;
   - agent_docs/review_scratch/_sec_R.md 与附录 R 的 A/B 读数（F4-2 就是在这里被抓到的）;
-  - int_scratch/tb_int_axr36.v + neg5/ + negbase/: 36 字读回门与**两条回绕负对照**。
+  - agent_docs/int_scratch/tb_int_axr36.v + neg5/ + negbase/: 36 字读回门与**两条回绕负对照**。
   这些目录里的 xsim.dir/ *.wdb *.memh 已被 .gitignore 排除。
 
 3 sim/p4sim 的指纹与矩阵日志（受 ! 规则放行入库）—— 它们是"这一轮跑的是哪个修订"的绑定物。

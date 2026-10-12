@@ -31,7 +31,7 @@
 | 冻结路径 | `vivado_prj/p6b_final_ku5p_prj.runs/impl_1/wrapper_p4.bit` |
 | 大小 | 15,431,261 B |
 | **sha256** | **`c17700868b08170865f4a4ae0292ebb636aed03070e2875f6dbb005123a948ca`** |
-| 本次实际烧入 | `p6b_accept_final/frozen_p6b_final.bit`（**冻结副本**，sha256 逐位相同 —— 避免烧录期间被别的进程重建覆盖） |
+| 本次实际烧入 | `agent_docs/p6b_accept_final/frozen_p6b_final.bit`（**冻结副本**，sha256 逐位相同 —— 避免烧录期间被别的进程重建覆盖） |
 | 烧录判据 | `End of startup status: HIGH`（TCK 1 MHz，经 `a@192.168.0.38:3121` 的 hw_server；**只走 JTAG，未碰板载 QSPI**） |
 
 ⚠️ **过期位流的坑（本仓真实存在，已核对）**：
@@ -243,18 +243,18 @@ W32 drop_partial=0  W33 orphan_bytes=0  W34 drop_full=0  W35 fifo_ovf=0
 
 | 路径 | 用途 |
 |---|---|
-| `p6b_accept_final/frozen_p6b_final.bit` | **被验位流冻结副本**（sha256 = `c1770086…a948ca`，逐位同冻结路径） |
-| `p6b_accept_final/program_p6b_final.tcl` | JTAG 烧录（1 MHz，绝不写 QSPI），指向上面的冻结副本 |
-| `p6b_accept_final/run_program_p6b_final.bat` | 上面的 Windows 包装（ASCII+CRLF） |
-| `p6b_accept_final/srv_p6b_final_accept.sh` | **主机侧验收脚本**（`abe` / `d` 两段；判据逐条打印 PASS/FAIL/SKIP/NOTE） |
-| `p6b_accept_final/srv_p6b_final_teach.py` | D 段 teach 包（100 B 图案前缀 → `:8081`；先 bind 抑制 ICMP 洪水） |
-| `p6b_accept_final/srv_p6b_final_verify0.py` | D3b：附加证明"流从 offset 0 开始"（只 import 既有 verifier，不改它） |
-| `p6b_accept_final/host_p6b_final_accept_abe.log` | **周期 2 原始日志**（sha256 `cb474fbe6320cc85b717ec6e8b7964d662e363b99039b77c575b3a9c7429288c`） |
-| `p6b_accept_final/host_p6b_final_accept_d.log` | **周期 1 原始日志**（sha256 `cb3f13dcd6057d8f41a18e1f5b5a5a07aab85a033da651ad63c4e35347bedc32`） |
-| `p6b_accept_final/host_p6b_final_pat.pcap` | D3 的抓包（2000 包；sha256 `0f836b403e443e8a5844e48fa6e2e9f458b6a936c095c62a857af9f55e17cd5d`） |
-| `p6b_accept_final/host_p6b_final_verify.log` / `…verify0.log` | 两个离线验证器的原始输出 |
-| `p6b_accept_final/host_p6b_final_teach.log` / `…tcpdump.err` | teach 与 tcpdump 的原始输出（含 `0 packets dropped by kernel`） |
-| `p6b_accept_final/program_p6b_final.log` | 最后一次烧录日志（含 `End of startup status: HIGH`） |
+| `agent_docs/p6b_accept_final/frozen_p6b_final.bit` | **被验位流冻结副本**（sha256 = `c1770086…a948ca`，逐位同冻结路径） |
+| `agent_docs/p6b_accept_final/program_p6b_final.tcl` | JTAG 烧录（1 MHz，绝不写 QSPI），指向上面的冻结副本 |
+| `agent_docs/p6b_accept_final/run_program_p6b_final.bat` | 上面的 Windows 包装（ASCII+CRLF） |
+| `agent_docs/p6b_accept_final/srv_p6b_final_accept.sh` | **主机侧验收脚本**（`abe` / `d` 两段；判据逐条打印 PASS/FAIL/SKIP/NOTE） |
+| `agent_docs/p6b_accept_final/srv_p6b_final_teach.py` | D 段 teach 包（100 B 图案前缀 → `:8081`；先 bind 抑制 ICMP 洪水） |
+| `agent_docs/p6b_accept_final/srv_p6b_final_verify0.py` | D3b：附加证明"流从 offset 0 开始"（只 import 既有 verifier，不改它） |
+| `agent_docs/p6b_accept_final/host_p6b_final_accept_abe.log` | **周期 2 原始日志**（sha256 `cb474fbe6320cc85b717ec6e8b7964d662e363b99039b77c575b3a9c7429288c`） |
+| `agent_docs/p6b_accept_final/host_p6b_final_accept_d.log` | **周期 1 原始日志**（sha256 `cb3f13dcd6057d8f41a18e1f5b5a5a07aab85a033da651ad63c4e35347bedc32`） |
+| `agent_docs/p6b_accept_final/host_p6b_final_pat.pcap` | D3 的抓包（2000 包；sha256 `0f836b403e443e8a5844e48fa6e2e9f458b6a936c095c62a857af9f55e17cd5d`） |
+| `agent_docs/p6b_accept_final/host_p6b_final_verify.log` / `…verify0.log` | 两个离线验证器的原始输出 |
+| `agent_docs/p6b_accept_final/host_p6b_final_teach.log` / `…tcpdump.err` | teach 与 tcpdump 的原始输出（含 `0 packets dropped by kernel`） |
+| `agent_docs/p6b_accept_final/program_p6b_final.log` | 最后一次烧录日志（含 `End of startup status: HIGH`） |
 
 ### 7.2 对端机（192.168.0.38）上的部署物
 
@@ -267,9 +267,9 @@ W32 drop_partial=0  W33 orphan_bytes=0  W34 drop_full=0  W35 fifo_ovf=0
 ```bash
 # 0) 前置闸: 确认没有 Vivado 构建在跑 (tasklist | grep -i vivado)
 # 1) 认位流: sha256 必须等于 c17700868b08170865f4a4ae0292ebb636aed03070e2875f6dbb005123a948ca
-sha256sum p6b_accept_final/frozen_p6b_final.bit
+sha256sum agent_docs/p6b_accept_final/frozen_p6b_final.bit
 # 2) 烧录 + 重启 (次序不可换)
-cmd //c 'D:\repo\XCKU5PMini\udp_hls_10g\p6b_accept_final\run_program_p6b_final.bat'   # 判据 'End of startup status: HIGH'
+cmd //c 'D:\repo\XCKU5PMini\udp_hls_10g\agent_docs/p6b_accept_final\run_program_p6b_final.bat'   # 判据 'End of startup status: HIGH'
 ssh a@192.168.0.38 'echo 111111 | sudo -S reboot'                                     # 等 ~90 s
 # 3) 周期 1: D 段 (必须紧接重烧; 脚本自己会查 W8/W10==0 与 ARP)
 ssh a@192.168.0.38 'echo 111111 | sudo -S bash /home/a/xdma_test/srv_p6b_final_accept.sh d'

@@ -7,7 +7,7 @@ if {![file exists [file join $REPO_ROOT CLAUDE.md]]} {
 #   (a) per-ENDPOINT worst-400 setup report (-nworst 1: one path per endpoint,
 #       unlike p6_verify.tcl's -nworst 400 which repeats one endpoint)
 #   (b) design-wide top fanout nets (answers "is the fo=498 family still worst")
-#   ASCII only. Writes into p6_verify/.
+#   ASCII only. Writes into agent_docs/p6_verify/.
 #=============================================================================
 set root_dir %REPO_ROOT%
 set out_dir  ${root_dir}/p6_verify

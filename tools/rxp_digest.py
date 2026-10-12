@@ -18,8 +18,8 @@ paylen 由 URB/URF 反推: 在候选表里找满足 `ceil(URB/pl) == URF` 的 pl
 拿它去取模会得到一堆假余数 (2026-09-27 我自己这么错过一次)。
 
 用法:
-  python tools/rxp_digest.py p5diag_verify/v3_round*.line
-  python tools/rxp_digest.py --window 200000 p5diag_verify/v3_long*.line
+  python tools/rxp_digest.py agent_docs/p5diag_verify/v3_round*.line
+  python tools/rxp_digest.py --window 200000 agent_docs/p5diag_verify/v3_long*.line
 """
 import math
 import re

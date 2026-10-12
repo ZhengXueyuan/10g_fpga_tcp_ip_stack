@@ -4,11 +4,11 @@
 
 为什么不直接跑 sim/run_tb_tx.bat: 那个 bat 里 `cd /d D:\\repo\\ECO\\udp_hls_10g\\sim`
 (指向被拷的原仓库), 会跑到**另一份 RTL**。本脚本把刺激/期望/trace 全部落在
-audit_scratch/t6_mactx/ 下, 只引用 tools/ 里既有的 gen_stim_tx.py / parse_tx.py
+agent_docs/audit_scratch/t6_mactx/ 下, 只引用 tools/ 里既有的 gen_stim_tx.py / parse_tx.py
 (**未修改任何既有文件**), 编译本目录的 rtl/mac_tx_64.v (或它的旧副本)。
 
 用法: python regress_mactx.py [new|orig|both]     (默认 both)
-  new  = rtl/mac_tx_64.v (F-2 修复后) ; orig = audit_scratch/rtl_orig/mac_tx_64.v
+  new  = rtl/mac_tx_64.v (F-2 修复后) ; orig = agent_docs/audit_scratch/rtl_orig/mac_tx_64.v
 判据 = parse_tx.check (逐拍比对 gmii 流 + stats)。
 """
 import os

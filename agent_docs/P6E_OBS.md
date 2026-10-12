@@ -9,7 +9,7 @@
 | 构建 | `board/run_lint_p6e.bat` (秒级预检) → `board/run_build_p6e_ku5p.bat` (~30 min) |
 | 产物 | `vivado_prj/p6e_ku5p_prj.runs/impl_1/wrapper_p4.bit` |
 | 烧录 | `_proj_pcie/run_program_p6e.bat` (JTAG 1MHz; **绝不写 QSPI**) |
-| ⚠️ 烧完 | **必须重启主机** —— PCIe 端点只认"FPGA 配置先于主机 POST" (四组对照实验见 `_pcie/README.md`) |
+| ⚠️ 烧完 | **必须重启主机** —— PCIe 端点只认"FPGA 配置先于主机 POST" (四组对照实验见 `agent_docs/_pcie/README.md`) |
 | 验收 | 对端机 `sudo bash /home/a/xdma_test/p6e_snap_check.sh` (日志 `/tmp/p6e_snap_check.log`) |
 | 构建开关 | `APP_MODE=1 DEV_USP=1 **PCIE_OBS=1**` —— 所有 PCIe 内容都在 `ifdef PCIE_OBS` 内, 其余构建逐位不变 |
 
@@ -124,7 +124,7 @@
 > 历史上这一轮 (8→16) 被全链门抓到 **3 个 lint 看不见的真 bug** (字号索引回绕 / 去程与回程两条线各
 > 截断 256 位 / 这次的回绕读错字) —— xvlog 的位宽检查**不覆盖端口连接, 也不报窄左端赋值**,
 > 所以只能靠例化真 wrapper 的门 + 逐字读回。36 字版的全链门 = `sim/p6e_pcie/run_tb_p6e_pcie.bat`
-> （逐字读回 36 字）；审查方另写了独立的 36 字读回门 `int_scratch/tb_int_axr36.v` 并配了**两条**
+> （逐字读回 36 字）；审查方另写了独立的 36 字读回门 `agent_docs/int_scratch/tb_int_axr36.v` 并配了**两条**
 > 回绕负对照（`snap_idx` 改 5 位 / `snap_base` 改 10 位 —— **两条都 FAIL**，证明判据有牙）。
 
 ### 主机读快照的协议 (三步)
@@ -218,8 +218,8 @@ W20 vs W7         ⇒ **MAC 级发帧 vs HLS 慢路径发帧** —— 分开"没
 | `_proj_pcie/run_tb_axi_regs.bat` | 寄存器块单元门 17 项 (含快照窗口/触发脉冲/冻结/中途换代的 gen 守卫负对照) | **PASS_ALL** |
 | `sim/p6e_pcie/run_tb_p6e_pcie.bat` | ⭐ **真 wrapper 全链门**（P6b 起 **36 字全覆盖**）：其中 **34 个字**（W0..W23 + W26..W35）的计数源 force 成互不相同的常数、从 AXI 侧逐字读回比对；**W24/W25 不能用 force**（自由计数 / MMCM locked）⇒ 改用动态判据 `ΔW24/ΔW5 = 1.2501 ∈ [1.24,1.26]` 与 `locked==1`。门内另查 `0xB0 → SLVERR` 与 `gen 恰好 +1`<br>⚠️ force 必须打**生产者节点**(子模块端口): 打 wrapper 线会**掩盖"生产者↔线断开"** —— 实测把 `mac_tx_frames` 改回悬空, 打线版照样 PASS_ALL, 打生产者节点版当场 FAIL | **PASS_ALL**（读数 `board/p6b_verify/p6e_pcie_wrapper.pass.log`） |
 | `sim/p6e_pcie/run_tb_p6e_pcie_counters.bat` | ⭐ **新计数器增量门** (2026-09-29 加): 200 拍握手 ⇒ `W16` **恰好 +200**; 150 拍 `hls_rst_n` 低 ⇒ `W17` **恰好 +150**; 含 tvalid-only / tready-only 负向 —— 全链门把这两路 force 成常数, 掩盖了增量条件, 这道补动态那一段 | **PASS_ALL** |
-| `int_scratch/tb_int_axr36.v` (审查方独立写) | ⭐ **36 字读回 + 两条回绕负对照**: `snap_idx` 改回 5 位 / `snap_base` 改回 10 位 ⇒ 都必须 FAIL（实测 W32..W35 读回 W0..W3，**5 条 FAIL**）；两条变异的 xvlog `10-3091` 与 `implicitly` 计数**都是 0** (⚠️ `implicitly` 2026-09-29 实测已是死关键字 ⇒ 这半句无证据力) ⇒ 这类错只有"例化真 DUT + 逐字读回"抓得到 | **PASS_ALL (reads=44)** / 负对照 **FAIL** |
-| `int_scratch/tb_int_snapseq.v` (审查方独立写) | ⭐ **链式触发顺序门**（映射表由审查方按 wrapper 拼接**手工写死**，不复用 DUT 的 `fe_idx_of`）：41 代快照顺序成立 41/41、偏斜 **+36..+41 ns**；负对照把 FSM 改成 **DP 先** ⇒ 成立 **0/41**、偏斜 −46..−39 ns | **PASS_ALL (样本=41)** / 负对照 **FAIL** |
+| `agent_docs/int_scratch/tb_int_axr36.v` (审查方独立写) | ⭐ **36 字读回 + 两条回绕负对照**: `snap_idx` 改回 5 位 / `snap_base` 改回 10 位 ⇒ 都必须 FAIL（实测 W32..W35 读回 W0..W3，**5 条 FAIL**）；两条变异的 xvlog `10-3091` 与 `implicitly` 计数**都是 0** (⚠️ `implicitly` 2026-09-29 实测已是死关键字 ⇒ 这半句无证据力) ⇒ 这类错只有"例化真 DUT + 逐字读回"抓得到 | **PASS_ALL (reads=44)** / 负对照 **FAIL** |
+| `agent_docs/int_scratch/tb_int_snapseq.v` (审查方独立写) | ⭐ **链式触发顺序门**（映射表由审查方按 wrapper 拼接**手工写死**，不复用 DUT 的 `fe_idx_of`）：41 代快照顺序成立 41/41、偏斜 **+36..+41 ns**；负对照把 FSM 改成 **DP 先** ⇒ 成立 **0/41**、偏斜 −46..−39 ns | **PASS_ALL (样本=41)** / 负对照 **FAIL** |
 | `sim/fifoasync/run_all.bat` (+ `run_mut_*.bat` 7 个变异) | `rtl/fifo_async.v` 单元门（12 个基础门 + 7 变异）。**F-1 修复的判据归属**：`run_mut_noovf.bat`（把 `ovf_pulse` 钉 0 = 撤回 F-1 修复）必须 FAIL —— 实测 `FAIL (3 条判据不成立)`，含"写域占用探针峰值 >= 金标准"与"探针非空"两条 | 正例 **PASS** / `mut_noovf` **FAIL**（有牙） |
 | `sim/snapcdc/negctrl/run_negctrl_2rst.bat` | 负对照: "两域各自复位会不会死锁" —— **实测不会** (见下) | 结论已改文档 |
 | `_proj_pcie/run_tb_axi_regs.bat` (变异体) | ⭐ **自证判别力**: 把 `snap_base` 临时改回 `[8:0]` ⇒ 单元门必须 FAIL | **实测 FAIL** (13d=8 字错 / 15b=0x320), 改回 `[9:0]` ⇒ PASS_ALL |
