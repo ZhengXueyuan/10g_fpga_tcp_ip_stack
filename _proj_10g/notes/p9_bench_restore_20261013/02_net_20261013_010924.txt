@@ -1,0 +1,31 @@
+=== NET_BEGIN 1791824964.904573400 Tue Oct 13 01:09:24     2026
+--- 0) 改前实录 ---
+enp1s0f1np1      DOWN           
+--- route table ---
+default via 192.168.0.1 dev wlp6s0 proto dhcp src 192.168.0.38 metric 600 
+192.168.0.0/24 dev wlp6s0 proto kernel scope link src 192.168.0.38 metric 600 
+--- coalesce BEFORE ---
+--- 1) 配置 (sudo) ---
+SUDO_CFG_DONE
+SET_COALESCE_RC=0
+--- 2) 见证 (现取) ---
+--- ip -br addr ---
+enp1s0f1np1      DOWN           192.168.100.100/32 
+--- ip route get 192.168.100.2 (必须 dev enp1s0f1np1, 不许走 WiFi) ---
+192.168.100.2 dev enp1s0f1np1 src 192.168.100.100 uid 1000 
+    cache 
+--- route table (192.168.100) ---
+192.168.100.2 dev enp1s0f1np1 scope link src 192.168.100.100 linkdown 
+--- carrier ---
+0
+--- operstate ---
+down
+--- nmcli state ---
+10 (unmanaged)
+--- coalesce AFTER ---
+--- ethtool link ---
+	Speed: 10000Mb/s
+	Link detected: no
+--- irqbalance ---
+inactive
+=== NET_END 1791824968.051620500

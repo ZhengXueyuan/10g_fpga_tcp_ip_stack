@@ -1,0 +1,68 @@
+=== READY_BEGIN 1791825236.968679900 Tue Oct 13 01:13:56     2026
+--- ① 快照活体见证 (pair; 两点各自 gen+1) ---
+PAIR LIVE_W5 W5 gmii_free_FE A=0xcf7118c1 (gen=1) B=0xe22d47cc (gen=2) T1=1791825239.495202518 T2=1791825241.509632416
+PAIR LIVE_W24 W24 dp_free_DP A=0xe26c2f34 (gen=3) B=0xf5276b5f (gen=4) T1=1791825241.522521833 T2=1791825243.536757182
+PAIR LIVE_W43 W43 mtx_stat_tx_words A=0xf533d0a5 (gen=5) B=0x07eef890 (gen=6) T1=1791825243.549742828 T2=1791825245.563866963
+--- ①b 一次 snap (W5 W20 W24 W43 W11 W13 W70; 板应静止: W20 不涨) ---
+SNAP_BEGIN ready gen=7
+W5   0x34   gmii_free_FE           0x17180589
+W20  0x70   mac_tx_frames          0x00000004
+W24  0x80   dp_free_DP             0x17317af9
+W43  0xCC   mtx_stat_tx_words      0x1717bd85
+W11  0x4C   udpapp_rx_bytes        0x00000000
+W13  0x54   udpapp_mismatch        0x00000000
+W70  0x138  mir_drop_bytes         0x00000000
+SNAP_END ready nff=0
+--- ② NIC 2 s 窗计数 (板静止 ⇒ Δ 应 ~0) ---
+     port_tx_bytes: 91
+     port_rx_bytes: 1448
+     port_rx_packets: 5
+-- 2s later --
+     port_tx_bytes: 91
+     port_rx_bytes: 1512
+     port_rx_packets: 6
+CARRIER=1
+OPERSTATE=up
+	Speed: 10000Mb/s
+	Link detected: yes
+--- ③ 最终寄存器 (全量身份面) ---
+user 0x00=Read 32-bit value at address 0x0 (0x77ecf56bf000): 0x50360001
+user 0x04=Read 32-bit value at address 0x4 (0x7da77e5fe004): 0x00000023
+user 0x08=Read 32-bit value at address 0x8 (0x7e0107633008): 0x00000000
+user 0x0C=Read 32-bit value at address 0xc (0x7d2c93a8b00c): 0x918cb7fa
+user 0x14=Read 32-bit value at address 0x14 (0x7e0cbd66e014): 0xdeadbeef
+user 0x13C=Read 32-bit value at address 0x13c (0x7bd11a9b313c): 0x00200000
+user 0x144=Read 32-bit value at address 0x144 (0x764c0ea03144): 0x00000000
+user 0x148=Read 32-bit value at address 0x148 (0x7a31792a6148): 0x00000000
+user 0x14C=Read 32-bit value at address 0x14c (0x7b38aea1814c): 0xffffffff
+--- ③b 残留进程 ---
+PROC_SCAN_DONE
+--- ③c /tmp/p7b_biz 复读 (部署件完整性) ---
+b03222792d20443138515ba2804b0d87  p7b_affinity.h
+b2f2e9627bac53bf3b4ab2b565afe872  p7b_pattern.h
+6325658a0ff62cf6d26095e567b084bc  p7b_snap.sh
+5ea97067cd90f93c8c47d1f272b04667  p7b_mir_dump
+6d9b14f24725fa326ffe5b169f77e30f  p7b_tcp_sink
+e0d4da5834cb95d67afb0cc523d1f92f  p7b_udp_src
+62b1257d69c40f24bfa9a799593073b7  p7b_io.h
+3132db495c29ab85b7f6a5617803644f  p7b_spsc.h
+46
+--- ③d 环境台账 (可回退项) ---
+1) nmcli: 10 (unmanaged)
+2) ip:     inet 192.168.100.100/32 scope global enp1s0f1np1
+3) route: 192.168.100.2 dev enp1s0f1np1 scope link src 192.168.100.100 
+4) coalesce:
+Adaptive RX: off  TX: n/a
+rx-usecs:	0
+5) tc qdisc: qdisc mq 0: root 
+6) irqbalance: inactive
+7) xdma: xdma                  110592  0
+8) CLK kernel: 7.0.0-38-generic
+--- ④ p7b_selftest.sh (板外, 30 判据) ---
+  [PASS] T8b 注入的 EAGAIN 确实发生 (INJECTED 1 次) = 1
+  [PASS] T8b EAGAIN 之后紧跟 poll(fd, POLLOUT) = yes
+  [PASS] T8b 注入后工具继续工作 (call_errors=0 且 pkts>0) = yes
+
+SELFTEST_SUMMARY PASS=30 FAIL=0
+SELFTEST_OK
+=== READY_END 1791825288.949967900

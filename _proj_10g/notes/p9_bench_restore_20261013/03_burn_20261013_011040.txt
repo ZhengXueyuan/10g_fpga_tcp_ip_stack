@@ -1,0 +1,93 @@
+=== BURN_BEGIN 1791825040.085475200 Tue Oct 13 01:10:40     2026
+--- 1) 位流 sha256 双核 + 复制到本轮 burn/ ---
+066a3923351b8f539a986b88d96f1093a686da57f95938e0c8837b13d30a3126 */d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_build_0x23/wrapper_p4.bit
+SHA_WANT=066a3923351b8f539a986b88d96f1093a686da57f95938e0c8837b13d30a3126
+066a3923351b8f539a986b88d96f1093a686da57f95938e0c8837b13d30a3126 */d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_bench_restore_20261013/burn/wrapper_p4_0x23.bit
+LOCAL_BIT /d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_bench_restore_20261013/burn/wrapper_p4_0x23.bit size=15431261 mtime=2026-10-13 01:10:40.261353100 +0800
+--- 2) 烧前现态 (QSPI 厂商设计) + xdma 驱动 insmod ---
+--- lspci before ---
+	Region 0: Memory at f7a00000 (32-bit, non-prefetchable) [size=64K]
+		LnkCap:	Port #0, Speed 8GT/s, Width x4, ASPM not supported
+		LnkSta:	Speed 5GT/s (downgraded), Width x4
+--- lsmod ---
+XDMA_NOT_LOADED
+INSMOD_RC=0
+xdma                  110592  0
+--- /dev ---
+ls: cannot access '/dev/xdma0_user': No such file or directory
+/dev/xdma0_control
+--- dmesg insmod 后 ---
+[ 9540.456976] xdma:xdma_device_open: xdma device 0000:02:00.0, 0x00000000d9f7f4fb.
+[ 9540.457107] xdma:map_single_bar: BAR0 at 0xf7a00000 mapped at 0x00000000b55bd854, length=65536(/65536)
+[ 9540.457115] xdma:map_bars: config bar 0, pos 0.
+[ 9540.457116] xdma:identify_bars: 1 BARs: config 0, user -1, bypass -1.
+[ 9540.457244] xdma:pci_keep_intx_enabled: 0000:02:00.0: clear INTX_DISABLE, 0x406 -> 0x6.
+[ 9540.457267] xdma:probe_one: 0000:02:00.0 xdma0, pdev 0x00000000d9f7f4fb, xdev 0x000000008d34d0ef, 0x0000000007ba8662, usr 16, ch 1,1.
+--- 厂商设计 control BAR 0x0000 (烧前见证) ---
+Read 32-bit value at address 0x0 (0x76795a641000): 0x1fc00006
+--- 3) 烧录 (JTAG via 192.168.0.38:3121, 1MHz) 1791825047 ---
+BURN_STDOUT=/d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p7b_biz_tcpreg/tcpreg_program_stdout.txt mtime=1791825188 T0=1791825047 age=141s
+--- burn stdout 关键行 (逐字) ---
+# puts "TCPREG_BIT = $bit"
+TCPREG_BIT = D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_bench_restore_20261013\burn\wrapper_p4_0x23.bit
+# puts "TCPREG_BIT_EXISTS = [file exists $bit]"
+TCPREG_BIT_EXISTS = 1
+# puts "TCPREG_BIT_MTIME = [file mtime $bit]"
+TCPREG_BIT_MTIME = 1791825040
+# puts "TCPREG_PROG device=$dev freq=1MHz"
+TCPREG_PROG device=xcku5p_0 freq=1MHz
+# if {![file exists $bit]} { puts "TCPREG-ABORT: bitstream missing"; exit 1 }
+# if {[catch {program_hw_devices $dev} em]} { puts "TCPREG-ABORT PROGRAM FAILED: $em"; exit 1 }
+INFO: [Labtools 27-3164] End of startup status: HIGH
+# puts "TCPREG_PROG_DONE (检查上�? 'End of startup status: HIGH')"
+TCPREG_PROG_DONE (检查上�? 'End of startup status: HIGH')
+BURN_OK (HIGH+DONE+路径+新鲜度+无ABORT 五判据)
+--- 4) PCIe 恢复: 场景C ⇒ 根端口级 remove+rescan 1791825189 ---
+--- 桥窗 before ---
+	Memory behind bridge: f7a00000-f7afffff [size=1M] [32-bit]
+--- 桥窗 after ---
+	Memory behind bridge: df200000-df3fffff [size=2M] [32-bit]
+--- lspci 02:00.0 ---
+02:00.0 Serial controller: Xilinx Corporation Device 9034
+	Region 0: Memory at df200000 (32-bit, non-prefetchable) [size=1M]
+	Region 1: Memory at df300000 (32-bit, non-prefetchable) [size=64K]
+		LnkSta:	Speed 5GT/s (downgraded), Width x4
+--- /dev ---
+crw------- 1 root root 235, 36 Oct 13 01:13 /dev/xdma0_c2h_0
+crw------- 1 root root 235,  1 Oct 13 01:13 /dev/xdma0_control
+crw------- 1 root root 235, 32 Oct 13 01:13 /dev/xdma0_h2c_0
+crw------- 1 root root 235,  0 Oct 13 01:13 /dev/xdma0_user
+--- dmesg (identify_bars / probe) ---
+[ 9540.457115] xdma:map_bars: config bar 0, pos 0.
+[ 9540.457116] xdma:identify_bars: 1 BARs: config 0, user -1, bypass -1.
+[ 9540.457267] xdma:probe_one: 0000:02:00.0 xdma0, pdev 0x00000000d9f7f4fb, xdev 0x000000008d34d0ef, 0x0000000007ba8662, usr 16, ch 1,1.
+[ 9690.335957] xdma:map_bars: config bar 1, pos 1.
+[ 9690.335960] xdma:identify_bars: 2 BARs: config 1, user 0, bypass -1.
+[ 9690.336187] xdma:probe_one: 0000:02:00.0 xdma0, pdev 0x00000000d9f7f4fb, xdev 0x000000008d34d0ef, 0x0000000007ba8662, usr 16, ch 1,1.
+--- 5) 身份门 (四读 + p7b_snap.sh id) ---
+MAGIC_0x00=Read 32-bit value at address 0x0 (0x7ac6cf9c6000): 0x50360001
+BID_0x04=Read 32-bit value at address 0x4 (0x7182f687e004): 0x00000023
+MARKER_0x14=Read 32-bit value at address 0x14 (0x78a3a12a3014): 0xdeadbeef
+UNIMPL_0x14C=Read 32-bit value at address 0x14c (0x7dab8334214c): 0xffffffff
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x770706c97008): 0x00000000
+MIR_CTRL_0x144=Read 32-bit value at address 0x144 (0x7516e550d144): 0x00000000
+MIR_DMA_CNT_0x148=Read 32-bit value at address 0x148 (0x7809f26fd148): 0x00000000
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x00000023   (want 0x00000023 = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1791825201.297639226
+ID_RC=0
+--- 6) 71 字窗口扫描 (期望 NFF=0) ---
+WINDOW_SCAN_NFF=0
+--- 7) 解除受控停流 (0x08 写 0) + 链路见证 1791825200 ---
+SCRATCH_0x08(before)=Read 32-bit value at address 0x8 (0x7e0186c7e008): 0x00000000
+SCRATCH_0x08(after) =Read 32-bit value at address 0x8 (0x7350eee66008): 0x00000000
+NIC_CARRIER=1
+up
+	Speed: 10000Mb/s
+	Link detected: yes
+--- ip route get ---
+192.168.100.2 dev enp1s0f1np1 src 192.168.100.100 uid 1000 
+    cache 
+=== BURN_END 1791825210.493574000

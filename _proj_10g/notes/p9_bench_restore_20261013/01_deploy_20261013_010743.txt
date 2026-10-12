@@ -1,0 +1,129 @@
+=== DEPLOY_BEGIN 1791824863.277623700 Tue Oct 13 01:07:43     2026
+--- 0) 建目录 + 部署前清单 (重启后 /tmp 应空) ---
+MKDIR_OK
+/tmp/p7b_biz:
+total 888
+drwxrwxr-x  2 a    a      4096 Oct 13 01:07 .
+drwxrwxrwt 23 root root 901120 Oct 13 01:07 ..
+
+/tmp/p9_board_0x23:
+total 888
+drwxrwxr-x  2 a    a      4096 Oct 13 01:07 .
+drwxrwxrwt 23 root root 901120 Oct 13 01:07 ..
+--- 1) put 源件 (仓库现树) ---
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_affinity.h -> /tmp/p7b_biz/p7b_affinity.h
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_io.h -> /tmp/p7b_biz/p7b_io.h
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_spsc.h -> /tmp/p7b_biz/p7b_spsc.h
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_pattern.h -> /tmp/p7b_biz/p7b_pattern.h
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_tcp_sink.cpp -> /tmp/p7b_biz/p7b_tcp_sink.cpp
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_tcp_src.cpp -> /tmp/p7b_biz/p7b_tcp_src.cpp
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_udp_src.cpp -> /tmp/p7b_biz/p7b_udp_src.cpp
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_rate2_bench.cpp -> /tmp/p7b_biz/p7b_rate2_bench.cpp
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_mir_dump.cpp -> /tmp/p7b_biz/p7b_mir_dump.cpp
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p7b_biz_tcpreg/p7b_tcp_src_fix.cpp -> /tmp/p7b_biz/p7b_tcp_src_fix.cpp
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p7b_biz_tcpreg/p7b_tcp_src_diag.cpp -> /tmp/p7b_biz/p7b_tcp_src_diag.cpp
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p7b_board_stageb/p7b_tcp_src_rate.cpp -> /tmp/p7b_biz/p7b_tcp_src_rate.cpp
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p7b_board_stagec/p7b_tcp_sink_rate.cpp -> /tmp/p7b_biz/p7b_tcp_sink_rate.cpp
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_selftest.sh -> /tmp/p7b_biz/p7b_selftest.sh
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_dualthread_selftest.sh -> /tmp/p7b_biz/p7b_dualthread_selftest.sh
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_lane8_selftest.sh -> /tmp/p7b_biz/p7b_lane8_selftest.sh
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/aff_selftest.sh -> /tmp/p7b_biz/aff_selftest.sh
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_snap.sh -> /tmp/p7b_biz/p7b_snap.sh
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_fake_board.py -> /tmp/p7b_biz/p7b_fake_board.py
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p7b_affinity/p7baff_faultinject.cpp -> /tmp/p7b_biz/p7baff_faultinject.cpp
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p7b_board_stagec/stc_dl.sh -> /tmp/p7b_biz/stc_dl.sh
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p7b_board_stagec/stc_bidir.sh -> /tmp/p7b_biz/stc_bidir.sh
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p7b_board_stagec/j6_stagec.sh -> /tmp/p7b_biz/j6_stagec.sh
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p7b_board_stagec/pcap_off_dryrun.sh -> /tmp/p7b_biz/pcap_off_dryrun.sh
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p7b_biz_tcpreg/tcpreg_j6.sh -> /tmp/p7b_biz/tcpreg_j6.sh
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p7b_longflow_board/lf_dl.sh -> /tmp/p7b_biz/lf_dl.sh
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p7b_longflow_board/calc_lf.py -> /tmp/p7b_biz/calc_lf.py
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p7b_longflow_board/nicdelta.py -> /tmp/p7b_biz/nicdelta.py
+PUT_FAILS=0
+--- 2) put 0x23 板级测试目录件 (/tmp/p9_board_0x23/) ---
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_mir_dump.cpp -> /tmp/p9_board_0x23/p7b_mir_dump.cpp
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_pattern.h -> /tmp/p9_board_0x23/p7b_pattern.h
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_affinity.h -> /tmp/p9_board_0x23/p7b_affinity.h
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_udp_src.cpp -> /tmp/p9_board_0x23/p7b_udp_src.cpp
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_snap.sh -> /tmp/p9_board_0x23/p7b_snap.sh
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_board_0x23_20261011/_tools/run_arm.sh -> /tmp/p9_board_0x23/run_arm.sh
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_board_0x23_20261011/_tools/stop_probe.sh -> /tmp/p9_board_0x23/stop_probe.sh
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_board_0x23_20261011/_tools/final_state.sh -> /tmp/p9_board_0x23/final_state.sh
+PUT2_OK=8/8
+--- 3) 对端现编 8 个产物 (BUILD.md §2 唯一口径) + p7b_mir_dump ---
+BUILD p7b_tcp_sink rc=0 errbytes=0
+BUILD p7b_tcp_src rc=0 errbytes=0
+BUILD p7b_udp_src rc=0 errbytes=0
+BUILD p7b_tcp_src_fix rc=0 errbytes=0
+BUILD p7b_tcp_sink_rate rc=0 errbytes=0
+BUILD p7b_tcp_src_rate rc=0 errbytes=0
+BUILD p7b_tcp_src_diag rc=0 errbytes=0
+BUILD p7b_rate2_bench rc=0 errbytes=0
+BUILD p7b_mir_dump rc=0 errbytes=0
+g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+--- 4) 0x23 目录现编 (mir_dump + udp_src; 口径 = g++ -O3 -pthread -Wall, 同 p9 轮) ---
+MIR_BUILD_RC=0 errbytes=0
+SRC_BUILD_RC=0 errbytes=300
+--- 5) md5 双核 (对端 vs 本机仓库现树) ---
+[对端 /tmp/p7b_biz 源+产物]
+b03222792d20443138515ba2804b0d87  p7b_affinity.h
+62b1257d69c40f24bfa9a799593073b7  p7b_io.h
+3132db495c29ab85b7f6a5617803644f  p7b_spsc.h
+b2f2e9627bac53bf3b4ab2b565afe872  p7b_pattern.h
+8d02ef6426d4ef6ad5fd2c514965c1e8  p7b_tcp_sink.cpp
+7a6191fc01818f64eb956da069ed0640  p7b_tcp_src.cpp
+f5ff317288b59b3e3c91988ca07446c9  p7b_udp_src.cpp
+b9c18a7695480a24f60169313034c0fd  p7b_rate2_bench.cpp
+ee8b829fdb6648f1072f11d65f9fb67b  p7b_mir_dump.cpp
+21ca7fa995fae7dc06675b64ff24dc36  p7b_tcp_src_fix.cpp
+217a0e48191e02f9fc120cf5fa42a49e  p7b_tcp_src_diag.cpp
+c3b9b01c42dae1ef3e098893d839f986  p7b_tcp_src_rate.cpp
+92ef5b458043179a432e1515546b585a  p7b_tcp_sink_rate.cpp
+6325658a0ff62cf6d26095e567b084bc  p7b_snap.sh
+6d9b14f24725fa326ffe5b169f77e30f  p7b_tcp_sink
+79be2a09024206b7c678dc13a3b9051d  p7b_tcp_src
+e0d4da5834cb95d67afb0cc523d1f92f  p7b_udp_src
+d1ca0c288efe6723488e4c1a6960d1b5  p7b_tcp_src_fix
+ca6900fd54036be7fe1d337ca9ef83b8  p7b_tcp_sink_rate
+a76b2b4b1e44d6c9edcaa301d90aabcb  p7b_tcp_src_rate
+430ed36ade4ec64ba6f5cb52e5f4f335  p7b_tcp_src_diag
+1e956072f30a25f3e547e8c42107afb3  p7b_rate2_bench
+5ea97067cd90f93c8c47d1f272b04667  p7b_mir_dump
+[对端 /tmp/p9_board_0x23]
+5ea97067cd90f93c8c47d1f272b04667  p7b_mir_dump
+e0d4da5834cb95d67afb0cc523d1f92f  p7b_udp_src
+ee8b829fdb6648f1072f11d65f9fb67b  p7b_mir_dump.cpp
+6325658a0ff62cf6d26095e567b084bc  p7b_snap.sh
+b2f2e9627bac53bf3b4ab2b565afe872  p7b_pattern.h
+b03222792d20443138515ba2804b0d87  p7b_affinity.h
+2a183f9d84d0d3f9075d519917f6d0f1  run_arm.sh
+dcdfcc902f3f8835d01018aec8f19aee  stop_probe.sh
+1de326662a037090ff57cab3ab201869  final_state.sh
+[本机仓库现树 期望]
+b03222792d20443138515ba2804b0d87 */d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_affinity.h
+62b1257d69c40f24bfa9a799593073b7 */d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_io.h
+3132db495c29ab85b7f6a5617803644f */d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_spsc.h
+b2f2e9627bac53bf3b4ab2b565afe872 */d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_pattern.h
+8d02ef6426d4ef6ad5fd2c514965c1e8 */d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_tcp_sink.cpp
+7a6191fc01818f64eb956da069ed0640 */d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_tcp_src.cpp
+f5ff317288b59b3e3c91988ca07446c9 */d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_udp_src.cpp
+b9c18a7695480a24f60169313034c0fd */d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_rate2_bench.cpp
+ee8b829fdb6648f1072f11d65f9fb67b */d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_mir_dump.cpp
+6325658a0ff62cf6d26095e567b084bc */d/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_snap.sh
+21ca7fa995fae7dc06675b64ff24dc36 */d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p7b_biz_tcpreg/p7b_tcp_src_fix.cpp
+217a0e48191e02f9fc120cf5fa42a49e */d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p7b_biz_tcpreg/p7b_tcp_src_diag.cpp
+c3b9b01c42dae1ef3e098893d839f986 */d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p7b_board_stageb/p7b_tcp_src_rate.cpp
+92ef5b458043179a432e1515546b585a */d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p7b_board_stagec/p7b_tcp_sink_rate.cpp
+2a183f9d84d0d3f9075d519917f6d0f1 */d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_board_0x23_20261011/_tools/run_arm.sh
+dcdfcc902f3f8835d01018aec8f19aee */d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_board_0x23_20261011/_tools/stop_probe.sh
+1de326662a037090ff57cab3ab201869 */d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_board_0x23_20261011/_tools/final_state.sh
+--- 6) reg_rw 在位 + 工具自检 (不碰板子) ---
+-rwxrwxr-x 1 a a 21352 Sep 28 02:39 /home/a/xdma_test/dma_ip_drivers-patched/XDMA/linux-kernel/tools/dma_from_device
+-rwxrwxr-x 1 a a 16568 Sep 28 02:39 /home/a/xdma_test/dma_ip_drivers-patched/XDMA/linux-kernel/tools/reg_rw
+SELFTEST_MIR_RC=0
+MIR_SELFTEST T14 subproc buf-mb 0         rc=2 (期望 2) 含'--buf-mb'=1 OK
+MIR_SELFTEST T14 subproc stream+dma       rc=2 (期望 2) 含'互斥'=1 OK
+MIR_SELFTEST PASS
+44
+SELFTEST_SRC_RC=0
+=== DEPLOY_END 1791824945.434525200
