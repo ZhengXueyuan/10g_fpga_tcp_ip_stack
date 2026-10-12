@@ -1,0 +1,541 @@
+=== WIN TB2_r01 K=2147483648 NPROC=2 PER=1073741824 MBPS=0 CHUNK=33554432 SECS=6 T0=1791827147.306345363
+SNAP_BEGIN TB2_r01_pre gen=583
+W5   0x34   gmii_free_FE           0x3782af04
+W10  0x48   udpapp_rx_frames       0x01376de0
+W11  0x4C   udpapp_rx_bytes        0xfeb72aa0
+W13  0x54   udpapp_mismatch        0xddd2a991
+W70  0x138  mir_drop_bytes         0x6edb94f0
+SNAP_END TB2_r01_pre nff=0
+OFF_FIX: W11=0xfeb72aa0 但 FIXOFF 生效 => OFF=0 (源与 verify 同值即可; app 侧 LFSR 已失步, 见报告)
+READER_CPUS_ALLOWED=Cpus_allowed_list:0-7 READER_CPU=1
+DATA_ONSET=1791827148.326309669 (源起后 0.479s)
+TOOL_RC=1 TS=1791827147.847099481 TE=1791827151.473248597 TZ=1791827164.643243497
+--- mir_dump 日志 (逐字) ---
+MIR_ID magic=50360001 (exp 50360001) bid=00000023 (exp 00000023)
+MIR_SRC src_sel=0 readback=0
+MIR_STATUS ver=4 src_sel=0 cap=0 any_drop=1 unf=0 level=0
+MIR_VER ver=4 path=stream expect=4 unimpl=0x14C
+MIR_UNIMPL addr=14c val=ffffffff (exp ffffffff)
+MIR_STREAM_BUF bytes=2147483648 mb=2048 prefault=1 aligned=4096
+MIR_STREAM_CFG dev=/dev/xdma0_c2h_0 bytes=2147483648 chunk=33554432 resid_max_shaper=32 resid_max_mirror=24 k_bytes=0 settle=0.30 sample_ms=300.0 arm=1 src=0
+MIR_STREAM_ALIGN want_mod_64=0 chunk_mod_64=0 (PG195: 描述符长度须 64 B 倍数)
+MIR_STREAM_WATCHDOG secs=6.0 (0=off; SIGALRM 打断阻塞 read)
+MIR_STREAM_END saw=read/看门狗截断 pc=1929379840 want=2147483648 (由两式解释不足量)
+MIR_STREAM_DONE pc=1929379840 reads=58 partial=1 nonmul64=0 short=1 ended_early=1 read_error=0 secs=16.344 rate_Bps=118046760
+MIR_STREAM_ACCT pc=1929379840 taken_bytes=1933815864 dW70=41189808 w70a=1859884272 w70b=1901074080 words0=0 words1=483453966 dwords=483453966 K=2147483648
+MIR_STREAM_QUIESCE level_end=0 quiesced=1 premise_level0=1 waited_ms=0.0 settle_s=0.30 strict=1 (前提: FIFO 尾部已排空; 打包器残留由 FPGA 侧停流 flush 清)
+MIR_STREAM_IDA 式A(成形器) taken_bytes - pc == shaper_resid -> 4436024  band=[0,32] closed_a=0
+MIR_STREAM_IDB 式B(镜像/K) K - taken_bytes - dW70 == mirror_resid -> 172477976  band=[0,24] closed_b=0 (K 来源=--bytes; --resid-max 旧名未用)
+MIR_STREAM_WRAP words0=0 words1=483453966 wrap_seen=0 dword_max_step=50331648 (回卷余量: 单步 <2^32)
+MIR_STREAM_SAMPLE i=0 t=0.000 pc=0 drop=1859888952 words=8 dword_acc=8
+MIR_STREAM_SAMPLE i=1 t=0.341 pc=201326592 drop=1864964384 words=50331656 dword_acc=50331656
+MIR_STREAM_SAMPLE i=2 t=0.678 pc=402653184 drop=1869217440 words=100663304 dword_acc=100663304
+MIR_STREAM_SAMPLE i=3 t=1.017 pc=603979776 drop=1873405600 words=150994952 dword_acc=150994952
+MIR_STREAM_SAMPLE i=4 t=1.354 pc=805306368 drop=1877687968 words=201326600 dword_acc=201326600
+MIR_STREAM_SAMPLE i=5 t=1.692 pc=1006632960 drop=1881923232 words=251658248 dword_acc=251658248
+MIR_STREAM_SAMPLE i=6 t=2.027 pc=1207959552 drop=1886064288 words=301989896 dword_acc=301989896
+MIR_STREAM_SAMPLE i=7 t=2.363 pc=1409286144 drop=1890252448 words=352321544 dword_acc=352321544
+MIR_STREAM_SAMPLE i=8 t=2.700 pc=1610612736 drop=1894471520 words=402653192 dword_acc=402653192
+MIR_STREAM_SAMPLE i=9 t=3.036 pc=1811939328 drop=1898866632 words=452984840 dword_acc=452984840
+MIR_STREAM_SAMPLE i=10 t=6.000 pc=1929379840 drop=1901074080 words=483453966 dword_acc=483453966
+MIR_STREAM_SAMPLE i=11 t=16.344 pc=1929379840 drop=1901074080 words=483453966 dword_acc=483453966
+MIR_STREAM_GAP first=32 last=4436024 max=4436024 nondecreasing=1 host_miss_bytes=4436024 host_miss_pct=0.2294 (= (taken-pc)/taken; 宿主跟不上的比例)
+MIR_STREAM_NOTE 采样本身在流上=自造空档 (12 点); 首版板内不加缓冲 ⇒ 宿主空档直接变丢字节
+FAIL: 式 A (成形器) 不成立: taken_bytes(1933815864) - pc(1929379840) = 4436024 ∉ [0,32] (成形器/在飞残余越界)
+FAIL: 式 B (镜像/K 侧) 不成立: K(2147483648) - taken_bytes(1933815864) - dW70(41189808) = 172477976 ∉ [0,24] (镜像残余越界 / K 口径不对 —— 若抓的是源流前缀请用 --k-bytes 声明源交付量)
+--- 发端 UDP_SUM (逐进程) ---
+[p1] UDP_SUM pkts=729445 pay_bytes=1073741824 dur_s=3.618 pps=201606 pay_Mbps=2374.107 wire_Mbps=2441.847 off_start=0 off_end=1073741824 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+[p2] UDP_SUM pkts=729445 pay_bytes=1073741824 dur_s=3.524 pps=207009 pay_Mbps=2437.734 wire_Mbps=2507.289 off_start=0 off_end=1073741824 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+--- PIN 见证 (逐进程) ---
+[p1] PIN_CPU=2 PIN_ALLOWED_MASK=4
+[p2] PIN_CPU=3 PIN_ALLOWED_MASK=8
+--- post 快照 ---
+SNAP_BEGIN TB2_r01_post gen=599
+W5   0x34   gmii_free_FE           0xd911a613
+W10  0x48   udpapp_rx_frames       0x014db0aa
+W11  0x4C   udpapp_rx_bytes        0x7eb72aa0
+W13  0x54   udpapp_mismatch        0x5d52b3df
+W70  0x138  mir_drop_bytes         0x715016a0
+SNAP_END TB2_r01_post nff=0
+=== END TB2_r01 1791827164.690897821
+=== WIN TB2_r02 K=2147483648 NPROC=2 PER=1073741824 MBPS=0 CHUNK=33554432 SECS=6 T0=1791827164.691929392
+SNAP_BEGIN TB2_r02_pre gen=600
+W5   0x34   gmii_free_FE           0xd96dc5f8
+W10  0x48   udpapp_rx_frames       0x014db0aa
+W11  0x4C   udpapp_rx_bytes        0x7eb72aa0
+W13  0x54   udpapp_mismatch        0x5d52b3df
+W70  0x138  mir_drop_bytes         0x715016a0
+SNAP_END TB2_r02_pre nff=0
+OFF_FIX: W11=0x7eb72aa0 但 FIXOFF 生效 => OFF=0 (源与 verify 同值即可; app 侧 LFSR 已失步, 见报告)
+READER_CPUS_ALLOWED=Cpus_allowed_list:0-7 READER_CPU=3
+DATA_ONSET=1791827165.669333324 (源起后 0.421s)
+TOOL_RC=1 TS=1791827165.248236580 TE=1791827168.283405470 TZ=1791827182.127504374
+--- mir_dump 日志 (逐字) ---
+MIR_ID magic=50360001 (exp 50360001) bid=00000023 (exp 00000023)
+MIR_SRC src_sel=0 readback=0
+MIR_STATUS ver=4 src_sel=0 cap=0 any_drop=1 unf=0 level=0
+MIR_VER ver=4 path=stream expect=4 unimpl=0x14C
+MIR_UNIMPL addr=14c val=ffffffff (exp ffffffff)
+MIR_STREAM_BUF bytes=2147483648 mb=2048 prefault=1 aligned=4096
+MIR_STREAM_CFG dev=/dev/xdma0_c2h_0 bytes=2147483648 chunk=33554432 resid_max_shaper=32 resid_max_mirror=24 k_bytes=0 settle=0.30 sample_ms=300.0 arm=1 src=0
+MIR_STREAM_ALIGN want_mod_64=0 chunk_mod_64=0 (PG195: 描述符长度须 64 B 倍数)
+MIR_STREAM_WATCHDOG secs=6.0 (0=off; SIGALRM 打断阻塞 read)
+MIR_STREAM_END saw=read/看门狗截断 pc=1887436800 want=2147483648 (由两式解释不足量)
+MIR_STREAM_DONE pc=1887436800 reads=57 partial=1 nonmul64=0 short=1 ended_early=1 read_error=0 secs=16.396 rate_Bps=115116126
+MIR_STREAM_ACCT pc=1887436800 taken_bytes=1895129144 dW70=46497064 w70a=1901075264 w70b=1947572328 words0=0 words1=473782286 dwords=473782286 K=2147483648
+MIR_STREAM_QUIESCE level_end=0 quiesced=1 premise_level0=1 waited_ms=0.0 settle_s=0.30 strict=1 (前提: FIFO 尾部已排空; 打包器残留由 FPGA 侧停流 flush 清)
+MIR_STREAM_IDA 式A(成形器) taken_bytes - pc == shaper_resid -> 7692344  band=[0,32] closed_a=0
+MIR_STREAM_IDB 式B(镜像/K) K - taken_bytes - dW70 == mirror_resid -> 205857440  band=[0,24] closed_b=0 (K 来源=--bytes; --resid-max 旧名未用)
+MIR_STREAM_WRAP words0=0 words1=473782286 wrap_seen=0 dword_max_step=58720256 (回卷余量: 单步 <2^32)
+MIR_STREAM_SAMPLE i=0 t=0.000 pc=0 drop=1901088168 words=8 dword_acc=8
+MIR_STREAM_SAMPLE i=1 t=0.343 pc=234881024 drop=1908629072 words=58720264 dword_acc=58720264
+MIR_STREAM_SAMPLE i=2 t=0.682 pc=469762048 drop=1914302568 words=117440520 dword_acc=117440520
+MIR_STREAM_SAMPLE i=3 t=1.021 pc=704643072 drop=1919887464 words=176160776 dword_acc=176160776
+MIR_STREAM_SAMPLE i=4 t=1.360 pc=939524096 drop=1925566568 words=234881032 dword_acc=234881032
+MIR_STREAM_SAMPLE i=5 t=1.698 pc=1174405120 drop=1931245672 words=293601288 dword_acc=293601288
+MIR_STREAM_SAMPLE i=6 t=2.033 pc=1409286144 drop=1936500840 words=352321544 dword_acc=352321544
+MIR_STREAM_SAMPLE i=7 t=2.368 pc=1644167168 drop=1941808624 words=411041800 dword_acc=411041800
+MIR_STREAM_SAMPLE i=8 t=2.703 pc=1879048192 drop=1947246696 words=469762056 dword_acc=469762056
+MIR_STREAM_SAMPLE i=9 t=6.000 pc=1887436800 drop=1947572328 words=473782286 dword_acc=473782286
+MIR_STREAM_SAMPLE i=10 t=16.396 pc=1887436800 drop=1947572328 words=473782286 dword_acc=473782286
+MIR_STREAM_GAP first=32 last=7692344 max=7692344 nondecreasing=1 host_miss_bytes=7692344 host_miss_pct=0.4059 (= (taken-pc)/taken; 宿主跟不上的比例)
+MIR_STREAM_NOTE 采样本身在流上=自造空档 (11 点); 首版板内不加缓冲 ⇒ 宿主空档直接变丢字节
+FAIL: 式 A (成形器) 不成立: taken_bytes(1895129144) - pc(1887436800) = 7692344 ∉ [0,32] (成形器/在飞残余越界)
+FAIL: 式 B (镜像/K 侧) 不成立: K(2147483648) - taken_bytes(1895129144) - dW70(46497064) = 205857440 ∉ [0,24] (镜像残余越界 / K 口径不对 —— 若抓的是源流前缀请用 --k-bytes 声明源交付量)
+--- 发端 UDP_SUM (逐进程) ---
+[p1] UDP_SUM pkts=729445 pay_bytes=1073741824 dur_s=3.026 pps=241021 pay_Mbps=2838.263 wire_Mbps=2919.246 off_start=0 off_end=1073741824 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+[p2] UDP_SUM pkts=729445 pay_bytes=1073741824 dur_s=3.012 pps=242155 pay_Mbps=2851.618 wire_Mbps=2932.982 off_start=0 off_end=1073741824 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+--- PIN 见证 (逐进程) ---
+[p1] PIN_CPU=2 PIN_ALLOWED_MASK=4
+[p2] PIN_CPU=3 PIN_ALLOWED_MASK=8
+--- post 快照 ---
+SNAP_BEGIN TB2_r02_post gen=615
+W5   0x34   gmii_free_FE           0x7be785c9
+W10  0x48   udpapp_rx_frames       0x0163f374
+W11  0x4C   udpapp_rx_bytes        0xfeb72aa0
+W13  0x54   udpapp_mismatch        0xdcd2b385
+W70  0x138  mir_drop_bytes         0x74159868
+SNAP_END TB2_r02_post nff=0
+=== END TB2_r02 1791827182.169952325
+=== WIN TB2_r03 K=2147483648 NPROC=2 PER=1073741824 MBPS=0 CHUNK=33554432 SECS=6 T0=1791827182.170798547
+SNAP_BEGIN TB2_r03_pre gen=616
+W5   0x34   gmii_free_FE           0x7c33462a
+W10  0x48   udpapp_rx_frames       0x0163f374
+W11  0x4C   udpapp_rx_bytes        0xfeb72aa0
+W13  0x54   udpapp_mismatch        0xdcd2b385
+W70  0x138  mir_drop_bytes         0x74159868
+SNAP_END TB2_r03_pre nff=0
+OFF_FIX: W11=0xfeb72aa0 但 FIXOFF 生效 => OFF=0 (源与 verify 同值即可; app 侧 LFSR 已失步, 见报告)
+READER_CPUS_ALLOWED=Cpus_allowed_list:0-7 READER_CPU=3
+DATA_ONSET=1791827183.033486265 (源起后 0.322s)
+TOOL_RC=1 TS=1791827182.711530167 TE=1791827185.930614563 TZ=1791827199.469700350
+--- mir_dump 日志 (逐字) ---
+MIR_ID magic=50360001 (exp 50360001) bid=00000023 (exp 00000023)
+MIR_SRC src_sel=0 readback=0
+MIR_STATUS ver=4 src_sel=0 cap=0 any_drop=1 unf=0 level=0
+MIR_VER ver=4 path=stream expect=4 unimpl=0x14C
+MIR_UNIMPL addr=14c val=ffffffff (exp ffffffff)
+MIR_STREAM_BUF bytes=2147483648 mb=2048 prefault=1 aligned=4096
+MIR_STREAM_CFG dev=/dev/xdma0_c2h_0 bytes=2147483648 chunk=33554432 resid_max_shaper=32 resid_max_mirror=24 k_bytes=0 settle=0.30 sample_ms=300.0 arm=1 src=0
+MIR_STREAM_ALIGN want_mod_64=0 chunk_mod_64=0 (PG195: 描述符长度须 64 B 倍数)
+MIR_STREAM_WATCHDOG secs=6.0 (0=off; SIGALRM 打断阻塞 read)
+MIR_STREAM_END saw=read/看门狗截断 pc=1954545664 want=2147483648 (由两式解释不足量)
+MIR_STREAM_DONE pc=1954545664 reads=59 partial=1 nonmul64=0 short=1 ended_early=1 read_error=0 secs=16.352 rate_Bps=119529076
+MIR_STREAM_ACCT pc=1954545664 taken_bytes=1962278968 dW70=51743360 w70a=1947572328 w70b=1999315688 words0=0 words1=490569742 dwords=490569742 K=2147483648
+MIR_STREAM_QUIESCE level_end=0 quiesced=1 premise_level0=1 waited_ms=0.0 settle_s=0.30 strict=1 (前提: FIFO 尾部已排空; 打包器残留由 FPGA 侧停流 flush 清)
+MIR_STREAM_IDA 式A(成形器) taken_bytes - pc == shaper_resid -> 7733304  band=[0,32] closed_a=0
+MIR_STREAM_IDB 式B(镜像/K) K - taken_bytes - dW70 == mirror_resid -> 133461320  band=[0,24] closed_b=0 (K 来源=--bytes; --resid-max 旧名未用)
+MIR_STREAM_WRAP words0=0 words1=490569742 wrap_seen=0 dword_max_step=58720256 (回卷余量: 单步 <2^32)
+MIR_STREAM_SAMPLE i=0 t=0.000 pc=0 drop=1947576296 words=8 dword_acc=8
+MIR_STREAM_SAMPLE i=1 t=0.340 pc=234881024 drop=1954716424 words=58720264 dword_acc=58720264
+MIR_STREAM_SAMPLE i=2 t=0.677 pc=469762048 drop=1961111232 words=117440520 dword_acc=117440520
+MIR_STREAM_SAMPLE i=3 t=1.014 pc=704643072 drop=1967330160 words=176160776 dword_acc=176160776
+MIR_STREAM_SAMPLE i=4 t=1.352 pc=939524096 drop=1973756648 words=234881032 dword_acc=234881032
+MIR_STREAM_SAMPLE i=5 t=1.689 pc=1174405120 drop=1979655760 words=293601288 dword_acc=293601288
+MIR_STREAM_SAMPLE i=6 t=2.026 pc=1409286144 drop=1985915624 words=352321544 dword_acc=352321544
+MIR_STREAM_SAMPLE i=7 t=2.364 pc=1644167168 drop=1992036192 words=411041800 dword_acc=411041800
+MIR_STREAM_SAMPLE i=8 t=2.701 pc=1879048192 drop=1997947072 words=469762056 dword_acc=469762056
+MIR_STREAM_SAMPLE i=9 t=6.002 pc=1954545664 drop=1999315688 words=490569742 dword_acc=490569742
+MIR_STREAM_SAMPLE i=10 t=16.352 pc=1954545664 drop=1999315688 words=490569742 dword_acc=490569742
+MIR_STREAM_GAP first=32 last=7733304 max=7733304 nondecreasing=1 host_miss_bytes=7733304 host_miss_pct=0.3941 (= (taken-pc)/taken; 宿主跟不上的比例)
+MIR_STREAM_NOTE 采样本身在流上=自造空档 (11 点); 首版板内不加缓冲 ⇒ 宿主空档直接变丢字节
+FAIL: 式 A (成形器) 不成立: taken_bytes(1962278968) - pc(1954545664) = 7733304 ∉ [0,32] (成形器/在飞残余越界)
+FAIL: 式 B (镜像/K 侧) 不成立: K(2147483648) - taken_bytes(1962278968) - dW70(51743360) = 133461320 ∉ [0,24] (镜像残余越界 / K 口径不对 —— 若抓的是源流前缀请用 --k-bytes 声明源交付量)
+--- 发端 UDP_SUM (逐进程) ---
+[p1] UDP_SUM pkts=729445 pay_bytes=1073741824 dur_s=3.047 pps=239409 pay_Mbps=2819.276 wire_Mbps=2899.717 off_start=0 off_end=1073741824 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+[p2] UDP_SUM pkts=729445 pay_bytes=1073741824 dur_s=2.990 pps=243983 pay_Mbps=2873.139 wire_Mbps=2955.117 off_start=0 off_end=1073741824 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+--- PIN 见证 (逐进程) ---
+[p1] PIN_CPU=2 PIN_ALLOWED_MASK=4
+[p2] PIN_CPU=3 PIN_ALLOWED_MASK=8
+--- post 快照 ---
+SNAP_BEGIN TB2_r03_post gen=631
+W5   0x34   gmii_free_FE           0x1d68a895
+W10  0x48   udpapp_rx_frames       0x017a363e
+W11  0x4C   udpapp_rx_bytes        0x7eb72aa0
+W13  0x54   udpapp_mismatch        0x5c52b99c
+W70  0x138  mir_drop_bytes         0x772b22e8
+SNAP_END TB2_r03_post nff=0
+=== END TB2_r03 1791827199.511412633
+=== WIN TB2_r04 K=2147483648 NPROC=2 PER=1073741824 MBPS=0 CHUNK=33554432 SECS=6 T0=1791827199.512236965
+SNAP_BEGIN TB2_r04_pre gen=632
+W5   0x34   gmii_free_FE           0x1db4f67a
+W10  0x48   udpapp_rx_frames       0x017a363e
+W11  0x4C   udpapp_rx_bytes        0x7eb72aa0
+W13  0x54   udpapp_mismatch        0x5c52b99c
+W70  0x138  mir_drop_bytes         0x772b22e8
+SNAP_END TB2_r04_pre nff=0
+OFF_FIX: W11=0x7eb72aa0 但 FIXOFF 生效 => OFF=0 (源与 verify 同值即可; app 侧 LFSR 已失步, 见报告)
+READER_CPUS_ALLOWED=Cpus_allowed_list:0-7 READER_CPU=3
+DATA_ONSET=1791827200.420818643 (源起后 0.368s)
+TOOL_RC=1 TS=1791827200.052698322 TE=1791827203.562741686 TZ=1791827206.402422131
+--- mir_dump 日志 (逐字) ---
+MIR_ID magic=50360001 (exp 50360001) bid=00000023 (exp 00000023)
+MIR_SRC src_sel=0 readback=0
+MIR_STATUS ver=4 src_sel=0 cap=0 any_drop=1 unf=0 level=0
+MIR_VER ver=4 path=stream expect=4 unimpl=0x14C
+MIR_UNIMPL addr=14c val=ffffffff (exp ffffffff)
+MIR_STREAM_BUF bytes=2147483648 mb=2048 prefault=1 aligned=4096
+MIR_STREAM_CFG dev=/dev/xdma0_c2h_0 bytes=2147483648 chunk=33554432 resid_max_shaper=32 resid_max_mirror=24 k_bytes=0 settle=0.30 sample_ms=300.0 arm=1 src=0
+MIR_STREAM_ALIGN want_mod_64=0 chunk_mod_64=0 (PG195: 描述符长度须 64 B 倍数)
+MIR_STREAM_WATCHDOG secs=6.0 (0=off; SIGALRM 打断阻塞 read)
+MIR_STREAM_END saw=read/看门狗截断 pc=1946157056 want=2147483648 (由两式解释不足量)
+MIR_STREAM_DONE pc=1946157056 reads=58 partial=0 nonmul64=0 short=1 ended_early=1 read_error=0 secs=6.000 rate_Bps=324337191
+MIR_STREAM_ACCT pc=1946157056 taken_bytes=1948473400 dW70=41267784 w70a=1999315688 w70b=2040583472 words0=0 words1=487118350 dwords=487118350 K=2147483648
+MIR_STREAM_QUIESCE level_end=0 quiesced=1 premise_level0=1 waited_ms=0.0 settle_s=0.30 strict=1 (前提: FIFO 尾部已排空; 打包器残留由 FPGA 侧停流 flush 清)
+MIR_STREAM_IDA 式A(成形器) taken_bytes - pc == shaper_resid -> 2316344  band=[0,32] closed_a=0
+MIR_STREAM_IDB 式B(镜像/K) K - taken_bytes - dW70 == mirror_resid -> 157742464  band=[0,24] closed_b=0 (K 来源=--bytes; --resid-max 旧名未用)
+MIR_STREAM_WRAP words0=0 words1=487118350 wrap_seen=0 dword_max_step=50331648 (回卷余量: 单步 <2^32)
+MIR_STREAM_SAMPLE i=0 t=0.000 pc=0 drop=1999316800 words=8 dword_acc=8
+MIR_STREAM_SAMPLE i=1 t=0.308 pc=201326592 drop=2005300528 words=50331656 dword_acc=50331656
+MIR_STREAM_SAMPLE i=2 t=0.610 pc=402653184 drop=2009818416 words=100663304 dword_acc=100663304
+MIR_STREAM_SAMPLE i=3 t=0.913 pc=603979776 drop=2014362984 words=150994952 dword_acc=150994952
+MIR_STREAM_SAMPLE i=4 t=1.216 pc=805306368 drop=2018712880 words=201326600 dword_acc=201326600
+MIR_STREAM_SAMPLE i=5 t=1.518 pc=1006632960 drop=2022678112 words=251658248 dword_acc=251658248
+MIR_STREAM_SAMPLE i=6 t=1.822 pc=1207959552 drop=2026946416 words=301989896 dword_acc=301989896
+MIR_STREAM_SAMPLE i=7 t=2.125 pc=1409286144 drop=2031136048 words=352321544 dword_acc=352321544
+MIR_STREAM_SAMPLE i=8 t=2.431 pc=1610612736 drop=2035230000 words=402653192 dword_acc=402653192
+MIR_STREAM_SAMPLE i=9 t=2.807 pc=1811939328 drop=2039018032 words=452984840 dword_acc=452984840
+MIR_STREAM_SAMPLE i=10 t=3.141 pc=1912602624 drop=2040099376 words=478150664 dword_acc=478150664
+MIR_STREAM_SAMPLE i=11 t=6.000 pc=1946157056 drop=2040583472 words=487118350 dword_acc=487118350
+MIR_STREAM_GAP first=32 last=2316344 max=2316344 nondecreasing=1 host_miss_bytes=2316344 host_miss_pct=0.1189 (= (taken-pc)/taken; 宿主跟不上的比例)
+MIR_STREAM_NOTE 采样本身在流上=自造空档 (12 点); 首版板内不加缓冲 ⇒ 宿主空档直接变丢字节
+FAIL: 式 A (成形器) 不成立: taken_bytes(1948473400) - pc(1946157056) = 2316344 ∉ [0,32] (成形器/在飞残余越界)
+FAIL: 式 B (镜像/K 侧) 不成立: K(2147483648) - taken_bytes(1948473400) - dW70(41267784) = 157742464 ∉ [0,24] (镜像残余越界 / K 口径不对 —— 若抓的是源流前缀请用 --k-bytes 声明源交付量)
+--- 发端 UDP_SUM (逐进程) ---
+[p1] UDP_SUM pkts=729445 pay_bytes=1073741824 dur_s=2.921 pps=249742 pay_Mbps=2940.961 wire_Mbps=3024.874 off_start=0 off_end=1073741824 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+[p2] UDP_SUM pkts=729445 pay_bytes=1073741824 dur_s=3.499 pps=208502 pay_Mbps=2455.319 wire_Mbps=2525.376 off_start=0 off_end=1073741824 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+--- PIN 见证 (逐进程) ---
+[p1] PIN_CPU=2 PIN_ALLOWED_MASK=4
+[p2] PIN_CPU=3 PIN_ALLOWED_MASK=8
+--- post 快照 ---
+SNAP_BEGIN TB2_r04_post gen=648
+W5   0x34   gmii_free_FE           0x5e30ca45
+W10  0x48   udpapp_rx_frames       0x01907908
+W11  0x4C   udpapp_rx_bytes        0xfeb72aa0
+W13  0x54   udpapp_mismatch        0xdbd2afd9
+W70  0x138  mir_drop_bytes         0x79a0d530
+SNAP_END TB2_r04_post nff=0
+=== END TB2_r04 1791827206.531031069
+=== WIN TB2_r05 K=2147483648 NPROC=2 PER=1073741824 MBPS=0 CHUNK=33554432 SECS=6 T0=1791827206.531857688
+SNAP_BEGIN TB2_r05_pre gen=649
+W5   0x34   gmii_free_FE           0x5f145a0b
+W10  0x48   udpapp_rx_frames       0x01907908
+W11  0x4C   udpapp_rx_bytes        0xfeb72aa0
+W13  0x54   udpapp_mismatch        0xdbd2afd9
+W70  0x138  mir_drop_bytes         0x79a0d530
+SNAP_END TB2_r05_pre nff=0
+OFF_FIX: W11=0xfeb72aa0 但 FIXOFF 生效 => OFF=0 (源与 verify 同值即可; app 侧 LFSR 已失步, 见报告)
+READER_CPUS_ALLOWED=Cpus_allowed_list:0-7 READER_CPU=2
+DATA_ONSET=1791827207.433378456 (源起后 0.362s)
+TOOL_RC=1 TS=1791827207.071471045 TE=1791827210.566009685 TZ=1791827213.421338326
+--- mir_dump 日志 (逐字) ---
+MIR_ID magic=50360001 (exp 50360001) bid=00000023 (exp 00000023)
+MIR_SRC src_sel=0 readback=0
+MIR_STATUS ver=4 src_sel=0 cap=0 any_drop=1 unf=0 level=0
+MIR_VER ver=4 path=stream expect=4 unimpl=0x14C
+MIR_UNIMPL addr=14c val=ffffffff (exp ffffffff)
+MIR_STREAM_BUF bytes=2147483648 mb=2048 prefault=1 aligned=4096
+MIR_STREAM_CFG dev=/dev/xdma0_c2h_0 bytes=2147483648 chunk=33554432 resid_max_shaper=32 resid_max_mirror=24 k_bytes=0 settle=0.30 sample_ms=300.0 arm=1 src=0
+MIR_STREAM_ALIGN want_mod_64=0 chunk_mod_64=0 (PG195: 描述符长度须 64 B 倍数)
+MIR_STREAM_WATCHDOG secs=6.0 (0=off; SIGALRM 打断阻塞 read)
+MIR_STREAM_END saw=read/看门狗截断 pc=1946157056 want=2147483648 (由两式解释不足量)
+MIR_STREAM_DONE pc=1946157056 reads=58 partial=0 nonmul64=0 short=1 ended_early=1 read_error=0 secs=6.000 rate_Bps=324334160
+MIR_STREAM_ACCT pc=1946157056 taken_bytes=1948452792 dW70=39687816 w70a=2040583472 w70b=2080271288 words0=0 words1=487113198 dwords=487113198 K=2147483648
+MIR_STREAM_QUIESCE level_end=0 quiesced=1 premise_level0=1 waited_ms=0.0 settle_s=0.30 strict=1 (前提: FIFO 尾部已排空; 打包器残留由 FPGA 侧停流 flush 清)
+MIR_STREAM_IDA 式A(成形器) taken_bytes - pc == shaper_resid -> 2295736  band=[0,32] closed_a=0
+MIR_STREAM_IDB 式B(镜像/K) K - taken_bytes - dW70 == mirror_resid -> 159343040  band=[0,24] closed_b=0 (K 来源=--bytes; --resid-max 旧名未用)
+MIR_STREAM_WRAP words0=0 words1=487113198 wrap_seen=0 dword_max_step=50331648 (回卷余量: 单步 <2^32)
+MIR_STREAM_SAMPLE i=0 t=0.000 pc=0 drop=2040585168 words=8 dword_acc=8
+MIR_STREAM_SAMPLE i=1 t=0.308 pc=201326592 drop=2046286648 words=50331656 dword_acc=50331656
+MIR_STREAM_SAMPLE i=2 t=0.611 pc=402653184 drop=2050569016 words=100663304 dword_acc=100663304
+MIR_STREAM_SAMPLE i=3 t=0.913 pc=603979776 drop=2054817576 words=150994952 dword_acc=150994952
+MIR_STREAM_SAMPLE i=4 t=1.216 pc=805306368 drop=2058898232 words=201326600 dword_acc=201326600
+MIR_STREAM_SAMPLE i=5 t=1.518 pc=1006632960 drop=2062943608 words=251658248 dword_acc=251658248
+MIR_STREAM_SAMPLE i=6 t=1.821 pc=1207959552 drop=2067081720 words=301989896 dword_acc=301989896
+MIR_STREAM_SAMPLE i=7 t=2.123 pc=1409286144 drop=2071038776 words=352321544 dword_acc=352321544
+MIR_STREAM_SAMPLE i=8 t=2.425 pc=1610612736 drop=2074944312 words=402653192 dword_acc=402653192
+MIR_STREAM_SAMPLE i=9 t=2.791 pc=1811939328 drop=2078710264 words=452984840 dword_acc=452984840
+MIR_STREAM_SAMPLE i=10 t=3.122 pc=1912602624 drop=2079768056 words=478150664 dword_acc=478150664
+MIR_STREAM_SAMPLE i=11 t=6.000 pc=1946157056 drop=2080271288 words=487113198 dword_acc=487113198
+MIR_STREAM_GAP first=32 last=2295736 max=2295736 nondecreasing=1 host_miss_bytes=2295736 host_miss_pct=0.1178 (= (taken-pc)/taken; 宿主跟不上的比例)
+MIR_STREAM_NOTE 采样本身在流上=自造空档 (12 点); 首版板内不加缓冲 ⇒ 宿主空档直接变丢字节
+FAIL: 式 A (成形器) 不成立: taken_bytes(1948452792) - pc(1946157056) = 2295736 ∉ [0,32] (成形器/在飞残余越界)
+FAIL: 式 B (镜像/K 侧) 不成立: K(2147483648) - taken_bytes(1948452792) - dW70(39687816) = 159343040 ∉ [0,24] (镜像残余越界 / K 口径不对 —— 若抓的是源流前缀请用 --k-bytes 声明源交付量)
+--- 发端 UDP_SUM (逐进程) ---
+[p1] UDP_SUM pkts=729445 pay_bytes=1073741824 dur_s=2.921 pps=249707 pay_Mbps=2940.545 wire_Mbps=3024.446 off_start=0 off_end=1073741824 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+[p2] UDP_SUM pkts=729445 pay_bytes=1073741824 dur_s=3.482 pps=209479 pay_Mbps=2466.825 wire_Mbps=2537.210 off_start=0 off_end=1073741824 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+--- PIN 见证 (逐进程) ---
+[p1] PIN_CPU=2 PIN_ALLOWED_MASK=4
+[p2] PIN_CPU=3 PIN_ALLOWED_MASK=8
+--- post 快照 ---
+SNAP_BEGIN TB2_r05_post gen=665
+W5   0x34   gmii_free_FE           0x9fadfcec
+W10  0x48   udpapp_rx_frames       0x01a6bbd2
+W11  0x4C   udpapp_rx_bytes        0x7eb72aa0
+W13  0x54   udpapp_mismatch        0x5b52ae82
+W70  0x138  mir_drop_bytes         0x7bfe6bb8
+SNAP_END TB2_r05_post nff=0
+=== END TB2_r05 1791827213.499938624
+=== WIN TB2_r06 K=2147483648 NPROC=2 PER=1073741824 MBPS=0 CHUNK=33554432 SECS=6 T0=1791827213.500911913
+SNAP_BEGIN TB2_r06_pre gen=666
+W5   0x34   gmii_free_FE           0x9ffd8e01
+W10  0x48   udpapp_rx_frames       0x01a6bbd2
+W11  0x4C   udpapp_rx_bytes        0x7eb72aa0
+W13  0x54   udpapp_mismatch        0x5b52ae82
+W70  0x138  mir_drop_bytes         0x7bfe6bb8
+SNAP_END TB2_r06_pre nff=0
+OFF_FIX: W11=0x7eb72aa0 但 FIXOFF 生效 => OFF=0 (源与 verify 同值即可; app 侧 LFSR 已失步, 见报告)
+READER_CPUS_ALLOWED=Cpus_allowed_list:0-7 READER_CPU=3
+DATA_ONSET=1791827214.441994049 (源起后 0.400s)
+TOOL_RC=1 TS=1791827214.042042477 TE=1791827217.469022129 TZ=1791827220.391626390
+--- mir_dump 日志 (逐字) ---
+MIR_ID magic=50360001 (exp 50360001) bid=00000023 (exp 00000023)
+MIR_SRC src_sel=0 readback=0
+MIR_STATUS ver=4 src_sel=0 cap=0 any_drop=1 unf=0 level=0
+MIR_VER ver=4 path=stream expect=4 unimpl=0x14C
+MIR_UNIMPL addr=14c val=ffffffff (exp ffffffff)
+MIR_STREAM_BUF bytes=2147483648 mb=2048 prefault=1 aligned=4096
+MIR_STREAM_CFG dev=/dev/xdma0_c2h_0 bytes=2147483648 chunk=33554432 resid_max_shaper=32 resid_max_mirror=24 k_bytes=0 settle=0.30 sample_ms=300.0 arm=1 src=0
+MIR_STREAM_ALIGN want_mod_64=0 chunk_mod_64=0 (PG195: 描述符长度须 64 B 倍数)
+MIR_STREAM_WATCHDOG secs=6.0 (0=off; SIGALRM 打断阻塞 read)
+MIR_STREAM_END saw=read/看门狗截断 pc=1946157056 want=2147483648 (由两式解释不足量)
+MIR_STREAM_DONE pc=1946157056 reads=58 partial=0 nonmul64=0 short=1 ended_early=1 read_error=0 secs=6.001 rate_Bps=324331375
+MIR_STREAM_ACCT pc=1946157056 taken_bytes=1949603896 dW70=41117640 w70a=2080271288 w70b=2121388928 words0=0 words1=487400974 dwords=487400974 K=2147483648
+MIR_STREAM_QUIESCE level_end=0 quiesced=1 premise_level0=1 waited_ms=0.0 settle_s=0.30 strict=1 (前提: FIFO 尾部已排空; 打包器残留由 FPGA 侧停流 flush 清)
+MIR_STREAM_IDA 式A(成形器) taken_bytes - pc == shaper_resid -> 3446840  band=[0,32] closed_a=0
+MIR_STREAM_IDB 式B(镜像/K) K - taken_bytes - dW70 == mirror_resid -> 156762112  band=[0,24] closed_b=0 (K 来源=--bytes; --resid-max 旧名未用)
+MIR_STREAM_WRAP words0=0 words1=487400974 wrap_seen=0 dword_max_step=50331656 (回卷余量: 单步 <2^32)
+MIR_STREAM_SAMPLE i=0 t=0.000 pc=0 drop=2080271288 words=0 dword_acc=0
+MIR_STREAM_SAMPLE i=1 t=0.310 pc=201326592 drop=2085210656 words=50331656 dword_acc=50331656
+MIR_STREAM_SAMPLE i=2 t=0.618 pc=402653184 drop=2090482560 words=100663304 dword_acc=100663304
+MIR_STREAM_SAMPLE i=3 t=0.925 pc=603979776 drop=2094482304 words=150994952 dword_acc=150994952
+MIR_STREAM_SAMPLE i=4 t=1.230 pc=805306368 drop=2098623360 words=201326600 dword_acc=201326600
+MIR_STREAM_SAMPLE i=5 t=1.536 pc=1006632960 drop=2102858568 words=251658248 dword_acc=251658248
+MIR_STREAM_SAMPLE i=6 t=1.842 pc=1207959552 drop=2107046784 words=301989896 dword_acc=301989896
+MIR_STREAM_SAMPLE i=7 t=2.149 pc=1409286144 drop=2111305944 words=352321544 dword_acc=352321544
+MIR_STREAM_SAMPLE i=8 t=2.455 pc=1610612736 drop=2115545528 words=402653192 dword_acc=402653192
+MIR_STREAM_SAMPLE i=9 t=2.808 pc=1811939328 drop=2119381888 words=452984840 dword_acc=452984840
+MIR_STREAM_SAMPLE i=10 t=3.165 pc=1946157056 drop=2121200512 words=486539272 dword_acc=486539272
+MIR_STREAM_SAMPLE i=11 t=6.001 pc=1946157056 drop=2121388928 words=487400974 dword_acc=487400974
+MIR_STREAM_GAP first=0 last=3446840 max=3446840 nondecreasing=1 host_miss_bytes=3446840 host_miss_pct=0.1768 (= (taken-pc)/taken; 宿主跟不上的比例)
+MIR_STREAM_NOTE 采样本身在流上=自造空档 (12 点); 首版板内不加缓冲 ⇒ 宿主空档直接变丢字节
+FAIL: 式 A (成形器) 不成立: taken_bytes(1949603896) - pc(1946157056) = 3446840 ∉ [0,32] (成形器/在飞残余越界)
+FAIL: 式 B (镜像/K 侧) 不成立: K(2147483648) - taken_bytes(1949603896) - dW70(41117640) = 156762112 ∉ [0,24] (镜像残余越界 / K 口径不对 —— 若抓的是源流前缀请用 --k-bytes 声明源交付量)
+--- 发端 UDP_SUM (逐进程) ---
+[p1] UDP_SUM pkts=729445 pay_bytes=1073741824 dur_s=3.419 pps=213350 pay_Mbps=2512.407 wire_Mbps=2584.092 off_start=0 off_end=1073741824 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+[p2] UDP_SUM pkts=729445 pay_bytes=1073741824 dur_s=2.939 pps=248153 pay_Mbps=2922.244 wire_Mbps=3005.623 off_start=0 off_end=1073741824 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+--- PIN 见证 (逐进程) ---
+[p1] PIN_CPU=2 PIN_ALLOWED_MASK=4
+[p2] PIN_CPU=3 PIN_ALLOWED_MASK=8
+--- post 快照 ---
+SNAP_BEGIN TB2_r06_post gen=682
+W5   0x34   gmii_free_FE           0xe041ee43
+W10  0x48   udpapp_rx_frames       0x01bcfe9c
+W11  0x4C   udpapp_rx_bytes        0xfeb72aa0
+W13  0x54   udpapp_mismatch        0xdad29d7c
+W70  0x138  mir_drop_bytes         0x7e71d380
+SNAP_END TB2_r06_post nff=0
+=== END TB2_r06 1791827220.497751549
+=== WIN TB2_r07 K=2147483648 NPROC=2 PER=1073741824 MBPS=0 CHUNK=33554432 SECS=6 T0=1791827220.498556394
+SNAP_BEGIN TB2_r07_pre gen=683
+W5   0x34   gmii_free_FE           0xe25a8105
+W10  0x48   udpapp_rx_frames       0x01bcfe9c
+W11  0x4C   udpapp_rx_bytes        0xfeb72aa0
+W13  0x54   udpapp_mismatch        0xdad29d7c
+W70  0x138  mir_drop_bytes         0x7e71d380
+SNAP_END TB2_r07_pre nff=0
+OFF_FIX: W11=0xfeb72aa0 但 FIXOFF 生效 => OFF=0 (源与 verify 同值即可; app 侧 LFSR 已失步, 见报告)
+READER_CPUS_ALLOWED=Cpus_allowed_list:0-7 READER_CPU=1
+DATA_ONSET=1791827221.665988307 (源起后 0.484s)
+TOOL_RC=1 TS=1791827221.181802603 TE=1791827224.779206191 TZ=1791827227.635622628
+--- mir_dump 日志 (逐字) ---
+MIR_ID magic=50360001 (exp 50360001) bid=00000023 (exp 00000023)
+MIR_SRC src_sel=0 readback=0
+MIR_STATUS ver=4 src_sel=0 cap=0 any_drop=1 unf=0 level=0
+MIR_VER ver=4 path=stream expect=4 unimpl=0x14C
+MIR_UNIMPL addr=14c val=ffffffff (exp ffffffff)
+MIR_STREAM_BUF bytes=2147483648 mb=2048 prefault=1 aligned=4096
+MIR_STREAM_CFG dev=/dev/xdma0_c2h_0 bytes=2147483648 chunk=33554432 resid_max_shaper=32 resid_max_mirror=24 k_bytes=0 settle=0.30 sample_ms=300.0 arm=1 src=0
+MIR_STREAM_ALIGN want_mod_64=0 chunk_mod_64=0 (PG195: 描述符长度须 64 B 倍数)
+MIR_STREAM_WATCHDOG secs=6.0 (0=off; SIGALRM 打断阻塞 read)
+MIR_STREAM_END saw=read/看门狗截断 pc=1912602624 want=2147483648 (由两式解释不足量)
+MIR_STREAM_DONE pc=1912602624 reads=57 partial=0 nonmul64=0 short=1 ended_early=1 read_error=0 secs=6.000 rate_Bps=318744737
+MIR_STREAM_ACCT pc=1912602624 taken_bytes=1918545976 dW70=44503344 w70a=2121388928 w70b=2165892272 words0=0 words1=479636494 dwords=479636494 K=2147483648
+MIR_STREAM_QUIESCE level_end=0 quiesced=1 premise_level0=1 waited_ms=0.0 settle_s=0.30 strict=1 (前提: FIFO 尾部已排空; 打包器残留由 FPGA 侧停流 flush 清)
+MIR_STREAM_IDA 式A(成形器) taken_bytes - pc == shaper_resid -> 5943352  band=[0,32] closed_a=0
+MIR_STREAM_IDB 式B(镜像/K) K - taken_bytes - dW70 == mirror_resid -> 184434328  band=[0,24] closed_b=0 (K 来源=--bytes; --resid-max 旧名未用)
+MIR_STREAM_WRAP words0=0 words1=479636494 wrap_seen=0 dword_max_step=50331648 (回卷余量: 单步 <2^32)
+MIR_STREAM_SAMPLE i=0 t=0.000 pc=0 drop=2121393984 words=8 dword_acc=8
+MIR_STREAM_SAMPLE i=1 t=0.320 pc=201326592 drop=2126824624 words=50331656 dword_acc=50331656
+MIR_STREAM_SAMPLE i=2 t=0.642 pc=402653184 drop=2131625136 words=100663304 dword_acc=100663304
+MIR_STREAM_SAMPLE i=3 t=0.961 pc=603979776 drop=2136470752 words=150994952 dword_acc=150994952
+MIR_STREAM_SAMPLE i=4 t=1.280 pc=805306368 drop=2141179056 words=201326600 dword_acc=201326600
+MIR_STREAM_SAMPLE i=5 t=1.600 pc=1006632960 drop=2145979568 words=251658248 dword_acc=251658248
+MIR_STREAM_SAMPLE i=6 t=1.920 pc=1207959552 drop=2150685872 words=301989896 dword_acc=301989896
+MIR_STREAM_SAMPLE i=7 t=2.239 pc=1409286144 drop=2155517952 words=352321544 dword_acc=352321544
+MIR_STREAM_SAMPLE i=8 t=2.558 pc=1610612736 drop=2160286896 words=402653192 dword_acc=402653192
+MIR_STREAM_SAMPLE i=9 t=2.860 pc=1778384896 drop=2164120752 words=444596232 dword_acc=444596232
+MIR_STREAM_SAMPLE i=10 t=3.229 pc=1912602624 drop=2165750960 words=478150664 dword_acc=478150664
+MIR_STREAM_SAMPLE i=11 t=6.000 pc=1912602624 drop=2165892272 words=479636494 dword_acc=479636494
+MIR_STREAM_GAP first=32 last=5943352 max=5943352 nondecreasing=1 host_miss_bytes=5943352 host_miss_pct=0.3098 (= (taken-pc)/taken; 宿主跟不上的比例)
+MIR_STREAM_NOTE 采样本身在流上=自造空档 (12 点); 首版板内不加缓冲 ⇒ 宿主空档直接变丢字节
+FAIL: 式 A (成形器) 不成立: taken_bytes(1918545976) - pc(1912602624) = 5943352 ∉ [0,32] (成形器/在飞残余越界)
+FAIL: 式 B (镜像/K 侧) 不成立: K(2147483648) - taken_bytes(1918545976) - dW70(44503344) = 184434328 ∉ [0,24] (镜像残余越界 / K 口径不对 —— 若抓的是源流前缀请用 --k-bytes 声明源交付量)
+--- 发端 UDP_SUM (逐进程) ---
+[p1] UDP_SUM pkts=729445 pay_bytes=1073741824 dur_s=3.120 pps=233832 pay_Mbps=2753.607 wire_Mbps=2832.175 off_start=0 off_end=1073741824 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+[p2] UDP_SUM pkts=729445 pay_bytes=1073741824 dur_s=3.586 pps=203419 pay_Mbps=2395.465 wire_Mbps=2463.814 off_start=0 off_end=1073741824 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+--- PIN 见证 (逐进程) ---
+[p1] PIN_CPU=2 PIN_ALLOWED_MASK=4
+[p2] PIN_CPU=3 PIN_ALLOWED_MASK=8
+--- post 快照 ---
+SNAP_BEGIN TB2_r07_post gen=699
+W5   0x34   gmii_free_FE           0x23b8abd4
+W10  0x48   udpapp_rx_frames       0x01d34166
+W11  0x4C   udpapp_rx_bytes        0x7eb72aa0
+W13  0x54   udpapp_mismatch        0x5a528f7c
+W70  0x138  mir_drop_bytes         0x8118e4b0
+SNAP_END TB2_r07_post nff=0
+=== END TB2_r07 1791827227.732372505
+=== WIN TB2_r08 K=2147483648 NPROC=2 PER=1073741824 MBPS=0 CHUNK=33554432 SECS=6 T0=1791827227.733246830
+SNAP_BEGIN TB2_r08_pre gen=700
+W5   0x34   gmii_free_FE           0x2487c13f
+W10  0x48   udpapp_rx_frames       0x01d34166
+W11  0x4C   udpapp_rx_bytes        0x7eb72aa0
+W13  0x54   udpapp_mismatch        0x5a528f7c
+W70  0x138  mir_drop_bytes         0x8118e4b0
+SNAP_END TB2_r08_pre nff=0
+OFF_FIX: W11=0x7eb72aa0 但 FIXOFF 生效 => OFF=0 (源与 verify 同值即可; app 侧 LFSR 已失步, 见报告)
+READER_CPUS_ALLOWED=Cpus_allowed_list:0-7 READER_CPU=6
+DATA_ONSET=1791827228.670244789 (源起后 0.396s)
+TOOL_RC=1 TS=1791827228.274007013 TE=1791827231.868542703 TZ=1791827245.022161708
+--- mir_dump 日志 (逐字) ---
+MIR_ID magic=50360001 (exp 50360001) bid=00000023 (exp 00000023)
+MIR_SRC src_sel=0 readback=0
+MIR_STATUS ver=4 src_sel=0 cap=0 any_drop=1 unf=0 level=0
+MIR_VER ver=4 path=stream expect=4 unimpl=0x14C
+MIR_UNIMPL addr=14c val=ffffffff (exp ffffffff)
+MIR_STREAM_BUF bytes=2147483648 mb=2048 prefault=1 aligned=4096
+MIR_STREAM_CFG dev=/dev/xdma0_c2h_0 bytes=2147483648 chunk=33554432 resid_max_shaper=32 resid_max_mirror=24 k_bytes=0 settle=0.30 sample_ms=300.0 arm=1 src=0
+MIR_STREAM_ALIGN want_mod_64=0 chunk_mod_64=0 (PG195: 描述符长度须 64 B 倍数)
+MIR_STREAM_WATCHDOG secs=6.0 (0=off; SIGALRM 打断阻塞 read)
+MIR_STREAM_END saw=read/看门狗截断 pc=1920991232 want=2147483648 (由两式解释不足量)
+MIR_STREAM_DONE pc=1920991232 reads=58 partial=1 nonmul64=0 short=1 ended_early=1 read_error=0 secs=16.339 rate_Bps=117573348
+MIR_STREAM_ACCT pc=1920991232 taken_bytes=1923872824 dW70=41084928 w70a=2165893016 w70b=2206977944 words0=0 words1=480968206 dwords=480968206 K=2147483648
+MIR_STREAM_QUIESCE level_end=0 quiesced=1 premise_level0=1 waited_ms=0.0 settle_s=0.30 strict=1 (前提: FIFO 尾部已排空; 打包器残留由 FPGA 侧停流 flush 清)
+MIR_STREAM_IDA 式A(成形器) taken_bytes - pc == shaper_resid -> 2881592  band=[0,32] closed_a=0
+MIR_STREAM_IDB 式B(镜像/K) K - taken_bytes - dW70 == mirror_resid -> 182525896  band=[0,24] closed_b=0 (K 来源=--bytes; --resid-max 旧名未用)
+MIR_STREAM_WRAP words0=0 words1=480968206 wrap_seen=0 dword_max_step=50331648 (回卷余量: 单步 <2^32)
+MIR_STREAM_SAMPLE i=0 t=0.000 pc=0 drop=2165893016 words=8 dword_acc=8
+MIR_STREAM_SAMPLE i=1 t=0.322 pc=201326592 drop=2171981528 words=50331656 dword_acc=50331656
+MIR_STREAM_SAMPLE i=2 t=0.639 pc=402653184 drop=2176239832 words=100663304 dword_acc=100663304
+MIR_STREAM_SAMPLE i=3 t=0.957 pc=603979776 drop=2180556000 words=150994952 dword_acc=150994952
+MIR_STREAM_SAMPLE i=4 t=1.274 pc=805306368 drop=2184953752 words=201326600 dword_acc=201326600
+MIR_STREAM_SAMPLE i=5 t=1.592 pc=1006632960 drop=2189189016 words=251658248 dword_acc=251658248
+MIR_STREAM_SAMPLE i=6 t=1.910 pc=1207959552 drop=2193377176 words=301989896 dword_acc=301989896
+MIR_STREAM_SAMPLE i=7 t=2.228 pc=1409286144 drop=2197624216 words=352321544 dword_acc=352321544
+MIR_STREAM_SAMPLE i=8 t=2.545 pc=1610612736 drop=2201847704 words=402653192 dword_acc=402653192
+MIR_STREAM_SAMPLE i=9 t=2.882 pc=1778384896 drop=2204975000 words=444596232 dword_acc=444596232
+MIR_STREAM_SAMPLE i=10 t=3.252 pc=1912602624 drop=2206793624 words=478150664 dword_acc=478150664
+MIR_STREAM_SAMPLE i=11 t=6.000 pc=1920991232 drop=2206977944 words=480968206 dword_acc=480968206
+MIR_STREAM_SAMPLE i=12 t=16.339 pc=1920991232 drop=2206977944 words=480968206 dword_acc=480968206
+MIR_STREAM_GAP first=32 last=2881592 max=2881592 nondecreasing=1 host_miss_bytes=2881592 host_miss_pct=0.1498 (= (taken-pc)/taken; 宿主跟不上的比例)
+MIR_STREAM_NOTE 采样本身在流上=自造空档 (13 点); 首版板内不加缓冲 ⇒ 宿主空档直接变丢字节
+FAIL: 式 A (成形器) 不成立: taken_bytes(1923872824) - pc(1920991232) = 2881592 ∉ [0,32] (成形器/在飞残余越界)
+FAIL: 式 B (镜像/K 侧) 不成立: K(2147483648) - taken_bytes(1923872824) - dW70(41084928) = 182525896 ∉ [0,24] (镜像残余越界 / K 口径不对 —— 若抓的是源流前缀请用 --k-bytes 声明源交付量)
+--- 发端 UDP_SUM (逐进程) ---
+[p1] UDP_SUM pkts=729445 pay_bytes=1073741824 dur_s=3.013 pps=242091 pay_Mbps=2850.858 wire_Mbps=2932.201 off_start=0 off_end=1073741824 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+[p2] UDP_SUM pkts=729445 pay_bytes=1073741824 dur_s=3.583 pps=203567 pay_Mbps=2397.205 wire_Mbps=2465.604 off_start=0 off_end=1073741824 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+--- PIN 见证 (逐进程) ---
+[p1] PIN_CPU=2 PIN_ALLOWED_MASK=4
+[p2] PIN_CPU=3 PIN_ALLOWED_MASK=8
+--- post 快照 ---
+SNAP_BEGIN TB2_r08_post gen=717
+W5   0x34   gmii_free_FE           0xc5e07197
+W10  0x48   udpapp_rx_frames       0x01e98430
+W11  0x4C   udpapp_rx_bytes        0xfeb72aa0
+W13  0x54   udpapp_mismatch        0xd9d28751
+W70  0x138  mir_drop_bytes         0x838bcf98
+SNAP_END TB2_r08_post nff=0
+=== END TB2_r08 1791827245.089244050
+=== WIN TB2_r09 K=2147483648 NPROC=2 PER=1073741824 MBPS=0 CHUNK=33554432 SECS=6 T0=1791827245.090063863
+SNAP_BEGIN TB2_r09_pre gen=718
+W5   0x34   gmii_free_FE           0xc62c74bc
+W10  0x48   udpapp_rx_frames       0x01e98430
+W11  0x4C   udpapp_rx_bytes        0xfeb72aa0
+W13  0x54   udpapp_mismatch        0xd9d28751
+W70  0x138  mir_drop_bytes         0x838bcf98
+SNAP_END TB2_r09_pre nff=0
+OFF_FIX: W11=0xfeb72aa0 但 FIXOFF 生效 => OFF=0 (源与 verify 同值即可; app 侧 LFSR 已失步, 见报告)
+READER_CPUS_ALLOWED=Cpus_allowed_list:0-7 READER_CPU=3
+DATA_ONSET=1791827246.019087361 (源起后 0.390s)
+TOOL_RC=1 TS=1791827245.629484320 TE=1791827249.670166215 TZ=1791827262.417118451
+--- mir_dump 日志 (逐字) ---
+MIR_ID magic=50360001 (exp 50360001) bid=00000023 (exp 00000023)
+MIR_SRC src_sel=0 readback=0
+MIR_STATUS ver=4 src_sel=0 cap=0 any_drop=1 unf=0 level=0
+MIR_VER ver=4 path=stream expect=4 unimpl=0x14C
+MIR_UNIMPL addr=14c val=ffffffff (exp ffffffff)
+MIR_STREAM_BUF bytes=2147483648 mb=2048 prefault=1 aligned=4096
+MIR_STREAM_CFG dev=/dev/xdma0_c2h_0 bytes=2147483648 chunk=33554432 resid_max_shaper=32 resid_max_mirror=24 k_bytes=0 settle=0.30 sample_ms=300.0 arm=1 src=0
+MIR_STREAM_ALIGN want_mod_64=0 chunk_mod_64=0 (PG195: 描述符长度须 64 B 倍数)
+MIR_STREAM_WATCHDOG secs=6.0 (0=off; SIGALRM 打断阻塞 read)
+MIR_STREAM_END saw=read/看门狗截断 pc=1929379840 want=2147483648 (由两式解释不足量)
+MIR_STREAM_DONE pc=1929379840 reads=58 partial=1 nonmul64=0 short=1 ended_early=1 read_error=0 secs=16.350 rate_Bps=118003031
+MIR_STREAM_ACCT pc=1929379840 taken_bytes=1931978808 dW70=39081848 w70a=2206977944 w70b=2246059792 words0=0 words1=482994702 dwords=482994702 K=2147483648
+MIR_STREAM_QUIESCE level_end=0 quiesced=1 premise_level0=1 waited_ms=0.0 settle_s=0.30 strict=1 (前提: FIFO 尾部已排空; 打包器残留由 FPGA 侧停流 flush 清)
+MIR_STREAM_IDA 式A(成形器) taken_bytes - pc == shaper_resid -> 2598968  band=[0,32] closed_a=0
+MIR_STREAM_IDB 式B(镜像/K) K - taken_bytes - dW70 == mirror_resid -> 176422992  band=[0,24] closed_b=0 (K 来源=--bytes; --resid-max 旧名未用)
+MIR_STREAM_WRAP words0=0 words1=482994702 wrap_seen=0 dword_max_step=50331648 (回卷余量: 单步 <2^32)
+MIR_STREAM_SAMPLE i=0 t=0.000 pc=0 drop=2206981672 words=8 dword_acc=8
+MIR_STREAM_SAMPLE i=1 t=0.339 pc=201326592 drop=2211862840 words=50331656 dword_acc=50331656
+MIR_STREAM_SAMPLE i=2 t=0.676 pc=402653184 drop=2216040208 words=100663304 dword_acc=100663304
+MIR_STREAM_SAMPLE i=3 t=1.015 pc=603979776 drop=2220285208 words=150994952 dword_acc=150994952
+MIR_STREAM_SAMPLE i=4 t=1.350 pc=805306368 drop=2224652048 words=201326600 dword_acc=201326600
+MIR_STREAM_SAMPLE i=5 t=1.687 pc=1006632960 drop=2229075728 words=251658248 dword_acc=251658248
+MIR_STREAM_SAMPLE i=6 t=2.023 pc=1207959552 drop=2233310992 words=301989896 dword_acc=301989896
+MIR_STREAM_SAMPLE i=7 t=2.358 pc=1409286144 drop=2237712872 words=352321544 dword_acc=352321544
+MIR_STREAM_SAMPLE i=8 t=2.693 pc=1610612736 drop=2242064144 words=402653192 dword_acc=402653192
+MIR_STREAM_SAMPLE i=9 t=3.077 pc=1744830464 drop=2244044944 words=436207624 dword_acc=436207624
+MIR_STREAM_SAMPLE i=10 t=3.406 pc=1845493760 drop=2245124816 words=461373448 dword_acc=461373448
+MIR_STREAM_SAMPLE i=11 t=6.000 pc=1929379840 drop=2246059792 words=482994702 dword_acc=482994702
+MIR_STREAM_SAMPLE i=12 t=16.350 pc=1929379840 drop=2246059792 words=482994702 dword_acc=482994702
+MIR_STREAM_GAP first=32 last=2598968 max=2598968 nondecreasing=1 host_miss_bytes=2598968 host_miss_pct=0.1345 (= (taken-pc)/taken; 宿主跟不上的比例)
+MIR_STREAM_NOTE 采样本身在流上=自造空档 (13 点); 首版板内不加缓冲 ⇒ 宿主空档直接变丢字节
+FAIL: 式 A (成形器) 不成立: taken_bytes(1931978808) - pc(1929379840) = 2598968 ∉ [0,32] (成形器/在飞残余越界)
+FAIL: 式 B (镜像/K 侧) 不成立: K(2147483648) - taken_bytes(1931978808) - dW70(39081848) = 176422992 ∉ [0,24] (镜像残余越界 / K 口径不对 —— 若抓的是源流前缀请用 --k-bytes 声明源交付量)
+--- 发端 UDP_SUM (逐进程) ---
+[p1] UDP_SUM pkts=729445 pay_bytes=1073741824 dur_s=3.092 pps=235902 pay_Mbps=2777.985 wire_Mbps=2857.248 off_start=0 off_end=1073741824 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+[p2] UDP_SUM pkts=729445 pay_bytes=1073741824 dur_s=4.029 pps=181043 pay_Mbps=2131.958 wire_Mbps=2192.789 off_start=0 off_end=1073741824 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+--- PIN 见证 (逐进程) ---
+[p1] PIN_CPU=2 PIN_ALLOWED_MASK=4
+[p2] PIN_CPU=3 PIN_ALLOWED_MASK=8
+--- post 快照 ---
+SNAP_BEGIN TB2_r09_post gen=735
+W5   0x34   gmii_free_FE           0x67e30cb5
+W10  0x48   udpapp_rx_frames       0x01ffc6fa
+W11  0x4C   udpapp_rx_bytes        0x7eb72aa0
+W13  0x54   udpapp_mismatch        0x59527f5c
+W70  0x138  mir_drop_bytes         0x85e02710
+SNAP_END TB2_r09_post nff=0
+=== END TB2_r09 1791827262.492796939
+ALL_DONE 1791827262.493646064

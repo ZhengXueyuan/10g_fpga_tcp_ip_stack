@@ -1,0 +1,70 @@
+=== WIN P0 K=33554432 MBPS=0 PAYLEN=1472 BATCH=32 SECS=25 DECL='' T0=1791825804.337517031
+--- pre 快照 ---
+SNAP_BEGIN P0_pre gen=8
+W0   0x20   rx_stat_frames         0x0000002b
+W1   0x24   rx_stat_bytes          0x000064e8
+W5   0x34   gmii_free_FE           0x5c26bf92
+W10  0x48   udpapp_rx_frames       0x00000003
+W11  0x4C   udpapp_rx_bytes        0x00000fa0
+W13  0x54   udpapp_mismatch        0x00000000
+W70  0x138  mir_drop_bytes         0x00000000
+W46  0xD8   cls_dbg_stat_ovf       0x00000000
+W47  0xDC   cls_dbg_stat_route_ovf 0x00000000
+W48  0xE0   cls_dbg_stat_stall_in  0x00000000
+W49  0xE4   cls_dbg_occ            0x00000000
+SNAP_END P0_pre nff=0
+OFF_AUTO: W11=0x00000fa0 => OFF=4000
+--- 起 mir_dump (--stream) ---
+--- 起发端 (有界: --bytes 33554432, --mbps 0) TS=1791825806.396375669 ---
+SRC_RC=0 TE=1791825806.493175692
+TOOL_RC=1 TZ=1791825816.974264292
+--- mir_dump 日志 (逐字) ---
+MIR_ID magic=50360001 (exp 50360001) bid=00000023 (exp 00000023)
+MIR_SRC src_sel=0 readback=0
+MIR_STATUS ver=4 src_sel=0 cap=0 any_drop=0 unf=0 level=0
+MIR_VER ver=4 path=stream expect=4 unimpl=0x14C
+MIR_UNIMPL addr=14c val=ffffffff (exp ffffffff)
+MIR_STREAM_BUF bytes=134217728 mb=128 prefault=1 aligned=4096
+MIR_STREAM_CFG dev=/dev/xdma0_c2h_0 bytes=33554432 chunk=1048576 resid_max_shaper=32 resid_max_mirror=24 k_bytes=0 settle=1.00 sample_ms=20.0 arm=1 src=0
+MIR_STREAM_ALIGN want_mod_64=0 chunk_mod_64=0 (PG195: 描述符长度须 64 B 倍数)
+MIR_STREAM_WATCHDOG secs=25.0 (0=off; SIGALRM 打断阻塞 read)
+FAIL: stream read 出错 (n=1048576): Connection timed out
+MIR_STREAM_DONE pc=32505856 reads=31 partial=0 nonmul64=0 short=1 ended_early=0 read_error=1 secs=12.509 rate_Bps=2598661
+MIR_STREAM_ACCT pc=32505856 taken_bytes=32507960 dW70=1046472 w70a=0 w70b=1046472 words0=0 words1=8126990 dwords=8126990 K=33554432
+MIR_STREAM_QUIESCE level_end=0 quiesced=1 premise_level0=1 waited_ms=0.0 settle_s=1.00 strict=1 (前提: FIFO 尾部已排空; 打包器残留由 FPGA 侧停流 flush 清)
+MIR_STREAM_IDA 式A(成形器) taken_bytes - pc == shaper_resid -> 2104  band=[0,32] closed_a=0
+MIR_STREAM_IDB 式B(镜像/K) K - taken_bytes - dW70 == mirror_resid -> 0  band=[0,24] closed_b=1 (K 来源=--bytes; --resid-max 旧名未用)
+MIR_STREAM_WRAP words0=0 words1=8126990 wrap_seen=0 dword_max_step=1835008 (回卷余量: 单步 <2^32)
+MIR_STREAM_SAMPLE i=0 t=0.000 pc=0 drop=0 words=0 dword_acc=0
+MIR_STREAM_SAMPLE i=1 t=1.957 pc=1048576 drop=32712 words=262152 dword_acc=262152
+MIR_STREAM_SAMPLE i=2 t=1.978 pc=8388608 drop=276424 words=2097160 dword_acc=2097160
+MIR_STREAM_SAMPLE i=3 t=1.999 pc=15728640 drop=520136 words=3932168 dword_acc=3932168
+MIR_STREAM_SAMPLE i=4 t=2.020 pc=23068672 drop=763848 words=5767176 dword_acc=5767176
+MIR_STREAM_SAMPLE i=5 t=2.041 pc=30408704 drop=1007560 words=7602184 dword_acc=7602184
+MIR_STREAM_SAMPLE i=6 t=12.509 pc=32505856 drop=1046472 words=8126990 dword_acc=8126990
+MIR_STREAM_GAP first=0 last=2104 max=2104 nondecreasing=1 host_miss_bytes=2104 host_miss_pct=0.0065 (= (taken-pc)/taken; 宿主跟不上的比例)
+MIR_STREAM_NOTE 采样本身在流上=自造空档 (7 点); 首版板内不加缓冲 ⇒ 宿主空档直接变丢字节
+MIR_VERIFY rc=1 first_mismatch=1050680 of pc=32505856 (want=33554432; 不足量看式B)
+FAIL: stream 真读错 (非早停/非看门狗) —— 见上一条
+FAIL: content mismatch at 1050680
+FAIL: 式 A (成形器) 不成立: taken_bytes(32507960) - pc(32505856) = 2104 ∉ [0,32] (成形器/在飞残余越界)
+--- 发端关键行 (PIN 见证 + UDP_SUM) ---
+PIN_RULE=avoid-nic PIN_DEGRADED=none PIN_CPU=5 PIN_CORES_ONLINE=0-7 PIN_NIC_IFACE=enp1s0f0np0,enp1s0f1np1 PIN_NIC_CPUS=0,1,2,3,4,5 PIN_NIC_EXCLUDED=none PIN_CORE_LOAD=2483 PIN_ALLOWED_MASK=20 PIN_GETCPU_START=5 PIN_FREQ_START_KHZ=3005392 PIN_GOV=schedutil PIN_NIC_IRQLINES=12 PIN_NIC_IFACE_SRC=auto PIN_TUPLE_ORDER=own_sib_t PIN_PAIR_RULE=n/a PIN_PAIR_DEGRADED=n/a PIN_CPU_IO=n/a PIN_CPU_WORK=n/a PIN_PC_IO=n/a PIN_PC_WORK=n/a PIN_PAIR_EXCL=n/a PIN_PAIR_REQ=n/a
+UDP_SUM pkts=22796 pay_bytes=33554432 dur_s=0.093 pps=245906 pay_Mbps=2895.678 wire_Mbps=2978.302 off_start=4000 off_end=33558432 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+--- post 快照 ---
+SNAP_BEGIN P0_post gen=19
+W0   0x20   rx_stat_frames         0x00005944
+W1   0x24   rx_stat_bytes          0x0210833a
+W5   0x34   gmii_free_FE           0xd1dbb8e9
+W10  0x48   udpapp_rx_frames       0x0000590f
+W11  0x4C   udpapp_rx_bytes        0x02000fa0
+W13  0x54   udpapp_mismatch        0x00000000
+W70  0x138  mir_drop_bytes         0x000ff7c8
+W46  0xD8   cls_dbg_stat_ovf       0x00000000
+W47  0xDC   cls_dbg_stat_route_ovf 0x00000000
+W48  0xE0   cls_dbg_stat_stall_in  0x00000000
+W49  0xE4   cls_dbg_occ            0x00000000
+SNAP_END P0_post nff=0
+--- 文件 ---
+-rw-r--r-- 1 root root 32505856 Oct 13 01:23 mir_P0.bin
+=== END P0 1791825817.032941686

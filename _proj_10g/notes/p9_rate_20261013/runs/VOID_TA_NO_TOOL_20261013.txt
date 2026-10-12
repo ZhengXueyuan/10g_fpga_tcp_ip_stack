@@ -1,0 +1,298 @@
+=== WIN TA_r01 K=1073741824 NPROC=1 PER=1073741824 MBPS=0 CHUNK=33554432 SECS=4.5 T0=1791826416.054203654
+SNAP_BEGIN TA_r01_pre gen=411
+W5   0x34   gmii_free_FE           0x9d42f38e
+W10  0x48   udpapp_rx_frames       0x00369be2
+W11  0x4C   udpapp_rx_bytes        0x3a000fa0
+W13  0x54   udpapp_mismatch        0x1ee01c23
+W70  0x138  mir_drop_bytes         0xa080d680
+SNAP_END TA_r01_pre nff=0
+OFF_AUTO: W11=0x3a000fa0 => OFF=973082528
+run_multi.sh: line 42: 4.5: syntax error: invalid arithmetic operator (error token is ".5")
+READER_CPUS_ALLOWED= READER_CPU=
+TOOL_RC=1 TS=1791826416.592895626 TE=1791826420.925654348 TZ=1791826420.926683904
+--- mir_dump 日志 (逐字) ---
+cat: mir_TA_r01.log: No such file or directory
+--- 发端 UDP_SUM (逐进程) ---
+[p1] UDP_SUM pkts=729445 pay_bytes=1073741824 dur_s=2.814 pps=259210 pay_Mbps=3052.456 wire_Mbps=3139.550 off_start=973082528 off_end=2046824352 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+--- PIN 见证 (逐进程) ---
+[p1] PIN_CPU=3 PIN_ALLOWED_MASK=8
+--- post 快照 ---
+SNAP_BEGIN TA_r01_post gen=412
+W5   0x34   gmii_free_FE           0xcad17148
+W10  0x48   udpapp_rx_frames       0x0041bd47
+W11  0x4C   udpapp_rx_bytes        0x7a000fa0
+W13  0x54   udpapp_mismatch        0x5ea018c6
+W70  0x138  mir_drop_bytes         0xe080d680
+SNAP_END TA_r01_post nff=0
+=== END TA_r01 1791826420.996051753
+=== WIN TA_r02 K=1073741824 NPROC=1 PER=1073741824 MBPS=0 CHUNK=33554432 SECS=4.5 T0=1791826420.996883895
+SNAP_BEGIN TA_r02_pre gen=413
+W5   0x34   gmii_free_FE           0xcb4af269
+W10  0x48   udpapp_rx_frames       0x0041bd47
+W11  0x4C   udpapp_rx_bytes        0x7a000fa0
+W13  0x54   udpapp_mismatch        0x5ea018c6
+W70  0x138  mir_drop_bytes         0xe080d680
+SNAP_END TA_r02_pre nff=0
+OFF_AUTO: W11=0x7a000fa0 => OFF=2046824352
+run_multi.sh: line 42: 4.5: syntax error: invalid arithmetic operator (error token is ".5")
+READER_CPUS_ALLOWED= READER_CPU=
+TOOL_RC=1 TS=1791826421.536158194 TE=1791826427.622491539 TZ=1791826427.623373388
+--- mir_dump 日志 (逐字) ---
+cat: mir_TA_r02.log: No such file or directory
+--- 发端 UDP_SUM (逐进程) ---
+[p1] UDP_SUM pkts=729445 pay_bytes=1073741824 dur_s=2.910 pps=250655 pay_Mbps=2951.710 wire_Mbps=3035.930 off_start=2046824352 off_end=3120566176 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+--- PIN 见证 (逐进程) ---
+[p1] PIN_CPU=3 PIN_ALLOWED_MASK=8
+--- post 快照 ---
+SNAP_BEGIN TA_r02_post gen=414
+W5   0x34   gmii_free_FE           0x091194dc
+W10  0x48   udpapp_rx_frames       0x004cdeac
+W11  0x4C   udpapp_rx_bytes        0xba000fa0
+W13  0x54   udpapp_mismatch        0x9e6007d9
+W70  0x138  mir_drop_bytes         0x2080d680
+SNAP_END TA_r02_post nff=0
+=== END TA_r02 1791826427.661057878
+=== WIN TA_r03 K=1073741824 NPROC=1 PER=1073741824 MBPS=0 CHUNK=33554432 SECS=4.5 T0=1791826427.661920430
+SNAP_BEGIN TA_r03_pre gen=415
+W5   0x34   gmii_free_FE           0x09b43b1a
+W10  0x48   udpapp_rx_frames       0x004cdeac
+W11  0x4C   udpapp_rx_bytes        0xba000fa0
+W13  0x54   udpapp_mismatch        0x9e6007d9
+W70  0x138  mir_drop_bytes         0x2080d680
+SNAP_END TA_r03_pre nff=0
+OFF_AUTO: W11=0xba000fa0 => OFF=3120566176
+run_multi.sh: line 42: 4.5: syntax error: invalid arithmetic operator (error token is ".5")
+READER_CPUS_ALLOWED= READER_CPU=
+TOOL_RC=1 TS=1791826428.237290313 TE=1791826435.904343521 TZ=1791826435.905348182
+--- mir_dump 日志 (逐字) ---
+cat: mir_TA_r03.log: No such file or directory
+--- 发端 UDP_SUM (逐进程) ---
+[p1] UDP_SUM pkts=729445 pay_bytes=1073741824 dur_s=2.832 pps=257593 pay_Mbps=3033.416 wire_Mbps=3119.968 off_start=3120566176 off_end=4194308000 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+--- PIN 见证 (逐进程) ---
+[p1] PIN_CPU=3 PIN_ALLOWED_MASK=8
+--- post 快照 ---
+SNAP_BEGIN TA_r03_post gen=416
+W5   0x34   gmii_free_FE           0x56341bba
+W10  0x48   udpapp_rx_frames       0x00580011
+W11  0x4C   udpapp_rx_bytes        0xfa000fa0
+W13  0x54   udpapp_mismatch        0xde200438
+W70  0x138  mir_drop_bytes         0x6080d680
+SNAP_END TA_r03_post nff=0
+=== END TA_r03 1791826435.943055185
+=== WIN TA_r04 K=1073741824 NPROC=1 PER=1073741824 MBPS=0 CHUNK=33554432 SECS=4.5 T0=1791826435.943875430
+SNAP_BEGIN TA_r04_pre gen=417
+W5   0x34   gmii_free_FE           0x567f9fe9
+W10  0x48   udpapp_rx_frames       0x00580011
+W11  0x4C   udpapp_rx_bytes        0xfa000fa0
+W13  0x54   udpapp_mismatch        0xde200438
+W70  0x138  mir_drop_bytes         0x6080d680
+SNAP_END TA_r04_pre nff=0
+OFF_AUTO: W11=0xfa000fa0 => OFF=4194308000
+run_multi.sh: line 42: 4.5: syntax error: invalid arithmetic operator (error token is ".5")
+READER_CPUS_ALLOWED= READER_CPU=
+TOOL_RC=1 TS=1791826436.483388282 TE=1791826445.864429467 TZ=1791826445.865221667
+--- mir_dump 日志 (逐字) ---
+cat: mir_TA_r04.log: No such file or directory
+--- 发端 UDP_SUM (逐进程) ---
+[p1] UDP_SUM pkts=729445 pay_bytes=1073741824 dur_s=2.901 pps=251462 pay_Mbps=2961.212 wire_Mbps=3045.703 off_start=4194308000 off_end=5268049824 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+--- PIN 见证 (逐进程) ---
+[p1] PIN_CPU=3 PIN_ALLOWED_MASK=8
+--- post 快照 ---
+SNAP_BEGIN TA_r04_post gen=418
+W5   0x34   gmii_free_FE           0xb2f5343f
+W10  0x48   udpapp_rx_frames       0x00632176
+W11  0x4C   udpapp_rx_bytes        0x3a000fa0
+W13  0x54   udpapp_mismatch        0x1de00714
+W70  0x138  mir_drop_bytes         0xa080d680
+SNAP_END TA_r04_post nff=0
+=== END TA_r04 1791826445.902224507
+=== WIN TA_r05 K=1073741824 NPROC=1 PER=1073741824 MBPS=0 CHUNK=33554432 SECS=4.5 T0=1791826445.903005781
+SNAP_BEGIN TA_r05_pre gen=419
+W5   0x34   gmii_free_FE           0xb3402f67
+W10  0x48   udpapp_rx_frames       0x00632176
+W11  0x4C   udpapp_rx_bytes        0x3a000fa0
+W13  0x54   udpapp_mismatch        0x1de00714
+W70  0x138  mir_drop_bytes         0xa080d680
+SNAP_END TA_r05_pre nff=0
+OFF_AUTO: W11=0x3a000fa0 => OFF=973082528
+run_multi.sh: line 42: 4.5: syntax error: invalid arithmetic operator (error token is ".5")
+READER_CPUS_ALLOWED= READER_CPU=
+TOOL_RC=1 TS=1791826446.441667273 TE=1791826451.456376644 TZ=1791826451.457234957
+--- mir_dump 日志 (逐字) ---
+cat: mir_TA_r05.log: No such file or directory
+--- 发端 UDP_SUM (逐进程) ---
+[p1] UDP_SUM pkts=729445 pay_bytes=1073741824 dur_s=3.503 pps=208257 pay_Mbps=2452.436 wire_Mbps=2522.410 off_start=973082528 off_end=2046824352 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+--- PIN 见证 (逐进程) ---
+[p1] PIN_CPU=3 PIN_ALLOWED_MASK=8
+--- post 快照 ---
+SNAP_BEGIN TA_r05_post gen=420
+W5   0x34   gmii_free_FE           0xe70a7487
+W10  0x48   udpapp_rx_frames       0x006e42db
+W11  0x4C   udpapp_rx_bytes        0x7a000fa0
+W13  0x54   udpapp_mismatch        0x5da016b9
+W70  0x138  mir_drop_bytes         0xe080d680
+SNAP_END TA_r05_post nff=0
+=== END TA_r05 1791826451.494838583
+=== WIN TA_r06 K=1073741824 NPROC=1 PER=1073741824 MBPS=0 CHUNK=33554432 SECS=4.5 T0=1791826451.495664734
+SNAP_BEGIN TA_r06_pre gen=421
+W5   0x34   gmii_free_FE           0xe756f735
+W10  0x48   udpapp_rx_frames       0x006e42db
+W11  0x4C   udpapp_rx_bytes        0x7a000fa0
+W13  0x54   udpapp_mismatch        0x5da016b9
+W70  0x138  mir_drop_bytes         0xe080d680
+SNAP_END TA_r06_pre nff=0
+OFF_AUTO: W11=0x7a000fa0 => OFF=2046824352
+run_multi.sh: line 42: 4.5: syntax error: invalid arithmetic operator (error token is ".5")
+READER_CPUS_ALLOWED= READER_CPU=
+TOOL_RC=1 TS=1791826452.036134201 TE=1791826458.133269936 TZ=1791826458.134108966
+--- mir_dump 日志 (逐字) ---
+cat: mir_TA_r06.log: No such file or directory
+--- 发端 UDP_SUM (逐进程) ---
+[p1] UDP_SUM pkts=729445 pay_bytes=1073741824 dur_s=2.925 pps=249407 pay_Mbps=2937.015 wire_Mbps=3020.816 off_start=2046824352 off_end=3120566176 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+--- PIN 见证 (逐进程) ---
+[p1] PIN_CPU=3 PIN_ALLOWED_MASK=8
+--- post 快照 ---
+SNAP_BEGIN TA_r06_post gen=422
+W5   0x34   gmii_free_FE           0x2539ea0e
+W10  0x48   udpapp_rx_frames       0x00796440
+W11  0x4C   udpapp_rx_bytes        0xba000fa0
+W13  0x54   udpapp_mismatch        0x9d601425
+W70  0x138  mir_drop_bytes         0x2080d680
+SNAP_END TA_r06_post nff=0
+=== END TA_r06 1791826458.172055459
+=== WIN TA_r07 K=1073741824 NPROC=1 PER=1073741824 MBPS=0 CHUNK=33554432 SECS=4.5 T0=1791826458.172881967
+SNAP_BEGIN TA_r07_pre gen=423
+W5   0x34   gmii_free_FE           0x2585d36b
+W10  0x48   udpapp_rx_frames       0x00796440
+W11  0x4C   udpapp_rx_bytes        0xba000fa0
+W13  0x54   udpapp_mismatch        0x9d601425
+W70  0x138  mir_drop_bytes         0x2080d680
+SNAP_END TA_r07_pre nff=0
+OFF_AUTO: W11=0xba000fa0 => OFF=3120566176
+run_multi.sh: line 42: 4.5: syntax error: invalid arithmetic operator (error token is ".5")
+READER_CPUS_ALLOWED= READER_CPU=
+TOOL_RC=1 TS=1791826458.711246125 TE=1791826466.448676073 TZ=1791826466.449445415
+--- mir_dump 日志 (逐字) ---
+cat: mir_TA_r07.log: No such file or directory
+--- 发端 UDP_SUM (逐进程) ---
+[p1] UDP_SUM pkts=729445 pay_bytes=1073741824 dur_s=2.907 pps=250926 pay_Mbps=2954.906 wire_Mbps=3039.217 off_start=3120566176 off_end=4194308000 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+--- PIN 见证 (逐进程) ---
+[p1] PIN_CPU=3 PIN_ALLOWED_MASK=8
+--- post 快照 ---
+SNAP_BEGIN TA_r07_post gen=424
+W5   0x34   gmii_free_FE           0x72ab7497
+W10  0x48   udpapp_rx_frames       0x008485a5
+W11  0x4C   udpapp_rx_bytes        0xfa000fa0
+W13  0x54   udpapp_mismatch        0xdd201b28
+W70  0x138  mir_drop_bytes         0x6080d680
+SNAP_END TA_r07_post nff=0
+=== END TA_r07 1791826466.521046895
+=== WIN TA_r08 K=1073741824 NPROC=1 PER=1073741824 MBPS=0 CHUNK=33554432 SECS=4.5 T0=1791826466.521879292
+SNAP_BEGIN TA_r08_pre gen=425
+W5   0x34   gmii_free_FE           0x7393ea5c
+W10  0x48   udpapp_rx_frames       0x008485a5
+W11  0x4C   udpapp_rx_bytes        0xfa000fa0
+W13  0x54   udpapp_mismatch        0xdd201b28
+W70  0x138  mir_drop_bytes         0x6080d680
+SNAP_END TA_r08_pre nff=0
+OFF_AUTO: W11=0xfa000fa0 => OFF=4194308000
+run_multi.sh: line 42: 4.5: syntax error: invalid arithmetic operator (error token is ".5")
+READER_CPUS_ALLOWED= READER_CPU=
+TOOL_RC=1 TS=1791826467.093393799 TE=1791826476.495907638 TZ=1791826476.496790377
+--- mir_dump 日志 (逐字) ---
+cat: mir_TA_r08.log: No such file or directory
+--- 发端 UDP_SUM (逐进程) ---
+[p1] UDP_SUM pkts=729445 pay_bytes=1073741824 dur_s=2.916 pps=250186 pay_Mbps=2946.186 wire_Mbps=3030.248 off_start=4194308000 off_end=5268049824 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+--- PIN 见证 (逐进程) ---
+[p1] PIN_CPU=3 PIN_ALLOWED_MASK=8
+--- post 快照 ---
+SNAP_BEGIN TA_r08_post gen=426
+W5   0x34   gmii_free_FE           0xd07ad474
+W10  0x48   udpapp_rx_frames       0x008fa70a
+W11  0x4C   udpapp_rx_bytes        0x3a000fa0
+W13  0x54   udpapp_mismatch        0x1ce021b6
+W70  0x138  mir_drop_bytes         0xa080d680
+SNAP_END TA_r08_post nff=0
+=== END TA_r08 1791826476.593058828
+=== WIN TA_r09 K=1073741824 NPROC=1 PER=1073741824 MBPS=0 CHUNK=33554432 SECS=4.5 T0=1791826476.593897453
+SNAP_BEGIN TA_r09_pre gen=427
+W5   0x34   gmii_free_FE           0xd135a7ef
+W10  0x48   udpapp_rx_frames       0x008fa70a
+W11  0x4C   udpapp_rx_bytes        0x3a000fa0
+W13  0x54   udpapp_mismatch        0x1ce021b6
+W70  0x138  mir_drop_bytes         0xa080d680
+SNAP_END TA_r09_pre nff=0
+OFF_AUTO: W11=0x3a000fa0 => OFF=973082528
+run_multi.sh: line 42: 4.5: syntax error: invalid arithmetic operator (error token is ".5")
+READER_CPUS_ALLOWED= READER_CPU=
+TOOL_RC=1 TS=1791826477.146919194 TE=1791826482.164232772 TZ=1791826482.182892076
+--- mir_dump 日志 (逐字) ---
+cat: mir_TA_r09.log: No such file or directory
+--- 发端 UDP_SUM (逐进程) ---
+[p1] UDP_SUM pkts=729445 pay_bytes=1073741824 dur_s=3.504 pps=208161 pay_Mbps=2451.307 wire_Mbps=2521.249 off_start=973082528 off_end=2046824352 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+--- PIN 见证 (逐进程) ---
+[p1] PIN_CPU=3 PIN_ALLOWED_MASK=8
+--- post 快照 ---
+SNAP_BEGIN TA_r09_post gen=428
+W5   0x34   gmii_free_FE           0x053a2fb7
+W10  0x48   udpapp_rx_frames       0x009ac86f
+W11  0x4C   udpapp_rx_bytes        0x7a000fa0
+W13  0x54   udpapp_mismatch        0x5ca02843
+W70  0x138  mir_drop_bytes         0xe080d680
+SNAP_END TA_r09_post nff=0
+=== END TA_r09 1791826482.223668880
+=== WIN TA_r10 K=1073741824 NPROC=1 PER=1073741824 MBPS=0 CHUNK=33554432 SECS=4.5 T0=1791826482.224445001
+SNAP_BEGIN TA_r10_pre gen=429
+W5   0x34   gmii_free_FE           0x05867ef5
+W10  0x48   udpapp_rx_frames       0x009ac86f
+W11  0x4C   udpapp_rx_bytes        0x7a000fa0
+W13  0x54   udpapp_mismatch        0x5ca02843
+W70  0x138  mir_drop_bytes         0xe080d680
+SNAP_END TA_r10_pre nff=0
+OFF_AUTO: W11=0x7a000fa0 => OFF=2046824352
+run_multi.sh: line 42: 4.5: syntax error: invalid arithmetic operator (error token is ".5")
+READER_CPUS_ALLOWED= READER_CPU=
+TOOL_RC=1 TS=1791826482.763725241 TE=1791826489.448169737 TZ=1791826489.449027523
+--- mir_dump 日志 (逐字) ---
+cat: mir_TA_r10.log: No such file or directory
+--- 发端 UDP_SUM (逐进程) ---
+[p1] UDP_SUM pkts=729445 pay_bytes=1073741824 dur_s=3.516 pps=207485 pay_Mbps=2443.343 wire_Mbps=2513.058 off_start=2046824352 off_end=3120566176 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+--- PIN 见证 (逐进程) ---
+[p1] PIN_CPU=3 PIN_ALLOWED_MASK=8
+--- post 快照 ---
+SNAP_BEGIN TA_r10_post gen=430
+W5   0x34   gmii_free_FE           0x48e04977
+W10  0x48   udpapp_rx_frames       0x00a5e9d4
+W11  0x4C   udpapp_rx_bytes        0xba000fa0
+W13  0x54   udpapp_mismatch        0x9c602275
+W70  0x138  mir_drop_bytes         0x2080d680
+SNAP_END TA_r10_post nff=0
+=== END TA_r10 1791826489.487409184
+=== WIN TA_r11 K=1073741824 NPROC=1 PER=1073741824 MBPS=0 CHUNK=33554432 SECS=4.5 T0=1791826489.488184500
+SNAP_BEGIN TA_r11_pre gen=431
+W5   0x34   gmii_free_FE           0x492cb6bc
+W10  0x48   udpapp_rx_frames       0x00a5e9d4
+W11  0x4C   udpapp_rx_bytes        0xba000fa0
+W13  0x54   udpapp_mismatch        0x9c602275
+W70  0x138  mir_drop_bytes         0x2080d680
+SNAP_END TA_r11_pre nff=0
+OFF_AUTO: W11=0xba000fa0 => OFF=3120566176
+run_multi.sh: line 42: 4.5: syntax error: invalid arithmetic operator (error token is ".5")
+READER_CPUS_ALLOWED= READER_CPU=
+TOOL_RC=1 TS=1791826490.026890415 TE=1791826498.364144133 TZ=1791826498.365169744
+--- mir_dump 日志 (逐字) ---
+cat: mir_TA_r11.log: No such file or directory
+--- 发端 UDP_SUM (逐进程) ---
+[p1] UDP_SUM pkts=729445 pay_bytes=1073741824 dur_s=3.500 pps=208383 pay_Mbps=2453.921 wire_Mbps=2523.938 off_start=3120566176 off_end=4194308000 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+--- PIN 见证 (逐进程) ---
+[p1] PIN_CPU=3 PIN_ALLOWED_MASK=8
+--- post 快照 ---
+SNAP_BEGIN TA_r11_post gen=432
+W5   0x34   gmii_free_FE           0x9bea0717
+W10  0x48   udpapp_rx_frames       0x00b10b39
+W11  0x4C   udpapp_rx_bytes        0xfa000fa0
+W13  0x54   udpapp_mismatch        0xdc20265a
+W70  0x138  mir_drop_bytes         0x6080d680
+SNAP_END TA_r11_post nff=0
+=== END TA_r11 1791826498.412035605
+ALL_DONE 1791826498.412889979

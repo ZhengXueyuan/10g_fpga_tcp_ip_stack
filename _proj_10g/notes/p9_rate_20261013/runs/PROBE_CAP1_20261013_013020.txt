@@ -1,0 +1,31 @@
+=== WIN CAP1_r01 K=1073741824 NPROC=4 PER=134217728 MBPS=0 CHUNK=8388608 SECS=3 T0=1791826223.312330657
+SNAP_BEGIN CAP1_r01_pre gen=44
+W5   0x34   gmii_free_FE           0x9a346dc6
+W11  0x4C   udpapp_rx_bytes        0x1a000fa0
+W13  0x54   udpapp_mismatch        0x00000000
+W70  0x138  mir_drop_bytes         0x0080ef20
+SNAP_END CAP1_r01_pre nff=0
+OFF_AUTO: W11=0x1a000fa0 => OFF=436211616
+READER_CPUS_ALLOWED= READER_CPU=
+TOOL_RC=2 TS=1791826224.348918076 TE=1791826226.081149820 TZ=1791826226.081992600
+--- mir_dump 日志 (逐字) ---
+FATAL: --stream 参数不合规: --bytes 1073741824 > PC 缓冲 134217728 B (--buf-mb 要够大)
+--- 发端 UDP_SUM (逐进程) ---
+[p1] UDP_SUM pkts=91181 pay_bytes=134217728 dur_s=1.717 pps=53096 pay_Mbps=625.255 wire_Mbps=643.096 off_start=0 off_end=134217728 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+[p2] UDP_SUM pkts=91181 pay_bytes=134217728 dur_s=1.614 pps=56483 pay_Mbps=665.143 wire_Mbps=684.121 off_start=0 off_end=134217728 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+[p3] UDP_SUM pkts=91181 pay_bytes=134217728 dur_s=1.720 pps=53024 pay_Mbps=624.409 wire_Mbps=642.225 off_start=0 off_end=134217728 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+[p4] UDP_SUM pkts=91181 pay_bytes=134217728 dur_s=1.726 pps=52815 pay_Mbps=621.949 wire_Mbps=639.695 off_start=0 off_end=134217728 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+--- PIN 见证 (逐进程) ---
+[p1] PIN_CPU=2 PIN_ALLOWED_MASK=4
+[p2] PIN_CPU=2 PIN_ALLOWED_MASK=4
+[p3] PIN_CPU=2 PIN_ALLOWED_MASK=4
+[p4] PIN_CPU=2 PIN_ALLOWED_MASK=4
+--- post 快照 ---
+SNAP_BEGIN CAP1_r01_post gen=45
+W5   0x34   gmii_free_FE           0xb42f57f0
+W11  0x4C   udpapp_rx_bytes        0x3a000fa0
+W13  0x54   udpapp_mismatch        0x1fe00059
+W70  0x138  mir_drop_bytes         0x2080e6f0
+SNAP_END CAP1_r01_post nff=0
+=== END CAP1_r01 1791826226.129554231
+ALL_DONE 1791826226.130446842

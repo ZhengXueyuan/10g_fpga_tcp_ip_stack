@@ -1,0 +1,92 @@
+=== WIN CAP2_r01 K=1073741824 NPROC=4 PER=536870912 MBPS=0 CHUNK=8388608 SECS=3 T0=1791826314.728227555
+SNAP_BEGIN CAP2_r01_pre gen=46
+W5   0x34   gmii_free_FE           0xed952a2c
+W11  0x4C   udpapp_rx_bytes        0x3a000fa0
+W13  0x54   udpapp_mismatch        0x1fe00059
+W70  0x138  mir_drop_bytes         0x2080e6f0
+SNAP_END CAP2_r01_pre nff=0
+OFF_AUTO: W11=0x3a000fa0 => OFF=973082528
+READER_CPUS_ALLOWED=Cpus_allowed_list:0-7 READER_CPU=1
+TOOL_RC=1 TS=1791826315.764218929 TE=1791826317.988201782 TZ=1791826317.989013167
+--- mir_dump 日志 (逐字) ---
+MIR_ID magic=50360001 (exp 50360001) bid=00000023 (exp 00000023)
+MIR_SRC src_sel=0 readback=0
+MIR_STATUS ver=4 src_sel=0 cap=0 any_drop=1 unf=0 level=511
+MIR_VER ver=4 path=stream expect=4 unimpl=0x14C
+MIR_UNIMPL addr=14c val=ffffffff (exp ffffffff)
+MIR_STREAM_BUF bytes=1073741824 mb=1024 prefault=1 aligned=4096
+MIR_STREAM_CFG dev=/dev/xdma0_c2h_0 bytes=1073741824 chunk=8388608 resid_max_shaper=32 resid_max_mirror=24 k_bytes=0 settle=0.30 sample_ms=25.0 arm=1 src=0
+MIR_STREAM_ALIGN want_mod_64=0 chunk_mod_64=0 (PG195: 描述符长度须 64 B 倍数)
+MIR_STREAM_WATCHDOG secs=3.0 (0=off; SIGALRM 打断阻塞 read)
+MIR_STREAM_DONE pc=1073741824 reads=128 partial=0 nonmul64=0 short=0 ended_early=0 read_error=0 secs=2.055 rate_Bps=522598094
+MIR_STREAM_ACCT pc=1073741824 taken_bytes=1073741856 dW70=343082768 w70a=545318640 w70b=888401408 words0=0 words1=268435464 dwords=268435464 K=1073741824
+MIR_STREAM_QUIESCE level_end=511 quiesced=0 premise_level0=0 waited_ms=300.3 settle_s=0.30 strict=0 (前提: FIFO 尾部已排空; 打包器残留由 FPGA 侧停流 flush 清)
+MIR_STREAM_IDA 式A(成形器) taken_bytes - pc == shaper_resid -> 32  band=[0,32] closed_a=1
+MIR_STREAM_IDB 式B(镜像/K) K - taken_bytes - dW70 == mirror_resid -> -343082800  band=[0,24] closed_b=0 (K 来源=--bytes; --resid-max 旧名未用)
+MIR_STREAM_WRAP words0=0 words1=268435464 wrap_seen=0 dword_max_step=6291456 (回卷余量: 单步 <2^32)
+MIR_STREAM_SAMPLE i=0 t=0.000 pc=0 drop=545318640 words=0 dword_acc=0
+MIR_STREAM_SAMPLE i=1 t=0.657 pc=8388608 drop=545453752 words=2097160 dword_acc=2097160
+MIR_STREAM_SAMPLE i=2 t=0.690 pc=33554432 drop=546415416 words=8388616 dword_acc=8388616
+MIR_STREAM_SAMPLE i=3 t=0.716 pc=58720256 drop=547425152 words=14680072 dword_acc=14680072
+MIR_STREAM_SAMPLE i=4 t=0.742 pc=83886080 drop=548447248 words=20971528 dword_acc=20971528
+MIR_STREAM_SAMPLE i=5 t=0.768 pc=109051904 drop=549498856 words=27262984 dword_acc=27262984
+MIR_STREAM_SAMPLE i=6 t=0.794 pc=134217728 drop=550482160 words=33554440 dword_acc=33554440
+MIR_STREAM_SAMPLE i=7 t=0.820 pc=159383552 drop=551409336 words=39845896 dword_acc=39845896
+MIR_STREAM_SAMPLE i=8 t=0.845 pc=184549376 drop=552287080 words=46137352 dword_acc=46137352
+MIR_STREAM_SAMPLE i=9 t=0.871 pc=209715200 drop=553351728 words=52428808 dword_acc=52428808
+MIR_STREAM_SAMPLE i=10 t=0.897 pc=234881024 drop=554447096 words=58720264 dword_acc=58720264
+MIR_STREAM_SAMPLE i=11 t=0.923 pc=260046848 drop=555257528 words=65011720 dword_acc=65011720
+MIR_STREAM_SAMPLE i=12 t=0.948 pc=285212672 drop=556141552 words=71303176 dword_acc=71303176
+MIR_STREAM_SAMPLE i=13 t=0.974 pc=310378496 drop=557028384 words=77594632 dword_acc=77594632
+MIR_STREAM_SAMPLE i=14 t=1.000 pc=335544320 drop=557908432 words=83886088 dword_acc=83886088
+MIR_STREAM_SAMPLE i=15 t=1.026 pc=360710144 drop=558840936 words=90177544 dword_acc=90177544
+MIR_STREAM_SAMPLE i=16 t=1.051 pc=385875968 drop=559660632 words=96469000 dword_acc=96469000
+MIR_STREAM_SAMPLE i=17 t=1.077 pc=411041792 drop=560508632 words=102760456 dword_acc=102760456
+MIR_STREAM_SAMPLE i=18 t=1.103 pc=436207616 drop=561417208 words=109051912 dword_acc=109051912
+MIR_STREAM_SAMPLE i=19 t=1.129 pc=461373440 drop=562345488 words=115343368 dword_acc=115343368
+MIR_STREAM_SAMPLE i=20 t=1.154 pc=486539264 drop=563191760 words=121634824 dword_acc=121634824
+MIR_STREAM_SAMPLE i=21 t=1.180 pc=511705088 drop=564084688 words=127926280 dword_acc=127926280
+MIR_STREAM_SAMPLE i=22 t=1.206 pc=536870912 drop=564970640 words=134217736 dword_acc=134217736
+MIR_STREAM_SAMPLE i=23 t=1.232 pc=562036736 drop=565988744 words=140509192 dword_acc=140509192
+MIR_STREAM_SAMPLE i=24 t=1.257 pc=587202560 drop=566835952 words=146800648 dword_acc=146800648
+MIR_STREAM_SAMPLE i=25 t=1.283 pc=612368384 drop=567801736 words=153092104 dword_acc=153092104
+MIR_STREAM_SAMPLE i=26 t=1.309 pc=637534208 drop=568586680 words=159383560 dword_acc=159383560
+MIR_STREAM_SAMPLE i=27 t=1.335 pc=662700032 drop=569620984 words=165675016 dword_acc=165675016
+MIR_STREAM_SAMPLE i=28 t=1.361 pc=687865856 drop=570721624 words=171966472 dword_acc=171966472
+MIR_STREAM_SAMPLE i=29 t=1.386 pc=713031680 drop=571620688 words=178257928 dword_acc=178257928
+MIR_STREAM_SAMPLE i=30 t=1.412 pc=738197504 drop=572511928 words=184549384 dword_acc=184549384
+MIR_STREAM_SAMPLE i=31 t=1.438 pc=763363328 drop=573323136 words=190840840 dword_acc=190840840
+MIR_STREAM_SAMPLE i=32 t=1.463 pc=788529152 drop=574175736 words=197132296 dword_acc=197132296
+MIR_STREAM_SAMPLE i=33 t=1.489 pc=813694976 drop=575099704 words=203423752 dword_acc=203423752
+MIR_STREAM_SAMPLE i=34 t=1.515 pc=838860800 drop=575928064 words=209715208 dword_acc=209715208
+MIR_STREAM_SAMPLE i=35 t=1.541 pc=864026624 drop=576910528 words=216006664 dword_acc=216006664
+MIR_STREAM_SAMPLE i=36 t=1.566 pc=889192448 drop=577812504 words=222298120 dword_acc=222298120
+MIR_STREAM_SAMPLE i=37 t=1.592 pc=914358272 drop=578652904 words=228589576 dword_acc=228589576
+MIR_STREAM_SAMPLE i=38 t=1.618 pc=939524096 drop=579595120 words=234881032 dword_acc=234881032
+MIR_STREAM_SAMPLE i=39 t=1.643 pc=964689920 drop=580453832 words=241172488 dword_acc=241172488
+MIR_STREAM_SAMPLE ... (共 45 点, 只逐点打到第 40 点)
+MIR_STREAM_SAMPLE i=43 t=1.746 pc=1065353216 drop=583760848 words=266338312 dword_acc=266338312
+MIR_STREAM_SAMPLE i=44 t=2.055 pc=1073741824 drop=888401408 words=268435464 dword_acc=268435464
+MIR_STREAM_GAP first=0 last=32 max=32 nondecreasing=1 host_miss_bytes=32 host_miss_pct=0.0000 (= (taken-pc)/taken; 宿主跟不上的比例)
+MIR_STREAM_NOTE 采样本身在流上=自造空档 (45 点); 首版板内不加缓冲 ⇒ 宿主空档直接变丢字节
+FAIL: 式 B (镜像/K 侧) 不成立: K(1073741824) - taken_bytes(1073741856) - dW70(343082768) = -343082800 ∉ [0,24] (镜像残余越界 / K 口径不对 —— 若抓的是源流前缀请用 --k-bytes 声明源交付量)
+MIR_STREAM_QUIESCE_OVERRIDE strict=0 level_end=511 (显式放行: 前提未见证, 账本按"不可判"读)
+--- 发端 UDP_SUM (逐进程) ---
+[p1] UDP_SUM pkts=364723 pay_bytes=536870912 dur_s=2.214 pps=164737 pay_Mbps=1939.941 wire_Mbps=1995.293 off_start=0 off_end=536870912 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+[p2] UDP_SUM pkts=364723 pay_bytes=536870912 dur_s=2.214 pps=164760 pay_Mbps=1940.206 wire_Mbps=1995.565 off_start=0 off_end=536870912 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+[p3] UDP_SUM pkts=364723 pay_bytes=536870912 dur_s=1.974 pps=184808 pay_Mbps=2176.296 wire_Mbps=2238.392 off_start=0 off_end=536870912 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+[p4] UDP_SUM pkts=364723 pay_bytes=536870912 dur_s=1.974 pps=184783 pay_Mbps=2176.001 wire_Mbps=2238.088 off_start=0 off_end=536870912 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+--- PIN 见证 (逐进程) ---
+[p1] PIN_CPU=2 PIN_ALLOWED_MASK=4
+[p2] PIN_CPU=3 PIN_ALLOWED_MASK=8
+[p3] PIN_CPU=6 PIN_ALLOWED_MASK=40
+[p4] PIN_CPU=7 PIN_ALLOWED_MASK=80
+--- post 快照 ---
+SNAP_BEGIN CAP2_r01_post gen=241
+W5   0x34   gmii_free_FE           0x0c21cd96
+W11  0x4C   udpapp_rx_bytes        0xba000fa0
+W13  0x54   udpapp_mismatch        0x9f60132b
+W70  0x138  mir_drop_bytes         0x6080deb8
+SNAP_END CAP2_r01_post nff=0
+=== END CAP2_r01 1791826318.054984742
+ALL_DONE 1791826318.055871378
