@@ -37,7 +37,7 @@
 | `board/` | 顶层/约束/构建/板级报告 | 34 | 24 + 2 目录 |
 | `sim/`+`tools/` | P6b 门、工具、**P4 矩阵硬化工具链** | 155 | ~250 |
 | `p5e_verify/` `p5f_verify/` `p6_verify/` `hls/` | **纯路径硬化** | 19 | 0 |
-| 文档 | `P6B_*.md` `P6E_OBS.md` `PORT_NOTES.md` `README.md` `.gitignore` | 5 | 6 |
+| 文档 | `P6B_*.md` `agent_docs/P6E_OBS.md` `agent_docs/PORT_NOTES.md` `README.md` `.gitignore` | 5 | 6 |
 | 三个 scratch 目录 | 审查/审计/集成 agent 的原始证据 | 0 | ~150（文本） |
 
 **关键区分**（这是本方案的分层依据）：
@@ -64,7 +64,7 @@
 | **C5** | `sim/p4gates/` | **P4 矩阵的路径硬化工具链**（`p4env.bat`/`p4gate.py`/`paths.txt`/runner + evidence 全部原始读数） | 1 目录 |
 | **C6** | 硬化批（**169 个已跟踪文件**） | **把 243 个"真空门"改成自定位 + 装守卫/绊线**（`board/` `sim/` `tools/` `hls/` `p5*_verify/` `p6_verify/`） | 169 文件 |
 | **C7** | 证据归档批 | `board/p6b_verify/` + `p6b_accept_final/` + 三个 scratch 目录的文本证据 + `sim/p4sim` 指纹 | 3 目录 + 3 目录 + 文件 |
-| **C8** | 文档批 | `P6B_SUMMARY.md`（新）+ `P6B_SPEC/ACCEPT/CDC_AUDIT/REVIEW/INTEGRATION_REVIEW.md` + `P6E_OBS.md` + `PORT_NOTES.md` + `README.md` | 11 文件 |
+| **C8** | 文档批 | `agent_docs/P6B_SUMMARY.md`（新）+ `agent_docs/P6B_SPEC/ACCEPT/CDC_AUDIT/REVIEW/INTEGRATION_REVIEW.md` + `agent_docs/P6E_OBS.md` + `agent_docs/PORT_NOTES.md` + `README.md` | 11 文件 |
 
 **为什么 C6 单独一条**：它是**一次机械的、全仓范围的**改动（同一个守卫模式应用 169 次），
 与任何功能改动无关。把它与 C1–C5 混在一起会**掩盖真正被改的行为**（评审时看不出"哪些 diff 是逻辑、
@@ -101,11 +101,11 @@ gitignore: 仿真/构建产物的通用排除规则 (xsim.dir / *.wdb / *.pcap /
 门驱动**不受影响**。实测确认: 0 个已跟踪文件命中本段任何一条规则, 也没有 git rm 任何东西。
 
 **放行** (同一条提交里): 全局 `*.log` 原本会把**归档级**的原始日志也挡在库外, 现窄口径放行三个目录:
-- p6b_accept_final/*.log (+*.err) —— P6b 板级验收的原始 stdout, P6B_ACCEPT.md §7.1 逐条登记了
+- p6b_accept_final/*.log (+*.err) —— P6b 板级验收的原始 stdout, agent_docs/P6B_ACCEPT.md §7.1 逐条登记了
   sha256 (cb474fbe…/cb3f13dc…);
 - board/p6b_verify/*.log —— P6b 四道门的 PASS 读数;
 - _proj_pcie/smoke_scratch/*.log —— 冒烟轮读数 (p6b_smoke_account.log 的 W0=270/W6=269 是
-  P6B_ACCEPT.md §4.1 唯一一条独立数据)。
+  agent_docs/P6B_ACCEPT.md §4.1 唯一一条独立数据)。
 合计 < 80 KB。**sim/*/*.log 那一大批仍按产物排除** (读数已提练进同目录的 *.txt 判据文件)。
 实测: 三个目录的 *.log/*.err 已可见; 同目录的 *.bit/*.pcap 仍被忽略 (位流/抓包按既定策略不入库)。
 
@@ -159,7 +159,7 @@ P6b: 数据面搬 156.25MHz (新 clk_gen_p6b/fifo_async/snap_seq) + 四个数据
 - rtl/snap_seq.v     : 链式触发 (FE 先 -> DP 后)。若让主机那一个写脉冲同时打两个 snap_cdc,
                        两次锁存的先后由两个域的相位随机决定 => 跨域判据全部退化成对称容差,
                        失去方向性; 定序后 W6-W0 与 W30-W0 这类判据是**结构性**成立的。
-                       偏斜上界 ~43.2ns (规格书原写的 59.2ns 是两个错误相互抵消, 见 P6B_REVIEW S2)。
+                       偏斜上界 ~43.2ns (规格书原写的 59.2ns 是两个错误相互抵消, 见 agent_docs/P6B_REVIEW S2)。
 
 四个缺陷 (两个**早于 P6b 就存在**, 由本轮审计/审查发现):
 - F4(a) mac_rx_64 丢帧时若已 push 过字 => 流里留"孤儿字"(有 popc、无 TLAST):
@@ -179,20 +179,20 @@ P6b: 数据面搬 156.25MHz (新 clk_gen_p6b/fifo_async/snap_seq) + 四个数据
 - tools/gen_stim_tx.py : abort 模式的参考模型原先把 F-2 缺陷写进了期望 ("残余 2 词开新帧")
                          => 修复后 abort 门反而变红。已按 S_FLUSH 同形更新 (main 模式逐字节不变)。
 - tools/parse_mac_rx.py: 原先把任何不在期望集里的帧判成"外来帧" => TERM 帧一发出就会假 FAIL
-                         (P6B_REVIEW R.5 标为"尚未引爆的地雷")。已按末字 tkeep==0 把 TERM 帧
+                         (agent_docs/P6B_REVIEW R.5 标为"尚未引爆的地雷")。已按末字 tkeep==0 把 TERM 帧
                          归入 partials, **计数约束不放松**。
 
 判据归属 (证据):
 - F4   : W32/W33/W34/W35 (新计数器) + 结构式 W30==W0+W32 / W31==W1-4*W0+W33。见 sim/f4sim/、sim/f4chain/、
-         P6B_REVIEW.md §3.4 与附录 R (含"撤回修复即 FAIL"的负对照)。
-- F4-2 : P6B_REVIEW.md R.4 的 A/B (同一激励: 修复前 frames=1 drop=2 -> 修复后 frames=2 drop=1)。
+         agent_docs/P6B_REVIEW.md §3.4 与附录 R (含"撤回修复即 FAIL"的负对照)。
+- F4-2 : agent_docs/P6B_REVIEW.md R.4 的 A/B (同一激励: 修复前 frames=1 drop=2 -> 修复后 frames=2 drop=1)。
 - F-2  : audit_scratch/t3_txcdc/ —— 幽灵帧 0; 撤回修复 => FAIL; 无中止路径指纹逐位不变
          (33f82978 修前/修后相同 + flush 计数器为 0 = 冲刷从未运行的正证据)。
 - F-1  : sim/fifoasync/ 12 门 + 7 变异; 关键负对照 run_mut_noovf.bat (撤回探针) 实测 FAIL(3 条)。
 
 未修 (如实记录): F-3 (MMCM 失锁重锁时 FIFO 指针保留而 DP 功能逻辑重启 => 交付"帧中截断但
 tcrs=1"的片段)。三种接线实测都无解 (只复位读侧更糟: 把已消费的整帧重新投递);
-根因 = DP 侧没有"以 SOP 为界"的重启重同步。收口方向见 P6B_CDC_AUDIT.md §A.3, 建议单列任务。
+根因 = DP 侧没有"以 SOP 为界"的重启重同步。收口方向见 agent_docs/P6B_CDC_AUDIT.md §A.3, 建议单列任务。
 ```
 
 ### C2 — `_proj_pcie/`：观测通道 36 字 + 验收/冒烟
@@ -226,11 +226,11 @@ P6e/P6b 观测通道: 快照窗口 24 -> 36 字 (BUILD_ID=6) + 读数脚本跟�
 
 - _proj_pcie/rtl/axi_regs.v: 36 字需要**同时**加宽 snap_idx (5->6) 与 snap_base (10->11)
   —— 只加宽一处会让 0xA0..0xAC 静默回绕读回 W0..W3 = **假 PASS 而不是 FAIL**
-  (P6B_REVIEW.md 附录 R.5 预先算出了这条硬顶; 审查方另写了独立门 int_scratch/tb_int_axr36.v
+  (agent_docs/P6B_REVIEW.md 附录 R.5 预先算出了这条硬顶; 审查方另写了独立门 int_scratch/tb_int_axr36.v
    + 两条回绕负对照, 都实测 FAIL)。
 - 新增字: W26..W31 (两个异步 FIFO 的满拍/占用峰值/DP 等线/RX 侧读帧与读字节) 与
   W32..W35 (F4 的四个丢帧守恒计数器, 全部属 FE 束)。域归属与生产者节点逐字核对见
-  P6B_INTEGRATION_REVIEW.md §1.3; 现役寄存器表 = P6E_OBS.md §一。
+  agent_docs/P6B_INTEGRATION_REVIEW.md §1.3; 现役寄存器表 = agent_docs/P6E_OBS.md §一。
 - 未实现地址 0x84 -> **0xB0** (word 44); BUILD_ID 期望 4 -> **6**;
   W17 的口径 ÷64 -> **÷80** (P6b 把 slow_rx_adp.RST_CNT 由 64 改 80, 同一墙钟 512ns)。
 - 读数脚本加了四层守卫 (空读 != 真 0 / 0xffffffff 视为未实现 / **gen 恰好 +1 自证** / round() 三合一)。
@@ -278,14 +278,14 @@ board: P6b 顶层双域搬迁 + 两个新 XDC + build_p6b 构建档 (含冻结�
   两个新的异步边界 u_rxcdc/u_txcdc (fifo_async 76/256/FWFT=1 与 73/256/FWFT=1);
   快照拆成两束 (SNAP_FE_NW=14 / SNAP_DP_NW=22 / SNAP_NW_P6E=36) 交给 snap_seq 链式触发;
   8 处时间常数按同一墙钟重算 (RST_CNT 64->80、RTO_LIM、FIN_TO_LIM、GAP_TICKS、ACT_TMR_INIT、
-  WDOG、BIT_LAST、UART_SW...), 逐条独立复算见 P6B_INTEGRATION_REVIEW.md §2 (误差 0 的 11 条,
+  WDOG、BIT_LAST、UART_SW...), 逐条独立复算见 agent_docs/P6B_INTEGRATION_REVIEW.md §2 (误差 0 的 11 条,
   两条是 x1.25 除不尽的取整, 量级 1e-6)。
   ⚠️ 双域与全部新硬件都包在 `ifdef PCIE_OBS` 内 —— 这让 PCIE_OBS 变成"数据面跑 156.25MHz"的
-  守卫 (语义复用, 已知设计债, P6B_REVIEW F1); 默认构建 (K7 各档) 的端口表与逻辑逐位不变。
+  守卫 (语义复用, 已知设计债, agent_docs/P6B_REVIEW F1); 默认构建 (K7 各档) 的端口表与逻辑逐位不变。
   ⚠️ 例外: 同批并入的 F4 修复改了 rtl/mac_rx_64.v 的 82 行**不在任何 ifdef 内**的代码
   ⇒ "默认构建逐位不变"**作为一句话是不成立的**, 见 G4。
 
-- board/ku5p_p6b_sysclk.xdc : Y1 100MHz 输入 (原理图实测出图, 见 P6B_SPEC §8.2)。
+- board/ku5p_p6b_sysclk.xdc : Y1 100MHz 输入 (原理图实测出图, 见 agent_docs/P6B_SPEC §8.2)。
 - board/ku5p_p6b_cdc.xdc    : set_clock_groups -asynchronous (三个域物理源互不相同)。
   ⚠️ 必须 used_in_synthesis=false: 综合前 create_clock 还没生效、XDMA/MMCM 还是黑盒 =>
   get_clocks 拿到空对象 => Vivado 报 12-4739 并**静默丢弃**该约束 (本工程实测踩过)。
@@ -297,7 +297,7 @@ board: P6b 顶层双域搬迁 + 两个新 XDC + build_p6b 构建档 (含冻结�
   符合期望 (含 5 个人造病理报告)。**没跑这组对照之前不许说"闸有区分能力"。**
 
 - board/ku5p_probe/clkgen_p6b/ 是 clk_wiz MMCM 预言机与引脚探针的原始读数 (含 cw_oracle.xci),
-  是 P6B_SPEC §8.2 (Y1 频率核实) 与 B1 (DIFF_POD12_DCI 可布性) 的证据, 不是仿真残渣。
+  是 agent_docs/P6B_SPEC §8.2 (Y1 频率核实) 与 B1 (DIFF_POD12_DCI 可布性) 的证据, 不是仿真残渣。
 ```
 
 ### C4 — `sim/`（P6b 门）+ `tools/`（F4 工具）
@@ -345,7 +345,7 @@ sim/tools: P6b 的门与工具 —— fifo_async / clk_gen_p6b / snap_seq / F4 �
                      => W17 恰好 +150; 含 tvalid-only / tready-only 负向)。
 - tools/gen_f4_*.py / f4_ab_check.py: F4 的激励生成与 A/B 判读 (判据的期望由它们生成)。
 
-⚠️ 已知的判据缺口 (如实记录, 见 P6B_REVIEW R.4): 修复方自己的 gen_f4_stim.py 帧尺寸最小 = 60
+⚠️ 已知的判据缺口 (如实记录, 见 agent_docs/P6B_REVIEW R.4): 修复方自己的 gen_f4_stim.py 帧尺寸最小 = 60
 => "净荷 8..15B + FIFO 无空位"那一支覆盖率 0 => F4-2 这个"修复引入的缺陷"原门永远测不到,
 是**独立复核**抓到的。**同一个 agent 既写门又写修复 = 判据缺口的结构性来源。**
 ```
@@ -454,13 +454,13 @@ git diff -- <file> | grep -E '^[+-]' | grep -vE '^[+-]{3}' \
 那里整体拷贝来 => 拷贝之后**照抄那些命令 = 编译另一个 checkout 的源码、日志写进另一个仓、
 然后 exit 0**（"empty gate"）。这不是假设: 提交 a31c86b 的"P4 矩阵 16 门全过"就是这么跑出来的
 （物证 = ECO 仓里那份 03:58-04:23 的 matrix 日志, 且其中 frame_fifo.v 比本仓还旧一版,
-真正需要回归的 4 个文件根本没进那次运行）—— 勘误详见 PORT_NOTES.md 的 P6b 收口 §⑥。
+真正需要回归的 4 个文件根本没进那次运行）—— 勘误详见 agent_docs/PORT_NOTES.md 的 P6b 收口 §⑥。
 
 修法 (本提交只含**路径相关**的机械改动, 不含任何行为改动):
 - 门 bat/sh: 开头统一 `call "%~dp0..\p4gates\p4env.bat"`（REPO_ROOT 从脚本自身位置推导）
   + checkpaths 预检 + selfcheck 绊线; 所有仓库内路径改从 REPO_ROOT/TOOLS/TB/RTL/... 展开;
 - 去掉 bat 里自己 `set PY=/set XV=/set HLS=<绝对路径>` 的写法（工具链位置集中在 paths.txt）;
-- 校验: 本批 169 个文件的 diff 逐条过了一遍"只与路径有关"的过滤 (见 P6B_COMMIT_PLAN §3 的判据),
+- 校验: 本批 169 个文件的 diff 逐条过了一遍"只与路径有关"的过滤 (见 agent_docs/P6B_COMMIT_PLAN §3 的判据),
   且 P4 矩阵的 16 门在硬化后**跑通**（含两个门单独重跑 RC=0 与一轮 FROZEN 修订绑定）。
 
 未修: 23 个（Python(手工) 类为主, 含 tools/capture_rate_test.ps1）—— 逐条清单与原因见
@@ -485,7 +485,7 @@ sim/p4sim/P4_MATRIX_FINGERPRINT_*.txt   # ⚠️ 等矩阵跑完
 sim/p4sim/matrix_p4dfix.log             # ⚠️ 等矩阵跑完
 ```
 > ⚠️ 三个 scratch 目录里的原始 **xsim 控制台日志 (`*.log`) 仍被排除**（读数已提练进同目录的
-> `*.txt` 判据文件）。若 TL 认为审计/审查的 `.log` 也该入库（`P6B_CDC_AUDIT.md` §8 的证据索引
+> `*.txt` 判据文件）。若 TL 认为审计/审查的 `.log` 也该入库（`agent_docs/P6B_CDC_AUDIT.md` §8 的证据索引
 > 指向 `t1_bits/case_*/xsim_*.log`），加一行 `!audit_scratch/**/*.log` 即可 ——
 > **这是刻意的窄口径选择，不是遗漏**（audit_scratch 的 `.log` 合计 1.8 MB，review 0.17 MB，int 0.3 MB）。
 **提交信息**：
@@ -496,7 +496,7 @@ sim/p4sim/matrix_p4dfix.log             # ⚠️ 等矩阵跑完
 xsim.dir）不入库。这次归档三类:
 
 1 board/p6b_verify/ + p6b_accept_final/
-  板级验收的原始日志与脚本（位流**不入库** —— 项目既定策略不跟踪位流, sha256 记在 P6B_ACCEPT.md §1.1）。
+  板级验收的原始日志与脚本（位流**不入库** —— 项目既定策略不跟踪位流, sha256 记在 agent_docs/P6B_ACCEPT.md §1.1）。
   注意: 冒烟轮烧的是**过期位流** 03f9c6d0…fe5a0d（不含 F-1/F-2）, 引用它的数字必须注明这一点。
 
 2 audit_scratch/ review_scratch/ int_scratch/
@@ -514,39 +514,39 @@ xsim.dir）不入库。这次归档三类:
 
 **清单**：
 ```
-P6B_SUMMARY.md          （新, 一页式总览: 目标/改了什么/关键数字/证据地图/已知限制）
-P6B_SPEC.md             （+§0.4 勘误: §7.2 索引表错误、36 字最终映射、as-built 偏离; 错误处加行内标注）
-P6B_ACCEPT.md           （新, 板级验收原件）
-P6B_CDC_AUDIT.md        （新, 跨域审计 + F-1/F-2/F-3 + F-2 修复记录 + gen_stim_tx 同步）
-P6B_REVIEW.md           （新, 对抗审查 F1-F13 + 附录 R）
-P6B_INTEGRATION_REVIEW.md（新, 36 字逐字验证 + 空门核实）
-P6E_OBS.md              （36 字寄存器表 + 判据变更 + P6b 板级读数; 现役表）
-PORT_NOTES.md           （+2026-09-29 P6b 收口里程碑日志 + 三条教训）
+agent_docs/P6B_SUMMARY.md          （新, 一页式总览: 目标/改了什么/关键数字/证据地图/已知限制）
+agent_docs/P6B_SPEC.md             （+§0.4 勘误: §7.2 索引表错误、36 字最终映射、as-built 偏离; 错误处加行内标注）
+agent_docs/P6B_ACCEPT.md           （新, 板级验收原件）
+agent_docs/P6B_CDC_AUDIT.md        （新, 跨域审计 + F-1/F-2/F-3 + F-2 修复记录 + gen_stim_tx 同步）
+agent_docs/P6B_REVIEW.md           （新, 对抗审查 F1-F13 + 附录 R）
+agent_docs/P6B_INTEGRATION_REVIEW.md（新, 36 字逐字验证 + 空门核实）
+agent_docs/P6E_OBS.md              （36 字寄存器表 + 判据变更 + P6b 板级读数; 现役表）
+agent_docs/PORT_NOTES.md           （+2026-09-29 P6b 收口里程碑日志 + 三条教训）
 README.md               （P6b 状态块 + 验证节的"空门"警示 + u_dbg_line 注）
 ```
 **提交信息**：
 ```
 docs: P6b 归档 —— 一页式总览 + 规格勘误 + 验收原件 + 36 字寄存器表 + 里程碑日志
 
-- P6B_SUMMARY.md (新): 一页式总览。**未来的 session 从这里接手** (5 分钟):
+- agent_docs/P6B_SUMMARY.md (新): 一页式总览。**未来的 session 从这里接手** (5 分钟):
   目标 / 改了什么(按文件层) / 关键数字(每条附出处) / 证据地图(哪个结论在哪个文件) /
   已知限制与未覆盖 / 三条操作纪律 / 板子当前状态。
-- P6B_SPEC.md: 加 §0.4 勘误 (正文不改, 保留"当时的判断"), 说明
+- agent_docs/P6B_SPEC.md: 加 §0.4 勘误 (正文不改, 保留"当时的判断"), 说明
   ① §7.2 的 FE_IDX/DP_IDX 与它自己的 32 行对照表矛盾 (FE_IDX 把 fe[8]/fe[9] 写在下标 24/25,
      DP_IDX 在 W26..W31 整体错位两个槽) —— **以对照表为准**, 并给出**最终采用的 36 字表 + 两张索引表**
      (来源: 集成 agent 从 wrapper 拼接逐项读出 + 审查方独立写死 36 行映射表复核 + 落地代码的单来源 function);
   ② 同批的其它 as-built 偏离 (32->36 字 / BUILD_ID 5->6 / 未实现地址 0xA0->0xB0 / W28 用 dbg_occ_w /
      WIDTH 77 vs 76 / ÷80 清单漏 5 处 / W19 不再恒 0);
   在 §7.2/§7.4/§7.5 的错误处加指向 §0.4 的行内标注。
-- P6E_OBS.md: 快照表 16->**36 字**(地址+域归属+生产者节点) + BUILD_ID=6 + 未实现地址 0xB0 +
+- agent_docs/P6E_OBS.md: 快照表 16->**36 字**(地址+域归属+生产者节点) + BUILD_ID=6 + 未实现地址 0xB0 +
   **判据变更**一节 (W20-W7 且 W21==0 / W0-W6 方向校正 / W17÷80 / W19 与 MAC 丢帧有向耦合 /
   结构式守恒 W30==W0+W32 与 W31==W1-4*W0+W33) + 扩窗清单(7 处) + F-1 的板级缺口如实记录。
-- PORT_NOTES.md: 追加 P6b 收口里程碑 —— 验收读数 / 四个修复的一句话根因+修法+判据归属 /
+- agent_docs/PORT_NOTES.md: 追加 P6b 收口里程碑 —— 验收读数 / 四个修复的一句话根因+修法+判据归属 /
   **F-3 已知限制(三种接线实测都无解)** / **"空门"元问题(364 文件、243 真空门、340 已修、23 未修、
   守卫三层+负对照)** / 提交 a31c86b 的**勘误** / 冒烟轮取自过期位流的注明 /
   u_dbg_line 的 48 位无同步穿越 / 三条教训("跑门!=判门"、"并发 agent 文件所有权必须互斥"、
   "批量装守卫前必须先跑负对照")。
-- README.md: 加 P6b 状态块指向 P6B_SUMMARY/P6B_ACCEPT; **在"验证"一节顶部加"空门"警示**
+- README.md: 加 P6b 状态块指向 agent_docs/P6B_SUMMARY/P6B_ACCEPT; **在"验证"一节顶部加"空门"警示**
   (那一节里的 D:\repo\ECO\... 命令是空门形态, 并给出自定位的现役跑法);
   给 uart 诊断行的 48 位无同步穿越加注 (本板无 UART => 不可观测)。
 ```
@@ -589,9 +589,9 @@ comm -23 /tmp/mod.txt /tmp/inv.txt        # 51 个: 被改动但不在硬化清�
 |---|---|---|
 | `_tmp_*.py`（11 个：`_tmp_path_fix.py` / `_tmp_tripwire.py` / `_tmp_inventory.py` / `_tmp_p4_sweep*.py` / `_tmp_p4_bats_finalize.py` / `_tmp_fix_trailing_bs.py` / `_tmp_pgtest.py` / `_tmp_gate_md5.py` / `_tmp_p4_gates_harden.py` / `_tmp_p4_negctl.py`） | **不提交**（留盘） | `_tmp_` 前缀 = 一次性脚本；其中多数**含未修的 ECO 路径**（属"23 未修"）⇒ 入库会把"含 ECO 路径"固化进历史。**但** `_tmp_p4_gates_harden.py` / `_tmp_p4_negctl.py` / `_tmp_tripwire.py` 是硬化过程的生成器 ⇒ **若 TL 想让它可复现，建议改名移到 `sim/p4gates/tools/` 再入库**（去掉 `_tmp_` 前缀、顺手修那几行 ECO 路径）；**该移动超出本次授权，我没有做。** |
 | `sim/p4sim/run_tb_*_xk.bat`（4 个）· `sim/vlansim/run_tb_vlan_strip_xk.bat` | **建议提交**（放 C4） | 它们是镜像期的**更早一版绕道**（把 ECO 路径换成**本仓硬编码**路径），现在已被自定位原件取代 ⇒ 功能上冗余。**但** `sim/p4gates/paths.txt` 的 `FINGERPRINT_GLOBS` 里有 `sim\p4sim\run_tb_*.bat` ⇒ 它们**已被纳入每次矩阵指纹的哈希**；不提交 ⇒ 别人 checkout 后复现不出那个 `DIGEST_ALL`。**这条我拿不准**，所以：要么提交（保守），要么**先**改 `FINGERPRINT_GLOBS` 再删（需要再跑一轮矩阵作废指纹）⇒ **建议留给 TL 决定**。 |
-| `board/ku5p_probe/clkgen_p6b/prj_clkwiz/{cw.cache,cw.gen,cw.hw}/` | **提交**（跟随 C3 的目录 add） | 它是 clk_wiz 预言机的生成物（`cw_oracle.v/xci`），是 `P6B_SPEC §8.2` 的证据；**我没有给它加忽略规则**，理由是"预言机的生成物 = 证据"。若 TL 认为它属于产物，加 `*_prj/` 一类的规则即可（**改 `.gitignore` 即可，不要 `git rm`**）。 |
+| `board/ku5p_probe/clkgen_p6b/prj_clkwiz/{cw.cache,cw.gen,cw.hw}/` | **提交**（跟随 C3 的目录 add） | 它是 clk_wiz 预言机的生成物（`cw_oracle.v/xci`），是 `agent_docs/P6B_SPEC §8.2` 的证据；**我没有给它加忽略规则**，理由是"预言机的生成物 = 证据"。若 TL 认为它属于产物，加 `*_prj/` 一类的规则即可（**改 `.gitignore` 即可，不要 `git rm`**）。 |
 | `board/ku5p_probe/clkgen_p6b/*.png` | 提交 | 是 ds922 手册页的裁剪图（MMCM VCO 合法性证据）；体积小。 |
-| `.wdb` / `xsim.dir/` / `*.memh`(scratch) / `*.bit` / `*.pcap` | **不提交**（已被 `.gitignore` 拦住） | 产物；位流与抓包的 sha256 已记在 `P6B_ACCEPT.md` §1.1/§7.1。 |
+| `.wdb` / `xsim.dir/` / `*.memh`(scratch) / `*.bit` / `*.pcap` | **不提交**（已被 `.gitignore` 拦住） | 产物；位流与抓包的 sha256 已记在 `agent_docs/P6B_ACCEPT.md` §1.1/§7.1。 |
 | `sim/p4gates/work_*/` | 不提交 | 每次运行的仿真工作目录（已被忽略）。 |
 
 ### 4.3 一条**顺序**约束（不满足会毁掉证据）

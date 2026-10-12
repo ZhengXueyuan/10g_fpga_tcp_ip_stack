@@ -3,15 +3,15 @@
 > **施工规格书**。读者 = 施工 agent。所有结论都带 `file:line` 证据；不带证据的判断一律标
 > 「**未定**」并进 §B 附录。
 >
-> 本文件与 `P6E_OBS.md` 同级、互补: P6E_OBS 讲**观测通道怎么用**, 本文讲**这次搬域怎么改**。
+> 本文件与 `agent_docs/P6E_OBS.md` 同级、互补: agent_docs/P6E_OBS 讲**观测通道怎么用**, 本文讲**这次搬域怎么改**。
 >
 > 派单书里的四条施工纪律本文全程遵守: ① 空读数 ≠ 真 0; ② lint 看不见的位宽截断;
 > ③ `force` 必须打生产者节点; ④ 结论必须能被别人独立复核(给 file:line / 给命令 / 给原始读数)。
 >
-> ⚠️ **2026-09-29 收尾归档**：P6b 已通过板级正式验收（`P6B_ACCEPT.md`，35 条判据全 PASS）。
+> ⚠️ **2026-09-29 收尾归档**：P6b 已通过板级正式验收（`agent_docs/P6B_ACCEPT.md`，35 条判据全 PASS）。
 > 本文是**施工规格（当时的判断）**，与最终落地实现的**全部不一致处**已集中列在 **§0.4 勘误**
 > （含 §7.2 索引表的错误、36 字映射的最终版、`BUILD_ID`/未实现地址/字数的 as-built 偏离）。
-> **读本文做任何重实现之前，先读 §0.4。** 总览见 `P6B_SUMMARY.md`。
+> **读本文做任何重实现之前，先读 §0.4。** 总览见 `agent_docs/P6B_SUMMARY.md`。
 
 ---
 
@@ -76,14 +76,14 @@
 
 ## 0.4 ⚠️ 勘误（**2026-09-29 收尾归档时补**；**本节优先于正文**）
 
-> 归档时点：P6b **已通过板级正式验收**（`P6B_ACCEPT.md`，35 条判据全 PASS）。
+> 归档时点：P6b **已通过板级正式验收**（`agent_docs/P6B_ACCEPT.md`，35 条判据全 PASS）。
 > 本节只记录"**规格书原稿与最终落地实现不一致**"的地方，**正文不改**（保留原稿作为"当时的判断"），
 > 只在出错处加指向本节的标注。所有"最终"取值都能追到 `file:line` 或板级读数。
 
 ### 0.4.1 §7.2 的两张索引表 `FE_IDX` / `DP_IDX` **与它自己那张 32 行对照表矛盾**（已按对照表纠正）
 
 - **症状**（两个独立来源都指出过）：
-  - 对抗审查 `P6B_REVIEW.md` **F5**：「`FE_IDX` 把 `fe[8]/fe[9]` 写在下标 24/25；`DP_IDX` 在
+  - 对抗审查 `agent_docs/P6B_REVIEW.md` **F5**：「`FE_IDX` 把 `fe[8]/fe[9]` 写在下标 24/25；`DP_IDX` 在
     W26..W31 上整体**错位两个槽**」；
   - 实际实现的代码注释 `rtl/snap_seq.v:49-51` 也留了同一句：**「以对照表为准」**。
 - **判据**：以 §7.2 自己那张**逐项对照表**（W ↔ 束 ↔ 槽）为准 —— 它是对的；
@@ -95,10 +95,10 @@
 
 **来源**：① 集成 agent 从 `board/wrapper_p4.v` 的两条拼接 `fe_src`/`dp_src`（`:2738-2773`）**逐项读出**的汇报；
 ② 审查方**独立**复核 —— 自己写 36 行映射表（**不复用** `snap_seq` 的 `fe_idx_of`/`dp_idx_of`，
-避免"抄错会跟 DUT 一起错"）+ 41 代快照的**顺序判据与偏斜符号**（`P6B_INTEGRATION_REVIEW.md` §1.3/§1.4）；
+避免"抄错会跟 DUT 一起错"）+ 41 代快照的**顺序判据与偏斜符号**（`agent_docs/P6B_INTEGRATION_REVIEW.md` §1.3/§1.4）；
 ③ 落地代码 `rtl/snap_seq.v:83-118`（**单一来源**：`assemble` 与 `ifndef SYNTHESIS` 自检都调它）。
 
-**(a) 36 字归属表**（`W → 束[槽]`；地址见 `P6E_OBS.md` §一）：
+**(a) 36 字归属表**（`W → 束[槽]`；地址见 `agent_docs/P6E_OBS.md` §一）：
 
 | 字 | 归属 | | 字 | 归属 | | 字 | 归属 |
 |---|---|---|---|---|---|---|---|
@@ -159,17 +159,17 @@ localparam integer DP_IDX [0:35] = '{ -1, -1, -1, -1, -1, -1,           // W0..W
 
 | 项 | 正文（原稿） | **最终落地** | 证据 |
 |---|---|---|---|
-| 快照字数 | 32（§7.1/§7.4） | **36**（同批并入 F4 的 W32..W35；**读侧 `snap_idx`/`snap_base` 必须一起加宽**，否则 `0xA0..` 静默回绕成 W0.. = **假 PASS**） | `board/wrapper_p4.v` 的 `SNAP_NW_P6E/SNAP_FE_NW/SNAP_DP_NW`；`P6B_REVIEW.md` 附录 R.5 预先算出了这条硬顶 |
-| `BUILD_ID_V` | `32'h00000005`（§7.5） | **`32'h00000006`**（板级实测 A2 = `0x00000006`） | `board/wrapper_p4.v:2883`；`P6B_ACCEPT.md` A2 |
-| 未实现地址 | `0xA0`（§7.4 ⑤） | **`0xB0`**（word 44；板级实测 A5 回 `0xffffffff`，同趟读 `0x14` 作负对照） | `P6B_ACCEPT.md` A5；`_proj_pcie/p6b_accept.sh`。⚠️ 正文 §7.4 ⑤ 与 `p6b_accept.sh:76` 曾各写一个值（F9），**以 `0xB0` 为准** |
-| FIFO 占用探针 | §7.1 说 W28 用 `dbg_occ_r` | **用 `dbg_occ_w`**（实现是对的：`dbg_occ_r` 属 gmii 域，塞进 DP 束就是多比特 CDC）；**且它是上界**，不是"保守 ≤ 真实占用" | `P6B_REVIEW.md` **F13**；`board/wrapper_p4.v:2152` 附近 |
-| `WIDTH` | 77（§0.3-A3/§3.1） | 算术应为 **76**（64+8+1+1+1+1）；已按 77 位端口接 76 位线**落地**，功能良性（补零）但**注释与实际分叉** | `P6B_REVIEW.md` **F6**；`board/wrapper_p4.v:405-412` |
-| `÷64 → ÷80` 的逐处清单 | §7.7 列的那些 | **漏了 5 处**，其中 `p6e_snap_check.sh:143` 与 `p6b_accept.sh:278` 是**活算式**（会打印错的复位次数） | `P6B_REVIEW.md` **F7** |
-| `W19` 判据 | "恒 0" | **不再恒 0**（F4 修复后与 MAC 丢帧**有向耦合**）；`p6b_accept.sh` 判据 5 已改 | `P6B_REVIEW.md` 附录 R.7 ②(ii)；`P6E_OBS.md` §二·补2 |
+| 快照字数 | 32（§7.1/§7.4） | **36**（同批并入 F4 的 W32..W35；**读侧 `snap_idx`/`snap_base` 必须一起加宽**，否则 `0xA0..` 静默回绕成 W0.. = **假 PASS**） | `board/wrapper_p4.v` 的 `SNAP_NW_P6E/SNAP_FE_NW/SNAP_DP_NW`；`agent_docs/P6B_REVIEW.md` 附录 R.5 预先算出了这条硬顶 |
+| `BUILD_ID_V` | `32'h00000005`（§7.5） | **`32'h00000006`**（板级实测 A2 = `0x00000006`） | `board/wrapper_p4.v:2883`；`agent_docs/P6B_ACCEPT.md` A2 |
+| 未实现地址 | `0xA0`（§7.4 ⑤） | **`0xB0`**（word 44；板级实测 A5 回 `0xffffffff`，同趟读 `0x14` 作负对照） | `agent_docs/P6B_ACCEPT.md` A5；`_proj_pcie/p6b_accept.sh`。⚠️ 正文 §7.4 ⑤ 与 `p6b_accept.sh:76` 曾各写一个值（F9），**以 `0xB0` 为准** |
+| FIFO 占用探针 | §7.1 说 W28 用 `dbg_occ_r` | **用 `dbg_occ_w`**（实现是对的：`dbg_occ_r` 属 gmii 域，塞进 DP 束就是多比特 CDC）；**且它是上界**，不是"保守 ≤ 真实占用" | `agent_docs/P6B_REVIEW.md` **F13**；`board/wrapper_p4.v:2152` 附近 |
+| `WIDTH` | 77（§0.3-A3/§3.1） | 算术应为 **76**（64+8+1+1+1+1）；已按 77 位端口接 76 位线**落地**，功能良性（补零）但**注释与实际分叉** | `agent_docs/P6B_REVIEW.md` **F6**；`board/wrapper_p4.v:405-412` |
+| `÷64 → ÷80` 的逐处清单 | §7.7 列的那些 | **漏了 5 处**，其中 `p6e_snap_check.sh:143` 与 `p6b_accept.sh:278` 是**活算式**（会打印错的复位次数） | `agent_docs/P6B_REVIEW.md` **F7** |
+| `W19` 判据 | "恒 0" | **不再恒 0**（F4 修复后与 MAC 丢帧**有向耦合**）；`p6b_accept.sh` 判据 5 已改 | `agent_docs/P6B_REVIEW.md` 附录 R.7 ②(ii)；`agent_docs/P6E_OBS.md` §二·补2 |
 
 > ⚠️ 与本规格书同批的另一个**潜伏设计债**：P6b 的 8 个时间常数被 `ifdef PCIE_OBS` 守卫
 > （**一个语义完全无关的宏**）⇒ "要 PCIe 窗口但数据面仍 125MHz"这个组合现在**会拿到 8 个错的时间常数
-> 且无告警**。见 `P6B_REVIEW.md` **F1** 与 `P6E_OBS.md` 开头那张表的注。
+> 且无告警**。见 `agent_docs/P6B_REVIEW.md` **F1** 与 `agent_docs/P6E_OBS.md` 开头那张表的注。
 
 ---
 
@@ -494,7 +494,7 @@ end else begin                // 断供: 中止 (runt)
 将来任何人改 `mac_rx_64` 的打包都会让两条线分叉）。
 
 **(e) W5 `gmii_free` 是故意留 FE 的** —— 它的语义就是"PHY 回送的时钟还在跑吗"
-（`P6E_OBS.md` §一 把它标为"活性锚点"）。搬走它等于毁掉这个判据。
+（`agent_docs/P6E_OBS.md` §一 把它标为"活性锚点"）。搬走它等于毁掉这个判据。
 
 ### 2.5 ⇒ 选定的仪器方案: **(ii) + 链式触发**
 
@@ -866,7 +866,7 @@ grep -rn "BIT_LAST\|GAP_TICKS\|GAP_LAST\|WDOG\|RTO_LIM\|FIN_TO_LIM\|FIN_GRACE\|T
    理由（可复核）：P6b 的两条板级验收都不碰 HLS 的墙钟——
    - **ping**（`_proj_pcie/p6e_pingtest.sh`）= ICMP echo，慢路径**无任何计时器参与**；
    - **图案/吞吐**（`p6e_rate.sh` + `tools/cpp_peer`）= UDP 8081，走 app 通路**不进 HLS**。
-   ⇒ 漂移对验收不可见。**但必须在 P6B_SPEC → P6E_OBS 的寄存器表里注明"HLS 内部计时已 ×0.8"**，
+   ⇒ 漂移对验收不可见。**但必须在 agent_docs/P6B_SPEC → agent_docs/P6E_OBS 的寄存器表里注明"HLS 内部计时已 ×0.8"**，
    否则将来有人拿 100ms/5s 去对账会误判。
 
 ⚠️ **一条时序上的连带证据（重要，能省一轮猜）**：
@@ -952,7 +952,7 @@ recovery/removal 风险）。
 ⚠️ **`clk_b` 换成 `dp_clk` 的直接后果（必须写进文档）**：
 若 MMCM 未锁定 / `sys_clk_p` 未接 ⇒ `dp_clk` 不跑 ⇒ `busy_a` **恒高**、`valid_a` 永不出现
 ⇒ 主机看到 `SNAP_STATUS.busy = 1` 永久。**这正是既有的诊断语义**
-（`P6E_OBS.md` §一："busy 一直不落 = gmii 时钟没在跑"），现在它同时对两个域成立。
+（`agent_docs/P6E_OBS.md` §一："busy 一直不落 = gmii 时钟没在跑"），现在它同时对两个域成立。
 ⇒ **为把这句诊断变成可自动判定的**：把 `mmcm_locked` 的 axi 域同步版接到
 `SNAP_STATUS[6]`，主机就能分开"没锁定" vs "没触发"（见 §7.2）。
 
@@ -987,7 +987,7 @@ recovery/removal 风险）。
 > ⚠️ **每一项都必须恰好 32 位**：`W27/W28`（占用数最多 256 ⇒ 9 位）与 `W25`（1 位）
 > 必须显式零扩展 `{16'd0,…}` / `{31'd0,…}`。**少写零扩展 = 位宽截断**，而
 > `xvlog` 对"赋值右端比左端**窄**"只在**部分场景**报 —— 端口的宽窄不匹配它完全不看
-> （铁律 ②，本工程 `P6E_OBS.md` 的"扩窗 ⑥"就是这么踩的）。门的 `findstr 10-3091`
+> （铁律 ②，本工程 `agent_docs/P6E_OBS.md` 的"扩窗 ⑥"就是这么踩的）。门的 `findstr 10-3091`
 > 只能当补充，真判据是逐字读回。
 
 **⚠️ W27/W28 需要给 `rtl/fifo_async.v` 加两个探针输出**（当前只有 `dbg_wbin/dbg_rbin/
@@ -1190,7 +1190,7 @@ BUFGCTRL sites: 32
 
 ```tcl
 # ---------------- board/ku5p_p6b_sysclk.xdc (新) ----------------
-# Y1 = SG7050VAN-100.000000M-KEGA3 (原理图实测出图, 见 P6B_SPEC §8.2)
+# Y1 = SG7050VAN-100.000000M-KEGA3 (原理图实测出图, 见 agent_docs/P6B_SPEC §8.2)
 create_clock -period 10.000 -name sys_clk_100 [get_ports sys_clk_p]
 set_property PACKAGE_PIN T25 [get_ports sys_clk_p]
 set_property PACKAGE_PIN U25 [get_ports sys_clk_n]
@@ -1307,12 +1307,12 @@ set_clock_groups -asynchronous \
 | **R2** | 新异步 FIFO 的 FWFT 读侧丢/重/错位（工程坑 4 的形态） | 每一帧的第 N 个字重复或跳过 ⇒ 图案失配 **W13 涨**；ping 偶发失败 | `W13` 非 0 而 `W3`(FCS 错)=0（⚠️ `W13` 须**同窗 `ΔW10 > 0`** 才有判别力） | 单元门必须含"**空↔非空边界连读**"与"**写空槽同拍读**"两个用例 | **单元门 + 全链门** |
 | **R3** | 两个束的索引表 (`FE_IDX`/`DP_IDX`) 抄错 | 某些字读回**别人**的值（静默、lint 看不见） | 全链门逐字读回 32 路必然抓到 | 索引表由单一 `localparam` 派生 + 门逐字验 | **全链门** |
 | **R4** | `snap_base` 类"窄左端静默截断"再现 | 高地址字回绕读低地址字 | 门逐字读回（判据 15b 同款） | NW=32 时 10 位恰好够；注释写死上限 | **单元门 + 全链门** |
-| **R5** | HLS 内部时间常数 ×0.8 未被记录 | 将来有人拿 100ms/5s 对账 ⇒ 误判为缺陷 | 无（是文档缺口） | §5.3 全表入档 + P6E_OBS 寄存器表加一行 | **文档复核** |
+| **R5** | HLS 内部时间常数 ×0.8 未被记录 | 将来有人拿 100ms/5s 对账 ⇒ 误判为缺陷 | 无（是文档缺口） | §5.3 全表入档 + agent_docs/P6E_OBS 寄存器表加一行 | **文档复核** |
 | **R6** | `DIFF_POD12_DCI` 能不能驱动 MMCM 输入未实测 | DRC / 综合报错，或时钟质量差 | 构建日志的 DRC | 沿用厂商已验证值；退路：改用 `LVDS` + 检查 bank65 VCCO，或改走 `IBUFDS_GTE4`+`BUFG_GT`（Y2 的 156.25MHz 参考钟经 HROW） | **构建 DRC** |
 | **R7** | MMCM 在 xsim 里锁定慢 ⇒ 全链门超时 | 门假 TIMEOUT | 门日志里 `locked` 一直 0 | 门里显式等 `u_dut.mmcm_locked`（并加超时上限）；必要时加 `ifdef P6B_SIM_CLKGEN` 旁路（**端口表不许变**） | **全链门** |
 | **R8** | 复位不同代 ⇒ FIFO 指针静默错位（§4.4） | 数据腐败（不是丢帧）：图案**整段偏移** | `W13` 涨 + `W0/W30` 差**持续漂移**（⚠️ 同上：`W13` 须**同窗 `ΔW10 > 0`**） | FIFO 复位只跟 `reset_n`（§4.4 硬规则）+ 单元门加"单侧复位"负对照 | **单元门** |
 | **R9** | `req_fe/req_dp` 宽过 1 拍 ⇒ 反复受理（`snap_cdc.v:20-26` 硬契约①） | 快照连发，`gen` 一次跳多；`busy` 抖动 | `gen` 增量 ≠ 1（既有判据已在查，`p6e_slowpath_probe.sh:38-46`） | 序列器把 req 寄存器化成一拍 | **单元门 + 板级** |
-| **R10** | W21 语义变化被误读 | 旧文档说"MAC 帧内中止"变成"持续断供" | 无 | §3.4 的警告 + P6E_OBS 注明 | **文档复核** |
+| **R10** | W21 语义变化被误读 | 旧文档说"MAC 帧内中止"变成"持续断供" | 无 | §3.4 的警告 + agent_docs/P6E_OBS 注明 | **文档复核** |
 | **R11** | 观测通道在 DP 时钟停摆时整窗失明 | 主机读到 `busy=1` 永久 | `SNAP_STATUS[6]`(locked)=0 | 每块板级脚本前置判 `SNAP_STATUS[6]==1` | **板级** |
 | **R12** | 改动漫过 P6a 基线（前端被动） | 闸 G 的读数不可比 | `check_p6b_timing.py` 判据 2/3 | `ku5p_p6a_t8p0.xdc` 一字不改 + `u_mac_rx/u_mac_tx` 端口表一字不改 | **diff + 时序报告** |
 
@@ -1366,15 +1366,15 @@ set_clock_groups -asynchronous \
 
 | 旧判据 | 出处 | 为什么失效 | 新形式 |
 |---|---|---|---|
-| **`W20 ≡ W7`**（"只有 HLS 是唯一 TX 源时两者才相等"） | `P6E_OBS.md` §二·补 | W20 在 FE、W7 在 DP ⇒ 跨束偏斜 ≤59.2 ns ⇒ 可能差 1 帧 | **`0 ≤ W20 - W7 ≤ 1`**（链式顺序给出方向） |
-| **`W6 = W0`**（"每一帧都进了慢路径"） | `P6E_OBS.md` §六 板级首测 | 同上（W0 在 FE、W6 在 DP） | **`0 ≤ W6 - W0 ≤ 1`** |
-| **`W16 ÷ 64 ≈ 看门狗复位次数`** | `P6E_OBS.md` §二·补、`wrapper_p4.v:2378` | `rst_cnt` 由 64 拍改 80 拍（§5.1） | **`W16 ÷ 80`** |
+| **`W20 ≡ W7`**（"只有 HLS 是唯一 TX 源时两者才相等"） | `agent_docs/P6E_OBS.md` §二·补 | W20 在 FE、W7 在 DP ⇒ 跨束偏斜 ≤59.2 ns ⇒ 可能差 1 帧 | **`0 ≤ W20 - W7 ≤ 1`**（链式顺序给出方向） |
+| **`W6 = W0`**（"每一帧都进了慢路径"） | `agent_docs/P6E_OBS.md` §六 板级首测 | 同上（W0 在 FE、W6 在 DP） | **`0 ≤ W6 - W0 ≤ 1`** |
+| **`W16 ÷ 64 ≈ 看门狗复位次数`** | `agent_docs/P6E_OBS.md` §二·补、`wrapper_p4.v:2378` | `rst_cnt` 由 64 拍改 80 拍（§5.1） | **`W16 ÷ 80`** |
 | **"W17 ÷64"** | `_proj_pcie/p6e_slowpath_probe.sh:70,111` | 同上 | 脚本文案与算式都要改 ÷80 |
-| **`W5` 反解频率 = 125MHz** | `P6E_OBS.md` §八（"627,020,671 / 5s = 125.4 MHz"） | W5 仍是 FE 的 `gmii_free` ⇒ **本条不变** ✓ | 不变；**新增** W24 反解 156.25MHz |
-| **`W21` 的语义** | `P6E_OBS.md` §一（"MAC 帧内中止 = 源流断供的 runt"） | DP 可领先 256 字 ⇒ 中止门槛变高 | 判据仍是 `W21=0`，但**故障含义升级为"持续型断供"**（§3.4） |
+| **`W5` 反解频率 = 125MHz** | `agent_docs/P6E_OBS.md` §八（"627,020,671 / 5s = 125.4 MHz"） | W5 仍是 FE 的 `gmii_free` ⇒ **本条不变** ✓ | 不变；**新增** W24 反解 156.25MHz |
+| **`W21` 的语义** | `agent_docs/P6E_OBS.md` §一（"MAC 帧内中止 = 源流断供的 runt"） | DP 可领先 256 字 ⇒ 中止门槛变高 | 判据仍是 `W21=0`，但**故障含义升级为"持续型断供"**（§3.4） |
 | **"未实现地址 = 0x84"** | `p6e_snap_check.sh:161` 等 4 处 | 扩窗到 32 字 | **`0xA0`** |
 | **"24 字窗口 / BUILD_ID=4"** | 全仓多处 | 扩窗 + 双域 | **32 字 / BUILD_ID=5** |
-| **`W14/W15` 不是 MAC 计数**（而是 TCP fast path） | `P6E_OBS.md` §八 | 语义不变 ✓ | 不变 |
+| **`W14/W15` 不是 MAC 计数**（而是 TCP fast path） | `agent_docs/P6E_OBS.md` §八 | 语义不变 ✓ | 不变 |
 | **`hr_cnt`/`W16` 的"消费侧"论证** | `wrapper_p4.v:2367-2376` | 论证仍然成立，只是域从 gmii 变 dp | 不变（但要改注释里的"gmii 域"） |
 
 ---
@@ -1406,7 +1406,7 @@ set_clock_groups -asynchronous \
 | 8 | `_proj_pcie/rtl/axi_regs.v` | `SNAP_STATUS` 加 4 位（`[6]` locked、`[5:3]` fe_*）；注释写死 `snap_base` 的 NW≤32 上限 |
 | 9 | `_proj_pcie/tb/tb_axi_regs.v`、`tb/tb_snap_cdc.v`、`sim/p6e_pcie/tb_p6e_pcie_wrapper.v`、`sim/p6e_pcie/tb_p6e_pcie_counters.v` | §7.4 的 ⑥ |
 | 10 | `_proj_pcie/p6e_*.sh`（6 个） | §7.7 |
-| 11 | `P6E_OBS.md` | 寄存器表 32 字 + W24..W31 + `BUILD_ID=5` + 未实现地址 `0xA0` + HLS ×0.8 与 W21 语义变化的注记；`P6B_SPEC.md` 自身 |
+| 11 | `agent_docs/P6E_OBS.md` | 寄存器表 32 字 + W24..W31 + `BUILD_ID=5` + 未实现地址 `0xA0` + HLS ×0.8 与 W21 语义变化的注记；`agent_docs/P6B_SPEC.md` 自身 |
 
 **明确不许动的**
 - `board/ku5p_p6a_t8p0.xdc`、`board/ku5p_p6e_pcie.xdc`（基线）

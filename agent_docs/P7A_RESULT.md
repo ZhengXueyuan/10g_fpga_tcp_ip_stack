@@ -3,7 +3,7 @@
 > 验收对象 = `_proj_10g/vivado_prj/p7a_prj.runs/impl_1/p7a_top.bit`
 > （**含 64b/66b gearbox 的 10GBASE-R PCS/PMA 通路**，quad 225 的 X0Y4/X0Y5 经 AOC 外部环回）。
 > 本文件的每一个数字都能指到 `_proj_10g/` 下的**原始读数文件（含行号）**；从别处转述的读数一律注明来源。
-> 施工规格（闸 0）在 `P7A_SPEC.md`；本节只记**已经发生的事**与**已经读到的数**。
+> 施工规格（闸 0）在 `agent_docs/P7A_SPEC.md`；本节只记**已经发生的事**与**已经读到的数**。
 
 ## 0. 一句话结论
 
@@ -43,9 +43,9 @@ run2 = **测量台架缺陷**（读点前没发快照请求 ⇒ 读的是冻结�
   手册的 12 GHz 限制讲的是**连接器/板材**（模拟），管不到 gearbox；而 gearbox 一旦不成立，
   10GBASE-R 就根本无从谈起（fabric 侧会变成 161.1328125 MHz 的 64-bit raw 流，不是 156.25 MHz）。
 
-**本阶段的判据设计原则**（写在 `P7A_SPEC.md` §4/§5，此处只留结论）：
+**本阶段的判据设计原则**（写在 `agent_docs/P7A_SPEC.md` §4/§5，此处只留结论）：
 不用 wizard example 的 `link_status_out`（它是**漏桶**：一次错只扣 34/67 ⇒ 容忍孤立错误，
-"看着干净"≠零误码，`P7A_SPEC.md` §1.5）；BER 由**自己写的计数器** `rtl/p7a_counters.v` 判定，
+"看着干净"≠零误码，`agent_docs/P7A_SPEC.md` §1.5）；BER 由**自己写的计数器** `rtl/p7a_counters.v` 判定，
 语义可复算（`rtl/p7a_counters.v:1-50` 头注释）。
 
 ---
@@ -106,14 +106,14 @@ f88d019fc53a8d07d04d14670188f8148d36e09bb9ba8d1b0df366cbf9f8651d  p7a_top.bit  (
 |---|---|---|---|---|---|
 | P2a | 状态字基线 | MMCM 锁、GT 上电、复位完成、CDR 稳、LOS 0/0 | `rtl/p7a_top.v` 的 "SFP control" 注释块 + `../CLAUDE.md` 的 SFP 引脚实测表 | `mmcm_locked=1 gtpowergood=11 tx/rx_reset_done=1 rx_cdr_stable=1 sfp*_rx_los=0`（`:252`） | PASS |
 | P2b | PRBS31 锁定（`acq`） | **1/1**，且在 clear 后可重锁 | 计数器语义：`LOCK_THRESH` 连续匹配字（`rtl/p7a_counters.v`） | clear 后 **81 ms** 锁定（`:294-307`；run2 为 73 ms） | PASS |
-| P2c | 腿 3：`rxheader` **稳定性** | 采样 5 次恒为同一值，且 `hdr_err_cnt == 0` | `P7A_SPEC.md` §4.3 / R3（**判"稳定"，不是判等于某个猜的常数**） | `hdr_ref ch0=0x01 ch1=0x01 valid=11`，`hdrs` 86406580→689213482 单调，`hdr_err_cnt=0/0`（`:343-368`） | PASS |
+| P2c | 腿 3：`rxheader` **稳定性** | 采样 5 次恒为同一值，且 `hdr_err_cnt == 0` | `agent_docs/P7A_SPEC.md` §4.3 / R3（**判"稳定"，不是判等于某个猜的常数**） | `hdr_ref ch0=0x01 ch1=0x01 valid=11`，`hdrs` 86406580→689213482 单调，`hdr_err_cnt=0/0`（`:343-368`） | PASS |
 | P2d | **负对照 A**：强制 `rxgearboxslip` | 必须**掉链 + 重锁** | raw 通路里没有 gearbox 可滑 ⇒ 该动作本应无效果（`rtl/p7a_top.v` 与 spec §4.3） | Δerr **16640 / 16628**、`ref_down_latched 00→11`、此后 6 s 零错且 `bits` 推进 60829119552、`ref_link` 回 1/1（`:402,419-427,443-458`） | PASS（ERR_BURST/LINK_DROP/RELOCK = 1/1/1） |
 | P2e | 短窗 60 s 体检 | 零错、比率 ≈ 1 | 同 P2f | 每通道 `bits=610401810176 err=0 hdre=0`，5 个子窗 ratio 0.999995..0.999995，rate 9.999277e9（`:583-596`） | PASS |
-| P2f | **正式窗 600 s × 双向** | 零错 + 速率/比率同时成立 | `P7A_SPEC.md` §5.4 | 见 §4 | PASS |
+| P2f | **正式窗 600 s × 双向** | 零错 + 速率/比率同时成立 | `agent_docs/P7A_SPEC.md` §5.4 | 见 §4 | PASS |
 | P2g | 头计数恒等式 | `hdrs_cnt == bits_cnt / 64` | 计数器语义（每个 payload 字都带 `rxheadervalid`） | `93801019148 == 6003265225472/64`（`:707-709`） | PASS（"0 错"不是真空 0 的旁证之一） |
-| P2h | 静态判据（无板） | gearbox 属性 + 频率 + 时序 | `P7A_SPEC.md` §4.1/§4.2/§9 | 见 §3.3 | PASS |
-| P2i | 单元门（无板） | 判据本身有判别力 | `P7A_SPEC.md` §9.11 | **437 checks / 0 failures**；`m=2`；注入 K=10 错 ⇒ `err0=20`；注入 5 个头错 ⇒ `hdre0=5 且 err0=0`；200 个快照 正例违例 **0** / **撕裂负对照违例 200**；ratio 156.25→1.000000、161.1328125→1.031252（`sim/xsim_run.txt:63-83`） | PASS |
-| P2j | license 负对照 | 把 `Xilinx.lic` 改名后 gtwizard 仍不被锁 | `P7A_SPEC.md` §1.2/§9.1 | 见 §3.4 | PASS |
+| P2h | 静态判据（无板） | gearbox 属性 + 频率 + 时序 | `agent_docs/P7A_SPEC.md` §4.1/§4.2/§9 | 见 §3.3 | PASS |
+| P2i | 单元门（无板） | 判据本身有判别力 | `agent_docs/P7A_SPEC.md` §9.11 | **437 checks / 0 failures**；`m=2`；注入 K=10 错 ⇒ `err0=20`；注入 5 个头错 ⇒ `hdre0=5 且 err0=0`；200 个快照 正例违例 **0** / **撕裂负对照违例 200**；ratio 156.25→1.000000、161.1328125→1.031252（`sim/xsim_run.txt:63-83`） | PASS |
+| P2j | license 负对照 | 把 `Xilinx.lic` 改名后 gtwizard 仍不被锁 | `agent_docs/P7A_SPEC.md` §1.2/§9.1 | 见 §3.4 | PASS |
 
 ### 3.3 gearbox 在通路里的**三条腿**（§4 的判据，都是"只有 gearbox 在才算得通"的量）
 
@@ -223,7 +223,7 @@ P7A_BOARD_VERDICT = PASS
 | 量 | 值 | 为什么它算证据 |
 |---|---|---|
 | `BITS_CNT` | 6,003,265,225,472（双向相同） | **正对照**：`acq` 只在锁定后计数 ⇒ `bits>0` 证明"计数器真的在跑"，"0 错"不是空读数（`rtl/p7a_counters.v` 头注释） |
-| `ERR_WORD_CNT` | **0** | 一次坏字 = 一个错字（`prbs_any` 在 check 模式从接收数据重播种 ⇒ 1 个坏 bit 污染恰 1 个**字**，`P7A_SPEC.md` §5.1） |
+| `ERR_WORD_CNT` | **0** | 一次坏字 = 一个错字（`prbs_any` 在 check 模式从接收数据重播种 ⇒ 1 个坏 bit 污染恰 1 个**字**，`agent_docs/P7A_SPEC.md` §5.1） |
 | `HDRS_CNT` | 93,801,019,148 **== BITS_CNT/64** | 恒等式逐位成立 ⇒ 每个 payload 字都带 `rxheadervalid`（第二重正对照） |
 | `HDR_ERR_CNT` | **0** | 6-bit `rxheader` 相对锁定后第一个观测值**从未偏离** |
 | `RATE (bits/wall)` | 1.000025×10¹⁰（+0.0025%） | 与 `10.3125 GBd × 64/66 = 1.0000×10¹⁰` 相差 **2.5×10⁻⁵** |
@@ -349,7 +349,7 @@ run2 的 delta=0 纯粹是台架没发请求**。
 
 - 板上这两个模块是 **SFP+ 10G**（**不是 SFP28**）—— 对 10GBASE-R 完全适用
   （读数侧的证据：iBERT 把两个通道的 `LINE_RATE` 落到 **10.312 / 10.313 Gbps** 并稳定锁定，
-  `ctrl_ibert_v3.log:350-351`）。`P7A_SPEC.md` §5.5/§10 里"两个 SFP28 模块"的措辞按此更正。
+  `ctrl_ibert_v3.log:350-351`）。`agent_docs/P7A_SPEC.md` §5.5/§10 里"两个 SFP28 模块"的措辞按此更正。
   ⚠️ 本条的**来源是口头信息（TL 在 P7a 汇报中的更正）**，本轮日志里没有模块型号字符串
   （板上未引出 I2C/DOM，见 §7）。
 - **本文件写成时，板子载的是 P7a 位流**（volatile；最后一次编程动作是 run3 的烧录，
@@ -407,7 +407,7 @@ run2 的 delta=0 纯粹是台架没发请求**。
    （`ctrl_console_v4.txt:363-365`）—— 这与"X0Y6 为什么连线速率都是 0"是两件事，**本轮只记录**。
 5. **6-bit `rxheader` 的编码未解码**，2-bit 64B/66B **sync header 不在 fabric 可观测面上**
    （gearbox 会插/剥）⇒ 判据只能是"**稳定**（等于锁定后第一个观测值）"。
-   **这是已承认的覆盖缺口**（`rtl/p7a_counters.v:1-50` 头注释 / `P7A_SPEC.md` R3）。
+   **这是已承认的覆盖缺口**（`rtl/p7a_counters.v:1-50` 头注释 / `agent_docs/P7A_SPEC.md` R3）。
    间接覆盖：腿 2 的比率恒等式只有在"同步头被正确找到并剥掉"时才成立。
 6. **`0.999995` 那 5 ppm 的成因未查**（真实准同步频差？测量口径？）—— 见 §4 的注。
 7. **只有 PRBS31，没有真实以太网帧**：本轮不涉及 MAC/FCS/帧长，也不涉及 10G 的 XGMII/背压；
@@ -471,4 +471,4 @@ run2 的 delta=0 纯粹是台架没发请求**。
 | `_proj_10g/reports/p7a_xdc_probe_stdout.txt` | §5.3 教训 3 |
 | `_proj_10g/sim/xsim_run.txt` · `xvlog.txt` · `xelab.txt` · `tcl/lint/xvlog.txt` | §3.2 P2i/P2j、§5.2 C7 证据 |
 | `_proj_10g/rtl/*.v` · `_proj_10g/xdc/ku5p_p7a*.xdc` | 判据语义的出处（通篇引用） |
-| `P7A_SPEC.md` | 施工规格（判据的"期望来源"栏） |
+| `agent_docs/P7A_SPEC.md` | 施工规格（判据的"期望来源"栏） |

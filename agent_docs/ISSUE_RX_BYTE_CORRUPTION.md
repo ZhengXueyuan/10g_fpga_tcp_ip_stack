@@ -10,7 +10,7 @@
 > ⚠️ **本文件是历史记录 (2026-09-21~27), 路径保留原样**: 那时上面的 `D:\repo\ECO\udp_hls_10g`
 > **就是**当时的开发树 (本仓 2026-09-28 才从那里整体拷贝而来, 那份 checkout 至今仍在)。
 > **本文里所有 `cmd //c 'D:\repo\ECO\udp_hls_10g\...'` 如果照着跑, 跑的是另一个 checkout**
-> (= 真空门史, 见 `P6B_INTEGRATION_REVIEW.md` §5): 换成**你自己的 checkout 根**再跑 ——
+> (= 真空门史, 见 `agent_docs/P6B_INTEGRATION_REVIEW.md` §5): 换成**你自己的 checkout 根**再跑 ——
 > 门 bat 都已自定位 (从 `%~dp0` 反推 repo root), 命令用**相对仓根**的路径即可
 > (例: 本仓根下 `cmd //c 'sim\p5sim\run_tb_p5_app.bat'`)。
 
@@ -261,7 +261,7 @@ python tools/board_p5b_check.py --port COM9
 | **约束实验** | `board/eco_holdfix.xdc` · `board/build_p5_holdfix.tcl` |
 | **位流** | `vivado_prj/p5_prj.runs/impl_1/wrapper_p4.bit` (现为 HOLDFIX 版) · `.../wrapper_p4_orig_whs048.bit` (回滚版) |
 | **工具** | `tools/cpp_peer/peer.cpp` (UDP 模式) · `tools/pc_wire_pattern_check.py` |
-| **历史同类现象** | `PORT_NOTES.md` 的 P5d 段("帧尾 1~35 字节被改写") · P4b-7-P6 的 `frame_fifo` 边存丢 tlast |
+| **历史同类现象** | `agent_docs/PORT_NOTES.md` 的 P5d 段("帧尾 1~35 字节被改写") · P4b-7-P6 的 `frame_fifo` 边存丢 tlast |
 
 ---
 
@@ -341,7 +341,7 @@ python tools/board_p5b_check.py --port COM9
    被改, 线上 FCS 必不匹配 ⇒ `UPC≠0`。实测 `UPC≡0` ⇒ **发送端仍然被排除**, 但理由
    应当换成 FCS 论证, 不要引用那条抓包。
 2. **「TCP app 方向干净」不可比**: P5d 那次是 **4 MB / 线上 71 ms ≈ 472 Mbps**
-   (PORT_NOTES「4MB 线上耗时仅 71ms」), 而 UDP 侧是 **500 MB / 957 Mbps**。
+   (agent_docs/PORT_NOTES「4MB 线上耗时仅 71ms」), 而 UDP 侧是 **500 MB / 957 Mbps**。
    **⇒ 「UDP 通路特有」从未被证实。** 而且 **TCP app 通路结构上到不了线速**:
    `tools/pc_p5b_win_test.py` 头注释自述 `app_pattern` 的 RX 校验器是
    「取字 1 拍 + 逐字节 8 拍」= **0.89 字节/拍**, 达不到线速 1 字节/拍 ⇒ 全速灌必然积压
@@ -981,7 +981,7 @@ RXPV3 P8 rc=1 vc=1 vx=184 vs=0 vr=184 vn=1 | 冻结值=0 影子=0 wptr=0 rptr=18
 
 > 📌 历史记录 (2026-09-27 的 v3 仪器流程); 其中第 2 步的烧录命令若要用,
 > 请用**本仓根**下的相对路径 `cmd //c 'board\run_program_p5_diag.bat'`。
-> ⚠️ 本板 (KU5P) 无 UART、COM9 状态行不可观测 —— 见 `P6E_OBS.md` 与 README 相关注记。
+> ⚠️ 本板 (KU5P) 无 UART、COM9 状态行不可观测 —— 见 `agent_docs/P6E_OBS.md` 与 README 相关注记。
 
 1. **等构建结束** → 读 `p5diag_verify/diag_timing.rpt` 确认 **0 失败端点**。
 2. **烧 v3** → `cmd //c 'D:\repo\ECO\udp_hls_10g\board\run_program_p5_diag.bat'`

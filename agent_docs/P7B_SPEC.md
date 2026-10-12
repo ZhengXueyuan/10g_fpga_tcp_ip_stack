@@ -6,7 +6,7 @@
 - 上游输入（全部只读）：`_proj_10g/notes/P7B_XXV_OFFICIAL.md`（**本次核心依据**）、
   `P7B_DATAPATH_CONTRACT.md`、`P7B_RXCLASSIFY_AUDIT.md`、`P7B_BASER_TABLES.md`、
   `P7B_PHY_IFACE.md`、`P7B_LIB_SURVEY.md`（后两份的**路线部分已作废**，只作背景/对照）。
-  现役观测表 `P6E_OBS.md`；风格与结构仿 `P7A_SPEC.md`。
+  现役观测表 `agent_docs/P6E_OBS.md`；风格与结构仿 `agent_docs/P7A_SPEC.md`。
 - 器件：`xcku5p-ffvb676-1-e`（Kintex UltraScale+，**-1 最慢速度等级**）。工具：Vivado 2025.2。
 - 构建根 = 本仓根 = `D:\repo\XCKU5PMini\udp_hls_10g`（git 根）。
 
@@ -213,7 +213,7 @@
 |---|---|---|---|
 | `stat_rx_block_lock_0` | ✅ 1 位 | ✅ | 闸 1/2 期间**必须 = 1**。它是"PCS 层真的在收"的第一判据 |
 | `stat_rx_status_0` | ✅ 1 位 | ✅ | **必须 = 1**（它含 alignment + block_lock 等）。厂商 example 拿它点 LED |
-| `stat_rx_hi_ber_0` | ✅ 1 位 | ✅（**弱**） | **必须 = 0**；⚠️ **但 `hi_ber=0` 不能当"零误码"证据** —— 它是 802.3 的"高误码"门限指示，不是零错。**零误码只能靠自己的 FCS 错帧/坏块计数**（与 `P7A_SPEC.md` R2 的"漏桶教训"同源） |
+| `stat_rx_hi_ber_0` | ✅ 1 位 | ✅（**弱**） | **必须 = 0**；⚠️ **但 `hi_ber=0` 不能当"零误码"证据** —— 它是 802.3 的"高误码"门限指示，不是零错。**零误码只能靠自己的 FCS 错帧/坏块计数**（与 `agent_docs/P7A_SPEC.md` R2 的"漏桶教训"同源） |
 | `stat_rx_local_fault_0` | ✅ 1 位 | ✅ | 必须 = 0。非 0 = 对端在发 `/Q/` fault（或我们发的 `/Q/` 被自己收到） |
 | `stat_rx_framing_err_0` (+`_valid_0`) | ✅ 计数 | ✅ | `_valid` 限定那拍才计数；**恒 0** |
 | `stat_rx_valid_ctrl_code_0` | ✅ 计数（新增） | ✅ ⭐ | **必须非 0 且持续增长** —— 这是"控制块真的在收（`/I/`、`/S/`、`/T/`）"的**正证据**；若它恒 0，说明 RX 侧只见到数据块（或状态线被钉死/悬空），此时其它"恒 0"判据全部失去意义 |
@@ -271,7 +271,7 @@ assign tx_mii_d = bswap64(frame_data);   // RX 侧同一个函数，方向相反
 
 | 域 | 来源 | 频率 | 谁在上面 |
 |---|---|---|---|
-| `dp_clk` | 核心板 **Y1 100 MHz** → MMCM ×1.5625（`clk_gen_p6b`） | **156.25 MHz**（实测 156.2585，`P6B_ACCEPT.md` B2b） | `vlan_strip` 及其后**全部**数据面（**不动**） |
+| `dp_clk` | 核心板 **Y1 100 MHz** → MMCM ×1.5625（`clk_gen_p6b`） | **156.25 MHz**（实测 156.2585，`agent_docs/P6B_ACCEPT.md` B2b） | `vlan_strip` 及其后**全部**数据面（**不动**） |
 | `tx_mii_clk_0` | 官方核（TXOUTCLK → PROGDIV，QPLL0 ← Y2 156.25 MHz） | 156.25 MHz 标称 | 新 MAC 的 **TX 侧** |
 | `rx_core_clk_0` = `rx_clk_out_0` | 官方核（RXOUTCLK，**CDR 恢复**） | 156.25 MHz 标称 | 新 MAC 的 **RX 侧** |
 | `dclk` | 用户给 **100 MHz**（Y1） | 100 MHz | 官方核 DRP/复位；`stat_*` 采样【推定】 |
@@ -287,7 +287,7 @@ assign tx_mii_d = bswap64(frame_data);   // RX 侧同一个函数，方向相反
 | 方向 | 位置 | 结构 | 参数（提案，**必须复核**） |
 |---|---|---|---|
 | **TX** | DP → `tx_mii_clk_0` | `rtl/fifo_async.v`（**复用**，参数化、已板级验证）—— **角色与现役 `u_txcdc` 完全相同**，只把 `rd_clk` 从 `gmii_clk` 换成 `tx_mii_clk_0` | `WIDTH`：73（64+8+1）→ **可能需要 +1**（若新 MAC 需要 `sop`/`terr` 边带，见 §7.3 与 §11 U3）；`DEPTH`：现为 256 = 1.35 帧（下界 = 最大帧 190 字）⇒ **必须重算**（10G 下同样是 190 字，**不变**；但"是否要 2 帧预置"要按新 MAC 的背压行为定） |
-| **RX** | `rx_core_clk_0` → DP | 同上，**角色与现役 `u_rxcdc` 相同** | `WIDTH`：现为 **76**（64+8+1+1+1+1）—— ⚠️ `P6B_SPEC` 曾写 77 是**算术错**，as-built 是 76，**接成 77 会静默截掉 `tdata[63]`= 每字首字节**（`P7B_DATAPATH_CONTRACT.md` §B.2）；`DEPTH`：256（下界 = 一个最大帧 190 字） |
+| **RX** | `rx_core_clk_0` → DP | 同上，**角色与现役 `u_rxcdc` 相同** | `WIDTH`：现为 **76**（64+8+1+1+1+1）—— ⚠️ `agent_docs/P6B_SPEC` 曾写 77 是**算术错**，as-built 是 76，**接成 77 会静默截掉 `tdata[63]`= 每字首字节**（`P7B_DATAPATH_CONTRACT.md` §B.2）；`DEPTH`：256（下界 = 一个最大帧 190 字） |
 
 **三条必须一起保住的 `fifo_async` 硬契约**（`rtl/fifo_async.v:26-70`，转述自 `P7B_DATAPATH_CONTRACT.md` §D.2）：
 ① **两侧复位必须同时给**（只复位一侧 = 未定义行为/静默脏数据）；② `full` 是**悲观**的、2 拍同步延迟是契约的一部分
@@ -500,11 +500,11 @@ RX 侧的 `rtl/crc32_8b.v` 也是字节串行（`step8` 每字节 8 次移位，
 |---|---|---|
 | as-built | **6 字寄存器 skid + 单 FSM**（`S_FILL/S_DRAIN/S_PASS`），**FILL 与 DRAIN 互斥** ⇒ **FILL 期间不输出任何字** | `rtl/rx_classify.v:52,58,60-65,78-85,102-103`（本次抽查确认） |
 | 每帧死拍数 | **3 拍**（非 TCP，w2 定案）/ **6 拍**（TCP，等 w5） | `rx_classify.v:5-11` 注释 |
-| 硬吞吐上限 | `N/(N+停顿)`：非 TCP `8/11 = **72.7%**`；**TCP `8/14 = 57.1%`**（最小 64B 帧，剥 FCS 后 60B = 7.5 字 ⇒ N=8） | 审计件 §4.2 的算数（`PORT_NOTES.md:3613` 的 "57%" 与之吻合） |
+| 硬吞吐上限 | `N/(N+停顿)`：非 TCP `8/11 = **72.7%**`；**TCP `8/14 = 57.1%`**（最小 64B 帧，剥 FCS 后 60B = 7.5 字 ⇒ N=8） | 审计件 §4.2 的算数（`agent_docs/PORT_NOTES.md:3613` 的 "57%" 与之吻合） |
 | 它**不是**"静默丢字"缺陷 | 出口/入口判据是**结构性**的（FSM 状态 + 同拍组合 tready），模块内**无丢字路径**，且背压下的内容保真已被门覆盖（NOSTALL/STALL/HARD 三模式） | 审计件 §3（逐条核过，"不是 F4 形态"） |
 | **加深上游 FIFO 修不了** | FILL 期间模块**没有可输出的字**（头字还在灌）⇒ 那 3/6 拍是**整条链的死拍**，与缓冲深度无关；缓冲只能把"丢帧"换成"积压增长"，最终还是丢 | 审计件 §4.2 |
 | **10G 下必然触发** | 10G/156.25 MHz = **1 字/拍**，字间隔不再是 1G 的"10 个 dp 拍" ⇒ 每帧净赤字 ≈ **4.5 字（TCP）/ 1.5 字（非 TCP）** ⇒ 无界积压 | 审计件 §4.3（算数） |
-| 后果**不是静默** | 进 `mac_rx_64` 的"整帧丢弃"路径 + 计数（`stat_drop_full` → 快照 **W34**） | `mac_rx_64.v:257-263,337-341` / `P6E_OBS.md:80` |
+| 后果**不是静默** | 进 `mac_rx_64` 的"整帧丢弃"路径 + 计数（`stat_drop_full` → 快照 **W34**） | `mac_rx_64.v:257-263,337-341` / `agent_docs/P6E_OBS.md:80` |
 | ⚠️ **门缺口** | 现有 `tb_rx_classify`（125 MHz 固定帧表）只能证**内容保真**，**证不了吞吐**；`tb_udprx_rate.v:13` 自述其线速模型是"**每 8 拍 1 字**"（1G 口径）⇒ **全仓没有一条门在"1 字/拍连续输入"下跑数据面** | 审计件 §5 |
 
 **交付物**：`rtl/rx_classify.v` 的改造（把"等 w5 决策"从**阻塞输出通道**改成**由真 FIFO 解耦**；
@@ -632,11 +632,11 @@ J7 = SFP A = **X0Y4**、J8 = SFP B = **X0Y5**（iBERT 实测）。一条 AOC 的
 
 | # | 判据 | 期望来源 | 失败怎么办 |
 |---|---|---|---|
-| G1 | 位流 **sha256** + `BUILD_ID` 前置闸（必须是本轮新值，**当前 6 ⇒ 本轮应递增**） | `P6E_OBS.md:29` 的 1..6 定义 + 验收脚本 | ⚠️ **必须同步改验收脚本里"未实现地址"的取值**（当前 `0xB0`），否则"新功能上线"会被报成回归 |
+| G1 | 位流 **sha256** + `BUILD_ID` 前置闸（必须是本轮新值，**当前 6 ⇒ 本轮应递增**） | `agent_docs/P6E_OBS.md:29` 的 1..6 定义 + 验收脚本 | ⚠️ **必须同步改验收脚本里"未实现地址"的取值**（当前 `0xB0`），否则"新功能上线"会被报成回归 |
 | G2 | **新时钟域的频率正证据**：Δ(自由计数)/Δ(墙钟) = 标称 ±1%（`tx_mii_clk_0` / `rx_core_clk_0` / `dclk`） | 先例 W5 = 125.0061 / W24 = 156.2585 | 计数不涨 ⇒ 该域没起 / 计数被钉死 |
-| G3 | **停机态守恒律逐字成立**（§5.3 F7 的式子在板级重跑） | `P6B_ACCEPT.md` E1a/E1b（147==147、21235==21235） | —— |
+| G3 | **停机态守恒律逐字成立**（§5.3 F7 的式子在板级重跑） | `agent_docs/P6B_ACCEPT.md` E1a/E1b（147==147、21235==21235） | —— |
 | G4 | 10G 速率：**板子自报 × 帧长** 与 **网卡硬件计数** 互相对账（偏差 <1%） | P6b 的 956.0 Mbps 口径（99.9%） | 不用用户态 socket |
-| G5 | 前置纪律：**构建期间不烧**；每次测量前**重烧**；PCIe 观测 **烧完必重启主机**；判活**看 BAR 不看 `lspci`** | `XCKU5PMini/CLAUDE.md` + `P6E_OBS.md` §6 末 | —— |
+| G5 | 前置纪律：**构建期间不烧**；每次测量前**重烧**；PCIe 观测 **烧完必重启主机**；判活**看 BAR 不看 `lspci`** | `XCKU5PMini/CLAUDE.md` + `agent_docs/P6E_OBS.md` §6 末 | —— |
 | G6 | `rx_classify` 修复的板级判据：最小帧洪泛下 `stat_drop_full` 增量 **恒 0** | 审计件 §4.3 的失效场景 | 若仍丢 ⇒ 回去看吞吐门的结论 vs 板级激励是否一致 |
 
 ---
@@ -678,14 +678,14 @@ J7 = SFP A = **X0Y4**、J8 = SFP B = **X0Y5**（iBERT 实测）。一条 AOC 的
 |---|---|---|---|
 | B1 | `SNAP_NW`（wrapper localparam）== 两束之和 == `axi_regs.SNAP_NW` == `snap_cdc.NW` 之和 | 【先例】`wrapper_p4.v:2545-2547,2888` / `axi_regs.v:78` | 逐处相等 |
 | B2 | `snap_idx` 位宽与 `snap_base` 位宽**同时**加宽 | 【先例】`axi_regs.v:212,222`（**只改一处 ⇒ 未实现地址静默回绕成 W0..W3 = 假 PASS**，本工程踩过） | 字宽 W ⇒ `snap_idx ≥ ceil(log2(W))`、`snap_base ≥ ceil(log2(W*32))` |
-| B3 | 逐字读回**每一个**快照字（含最后一个） | 【先例】`P6E_OBS.md` 的 7 处清单 | 全等；**且必须覆盖到末字** |
+| B3 | 逐字读回**每一个**快照字（含最后一个） | 【先例】`agent_docs/P6E_OBS.md` 的 7 处清单 | 全等；**且必须覆盖到末字** |
 | B4 | 两束索引表（`rtl/snap_seq.v` 的 `fe_idx_of`/`dp_idx_of`）与拼接项数/顺序**逐项一致** | 【先例】`snap_seq.v:86-121` | 逐项 |
-| B5 | 验收脚本里"未实现地址"的取值已随窗口更新 | 【先例】`P6E_OBS.md:105` ⑤（0x18→0x44→0x60→0x84→**0xB0**） | 新值 < 0x100 且 = 末字 + 1 |
+| B5 | 验收脚本里"未实现地址"的取值已随窗口更新 | 【先例】`agent_docs/P6E_OBS.md:105` ⑤（0x18→0x44→0x60→0x84→**0xB0**） | 新值 < 0x100 且 = 末字 + 1 |
 | B6 | 快照窗口总字数 **≤ 56 字** | 【自算】`axi_regs.v:173` `ar_word = araddr[7:2]`（6 位）⇒ 地址每 256 B 回绕；快照从 word 8 起 ⇒ 最大 word 63 = **0xFC** = 第 56 字 | 字数 ≤ 56（否则必须动地址译码） |
 | B7 | 每个新时钟域都有 **32 位自由计数**且进了快照 | 【先例】W5/W24（"数据面真在跑"的唯一正证据） | 3 个新域各 1 字 |
 | B8 | `fe_src`/`dp_src`/新增束的拼接**恰好 NW*32 位** | 【先例】多一项被静默截断（门里 `findstr 10-3091` 当硬失败） | 精确 |
 | B9 | 已知缺口 ①：`新 MAC` 的 `stat_flush_words`/`stat_flush_done` **已接进快照** | 【先例】`wrapper_p4.v:2226-2239` **未连接**（`P7B_DATAPATH_CONTRACT.md` E6，本文复核确认） | 两个新字 |
-| B10 | 已知缺口 ②：两个 `fifo_async` 的 `ovf_cnt` **已接进快照** | 【先例】`P6E_OBS.md:86-87,232-234`（`ovf_cnt` 悬空，F-1 修复的板级缺口） | 两个新字（TX/RX 各一） |
+| B10 | 已知缺口 ②：两个 `fifo_async` 的 `ovf_cnt` **已接进快照** | 【先例】`agent_docs/P6E_OBS.md:86-87,232-234`（`ovf_cnt` 悬空，F-1 修复的板级缺口） | 两个新字（TX/RX 各一） |
 | B11 | 快照的**束数**与定序已随新域扩展并写明 | 【自算】现役是"两束、FE 先→DP 后"（`snap_seq.v`）；新增 3 个域打破该结构假设 | 束数与**定序方向逐对写明**（有耦合的必须定向） |
 
 **C 组 —— PCS/链路状态（板级）**
@@ -730,7 +730,7 @@ J7 = SFP A = **X0Y4**、J8 = SFP B = **X0Y5**（iBERT 实测）。一条 AOC 的
 | E1 | ⭐ **吞吐门**：`1 字/拍` 连续输入、背靠背最小帧（TCP 与非 TCP 各一条）⇒ 输出字数 == 输入字数 | 【自算】`N/(N+停顿)`：非 TCP `8/11`、TCP `8/14`（审计件 §4.2） | **100%**（不是"不丢字"） |
 | E2 | A/B 负对照：未改造版本跑同一条门 ⇒ **FAIL** | 【审计】§4.2 的算数 | 期望 FAIL |
 | E3 | 既有背压门（NOSTALL/STALL/HARD）**不回归** | 【先例】`sim/p4sim/run_tb_rxclass.bat` 三模式逐字比对 | PASS |
-| E4 | 上板：最小帧洪泛下 `stat_drop_full`（W34）增量 **恒 0** | 【先例】`P6E_OBS.md:80` | ΔW34 = 0 |
+| E4 | 上板：最小帧洪泛下 `stat_drop_full`（W34）增量 **恒 0** | 【先例】`agent_docs/P6E_OBS.md:80` | ΔW34 = 0 |
 | E5 | 不引入丢字/乱序/半帧 | 【合同】§A.1.2 第 5/7 条 | 判据**不许放宽** |
 
 **F 组 —— 网络层（端到端）**
@@ -747,10 +747,10 @@ J7 = SFP A = **X0Y4**、J8 = SFP B = **X0Y5**（iBERT 实测）。一条 AOC 的
 
 | # | 判据 | 期望来源 | 期望值/形式 |
 |---|---|---|---|
-| G1 | 快照**每一个字**都有明确的"生产者节点"归档 | 【先例】`P6B_INTEGRATION_REVIEW.md` §1.3 的做法（按 wrapper 拼接逐项读出） | 逐字一行 |
+| G1 | 快照**每一个字**都有明确的"生产者节点"归档 | 【先例】`agent_docs/P6B_INTEGRATION_REVIEW.md` §1.3 的做法（按 wrapper 拼接逐项读出） | 逐字一行 |
 | G2 | 每轮触发**自证**：`SNAP_STATUS.gen` 恰好 +1；36/新字数**无空读** | 【先例】`_proj_pcie/p6b_accept.sh` 的 `round()` 四层守卫 | 任一失败 ⇒ 整轮读数作废 |
-| G3 | 频率类判据的窗口 **< 20 s** | 【先例】32 位 @156.25 MHz 每 **27.49 s** 回绕（`P6E_OBS.md:70`） | 窗口 < 20 s |
-| G4 | 未实现地址回 `0xffffffff`，**同趟**读一个已实现字作对照 | 【先例】`P6B_ACCEPT.md` A5（0xB0 回 `0xffffffff` / 0x14 回 `0xdeadbeef`） | 两个读数都要有 |
+| G3 | 频率类判据的窗口 **< 20 s** | 【先例】32 位 @156.25 MHz 每 **27.49 s** 回绕（`agent_docs/P6E_OBS.md:70`） | 窗口 < 20 s |
+| G4 | 未实现地址回 `0xffffffff`，**同趟**读一个已实现字作对照 | 【先例】`agent_docs/P6B_ACCEPT.md` A5（0xB0 回 `0xffffffff` / 0x14 回 `0xdeadbeef`） | 两个读数都要有 |
 
 ### 6.2 负对照表（**单独列，9 条**）
 
@@ -776,7 +776,7 @@ J7 = SFP A = **X0Y4**、J8 = SFP B = **X0Y5**（iBERT 实测）。一条 AOC 的
 
 - 现役：**36 字**（W0..W35），地址 `0x20..0xAC`，分**两束**（FE 14 字 = `gmii_clk` / DP 22 字 = `dp_clk`），
   由 `rtl/snap_seq.v` **链式定序（FE 先 → DP 后）**；`SNAP_NW_P6E = 36`（`wrapper_p4.v:2545-2547`）。
-- 第一个未实现地址 = **`0xB0`**（`P6E_OBS.md:82`）。
+- 第一个未实现地址 = **`0xB0`**（`agent_docs/P6E_OBS.md:82`）。
 - ⭐ **硬上限（本规格书自查，可复核）**：`_proj_pcie/rtl/axi_regs.v:173` `wire [5:0] ar_word = s_axil_araddr[7:2];`
   ⇒ **地址每 256 字节回绕**；快照从 `word 8` 起（`:117`），最大 `word 63` = `0xFC`
   ⇒ **快照窗口最多 56 字**（`word 8..63`）。现用 36 ⇒ **只剩 20 字（`0xB0..0xFC`）**。
@@ -825,13 +825,13 @@ J7 = SFP A = **X0Y4**、J8 = SFP B = **X0Y5**（iBERT 实测）。一条 AOC 的
 |---|---|---|
 | ① | wrapper 的 `SNAP_NW_P6E`（单一来源） | 全链错位 |
 | ② | 每束 `snap_src` → `fe_src`/`dp_src` 的**拼接项数** | 少一项 ⇒ 高位悬空（读回 X）；多一项 ⇒ 被截断 |
-| ③ | ⭐ **`axi_regs` 的 `snap_idx` 位宽 + `snap_base` 位宽** | **只改一处 ⇒ 未实现地址静默回绕成 W0..W3 = 假 PASS**（本工程踩过，`P6E_OBS.md:100-104`） |
+| ③ | ⭐ **`axi_regs` 的 `snap_idx` 位宽 + `snap_base` 位宽** | **只改一处 ⇒ 未实现地址静默回绕成 W0..W3 = 假 PASS**（本工程踩过，`agent_docs/P6E_OBS.md:100-104`） |
 | ④ | `axi_regs.SNAP_NW` | —— |
 | ⑤ | 验收/采样脚本里"未实现地址"的取值 | 会把"新功能上线"判成回归；⚠️ **绝不能挑 ≥0x100**（别名到 MAGIC/已实现字） |
 | ⑥ | 三道门自己的参数（`tb_axi_regs` 的 `.SNAP_NW`/`snap_din` 位宽/`w8` 长度、`tb_snap_cdc` 的 `NW`、wrapper 门的 force 清单与 `BUILD_ID` 期望） | 门"看不见"新字（16 字版当年就是这样让 `snap_base` 截断潜伏） |
 | ⑦ | `rtl/snap_seq.v` 的 `fe_idx_of`/`dp_idx_of` 索引表 | 读出"另一个字的正确值"，单测一遍看不出来 |
 | **⑧（新）** | **束数**（2 → N）与**每束的 `snap_cdc.NW`** | 新域的字进不了快照或串到别的束 |
-| **⑨（新）** | **链式定序方向**（`snap_seq` 的 FSM） | 跨域对账判据退化成对称容差 `\|Δ\|≤1`，**失去方向性**（`P6E_OBS.md` §三） |
+| **⑨（新）** | **链式定序方向**（`snap_seq` 的 FSM） | 跨域对账判据退化成对称容差 `\|Δ\|≤1`，**失去方向性**（`agent_docs/P6E_OBS.md` §三） |
 
 ---
 
@@ -851,7 +851,7 @@ J7 = SFP A = **X0Y4**、J8 = SFP B = **X0Y5**（iBERT 实测）。一条 AOC 的
 | X8 | SFP 模块的型号/温度/DOM | 底板未引出 I2C | 物理上不可做 |
 | X9 | 手册"12 GHz"边界（Aurora 64b66b）与本设计的关系 | 本轮只到 10.3125 GBd | 不适用 |
 | X10 | `INS_LOSS_NYQ=30` / `RX_TERMINATION=PROGRAMMABLE 800` 与 `gt_10gbr` 差异对 BER 的影响 | 只回读到值，未做板级 A/B | 若要贴官方工作点再做 |
-| X11 | **长期稳定性（soak）** | 各闸的时长未定到小时级 | 按 `P7A_RESULT.md` §7 的口径登记 |
+| X11 | **长期稳定性（soak）** | 各闸的时长未定到小时级 | 按 `agent_docs/P7A_RESULT.md` §7 的口径登记 |
 
 ### 8.2 证据强度标注（本规格书用到的每条关键结论）
 
@@ -862,7 +862,7 @@ J7 = SFP A = **X0Y4**、J8 = SFP B = **X0Y5**（iBERT 实测）。一条 AOC 的
 | 硬块（scrambler/encoder/decoder/WD_ALIGN/hi_ber）在 fabric 里真实存在 | 【已实测】 | 路由后报告的层次单元名（`i_TX_SCRAMBLER` 等，转述自 §4.6） |
 | **官方 XGMII = lane0 首发** | 【明文RTL】 | `pcs64_pkt_gen_mon.v:1148,1169,1199,1240`（**本次未逐行读该文件**；行号与摘录来自 `P7B_XXV_OFFICIAL.md` §3.4 ⇒ 严格说这一条是【转述自…】，列入 §11 U7 待回核） |
 | 我们的合同 = `tdata[63:56]` 首发 | 【明文RTL】+【板级实测】 | `rtl/mac_rx_64.v:2-8`；P6b 板级 35/35 验收 |
-| `gt_10gbr` 板级 BER `4.997×10⁻¹³` | 【板级实测】 | `P7A_RESULT.md` / `_proj_10g/reports/p7a_bitstream_sha256.txt` |
+| `gt_10gbr` 板级 BER `4.997×10⁻¹³` | 【板级实测】 | `agent_docs/P7A_RESULT.md` / `_proj_10g/reports/p7a_bitstream_sha256.txt` |
 | 官方核内部 GT 配置与 `gt_10gbr` **逐项相同**（除 `FREERUN_FREQUENCY` / 通道数） | 【已实测】 | 子核 `.xci` 回读（转述自 §4.5 的对账表） |
 | `FREERUN_FREQUENCY=100.00` 的来源 = `dclk` | 【推定】 | GT 内部加密；OOC XDC 有 `dclk` 10.000（明文） |
 | 端口 `_0` 后缀 = 端口/核索引（2 端口时会有 `_1`） | 【推定】 | `.veo` 里全套端口都带 `_0` 且该配置是 1 通道 ⇒ 见 §11 U1 |
@@ -967,11 +967,11 @@ J7 = SFP A = **X0Y4**、J8 = SFP B = **X0Y5**（iBERT 实测）。一条 AOC 的
 | 10GBASE-R / XGMII 常量（控制码 / 块类型 / 前导 / IFG / 帧长 / FCS / 加扰） | `_proj_10g/notes/P7B_BASER_TABLES.md` §1-§5（IEEE 802.3-2008 Section 1/4 原文转录） |
 | GT fabric 接口冻结（**P7a 路线，已降级为背景**）+ 第 646 行订正 | `_proj_10g/notes/P7B_PHY_IFACE.md` §0-§5/§8/§10.2 |
 | 开源库侦察（**路线已作废**，加扰器/块锁/XGMII 分析可作旁证） | `_proj_10g/notes/P7B_LIB_SURVEY.md`（尤其 TL-1..TL-6） |
-| 现役 36 字快照窗口 + 扩窗 7 处清单 + 两个已知缺口 | `P6E_OBS.md` §一/§五 |
+| 现役 36 字快照窗口 + 扩窗 7 处清单 + 两个已知缺口 | `agent_docs/P6E_OBS.md` §一/§五 |
 | `snap_idx`/`snap_base`/`ar_word` 位宽与回绕红线 | `_proj_pcie/rtl/axi_regs.v:43-47,74-78,173,200-222,241-245`（**本次逐行读过**） |
 | `snap_seq` 的索引表（单一来源） | `rtl/snap_seq.v:41-51,86-121` |
-| P6b 板级基线（频率/守恒律/速率） | `P6B_ACCEPT.md`（B2b/B3/D1-E1b）、`P6B_SUMMARY.md` |
-| P7a 板级基线（BER / gearbox 三条腿 / license 负对照） | `P7A_RESULT.md`、`_proj_10g/reports/p7a_*.txt` |
+| P6b 板级基线（频率/守恒律/速率） | `agent_docs/P6B_ACCEPT.md`（B2b/B3/D1-E1b）、`agent_docs/P6B_SUMMARY.md` |
+| P7a 板级基线（BER / gearbox 三条腿 / license 负对照） | `agent_docs/P7A_RESULT.md`、`_proj_10g/reports/p7a_*.txt` |
 | 本板实测更正（Y2 = 156.25 MHz / SFP 四脚 / 无 UART） | `../XCKU5PMini/CLAUDE.md`「本板实测修正」 |
 | 引脚（GT refclk / SFP / 通道映射） | `_ibert/constr/ibert_top.xdc`、`_ibert/m2_loopback.tcl:133-134` |
 | 对端机（SFC9120 / 口名 / 内核 / DPDK） | 记忆件 `eco-linux-peer-box.md`（⚠️ 闸 2 前现场复核，见 U14） |
@@ -989,14 +989,14 @@ J7 = SFP A = **X0Y4**、J8 = SFP B = **X0Y5**（iBERT 实测）。一条 AOC 的
 `P7B_DATAPATH_CONTRACT.md`（**转述**）·
 `rtl/rx_classify.v:1-15,50-66,100-106` · `rtl/fifo_async.v` 的 `ovf_pulse/ovf_cnt` 声明与单驱动 ·
 `board/wrapper_p4.v:2196-2239,2524-2580,2660-2700` · `_proj_pcie/rtl/axi_regs.v:60-129,171-175,195-246` ·
-`rtl/snap_seq.v` 的索引表 · `P6E_OBS.md` 全文 · `P7A_SPEC.md` 全文 · `P7A_RESULT.md` §7-§9 ·
+`rtl/snap_seq.v` 的索引表 · `agent_docs/P6E_OBS.md` 全文 · `agent_docs/P7A_SPEC.md` 全文 · `agent_docs/P7A_RESULT.md` §7-§9 ·
 `_proj_10g/notes/` 的四份笔记（`XXV_OFFICIAL`/`DATAPATH_CONTRACT`/`RXCLASSIFY_AUDIT`/`BASER_TABLES` 全文，
 `PHY_IFACE` 的关键章节）。
 **本规格书自算的结论（写出算式，可独立复核）**：§4.2.1 的 32.8%/12.5% · §5.1 前置的"1 通道做不了 J7↔J8 自环" ·
 §7.1 的"56 字硬上限" · §7.3 的"+18 字 ⇒ 窗宽 54" · §6.1 各条的期望值形式。
 
 **转述（未回原始文件）**：`P7B_XXV_OFFICIAL.md` 里引的 license 日志行 / 时序报告数值 / 资源报告数值 /
-路由后层次单元名 / `gt_10gbr` 与官方子核的 `.xci` 对账表；`P7A_RESULT.md` 的板级读数；
+路由后层次单元名 / `gt_10gbr` 与官方子核的 `.xci` 对账表；`agent_docs/P7A_RESULT.md` 的板级读数；
 `P7B_LIB_SURVEY.md` 关于开源库的一切（本次**完全没有**读该库源码）；记忆件里的对端机状态。
 ⚠️ 其中**唯一影响设计方向的是 U7**（`pcs64_pkt_gen_mon.v` 的 `swapn` 行号与摘录）—— 它已列入未核实清单，
 并在**闸 1c / 闸 2** 各有一条板级闭合路径。

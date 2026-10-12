@@ -174,7 +174,7 @@ FAIL_TOTAL tb_int_snapseq errors=1
 但若有人为了复现 `peer --rate-mbps` 而设非 0 值，**同一行代码的实际速率会静默 ×1.25**。
 建议：要么加守卫，要么在参数处写明"单位 = dp 拍"。
 另：HLS 侧的时间常数（如 `hls/.../udp_echo.v:8418` 的 `32'd100000000` 拍）**没有改** ——
-这与 `P6B_SPEC §5.3` 的"只记录不改"一致，但墙钟后果要写清：**该常数从 800ms@125MHz 变成 640ms@156.25MHz（−20%）**。
+这与 `agent_docs/P6B_SPEC §5.3` 的"只记录不改"一致，但墙钟后果要写清：**该常数从 800ms@125MHz 变成 640ms@156.25MHz（−20%）**。
 
 ---
 
@@ -346,7 +346,7 @@ WNS **+0.373**、WHS **+0.010**、WPWS **+0.000**、失败端点 **0/220748**、
   `frame_fifo.v` 比本仓还旧一版），**完全没覆盖**那 4 个被改的文件 ⇒ 它**不能**作为
   "P4 默认构建没被碰过"的证据。
 * **历史（P6b 之前）的 P4 矩阵证据不受影响**：在被拷贝之前（≤09-28 21:09），
-  `D:\repo\ECO\udp_hls_10g` **就是**当时的开发树，`PORT_NOTES.md:2694` 也把命令写成
+  `D:\repo\ECO\udp_hls_10g` **就是**当时的开发树，`agent_docs/PORT_NOTES.md:2694` 也把命令写成
   `bash /d/repo/ECO/udp_hls_10g/sim/p4sim/run_matrix_p4dfix.sh` —— 那时它不是空门。
   受影响的**只有**"拷贝之后仍然引用这条命令"的说法 ⇒ 就是提交 `a31c86b`，
   以及本仓里那份**看起来是证据、实际是 09-27 陈旧数据**的 `matrix_p4dfix.log`（更毒：
@@ -391,7 +391,7 @@ WNS **+0.373**、WHS **+0.010**、WPWS **+0.000**、失败端点 **0/220748**、
 | 项 | 我的判定 | 理由（原始证据） |
 |---|---|---|
 | **R9** `reset_n` 加 `set_false_path` | **低（清理项）**，不是功能缺陷 | `reset_n` 是纯输入端口且**没有 input delay** ⇒ 根本没被时序分析（`check_timing`：`unconstrained_internal_endpoints 0`；`**async_default**` 9 组、失败端点 0、WHS +0.113..+0.269）。加 false_path 的价值是消掉 `no_input_delay (6) HIGH` 这条方法论告警 |
-| **`tools/parse_mac_rx.py` "未改"** | **自述不实（方向是好的）** | `git diff --stat` = `17 insertions(+), 3 deletions(-)`，加的正是 P6B_REVIEW 建议 (e) 的 TERM 帧分类（`:65-74`）。**它改了** |
+| **`tools/parse_mac_rx.py` "未改"** | **自述不实（方向是好的）** | `git diff --stat` = `17 insertions(+), 3 deletions(-)`，加的正是 agent_docs/P6B_REVIEW 建议 (e) 的 TERM 帧分类（`:65-74`）。**它改了** |
 | **`tb_snap_cdc` 的 `SKEW_STEP_NS` 被改过** | **可接受（TB 自纠）** | 旧值 0.15 是硬编码 ⇒ NW=32 时整束偏斜 4.8ns > `clk_b` 半周期 4.55ns ⇒ 判据 2 假 FAIL（TB 自身越界）。新式 `3.6/NW` 在 NW=24 时**恰好还原 0.15**（对旧结论零影响），NW=32 时 0.1125。属激励修正，**不动 DUT** |
 | **`sim/snapcdc/run_tb_snap_cdc.bat:13` 文案不符** | **低，但我升级半级** | `:13` 印 `NW=36`，`:16` 用的是 `-d TB_NW_32`，TB 默认 = **32** ⇒ 实际跑的是 **{32, 24}**。更值得说的是：**32 与 36 都不是集成时的实际束宽（FE=14、DP=22）** ⇒ 那条"证明本模块不依赖具体字数"的主张应改写成"在 {32,24} 上成立"，且**这个单元门从未测过真实例化值**（与工程坑 11"门绿而板红"同族，尽管 snap_cdc 是纯参数化逻辑、风险很低） |
 
@@ -462,7 +462,7 @@ git -C /d/repo/ECO/udp_hls_10g log --oneline -2 ; git -C ... status --short
 ## 附录 B：我写过的路径（全部新增，未改任何既有文件）
 
 ```
-P6B_INTEGRATION_REVIEW.md          ← 本文件
+agent_docs/P6B_INTEGRATION_REVIEW.md          ← 本文件
 int_scratch/tb_int_axr36.v         tb_int_snapseq.v   probe_seq.v
 int_scratch/chk_mirror.py          chk_p4files.py     scan_consts.py
 int_scratch/neg5/axi_regs.v        negbase/axi_regs.v mutseq/snap_seq.v

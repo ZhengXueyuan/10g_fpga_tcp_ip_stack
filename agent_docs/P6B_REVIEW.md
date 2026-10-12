@@ -1,8 +1,8 @@
 # P6B_REVIEW — 对抗审查发现清单
 
-> 审查对象: `P6B_SPEC.md`(1325 行) + `rtl/fifo_async.v` + `rtl/clk_gen_p6b.v` + 两个 TB。
+> 审查对象: `agent_docs/P6B_SPEC.md`(1325 行) + `rtl/fifo_async.v` + `rtl/clk_gen_p6b.v` + 两个 TB。
 > 审查 agent: 与施工 agent 并行工作；**本文件与 `review_scratch/` 是本 agent 唯一写过的路径**
-> （未修改 `P6B_SPEC.md` / `rtl/` / `tb/` / `board/` / `_proj_pcie/` 下任何既有文件）。
+> （未修改 `agent_docs/P6B_SPEC.md` / `rtl/` / `tb/` / `board/` / `_proj_pcie/` 下任何既有文件）。
 > 全部结论附独立证据（代码行 / 我自己的 xsim 输出 / 我重算的数字）。**未验证项在 §6 逐条列。**
 > ⚠️ 审查期间施工 agent 正在改动 `board/wrapper_p4.v` / `rtl/*.v`；凡引用"现状"的行号均已实测读出。
 > 凡"预测"（如 Vivado DRC）均已标注**未实测**。
@@ -22,14 +22,14 @@
 | # | 严重度 | 一句话 | 证据 |
 |---|---|---|---|
 | **F1** | 🟠 **中（潜伏设计债）** | P6b 的 8 个时间常数被 `ifdef PCIE_OBS` 守卫 —— **一个语义完全无关的宏**。`PCIE_OBS` 现在同时表示"例化 PCIe 观测通道"**和**"数据面跑在 156.25MHz"。当前树里没有构建会踩（`build_p6e` 已被施工 agent 显式声明为"被 P6b 取代"并**同步补齐**了 3 个新 RTL + 2 个新 XDC），**但规格书全文从未提 `PCIE_OBS`** ⇒ 下次有人要"有 PCIe 窗口但数据面仍 125MHz"时会拿到 8 个错的时间常数，且**无任何告警**（UART 变 7680 波特、RTO 变 125ms、FIN 超时变 500ms） | `board/build_p6e_ku5p.tcl:1-6`(施工 agent 自述)、`:110`；`board/build_p6a_ku5p.tcl:65`（**无** PCIE_OBS ✓）；`rtl/tcp_tx_frame.v:165-169`；`rtl/slow_rx_adp.v:22-26`；`rtl/app_status_uart.v:50-56`；`rtl/app_ctrl.v:218-222`；`board/uart_dbg.v:141-145,199-205`；`board/wrapper_p4.v:295-320` |
-| ~~F2~~ | ⚪ **撤回（我读错，此处是我方错误）** | 我曾判"`sys_clk_p/n` 端口无条件声明 ⇒ 打破基线端口表"。**实测证伪**：`board/wrapper_p4.v:175` 的 `ifdef PCIE_OBS` 在 `:177` 后 `endif` 收口 —— 端口**正确地**包在 `ifdef PCIE_OBS` 内，注释还逐字写了理由（与 P6B_SPEC §B2 一致）。P6a/P5/P6_t8p0/P6_t6p4 的端口表**未变** | `board/wrapper_p4.v:172-178`（`ifdef`/`endif` 包住）；`:165-177` 全文件 `sys_clk` 只在 `ifdef` 内 |
-| **F3** | 🟡 **中（施工 agent 已在审查期间修好大半，剩一条残留）** | 我审查到一半时全链门确实是"定义了 `PCIE_OBS`、没定义 `P6B_SIM_CLKGEN`、TB 不驱动 `sys_clk_p/n`"⇒ 会例化**真 MMCM** 且永不失锁 ⇒ DP 域钉在复位、门读到全 0。**到 09:4x 实测已被修**：`run_tb_p6e_pcie.bat` 已加 `-d P6B_SIM_CLKGEN`，TB 已加 `reg sys_clk_p/n` + `always #5` 并接到 `u_dut`。**残留 3 条**：① `sim/p6e_pcie/files.f` **仍缺** `clk_gen_p6b.v`/`fifo_async.v`/`snap_seq.v` ⇒ 门现在会在 **xelab** 报 module not found；② 规格书 R7 提的宏名是 `P6B_SIM_DPCLK`，实现叫 `P6B_SIM_CLKGEN` —— **照规格书施工会加错宏**；③ TB 把 `sys_clk_p/n` 驱动成**同相**（两个 `#5` 同时翻转），行为级旁路下无害，但**真 IBUFDS 需要反相** ⇒ 谁把旁路关掉就会得到"没有时钟" | `sim/p6e_pcie/run_tb_p6e_pcie.bat:19`（`git diff` 实测已改）；`sim/p6e_pcie/tb_p6e_pcie_wrapper.v:62,67-68,92-93`；`sim/p6e_pcie/files.f`（209 行，grep 三个新文件 = 0 命中）；`board/wrapper_p4.v:296-302`；`P6B_SPEC.md:1202` |
+| ~~F2~~ | ⚪ **撤回（我读错，此处是我方错误）** | 我曾判"`sys_clk_p/n` 端口无条件声明 ⇒ 打破基线端口表"。**实测证伪**：`board/wrapper_p4.v:175` 的 `ifdef PCIE_OBS` 在 `:177` 后 `endif` 收口 —— 端口**正确地**包在 `ifdef PCIE_OBS` 内，注释还逐字写了理由（与 agent_docs/P6B_SPEC §B2 一致）。P6a/P5/P6_t8p0/P6_t6p4 的端口表**未变** | `board/wrapper_p4.v:172-178`（`ifdef`/`endif` 包住）；`:165-177` 全文件 `sys_clk` 只在 `ifdef` 内 |
+| **F3** | 🟡 **中（施工 agent 已在审查期间修好大半，剩一条残留）** | 我审查到一半时全链门确实是"定义了 `PCIE_OBS`、没定义 `P6B_SIM_CLKGEN`、TB 不驱动 `sys_clk_p/n`"⇒ 会例化**真 MMCM** 且永不失锁 ⇒ DP 域钉在复位、门读到全 0。**到 09:4x 实测已被修**：`run_tb_p6e_pcie.bat` 已加 `-d P6B_SIM_CLKGEN`，TB 已加 `reg sys_clk_p/n` + `always #5` 并接到 `u_dut`。**残留 3 条**：① `sim/p6e_pcie/files.f` **仍缺** `clk_gen_p6b.v`/`fifo_async.v`/`snap_seq.v` ⇒ 门现在会在 **xelab** 报 module not found；② 规格书 R7 提的宏名是 `P6B_SIM_DPCLK`，实现叫 `P6B_SIM_CLKGEN` —— **照规格书施工会加错宏**；③ TB 把 `sys_clk_p/n` 驱动成**同相**（两个 `#5` 同时翻转），行为级旁路下无害，但**真 IBUFDS 需要反相** ⇒ 谁把旁路关掉就会得到"没有时钟" | `sim/p6e_pcie/run_tb_p6e_pcie.bat:19`（`git diff` 实测已改）；`sim/p6e_pcie/tb_p6e_pcie_wrapper.v:62,67-68,92-93`；`sim/p6e_pcie/files.f`（209 行，grep 三个新文件 = 0 命中）；`board/wrapper_p4.v:296-302`；`agent_docs/P6B_SPEC.md:1202` |
 | **F4** | 🔴 **高** | **两个独立缺陷，都被我自己的 xsim 复现**：<br>**(a) 恒等式不是结构性的**：`mac_rx_64` 的丢帧分支在**已 push 过字之后**才丢 ⇒ 流里留下**孤儿字**（有 `popc`、无 TLAST）⇒ `W31` 永久多算。实测：一次帧中丢帧使 `W1−W31 = −64`。<br>**(b) ⭐ 更严重：帧尾那一拍会让 `stat_frames`/`stat_bytes` 谎报成功，而 TLAST 字被 `fifo_sync` 静默丢弃**。机制已逐拍钉死（§3.4）：帧尾决策 `:142` 读到 `full=0`（FIFO 7/8，**读得对**）⇒ push 成立、计数器 +1；但**同一拍**完成字的那次 push 把 `wptr` 推到满，于是**下一拍**`fifo_sync` 的 `wr && !full` 判假 ⇒ 写被丢（`fifo_sync` 无溢出保护）⇒ 该帧的 **TLAST 字永久丢失**，而 `W0`/`W1` 已算它成功。实测 `W0−W30 = −1`、`W1−W31 = −12`（76 − 64，**逐字节对得上**）。此缺陷**与 P6b 无关（P6b 前就有）**，但**C1 判据会把它报成"CDC 完整性故障"** | `rtl/mac_rx_64.v:142-155`（帧尾 push）+ `:180-194`（完成字 push）；`rtl/fifo_sync.v:26`（`full` 组合）+ `:40`（`wr && !full` 才写）+ `:47`（指针）—— **无溢出保护**；`board/wrapper_p4.v:422`（`rxsrc_tready = ~rx_fifo_full`）；xsim 原始输出见 §3.4 |
-| **F5** | 🟠 中高 | 规格书 §7.2 的两张索引表 `FE_IDX`/`DP_IDX` **与它自己那张 32 行对照表互相矛盾**（`FE_IDX` 把 `fe[8]/fe[9]` 写在下标 24/25；`DP_IDX` 在 W26..W31 上整体**错位两个槽**）。施工 agent **已按对照表纠正**（`rtl/snap_seq.v:43-48,78-109`），但 §7.4 ⑦ 仍然指示"必须与 §7.2 的两张表逐项一致" ⇒ 照规格书重实现会**重新引入**静默串位 | `P6B_SPEC.md:912-919` vs `:923-935` vs `:879-880`；`rtl/snap_seq.v:43-48` |
-| **F6** | 🟠 中 | `WIDTH(77)` 是规格书的**算术错**（64+8+1+1+1+1 = **76**，不是 77）。已原样落进 `board/wrapper_p4.v:405,412`（76 位 `din`/`dout` 接 77 位端口的 `[76]`）。功能上良性（Verilog 补零），但注释与实际分叉，且会诱导后人"补一个字段" | `P6B_SPEC.md:61,445,572`；`board/wrapper_p4.v:405-412`；`rtl/mac_rx_64.v:227`（`FW=76`） |
+| **F5** | 🟠 中高 | 规格书 §7.2 的两张索引表 `FE_IDX`/`DP_IDX` **与它自己那张 32 行对照表互相矛盾**（`FE_IDX` 把 `fe[8]/fe[9]` 写在下标 24/25；`DP_IDX` 在 W26..W31 上整体**错位两个槽**）。施工 agent **已按对照表纠正**（`rtl/snap_seq.v:43-48,78-109`），但 §7.4 ⑦ 仍然指示"必须与 §7.2 的两张表逐项一致" ⇒ 照规格书重实现会**重新引入**静默串位 | `agent_docs/P6B_SPEC.md:912-919` vs `:923-935` vs `:879-880`；`rtl/snap_seq.v:43-48` |
+| **F6** | 🟠 中 | `WIDTH(77)` 是规格书的**算术错**（64+8+1+1+1+1 = **76**，不是 77）。已原样落进 `board/wrapper_p4.v:405,412`（76 位 `din`/`dout` 接 77 位端口的 `[76]`）。功能上良性（Verilog 补零），但注释与实际分叉，且会诱导后人"补一个字段" | `agent_docs/P6B_SPEC.md:61,445,572`；`board/wrapper_p4.v:405-412`；`rtl/mac_rx_64.v:227`（`FW=76`） |
 | **F7** | 🟠 中 | §7.7 的"÷64 → ÷80"逐处清单**漏了 5 处**，其中 2 处是**活算式**（会打印错误的复位次数）：`p6e_snap_check.sh:143`、`p6b_accept.sh:278`；另有 `p6e_boot_timeline.sh:18`、`README.md` 的「已建成的能力 · 慢路径」与「已建成的能力 · 板级诊断接口」两节（README 2026-09-30 结构性重写**前**为 `README.md:69,155`） | 见 §4 表 |
 | **F8** | 🟡 中低 | §5.1 的"必须改"清单**漏了 `rtl/app_ctrl.v` 的两处注释块**（`:79-80` 的 "1 计数 = 256 拍 = 2.048us @125MHz"、`:128` 的 "4 轮 = 1024 拍"）⇒ 触发本工程"文档与 RTL 分叉 = 硬失败" | `rtl/app_ctrl.v:79-80,128` |
-| **F9** | 🟡 中低 | 跨文档冲突：`p6b_accept.sh:76` 说"未实现地址必须挪到 **0x88**"，规格书 §7.4 ⑤ 说 **0xA0**。且 `p6e_snap_check.sh` 的 **活判据**在 `:165`（`U84=$(rd 0x84)`），规格书只点了 `:161`（注释） | `_proj_pcie/p6b_accept.sh:76`；`_proj_pcie/p6e_snap_check.sh:161,165`；`P6B_SPEC.md:978,1017` |
+| **F9** | 🟡 中低 | 跨文档冲突：`p6b_accept.sh:76` 说"未实现地址必须挪到 **0x88**"，规格书 §7.4 ⑤ 说 **0xA0**。且 `p6e_snap_check.sh` 的 **活判据**在 `:165`（`U84=$(rd 0x84)`），规格书只点了 `:161`（注释） | `_proj_pcie/p6b_accept.sh:76`；`_proj_pcie/p6e_snap_check.sh:161,165`；`agent_docs/P6B_SPEC.md:978,1017` |
 | **F10** | 🟡 中低 | **链式触发偏斜上界 59.2 ns 是两个错误相互抵消的产物**。正确值 ≈**43.2 ns**（含 2 个被漏算的 axi 拍），且 `∈{0,1}` 的真实依据比规格书更强（帧尾间距 ≥672 ns，不是 IFG 96 ns）。**结论不倒，但数字不能用** | §3.2 |
 | **F11** | 🟡 中低 | `W20 − W7 ∈ {0,1}` 只在 **`W21 == 0` 的条件下**成立：`mac_tx` 帧内中止后回到 `S_IDLE`，会把**中止帧的剩余字当成一帧新的重发**并 `stat_frames++` ⇒ 一次 abort 会让 W20 多计若干"帧"。规格书 §9.3 把它写成结构性判据 | `rtl/mac_tx_64.v:148-152` + `:106-128` + `:179-186` |
 | **F12** | ⚪ 记录 | MMCM VCO 1250 MHz **合法**（ds922 Table 38: `MMCM_FVCOMIN=800 / FVCOMAX=1600`，xcku5p 全速度档同值）—— 规格书 §A1 的"两者都合法"**实测证实** | ds922 p.36（本 agent 用 pymupdf 提取） |
@@ -239,8 +239,8 @@ FE 锁存 (e3)                       ← snap_cdc#FE 的 hold_b 在 update_b 那
 
 | 来源 | W24/W25 | W26/W27 | W28..W31 |
 |---|---|---|---|
-| 两束拼接（`P6B_SPEC.md:879-880`）| DP dp[16]/dp[17] | **FE** fe[9]/fe[8] | DP dp[18..21] |
-| 32 行对照表（`P6B_SPEC.md:923-935`）| DP dp[16]/dp[17] | **FE** fe[9]/fe[8] | DP dp[18..21] |
+| 两束拼接（`agent_docs/P6B_SPEC.md:879-880`）| DP dp[16]/dp[17] | **FE** fe[9]/fe[8] | DP dp[18..21] |
+| 32 行对照表（`agent_docs/P6B_SPEC.md:923-935`）| DP dp[16]/dp[17] | **FE** fe[9]/fe[8] | DP dp[18..21] |
 | **§7.2 的 `localparam`（`:912-919`）** | `FE_IDX[24,25] = 8,9` ✗ / `DP_IDX[24,25] = 16,17` ✓ | `FE_IDX[26,27] = -1` ✗ / `DP_IDX[26,27] = 18,19` ✗ | `DP_IDX[28..31] = 20,21,-1,-1` ✗ |
 
 ⇒ 照 §7.2 的 `localparam` 施工，W26/W27 会读出 **0**、W28/W29 会读出 **W30/W31 的值**、W30/W31 读出 **0**。
@@ -318,7 +318,7 @@ rd_mutF_C_RESET  : FAIL  FAIL-DETAIL: RESET3/RESET4 前置(C)/RESET6/通用1
 | `_proj_pcie/p6e_boot_timeline.sh:18` | 注释 "W17 … ÷64" | 同上 | ❌ 漏（与 `:23` 同文件，只点了 `:23`） |
 | `README.md`「已建成的能力 · 慢路径」（重写前 `:69`） | "看门狗 (饥饿超时 **64 拍**复位脉冲)" | 80 拍 | ❌ **漏**（README 完全不在清单里） |
 | `README.md`「已建成的能力 · 板级诊断接口」（重写前 `:155`） | "64 拍 TR/RXT 轨迹环" | 这是**环形缓冲深度**（条目），不是时间 ⇒ **不该改**，但清单没区分，容易被顺手改错 | ❌ 漏（**负向**：应明确"不改"） |
-| `P6E_OBS.md:47,105` | `÷64` | 同上 | ⚠️ 部分（§9.3 只说"P6E_OBS 要加注记"） |
+| `agent_docs/P6E_OBS.md:47,105` | `÷64` | 同上 | ⚠️ 部分（§9.3 只说"agent_docs/P6E_OBS 要加注记"） |
 | `board/wrapper_p4.v:48` | 注释 "9600-8N1, gmii_clk 125MHz 域, 13021 拍/位" | 域变 dp；13021→16276 | ✅ 点了（§5.2 的警告） |
 | `rtl/app_ctrl.v:79-80` | 注释 "16 槽轮一遍 = 256 拍/轮 ⇒ 1 计数 = 2.048us @125MHz"、"FIN_TO_LIM = 195313 ⇔ …400ms" | 数值与换算全变 | ❌ **漏** |
 | `rtl/app_ctrl.v:128` | 注释 "再数 FIN_GRACE 轮（4 轮 = 1024 拍）" | FIN_GRACE 4→5 | ❌ **漏** |
@@ -345,7 +345,7 @@ rd_mutF_C_RESET  : FAIL  FAIL-DETAIL: RESET3/RESET4 前置(C)/RESET6/通用1
 - **R2（撤回，见 F2）**：端口已正确 `ifdef`，无需动作。（保留一条**可验证的正面判据**：
   任何非 P6b 构建的端口表里都不应出现 `sys_clk_*` —— 可用 `report_io` 或 `.dcp` 的 `get_ports` 核对。）
 - **R3（残留三条，必修）**：① 把 `clk_gen_p6b.v`/`fifo_async.v`/`snap_seq.v` 加进
-  `sim/p6e_pcie/files.f`（否则全链门在 xelab 就挂）；② 把 `P6B_SPEC.md:1202` 的宏名
+  `sim/p6e_pcie/files.f`（否则全链门在 xelab 就挂）；② 把 `agent_docs/P6B_SPEC.md:1202` 的宏名
   `P6B_SIM_DPCLK` 改成实现里真用的 `P6B_SIM_CLKGEN`（工具脚本已经用后者）；
   ③ TB 里把 `sys_clk_n` 改成与 `sys_clk_p` **反相**（真 IBUFDS 需要差分），
   或者显式断言"本门只在 `P6B_SIM_CLKGEN` 下跑"，免得将来有人关掉旁路后误判"MMCM 不锁"。

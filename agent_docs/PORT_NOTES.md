@@ -716,7 +716,7 @@ S_TCB_LAST 拍) / udp_echo.cpp (TCP 控制帧 busy 延迟) / gen_stim
 - 审查建议"重传超限释放槽位时补 CFG_DEL" — 不可取: 超限释放的典型场景
   是握手 ACK 走 fast path (HLS 永远看不到), fast 条目正是**活连接** —
   补 DEL 会杀掉正常工作的数据面连接。半开场景靠新 SYN 复用同槽 (ADD
-  覆盖) 自愈。超限释放不清 fast 是 P4b 设计决策 (PORT_NOTES 开工节)。
+  覆盖) 自愈。超限释放不清 fast 是 P4b 设计决策 (agent_docs/PORT_NOTES 开工节)。
 
 **观察项接受** (不阻塞 P4b-5):
 - 看门狗复位不清 fast 侧 CAM/TCB — fast 数据面独立于慢路径, 清条目会
@@ -1751,7 +1751,7 @@ RETX: 无注入门恒 0、TXDROP 门 ≥1 ✅ (唯一例外 = #15/#17 的精确�
   conn1 重发帧与首发**仅 IP ID(+1)/IP 校验和/FCS 不同, 载荷 20B 与 TCP 头逐字节相同** (新 IP ID = 合法逐帧计数器)。
 
 **结论**: 数据面全绿; 唯一红门 = 判据问题 (checker 的"单丢 = 1 会话"模型不覆盖邻居连接 RTO 自愈,
-且生成器 c1ack 时序假设在该向量被打破), 非 RTL 缺陷。**P4 记录"TXDROP=200 → RETX=1"(PORT_NOTES:1118) 在当前代码+激励下已过期**, 不应作为放行依据。
+且生成器 c1ack 时序假设在该向量被打破), 非 RTL 缺陷。**P4 记录"TXDROP=200 → RETX=1"(agent_docs/PORT_NOTES:1118) 在当前代码+激励下已过期**, 不应作为放行依据。
 建议 (择一, 需实现 agent 确认分支): ①checker 对尾窗 RTO 回卷放宽 RETX 判据 (允许 +1 邻居自愈会话);
 ②生成器把 c1data/c1ack 前移或把 c1ack 的 GAP_TCP 加大到 ≥4000 拍 / 补发第二个 c1ack (让 ACK 不依赖 1500 拍假设)。
 
@@ -3578,7 +3578,7 @@ P5d 记录的新风险族 `app_ctrl.c_snd_wnd → app_pattern` 同样**完全退
 
 > ⛔ **本段已过期（2026-09-30 标注，`P7B_W13_AUDIT.md` §②-V27）** —— **别按它当现状引用**：
 > P6e/P6b 起 `udpapp_*` 已进 **PCIe 快照窗口**（36 字版 = `W8–W13`；**现役 = 61 字窗口**
-> —— P7b-BIZ 扩窗、新增字全落 MSB 端、`BUILD_ID_V=8`；`W8–W13` 这一批**逐项未动** ⇒ 上句的读法不变；**现役表 = `P7B_BIZ_WINDOW.md` §1**，`P6E_OBS.md` 的 36 字表是历史件），
+> —— P7b-BIZ 扩窗、新增字全落 MSB 端、`BUILD_ID_V=8`；`W8–W13` 这一批**逐项未动** ⇒ 上句的读法不变；**现役表 = `P7B_BIZ_WINDOW.md` §1**，`agent_docs/P6E_OBS.md` 的 36 字表是历史件），
 > **板级可读**；KU5P 上仍无 UART 消费者这一点**继续成立**（所以读法只走 PCIe 窗口）。
 > ⚠️ 另：`W13` 的读数**须同窗 `ΔW10 > 0`** 才有判别力，否则是空判据。
 
@@ -3636,7 +3636,7 @@ P5d 记录的新风险族 `app_ctrl.c_snd_wnd → app_pattern` 同样**完全退
 - **晶振** (10G 参考钟候选: `SiT9120AI-2B3-33E156.25`, 156.25MHz)。
 - **10G 对端**: 现有 PC 网卡 **Killer E5000B 是 5G RJ45、无 SFP+** ⇒ 10G 对端**不存在**,
   必须新购/新配 (SFP+ 网卡 + DAC/光模块, 或同板双口自环)。
-- ⚠️ **一个必须先定案的物理前提 (可能推翻整个 A 块)**: `PORT_NOTES` 记的 10G 参考钟引脚是
+- ⚠️ **一个必须先定案的物理前提 (可能推翻整个 A 块)**: `agent_docs/PORT_NOTES` 记的 10G 参考钟引脚是
   **X5 → Quad 115 (H5/H6)**, 而 **DEMO `k724` 的 XDC 实测是 D6 / quad 116 / X0Y0 / G4** ——
   **两者冲突。若晶振实际在 quad 115, 换晶振无效** (参考钟必须进 GT 对应的 quad)。
   **定案方法**: 读 `DEMO/k724*` 的 XDC + 本板原理图 `开发板硬件资料/` 的 GT 时钟网络,
@@ -3698,12 +3698,12 @@ P5d 记录的新风险族 `app_ctrl.c_snd_wnd → app_pattern` 同样**完全退
 1. **C1b 的 `Δ = 32×88×8 = 22528` 是单位混乘** (TL 的旧记载): 把"ackq 深 × 每帧拍数"的**字节**比
    当成了**拍**数。按拍/字节的**不变量**算, Δ 实为 **≈2.7KB**; 再加扫描周期项 ~2KB, 合计
    **~4.7KB < 16KB 余量** ⇒ **大概率不溢出**。⚠️ 但**门的判据要重写** (旧判据基于错误算式)。
-2. **10G 参考钟归属冲突** (见"物理前提"): `PORT_NOTES` 的 X5→Quad115 与 `k724` XDC 的
+2. **10G 参考钟归属冲突** (见"物理前提"): `agent_docs/PORT_NOTES` 的 X5→Quad115 与 `k724` XDC 的
    D6/quad116 不一致, 必须定案。
 3. `design_review/04` 说慢路径是 **`ap_ctrl_hs`**, **实际是 `ap_ctrl_none`** (本工程 HLS 全
    自由运行) ⇒ 该文档中依赖 `ap_ctrl_hs` 握手时序的论证**不适用本工程**。
 4. `design_review/04` 的工期估计**只覆盖前端替换** (见上)。
-5. `PORT_NOTES` 早前记的 **"3 字 skid"** 已过时 —— **代码里是 6 字** (见 `rx_classify`)。
+5. `agent_docs/PORT_NOTES` 早前记的 **"3 字 skid"** 已过时 —— **代码里是 6 字** (见 `rx_classify`)。
 6. **P5e 提交后基线冻结**: 本节的实测数字全部锚在 `9218c47` 之后的 **P5e 提交** (WNS +0.290 /
    LUT 51588 / BRAM 312); 若将来在 1G 上继续改代码, 这些数字需要重测才能当 10G 的起点。
 
@@ -3924,7 +3924,7 @@ P5d 记录的新风险族 `app_ctrl.c_snd_wnd → app_pattern` 同样**完全退
 ## 2026-09-28 P6e 合体: 数据面 + 观测通道进同一个比特流 (RTL 与门先做完, 等构建)
 
 **目标**: 把 `_proj_pcie/` 那套 (XDMA + 我们的寄存器块) 搬进 `board/wrapper_p4.v` 的
-`PCIE_OBS` 分支 ⇒ 一个位流里同时有 1G 数据面和 PCIe 寄存器窗口。做法与读数见 `P6E_OBS.md`。
+`PCIE_OBS` 分支 ⇒ 一个位流里同时有 1G 数据面和 PCIe 寄存器窗口。做法与读数见 `agent_docs/P6E_OBS.md`。
 
 **结构**: 8 路 gmii 域计数 → `rtl/snap_cdc.v` (新增, 相干快照 CDC) → `axi_regs` 扩展的
 快照窗口 (0x18 触发 / 0x1C 状态 / 0x20-0x3C 八个字) → `xdma_0`(user BAR) → 金手指 → 主机。
@@ -4191,27 +4191,27 @@ report_clock_interaction + 时序/资源, 全只读)。
 ## 2026-09-29 P6b 收口: 数据面 125MHz → **156.25MHz** (双时钟域 + 手写异步 FIFO) — 板级正式验收 35/35 + 四个缺陷修复 + 一个"空门"元问题
 
 > **归档索引**（本节是里程碑日志；判据的逐条推导与复现步骤在别的文件，别在这里找）：
-> `P6B_SUMMARY.md`（一页式总览）· `P6B_SPEC.md`（施工规格 + 勘误节）· `P6B_ACCEPT.md`（**板级验收原始记录**）·
-> `P6B_CDC_AUDIT.md`（跨域审计 + F-1/F-2/F-3）· `P6B_REVIEW.md`（对抗审查 F1–F13 + 附录 R 的 F4 复核）·
-> `P6B_INTEGRATION_REVIEW.md`（集成与"空门"核实）· `P6E_OBS.md`（**36 字寄存器表**，现役）·
+> `agent_docs/P6B_SUMMARY.md`（一页式总览）· `agent_docs/P6B_SPEC.md`（施工规格 + 勘误节）· `agent_docs/P6B_ACCEPT.md`（**板级验收原始记录**）·
+> `agent_docs/P6B_CDC_AUDIT.md`（跨域审计 + F-1/F-2/F-3）· `agent_docs/P6B_REVIEW.md`（对抗审查 F1–F13 + 附录 R 的 F4 复核）·
+> `agent_docs/P6B_INTEGRATION_REVIEW.md`（集成与"空门"核实）· `agent_docs/P6E_OBS.md`（**36 字寄存器表**，现役）·
 > `sim/p4gates/evidence/`（P4 硬化与负对照的全部原始读数）· `p6b_accept_final/`（验收归档物）。
 
 ### ① 目标与最终形状
 
-`P6B_SPEC` 的边界裁决 = **方案 A**：**前端留 125MHz、数据面整体搬 156.25MHz**，两者之间只留
+`agent_docs/P6B_SPEC` 的边界裁决 = **方案 A**：**前端留 125MHz、数据面整体搬 156.25MHz**，两者之间只留
 **两个异步边界**（RX 一个 / TX 一个），用**新写的手写异步 FIFO** `rtl/fifo_async.v`（灰码指针 + 两级同步，
 DEPTH=256 / FWFT=1）跨域；时钟由 `rtl/clk_gen_p6b.v` 从核心板 **Y1 100MHz** 经 MMCM ×1.5625 产生
-（**不是**从 PHY 的 RXC 倍频 —— 那条路的结构性否决见 `P6B_SPEC §2.1`）。两束快照用 `rtl/snap_seq.v` 做
+（**不是**从 PHY 的 RXC 倍频 —— 那条路的结构性否决见 `agent_docs/P6B_SPEC §2.1`）。两束快照用 `rtl/snap_seq.v` 做
 **链式触发**（FE 先 → DP 后）以保住跨域判据的**方向性**。
 
 **结果**：`board/build_p6b_final_ku5p.tcl` 产出的位流在板上跑通 —— 1G 图案通路 **956.0 Mbps**
 （= 1G 线速上限 957.1 的 **99.9%**），数据面实测 **156.2585 MHz** 与前端 **125.0061 MHz** 双域并存。
 
-### ② 板级验收读数（**正式验收 35 条判据全 PASS**；原件 = `P6B_ACCEPT.md`）
+### ② 板级验收读数（**正式验收 35 条判据全 PASS**；原件 = `agent_docs/P6B_ACCEPT.md`）
 
 | 项 | 读数 | 出处 |
 |---|---|---|
-| 位流 | `sha256 = c17700868b08170865f4a4ae0292ebb636aed03070e2875f6dbb005123a948ca`（`BUILD_ID=6`） | `P6B_ACCEPT.md` §1.1 |
+| 位流 | `sha256 = c17700868b08170865f4a4ae0292ebb636aed03070e2875f6dbb005123a948ca`（`BUILD_ID=6`） | `agent_docs/P6B_ACCEPT.md` §1.1 |
 | 时序 | `WNS +0.168 / WHS +0.010 / WPWS 0.000`，**0 失败端点** | 同上 §1.2 |
 | 数据面频率 | **156.2585 MHz**（`W24` / 真实墙钟，12.188566 s 窗口） | 同上 B2b |
 | 前端对照 | **125.0061 MHz**（`W5`，**同一窗口** ⇒ 两域确实不同频） | 同上 B3 |
@@ -4223,15 +4223,15 @@ DEPTH=256 / FWFT=1）跨域；时钟由 `rtl/clk_gen_p6b.v` 从核心板 **Y1 10
 ⚠️ **引用冒烟轮的数字必须注明位流**：冒烟轮（11:14–11:25）烧的是 **`03f9c6d0…fe5a0d`（过期位流，
 不含 F-1/F-2 修复）** ⇒ 它的"逐字节判据 FAIL"是**工具天花板**（C++/socket 口径只交付 3858/855,930 帧），
 不是板子缺陷；正式验收换用 **tcpdump + 离线代数**这条独立路径才判得了。两个位流的 sha256 对照表
-在 `P6B_ACCEPT.md` §1.1，**别把两轮的读数混着引**。
+在 `agent_docs/P6B_ACCEPT.md` §1.1，**别把两轮的读数混着引**。
 
 ### ③ 本轮修的四个缺陷（**其中两个早于 P6b 就存在**）+ 一个修复自身引入的缺陷
 
 | # | 一句话根因 | 修法 | 判据归属（**哪个读数是它的牙**） |
 |---|---|---|---|
 | **F4(a)**（🔴 高，**P6b 前就有**）| `mac_rx_64` 的丢帧分支在**已经 push 过字之后**才丢 ⇒ 流里留下**孤儿字**（有 `popc`、无 TLAST）⇒ `W31` 永久多算、下游只能靠"下一个 SOP"兜底重同步 | 新增 **TERM 收尾字**（`tdata=0, tkeep=8'h00, tlast=1, tuser=0, tcrs=0, terr=1`）+ `term_pend` 优先门 ⇒ 每个 SOP 与下一个 SOP 之间**恰一个** TLAST | **W32/W33/W34**（新计数器）+ 结构式 `W30==W0+W32` / `W31==W1−4·W0+W33`（`rtl/mac_rx_64.v:50` 明文）；E7/E8d 全 0 |
-| **F4(b)**（🔴 高，**P6b 前就有**，更严重）| 帧尾那一拍的 `push` 决策用的是**寄存器化的 `full`**（FIFO 7/8，判得"对"）⇒ `stat_frames`/`stat_bytes` **谎报成功**；而**同一拍**完成字的 push 把 `wptr` 推到满，**下一拍** `fifo_sync` 的 `wr && !full` 判假 ⇒ **TLAST 字被静默丢弃**（`fifo_sync` 无溢出保护）| 空间门一律换成 `fifo_sync.full_next`（**下一拍满的精确预测**，含在飞写与本拍读）：`push_ok = !full_next`；并给 `fifo_sync` 加 `ovf_pulse` 自检回读 | **W35**（`rx_stat_fifo_ovf`，**结构上恒 0**，非 0 = 修复失效）+ 逐拍轨迹（`P6B_REVIEW.md` §3.4）；`sim/f4sim/` 的门 + `tb/tb_mac_rx_f4.v` |
-| **F4-2**（🟠，**修 F4 时自己引入的**，被对抗复核抓到）| `hwv && !push_ok` 时**无条件**进 `S_TERM`，而 `term_pend` 只在 `first_done` 时置 ⇒ **`term_pend==0` 空入 `S_TERM`** ⇒ 下一个（空间充足、完全正常的）帧被吞掉并计成丢帧 | **一行**：`state <= first_done ? S_TERM : S_IDLE;`（`rtl/mac_rx_64.v:250-261`）| `P6B_REVIEW.md` **附录 R.4** 的 A/B（同一激励、同一 tready 表）：修复前 `frames=1 drop=2` → 修复后 `frames=2 drop=1`（**白丢的那一帧回来了**）。⚠️ **原门永远测不到它**：`tools/gen_f4_stim.py` 的帧尺寸最小 = 60 ⇒ 该分支覆盖率 0（**"同一个 agent 写门又写修复"的缺口，只能靠独立复核补**）|
+| **F4(b)**（🔴 高，**P6b 前就有**，更严重）| 帧尾那一拍的 `push` 决策用的是**寄存器化的 `full`**（FIFO 7/8，判得"对"）⇒ `stat_frames`/`stat_bytes` **谎报成功**；而**同一拍**完成字的 push 把 `wptr` 推到满，**下一拍** `fifo_sync` 的 `wr && !full` 判假 ⇒ **TLAST 字被静默丢弃**（`fifo_sync` 无溢出保护）| 空间门一律换成 `fifo_sync.full_next`（**下一拍满的精确预测**，含在飞写与本拍读）：`push_ok = !full_next`；并给 `fifo_sync` 加 `ovf_pulse` 自检回读 | **W35**（`rx_stat_fifo_ovf`，**结构上恒 0**，非 0 = 修复失效）+ 逐拍轨迹（`agent_docs/P6B_REVIEW.md` §3.4）；`sim/f4sim/` 的门 + `tb/tb_mac_rx_f4.v` |
+| **F4-2**（🟠，**修 F4 时自己引入的**，被对抗复核抓到）| `hwv && !push_ok` 时**无条件**进 `S_TERM`，而 `term_pend` 只在 `first_done` 时置 ⇒ **`term_pend==0` 空入 `S_TERM`** ⇒ 下一个（空间充足、完全正常的）帧被吞掉并计成丢帧 | **一行**：`state <= first_done ? S_TERM : S_IDLE;`（`rtl/mac_rx_64.v:250-261`）| `agent_docs/P6B_REVIEW.md` **附录 R.4** 的 A/B（同一激励、同一 tready 表）：修复前 `frames=1 drop=2` → 修复后 `frames=2 drop=1`（**白丢的那一帧回来了**）。⚠️ **原门永远测不到它**：`tools/gen_f4_stim.py` 的帧尺寸最小 = 60 ⇒ 该分支覆盖率 0（**"同一个 agent 写门又写修复"的缺口，只能靠独立复核补**）|
 | **F-2**（🟠 中，**P6b 前就有**）| `mac_tx_64` 帧内中止（源断供）后**残字被当成新帧的开头发出去** ⇒ 线上出现一个 **FCS 完全正确的"幽灵帧"**，载荷是被中止帧的**中段残字**（对端无法分辨）| 新增 **`S_FLUSH`** 状态（唯一入口 = `S_DATA` 的 `!fempty` 中止分支）：中止后**一个字都不发**，逐字弹掉输入 FIFO 直到吞掉**本帧自己的 TLAST**，再等够 IFG 12 字节才回 `S_IDLE`；新增 `stat_flush_words/stat_flush_done`。**时序要点**：判据必须是 `frd && !fempty && fdout[0]`（本拍真弹且弹的就是 TLAST），用"上一拍看到的 tlast"会多弹一个字 | `audit_scratch/t3_txcdc/`：**幽灵帧 0**（撤回修复 ⇒ **FAIL**）；**无中止路径指纹逐位不变**（`33f82978` 修前/修后相同 + flush 计数器为 0 = 冲刷从未运行的正证据）；E3 的 `W20−W7 ∈{0,1}` **且** `W21==0` |
 | **F-1**（🟠 中，P6b 期新写模块的契约漏洞）| `fifo_async` 的 `full` 在**写域复位释放窗口**里读 0（复位值），而此时的 `wr_en` 被**静默丢弃**（无写入、无计数、无探针）⇒ `!full` 这个唯一闸门在此期间不可信；`fifo_sync` 有 `ovf_pulse` 自检，`fifo_async` **什么都没有** | 新增 **`ovf_pulse` + `ovf_cnt`** 端口（与 `fifo_sync` 的 `ovf_pulse` **同形同义**）：**拒写不再静默**，`ovf_cnt` 恒 0 才叫"无丢字" | `sim/fifoasync/run_all.bat` 的 **12 个基础门 + 7 个变异**；关键负对照 `run_mut_noovf.bat`（把 `ovf_pulse` 钉 0 = **撤回 F-1 修复**）实测 **FAIL（3 条判据不成立）**；`audit_scratch/t4_reset/` 的实测 `model_acc=3999 vs dut_acc=3996`（3 字静默丢弃）|
 
@@ -4317,7 +4317,7 @@ DP 功能逻辑重启，而 FIFO 的**指针与内容保留** ⇒ DP 侧会在**
   **`rtl/frame_fifo.v` 比本仓还旧一版**；**真正需要回归的 4 个文件**（`rtl/fifo_sync.v` /
   `rtl/mac_rx_64.v` / `rtl/slow_rx_adp.v` / `rtl/tcp_tx_frame.v`，都是当时本仓工作区的未提交改动）
   **根本没进那次运行**（逐文件用 git blob 比对：P4 各门编译的 23 个源文件里 22 个相同、1 个不同；
-  HLS 输出目录 176/176 相同 —— 细节见 `P6B_INTEGRATION_REVIEW.md` §5.1）。
+  HLS 输出目录 176/176 相同 —— 细节见 `agent_docs/P6B_INTEGRATION_REVIEW.md` §5.1）。
 - ⇒ **这一次的"16 门全过"是空门**，**不能**作为"P4 默认构建没被碰过"的证据。
 - ✅ **历史（P6b 之前）的 P4 矩阵证据不受影响**：拷贝之前 ECO 就是当时的开发树，那时它不是空门。
   受影响的**只有"拷贝之后仍然引用这条命令"的说法** ⇒ 就是 `a31c86b`，以及本仓里那份
@@ -4357,13 +4357,13 @@ FTDI/MAX3232、无 USB 口、无调试排针；见 `../XCKU5PMini/CLAUDE.md`「�
 ### ⑨ 本轮三条教训（写给下一个 agent）
 
 1. **"跑门 ≠ 判门"**：见 ⑦。门"退出码 0"可能只是**它没判**（`type xsim*.log` 结尾的门；
-   判据打印与判据结果脱节的门 —— 本工程历史上有过"固定文案"：`P6E_OBS.md` §七·补2 记着一次
+   判据打印与判据结果脱节的门 —— 本工程历史上有过"固定文案"：`agent_docs/P6E_OBS.md` §七·补2 记着一次
    "5/5 全通的那轮照样打印'慢路径没回 ARP'"）。
    **纪律**：汇总前先看这个门**判据本身**有没有跑（证据非空自检：`checks>0` / `refw>0` / `stat_drop>0`）。
 2. **并发 agent 的文件所有权必须互斥**（本轮吃了两次）：
    ① 11:46 的矩阵跑与源码编辑重叠 ⇒ `REVISION DRIFT` 整轮作废（**编辑者以为门红了，其实是自己踩的**）；
    ② F-1 的探针被另一个 agent 改动（`rtl/fifo_async.v` md5 从 `1c21c024…` 变成 `11e8d82a…`，
-   `P6B_CDC_AUDIT.md` **A.4** 专门留了"**版本提示（审计时效）**"）；同族还有 `P6B_REVIEW.md` 头部的
+   `agent_docs/P6B_CDC_AUDIT.md` **A.4** 专门留了"**版本提示（审计时效）**"）；同族还有 `agent_docs/P6B_REVIEW.md` 头部的
    "时间戳与自我更正（必读）"与 **F3**（审查到一半时施工方已修好）。
    **纪律**：① **构建/仿真期间不得改动被构建的源码**（本工程既有坑的加强版）；② 交接时**必须留
    md5/sha256**；③ 凡与"当前文件内容"绑定的结论都要**标注时效**（行号会漂）。
@@ -4371,7 +4371,7 @@ FTDI/MAX3232、无 USB 口、无调试排针；见 `../XCKU5PMini/CLAUDE.md`「�
    `SNAP_STATUS.done` 是 **sticky** 的 ⇒ 它只证明"完成过至少一次"，**不证明"这一代是我的"**
    ⇒ 有**并发触发**时，"触发—锁存—读全"三步无法靠 `done` 自证 ⇒ `snap()` 必须用
    **`gen` 恰好 +1** 自证。⇒ 守卫**必需且保留**。
-   ⚠️ **但归因要改写**：本文件早先与 `P6B_ACCEPT.md` §7.4 都把"并发读者会互相污染（计数冻结）"
+   ⚠️ **但归因要改写**：本文件早先与 `agent_docs/P6B_ACCEPT.md` §7.4 都把"并发读者会互相污染（计数冻结）"
    记为**当日实测踩到** —— **那是错的归因**。那次"计数冻结 / 读数全部作废"的真凶是**该脚本
    自己的变量名撞车**（`$T` 被复用作已跑秒数 ⇒ `$T/reg_rw` 不存在 ⇒ 所有读静默失败 ⇒ 空读
    被 `$(( ))` 当 0），见提交 `b91f763`。
@@ -4394,7 +4394,7 @@ FTDI/MAX3232、无 USB 口、无调试排针；见 `../XCKU5PMini/CLAUDE.md`「�
 `_proj_pcie/p6b_accept.sh` + `p6b_smoke_*` · `p6b_accept_final/`（**验收归档**）· `board/p6b_verify/` ·
 `P6B_*.md`。（另有 `audit_scratch/` `review_scratch/` `int_scratch/` 三个**审查/审计 agent 的原始证据目录**，
 按纪律**保留**；它们的 `.txt` 读数与 TB 源码要入库，`xsim.dir/`/`*.wdb`/`*.memh` 等产物已由 `.gitignore` 排除
-—— 见 `P6B_COMMIT_PLAN.md`。）
+—— 见 `agent_docs/P6B_COMMIT_PLAN.md`。）
 
 **已退役（2026-09-29；理由 = 原件已由路径硬化修好，镜像本身是"空门"的临时绕道）**：
 `_tmp_make_p4mirror.py` · `sim/p4sim_p6b/` · `sim/retxsim_p6b/` · `sim/retxsim2_p6b/` ·
@@ -4405,7 +4405,7 @@ FTDI/MAX3232、无 USB 口、无调试排针；见 `../XCKU5PMini/CLAUDE.md`「�
 ③ 唯一有独立价值的 `sim/p4sim_p6b/matrix_p4_p6b.log` 与归档副本
 `board/p6b_verify/p4_matrix_local_repo.log` **md5 逐字节相同**（`a8079bfc4398dcf1ef1612ed5a147eea`）；
 ④ 全仓**活代码**里对镜像的引用 = **0**（只剩 `int_scratch/chk_mirror.py` 这个**审查用的核对脚本**，
-它因此不能再跑 —— 但它的结论已固化在 `P6B_INTEGRATION_REVIEW.md` §5.2：「镜像脚本忠实：9 个镜像 bat
+它因此不能再跑 —— 但它的结论已固化在 `agent_docs/P6B_INTEGRATION_REVIEW.md` §5.2：「镜像脚本忠实：9 个镜像 bat
 逆向还原后与原件**逐字节相同**、`XCKU5PMini` 出现 26/26/26/26/26/3/1/3/1 次、**ECO 残留 0 处**」）；
 ⑤ 另加了 `.gitignore` 规则 `sim/*_p6b/` **防复发**。
 
@@ -4470,13 +4470,13 @@ FTDI/MAX3232、无 USB 口、无调试排针；见 `../XCKU5PMini/CLAUDE.md`「�
 ## 2026-09-29 P7a: **10G PCS/PMA（含 64b/66b gearbox）实测达标** —— BER 上界 4.997e-13 + 四条新教训
 
 > **归档索引**（本节是里程碑日志；逐条判据与复现步骤在别处，别在这里找）：
-> **`P7A_RESULT.md`**（**板级验收原始记录**：两阶段判据表 + gearbox 三条腿 + 两次停下的归因 + 未覆盖清单）·
-> `P7A_SPEC.md`（闸 0 施工规格：工具事实核实 / 判据设计 / 风险表）·
+> **`agent_docs/P7A_RESULT.md`**（**板级验收原始记录**：两阶段判据表 + gearbox 三条腿 + 两次停下的归因 + 未覆盖清单）·
+> `agent_docs/P7A_SPEC.md`（闸 0 施工规格：工具事实核实 / 判据设计 / 风险表）·
 > `_proj_10g/`（RTL + XDC + 构建/读数脚本 + 全部原始读数：`reports/` `board_scratch/logs/` `ctrl_scratch/logs/`）。
 
 ### ① 一句话
 
-**通过。** 回合 09-27 留下的**最大未知数**（`P7A_SPEC.md` §0：那轮 iBERT **`TXGEARBOX_EN=FALSE`**、
+**通过。** 回合 09-27 留下的**最大未知数**（`agent_docs/P7A_SPEC.md` §0：那轮 iBERT **`TXGEARBOX_EN=FALSE`**、
 跑 **raw** ⇒ **PCS/gearbox 一层是空白**）已经收口：位流 `p7a_top.bit`
 （sha256 `f88d019f…8651d`）在板上双向各跑 **600 s**，**每向 6,003,265,225,472 bit / 0 错字 /
 0 头错** ⇒ **95% 置信上界 4.997×10⁻¹³**（严于 10GBASE-R 的 1e-12）；速率
@@ -4485,7 +4485,7 @@ FTDI/MAX3232、无 USB 口、无调试排针；见 `../XCKU5PMini/CLAUDE.md`「�
 
 ### ② 判据的两条硬要求（本阶段新增的两个"不这么写就不算数"）
 
-1. **gearbox 必须有"三条腿"同时成立**（`P7A_RESULT.md` §3.3）：
+1. **gearbox 必须有"三条腿"同时成立**（`agent_docs/P7A_RESULT.md` §3.3）：
    ① 布局后回读原语属性（`GEARBOX_MODE=5'b10001` / `TX|RXGEARBOX_EN=TRUE` / `TX_DATA_WIDTH=64`）；
    ② 频率恒等式（fabric 侧 **156.25 MHz** vs GTY 的 **161.13 MHz** 那个"raw 才会用"的时钟
    —— 两值差 3.125%，而测量分辨力在 10⁻⁵ 量级）；
@@ -4529,11 +4529,11 @@ FTDI/MAX3232、无 USB 口、无调试排针；见 `../XCKU5PMini/CLAUDE.md`「�
 
 - 板上这两个模块是 **SFP+ 10G**（**不是 SFP28**；对 10GBASE-R 完全适用）。
   ⚠️ 来源是**口头**（TL 在本轮汇报中的更正），日志里没有模块型号字符串 —— 底板**未引出 SFP 的 I2C**，
-  读不到 DOM/型号。"SFP28"的旧措辞出现在 `P7A_SPEC.md` §5.5/§10。
+  读不到 DOM/型号。"SFP28"的旧措辞出现在 `agent_docs/P7A_SPEC.md` §5.5/§10。
 - **本文件写成时板子载的是 P7a 位流**（volatile，最后一次编程是 run3；之后只有读操作）。
   下一次上板**必须重烧 + 重核 sha256**（本工程既有铁律）。
 
-### ⑤ 未覆盖（与 `P7A_RESULT.md` §7 同源，摘要）
+### ⑤ 未覆盖（与 `agent_docs/P7A_RESULT.md` §7 同源，摘要）
 
 超过 10 分钟的长期稳定性（无 soak）· SFP 的 I2C/DOM 无通路 · 手册 12 GHz 边界未触及 ·
 对照件里 X0Y6 的 `LINE_RATE=0.000 / RX_BER=inf` 未深究 ·
@@ -4546,7 +4546,7 @@ FTDI/MAX3232、无 USB 口、无调试排针；见 `../XCKU5PMini/CLAUDE.md`「�
 ## 2026-09-29 P7b: 10G 数据面上板第一轮（官方 XGMII 核 + 自写 64 位 MAC）—— **闸 0 / 闸 1 完成；闸 2/3/4 未起**
 
 > **归档索引**（本节是里程碑日志；逐条判据、IP 配置逐项回读与复现命令在别处，别在这里找）：
-> **`P7B_SPEC.md`**（施工规格：路线与 license 分叉 / 接口冻结 / 闸序 / **66 条正判据 + 9 条负对照**）·
+> **`agent_docs/P7B_SPEC.md`**（施工规格：路线与 license 分叉 / 接口冻结 / 闸序 / **66 条正判据 + 9 条负对照**）·
 > **`_proj_10g/notes/P7B_GATE1.md`**（**闸 1 板级读数原始件**：拓扑 / IP 逐项回读 / 长窗零错 / 三条负对照 / 1a 补测）·
 > 同目录 `P7B_XXV_OFFICIAL.md`（闸 0：官方核与 license 分叉）·
 > `P7B_MAC_{DESIGN,REVIEW,GATEFIX,TIMING}.md`（新 MAC：设计 / 对抗审查 / 判据修复 / 时序）·
@@ -4565,7 +4565,7 @@ FTDI/MAX3232、无 USB 口、无调试排针；见 `../XCKU5PMini/CLAUDE.md`「�
 
 ### ② 关键读数（逐条带出处）
 
-**闸 0 —— 工具 / 接口 / 选型**（`P7B_XXV_OFFICIAL.md` §0/§0.1/§0.2/§4.5/§4.6；`P7B_SPEC.md` §0/§3.6）
+**闸 0 —— 工具 / 接口 / 选型**（`P7B_XXV_OFFICIAL.md` §0/§0.1/§0.2/§4.5/§4.6；`agent_docs/P7B_SPEC.md` §0/§3.6）
 
 - ⭐ **决定性对照**：官方 10GBASE-R PCS-only 核 `w2_pcs64_baser` 内嵌的 GT 子核与我们的 `gt_10gbr`
   **配置逐项逐字相同**，而它的 fabric 面是 **XGMII**（`w_pcs64_baser.veo:78-79,98-99` =
@@ -4613,7 +4613,7 @@ FTDI/MAX3232、无 USB 口、无调试排针；见 `../XCKU5PMini/CLAUDE.md`「�
 
 **`rx_classify` 收发解耦 v2 —— 设计完成，⚠️ 未落进 `rtl/`**（`P7B_RXCLASSIFY_DESIGN.md` §0/§5.1/§8）
 
-- 最小帧帧周期 **14 → 8 拍**（死拍 6→0）；10G 最小帧 **57.1% → 100%**（57.1% = `P7B_SPEC.md` §1.1 的 8/14）。
+- 最小帧帧周期 **14 → 8 拍**（死拍 6→0）；10G 最小帧 **57.1% → 100%**（57.1% = `agent_docs/P7B_SPEC.md` §1.1 的 8/14）。
 - 保真：v1/v2 **逐拍逐位 6224 beat × 7 场景 0 失配**；变异 **4 条非等价全抓住 + 3 条等价如实报"没抓到"**。
 
 **门修复 —— 隐式网"哑门"**（`P7B_IMPLICIT_GATE_FIX.md` §0/§2.6/§3；`P7B_IMPLICIT_GATE_ROLLOUT.md` §1/§5）
@@ -5171,7 +5171,7 @@ TX 发生器与 RX 校验器**同批改**）② **组帧器乒乓重叠**
 - **−0.059 已归因**：全局最差宿端 = `u_pcie_regs/snap_words_r_reg[174]/CLR`（**本轮扩窗的快照阵列 +320 FF**），
   **逻辑级数 0、97.2% 只是布线**；**上轮全局最差是同一族** ⇒ 同族内换最差位，**非新缺陷族**。
   ⚠️ 含义：**再往窗口加字会继续吃这条**（每 +10 字 ≈ +320 FF）。
-  ⛔ **2026-10-07 订正（出处 `P7B_WU_TIMING_DELTA.md` §5.3；本条即它逐字点名的 `PORT_NOTES.md:5168-5170`）**：
+  ⛔ **2026-10-07 订正（出处 `P7B_WU_TIMING_DELTA.md` §5.3；本条即它逐字点名的 `agent_docs/PORT_NOTES.md:5168-5170`）**：
   **"每 +10 字 ≈ +320 FF" 只数了快照阵列那一份** —— 真实成本 ≈ **96 FF/字**（DP 域 `snap_cdc.hold_b` 32 + pcie 域 `dout_a` 32 + 阵列 `snap_words_r` 32 **三份**）
   ⇒ "每 10 字 +320 FF" 应读作 **总数 ≈ 960 FF/10 字，其中 320 落数据面域**。另两条口径：
   ① 本句说的"这条"**不是数据面 setup 路径** —— 宿端 `u_pcie_regs/snap_words_r_reg[174]/CLR` 是 **pcie 域**的异步复位 Recovery；DP 那条 `+0.147` 是**另一族**；
@@ -5273,7 +5273,7 @@ TX 发生器与 RX 校验器**同批改**）② **组帧器乒乓重叠**
    **逻辑级数 0、97.2% 只是布线**，源端是厂商 FF ⇒ 机制只能是**复位网扇出/布线变长**
    （上轮全局最差是**同族**另一处快照寄存器，那行还印着 `net (fo=4267, routed)`）
    ⇒ 是"**同族内换了最差那一位**"，不是新缺陷族。⚠️ **含义：再往窗口加字会继续吃这条。**
-   ⛔ **2026-10-07 订正（出处 `P7B_WU_TIMING_DELTA.md` §5.3；本条即它逐字点名的 `PORT_NOTES.md:5263`）**：
+   ⛔ **2026-10-07 订正（出处 `P7B_WU_TIMING_DELTA.md` §5.3；本条即它逐字点名的 `agent_docs/PORT_NOTES.md:5263`）**：
    ① 本条的**方向成立，幅度口径要改**：那句"这条"指 **pcie 域**快照阵列的异步复位 Recovery（宿端 `snap_words_r_reg[174]/CLR`），**不是**数据面 setup 路径（`0.147` 那条是另一族）；
    ② **WU 构建窗口没动**（仍 61 字），同族 slack 自己从 **0.077 → 0.496（+0.419）** ⇒ **幅度大部分由 P&R 重排决定**（本流程重排幅度 ±0.4–1.3 ns）；
    ③ 扩窗真实成本 ≈ **96 FF/字**（`hold_b`(DP) + `dout_a`(pcie) + 阵列 **三份**）⇒ "每 10 字 +320 FF"只数了阵列那一份，**总数 ≈ 960 FF/10 字（其中 320 落 DP 域）**。
@@ -6055,7 +6055,7 @@ unpaced 上行 **4,058.033 / 4142.682 / 4133.629 Mbps**（vs Build 1 锚 1110.87
 
 Kintex-7 XC7K325T 纯硬件 TCP/IP 数据面: 64bit 字流 @125MHz, 当前 1G RGMII 前端
 (10G 仅提时钟到 156.25MHz, 流水线不改)。顶层 = `board/wrapper_p4.v`。
-施工日志/踩坑/决策详见 `PORT_NOTES.md`; 工程规范与铁律见 `CLAUDE.md`。
+施工日志/踩坑/决策详见 `agent_docs/PORT_NOTES.md`; 工程规范与铁律见 `CLAUDE.md`。
 
 ##### 状态 (2026-09-21)
 
@@ -6063,7 +6063,7 @@ Kintex-7 XC7K325T 纯硬件 TCP/IP 数据面: 64bit 字流 @125MHz, 当前 1G RG
 ~~**P6 (10G 提速) 经用户裁决停止, 未做**~~ —— ⚠️ **已于 2026-09-29 重启并推进**:
 P6a(数据面移植到 KU5P) ✅ / P6e(我们自己的 PCIe 观测通道) ✅ / **P6b(数据面 125→156.25MHz) ✅ 板级正式验收 35/35**。
 **P7a(10G PCS/PMA，含 64b/66b gearbox) ✅ 板级验收 PASS** —— **10G PHY 已实测达标，BER 上界 4.997e-13**
-（双向各 600 s / 6.003×10¹² bit 零错；gearbox 三条腿齐）: 见 **`P7A_RESULT.md`**。
+（双向各 600 s / 6.003×10¹² bit 零错；gearbox 三条腿齐）: 见 **`agent_docs/P7A_RESULT.md`**。
 **P7b(10G 数据面上板第一轮：官方 XGMII 核 + 自写 64 位 MAC) —— 🚧 进行中**:
 **闸 0(选型) ✅ / 闸 1(2 通道官方 PCS 板内 J7↔J8 自环) ✅** —— 6.6 s / **30,056,095 帧**零错、
 载荷字/帧 29.000000、XGMII 字/帧 34.000000、**9,999.94 Mbps**、官方 FSM `completion_status = 1`;
@@ -6071,7 +6071,7 @@ P6a(数据面移植到 KU5P) ✅ / P6e(我们自己的 PCIe 观测通道) ✅ / 
 新 MAC 单元门 **252 条 / 0 fail**(变异 12 条: 10 非等价全抓住)、与 PCS 合并 **WNS +0.401 / 三类失败端点全 0**。
 ⚠️ **未完成**: **闸 2(真网卡 802.3 裁决) 进行中**、**闸 3(全链门) / 闸 4(板级验收) 未起**;
 **新 MAC 未接入 `board/wrapper_p4.v`**、**`rx_classify` v2 未落进 `rtl/`**。
-规格 **`P7B_SPEC.md`**、闸 1 读数原件 **`_proj_10g/notes/P7B_GATE1.md`**。
+规格 **`agent_docs/P7B_SPEC.md`**、闸 1 读数原件 **`_proj_10g/notes/P7B_GATE1.md`**。
 本节以下内容仍是 **2026-09-21 当时的记录**; 现状看上面那个 ⭐ 块。
 调研结论仍存档在"遗留"(定性与 6 块工作、K1-K6 前置实验、三个决策点、两个阻断级风险、工期更正)。
 
@@ -6082,17 +6082,17 @@ P6a(数据面移植到 KU5P) ✅ / P6e(我们自己的 PCIe 观测通道) ✅ / 
 >
 > | 想知道什么 | 看哪份 |
 > |---|---|
-> | **一页式总览**（目标 / 改了什么 / 关键数字 / 证据地图 / 已知限制）| **`P6B_SUMMARY.md`** ← **先读这个** |
-> | **板级验收的原始记录**（35 条判据、位流 sha256、复现步骤、未覆盖项）| **`P6B_ACCEPT.md`** |
-> | 板级观测通道怎么用（**36 字**寄存器表 + 判据变更）| **`P6E_OBS.md`** |
-> | 施工规格（**含 §0.4 勘误**：索引表错误 / as-built 偏离）| `P6B_SPEC.md` |
-> | 跨域审计（F-1/F-2/F-3）、对抗审查（F1–F13）、集成与"空门"核实 | `P6B_CDC_AUDIT.md` / `P6B_REVIEW.md` / `P6B_INTEGRATION_REVIEW.md` |
-> | **P7a 10G PHY（PCS/PMA + gearbox）板级验收的原始记录** | **`P7A_RESULT.md`** + `P7A_SPEC.md` |
-> | **P7b 施工规格**（路线与 license 分叉 / 接口冻结 / 闸序 / 66 条正判据 + 9 条负对照）| **`P7B_SPEC.md`** |
+> | **一页式总览**（目标 / 改了什么 / 关键数字 / 证据地图 / 已知限制）| **`agent_docs/P6B_SUMMARY.md`** ← **先读这个** |
+> | **板级验收的原始记录**（35 条判据、位流 sha256、复现步骤、未覆盖项）| **`agent_docs/P6B_ACCEPT.md`** |
+> | 板级观测通道怎么用（**36 字**寄存器表 + 判据变更）| **`agent_docs/P6E_OBS.md`** |
+> | 施工规格（**含 §0.4 勘误**：索引表错误 / as-built 偏离）| `agent_docs/P6B_SPEC.md` |
+> | 跨域审计（F-1/F-2/F-3）、对抗审查（F1–F13）、集成与"空门"核实 | `agent_docs/P6B_CDC_AUDIT.md` / `agent_docs/P6B_REVIEW.md` / `agent_docs/P6B_INTEGRATION_REVIEW.md` |
+> | **P7a 10G PHY（PCS/PMA + gearbox）板级验收的原始记录** | **`agent_docs/P7A_RESULT.md`** + `agent_docs/P7A_SPEC.md` |
+> | **P7b 施工规格**（路线与 license 分叉 / 接口冻结 / 闸序 / 66 条正判据 + 9 条负对照）| **`agent_docs/P7B_SPEC.md`** |
 > | **P7b 闸 1 板级读数原始件**（2 通道官方 PCS 板内 J7↔J8 自环：拓扑 / IP 逐项回读 / 长窗零错 / 三条负对照 / 1a 补测）| **`_proj_10g/notes/P7B_GATE1.md`** |
 > | **P7b 其余笔记**（闸 0 官方核与 license · 新 MAC 设计/审查/门修/时序 · v2 · 哑门修复与铺开 · 闸 2 对端现状）| `_proj_10g/notes/P7B_{XXV_OFFICIAL,MAC_DESIGN,MAC_REVIEW,MAC_GATEFIX,MAC_TIMING,RXCLASSIFY_AUDIT,RXCLASSIFY_DESIGN,IMPLICIT_GATE_FIX,IMPLICIT_GATE_ROLLOUT,U7_AND_PEER}.md` |
-> | ⚠️ **P7b 的"未完成"清单**（闸 2/3/4 未起 · MAC 未接入 wrapper · v2 未落 `rtl/`）| `P7B_SPEC.md` §5 · `PORT_NOTES.md` 的 "2026-09-29 P7b" 节 |
-> | 里程碑日志与教训 | `PORT_NOTES.md` 的 "2026-09-29 P6b 收口" / "2026-09-29 P7a" / "2026-09-29 P7b" 三节 |
+> | ⚠️ **P7b 的"未完成"清单**（闸 2/3/4 未起 · MAC 未接入 wrapper · v2 未落 `rtl/`）| `agent_docs/P7B_SPEC.md` §5 · `agent_docs/PORT_NOTES.md` 的 "2026-09-29 P7b" 节 |
+> | 里程碑日志与教训 | `agent_docs/PORT_NOTES.md` 的 "2026-09-29 P6b 收口" / "2026-09-29 P7a" / "2026-09-29 P7b" 三节 |
 >
 > **一句话读数**：1G 图案通路 **956.0 Mbps**（线速 957.1 的 99.9%）· 数据面 **156.2585 MHz**
 > 与前端 **125.0061 MHz** 双域并存 · 同批修掉两个**早于 P6b 就存在**的数据通路缺陷（F4 / F-2）。
@@ -6181,7 +6181,7 @@ P6a(数据面移植到 KU5P) ✅ / P6e(我们自己的 PCIe 观测通道) ✅ / 
 **slow path (HLS 协议栈 IP, ap_ctrl_none @125MHz)**:
 - ARP / ICMP echo / IGMP / UDP echo (8080) / TCP SYN-FIN-RST 握手 (服务端被动打开) +
   DHCP DISCOVER / UDP HELLO 周期自发行文
-- HLS cfg 通道 (wscale/窗口) → CAM/TCB; 看门狗 (饥饿超时 64 拍复位脉冲; **P6b 构建 (DP_156MHZ) 下是 80 拍** —— 同一墙钟 512ns, 见 P6B_SPEC §5.1) 防 HLS 死锁
+- HLS cfg 通道 (wscale/窗口) → CAM/TCB; 看门狗 (饥饿超时 64 拍复位脉冲; **P6b 构建 (DP_156MHZ) 下是 80 拍** —— 同一墙钟 512ns, 见 agent_docs/P6B_SPEC §5.1) 防 HLS 死锁
 
 ##### 协议功能全景 (P4c 收官)
 
@@ -6214,7 +6214,7 @@ P6a(数据面移植到 KU5P) ✅ / P6e(我们自己的 PCIe 观测通道) ✅ / 
   是 **P5a 轮经 UART 状态行**读到的，**只对"有 UART 状态行的板"成立**；**KU5P 上该字结构性不可读**
   （`udpapp_*` 只喂 `app_status_uart` 的状态行，`uart_txd` 无消费者）。KU5P 上只能用 PCIe 快照窗口
   的 `W13`，且**须同窗 `ΔW10 > 0`** 才有判别力。
-  详见 `PORT_NOTES.md` 的 P5a 段与 `rtl/app_ctrl.v`/`rtl/app_pattern.v` 头注释。
+  详见 `agent_docs/PORT_NOTES.md` 的 P5a 段与 `rtl/app_ctrl.v`/`rtl/app_pattern.v` 头注释。
   窗口闭环与关闭语义见下 (P5b/P5c/P5d)。
 - **应用 RX 流控闭环 (P5b)**: 每连接信用配额 `winq` (池 `WIN_POOL=0xC000`,按构造
   `Σwinq + pool == WIN_POOL`) + 单调右沿 `redge`;通告窗口 = `winq - occ`
@@ -6273,7 +6273,7 @@ P6a(数据面移植到 KU5P) ✅ / P6e(我们自己的 PCIe 观测通道) ✅ / 
   全精度快照: TCB/窗口/FSM/三站词计数/tlast 三计数/
   截断计数 (TRU)/慢路径存活字段 (SC/SD/SF/SP/SV/HR)/线缆帧长 (WL) + 64 拍 TR/RXT 轨迹环
   (⚠️ 2026-09-29: 该 UART 诊断行**在 KU5P 上不可观测** —— 本板无 UART; 且它在 DP 域有
-   **48 位未同步穿越**（`u_dbg_line`）。历史与理由见 `PORT_NOTES.md` P6b 收口 §⑧)
+   **48 位未同步穿越**（`u_dbg_line`）。历史与理由见 `agent_docs/PORT_NOTES.md` P6b 收口 §⑧)
   + FIFO tlast 位图 (TL), boot 自检后每 5s 一行 (见 `board/uart_dbg.v` 头注释)
 - LED: boot 自检 3 闪 + 门控/锁存/满标志实时探针
 
@@ -6313,7 +6313,7 @@ P6a(数据面移植到 KU5P) ✅ / P6e(我们自己的 PCIe 观测通道) ✅ / 
   收齐; ACK-early 实验 (suppress=0) 板测 28.4Mbps — 根因破案 (纯 ACK 窗口右沿被丢
   → snd_una 停滞 → RTO 风暴) 并修复 (w6a), 最终裁决: TX 帧率翻倍使 PC 网卡线级截断
   与线级丢帧触发率翻倍, RTO 自愈成本吃掉全部收益 → 板级回退 suppress=1, 修复保留
-- **冻结三类根因全部破案修复** (详见 PORT_NOTES 会话存档点):
+- **冻结三类根因全部破案修复** (详见 agent_docs/PORT_NOTES 会话存档点):
   1. wire counter 新时钟域杀死 HLS 慢路径 (回退 + WL 改 gmii_clk 域)
   2. tcp_rx 截断支静默吞尾 → echo 帧合并 (按真实字节闭合修复)
   3. PC 网卡驱动重启 → 无 tlast 半帧 → echo 半帧不判尾 (fend_trunc 合成尾拍修复)
@@ -6366,7 +6366,7 @@ P6a(数据面移植到 KU5P) ✅ / P6e(我们自己的 PCIe 观测通道) ✅ / 
 > （上面那行已按实测改正；纯 cmd 窗口里 `/only` 仍可用）。门 bat 均已自定位，故**相对仓根**的
 > `cmd //c 'sim\p4gates\run_matrix_p4dfix.bat'` 亦可（等价且更短）。
 > 守卫与负对照、以及"跑门 ≠ 判门"（16 门里 `unit_retx`/`unit_fifo` **无条件 exit 0**）
-> 详见 `PORT_NOTES.md` 的 P6b 收口 §⑤/§⑦。
+> 详见 `agent_docs/PORT_NOTES.md` 的 P6b 收口 §⑤/§⑦。
 
 **TB 门矩阵** (P6 类改动的固定回归门, ~25 min, 见 `sim/p4sim/`)：
 **⚠️ 下面这些命令里的 `D:\repo\ECO\udp_hls_10g\...` 是历史形态（= 空门），不要照抄** —— 等价的自定位写法见本节的警示块。
@@ -6450,7 +6450,7 @@ abort fence 单元门 F1-F5,判据文本未改、激励按真链路补 `rst_req`
 
 ##### 遗留
 
-- **P5e 已收官 (2026-09-21)**: UDP app 接口完成 (见上"已完成功能"与 `PORT_NOTES.md` 的
+- **P5e 已收官 (2026-09-21)**: UDP app 接口完成 (见上"已完成功能"与 `agent_docs/PORT_NOTES.md` 的
   P5e-T1/T2 与 P5e-T3/T4/T5 两节)。**未闭合的板级缺口** = app 通路的板侧观测无读数
   (`udpapp_*` 只接 LED、`app_udp_stat_*` 悬空) ⇒ **PC→板方向的板侧校验/丢帧计数不可见**;
   要补只需把这几根计数线接进 `uart_dbg` 状态行 (小工作量, 非阻断)。另: **口径更正** ——
@@ -6479,8 +6479,8 @@ abort fence 单元门 F1-F5,判据文本未改、激励按真链路补 `rst_req`
 > 前端也只能**留在 125MHz**（`mac_rx_64`/`mac_tx_64` 是字节串行 GMII 模块，必然绑在 RGMII 时钟上），
 > 跨域靠异步 FIFO 解决。**10G 时 `mac_*` 这两级仍必须整体替换，没有捷径。**
 >
-> 存档位置 = `PORT_NOTES.md` 末节 "P6 交接记录"; 将来重启 10G 从那里读, **不要重新调研**。
-> 现役总览 = `P6B_SUMMARY.md`。
+> 存档位置 = `agent_docs/PORT_NOTES.md` 末节 "P6 交接记录"; 将来重启 10G 从那里读, **不要重新调研**。
+> 现役总览 = `agent_docs/P6B_SUMMARY.md`。
 
 - **定性 (最重要的一条)**: P6 的技术前提**不是"提时钟"而是"换前端 + 重收敛"** ——
   `mac_rx_64`/`mac_tx_64` 是**字节串行 (1B/拍) 的 GMII 模块** ⇒ 10G 下**必须整体替换**
@@ -6497,7 +6497,7 @@ abort fence 单元门 F1-F5,判据文本未改、激励按真链路补 `rst_req`
   VLAN 重构) / D 窗口与缓冲 (**DDR3 大窗**: BRAM 只有 2MB, retx 已占 1MB) /
   E HLS 慢路径 (`u_hls` = **38.7% LUT** ⇒ **单域/双域抉择**) / F 工具链 (校验器 8 路并行 + 10G 对端)。
 - **要准备**: 换晶振 (`SiT9120AI-2B3-33E156.25`) + **10G 对端** (现网卡 Killer E5000B 是
-  **5G RJ45、无 SFP+**) + SFP+/DAC。⚠️ **一个必须先定案的物理前提**: `PORT_NOTES` 记参考钟
+  **5G RJ45、无 SFP+**) + SFP+/DAC。⚠️ **一个必须先定案的物理前提**: `agent_docs/PORT_NOTES` 记参考钟
   **X5→Quad115(H5/H6)**, 但 **DEMO `k724` XDC 实测是 D6/quad116/X0Y0/G4** —— 冲突;
   **若晶振真在 quad 115, 换晶振无效**。**买硬件之前先定案**。
 - **六个前置实验 K1-K6** (都不需要新硬件, 可现在做): K1 156.25MHz 时序尖峰 / K2 字节序实测 /
@@ -6521,7 +6521,7 @@ abort fence 单元门 F1-F5,判据文本未改、激励按真链路补 `rst_req`
   字节比不变量 **≈2.7KB**, 加扫描周期项 2KB 合计 ~4.7KB **< 16KB 余量 ⇒ 大概率不溢出**
   (但**门判据要重写**); ② **参考钟归属冲突** (X5/quad115 vs k724 D6/quad116); ③
   `design_review/04` 说慢路径是 `ap_ctrl_hs`, **实际是 `ap_ctrl_none`**; ④ 该文档工期只覆盖前端;
-  ⑤ `PORT_NOTES` 旧记的 "**3 字 skid**" 已过时 (**代码是 6 字**); ⑥ **P5e 提交后基线冻结**
+  ⑤ `agent_docs/PORT_NOTES` 旧记的 "**3 字 skid**" 已过时 (**代码是 6 字**); ⑥ **P5e 提交后基线冻结**
   (本节数字锚在 P5e 提交: WNS +0.290 / LUT 51588 / BRAM 312)。
 - **P5b/P5c/P5d/P5e 已知代价**: 接受窗 (`ACC_MARGIN` = `min(4096, 10550/N)`) 的多连接 + 大流量
   组合已由 `p5d_multi` 门覆盖 (3 连接),但**板级只验单连接** (`app_pattern` 单连接 + 无 CPU)。

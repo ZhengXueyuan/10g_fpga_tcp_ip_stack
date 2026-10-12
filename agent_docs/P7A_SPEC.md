@@ -104,7 +104,7 @@ CRITICAL WARNING: [filemgmt 20-1365] Unable to generate target(s) for the follow
 >    —— 藏掉 `Xilinx.lic` 后 gtwizard 仍 `IS_LOCKED=0` / `LOCK_DETAILS = IP is not locked` /
 >    `USED_LICENSE_KEYS = <>` / `generate_target all rc=0` / 7 个 RTL 落盘，恢复已核对
 >    （MD5 前后同为 `9bab9853d542567cbae9e2152f04223e`，无残留 `.HIDDEN`）。⇒ **"gtwizard 免 license"成立**
->    （见 `P7A_RESULT.md` §3.4，该结论**保留、不撤回**）。
+>    （见 `agent_docs/P7A_RESULT.md` §3.4，该结论**保留、不撤回**）。
 > 2. **必须纠正的一步延伸**：这里引的 `_lic/deny_stdout.txt` 是**在"把 license 藏起来"的状态下**测的，
 >    ⇒ 它**不能**反推出"`xxv_ethernet` 锁着 / 不可用 / 要另外买 license"。**事实相反**：license 在位时
 >    `xxv_ethernet 5.0` 的三种 CORE 配置 `IS_LOCKED` **建时/配后/生成后全 0**、`CONFIG.*` 均可设、
@@ -732,7 +732,7 @@ iBERT 的观测方式（`get_hw_sio_gts` 读 `RX_BER` / `RX_RECEIVED_BIT_COUNT`�
 
 | # | 风险 | 现象 | 早期信号 | 缓解 | 验证手段 |
 |---|---|---|---|---|---|
-| **R1** | ~~**"免 license"未直证**~~ ⇒ ✅ **已闭（2026-09-29 复核更正）** | 换机/升级后被 design_linking 锁 | `IS_LOCKED=1`；`USED_LICENSE_KEYS` 出现 `xxv_eth_mac_pcs@... design_linking` | **已执行**：藏 license 负对照通过（gtwizard 仍 `IS_LOCKED=0`/`USED_LICENSE_KEYS=<>`/7 个 RTL 落盘），恢复已核对 MD5 ⇒ **"gtwizard 免 license"成立**（§1.2 末 / `P7A_RESULT.md` §3.4） | `_proj_10g/reports/p7a_lic_deny_stdout.txt`（P2j） |
+| **R1** | ~~**"免 license"未直证**~~ ⇒ ✅ **已闭（2026-09-29 复核更正）** | 换机/升级后被 design_linking 锁 | `IS_LOCKED=1`；`USED_LICENSE_KEYS` 出现 `xxv_eth_mac_pcs@... design_linking` | **已执行**：藏 license 负对照通过（gtwizard 仍 `IS_LOCKED=0`/`USED_LICENSE_KEYS=<>`/7 个 RTL 落盘），恢复已核对 MD5 ⇒ **"gtwizard 免 license"成立**（§1.2 末 / `agent_docs/P7A_RESULT.md` §3.4） | `_proj_10g/reports/p7a_lic_deny_stdout.txt`（P2j） |
 | **R2** | ⭐ **`link_down_latched==0` 被误当零误码** | **漏桶**容忍孤立错误（一次错只扣 34/67）⇒ 结论虚高 | 单次错后 `link_ctr` 67→33 但不掉链 | **自己加 `err_word_cnt`**，判据**不用** example 的 FSM | 计数器与 `bits_cnt` 对账（§5.4） |
 | **R3** | **同步头 2 bit/66 不被 fabric PRBS 覆盖** | gearbox 头位错误在净荷里不可见 | `hdr_err_cnt > 0` 而 `err_word_cnt == 0` | 加 `hdr_err_cnt`（`rxheadervalid && rxheader ≠ 常量`） | ⚠️ 机理**未确证**（§9.5）—— 先测出来再说 |
 | **R4** | ⚠️⚠️ **`TX_DIS` 悬空** | 两方向全黑，**误判成"板子做不了 10G"** | `link_status_out` 恒低；`rxpmaresetdone` 正常但 PRBS 永不锁 | **显式驱动 C11/D9 低** | 三态实验已定案；P7a 里同时读 `sfp{1,2}_rx_los` |

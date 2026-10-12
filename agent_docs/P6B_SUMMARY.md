@@ -1,6 +1,6 @@
 # P6B_SUMMARY — P6b 一页式总览（**未来的 session 从这里接手**）
 
-> **状态：已收口。** 板级正式验收 **35 条判据全 PASS**（`P6B_ACCEPT.md`），
+> **状态：已收口。** 板级正式验收 **35 条判据全 PASS**（`agent_docs/P6B_ACCEPT.md`），
 > 数据面在 XCKU5P 上跑 **156.25 MHz**、前端留 **125 MHz**，两个缺陷（F4 / F-2）同批修掉。
 > 本文只做**索引与 5 分钟定位**；每个结论的推导、判据、原始读数都在它指向的那份文件里。
 >
@@ -15,7 +15,7 @@
 **前端留 125 MHz**（RGMII 的 `i_rxc` 是 PHY 回送的，改不了也不该改），
 两者之间用**新写的异步 FIFO** 跨域 —— 这是"10G 只提时钟、流水线不改"那条既定路线的**前置验证**。
 
-**边界裁决 = 方案 A**（`P6B_SPEC §2`）：只在 **RX / TX 两条数据通路**上各放一个异步边界；
+**边界裁决 = 方案 A**（`agent_docs/P6B_SPEC §2`）：只在 **RX / TX 两条数据通路**上各放一个异步边界；
 其余 `gmii_clk` 的使用者按"是不是 MAC 前端"决定留 FE 还是搬 DP（铁律：`mac_rx_64`/`mac_tx_64` 留 FE，其余搬 DP）。
 
 ---
@@ -30,7 +30,7 @@
 | **新构建** | `board/build_p6b_ku5p.tcl` · **`board/build_p6b_final_ku5p.tcl`**（冻结版：多出 `report_cdc` / `ASYNC_REG` 普查 / hold 三族专核）· `board/check_p6b_timing.py`（**带正/负对照的**时序闸） |
 | **观测量** | 快照窗口 **24 → 36 字**（BUILD_ID=6）：新增 W26..W31（两个 FIFO 的满/占用/等线/读侧守恒）+ **W32..W35**（F4 的四个丢帧守恒计数器） |
 | **门/证据** | `sim/fifoasync/`（FIFO 单元门 + 7 变异）· `sim/clkgen/` · `sim/snapseq/` · `sim/f4sim/` · `sim/f4chain/` · `sim/p4gates/`（**P4 矩阵的路径硬化工具链**，见 §5）· `audit_scratch/` `review_scratch/` `int_scratch/`（三个审查/审计 agent 的原始证据）· `board/p6b_verify/` · `p6b_accept_final/`（**验收归档**） |
-| **文档** | `P6B_SPEC.md`（+**§0.4 勘误**）· `P6B_ACCEPT.md`（验收原件）· `P6B_CDC_AUDIT.md` · `P6B_REVIEW.md` · `P6B_INTEGRATION_REVIEW.md` · `P6E_OBS.md`（**36 字表，现役**）· `PORT_NOTES.md`（P6b 里程碑）· 本文 |
+| **文档** | `agent_docs/P6B_SPEC.md`（+**§0.4 勘误**）· `agent_docs/P6B_ACCEPT.md`（验收原件）· `agent_docs/P6B_CDC_AUDIT.md` · `agent_docs/P6B_REVIEW.md` · `agent_docs/P6B_INTEGRATION_REVIEW.md` · `agent_docs/P6E_OBS.md`（**36 字表，现役**）· `agent_docs/PORT_NOTES.md`（P6b 里程碑）· 本文 |
 
 ---
 
@@ -38,16 +38,16 @@
 
 | 数字 | 值 | 出处 |
 |---|---|---|
-| 位流 sha256 | `c17700868b08170865f4a4ae0292ebb636aed03070e2875f6dbb005123a948ca`（`BUILD_ID=6`，15,431,261 B） | `P6B_ACCEPT.md` §1.1 |
-| 时序（routed） | `WNS +0.168 / WHS +0.010 / WPWS 0.000`，**0 失败端点** | `P6B_ACCEPT.md` §1.2 |
-| **数据面频率** | **156.2585 MHz**（`W24` 自由计数 / 真实墙钟，12.1886 s 窗口） | `P6B_ACCEPT.md` **B2b** |
-| 前端频率（同窗口对照） | **125.0061 MHz** | `P6B_ACCEPT.md` **B3** |
-| **图案/吞吐** | **956.0 Mbps**（线速上限 **957.1** = 1472/1538×1000 ⇒ **99.9%**）；网卡**硬件**计数复核 **956.3**（偏差 **0.03%**）；tcpdump 离线**逐字节** 1999/1999 | `P6B_ACCEPT.md` **D1/D2/D3** |
-| ping | **5/5**（rtt avg 0.091 ms）· **20/20**（`-i 0.05` 密集包） | `P6B_ACCEPT.md` **C1/C2** |
-| 守恒律（停机态） | `W30 == W0 + W32`（147==147）· `W31 == W1 − 4·W0 + W33`（21235==21235） | `P6B_ACCEPT.md` **E1a/E1b/E8** |
-| 跨域 FIFO 占用峰值 | rxcdc **3** / txcdc **24**（深度 256 ⇒ **核心动机未被激励**，见 §5） | `P6B_ACCEPT.md` §6.4 |
-| 验收总计 | **35 条判据 / 42 条 PASS 记录 / 0 FAIL / 0 SKIP / 0 NOTE** | `P6B_ACCEPT.md` §0 |
-| ⚠️ 冒烟轮（**另一个位流**） | 956.9 Mbps；逐字节 FAIL（工具天花板）—— 位流是 **`03f9c6d0…fe5a0d`（不含 F-1/F-2）** | `P6B_ACCEPT.md` §5。**引用它必须注明** |
+| 位流 sha256 | `c17700868b08170865f4a4ae0292ebb636aed03070e2875f6dbb005123a948ca`（`BUILD_ID=6`，15,431,261 B） | `agent_docs/P6B_ACCEPT.md` §1.1 |
+| 时序（routed） | `WNS +0.168 / WHS +0.010 / WPWS 0.000`，**0 失败端点** | `agent_docs/P6B_ACCEPT.md` §1.2 |
+| **数据面频率** | **156.2585 MHz**（`W24` 自由计数 / 真实墙钟，12.1886 s 窗口） | `agent_docs/P6B_ACCEPT.md` **B2b** |
+| 前端频率（同窗口对照） | **125.0061 MHz** | `agent_docs/P6B_ACCEPT.md` **B3** |
+| **图案/吞吐** | **956.0 Mbps**（线速上限 **957.1** = 1472/1538×1000 ⇒ **99.9%**）；网卡**硬件**计数复核 **956.3**（偏差 **0.03%**）；tcpdump 离线**逐字节** 1999/1999 | `agent_docs/P6B_ACCEPT.md` **D1/D2/D3** |
+| ping | **5/5**（rtt avg 0.091 ms）· **20/20**（`-i 0.05` 密集包） | `agent_docs/P6B_ACCEPT.md` **C1/C2** |
+| 守恒律（停机态） | `W30 == W0 + W32`（147==147）· `W31 == W1 − 4·W0 + W33`（21235==21235） | `agent_docs/P6B_ACCEPT.md` **E1a/E1b/E8** |
+| 跨域 FIFO 占用峰值 | rxcdc **3** / txcdc **24**（深度 256 ⇒ **核心动机未被激励**，见 §5） | `agent_docs/P6B_ACCEPT.md` §6.4 |
+| 验收总计 | **35 条判据 / 42 条 PASS 记录 / 0 FAIL / 0 SKIP / 0 NOTE** | `agent_docs/P6B_ACCEPT.md` §0 |
+| ⚠️ 冒烟轮（**另一个位流**） | 956.9 Mbps；逐字节 FAIL（工具天花板）—— 位流是 **`03f9c6d0…fe5a0d`（不含 F-1/F-2）** | `agent_docs/P6B_ACCEPT.md` §5。**引用它必须注明** |
 
 ---
 
@@ -55,14 +55,14 @@
 
 | 你要回答的问题 | 看这里 |
 |---|---|
-| **板级到底通过没有？35 条判据都是什么？** | `P6B_ACCEPT.md`（判据表 + 每条的"期望来源" + 复现步骤 §7.3） |
-| **怎么复现验收？** | `P6B_ACCEPT.md` §7（含"**两段独立周期**：D 段必须紧接重烧、E 段要安静态"这条时序约束） |
-| 观测通道怎么读？36 个字分别是什么？判据为什么变了？ | `P6E_OBS.md` §一（表）+ §二·补2（**判据变更**） |
-| 为什么这么改？边界为什么在 RX/TX？FIFO 深度怎么算的？ | `P6B_SPEC.md`（+ **§0.4 勘误**，读正文前先读它） |
-| 跨域 FIFO 有没有静默丢字/说谎？ | `P6B_CDC_AUDIT.md`（F-1/F-2/F-3 + A/B/C 三组问答 + 变异测试） |
-| 这次改动的**承重结论**站得住吗？ | `P6B_REVIEW.md`（F1–F13 + **附录 R** 的 F4 对抗复核 + 它自己撤回/降级的判断） |
-| 36 字映射对不对？"空门"问题查清了吗？ | `P6B_INTEGRATION_REVIEW.md`（§1 逐字读回 + §5 空门核实） |
-| 时间线 / 教训 / 未结项 | `PORT_NOTES.md` 的 "2026-09-29 P6b 收口" 一节 |
+| **板级到底通过没有？35 条判据都是什么？** | `agent_docs/P6B_ACCEPT.md`（判据表 + 每条的"期望来源" + 复现步骤 §7.3） |
+| **怎么复现验收？** | `agent_docs/P6B_ACCEPT.md` §7（含"**两段独立周期**：D 段必须紧接重烧、E 段要安静态"这条时序约束） |
+| 观测通道怎么读？36 个字分别是什么？判据为什么变了？ | `agent_docs/P6E_OBS.md` §一（表）+ §二·补2（**判据变更**） |
+| 为什么这么改？边界为什么在 RX/TX？FIFO 深度怎么算的？ | `agent_docs/P6B_SPEC.md`（+ **§0.4 勘误**，读正文前先读它） |
+| 跨域 FIFO 有没有静默丢字/说谎？ | `agent_docs/P6B_CDC_AUDIT.md`（F-1/F-2/F-3 + A/B/C 三组问答 + 变异测试） |
+| 这次改动的**承重结论**站得住吗？ | `agent_docs/P6B_REVIEW.md`（F1–F13 + **附录 R** 的 F4 对抗复核 + 它自己撤回/降级的判断） |
+| 36 字映射对不对？"空门"问题查清了吗？ | `agent_docs/P6B_INTEGRATION_REVIEW.md`（§1 逐字读回 + §5 空门核实） |
+| 时间线 / 教训 / 未结项 | `agent_docs/PORT_NOTES.md` 的 "2026-09-29 P6b 收口" 一节 |
 | P4 矩阵现在该怎么跑？守卫是什么？ | `sim/p4gates/`（`paths.txt` 是路径单一来源）+ `sim/p4gates/evidence/`（负对照原始读数） |
 | 板级时序闸凭什么可信？ | `board/p6b_verify/CONTROLS.txt`（**13/13** 正/负样本，含 5 个人造病理报告） |
 
@@ -76,7 +76,7 @@
    `dp_rst_n`（含 `locked`）⇒ DP 侧会在**帧中**重启，交付一个**帧中截断但携带 `tcrs=1`** 的片段。
    **三种接线实测都无解**（只复位读侧更糟：把已消费的整帧重新投递）；根因 = **DP 侧没有"以 SOP 为界"的
    重启重同步**。后果有界（丢/重一帧、进不了 fast 路、靠下游解析器兜底）。收口方向与全文见
-   `P6B_CDC_AUDIT.md` §A.3。
+   `agent_docs/P6B_CDC_AUDIT.md` §A.3。
 2. **F-1 的板级缺口**：`fifo_async` 有了 `ovf_pulse/ovf_cnt`，但 wrapper **没接出来**、快照**没有对应字**
    ⇒ 板上仍无法归因 **CDC FIFO 自身**的丢字（`W35` 是另一个 FIFO 的）。F-1 当前不是活缺陷（可达性已论证）。
 3. **路径硬化的 23 个未修文件**（Python（手工）类为主）：清单与原因在
@@ -87,7 +87,7 @@
 4. **`PCIE_OBS` 宏语义复用**：它现在**同时**表示"例化 PCIe 观测通道"和"数据面跑 156.25 MHz"。
    当前树没有会踩的构建，但"要 PCIe 窗口 + 数据面仍 125MHz"这个组合会拿到 8 个错的时间常数**且无告警**。
 
-**未覆盖（验收自己也列了，`P6B_ACCEPT.md` §6 是权威版）**：
+**未覆盖（验收自己也列了，`agent_docs/P6B_ACCEPT.md` §6 是权威版）**：
 
 - ⭐ **P6b 的核心动机没有被激励**：1G 前端喂不满 156.25 MHz 的数据面 ⇒ 跨域 FIFO 占用峰值只有
   **3 / 24**（深度 256）⇒ **"10G 时钟下的 CDC 余量"这次没有提供任何新证据**（仍只有静态/仿真结论）。
@@ -108,7 +108,7 @@
 2. **跑门 ≠ 判门** —— 16 门里有 2 门（`unit_retx`/`unit_fifo`）**无条件 `exit 0`**；
    汇总前先确认"判据本身跑了"（证据非空自检）。
 3. **并发 agent 的文件所有权必须互斥；交接必须留 md5/sha256** —— 本轮有两处结论因"文件被并发改动"
-   需要标注时效（`P6B_CDC_AUDIT.md` A.4、`P6B_REVIEW.md` 头部）。
+   需要标注时效（`agent_docs/P6B_CDC_AUDIT.md` A.4、`agent_docs/P6B_REVIEW.md` 头部）。
 
 **要跑 P4 回归（改数据面后必跑）**：
 
@@ -123,7 +123,7 @@ cmd //c 'D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\run_matrix_p4dfix.bat' /only
 
 ## 7. 板子/主机的当前状态（**要测量之前必看**）
 
-`P6B_ACCEPT.md` §8 是权威版。一句话摘要（**2026-09-29 15:30 更新**）：
+`agent_docs/P6B_ACCEPT.md` §8 是权威版。一句话摘要（**2026-09-29 15:30 更新**）：
 FPGA 里加载的仍是**被验的冻结位流**（sha256 `c17700868b…48ca`）；长时探针那一轮**重烧过并重启过主机**，
 **peer 从未被 teach ⇒ 图案 app 没有在发**（不再像验收刚结束时那样全速灌流）；主机 `192.168.0.38`
 的 `enp3s0` 有 `192.168.100.1/24`（**NetworkManager 会不定时冲掉**）；
