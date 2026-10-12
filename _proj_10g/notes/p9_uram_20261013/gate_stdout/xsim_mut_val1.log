@@ -1,0 +1,97 @@
+#-----------------------------------------------------------
+# xsim v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Tue Oct 13 01:48:04 2026
+# Process ID         : 15668
+# Current directory  : D:/repo/XCKU5PMini/udp_hls_10g/sim/p9_uram/xdir_mut_val1
+# Command line       : xsim.exe -log xsim.log -mode tcl -source {xsim.dir/tb_mir_uram_fifo/xsim_script.tcl}
+# Log file           : D:/repo/XCKU5PMini/udp_hls_10g/sim/p9_uram/xdir_mut_val1/xsim.log
+# Journal file       : D:/repo/XCKU5PMini/udp_hls_10g/sim/p9_uram/xdir_mut_val1\xsim.jou
+# Running On         : xyz-intel
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26300
+# Processor Detail   : Intel(R) Core(TM) Ultra 7 265K
+# CPU Frequency      : 3878 MHz
+# CPU Physical cores : 20
+# CPU Logical cores  : 20
+# Host memory        : 68053 MB
+# Swap memory        : 4294 MB
+# Total Virtual      : 72348 MB
+# Available Virtual  : 47466 MB
+#-----------------------------------------------------------
+source xsim.dir/tb_mir_uram_fifo/xsim_script.tcl
+# xsim {tb_mir_uram_fifo} -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+=== tb_mir_uram_fifo: P9 URAM 板内缓冲单元门 ===
+  --- G0: reset state (en=0 / 空) ---
+  [PASS] G0a up_req == 0 (en=0) = 0
+  [PASS] G0b dn_gnt == 0 (empty) = 0
+  [PASS] G0c dbg_occ == 0 = 0
+  --- G1: basic flow (源无限 + 下游快弹) ---
+  [DBG] G1: taken=199 popped=195 seq_err=195 over_err=0
+  [PASS]  taken >= 150 words (path alive) = 199 (带 [150,200])
+  [FAIL] word-by-word accounting: seq_err = 195 (期望 0)
+  [PASS] G1c no phantom pop: over_err = 0
+  --- G2: exact-full + long stall + release ---
+  [DBG-SYNC] t=866000 eq_w=200 eq_r=197 eq_drop=0
+  [DBG] G2-start: eq_w=201 eq_r=200 p0=1 eq_drop=3 over_err=0
+  [DBG] G2: require-drop after 4096 cyc; occ=4096 inv=4 taken=4099
+  [PASS]  (whitebox): occ == DEPTH (4096) = 4096
+  [PASS] G2b taken in [DEPTH, DEPTH+OQ] = 4099 (带 [4096,4100])
+  [PASS] q stays 0 (violations in 20 cyc) = 0
+  [PASS]  back after a pop (within 8 cyc) = 1
+  [PASS] re-assert latency (cyc) in [0,6] = 0 (带 [0,6])
+  [PASS] c falls back to DEPTH-1..DEPTH-8 = 4095 (带 [4088,4095])
+  [DBG] G2-end: taken=4106 popped=4107 occ=0 inv=0
+  [DBG] G2-acc: eq_w=4307 eq_r=4307 eq_drop=3 over_err=0
+  [PASS] othing lost in elastic/inflight) = 1
+  [FAIL] G2g word-by-word zero error = 4304 (期望 0)
+  --- G3: exact-empty + first-word latency ---
+  [PASS] y + req=1 => zero pops in 30 cyc = 0
+  [PASS] G3b empty dn_gnt == 0 = 0
+  [PASS]  first word popped within 20 cyc = 1
+  [PASS] irst-word latency (cyc) in [2,6] = 3 (带 [2,6])
+  [FAIL] G3e word-by-word zero error = 4320 (期望 0)
+  [PASS] al outstanding words in [0,OQ+1] = 4 (带 [0,5])
+  --- G4: independent random gaps on both sides (3000 cyc) ---
+  [DBG] G4: taken=2671 popped=1949 seq_err=6269 over_err=0
+  [PASS] G4a taken >= 500 (stream alive) = 2671 (带 [500,100000])
+  [FAIL] G4b word-by-word zero error = 6269 (期望 0)
+  [PASS] G4c no phantom pop = 0
+  --- G5: clr = window boundary -> DISCARD (no stale, no take) ---
+  [PASS] g words exist during stall (>=1) = 768 (带 [1,1000000])
+  [DBG] G5: eq_drop=772 (clr 丢弃的悬空字)
+  [PASS]  dropped outstanding words (>=1) = 772 (带 [1,1000000])
+  [PASS] e clr cycle (structural monitor) = 0
+  [FAIL] indow zero error (no stale leak) = 6470 (期望 0)
+  --- G5b: clr while elastic/in-flight holds unpopped words ---
+  [PASS] npopped words present (inv >= 2) = 4 (带 [2,4])
+  [FAIL] post-clr word-by-word zero error = 6671 (期望 0)
+  [PASS] G5b-c no phantom pop = 0
+  --- G6: en=0 -> up_req stays 0 (镜像 FIFO 保持) ---
+  [PASS] q violations while en=0 (30 cyc) = 0
+  [PASS] G6b up_req re-asserts after en=1 = 1
+  --- G7: sustained throughput (target: ~1 word/cycle) ---
+  [DBG] G7: popped=300 / 300 cyc
+  [PASS] s in 300 cyc >= 270 (theory 300) = 300 (带 [270,400])
+  [FAIL] G7b word-by-word zero error = 7024 (期望 0)
+  --- G8: long stream across wrap (24000 cyc, both sides random) ---
+  [DBG] G8: taken=16131 popped=16132 seq_err=23158 over_err=0
+  [PASS] taken > 2*DEPTH (multiple wraps) = 16131 (带 [8193,10000000])
+  [FAIL] G8b word-by-word zero error = 23158 (期望 0)
+  [PASS] G8c no phantom pop = 0
+  [PASS] accounted (popped - taken == p0) = 1
+  --- G9: structural monitors + cross-accounting ---
+  [PASS] (arrival into full elastic FIFO) = 0
+  [PASS]  wr_full (URAM write while full) = 0
+  [PASS] G9c pop_empty (phantom pop) = 0
+  [PASS] G9d clr_take (take on clr cycle) = 0
+  [PASS] (nothing stuck / no silent loss) = 23961
+URAM_FIFO_GATE: FAIL (8 checks failed)
+=== done ===
+$finish called at time : 184706 ns : File "D:/repo/XCKU5PMini/udp_hls_10g/sim/p9_uram/tb_mir_uram_fifo.v" Line 332
+exit
+INFO: [Common 17-206] Exiting xsim at Tue Oct 13 01:48:06 2026...

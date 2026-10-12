@@ -865,3 +865,12 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - **落地规则（已广播 witness `m_98b2b28896a0`，to=all）**：① 文档结构 = 活跃演进对象；**结构 owner = Kimi 组**；② **权威入口 = 根 `README.md`**（写入/引用前先读）；③ 每次结构变更 ⇒ Kimi 同步 README/索引 + **bridge 广播变更清单**；④ 所有组新增/更新按最新结构、旧路径引用就地更新；⑤ **历史语料 `_proj_10g/notes/**` 不追溯重写** ⇒ 旧→新路径由 `agent_docs/` 的**映射表**兜底。
 - **任务判据修订（`m_61647b5ca314` → kimi-tl，ack_required）**：`t_46ffe7622b14` 判据 5 改为 =「`_proj_10g/**` 之外逐处更新（旧名 grep→0 悬空）+ `_proj_10g/**` 内部只靠映射表兜底 + 结构变更须广播」；其余判据/负对照不变。
 - **并行面（本刻）**：① 线速档补测（板级，在飞）；② URAM 实施（RTL+单元门，在飞；构建/烧板压后至线速档收口）；③ kimi 文档线（解耦推进）。
+
+## §10-30 2026-10-13 02:10：**URAM 板内缓冲实施轮收口（RTL+单元门；未构建未上板）—— 基线一处勘误**
+- **交付**：新件 **`rtl/mir_uram_fifo.v`**（245 行；单时钟 URAM288 4096×64 = **32 KB 载荷** + 4 字弹性堆 + 3 级读流水；XPM_MEMORY `xpm_memory_sdpram`〔`ultra` / `READ_LATENCY_B=3` / `common_clock`〕）；`rtl/app_rx_mirror.v` 与 `rtl/axis_c2h_stream.v` **各 0 改动**；`board/wrapper_p4.v` 功能编辑 **4 处**（u_mir 3 根 aux 接线改指缓冲 + `u_mir_buf` 例化；⛔ 禁碰区 `:1319-1322` 一字未动）；新门 `sim/p9_uram/`（TB 337 行 + 7 突变臂）；`sim/p6e_pcie/*.bat` 4 个加 xpm 库登记（+4/−1）。
+- **门读数**：新门 real **PASS_ALL（43 判据 / 0 FAIL）**；**7 突变臂全红**（2 臂走 RTL FATAL）；既有门 `p6e_counters` / `axis_shaper_real` / `mir_unit_real` PASS_ALL · `p5_wrapper` EXIT 0 · `aliasgate` OK · ⛔ **`p6e_fullchain` = 1 红 `P9-B-3d`**（判据激励前提：700 拍注入不再够填满新 34 KB 弹性）⇒ 诊断复跑（注入 20000 ⇒ 同门 PASS_ALL 且 W70 路径活着；**判据改动留复核轮裁定**）。
+- ⭐ **基线勘误（实施轮实测）**：该插入点**不需要 CDC** —— 镜像 aux 口（`wrapper_p4.v:3795-3825`）与成形器例化两侧**同在 `pcie_axi_aclk` 250 MHz**；dp→pcie 的 CDC 在 `u_mir` 内部（其 `u_fifo` = `fifo_async`）**已完成**。原"写侧 dp_clk / 读侧 pcie"的说法指 u_mir 内部那条边界，不是本刀插入点。（备选登记：替换镜像内部 2 KB FIFO = 真 CDC 加 URAM，未做。）
+- **容量账**：32 KB ÷ 1.25 GB/s ≈ **25.6 µs**（改前 2 KB ≈ 1.6 µs ⇒ ×16）；稳态 1 字/拍（xsim 300/300）；首字延迟 4 拍。
+- ⚠️ **并行面登记**：Kimi 组第二轮 LIVE 引用改写（注释）与本刀功能编辑共处 `board/wrapper_p4.v` —— 双方互核"非注释行变化只有本刀 4 处"；本提交按工作树现状快照入库。
+- **未竟项（照抄，不许当已答）**：URAM 推断未测（构建后核 `URAM288=1` + 0 条 `Synth 8-6793`）· 时序未评（`u_mir_buf` 是 pcie 域新锥）· `P9-B-3d` 判据改动权在裁定者 · 其余含 `DP_156MHZ` 的历史 bat 未加 xpm 补丁 · 常驻矩阵对本刀空/弱证据 · 式B 中途差额 = O（≤32.8 KB）已登记未量化 · 缓冲水位无观测口 · 备选（`AW=13`⇒2 URAM 等）未做。
+- **下一步**：URAM 对抗审查轮（在飞）⇒ 构建 `0x24`（等线速档补测轮收口 + 审查收口）。

@@ -1,0 +1,23 @@
+MUT_URAM pattern hits = 1 (want 1)
+MUT_URAM total_replacements = 1
+MUT_URAM WROTE D:\repo\XCKU5PMini\udp_hls_10g\sim\p9_uram\mut\mir_uram_fifo_mut_issue_free.v
+MUT_URAM_OK
+URAM_FIFO_GATE: FAIL (16 checks failed)
+URAM-FIFO-FATAL 
+URAM-GATE-VERDICT: MUTANT-CAUGHT-as-expected
+  [FAIL]  (whitebox): occ == DEPTH (4096) = 1 (期望 4096)
+  [FAIL] G2b taken in [DEPTH, DEPTH+OQ] = 4299 (期望 4096..4100)
+  [FAIL] q stays 0 (violations in 20 cyc) = 20 (期望 0)
+  [FAIL] c falls back to DEPTH-1..DEPTH-8 = 1 (期望 4088..4095)
+  [FAIL] othing lost in elastic/inflight) = 4294962985 (期望 1)
+  [FAIL] G2g word-by-word zero error = 18 (期望 0)
+  [FAIL] G3e word-by-word zero error = 18 (期望 0)
+  [FAIL] G4b word-by-word zero error = 1831 (期望 0)
+  [FAIL] indow zero error (no stale leak) = 1832 (期望 0)
+  [FAIL] npopped words present (inv >= 2) = 10 (期望 2..4)
+  [FAIL] post-clr word-by-word zero error = 1832 (期望 0)
+  [FAIL] G7b word-by-word zero error = 2184 (期望 0)
+  [FAIL] G8b word-by-word zero error = 13298 (期望 0)
+  [FAIL] accounted (popped - taken == p0) = 4294960441 (期望 1)
+  [FAIL] (arrival into full elastic FIFO) = 3444 (期望 0)
+  [FAIL] (nothing stuck / no silent loss) = 26034 (期望 19178)

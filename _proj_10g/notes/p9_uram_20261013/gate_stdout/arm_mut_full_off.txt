@@ -1,0 +1,19 @@
+MUT_URAM pattern hits = 1 (want 1)
+MUT_URAM total_replacements = 1
+MUT_URAM WROTE D:\repo\XCKU5PMini\udp_hls_10g\sim\p9_uram\mut\mir_uram_fifo_mut_full_off.v
+MUT_URAM_OK
+URAM_FIFO_GATE: FAIL (12 checks failed)
+URAM-FIFO-FATAL 
+URAM-GATE-VERDICT: MUTANT-CAUGHT-as-expected
+  [FAIL]  (whitebox): occ == DEPTH (4096) = 4296 (期望 4096)
+  [FAIL] G2b taken in [DEPTH, DEPTH+OQ] = 4299 (期望 4096..4100)
+  [FAIL] q stays 0 (violations in 20 cyc) = 20 (期望 0)
+  [FAIL] c falls back to DEPTH-1..DEPTH-8 = 4317 (期望 4088..4095)
+  [FAIL] G2g word-by-word zero error = 230 (期望 0)
+  [FAIL] G3e word-by-word zero error = 230 (期望 0)
+  [FAIL] G4b word-by-word zero error = 230 (期望 0)
+  [FAIL] indow zero error (no stale leak) = 230 (期望 0)
+  [FAIL] post-clr word-by-word zero error = 230 (期望 0)
+  [FAIL] G7b word-by-word zero error = 230 (期望 0)
+  [FAIL] G8b word-by-word zero error = 5895 (期望 0)
+  [FAIL]  wr_full (URAM write while full) = 5 (期望 0)

@@ -1,0 +1,14 @@
+MUT_URAM pattern hits = 1 (want 1)
+MUT_URAM total_replacements = 1
+MUT_URAM WROTE D:\repo\XCKU5PMini\udp_hls_10g\sim\p9_uram\mut\mir_uram_fifo_mut_val1.v
+MUT_URAM_OK
+URAM_FIFO_GATE: FAIL (8 checks failed)
+URAM-GATE-VERDICT: MUTANT-CAUGHT-as-expected
+  [FAIL] word-by-word accounting: seq_err = 195 (期望 0)
+  [FAIL] G2g word-by-word zero error = 4304 (期望 0)
+  [FAIL] G3e word-by-word zero error = 4320 (期望 0)
+  [FAIL] G4b word-by-word zero error = 6269 (期望 0)
+  [FAIL] indow zero error (no stale leak) = 6470 (期望 0)
+  [FAIL] post-clr word-by-word zero error = 6671 (期望 0)
+  [FAIL] G7b word-by-word zero error = 7024 (期望 0)
+  [FAIL] G8b word-by-word zero error = 23158 (期望 0)

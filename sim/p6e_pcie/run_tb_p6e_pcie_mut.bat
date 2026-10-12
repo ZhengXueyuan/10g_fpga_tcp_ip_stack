@@ -25,9 +25,12 @@ echo %ROOT%\board\uart_dbg.v                                  >> files.f
 echo %ROOT%\_proj_pcie\rtl\axi_regs.v                         >> files.f
 echo %ROOT%\sim\p6e_pcie\xdma_0_sim_stub.v                    >> files.f
 echo %ROOT%\sim\p6e_pcie\tb_p6e_pcie_wrapper.v                >> files.f
+REM   (2026-10-13) rtl/mir_uram_fifo.v instantiates xpm_memory_sdpram (URAM buffer) => this
+REM     gate registers the xpm source into the local xpm library and elaborates with -L xpm.
+call %XV%\xvlog.bat -sv -work xpm "%XV%\..\data\ip\xpm\xpm_memory\hdl\xpm_memory.sv" > xvlog_xpm.log 2>&1 || (type xvlog_xpm.log & exit /b 1)
 call %XV%\xvlog.bat -work xil_defaultlib -d PCIE_OBS -d DEV_USP -d APP_MODE -d DP_156MHZ -d P6B_SIM_CLKGEN -i %ROOT%\rtl -i %ROOT%\board -f files.f > xvlog_mut.log 2>&1 || (type xvlog_mut.log & exit /b 1)
 call %XV%\xvlog.bat -d PCIE_OBS -d DEV_USP -d APP_MODE -d DP_156MHZ -d P6B_SIM_CLKGEN -work xil_defaultlib "%XV%\..\data\verilog\src\glbl.v" >> xvlog_mut.log 2>&1 || (type xvlog_mut.log & exit /b 1)
-call %XV%\xelab.bat -debug typical -L unisims_ver xil_defaultlib.tb_p6e_pcie_wrapper xil_defaultlib.glbl -s tb_p6e_pcie_mut -log xelab_mut.log > NUL 2>&1 || (type xelab_mut.log & exit /b 1)
+call %XV%\xelab.bat -debug typical -L unisims_ver -L xpm xil_defaultlib.tb_p6e_pcie_wrapper xil_defaultlib.glbl -s tb_p6e_pcie_mut -log xelab_mut.log > NUL 2>&1 || (type xelab_mut.log & exit /b 1)
 call %XV%\xsim.bat tb_p6e_pcie_mut -runall -log xsim_mut.log > NUL 2>&1
 findstr /C:"FAIL" /C:"PASS_ALL" /C:"TIMEOUT" xsim_mut.log
 findstr /C:"TIMEOUT" xsim_mut.log >NUL && (echo P6E-MUT-TIMEOUT & exit /b 1)

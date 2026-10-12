@@ -48,7 +48,7 @@
 //   demo 验证引脚; 9600-8N1):
 //   ⚠️ P6b: 该时钟域取决于构建 —— 默认构建 (K7 各档 / P6a) 仍挂在 gmii_clk(125MHz,
 //      13021 拍/位); **PCIE_OBS 构建 (P6b/P6e) 搬到 156.25MHz 数据面域 (dp_clk,
-//      16276 拍/位)**。波特率与墙钟不变, 只有拍数 ×1.25 (见 P6B_SPEC §5.1)。
+//      16276 拍/位)**。波特率与墙钟不变, 只有拍数 ×1.25 (见 agent_docs/P6B_SPEC §5.1)。
 //   锁存拍 (首次 RTO 回卷) 同拍快照 TCB conn0 全字段 (snd_nxt/snd_una/
 //   snd_wnd/wscale/state, dbg_* 口 = 阵列 entry[0] 纯组合读) + win 读口
 //   16 位全值; 锁存后 dbg_line_tx 立即发首行、此后每 ~5s 重复一行 358 字符
@@ -199,7 +199,7 @@ module wrapper_p4 (
     //      ball T25/U25 = bank65 的 GC 差分对, CLOCK_REGION X0Y1 有 MMCM) ----
     //   ⚠️ 端口**包在 PCIE_OBS 内**(而不是 DEV_USP): P6a 构建 (DEV_USP 但无 PCIE_OBS)
     //      仍是单域, 它的 XDC (ku5p_p6a_t8p0.xdc) 里没有这两根脚 ⇒ 端口一放出去就会
-    //      DRC 报"未约束端口"。这正是 P6B_SPEC §B 的 B2 那一条, 这里按"最小暴露面"定案。
+    //      DRC 报"未约束端口"。这正是 agent_docs/P6B_SPEC §B 的 B2 那一条, 这里按"最小暴露面"定案。
     input           sys_clk_p,           // T25
     input           sys_clk_n            // U25
 `endif
@@ -671,9 +671,9 @@ module wrapper_p4 (
     //=========================================================================
     // P6b: 数据面时钟域 (clk_gen_p6b → 156.25MHz) 与**域别名** dp_clk / dp_rst_n
     //-------------------------------------------------------------------------
-    // 方案 A (P6B_SPEC §0.1): 前端 `u_rgmii` / `u_mac_rx` / `u_mac_tx` 与 RGMII DDR I/O
+    // 方案 A (agent_docs/P6B_SPEC §0.1): 前端 `u_rgmii` / `u_mac_rx` / `u_mac_tx` 与 RGMII DDR I/O
     //   **留 125MHz**; `vlan_strip` 及其后**全部**搬到 156.25MHz 数据面域。两个域之间只有
-    //   两处异步 FIFO 边界 (RX: u_rxcdc, TX: u_txcdc), 见 P6B_SPEC §2.2。
+    //   两处异步 FIFO 边界 (RX: u_rxcdc, TX: u_txcdc), 见 agent_docs/P6B_SPEC §2.2。
     //
     // 域别名的写法 (为什么不是把 gmii_clk 逐处换名):
     //   · 默认构建 (K7 各档 / P6a, **无 PCIE_OBS**) 里数据面 == 前端 ⇒ 本处把 dp_clk 别名成
@@ -681,14 +681,14 @@ module wrapper_p4 (
     //     走同一份源码 (`wire` 别名不产生任何逻辑) ⇒ P4 "K7 各档逐位不变"契约由此落地。
     //   · 极性: clk_gen_p6b 给的是**高有效** rst_dp (异步置位 / 4 拍同步释放)。这里取反成
     //     低有效的 dp_rst_n, 只是为了与既有 `negedge reset_n` 共用同一份文本 —— 与
-    //     P6B_SPEC §6.1 的 rst_dp 是同一个信号的两种极性, 逻辑等价。
-    //   ⚠️ **FIFO 的两侧复位绝不接 dp_rst_n**: 硬规则见 P6B_SPEC §4.4 —— 两个指针必须在
+    //     agent_docs/P6B_SPEC §6.1 的 rst_dp 是同一个信号的两种极性, 逻辑等价。
+    //   ⚠️ **FIFO 的两侧复位绝不接 dp_rst_n**: 硬规则见 agent_docs/P6B_SPEC §4.4 —— 两个指针必须在
     //      "同一代"上复位, 所以 u_rxcdc/u_txcdc 的 wr_rst_n/rd_rst_n **都接板级 reset_n**。
     //      `mmcm_locked` 绝不进 FIFO 的复位路径 (dp_rst_n 只喂数据面**功能**逻辑)。
     //=========================================================================
 `ifdef DP_156MHZ
 `ifdef P6B_SIM_CLKGEN
-    localparam SIM_CLKGEN_BYPASS = 1;   // 仿真: 行为级时钟模型 (不等 MMCM 锁定, P6B_SPEC R7)
+    localparam SIM_CLKGEN_BYPASS = 1;   // 仿真: 行为级时钟模型 (不等 MMCM 锁定, agent_docs/P6B_SPEC R7)
 `else
     localparam SIM_CLKGEN_BYPASS = 0;   // 综合: 真 IBUFDS + BUFG + MMCME4_BASE
 `endif
@@ -711,7 +711,7 @@ module wrapper_p4 (
 `endif
     );
     // ⚠️ 只接 CLKOUT0 —— 其余输出不接负载 ⇒ 不会多出 5.0–9.0ns 带内的第三个时钟
-    //    (P6B_SPEC §8.3 的施工纪律; 本板 RGMII 在 HDIO 且零 IDELAY ⇒ 不需要 IDELAYCTRL
+    //    (agent_docs/P6B_SPEC §8.3 的施工纪律; 本板 RGMII 在 HDIO 且零 IDELAY ⇒ 不需要 IDELAYCTRL
     //     ⇒ 不需要 200MHz)。
     wire dp_rst_n = ~dp_rst_dp;        // 低有效 (与 reset_n 同极性), 见上面极性说明
 `else
@@ -769,11 +769,11 @@ module wrapper_p4 (
 `endif
 
     // --- mac_rx_64 → (P6b 异步 FIFO u_rxcdc) → vlan_strip ---
-    // ⚠️ P6b 方案 A 的 **RX 异步边界** (P6B_SPEC §2.2/§3.1): u_mac_rx 留在前端 125MHz 域,
+    // ⚠️ P6b 方案 A 的 **RX 异步边界** (agent_docs/P6B_SPEC §2.2/§3.1): u_mac_rx 留在前端 125MHz 域,
     //    它的 64 位 AXIS 输出经 u_rxcdc 跨到 156.25MHz 数据面域。
     //    背压: DP 消费者停 ⇒ u_rxcdc.full (FE 本地: 写指针 vs **同步过来的**读指针) ⇒
     //    u_mac_rx.m_axis_tready=0 ⇒ 其内部 8 深 FIFO 满 ⇒ **整帧丢** (stat_drop++)。这是
-    //    rtl/mac_rx_64.v 头注释里已接受的背压合同, 由 W4/W26/W27 归因 (P6B_SPEC §3.4)。
+    //    rtl/mac_rx_64.v 头注释里已接受的背压合同, 由 W4/W26/W27 归因 (agent_docs/P6B_SPEC §3.4)。
     //    默认构建 (无 PCIE_OBS): FIFO 被**旁路**成纯线名别名 ⇒ 与 P6b 之前逐位等价。
     wire [63:0] rxsrc_tdata;                 // FE 侧 (u_mac_rx 输出)
     wire [7:0]  rxsrc_tkeep;
@@ -883,10 +883,10 @@ module wrapper_p4 (
     //    那正是 `rx_tdata[63]` = 每个字的**首字节** ⇒ 全线数据错位。位域顺序 (从 MSB 侧):
     //    {tdata[63:0], tkeep[7:0], tuser, tlast, tcrs, terr}。
     // FWFT=1: 与 fifo_sync/frame_fifo **语义逐条相同** (读侧零改动, 只是 clk → rd_clk)。
-    // ⚠️ 深度 256 是从协议算出来的下界之上的取值: 一个 1518B 最大帧 = 190 字 (P6B_SPEC §4.2);
+    // ⚠️ 深度 256 是从协议算出来的下界之上的取值: 一个 1518B 最大帧 = 190 字 (agent_docs/P6B_SPEC §4.2);
     //    FWFT=1 的读口是组合读 ⇒ 综合**只落 LUTRAM** (rtl/fifo_async.v:82-85) ⇒ 深度翻倍 =
     //    LUTRAM 翻倍, 而"最深停顿无上界"⇒ 弹性没有上界需求 ⇒ 取 256 (硬下界 190 之上)。
-    // ⚠️ 两侧复位**都接板级 reset_n** (硬规则, 见 P6B_SPEC §4.4): 指针必须同代复位。
+    // ⚠️ 两侧复位**都接板级 reset_n** (硬规则, 见 agent_docs/P6B_SPEC §4.4): 指针必须同代复位。
 `ifdef DP_156MHZ
     fifo_async #(.WIDTH(76), .DEPTH(256), .FWFT(1), .AW(8)) u_rxcdc (
         .wr_clk(gmii_clk), .wr_rst_n(reset_n), .wr_en(rxsrc_tvalid),
@@ -897,7 +897,7 @@ module wrapper_p4 (
         .empty(rx_fifo_empty),
         .dbg_wbin(), .dbg_rbin(), .dbg_wgray(), .dbg_rgray(),
         .dbg_occ_w(rxcdc_occ_w), .dbg_occ_r(),
-        // P7b: `fifo_async.ovf_cnt` 原来**悬空** (P7B_SPEC 点名的观测缺口) ⇒ 接出
+        // P7b: `fifo_async.ovf_cnt` 原来**悬空** (agent_docs/P7B_SPEC 点名的观测缺口) ⇒ 接出
         .ovf_cnt(rxcdc_ovf_cnt)
     );
     assign rxsrc_tready = ~rx_fifo_full;   // FE 侧反压 (本地组合, 不跨域)
@@ -1333,7 +1333,7 @@ module wrapper_p4 (
     wire [3:0]  udpapp_led;
 
 `ifdef RXP_DIAG
-    // ---- RXP_DIAG (ISSUE_RX_BYTE_CORRUPTION 专题): app_udp_pattern 首失配快照 ----
+    // ---- RXP_DIAG (agent_docs/ISSUE_RX_BYTE_CORRUPTION 专题): app_udp_pattern 首失配快照 ----
     // 只在 RXP_DIAG + APP_MODE 构建里存在 (诊断位流专用); 声明必须先于下面的
     // app_status_uart 例化 (坑 22/24: 先声明后用, 防隐式 1 位线静默截断)。
     wire [31:0] ds_idx_w, ds_b1_w, ds_b2_w, ds_bg_w, ds_dup_w;
@@ -1704,7 +1704,7 @@ module wrapper_p4 (
     // 触发判据 (fend && pcount < plen_l-4) 在帧尾后若干拍生效 (mac_rx/classify/
     // tcp_rx 流水延迟), 此时 wl_last 已是本帧线上字节数 (帧间保持, 无背靠背
     // 异常帧时即目标帧); sticky 首次锁存。
-    // ⚠️ P6b 特例① (P6B_SPEC §3.5): 本块**故意留在 FE 域** —— 它锁存的是 FE 值 `wl_last`;
+    // ⚠️ P6b 特例① (agent_docs/P6B_SPEC §3.5): 本块**故意留在 FE 域** —— 它锁存的是 FE 值 `wl_last`;
     //    但触发源 `rx_trace_rewind`/`rx_trace_frozen` 现在在 **DP 域** (由 u_tcp_rx 的
     //    探针驱动) ⇒ 必须加 2FF 同步器 (DP→FE, 1 位, ASYNC_REG)。
     //    为什么不让整块搬去 DP: 那会把 16 位的 `wl_last` 变成**无同步的多比特跨域** ⇒
@@ -2724,14 +2724,14 @@ module wrapper_p4 (
 `endif
 
     // --- TX 仲裁: fast (TCP) 严格优先于 slow ({UDP app TX, HLS} 合流) ---
-    // ⚠️ P6b 方案 A 的 **TX 异步边界** (P6B_SPEC §2.2/§3.1): u_tx_arb 及其上游全部在
+    // ⚠️ P6b 方案 A 的 **TX 异步边界** (agent_docs/P6B_SPEC §2.2/§3.1): u_tx_arb 及其上游全部在
     //    156.25MHz 数据面域, u_mac_tx 留在前端 125MHz 域, 两者之间是 u_txcdc (W=73 =
     //    64 data + 8 keep + tlast —— mac_tx_64 的输入只有这三个字段)。
     //    背压: RGMII 线 125MB/s < DP 产能 ⇒ u_txcdc.full (DP 本地) ⇒ u_tx_arb.m_axis_tready=0
     //    ⇒ 不 grant ⇒ 源停 (TCP 靠窗口/ring 保住, UDP app 靠 utx_busy 停发, HLS 的
     //    frame_fifo 满后按既有语义整帧回卷 stat_purge=W18)。
     //    ⚠️ W21 (MAC 帧内中止) 的语义因此**升级**: DP 现在可以领先 MAC 最多 256 字
-    //    (≈1.35 个最大帧) ⇒ 小抖动被吸收, 中止门槛 = "持续型 DP 断供" (P6B_SPEC §3.4)。
+    //    (≈1.35 个最大帧) ⇒ 小抖动被吸收, 中止门槛 = "持续型 DP 断供" (agent_docs/P6B_SPEC §3.4)。
     wire [63:0] txsrc_tdata;                 // DP 侧 (u_tx_arb 输出)
     wire [7:0]  txsrc_tkeep;
     wire        txsrc_tvalid, txsrc_tready, txsrc_tlast;
@@ -2767,7 +2767,7 @@ module wrapper_p4 (
     );
 
     // ---- P6b TX 异步 FIFO (W=73) ----
-    // 深度硬下界 = 一个最大帧的字数 = ceil(1518/8) = 190 (P6B_SPEC §4.3): u_tx_arb 一次
+    // 深度硬下界 = 一个最大帧的字数 = ceil(1518/8) = 190 (agent_docs/P6B_SPEC §4.3): u_tx_arb 一次
     // 只放一帧 (busy 锁到 TLAST) ⇒ 想让 DP 预置下一帧, FIFO 必须装得下**整帧**。
     // 同 RX: FWFT=1 ⇒ LUTRAM ⇒ 取 256 (256/190 = 1.35 帧)。
     // ⚠️ 深度不是"越大越好": 它同时**放宽** W21 的触发条件 (§4.3 的警告)。
@@ -2924,7 +2924,7 @@ module wrapper_p4 (
     // ⚠️ P6b: boot/blink/LED/latch/UART 全部搬进 156.25MHz 数据面域 ⇒ 拍数 ×1.25。
     //    只有 P6b 构建 (PCIE_OBS) 用新值; 默认构建保持旧值 (逐位不变契约)。
     //    ⚠️ 39,062,500 > 2^25 (33,554,432) ⇒ **位宽必须加宽到 26 位**, 否则静默截断
-    //    (P6B_SPEC §5.1 点名的那一条)。
+    //    (agent_docs/P6B_SPEC §5.1 点名的那一条)。
 `ifdef DP_156MHZ
     localparam [25:0] BOOT_HALF = 26'd31_250_000;   // 0.2s at 156.25MHz
 `else
@@ -3023,7 +3023,7 @@ module wrapper_p4 (
 `ifdef APP_MODE
     // ⚠️ P6b: 切换点从"2^29 拍"改成"**同一墙钟**的拍数" ⇒ 671,088,640 = 2^29 + 2^27
     //    **不是 2 的幂** ⇒ 判据必须从"单个位测试 (!uart_sel[29])"改成**幅值比较**。
-    //    `reg [29:0]` 的位宽够 (2^30 = 1.07e9 > 6.71e8) ⇒ 不需要加宽 (P6B_SPEC §5.1)。
+    //    `reg [29:0]` 的位宽够 (2^30 = 1.07e9 > 6.71e8) ⇒ 不需要加宽 (agent_docs/P6B_SPEC §5.1)。
     //    默认构建保持旧的位测试写法 (逐位不变契约)。
 `ifdef DP_156MHZ
     localparam [29:0] UART_SW = 30'd671_088_640;   // 4.295s @156.25MHz (= 旧 2^29 @125MHz)
@@ -3166,7 +3166,7 @@ module wrapper_p4 (
     // 字宽 32 (P6b, 2026-09-29): 数据面搬 156.25MHz ⇒ **快照被拆成两个域的两束**, 每束各挂
     //    一个 snap_cdc, 由链式序列器 rtl/snap_seq.v 定序 (**FE 先 → DP 后**)。新增 8 个字
     //    W24-W31 全是"跨域完整性锚点"与"新时钟域的正证据" (见下面 §7.1 注释)。
-    // ⚠️ 扩窗的处数从"五处"变成**七处** (P6B_SPEC §7.4): 多出来的两处是
+    // ⚠️ 扩窗的处数从"五处"变成**七处** (agent_docs/P6B_SPEC §7.4): 多出来的两处是
     //    ⑥ 三个门自己的参数 (tb_axi_regs / tb_snap_cdc / tb_p6e_pcie_*) 
     //    (P7B-BIZ 另加两处**本工程特有的**守卫: ⑧ `_proj_10g/notes/p7b_biz_win/check_window.py`
     //      静态核装配项数/槽号/旧字不移位 ⑨ `tb_biz_win.v` 逐字读回 — 见 P7B_BIZ_WINDOW.md)
@@ -3347,7 +3347,7 @@ module wrapper_p4 (
     //   ⇒ 瞬时命中率 ~1%, 当位用几乎永远读不到。累计拍数则单调可见。
     reg  [31:0]  hr_cnt;
     // =====================================================================
-    // P6b 新增仪表 (W24..W31) —— 每一条都要能"独立复算", 见 P6B_SPEC §7.1
+    // P6b 新增仪表 (W24..W31) —— 每一条都要能"独立复算", 见 agent_docs/P6B_SPEC §7.1
     // =====================================================================
     // 【W24】dp_free: **数据面域 (156.25MHz) 32 位自由计数器** = "数据面真跑在新时钟上"的
     //   唯一正证据。判据 (可独立复算): 两次快照之间 ΔW24 / 墙钟间隔 = 156.25MHz ±1%
@@ -3355,27 +3355,27 @@ module wrapper_p4 (
     reg  [31:0]  dp_free;
     // 【W25】mmcm_locked 的两个域同步版 (DP 束里的那一位 + SNAP_STATUS[6] 的镜像)。
     //   为什么要两处: DP 束在"DP 时钟停摆"时读不到 ⇒ 卡住时只剩 SNAP_STATUS[6] 可用
-    //   (P6B_SPEC §6.4)。
+    //   (agent_docs/P6B_SPEC §6.4)。
     reg  [1:0]   mmcm_locked_sr_dp;
     reg  [1:0]   mmcm_locked_sr_axi;
     // 【W26】rxcdc_full_cycles: u_rxcdc.full 高电平**拍数** (FE 域) —— RX 方向"DP 跟不上"
     //   的直接量。独立复算: 与本域 W0(收帧) 同时看 —— W4 随 W0 涨且 W26 单调涨 ⇒ 确认是
-    //   新 FIFO 造成的丢帧 (P6B_SPEC §4.2 的症状判据)。零新增域 (full 本来就在 FE)。
+    //   新 FIFO 造成的丢帧 (agent_docs/P6B_SPEC §4.2 的症状判据)。零新增域 (full 本来就在 FE)。
     reg  [31:0]  rxcdc_full_cycles;
     // 【W27】rxcdc_occ_max: u_rxcdc 在**写域**看到的历史最大占用(字) = 深度探针。
     //   独立复算: 它必须恒 <= DEPTH=256, 且一次板级跑里"峰值贴 256"就意味着深度真不够。
     reg  [15:0]  rxcdc_occ_max;   // 只用到 9 位, 高 7 位恒 0 (拼成 {16'd0,...} = 32 位)
     // 【W28】txcdc_occ_max: u_txcdc 在**写域 (= dp_clk)** 看到的历史最大占用。
-    //   ⚠️ 口径说明 (与 P6B_SPEC §7.1 的字面表述有一处刻意的技术选择): 取 **dbg_occ_w**
+    //   ⚠️ 口径说明 (与 agent_docs/P6B_SPEC §7.1 的字面表述有一处刻意的技术选择): 取 **dbg_occ_w**
     //   (写域) 而不是 dbg_occ_r (读域) —— DBG_OCC_R 属于 **gmii_clk 域**, 直接塞进 DP 束就是
     //   多比特 CDC (snap_cdc 头注释警告的位混)。两个 FIFO 的占用探针一律取"**写者那一侧**":
     //   RX FIFO 的写者是 FE ⇒ W27 在 FE 束; TX FIFO 的写者是 DP ⇒ W28 在 DP 束。
     reg  [15:0]  txcdc_occ_max;   // 同上
     // 【W29】txwire_stall_cycles: DP 侧 `txsrc_tvalid==1 && txsrc_tready==0` 的拍数 ——
-    //   区分"DP 在等线"(W29 大而 W18 不涨) vs "DP 在丢帧" (P6B_SPEC §4.3)。
+    //   区分"DP 在等线"(W29 大而 W18 不涨) vs "DP 在丢帧" (agent_docs/P6B_SPEC §4.3)。
     reg  [31:0]  txwire_stall_cycles;
     // 【W30/W31】RX FIFO **读侧**的帧数 / 字节数 —— 跨域完整性锚点。
-    //   独立复算 (逐位等式, P6B_SPEC §7.3 的证明): Σpopc(tkeep) + 4×帧数 ≡ MAC 的 stat_bytes
+    //   独立复算 (逐位等式, agent_docs/P6B_SPEC §7.3 的证明): Σpopc(tkeep) + 4×帧数 ≡ MAC 的 stat_bytes
     //   ⇒ 停机态 (RX FIFO 必空) 下必须 **W0==W30 且 W1==W31 逐位相等**; 跑流量时
     //   `0 <= W0-W30 <= 界` 且不漂移 (有向! 链式触发保证 W30 的采样不早于 W0)。
     reg  [31:0]  rxcdc_out_frames;
@@ -3776,10 +3776,17 @@ module wrapper_p4 (
     wire [31:0] biz_w70;            // W70 = drop_bytes (dp 域寄存器输出 → p7bdp 槽 30)
     // ---- ⭐ aux 读口 ↔ 成形器 的四根线 (必须声明在 u_mir **之前** —— 坑 24/22:
     //   晚声明 = "already implicitly declared" 硬错, 或静默 1 位隐式线) ----
-    wire        mir_dma_req;        // = u_mir_axis.dma_req (有容量才拉; ⇒ 无容量时 FIFO 满 ⇒ W70)
-    wire        mir_dma_gnt;        // = u_mir.dma_gnt (1 拍: 本拍已弹出**2 个逻辑字**)
-    wire [63:0] mir_dma_data;       // = u_mir.dma_data ({后出, 先出}) → 成形器槽 (8 B/次)
-    wire        mir_clr_pulse_rd;   // = u_mir.clr_pulse_rd (→ 成形器清零, 同钟直连)
+    //   ⭐⭐ 2026-10-13 (URAM 板内缓冲轮): 这四根线里**下游三根** (req/gnt/data) 的语义
+    //   变成"u_mir_axis ↔ u_mir_buf"; 新增三根 `mir_uf_*` = "u_mir ↔ u_mir_buf"。
+    //   ⛔ `u_mir_axis` 的例化**一字未改** (三根线名照旧) ⇒ 成形器侧零改动。
+    wire        mir_dma_req;        // = u_mir_axis.dma_req (有容量才拉) → u_mir_buf.dn_req
+    wire        mir_dma_gnt;        // = u_mir_buf.dn_gnt (1 拍: 弹出**2 个逻辑字**)
+    wire [63:0] mir_dma_data;       // = u_mir_buf.dn_data ({后出, 先出}) → 成形器槽 (8 B/次)
+    wire        mir_clr_pulse_rd;   // = u_mir.clr_pulse_rd (→ 成形器/缓冲清零, 同钟直连)
+    // ---- ⭐ URAM 板内缓冲 (mir_uram_fifo) 的上游三线 (u_mir.aux ↔ u_mir_buf.up_*) ----
+    wire        mir_uf_req;         // = u_mir_buf.up_req (缓冲有空间才拉; 满 ⇒ 不拉 ⇒ W70)
+    wire        mir_uf_gnt;         // = u_mir.dma_gnt (1 拍: 本拍已弹出**2 个逻辑字**)
+    wire [63:0] mir_uf_data;        // = u_mir.dma_data ({后出, 先出}) → 缓冲 URAM 写口
     // ---- ⭐ 期 A: src_sel 的 pcie→dp 2FF + 源 mux (snoop 五线: tdata/tkeep/tvalid/tready/tlast) ----
     (* ASYNC_REG = "TRUE" *) reg [1:0] mir_src_sr;
     always @(posedge dp_clk or negedge reset_n) begin
@@ -3808,25 +3815,55 @@ module wrapper_p4 (
         .dout         (mir_dout),
         .empty        (mir_empty),
         .level        (mir_level),
-        // ---- ⭐ aux 读口 (P8 期 B 起接线; ⭐ P9 起消费者 = `u_mir_axis`) ----
+        // ---- ⭐ aux 读口 (P8 期 B 起接线; ⭐ P9 起消费者 = `u_mir_buf` → `u_mir_axis`) ----
         //   ⭐⭐ P8 阶段三 (2026-10-11): 合同从"1 字/拍"改为"**2 字/拍**" —— 源做到 8 B/拍后
         //   上界 1.25 GB/s > 单字出口的 1 GB/s ⇒ 必须 2 字/拍 (否则 FIFO 结构性必满)。
         //   现行合同 (rtl/app_rx_mirror.v 头注释 + 单元门 G12a..k): dma_req=1 且 FIFO 非空且
         //   主机本拍没弹出 ⇒ `dma_gnt=1`, 同拍 `dma_data[63:0]` = 按序的下 2 个逻辑字
         //   (`[31:0]` 先出); 与主机弹出冲突时 **主机优先** (dma_gnt=0)。
         //   ⛔ 期 B 之前这里写死 1'b0 的 tie 已删。
-        .dma_req      (mir_dma_req),         // = u_mir_axis.dma_req (P9: 有容量才拉)
-        .dma_gnt      (mir_dma_gnt),         // → u_mir_axis 的 grant (1 拍 = 8 B = 2 个字)
-        .dma_data     (mir_dma_data),        // 2 个逻辑字 → 成形器槽 (64 位)
+        //   ⭐⭐ 2026-10-13: 消费者从 `u_mir_axis` 换成 **`u_mir_buf`** (URAM 板内缓冲);
+        //   合同**一字未改** (只是换了个消费者) —— 缓冲再按**镜像当年的角色**把字喂给成形器。
+        .dma_req      (mir_uf_req),          // = u_mir_buf.up_req (缓冲有空间才拉)
+        .dma_gnt      (mir_uf_gnt),          // → u_mir_buf 的写入成交 (1 拍 = 8 B = 2 个字)
+        .dma_data     (mir_uf_data),         // 2 个逻辑字 → 缓冲 URAM 写口 (64 位)
         .clr_pulse_rd (mir_clr_pulse_rd),    // → 成形器清零 (与 rd 域 clr 同拍, 同钟直连)
         .drop_bytes   (biz_w70),
         .any_drop     (),                    // dp 域 sticky (无消费者; 读域版走 any_drop_rd)
         .any_drop_rd  (mir_any_drop)
     );
 
+    // ---- ⭐⭐ 2026-10-13 (URAM 板内缓冲轮): `u_mir_buf` = 32 KB 弹性缓冲 ----
+    //   位置: 镜像 aux 口 (`u_mir`) 与 C2H 成形器 (`u_mir_axis`) **之间** (取最小改动面:
+    //     两件既有模块**一行未改**; 只改本文件的 3 根 aux 接线 + 本实例)。
+    //   用途: 吸收主机 `read()` 空档 —— 改前下游总弹性 ≈ 2 KB (镜像 FIFO) + 48 B ⇒ ≈1.6 µs;
+    //     改后 +32 KB ⇒ ≈25.6 µs (源上界 1.25 GB/s)。
+    //   合同: 上游 (对镜像) 与下游 (对成形器) 都按**旧 aux 合同逐字**; 丢字节口径**不变**
+    //     (无空间就不拉 req ⇒ 镜像 FIFO 满 ⇒ 仍只记 `W70`; 本模块不新增任何计数器)。
+    //   `clr` = 镜像 `clr_pulse_rd` (窗口边界 ⇒ 缓冲内容按定义丢弃 —— 与成形器 `clr_drop`
+    //     同款, 防"上一窗口的尾巴漏进新窗口"); `en` = `MIR_CTRL[3]` (0 ⇒ 不取数 ⇒ 镜像 FIFO
+    //     保持 ⇒ `MIR_STATUS`/`MIR_DATA` 读侧语义不变)。
+    //   ⚠️ 复位 = `pcie_axi_aresetn` (与 `u_mir_axis` 同一条; 与镜像 rd 侧的 `reset_n` 是
+    //     **既存同钟不同复位域边界**, 本刀不加宽 —— 见 rtl/mir_uram_fifo.v 头注释)。
+    //   ⚠️ 同钟设计 (两侧都在 `pcie_axi_aclk`): 数据面→pcie 的 CDC 在 `u_mir` 内部已完成。
+    mir_uram_fifo #(.AW(12), .LAT(3), .OQ(4)) u_mir_buf (
+        .clk      (pcie_axi_aclk),
+        .rst_n    (pcie_axi_aresetn),
+        .en       (mir_ctrl[3]),              // dma_en (MIR_CTRL[3]; 0 = 不取数)
+        .clr      (mir_clr_pulse_rd),         // 窗口边界 ⇒ 丢弃缓冲内容
+        .up_req   (mir_uf_req),               // → u_mir.dma_req (有空间才拉)
+        .up_gnt   (mir_uf_gnt),               // ← u_mir.dma_gnt (1 拍 = 8 B = 2 个逻辑字)
+        .up_data  (mir_uf_data),              // ← u_mir.dma_data ({后出, 先出})
+        .dn_req   (mir_dma_req),              // ← u_mir_axis.dma_req (成形器要字)
+        .dn_gnt   (mir_dma_gnt),              // → u_mir_axis.dma_gnt (同拍, FWFT 头字)
+        .dn_data  (mir_dma_data),             // → u_mir_axis.dma_data
+        .dbg_occ  (),                         // 显式空接 (接快照 = 改窗口几何, 不在本刀)
+        .dbg_oocc ()
+    );
+
     // ---- ⭐ P9 (2026-10-11): C2H = AXIS 成形器 (替代"环 + 两个 AXI-MM 从机"三件套) ----
-    //   链: u_mir.FIFO ──(aux 弹出 2 字/拍 = 8 B)──> u_mir_axis (攒 16 B = 1 个 128 位拍)
-    //       ──> XDMA `s_axis_c2h` (IP 内本就含 1×C2H + 1×H2C 引擎; CONF §2/§3)。
+    //   链: u_mir.FIFO ──(aux 弹出 2 字/拍 = 8 B)──> u_mir_buf (URAM 32 KB) ──> u_mir_axis
+    //       (攒 16 B = 1 个 128 位拍) ──> XDMA `s_axis_c2h` (IP 内本就含 1×C2H + 1×H2C; CONF §2/§3)。
     //   H2C 侧: `m_axis_h2c_tready` 恒 1 (吞噬) —— 丢弃语义在**本文件**就是一个常量;
     //   AXIS 下没有 B 通道可挂, 所以不需要 `aximm_h2c_discard` 那种"应答状态机"。
     //   ⚠️ **丢字节口径 (TL 裁定)**: 本模块**不新增任何丢字节计数器** —— 无容量时
@@ -3846,9 +3883,9 @@ module wrapper_p4 (
         .en             (mir_ctrl[3]),        // dma_en (MIR_CTRL[3]; 0 = 停排空 + 停流)
         .cap_en         (mir_ctrl[0]),        // ⭐ 采集使能 (MIR_CTRL[0]; 0 = 停流触发之一)
         .clr            (mir_clr_pulse_rd),   // 镜像 rd 域 clr 脉冲 (停流 + 计数归零)
-        .dma_req        (mir_dma_req),        // → 镜像 (无容量不拉 ⇒ FIFO 满 ⇒ W70 记账)
-        .dma_gnt        (mir_dma_gnt),        // ← 镜像 (1 拍 = 8 B = 2 个逻辑字)
-        .dma_data       (mir_dma_data),       // ← 64 位 = {后出, 先出}
+        .dma_req        (mir_dma_req),        // → u_mir_buf (无容量不拉 ⇒ 缓冲满 ⇒ W70 记账)
+        .dma_gnt        (mir_dma_gnt),        // ← u_mir_buf (1 拍 = 8 B = 2 个逻辑字)
+        .dma_data       (mir_dma_data),       // ← 64 位 = {后出, 先出} (缓冲 FWFT 头字)
         .s_axis_c2h_tdata  (mir_c2h_tdata),
         .s_axis_c2h_tkeep  (mir_c2h_tkeep),
         .s_axis_c2h_tlast  (mir_c2h_tlast),
@@ -4171,7 +4208,7 @@ module wrapper_p4 (
     // ---- 3b. 链式触发序列器 (axi 域) ----
     // **FE 先 → DP 后** (确定序)。偏斜上界 ≤59.2ns < 96ns = 1G 背靠背帧的最小 IFG ⇒ 两次
     // 锁存之间最多跨过 1 个帧边界 ⇒ 跨域对账可以用**有向**判据 (W6-W0 ∈{0,1},
-    // -1 ≤ W0-W30 ≤ 界) 而不是对称容差。论证见 P6B_SPEC §2.5 / rtl/snap_seq.v 头注释。
+    // -1 ≤ W0-W30 ≤ 界) 而不是对称容差。论证见 agent_docs/P6B_SPEC §2.5 / rtl/snap_seq.v 头注释。
     // ⚠️ snap_cdc 硬契约① (req 恰好 1 拍) 由 snap_seq 内部寄存器化保证;
     //    契约② (用 valid 而不是"busy 落下"当完成) 也已满足。
     snap_seq #(.FW(SNAP_FE_NW), .DW(SNAP_DP_NW)) u_snap_seq (
