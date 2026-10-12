@@ -147,7 +147,7 @@ R100	PORT_NOTES.md	agent_docs/PORT_NOTES.md
 |---|---|---|
 | audit_scratch/t1_bits/tb_cdc_bits.v:116 | P6B_CDC_AUDIT | P6b 审计轮 TB 留档（注释引文） |
 | audit_scratch/t3_txcdc/tb_tx_cdc_chain.v:118 | P6B_CDC_AUDIT | 同上 |
-| review_scratch/rw/tb_rvw_macrx.v:4 | P6B_SPEC | P6b 对抗审查 S3 TB 留档 |
+| agent_docs/review_scratch/rw/tb_rvw_macrx.v:4 | P6B_SPEC | P6b 对抗审查 S3 TB 留档 |
 | int_scratch/neg5/axi_regs.v:24 | P6B_SPEC | 负对照病理副本（方案 U9 判定不改） |
 | int_scratch/neg5/axi_regs.v:31 | P6E_OBS.md | 同上 |
 | int_scratch/negbase/axi_regs.v:24 | P6B_SPEC | 同上 |

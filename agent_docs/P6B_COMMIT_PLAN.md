@@ -86,7 +86,7 @@
 gitignore: 仿真/构建产物的通用排除规则 (xsim.dir / *.wdb / *.pcap / scratch 下 *.memh / *_prj.runs)
 
 本轮盘点时仍有 209 MB 未跟踪且未被忽略的条目, 主要躺在各 agent 的临时目录
-(int_scratch/ review_scratch/ audit_scratch/ p6b_final_verify/ …) 里, 主体是 xsim 的
+(int_scratch/ agent_docs/review_scratch/ audit_scratch/ p6b_final_verify/ …) 里, 主体是 xsim 的
 编译目录与波形 (单个 xsimk.exe 10 MB 级) —— 历史教训是上一轮有 119 MB 仿真残渣差点进库。
 
 改动:
@@ -479,7 +479,7 @@ board/p6b_verify/     # 板级门读数 + 时序闸负对照 + CONTROLS.txt + p4
 p6b_accept_final/     # **验收归档**: 位流(*.bit)与抓包(*.pcap)仍被忽略(既定策略),
                       #   *.log/*.err 已放行 ⇒ 入库的是脚本 + 全部原始日志
 int_scratch/          # 审查方独立门 (tb_int_axr36.v / tb_int_snapseq.v) + 回绕负对照
-review_scratch/       # 对抗审查的原始读数与变异体 (F4 复核附录 R 的 A/B 读数在这里)
+agent_docs/review_scratch/       # 对抗审查的原始读数与变异体 (F4 复核附录 R 的 A/B 读数在这里)
 audit_scratch/        # 跨域审计的门 + 原始读数 + rtl_orig/ 与 tools_orig/ 的**撤回对照副本**
 sim/p4sim/P4_MATRIX_FINGERPRINT_*.txt   # ⚠️ 等矩阵跑完
 sim/p4sim/matrix_p4dfix.log             # ⚠️ 等矩阵跑完
@@ -499,11 +499,11 @@ xsim.dir）不入库。这次归档三类:
   板级验收的原始日志与脚本（位流**不入库** —— 项目既定策略不跟踪位流, sha256 记在 agent_docs/P6B_ACCEPT.md §1.1）。
   注意: 冒烟轮烧的是**过期位流** 03f9c6d0…fe5a0d（不含 F-1/F-2）, 引用它的数字必须注明这一点。
 
-2 audit_scratch/ review_scratch/ int_scratch/
+2 audit_scratch/ agent_docs/review_scratch/ int_scratch/
   三个独立 agent（跨域审计 / 对抗审查 / 集成审查）的门与原始读数, 含:
   - audit_scratch/rtl_orig/mac_tx_64.v 与 tools_orig/gen_stim_tx.py: **撤回修复用的对照副本**
     （"撤回修复即 FAIL"这条负对照靠它复现）;
-  - review_scratch/_sec_R.md 与附录 R 的 A/B 读数（F4-2 就是在这里被抓到的）;
+  - agent_docs/review_scratch/_sec_R.md 与附录 R 的 A/B 读数（F4-2 就是在这里被抓到的）;
   - int_scratch/tb_int_axr36.v + neg5/ + negbase/: 36 字读回门与**两条回绕负对照**。
   这些目录里的 xsim.dir/ *.wdb *.memh 已被 .gitignore 排除。
 

@@ -4392,7 +4392,7 @@ FTDI/MAX3232、无 USB 口、无调试排针；见 `../XCKU5PMini/CLAUDE.md`「�
 `board/build_p6b_final_ku5p.tcl` · `board/check_p6b_timing.py` · `sim/fifoasync/` · `sim/clkgen/` ·
 `sim/snapseq/` · `sim/f4sim/` · `sim/f4chain/` · `sim/p4gates/`（P4 硬化工具链 + 证据）·
 `_proj_pcie/p6b_accept.sh` + `p6b_smoke_*` · `p6b_accept_final/`（**验收归档**）· `board/p6b_verify/` ·
-`P6B_*.md`。（另有 `audit_scratch/` `review_scratch/` `int_scratch/` 三个**审查/审计 agent 的原始证据目录**，
+`P6B_*.md`。（另有 `audit_scratch/` `agent_docs/review_scratch/` `int_scratch/` 三个**审查/审计 agent 的原始证据目录**，
 按纪律**保留**；它们的 `.txt` 读数与 TB 源码要入库，`xsim.dir/`/`*.wdb`/`*.memh` 等产物已由 `.gitignore` 排除
 —— 见 `agent_docs/P6B_COMMIT_PLAN.md`。）
 

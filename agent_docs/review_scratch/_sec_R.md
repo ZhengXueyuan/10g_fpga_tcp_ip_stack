@@ -4,7 +4,7 @@
 # 附录 R —— F4 修复的对抗复核（第二轮，2026-09-29）
 
 > 复核对象：`rtl/mac_rx_64.v` + `rtl/fifo_sync.v`（F4 修复）+ `sim/f4sim/` 的证据。
-> 我的全部原始产物在 `review_scratch/`：`rw/tb_rvw_fullnext.v`、`rw/tb_rvw_term.v`、
+> 我的全部原始产物在 `agent_docs/review_scratch/`：`rw/tb_rvw_fullnext.v`、`rw/tb_rvw_term.v`、
 > `rw/tb_rvw_conserve.v`、`rw/mac_rx_64_old.v`（用 `git show HEAD:` 取的修复前版本，
 > 仅重命名模块以便同 TB 内 A/B）、`runfn.bat` / `runterm.bat` / `runcons.bat` /
 > `runmacrx*.bat` 及各自的 `rd_*/` 日志。
@@ -199,7 +199,7 @@ REVIEW_TERM_RESULT: FAIL -- NEW sacrificed a good frame the OLD delivered
 | `parse_mac_rx` lenient | ⚠️ 本轮未引爆（因 TERM 未真正发出），**但一旦闭合就会假 FAIL** ⇒ 必须与 `expected.memh` 的生成同批改；**未污染我此前的判读** |
 | W32–W35 | 树里尚无（仍 32 字）；若加：**全部属 FE 域** ⇒ 必须进 FE 束；且 **36 字超出 `snap_idx`(5 位) / `snap_base`(10 位) 的硬顶 ⇒ 会静默回绕成 W0..W3**；**对 S2 偏斜无影响（仍 ≈43.2 ns）** |
 
-*本节全部读数可复跑：`review_scratch/runfn.bat`、`runterm.bat`、`runcons.bat`、
+*本节全部读数可复跑：`agent_docs/review_scratch/runfn.bat`、`runterm.bat`、`runcons.bat`、
 `runmacrx.bat`、`runmacrx_old.bat`、`runmacrx_probe.bat`。*
 *本轮同样未修改任何交付件（`rtl/`、`tb/`、`sim/`、`board/`、`_proj_pcie/` 一字未动），
 未 `git add/commit/push`，未烧板，未跑综合/实现。*

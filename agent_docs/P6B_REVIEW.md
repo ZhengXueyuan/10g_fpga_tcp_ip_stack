@@ -1,7 +1,7 @@
 # P6B_REVIEW — 对抗审查发现清单
 
 > 审查对象: `agent_docs/P6B_SPEC.md`(1325 行) + `rtl/fifo_async.v` + `rtl/clk_gen_p6b.v` + 两个 TB。
-> 审查 agent: 与施工 agent 并行工作；**本文件与 `review_scratch/` 是本 agent 唯一写过的路径**
+> 审查 agent: 与施工 agent 并行工作；**本文件与 `agent_docs/review_scratch/` 是本 agent 唯一写过的路径**
 > （未修改 `agent_docs/P6B_SPEC.md` / `rtl/` / `tb/` / `board/` / `_proj_pcie/` 下任何既有文件）。
 > 全部结论附独立证据（代码行 / 我自己的 xsim 输出 / 我重算的数字）。**未验证项在 §6 逐条列。**
 > ⚠️ 审查期间施工 agent 正在改动 `board/wrapper_p4.v` / `rtl/*.v`；凡引用"现状"的行号均已实测读出。
@@ -13,7 +13,7 @@
 > · **F3 大幅降级** —— 我判"全链门没定义 `P6B_SIM_CLKGEN` 且 TB 不驱动 `sys_clk`"，
 >   到落笔时**已被施工 agent 修好**（`run_tb_p6e_pcie.bat` 已加 `-d`，TB 已加 `sys_clk_p/n`）。
 > ⇒ **凡与"当前文件内容"绑定的结论都有时效性**；施工 agent 若已改过，以实际文件为准。
-> 我保留 `review_scratch/` 的全部原始日志，可逐条复核。
+> 我保留 `agent_docs/review_scratch/` 的全部原始日志，可逐条复核。
 
 ---
 
@@ -183,7 +183,7 @@ Xilinx 标准做法接受它；但 **`rst_ext`（= `~reset_n`，来自 PERST# �
 | **mutF** 写侧复位同步器减到 1 级 | `wr_rst_n_s = wr_rst_sync[0]` | **PASS** | — | — | **FAIL**（RESET3/RESET4/6 + 内容错） |
 
 命令（可复跑）：`cmd //c 'D:\repo\XCKU5PMini\udp_hls_10g\review_scratch\runmuts.bat'`
-（基线 `rd_base_bal` = `FIFO_ASYNC_GATE: PASS_ALL`；变异体产物在 `review_scratch/rd_mutC_*`、`rd_mutF_*`）
+（基线 `rd_base_bal` = `FIFO_ASYNC_GATE: PASS_ALL`；变异体产物在 `agent_docs/review_scratch/rd_mutC_*`、`rd_mutF_*`）
 
 ⇒ **门不是空的：基线 PASS，我自造的变异体都被至少一个 case 抓死。**
 **但**必须记一条方法论警告：**上面每个变异体都只在部分 case 里显形**（mutC 只被 WRFAST 抓、mutF 只被 RESET 抓），
@@ -249,7 +249,7 @@ FE 锁存 (e3)                       ← snap_cdc#FE 的 hold_b 在 update_b 那
 
 ### 3.4 S3 的独立 xsim 证据（F4）
 
-TB：`review_scratch/rw/tb_rvw_macrx.v`（自写；只读 `rtl/mac_rx_64.v`，未改动它）
+TB：`agent_docs/review_scratch/rw/tb_rvw_macrx.v`（自写；只读 `rtl/mac_rx_64.v`，未改动它）
 驱动：GMII 前导(8×55+D5) + N 个内容字节 + 4 个假 FCS 字节；`m_axis_tready` 按窗口拉低以真正触发
 `fifo_full` 丢帧路径；**随后释放 tready**，把已经 push 的字排出去（那正是 W30/W31 会数的东西）。
 复跑：`cmd //c 'D:\repo\XCKU5PMini\udp_hls_10g\review_scratch\runmac.bat'`
@@ -382,14 +382,14 @@ rd_mutF_C_RESET  : FAIL  FAIL-DETAIL: RESET3/RESET4 前置(C)/RESET6/通用1
 | N3 | ~~F4 中 F3 那一幕的精确分支~~ | **已钉死**（第二轮定点实验，逐拍轨迹见 §3.4）：帧尾 `:142` 读到 `full=0` **是对的**（7/8 占用），但同拍完成字的 push 把 `wptr` 顶到满 ⇒ 下一拍 `fifo_sync` 的 `wr && !full` 判假 ⇒ **TLAST 字被静默丢弃，而计数器已 +1** | — |
 | N4 | **`fifo_async` 的综合推断**（FWFT=1 是否真的落 LUTRAM、256×77 的 LUT 数） | 同上，不能跑综合 | P6b 构建后 `report_utilization` grep `RAM64X1`/`RAM32X1` |
 | N5 | **HLS 生成 RTL 里的实际时间常数** | 只读了 `hls/src/*`（它们带 `#ifdef` 覆盖）；没逐个核 `hls/slowstack_prj/solution1/syn/verilog/` | 对生成 RTL grep 那 5 个常数 |
-| N6 | **`.gitattributes`/`.gitignore` 是否会让 `review_scratch/` 被误提交** | 未查（我按要求不 commit） | `git status --short` 复查 |
+| N6 | **`.gitattributes`/`.gitignore` 是否会让 `agent_docs/review_scratch/` 被误提交** | 未查（我按要求不 commit） | `git status --short` 复查 |
 | N7 | **10G 下 43.2 ns 偏斜的余量** | 只做了 67.2 ns 除以 43.2 的一步估算，没重算 10G 下的 axi/dp 周期 | P6 收口时重推 |
 | N8 | **`p6b_accept.sh` 其余 8 条判据的容差合理性**（如 `W13/W18/W19 恒 0`、`W4 涨速与 W0 脱钩`） | 时间预算；只审查了它与我发现冲突的 5/6/7 条 | 板级首测时逐条看 |
 
 ---
 
 *本文件由 P6b 对抗审查 agent 产出（2026-09-29）。所有读数均给可复跑命令；所有"预测"均已标注。*
-*实验产物：`review_scratch/`（`rw/tb_rvw_macrx.v`、`rw/mutC_full1stage.v`、`rw/mutF_rst1stage.v`、`run*.bat`、`rd_*` 日志）。*
+*实验产物：`agent_docs/review_scratch/`（`rw/tb_rvw_macrx.v`、`rw/mutC_full1stage.v`、`rw/mutF_rst1stage.v`、`run*.bat`、`rd_*` 日志）。*
 *本 agent 未修改任何交付件，未 `git add/commit/push`，未烧板，未跑综合/实现。*
 
 ---
@@ -397,7 +397,7 @@ rd_mutF_C_RESET  : FAIL  FAIL-DETAIL: RESET3/RESET4 前置(C)/RESET6/通用1
 # 附录 R —— F4 修复的对抗复核（第二轮，2026-09-29）
 
 > 复核对象：`rtl/mac_rx_64.v` + `rtl/fifo_sync.v`（F4 修复）+ `sim/f4sim/` 的证据。
-> 我的全部原始产物在 `review_scratch/`：`rw/tb_rvw_fullnext.v`、`rw/tb_rvw_term.v`、
+> 我的全部原始产物在 `agent_docs/review_scratch/`：`rw/tb_rvw_fullnext.v`、`rw/tb_rvw_term.v`、
 > `rw/tb_rvw_conserve.v`、`rw/mac_rx_64_old.v`（用 `git show HEAD:` 取的修复前版本，
 > 仅重命名模块以便同 TB 内 A/B）、`runfn.bat` / `runterm.bat` / `runcons.bat` /
 > `runmacrx*.bat` 及各自的 `rd_*/` 日志。
@@ -592,7 +592,7 @@ REVIEW_TERM_RESULT: FAIL -- NEW sacrificed a good frame the OLD delivered
 | `parse_mac_rx` lenient | ⚠️ 本轮未引爆（因 TERM 未真正发出），**但一旦闭合就会假 FAIL** ⇒ 必须与 `expected.memh` 的生成同批改；**未污染我此前的判读** |
 | W32–W35 | 树里尚无（仍 32 字）；若加：**全部属 FE 域** ⇒ 必须进 FE 束；且 **36 字超出 `snap_idx`(5 位) / `snap_base`(10 位) 的硬顶 ⇒ 会静默回绕成 W0..W3**；**对 S2 偏斜无影响（仍 ≈43.2 ns）** |
 
-*本节全部读数可复跑：`review_scratch/runfn.bat`、`runterm.bat`、`runcons.bat`、
+*本节全部读数可复跑：`agent_docs/review_scratch/runfn.bat`、`runterm.bat`、`runcons.bat`、
 `runmacrx.bat`、`runmacrx_old.bat`、`runmacrx_probe.bat`。*
 *本轮同样未修改任何交付件（`rtl/`、`tb/`、`sim/`、`board/`、`_proj_pcie/` 一字未动），
 未 `git add/commit/push`，未烧板，未跑综合/实现。*

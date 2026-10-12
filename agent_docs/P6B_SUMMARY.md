@@ -29,7 +29,7 @@
 | **新约束** | `board/ku5p_p6b_sysclk.xdc`（Y1 100 MHz 输入）· `board/ku5p_p6b_cdc.xdc`（`set_clock_groups -asynchronous`，**impl-only**：综合前 `create_clock` 还没生效，写了会被静默丢弃） |
 | **新构建** | `board/build_p6b_ku5p.tcl` · **`board/build_p6b_final_ku5p.tcl`**（冻结版：多出 `report_cdc` / `ASYNC_REG` 普查 / hold 三族专核）· `board/check_p6b_timing.py`（**带正/负对照的**时序闸） |
 | **观测量** | 快照窗口 **24 → 36 字**（BUILD_ID=6）：新增 W26..W31（两个 FIFO 的满/占用/等线/读侧守恒）+ **W32..W35**（F4 的四个丢帧守恒计数器） |
-| **门/证据** | `sim/fifoasync/`（FIFO 单元门 + 7 变异）· `sim/clkgen/` · `sim/snapseq/` · `sim/f4sim/` · `sim/f4chain/` · `sim/p4gates/`（**P4 矩阵的路径硬化工具链**，见 §5）· `audit_scratch/` `review_scratch/` `int_scratch/`（三个审查/审计 agent 的原始证据）· `board/p6b_verify/` · `p6b_accept_final/`（**验收归档**） |
+| **门/证据** | `sim/fifoasync/`（FIFO 单元门 + 7 变异）· `sim/clkgen/` · `sim/snapseq/` · `sim/f4sim/` · `sim/f4chain/` · `sim/p4gates/`（**P4 矩阵的路径硬化工具链**，见 §5）· `audit_scratch/` `agent_docs/review_scratch/` `int_scratch/`（三个审查/审计 agent 的原始证据）· `board/p6b_verify/` · `p6b_accept_final/`（**验收归档**） |
 | **文档** | `agent_docs/P6B_SPEC.md`（+**§0.4 勘误**）· `agent_docs/P6B_ACCEPT.md`（验收原件）· `agent_docs/P6B_CDC_AUDIT.md` · `agent_docs/P6B_REVIEW.md` · `agent_docs/P6B_INTEGRATION_REVIEW.md` · `agent_docs/P6E_OBS.md`（**36 字表，现役**）· `agent_docs/PORT_NOTES.md`（P6b 里程碑）· 本文 |
 
 ---
