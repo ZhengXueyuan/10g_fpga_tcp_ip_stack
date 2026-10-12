@@ -3845,6 +3845,12 @@ module wrapper_p4 (
     //     保持 ⇒ `MIR_STATUS`/`MIR_DATA` 读侧语义不变)。
     //   ⚠️ 复位 = `pcie_axi_aresetn` (与 `u_mir_axis` 同一条; 与镜像 rd 侧的 `reset_n` 是
     //     **既存同钟不同复位域边界**, 本刀不加宽 —— 见 rtl/mir_uram_fifo.v 头注释)。
+    //   ⭐ 不变量登记 (2026-10-13 复核轮 F2; 改本块接线前必读): `en` (= `MIR_CTRL[3]`) 的载体
+    //     `mir_ctrl` 与 `rst_n` = `pcie_axi_aresetn` 在现役配置里**同复位域**且 `mir_ctrl_r`
+    //     复位值 = 0 (`_proj_pcie/rtl/axi_regs.v`) ⇒ 复位期 `en=0`; 而缓冲自身也已把 `rst_n`
+    //     并进写门 (`up_req = rst_n && …`) ⇒ 复位期"一个字都**不取**"是双保险。改动 `rst_n`/`en`
+    //     两条接线, 或改 `mir_ctrl` 的复位域/复位值时**必须重推** `rtl/mir_uram_fifo.v` 写门处
+    //     登记的同一不变量 (复核点名: "改任何一处就静默打开")。
     //   ⚠️ 同钟设计 (两侧都在 `pcie_axi_aclk`): 数据面→pcie 的 CDC 在 `u_mir` 内部已完成。
     mir_uram_fifo #(.AW(12), .LAT(3), .OQ(4)) u_mir_buf (
         .clk      (pcie_axi_aclk),

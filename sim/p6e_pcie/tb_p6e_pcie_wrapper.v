@@ -122,6 +122,18 @@ module tb_p6e_pcie_wrapper;
     reg [127:0] exp_beat_v = 128'd0;
     integer     mbi, mbr;      // 注入/逐拍比对循环变量
 
+    // ⭐⭐ 2026-10-13 (P9-B-3d 修法轮; 复核 §I2 意见 1): 注入量/弹性预算**绑具名常量** ——
+    //   防"下游容量一变、旧注入量不再够填满 ⇒ 该判据再次静默失效"(同一个坑第二次踩;
+    //   本判据上一版就是这样被 URAM 缓冲从 ≈2 KB 抬到 ≈34 KB 而失效的)。
+    //   弹性预算 (字节; **结构性上界**): 镜像 FIFO 2048 + 镜像打包 stg/acc ≤24 +
+    //   URAM 缓冲 32768 + 缓冲弹性堆 32 + 缓冲在飞 ≤24 + 成形器暂存 32 + 粒度/舍入裕量
+    //   ⇒ 取 35 KiB (35840 B) 封顶 (实测吸收远低于此, 见 P9-B-3 的 [INFO] 行)。
+    localparam P9B3_INJECT_BEATS      = 20000;                // 注入拍数 (每拍 1 个 32 位字 = 4 B)
+    localparam P9B3_INJECT_BYTES      = P9B3_INJECT_BEATS * 4; // = 80000 B (~2.3× 弹性上界)
+    localparam P9B3_ELASTIC_MAX_BYTES = 35840;                // 35 KiB 弹性上界 (预算见上)
+    localparam P9B3_RESID_ACCEPT      = 1;                    // 闭账容差: 打包残余 ≤1 个 32 位字
+    localparam P9B3_DRAIN_CYCLES      = 20000;                // 恢复期全排空等待 (弹性/8 ≈ 4480 拍)
+
     // M1 注入一拍 (dp 域; posedge + 非阻塞 ⇒ 与 DUT 采样的竞争为零, 工程坑 3/17)。
     //   ⚠️ 只由本 initial 块经 task 推进 —— **不另开 always 块驱同一批 reg** (多过程驱动铁律)。
     task mir_beat(input [63:0] d, input [7:0] k);
@@ -708,6 +720,15 @@ module tb_p6e_pcie_wrapper;
         // =====================================================================
         // P9-B-3 ⭐ **背压 ⇒ 不拉 dma_req ⇒ 镜像 FIFO 满 ⇒ 丢字节只记 W70**
         //   (TL 裁定的核心性质; 也是"宿主 read 空档"的仿真等价物)
+        // ⭐⭐ 2026-10-13 (P9-B-3d 修法轮; 复核 §I2 意见 1/2/3; 判据验收权威在复核者/用户):
+        //   旧判据 = "灌 **700** 拍 (2.8 KB) ⇒ ΔW70 > 0" —— URAM 板内缓冲本刀把下游弹性从
+        //   ≈2 KB 抬到 ≈34 KB 后, 2.8 KB **不再够填满** ⇒ ΔW70=0 而红 (**不是**计数路径坏了;
+        //   原件 = p9_uram_20261013/REPORT.md §5.3 + diag_p9b3d/DIAG_stdout.txt)。改法 =
+        //     ① 注入量/弹性预算绑**具名常量** (P9B3_*, 见声明处; 防容量再变时又静默失效);
+        //     ② 判据升级为**双边账** (比 ">0" 有判别力, 且抗容量变化):
+        //        下界腿 = ΔW70 ≥ 注入字节 − 弹性上界; 上界腿 = 交付量 == 注入字数 − ΔW70/4
+        //        (容差 ±1 字 = 镜像打包残余; ">0" 只证"路径活着", 抓不到多计/少计)。
+        //     ③ 同步订正本条旁的陈旧推理注释 ("下游弹性只有几十字节" 已随 URAM 缓冲作废)。
         // ⚠️ 注入用 `mir_word` (每次恰 1 个逻辑字, 值 = `32'hDEAD0000 | k`)
         //   ⇒ 交付的每拍必须 == golden 切片 `{w(4i+3),w(4i+2),w(4i+1),w(4i)}`。
         //   丢字节一律发生在**最新数据**上 (FIFO 语义) ⇒ 交付流 = golden 的**前缀**。
@@ -717,31 +738,65 @@ module tb_p6e_pcie_wrapper;
         u_dut.u_pcie_xdma.axis_mon_clear;                  // 清拍计数
         snap_take(ok_r);
         u_dut.u_pcie_xdma.axil_read(32'h138, mi_w70a);     // W70 基线
+        u_dut.u_pcie_xdma.axil_read(32'h148, mi_cnt_a);    // MIR_DMA_CNT 基线 (P9-B-3h 闭账用)
         begin : p9_stall
             integer bi;
-            for (bi = 0; bi < 700; bi = bi + 1) mir_word(32'hDEAD_0000 | bi[31:0]);
+            for (bi = 0; bi < P9B3_INJECT_BEATS; bi = bi + 1) mir_word(32'hDEAD_0000 | bi[31:0]);
         end
         repeat (600) @(posedge u_dut.u_pcie_xdma.aclk);
         u_dut.u_pcie_xdma.axil_read(32'h148, v);
         chk("P9-B-3a tready=0 ⇒ 一拍都没被收下", {31'd0, u_dut.u_pcie_xdma.str_n}, 32'd0);
-        // ⚠️ 计数点 = **aux 口取走** (TL 裁定 ①): 停收期仍会取走到暂存满 (4 次 grant = +8),
-        //    然后才停 ⇒ 这里是 **20 + 8 = 28** (不是 20)。这正是"上游计数"的口径签名。
+        // ⚠️ 计数点 = 成形器 aux 口 (TL 裁定 ①): 停收期它仍会取走到**暂存满**再停
+        //    (成形器暂存 32 B = 4 grant = +8 字; 缓冲自己吸走的那 32 KB **不**计入本计数)
+        //    ⇒ 这里是 **20 + 8 = 28** (与"暂存满"口径签名一致)。
         chk("P9-B-3b tready=0 ⇒ 计数只推进到暂存满 (20 + 4 grant x2 = 28)", v, 32'd28);
         chk("P9-B-3c ⭐ 暂存满 ⇒ **不拉 dma_req** (无空间不请求)", {31'd0, u_dut.mir_dma_req}, 32'd0);
         snap_take(ok_r);
         u_dut.u_pcie_xdma.axil_read(32'h138, mi_w70b);     // W70 末值
-        $display("  [INFO] P9-B-3 W70: %08x -> %08x (700 字灌入, 下游停收)", mi_w70a, mi_w70b);
-        if ((mi_w70b - mi_w70a) > 0) $display("  [PASS] P9-B-3d dW70 > 0 (丢字节仍全部记在 W70; 无新计数器)");
-        else begin $display("  [FAIL] P9-B-3d dW70 == 0 (饱和竟无丢字 => 计数或快照路径哑)"); fails = fails + 1; end
+        $display("  [INFO] P9-B-3 W70: %08x -> %08x (注入 %0d 拍 = %0d B, 下游停收)",
+                 mi_w70a, mi_w70b, P9B3_INJECT_BEATS, P9B3_INJECT_BYTES);
+        begin : p9_lower
+            integer dw70;
+            dw70 = mi_w70b - mi_w70a;
+            $display("  [INFO] P9-B-3 dW70 = %0d B (弹性上界预算 = %0d B, 实测吸收 = %0d B)",
+                     dw70, P9B3_ELASTIC_MAX_BYTES, P9B3_INJECT_BYTES - dw70);
+            if (dw70 >= (P9B3_INJECT_BYTES - P9B3_ELASTIC_MAX_BYTES))
+                $display("  [PASS] P9-B-3d lower leg: dW70 >= inject - elastic_max (= %0d)",
+                         P9B3_INJECT_BYTES - P9B3_ELASTIC_MAX_BYTES);
+            else begin
+                $display("  [FAIL] P9-B-3d lower leg: dW70 = %0d B < %0d (少计, 或吸收超结构性上界)",
+                         dw70, P9B3_INJECT_BYTES - P9B3_ELASTIC_MAX_BYTES);
+                fails = fails + 1;
+            end
+        end
         // 恢复: tready=1 ⇒ 剩下的数据按序流出, 逐拍内容 == golden 前缀 (无损坏)
         u_dut.u_pcie_xdma.axis_tready_set(1'b1);
         u_dut.u_pcie_xdma.axis_wait_beats(4, 6000);
         chk("P9-B-3e 恢复后无超时", {31'd0, u_dut.u_pcie_xdma.str_to}, 32'd0);
-        repeat (600) @(posedge u_dut.u_pcie_xdma.aclk);
+        // ⭐ 全排空等待 (旧版只等 600 拍 —— 够不着新容量): 缓冲要吐 ≤ 弹性上界/8 个字,
+        //   aux 1 grant/拍上下 ⇒ 实测 ~4400 拍; 给 P9B3_DRAIN_CYCLES (4× 余量)。
+        repeat (P9B3_DRAIN_CYCLES) @(posedge u_dut.u_pcie_xdma.aclk);
         u_dut.u_pcie_xdma.axil_read(32'h148, v);
         $display("  [INFO] P9-B-3 delivered words = %0d ; beats = %0d ; keep_bad = %0d",
                  v, u_dut.u_pcie_xdma.str_n, u_dut.u_pcie_xdma.str_keep_bad);
         chk("P9-B-3f 恢复期无 keep 合同违规", {31'd0, u_dut.u_pcie_xdma.str_keep_bad}, 32'd0);
+        begin : p9_close
+            // ⭐ 上界腿 (闭账): 交付 == 注入 − 丢弃/4 (±1 字 = 镜像打包残余)。
+            //   "多计" ⇒ 交付 > 期望 (红); "少计/丢账" ⇒ 交付 < 期望−容差 (红)。
+            integer dw70, expw, deliv;
+            dw70  = mi_w70b - mi_w70a;
+            expw  = P9B3_INJECT_BEATS - (dw70 / 4);
+            deliv = v - mi_cnt_a;
+            $display("  [INFO] P9-B-3 close: injected=%0d w, dW70/4=%0d w, expected_delivered=%0d w, delivered=%0d w",
+                     P9B3_INJECT_BEATS, dw70/4, expw, deliv);
+            if ((deliv <= expw) && (deliv >= (expw - P9B3_RESID_ACCEPT)))
+                $display("  [PASS] P9-B-3h upper leg: delivered == inject - dW70/4 (±%0d)", P9B3_RESID_ACCEPT);
+            else begin
+                $display("  [FAIL] P9-B-3h upper leg: delivered = %0d w (期望 %0d..%0d w)",
+                         deliv, expw - P9B3_RESID_ACCEPT, expw);
+                fails = fails + 1;
+            end
+        end
         begin : p9_chk_prefix
             integer ci;
             for (ci = 0; ci < 4; ci = ci + 1) begin

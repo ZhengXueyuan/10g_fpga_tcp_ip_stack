@@ -1,0 +1,26 @@
+MUT_URAM pattern hits = 1 (want 1)
+MUT_URAM total_replacements = 1
+MUT_URAM WROTE D:\repo\XCKU5PMini\udp_hls_10g\sim\p9_uram\mut\mir_uram_fifo_mut_dnreq.v
+MUT_URAM_OK
+URAM_FIFO_GATE: FAIL (20 checks failed)
+URAM-GATE-VERDICT: MUTANT-CAUGHT-as-expected 
+  [FAIL] G1b word-by-word: seq_err = 198 (期望 0)
+  [FAIL] G1c no phantom pop: over_err = 2 (期望 0)
+  [FAIL] G2g word-by-word zero error = 4308 (期望 0)
+  [FAIL] G3b empty dn_gnt == 0 = 1 (期望 0)
+  [FAIL] G3d first-word cyc in [2,6] = 0 (期望 2..6)
+  [FAIL] G3e word-by-word zero error = 4327 (期望 0)
+  [FAIL] G4b word-by-word zero error = 6276 (期望 0)
+  [FAIL] G4c no phantom pop = 639 (期望 0)
+  [FAIL] G5d new window: zero error = 6479 (期望 0)
+  [FAIL] G5b-b post-clr zero error = 6682 (期望 0)
+  [FAIL] G5b-c no phantom pop = 639 (期望 0)
+  [FAIL] G7b word-by-word zero error = 7035 (期望 0)
+  [FAIL] G8b word-by-word zero error = 23168 (期望 0)
+  [FAIL] G8c no phantom pop = 5335 (期望 0)
+  [FAIL] GR2 post-reset zero error = 23168 (期望 0)
+  [FAIL] GC1 clr_pop monitor == 0 = 1 (期望 0)
+  [FAIL] GC2 clr: no stale leak = 23574 (期望 0)
+  [FAIL] GB3 2clr: post-clr zero err = 23777 (期望 0)
+  [FAIL] G9c pop_empty (phantom pop) = 10054 (期望 0)
+  [FAIL] G9f clr_pop total == 0 = 4 (期望 0)

@@ -1,6 +1,10 @@
 # P9 追加轮 —— URAM 板内缓冲：设计块 + RTL 实施 + 单元门（实施报告）
 
 **日期**：2026-10-13 · **工作树**：`D:\repo\XCKU5PMini\udp_hls_10g`（HEAD = `afa766f`）
+**⚠️ 复核轮订正 (2026-10-13, 同日)**：本件已被 `REVIEW.md`（对抗复核）+ `gate_stdout_fix/` 的
+**修订轮**跟进；逐条修订与门重跑读数见 **`FIX_REPORT.md`**。就地订正两处：§5.3 的"只差那一行 +
+3 行注释"→ **1 行代码 (注入量) + 4 行注释**（`diff 722,726c722`；复核 F7②）；§1.6 的
+"clr 拍不取数"只覆盖 **up 侧**，dn 侧已补门（`pop &&= !clr`，见 FIX_REPORT F3；复核 F7③）。
 **本件性质**：设计块（先写）+ RTL 实施 + 单元门 + 既有门回归。⛔ 未跑综合/未布线/未上板/未烧录；
 本机全程只有 xsim（无 Vivado 并行）。不下 PASS/FAIL 裁定、不写"时序已解决"。未测处写"未测"，未观测处写"未观测到"。
 **任务口径**（TL 派单）：镜像 aux 口与 `axis_c2h_stream` 之间加一个 URAM288（≈32 KB 载荷）板内缓冲，吸收
@@ -88,7 +92,7 @@
 
 ### 1.6 `clr` / `en` / 复位
 
-`clr`（窗口边界 = 丢弃，与成形器 D4 同口径）：指针/valid 链/弹性堆全清 + **不拉 `up_req`**（⇒ 上游也不成交 ⇒ "clr 拍不取数"结构性）；在飞 ≤3 字靠清 valid 链丢弃（`ram_dout` 上有旧值但不算到达）⇒ 不会有"上一窗口尾巴漏进新窗口"（板级 D4 抓到的形态）。
+`clr`（窗口边界 = 丢弃，与成形器 D4 同口径）：指针/valid 链/弹性堆全清 + **不拉 `up_req`**（⇒ 上游也不成交 ⇒ "clr 拍不取数"结构性；⚠️ F7③ 订正：本句只覆盖 **up 侧**，dn 侧同轮已补门 `pop &&= !clr` ⇒ clr 拍 `dn_gnt` 强制 0，见 FIX_REPORT F3）；在飞 ≤3 字靠清 valid 链丢弃（`ram_dout` 上有旧值但不算到达）⇒ 不会有"上一窗口尾巴漏进新窗口"（板级 D4 抓到的形态）。
 `en`：只门"是否取数"；`en=0 ⇒ up_req=0` ⇒ 镜像 FIFO 保持 ⇒ `MIR_STATUS/MIR_DATA` 读侧语义不变；`en=1 ∧ cap_en=0` 照常取数（与成形器 `dma_req` 门同款，正是"非 clr 停流排空"所需）。
 复位 = `pcie_axi_aresetn`（同 u_mir_axis）；⚠️ u_mir 的 rd 侧用 `reset_n`（既存同钟不同复位域边界，本刀不加宽）；URAM 本体不复位（有效性由 valid/账保证，空态旧值永不弹给下游）。
 
@@ -152,7 +156,7 @@ URAM_FIFO_GATE: PASS_ALL
 **5.2 逐门读数**：`p6e_counters`（真支）**PASS_ALL**（补丁前 = 硬失败 `Module <xpm_memory_sdpram> not found`）· `axis_shaper_real` **PASS_ALL**（被测件未改）· `mir_unit_real` **PASS_ALL**（被测件未改）· `p5_wrapper` **EXIT 0** · `aliasgate` **ALIASGATE OK** · ⚠️ `p6e_fullchain` **1 条红**（下条）。
 
 **5.3 ⚠️ `P9-B-3d` 那条红的归因（判据前提；已诊断坐实）**：判据 = "下游停收 + 灌 **700** 拍 `mir_word`（每拍 4 B ≈ 2.8 KB）⇒ 期望 `ΔW70 > 0`"（它是 W70 计数路径"还活着"的见证，注释里写明当时推理"下游弹性只有几十字节"）。本刀把下游弹性从 ≈2 KB 加到 ≈34 KB ⇒ **2.8 KB 不再够填满** ⇒ 无丢字 ⇒ 见证失效（**物理/口径都没变，是激励的"够不够满"前提变了**；同门其余全绿，`delivered words=720`/`keep_bad=0`）。
-**诊断（不改门不改判据）**：TB 复制到 `diag_p9b3d/`，只把注入量 700 → **20000**（=80 KB ≈ 2.4× 新弹性）⇒ 复跑同一门：`W70: 4d494e79 -> 4d49fea1` + `[PASS] P9-B-3d` + **`PASS_ALL  tb_p6e_pcie_wrapper: 全链门全过`**（原件 `diag_p9b3d/DIAG_stdout.txt`，副本与原件只差那一行 + 3 行注释）。⇒ **W70 计数路径活着**；⛔ 改该判据（注入量或改成"`ΔW70 ≥ 注入 − 弹性上界`"）属判据改动，**归裁定者**。
+**诊断（不改门不改判据）**：TB 复制到 `diag_p9b3d/`，只把注入量 700 → **20000**（=80 KB ≈ 2.4× 新弹性）⇒ 复跑同一门：`W70: 4d494e79 -> 4d49fea1` + `[PASS] P9-B-3d` + **`PASS_ALL  tb_p6e_pcie_wrapper: 全链门全过`**（原件 `diag_p9b3d/DIAG_stdout.txt`；副本与原件 diff = **1 行代码 (注入量) + 4 行注释**，`722,726c722`、899 vs 895 行 —— ⚠️ F7② 订正：原写"3 行注释"）。⇒ **W70 计数路径活着**；⛔ 改该判据（注入量或改成"`ΔW70 ≥ 注入 − 弹性上界`"）属判据改动，**归裁定者**。
 
 **5.4 ⛔ 必须登记的副作用：XPM 例化 ⇒ 编到真支的 bat 需要 xpm 库。** 现象（实测）：未打补丁 = 硬失败 `VRFC 10-2063 Module <xpm_memory_sdpram> not found`（响亮）；且本机**预编译** `-L xpm` 在个别情形 elaborate 失败（`VRFC 10-3812 rstb_val is not constant`）。补丁（已做，4 个件各 +4/−1）：主 xvlog 前加 `call %XV%\xvlog.bat -sv -work xpm "%XV%\..\data\ip\xpm\xpm_memory\hdl\xpm_memory.sv" > xvlog_xpm.log 2>&1 || (… exit /b 1)`，xelab 加 `-L xpm` ⇒ 之后 `p6e_counters` PASS_ALL。**未打补丁的其余含 `DP_156MHZ` 的历史 bat**（`sim/p5wu_p1p2*`、`sim/p7b_*_regress/extra*`、`_proj_10g/notes/...` 下的旧件）若被重跑需照抄两行。**Vivado 构建脚本不需要改**（XPM 工具自带）。
 
