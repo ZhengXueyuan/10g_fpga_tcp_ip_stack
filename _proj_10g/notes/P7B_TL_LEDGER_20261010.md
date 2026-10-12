@@ -854,3 +854,8 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
   - **Kimi 组（`kimi-tl` = TL）= 对抗审查 + 额外测试**（设计审查/代码检查/查漏补缺）。
 - **桥面动作（已执行）**：广播 witness **`m_5dfff723b2d0`**（to=all, ref=`m_10af2d38f2d3`）+ ack 回复 **`m_cfd8d8309fd4`**（kimi-tl 侧收后转入审查/测试职责）。**inbox 增量指针（新）= `m_cfd8d8309fd4`**。
 - **运作纪律（bridge 五条沿用）**：任务边界 poll inbox（`since_id` 增量）· 桥归桥账归账（定案结论抄台账、桥只留指针 —— 本条即执行）· 委派带 `touch_files`（撞车先沟通）· correction 带 `ref=file:line` · 有界时延线挂定时唤醒。**跨组派活**：审查/测试需求由 claude-main 侧 `bridge_task_new → assignee=kimi-tl`。
+
+## §10-28 2026-10-13 01:05：**用户三连指令 + 两路并发已派**（TL 派单）
+- **用户逐字指令（2026-10-13）**：① **开工顺序 = 先补测线速档 → 然后加 URAM 缓冲 → 最后完成剩下的事情**；② **与此同时派遣 `kimi-tl` 整理文档** —— 要求逐字 = 给 AI 看的文档放 `agent_docs/`、供人阅读的放 `docs/`、人读文档按「施工进度」+「模块划分」两条线索**各自**整理、**零黑话**（"xx刀/xx门/xx飞"类；给"不太专业但计算机理论还可以的人"快速读懂：当前进度/功能/缺陷/指标/未来计划）、README = 仓库简要说明 + 全部文档的总索引入口（树状索引根节点、链接要少）。
+- **已派（并发）**：① bridge 任务 **`t_46ffe7622b14`** → `kimi-tl`（文档整理；touch_files = `README.md` + `docs/` + `agent_docs/` + 根目录 15 个 .md；返回 `lock_conflicts=[]`；硬边界 = 不碰 `CLAUDE.md`/`_proj_10g/**`（只作事实源阅读）/rtl 等；判据 = ≤2 步导航 + 两线索五要素 + 黑话 grep=0 + 死链 0 + 引用更新证明 + 内容忠实〔不代行 PASS/FAIL 裁定〕；负对照三条〔黑话判据有牙/死链有牙/引用更新有牙〕）；② **台架恢复轮 agent 在飞**（重部署 `/tmp/p7b_biz/`〔配方 `p7b_affinity/BUILD.md`〕→ `/32`+`nmcli unmanaged` → 重烧 `0x23`〔sha `066a3923…3126`，烧前核 sha、烧后核 BID `0x04==0x23`〕→ PCIe 场景 C 连根端口 `00:1c.0` remove+rescan → `0x08 w 0x0` 解除停流；报告落 `p9_bench_restore_20261013/REPORT.md`）。
+- **下一步**：台架就绪 ⇒ 派「**线速档补测轮**」（0x23 上的 AXIS 流路径：sustained 吞吐 + `ΔW70` 丢字节 + 两条恒等式式A/式B）；线速档收口后派 **URAM 板内缓冲实施**（接在镜像 aux 口与 `axis_c2h_stream` 之间，构建 `0x24`）。
