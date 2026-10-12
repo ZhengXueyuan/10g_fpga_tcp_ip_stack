@@ -185,8 +185,8 @@ cd /d/repo/XCKU5PMini/udp_hls_10g
 MOVED='PORT_NOTES|P6B_ACCEPT|P6B_CDC_AUDIT|P6B_COMMIT_PLAN|P6B_INTEGRATION_REVIEW|P6B_REVIEW|P6B_SPEC|P6B_SUMMARY|P6E_OBS|P7A_COMMIT_PLAN|P7A_RESULT|P7A_SPEC|P7B_SPEC|ISSUE_RX_BYTE_CORRUPTION'
 OLD='(?<![A-Za-z0-9_./\\-])('"$MOVED"')(\.md)?(?![A-Za-z0-9_.-])'
 NEW='(?<![A-Za-z0-9_./\\-])agent_docs/('"$MOVED"')(\.md)?(?![A-Za-z0-9_.-])'
-git grep -c -P "$OLD" | wc -l                 # 全仓旧形态（应=边界+HISTORICAL+刻意排除）
-git grep -c -P "$NEW" | wc -l                 # 新形态（应=332+本报告自述）
+git grep -c -P "$OLD" | wc -l                 # 全仓旧形态文件数（=217 边界+13 HIST+16 可写LIVE=246；本报告自述的命中名列/样本引用亦计自身, 属证据自引）
+git grep -c -P "$NEW" | wc -l                 # 新形态（332 处改写产物 + 本报告内的新形态自述）
 git diff -M --name-status 0c55470^..0c55470   # 14 行 R100
 git show --stat 9205fb7 | tail -3             # 提交② diffstat
 ```
