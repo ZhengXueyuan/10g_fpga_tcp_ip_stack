@@ -846,3 +846,11 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - **提交链**（全部已推送，`ls-remote` 已核）：… → `47c2fb1`（构建 0x23）→ `854c2c0`（最终 A/B）→ `f4e081b`（收尾板级）→ 本提交（台账 §10-26）。
 - **板上（断电前）** = `0x23` + 受控停流（`0x08=0x2`、CARRIER=0）+ `MIR_CTRL=0` + 无残留进程；**断电后全部丢失**（上电从 QSPI 起厂商设计）。
 - **恢复必做清单 = `P7B_LOOP_HANDOFF.md` §6-新块（2026-10-12）**：对端上电/systemd → 重部署 `/tmp/p7b_biz/`（配方 `p7b_affinity/BUILD.md`）→ `/32`+`nmcli unmanaged` → **重烧 `0x23`**（`p9_build_0x23/wrapper_p4.bit`，sha `066a3923…3126`）→ 核 `0x04==0x23` → `reg_rw /dev/xdma0_user 0x08 w 0x0`。
+
+## §10-27 2026-10-13：**bridge 跨会话角色仲裁定案 —— Claude 组 = 本项目主力开发**（owner 裁定）
+- **背景**：bridge 跨会话桥（`%TEMP%/bridge/bridge.py`；MCP server = **`bridge-main`**（local scope @ `D:\repo\XCKU5PMini`），本 session 身份 = **`claude-main`**）已注册上线（`claude mcp list` = ✔ Connected；上线 witness `m_f919e833dbaf`）。owner 2026-10-13 立「双 TL 制 + 开发实施角色仲裁协议」（协议全文在 bridge skill：① 上线 witness 须申明开发角色 ② 已申明开发组数恰 1 ⇒ 自动定案；0 或 ≥2 ⇒ 停下问 owner ③ owner 在某组输入「你们组负责开发实施」⇒ 该组广播 witness ④ 换阶段重跑）。
+- **裁定（owner 本会话逐字）**：「**你们是当前这个项目的主力开发。**」⇒ 按协议第③条定案：
+  - **Claude 组（`claude-main` = TL）= XCKU5PMini 10G 项目开发实施（主力开发）**；
+  - **Kimi 组（`kimi-tl` = TL）= 对抗审查 + 额外测试**（设计审查/代码检查/查漏补缺）。
+- **桥面动作（已执行）**：广播 witness **`m_5dfff723b2d0`**（to=all, ref=`m_10af2d38f2d3`）+ ack 回复 **`m_cfd8d8309fd4`**（kimi-tl 侧收后转入审查/测试职责）。**inbox 增量指针（新）= `m_cfd8d8309fd4`**。
+- **运作纪律（bridge 五条沿用）**：任务边界 poll inbox（`since_id` 增量）· 桥归桥账归账（定案结论抄台账、桥只留指针 —— 本条即执行）· 委派带 `touch_files`（撞车先沟通）· correction 带 `ref=file:line` · 有界时延线挂定时唤醒。**跨组派活**：审查/测试需求由 claude-main 侧 `bridge_task_new → assignee=kimi-tl`。
