@@ -16,7 +16,7 @@
 #     · pcie_axi_aclk  ← 金手指的 100MHz PCIe 参考钟 (XDMA 内部生成, ≈250MHz)
 #   两两异步:
 #
-#   域之间的跨域连接只有三处 (各有专门的同步器, 见 P6B_SPEC §3):
+#   域之间的跨域连接只有三处 (各有专门的同步器, 见 agent_docs/P6B_SPEC §3):
 #     ① u_rxcdc / u_txcdc 两个异步 FIFO (灰码指针 2FF, ASYNC_REG)
 #     ② u_snap_fe / u_snap_dp 两个相干快照 CDC (toggle 握手, ASYNC_REG)
 #        + snap_seq 的链式触发 (req 1 拍脉冲跨过去, 回送走 valid)

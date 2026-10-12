@@ -25,7 +25,7 @@
 // 编译: 新端口 (stat_drop_full/partial/orphan_bytes/fifo_ovf) 用 +define+F4_NEWPORTS 打开。
 //   未定义 = 旧 RTL (修复前) —— 新计数恒 0, L1/L3/L5 必然 FAIL (变异对照用同一 TB)。
 //
-// 驱动: 全部时钟化非阻塞 (无 TB/DUT 竞争, 见 PORT_NOTES 坑 3/17); tready 按字节索引查
+// 驱动: 全部时钟化非阻塞 (无 TB/DUT 竞争, 见 agent_docs/PORT_NOTES 坑 3/17); tready 按字节索引查
 //   f4_wr.memh (与字节流同源索引, 确定性)。
 //=============================================================================
 module tb_mac_rx_f4;

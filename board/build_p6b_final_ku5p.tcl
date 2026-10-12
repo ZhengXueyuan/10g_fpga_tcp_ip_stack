@@ -128,7 +128,7 @@ open_run impl_1
 report_timing_summary -file ${script_dir}/p6b_final_ku5p_timing.rpt
 report_utilization    -file ${script_dir}/p6b_final_ku5p_util.rpt
 report_drc            -file ${script_dir}/p6b_final_ku5p_drc.rpt
-# 时钟网络: 核 MMCM 是否为**自动推导**出 6.400ns (P6B_SPEC §8.3: 手写 create_generated_clock
+# 时钟网络: 核 MMCM 是否为**自动推导**出 6.400ns (agent_docs/P6B_SPEC §8.3: 手写 create_generated_clock
 # 反而会冲突)。失败端点清单单独落盘, 便于与闸 G 的 16 条逐条对照。
 report_clocks -file ${script_dir}/p6b_final_ku5p_clocks.rpt
 set fep [open ${script_dir}/p6b_final_ku5p_failing_endpoints.txt w]
@@ -139,7 +139,7 @@ close $fep
 
 # =============================================================================
 # ★ 本次(最终重建)新增的三项**从未做过**的工具侧读数 —— 全部在 **routed design** 上做
-#   (a) report_cdc     : 覆盖功能仿真测不到的亚稳态风险; 清单逐条对 P6B_SPEC §3
+#   (a) report_cdc     : 覆盖功能仿真测不到的亚稳态风险; 清单逐条对 agent_docs/P6B_SPEC §3
 #   (b) ASYNC_REG 普查 : 布局/布线后 ASYNC_REG==TRUE 的 cell 是否真贴在同步器链上
 #   (c) hold 三族专核  : report_timing -delay_type min -max_paths 400 (闸 G 同款口径)
 # =============================================================================

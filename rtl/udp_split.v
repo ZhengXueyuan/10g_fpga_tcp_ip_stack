@@ -223,7 +223,7 @@ module udp_split #(
     output reg  [31:0] stat_hls_frames, stat_hls_drop, stat_hls_split
 `ifdef RXP_DIAG
     //=========================================================================
-    // RXP_DIAG v3 (2026-09-26): 帧边界记账可见化 (ISSUE_RX_BYTE_CORRUPTION §13)
+    // RXP_DIAG v3 (2026-09-26): 帧边界记账可见化 (agent_docs/ISSUE_RX_BYTE_CORRUPTION §13)
     //=========================================================================
     // 端口**一律追加在端口表末尾** (既有例化点按名连接 ⇒ 不接只是 unconnected
     // 警告; 插在中间则任何按位置例化的调用点会静默接错)。除 ds_cap 外全部是
@@ -250,7 +250,7 @@ module udp_split #(
     , output reg  [UDP_AW:0]    v3_vs              // 违例时: wsnap
     , output reg  [UDP_AW:0]    v3_vr              // 违例时: uf_rptr
     , output reg  [15:0]        v3_vn              // 违例时: 写侧提交序号
-    // ---- RXP_DIAG v4 (2026-09-27): 异常帧路径计数器 (ISSUE_RX_BYTE_CORRUPTION §16.7) ----
+    // ---- RXP_DIAG v4 (2026-09-27): 异常帧路径计数器 (agent_docs/ISSUE_RX_BYTE_CORRUPTION §16.7) ----
     // 目的: §16.1 判死"坏字在写进 u_uf 时就已经是坏的", 但**这些分叉有没有在触发**
     //   一直是空白 —— 本组计数器把每条"载荷已写、帧未提交/帧归属异常"的路径变成
     //   可观测量。判据: 某个计数器的本轮值 == 该轮的 n (受损帧数) ⇒ 它就是根因。
@@ -264,7 +264,7 @@ module udp_split #(
     , output reg  [15:0]        v4_rl       // RL: uf_rollbk 拍数 (= 回卷次数, 与 v3 的 RC 同源)
     , output reg  [15:0]        v4_wc       // WC: 字数一致性违例 (提交拍 写字数 != ceil(len/8))
     // ---- RXP_DIAG v5 (2026-09-27): **写数据口 (din) 上的第二个 LFSR 校验器** ----
-    // (ISSUE_RX_BYTE_CORRUPTION §14.6/§18.8; 目的见 body 末尾的 v5 段 —— 真值源在那里)
+    // (agent_docs/ISSUE_RX_BYTE_CORRUPTION §14.6/§18.8; 目的见 body 末尾的 v5 段 —— 真值源在那里)
     // 与 app 的校验器**机制不同**: app 用 `wh_word[w_commit_cnt[2:0]]` 按**帧号索引**
     //   定址 (v3 的 SW), 而本组靠**纯字节计数**推进 —— 这正是它能**证伪** SW 归因假设
     //   的地方 (SW 的采集依赖"载荷字不与 meta_valid 同拍"这条无法从 TB 构造的假设)。
@@ -285,7 +285,7 @@ module udp_split #(
     , output wire [31:0]        v5_up_crc   // DC: udp_rx.stat_drop_crc
     , output wire [31:0]        v5_up_bytes // SB: udp_rx.stat_bytes     (匹配帧的载荷字节)
     // ---- RXP_DIAG v6 (2026-09-27): **u_pre 输入侧** (s_axis) 的第三个 LFSR 校验器 ----
-    // (ISSUE_RX_BYTE_CORRUPTION §18.9/§18.10; 目的/口径见 body 末尾的 v6 段 —— 真值源在那里)
+    // (agent_docs/ISSUE_RX_BYTE_CORRUPTION §18.9/§18.10; 目的/口径见 body 末尾的 v6 段 —— 真值源在那里)
     // 这是 §18.9 那个"三者不能同时为真"矛盾的裁决点: u_pre 的输入是整条链上**唯一
     //   还没插桩的流**。与 v5 (din = u_m_d, 写侧) 与 app (读侧) 都不同源:
     //     · v6 在**进 u_pre 之前** (s_axis), 即 u_uf 的三个上游模块 (mac_rx_64 的 8 字
@@ -301,7 +301,7 @@ module udp_split #(
     , output wire [7:0]         v6_dv_sk    // CS: 因输入 skid 满而**被丢掉的字数** (非 0 = 本
                                             //     轮 v6 读数不可用; 输入侧不能反压 ⇒ 只能丢)
     // ---- RXP_DIAG v7 (2026-09-27): IP ID 序列检查 + v6 的非 UDP 帧口径修正 ----
-    // (ISSUE_RX_BYTE_CORRUPTION §18.15/§18.16; 目的/口径见 body 末尾的 v7 段)
+    // (agent_docs/ISSUE_RX_BYTE_CORRUPTION §18.15/§18.16; 目的/口径见 body 末尾的 v7 段)
     // A 部 (来自 u_udp_rx 的新端口, 零新增逻辑 —— 纯线束引出, 同 v5 B 部手法):
     //   IV/IS/IA/IB/IW = IP ID 序列的违例数/参与比较帧数/首个违例的 {本帧, 上帧}
     //   ID/反向跳跃数。判据: `IW > 0` ⇒ **到达顺序被打乱**(确凿); `IV==IW==0` ⇒
@@ -752,7 +752,7 @@ module udp_split #(
     //=========================================================================
     // RXP_DIAG v3: 帧边界记账可见化 (全部逻辑只在 `RXP_DIAG 下存在)
     //=========================================================================
-    // 【为什么需要它】板级 v2 读数 (ISSUE_RX_BYTE_CORRUPTION §13): 5,699 帧里 9 帧
+    // 【为什么需要它】板级 v2 读数 (agent_docs/ISSUE_RX_BYTE_CORRUPTION §13): 5,699 帧里 9 帧
     //   (0.158%) 被**整帧换成下一帧的内容** —— 字数/帧数/FCS 全精确, 四桶密度相同
     //   ⇒ 内容被整体替换。本段把"坏帧开始时"的三类量锁出来:
     //     ① 读侧帧首记账 (FR/FW/FO/FH + 上一帧 PR/PW/PH) 与首失配当拍活值
@@ -907,7 +907,7 @@ module udp_split #(
     end
 
     //=========================================================================
-    // RXP_DIAG v4 (2026-09-27): 异常帧路径计数器 (ISSUE_RX_BYTE_CORRUPTION §16.7)
+    // RXP_DIAG v4 (2026-09-27): 异常帧路径计数器 (agent_docs/ISSUE_RX_BYTE_CORRUPTION §16.7)
     //=========================================================================
     // 【要回答的问题】v3 把损坏钉在"写进 u_uf 时就已经坏了"(§16.1), 但**本模块内
     //   的几条"载荷已写、帧未提交 / 帧归属异常"分支从来没有被观测过** —— 只知道

@@ -40,7 +40,7 @@
 //=============================================================================
 module app_status_uart #(
     // ⚠️ P6b: 本模块的消费者 (u_app_status) 搬到 156.25MHz 数据面域 ⇒ 维持 9600 波特
-    //    与 ~2s 行间隔, 拍数必须 ×1.25 (见 P6B_SPEC §5.1)。
+    //    与 ~2s 行间隔, 拍数必须 ×1.25 (见 agent_docs/P6B_SPEC §5.1)。
     //    156250000/9600 = 16276.04 ⇒ 周期 16276 拍 (BIT_LAST = 16275), 误差 +0.0003%
     //    —— 优于 125MHz 下的 +0.008%。
     //    ⚠️ GAP_TICKS 必须**加宽到 29 位**: 2^28 = 268,435,456 < 312,500,000 ⇒ 28 位
@@ -173,7 +173,7 @@ module app_status_uart #(
     , input  wire [31:0] v5_up_bytes// SB: udp_rx.stat_bytes (匹配帧的载荷字节数)
     // ---- RXP_DIAG v6 (2026-09-27): u_pre **输入侧** (s_axis) 的第三个 LFSR 校验器 ----
     // 来源: udp_split (v6_dv_*), 位置 = udp_split 的输入端口侧 (进 u_pre 之前)。
-    //   目的 (ISSUE_RX_BYTE_CORRUPTION §18.9/§18.10): 裁决那个"三者不能同时为真"的
+    //   目的 (agent_docs/ISSUE_RX_BYTE_CORRUPTION §18.9/§18.10): 裁决那个"三者不能同时为真"的
     //   矛盾 —— u_pre 的输入是整条链上唯一还没插桩的流。
     // ⚠️ 同 v4/v5 的"未接 = 假 0"铁律: 端口没接 ⇒ 综合钳 0 ⇒ 读数全 0 与"从未触发"
     //   不可区分。v6 的接线已落在 board/wrapper_p4.v 的 `ifdef RXP_DIAG 段内, 且由
@@ -191,7 +191,7 @@ module app_status_uart #(
     // ---- RXP_DIAG v7 (2026-09-27): IP ID 序列检查 + v6 的非 UDP 帧口径修正 ----
     // 来源: udp_rx 的 IP ID 序列检查器 (IV/IS/IA/IB/IW, 纯线束由 udp_split 引出)
     //   与 udp_split v6 段的 NB (被跳过的非 UDP 帧载荷字节数)。
-    //   目的 (ISSUE_RX_BYTE_CORRUPTION §18.15/§18.16): 事件形状已被定死为"整帧置换"
+    //   目的 (agent_docs/ISSUE_RX_BYTE_CORRUPTION §18.15/§18.16): 事件形状已被定死为"整帧置换"
     //   且发送方抓包干净 ⇒ 只剩两条假设 —— **PC 侧 NIC/驱动 TX 路径打乱帧序** vs
     //   **PHY/GMII 接收裕量 (IFG/前导码)**。IP ID 逐帧 +1 是"到达顺序"的直接度量:
     //     · IW > 0 (反向跳跃, id < prev) ⇒ **到达顺序被打乱** ⇒ 板子被洗清;
@@ -253,7 +253,7 @@ module app_status_uart #(
     // P5f: 行尾再追加 UDP app 段 URB/UMM/URF/UOV/UPC/UPA/UTB/UTF
     // (偏移: URB hex 223..230, UMM 236..243, URF 249..252, UOV 258..261,
     //  UPC 267..270, UPA 276..279, UTB 285..292, UTF 298..301; CR=302 LF=303)。
-    // RXP_DIAG: 行尾再追加 8 字段 (ISSUE_RX_BYTE_CORRUPTION 专题首失配快照)。
+    // RXP_DIAG: 行尾再追加 8 字段 (agent_docs/ISSUE_RX_BYTE_CORRUPTION 专题首失配快照)。
     //   键名一律取"="前最后两个字母 (tools/board_p5b_check.py 的 parse 口径),
     //   故新增键必须与既有键不撞: 既有 = ST NX UA RW RN RX TX TF MM OC EV DP RY
     //   EC DL FI RS AK AD TS WQ WM WU PO PX RB RF OV PC PA TB。
@@ -360,7 +360,7 @@ module app_status_uart #(
     //     DV 809..816, DG 821..822, DE 827..828, DO 833..836, DM 841..848, VZ 853,
     //     PS 858..865, NM 870..877, IC 882..889, DC 894..901, SB 906..913。
     //   【v6 段】把 **u_pre 输入侧 (udp_split 的 s_axis, 进 u_pre 之前)** 的第三个
-    //     LFSR 校验器显示出来 (ISSUE_RX_BYTE_CORRUPTION §18.9/§18.10):
+    //     LFSR 校验器显示出来 (agent_docs/ISSUE_RX_BYTE_CORRUPTION §18.9/§18.10):
     //     CV = 首个失配处的**累计载荷字节序号** · CG/CE = 该处 收/期望 字节
     //     CO = 该失配的**帧内**字节偏移 (= 帧内序号 - 42) · CM = 失配字节总数
     //     CZ = 快照有效 (粘滞, 只记首个) · CS = **输入 skid 满而丢的字数**
@@ -371,7 +371,7 @@ module app_status_uart #(
     //     CZ 962, CS 967..968。
     //     ⚠️ 上表是**脚本输出 + 实跑行逐字符核对**的结果 (见 tb_rxp_diag 相 7 的 v6
     //        断言); 实现时任何一位改动都必须重跑 gen_offsets.py 与格式门。
-    //   【v7 段】ISSUE_RX_BYTE_CORRUPTION §18.15/§18.16 的判决字段。
+    //   【v7 段】agent_docs/ISSUE_RX_BYTE_CORRUPTION §18.15/§18.16 的判决字段。
     //     IV = `id != prev+1` 的次数 (口径: 只比**通过匹配门**的帧, 第一个过门帧
     //          不参与比较 ⇒ IS 是分母; 详见 rtl/udp_rx.v 的 v7 段)
     //     IS = 进入检查器的**过门帧数** (比较次数 = IS-1; 板级自洽式

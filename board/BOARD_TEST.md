@@ -40,7 +40,7 @@
 > ⚠️ 命令在**本仓根** (= 含 `CLAUDE.md` 的那一层) 执行, 路径**相对本仓根**。
 > 两个 bat 都已自定位 (`%~dp0` 反推 repo root, 反推不到即 `[PATHGUARD FAIL]`)。
 > **别照抄 `D:\repo\ECO\udp_hls_10g\...`** —— 那是本仓 2026-09-28 拷贝之前的开发树
-> (那份 checkout 仍在) ⇒ 会去**另一个 checkout** 构建 = 真空门 (见 `P6B_INTEGRATION_REVIEW.md` §5)。
+> (那份 checkout 仍在) ⇒ 会去**另一个 checkout** 构建 = 真空门 (见 `agent_docs/P6B_INTEGRATION_REVIEW.md` §5)。
 
 ```bash
 # 构建 (综合+实现+位流, ~10-20 分钟)

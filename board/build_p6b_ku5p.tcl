@@ -128,7 +128,7 @@ open_run impl_1
 report_timing_summary -file ${script_dir}/p6b_ku5p_timing.rpt
 report_utilization    -file ${script_dir}/p6b_ku5p_util.rpt
 report_drc            -file ${script_dir}/p6b_ku5p_drc.rpt
-# 时钟网络: 核 MMCM 是否为**自动推导**出 6.400ns (P6B_SPEC §8.3: 手写 create_generated_clock
+# 时钟网络: 核 MMCM 是否为**自动推导**出 6.400ns (agent_docs/P6B_SPEC §8.3: 手写 create_generated_clock
 # 反而会冲突)。失败端点清单单独落盘, 便于与闸 G 的 16 条逐条对照。
 report_clocks -file ${script_dir}/p6b_ku5p_clocks.rpt
 set fep [open ${script_dir}/p6b_ku5p_failing_endpoints.txt w]

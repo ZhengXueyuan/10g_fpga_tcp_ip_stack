@@ -60,7 +60,7 @@ set -u
 #   0x14 RO MARKER       0xDEADBEEF          <- 判据2 地址译码
 #   0x18 WO SNAP_CTRL    写 bit0=1 触发快照
 #   0x1C RO SNAP_STATUS  [31:16]gen [2]seen [1]done [0]busy     <- gen 自证用
-#   0x20..0xAC RO SNAP_W0..W35  (P6b+F4 36 字; 全部含义见 P6E_OBS.md 一表)
+#   0x20..0xAC RO SNAP_W0..W35  (P6b+F4 36 字; 全部含义见 agent_docs/P6E_OBS.md 一表)
 #     判据5/6 用到的字: W0 0x20 MAC收帧 / W1 0x24 MAC收字节 / W3 0x2C FCS错 /
 #                       W5 0x34 gmii_free / W6 0x38 交慢路径 / W7 0x3C HLS发帧 /
 #                       W8 0x40 图案发帧 / W9 0x44 图案发字节 / W10 0x48 图案收帧 /
@@ -78,7 +78,7 @@ ADDR_MMCM=${ADDR_MMCM:-0x84}         # W25 MMCM 状态字; [0] = locked (SNAP_ST
 MMCM_LOCK_MASK=${MMCM_LOCK_MASK:-0x1}  # locked 位掩码 (bit0)
 DP_FREE_NOM_MHZ=${DP_FREE_NOM_MHZ:-156.25}   # 该计数的标称频率
 EXPECT_BUILD_ID=${EXPECT_BUILD_ID:-0x00000006}  # P6b+F4 双域 36 字版 = 6 (前置闸认位流)
-# ⚠️ 扩窗的连带影响 (P6E_OBS.md「扩窗必须七处同改」⑤): 36 字把 0x20..0xAC 全占了 ⇒
+# ⚠️ 扩窗的连带影响 (agent_docs/P6E_OBS.md「扩窗必须七处同改」⑤): 36 字把 0x20..0xAC 全占了 ⇒
 #   "**未实现地址**"已挪到 **0xB0**; **P7b 的 51 字**占 0x20..0xE8 ⇒ 未实现 = **0xEC**;
 #   **P7B-BIZ 的 61 字**占 0x20..0x110 ⇒ 未实现 = **0x114**
 #   (现役那两处几何见 `_proj_pcie/p7b_gate4_accept.sh`, 也就是闸 4 用的那份)。
@@ -285,7 +285,7 @@ if round; then
       #    ⇒ 先判 W21==0, 否则本判据 SKIP 并点明原因, 绝不当 FAIL。
       # ⚠️ P6b: W20 在 **FE 束**、W7 在 **DP 束** ⇒ 链式触发给出方向, 但两者天然可差 1 帧
       #    (两次锁存之间最多跨 1 个帧边界, 偏斜 ≤59.2ns < 96ns 最小 IFG)。**必须用区间判据**,
-      #    写成 `W20 == W7` 会把正常偏斜报成 FAIL (P6B_SPEC §9.3 点名的一处旧判据失效)。
+      #    写成 `W20 == W7` 会把正常偏斜报成 FAIL (agent_docs/P6B_SPEC §9.3 点名的一处旧判据失效)。
       DW207=$(( W[20] - W[7] ))
       if [ "$(( W[21] ))" -ne 0 ]; then
         res SKIP 5a "0 <= W20-W7 <= 1" "前置: W21(MAC 帧内中止)=0" "SKIP (W21=${W[21]} != 0 ⇒ 中止帧剩余字被当新帧重发, W20 多计; 见 F11)"
@@ -309,20 +309,20 @@ if round; then
       else res FAIL 5c "W13 图案失配恒 0" "0" "${W[13]} (窗口 ΔW10=$D10)"; fi
       if [ "$(( W[18] ))" -eq 0 ]; then res PASS 5d "W18 (slow_tx_adp 整帧回卷) 恒 0" "0" "${W[18]}"
       else res FAIL 5d "W18 (slow_tx_adp 整帧回卷) 恒 0" "0" "${W[18]} (有帧被整帧回卷 ⇒ 别再怪 HLS, 查 wf FIFO 消费侧)"; fi
-      # ---- P6b 新增字判据 5g/5h (P6B_SPEC §9.2-C 的 C6/C7) ----
+      # ---- P6b 新增字判据 5g/5h (agent_docs/P6B_SPEC §9.2-C 的 C6/C7) ----
       # W27/W28 是"新异步 FIFO 深度够不够"的**唯一直接读数**; W26 是"丢帧是不是新 FIFO 造成"的归因量。
       if [ "$(( W[27] ))" -le 256 ]; then res PASS 5g "W27 (rxcdc 占用峰值) <= 256 (= DEPTH)" "<=256" "${W[27]}"
       else res FAIL 5g "W27 (rxcdc 占用峰值) <= 256" "<=256" "${W[27]} (超深度: FIFO 模型/探针错)"; fi
       if [ "$(( W[28] ))" -le 256 ]; then res PASS 5h "W28 (txcdc 占用峰值) <= 256 (= DEPTH)" "<=256" "${W[28]}"
       else res FAIL 5h "W28 (txcdc 占用峰值) <= 256" "<=256" "${W[28]} (超深度: FIFO 模型/探针错)"; fi
       echo "  [INFO] 深度探针: W26(rxcdc 满拍)=${W[26]} W27(rxcdc 峰值)=${W[27]} W28(txcdc 峰值)=${W[28]} W29(DP 等线拍)=${W[29]}"
-      echo "         ⚠️ 判读: W27 贴 256 ⇒ RX 深度真的不够 (按 P6B_SPEC §4.2 的升级路径换 FWFT=0 的 512);"
+      echo "         ⚠️ 判读: W27 贴 256 ⇒ RX 深度真的不够 (按 agent_docs/P6B_SPEC §4.2 的升级路径换 FWFT=0 的 512);"
       echo "                  W28 贴 256 而 W18 不涨 ⇒ DP 在等线 (线速瓶颈), 不是深度问题。"
       echo "                  W4(丢帧) 随 W0 涨 且 W26 单调涨 ⇒ 确认丢帧是新 FIFO 造成的。" 
       if [ "$(( W[19] ))" -eq 0 ]; then res PASS 5e "W19 (slow_rx_adp 丢帧) 恒 0" "0" "${W[19]}"
       else res FAIL 5e "W19 (slow_rx_adp 丢帧) 恒 0" "0" "${W[19]}"; fi
-      # ⚠️ P6b: `slow_rx_adp.rst_cnt` 由 64 拍改 **80 拍** (维持同一墙钟 512ns, 见 P6B_SPEC §5.1)
-      #    ⇒ 口径必须跟着改 ÷80, 否则复位次数算错 25% (P6B_SPEC §9.3 点名的旧判据)。
+      # ⚠️ P6b: `slow_rx_adp.rst_cnt` 由 64 拍改 **80 拍** (维持同一墙钟 512ns, 见 agent_docs/P6B_SPEC §5.1)
+      #    ⇒ 口径必须跟着改 ÷80, 否则复位次数算错 25% (agent_docs/P6B_SPEC §9.3 点名的旧判据)。
       if [ "$(( W[17] ))" -eq 0 ]; then res PASS 5f "W17 (饥饿看门狗复位拍数) 恒 0" "0" "${W[17]}"
       else res FAIL 5f "W17 (饥饿看门狗复位拍数) 恒 0" "0" "${W[17]} (÷80 ≈ $(( W[17] / 80 )) 次复位)"; fi
     fi
@@ -393,7 +393,7 @@ fi
 
 # ---------- 判据 8 (P6b 独有, 最有判别力): 停机态跨域恒等式 **三段式** ----------
 #   为什么这条最有判别力: W0/W1 在 **FE 束** (写侧), W30/W31 在 **DP 束** (读侧),
-#   两者天然差一个"在飞量"; 但停机窗口里 FIFO 必空 ⇒ 恒等式精确成立 (P6B_SPEC §7.3 有证明:
+#   两者天然差一个"在飞量"; 但停机窗口里 FIFO 必空 ⇒ 恒等式精确成立 (agent_docs/P6B_SPEC §7.3 有证明:
 #   Σpopc(tkeep) + 4x帧数 ≡ MAC 的 stat_bytes)。
 #
 #   ⚠️⚠️ **三段式 (对抗审查 R4)**: 绝对值式 (W0==W30) 在**第一次丢帧之后就永久 FAIL 且无法
@@ -405,7 +405,7 @@ fi
 #     ③ 有向不等式保留: `-1 <= W0-W30` (链式触发保证 W30 的采样不早于 W0; 长跑回归用)
 #
 #   ⚠️ **静默窗口 = [13us, 4s)** (对抗审查 S5): 下限 = 一个最大帧时间 (在飞字必须落地);
-#      上限 = HLS 的 HELLO 周期 (P6b 下由 5s 变 **4s**, P6B_SPEC §5.3) —— 超过它 HELLO 帧
+#      上限 = HLS 的 HELLO 周期 (P6b 下由 5s 变 **4s**, agent_docs/P6B_SPEC §5.3) —— 超过它 HELLO 帧
 #      会注入新流量, 窗口就不再静默。本脚本取 **1s**, 稳稳落在窗口内。
 echo; echo "===== 判据 8: 停机态跨域恒等式 (三段式; 静默窗口 1s in [13us, 4s)) ====="
 if round; then

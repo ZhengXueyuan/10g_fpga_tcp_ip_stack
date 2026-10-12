@@ -85,7 +85,7 @@ module tb_snap_seq;
         end
     end
 
-    // ---- 独立重写的 36 行对照表 (来自 P6B_SPEC §7.2 的逐项对照表, **手抄自文档**) ----
+    // ---- 独立重写的 36 行对照表 (来自 agent_docs/P6B_SPEC §7.2 的逐项对照表, **手抄自文档**) ----
     // exp_src[w] = 0 ⇒ 取 FE 的 fe[exp_idx[w]]; 1 ⇒ 取 DP 的 dp[exp_idx[w]]
     integer exp_is_dp [0:35];
     integer exp_idx   [0:35];

@@ -190,3 +190,95 @@ git grep -c -P "$NEW" | wc -l                 # 新形态（332 处改写产物 
 git diff -M --name-status 0c55470^..0c55470   # 14 行 R100
 git show --stat 9205fb7 | tail -3             # 提交② diffstat
 ```
+
+---
+
+# 第二轮增量（判据 5 修订落地，2026-10-13）
+
+**新判据**：① `_proj_10g/**` 之外所有旧形态引用逐处更新（证明=全仓 grep → 0 LIVE 悬空，
+HISTORICAL 除外并逐条登记）；② `_proj_10g/**` 内部不重写，由 `agent_docs/MAPPING.md` 映射表兜底；③ 广播由发起方负责。
+
+## R2-1 分区改前→改后（旧形态命中数）
+
+| 区域 | 改前 | 改后 | 构成 |
+|---|---|---|---|
+| `CLAUDE.md`（根） | 8 | **0** | 8 处 LIVE 散文引用全部改写 |
+| `board/` | 41 | **0** | LIVE 41（wrapper_p4.v 28 + 构建脚本/xdc/stub/md 13）；外仓 `udp_hls_eco/PORT_NOTES.md` 3 处本就由 lookbehind 排除（FOREIGN，未动） |
+| `rtl/` | 26 | **0** | 9 个现役 RTL 的注释引用 |
+| `tb/` | 4 | **0** | 4 个现役 TB |
+| `tools/` | 9 | **0** | 逐个分类：rxp_digest 4 / rxp_classify 1 / gen_stim_tx 1 / gen_stim_p5_adv 1 / cpp_peer README+udpsend 2，全 LIVE 工具注释 |
+| `_proj_pcie/` | 12 | **1** | LIVE 11 改写（p6b_accept.sh 9 + rtl/axi_regs.v 1 + p6e_slowpath_probe.sh 1）；余 1 = `smoke_scratch/p6b_accept.log` 证据日志（HISTORICAL） |
+| `sim/` | 84 | **82** | LIVE 2 改写（p4env.bat 1 走指纹三件套 + run_matrix_p4dfix.sh 1）；余 82 全 HISTORICAL（见 R2-3） |
+| **第二轮 LIVE 改写合计** | | **101 处** | 改写器 apply 100 处（含 run_matrix_p4dfix.sh 1）+ p4env.bat 1 处手工（指纹三件套内）= 101；区域相加 8+41+26+4+9+11+2 = 101 ✓ |
+
+## R2-2 p4env.bat 指纹三件套（DOCS_MIGRATION_PLAN §3.2）
+
+时序：先完成其余全部改写 → `fingerprint --out ..._before.txt` → 改 p4env.bat 注释一行
+（`see P6B_INTEGRATION_REVIEW.md section 5)` → `see agent_docs/P6B_INTEGRATION_REVIEW.md section 5)`）
+→ `fingerprint --out ..._after.txt`。文件：`sim/p4sim/P4_MATRIX_FINGERPRINT_20261013_014907_{before,after}.txt`。
+
+diff 原始输出（**哈希表只差 sim/p4gates/p4env.bat 一行**；DIGEST_COMPILE 不变——p4env.bat 属 FINGERPRINT_GLOBS(extra) 而非编译集，与方案 §3.2 预测一致；DIGEST_ALL 变化仅此一行所致）：
+
+```
+3c3
+< #   label      : before r2 p4env docref
+---
+> #   label      : after r2 p4env docref
+5c5
+< #   run at     : 2026/10/13 01:49:08
+---
+> #   run at     : 2026/10/13 01:49:16
+14c14
+< # MODIFIED vs HEAD (tracked, inside the hashed set): 9
+---
+> # MODIFIED vs HEAD (tracked, inside the hashed set): 10
+22a23
+> #   M  M sim/p4gates/p4env.bat
+234c235
+< SHA256 33c03714efcd83e6806cadf01d544783d42d52e8c25f364ebc5a70161093f807  sim/p4gates/p4env.bat  3483  1790651759
+---
+> SHA256 3180d27cd1ef3e06a4aa3cfd0b8e61d2de595753306039c55ac2a772932ffaf9  sim/p4gates/p4env.bat  3404  1791827355
+287c288
+< DIGEST_ALL     = be8d36cf01454ea773bc7f0b417a06d030f610c74e43d30bdd98596ab6f003c6
+---
+> DIGEST_ALL     = eb747c0d902d668e57a6a5d44355ec57c6827a17398f07440eb3c4389d356ebd
+```
+
+（label/run-at 为头部元数据必异；MODIFIED 块是工具自报的"未提交改动清单"——before 时已含本轮 9 个被哈希集覆盖的改写文件，after 时 +p4env.bat；**内容哈希表仅 p4env.bat 一行变化** ✓）
+
+## R2-3 扩区 HISTORICAL allowlist（83 条，并入总表；均未改）
+
+| 文件:行 | 命中 | 类别 |
+|---|---|---|
+| sim/p4gates/evidence/sweep_absolute_paths.txt | 26 处 | 审计快照（方案 §3.4 登记） |
+| sim/p4gates/evidence/pre_migration_bats/run_matrix_p4dfix_OLD.sh | 1 | 迁移前留档 |
+| sim/p4sim/P4_MATRIX_FINGERPRINT_20260929_234840/235056_{before,after}.txt | 3 | 指纹快照 |
+| sim/p7b_stagec_tx_regress/head_rtl/{udp_split 7, app_status_uart 6, snap_seq 4, slow_rx_adp 2, app_udp_pattern 2, app_ctrl 2, udp_rx 1, mac_tx_64 1}.v | 25 | StageC TX 回归轮冻结 head 副本 |
+| sim/p5wu_p1p2/app_ctrl_base.v 2 · sim/p5wu_f2fix/app_ctrl_{prefix,mut}.v 各 2 | 6 | P5WU 变异实验副本 |
+| sim/p7b_mir/mut/app_rx_mirror_mut_*.v ×7 | 7 | 刻意入库的镜像变异对照件 |
+| sim/snapcdc/mut5_nw/tb_snap_cdc_nwbug.v | 1 | 病理输入留档（nwbug 负对照） |
+| sim/rxpdiag/tb_rxp_v{3..7}.v ×5 · run_tb_rxp_{v3..v7,diag}.bat ×6 | 11 | RXP 诊断轮 v3–v7 迭代留档（现役=RXP_DIAG 已入库 rtl/ + tb/tb_rxp_diag.v，均已改写） |
+| sim/p6e_pcie/tb_p6e_pcie_{wrapper,counters}.v | 2 | P6e 合体实验工作区留档（现役观测口径=agent_docs/P6E_OBS.md） |
+| _proj_pcie/smoke_scratch/p6b_accept.log | 1 | PCIe 侧验收证据日志 |
+
+第一轮 allowlist 31 条不变。**总 allowlist = 31 + 83 = 114 条。**
+
+## R2-4 终态 grep 证明（第二轮收尾时实测）
+
+- 旧形态全仓（已跟踪）：**1595** = `_proj_10g/**` 1395（映射表兜底，不动）+ 114 allowlist
+  （第一轮 31 + 第二轮 83）+ 刻意排除 14（9 文档标题自指 + README 树图 5）+ 本报告自述 72。
+  **`_proj_10g/` 之外 LIVE 悬空 = 0**（board/rtl/tb/tools/CLAUDE.md 已归零；sim 余 82 与 _proj_pcie 余 1 全属 allowlist）。
+- 新形态 `agent_docs/`（已跟踪）：**473** = 第一轮存活 332 + 第二轮改写 101 + 本报告自述 40。
+- 未跟踪层：`docs/INDEX.md` 14 条旧形态 = **链接显示文本**（目标 `../agent_docs/*.md` 已是正确新形态，
+  零悬空；属 docs/ 导读层的未提交在制文件，**刻意不代改**，由该层负责）；`agent_docs/INDEX.md` 29 条旧形态 =
+  同目录互链标签+目标 28 + 散文 1（同目录链接保持不动，判据 4 规则）。
+- 对账：第二轮改前 184（sim 84+board 41+rtl 26+tb 4+tools 9+pcie 12+CLAUDE 8）= LIVE 101 + 新增 HISTORICAL 83 ✓
+- 归属说明：`board/wrapper_p4.v` 的 28 处改写**未随提交③入库**——提交前被并发 P9 URAM 提交
+  `257c911` 连同其 wrapper 接线改动一并提交（内容正确，old=0/new=28 已实测）；提交③实际携带
+  本轮其余 73 处改写 + 全部新增物。
+
+## R2-5 本轮新增物
+
+- `agent_docs/MAPPING.md` — 14 行旧→新映射表（`_proj_10g/notes/**` 历史引用按此解析）。
+- `agent_docs/INDEX.md` — AI 向索引（14 件一句话 + checks/ + MAPPING + notes/ 入口清单，不移动任何文件）。
+- `sim/p4sim/P4_MATRIX_FINGERPRINT_20261013_014907_{before,after}.txt` — p4env 指纹对。

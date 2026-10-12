@@ -3,7 +3,7 @@ if {![file exists [file join $REPO_ROOT CLAUDE.md]]} {
   error "PATHGUARD FAIL: cannot locate this checkout from [info script] -- derived REPO_ROOT = $REPO_ROOT"
 }
 #=============================================================================
-# build_p5_diag.tcl — RXP_DIAG 诊断构建 (ISSUE_RX_BYTE_CORRUPTION 专题)
+# build_p5_diag.tcl — RXP_DIAG 诊断构建 (agent_docs/ISSUE_RX_BYTE_CORRUPTION 专题)
 #
 # 目的: 在不改变任何功能语义的前提下, 把 app UDP RX 通路的**首失配快照**做成
 #       板级可读字段 (UART 状态行行尾追加 8 字段), 用来把"坏字节到底长什么样"

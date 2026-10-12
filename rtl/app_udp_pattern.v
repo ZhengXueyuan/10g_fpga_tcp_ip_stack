@@ -133,7 +133,7 @@ module app_udp_pattern #(
     output reg         active,           // TX: 正在发帧 或 在帧间限速间隙里
     output reg         done,             // TX_BYTES 已发完 (粘滞, TX_BYTES!=0 才有意义)
     output reg  [3:0]  led,
-    // ---- RXP_DIAG (ISSUE_RX_BYTE_CORRUPTION 专题): 首失配快照 ----
+    // ---- RXP_DIAG (agent_docs/ISSUE_RX_BYTE_CORRUPTION 专题): 首失配快照 ----
     // 只在 `RXP_DIAG 构建里驱动; 默认构建恒 0 (端口常量化, 与 P4/P5 逐位无影响)。
     // 判读法: ds_idx = 该坏字节的**全局收字节号** (= 图案流偏移, 因为 RX LFSR 从
     // reset 起按 SEED 逐字节推进), ds_got/ds_exp 是收到的值与期望值。据此可离线
@@ -199,7 +199,7 @@ module app_udp_pattern #(
     //     (本工程铁律: 新增端口在默认路径上不得改变任何东西)。
     , output wire       ds_cap
     // ---- RXP_DIAG v4 (2026-09-27): 受损帧的**运行结构** + **事件 FIFO** ----
-    // (ISSUE_RX_BYTE_CORRUPTION §16.7 "下一刀": 帧序号轨迹)
+    // (agent_docs/ISSUE_RX_BYTE_CORRUPTION §16.7 "下一刀": 帧序号轨迹)
     // 判据 (协调方写死):
     //   · n_run == n_ev ⇒ 受损帧**全部孤立**; n_run < n_ev ⇒ **存在连续段**
     //     (相邻帧号差 1 视为同一段; 连续段 = 帧边界整体位移的签名)。

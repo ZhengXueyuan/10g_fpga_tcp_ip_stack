@@ -21,7 +21,7 @@
 //                         ---- P6b 新增 (加位; **已有位逐位不变** ⇒ 既有脚本的取位不受影响) ----
 //                         [5:3] = {fe_busy, fe_seen, fe_done}: FE 束 (gmii_clk) 的握手状态
 //                                 ⇒ "卡在哪个域"可自动判定 (P6b 是双域链式触发: FE 先 → DP 后,
-//                                  见 rtl/snap_seq.v 与 P6B_SPEC §6.4)
+//                                  见 rtl/snap_seq.v 与 agent_docs/P6B_SPEC §6.4)
 //                         [6]   = MMCM locked 的 **axi 域同步版** —— DP 束在 DP 时钟停摆时
 //                                 根本读不到, 所以 locked 必须在这里也有一份 (§6.4)
 //                         [15:7]= 0 (保持)

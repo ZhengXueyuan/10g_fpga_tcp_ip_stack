@@ -17,7 +17,7 @@
 #   history: until 2026-09-29 this script hardcoded
 #     B=/d/repo/ECO/udp_hls_10g/sim/p4sim
 #   so running it from this checkout compiled ANOTHER checkout and exited 0
-#   ("empty gate", see P6B_INTEGRATION_REVIEW.md section 5).  The stale log it
+#   ("empty gate", see agent_docs/P6B_INTEGRATION_REVIEW.md section 5).  The stale log it
 #   left behind is kept as evidence in sim/p4gates/evidence/.
 # ===========================================================================
 set -u

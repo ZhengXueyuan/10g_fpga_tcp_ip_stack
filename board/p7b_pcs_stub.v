@@ -17,7 +17,7 @@
 //   * It is NOT a PCS.  It does not do 64b/66b, scrambling, block lock or CDR.
 //     Nothing here is evidence about the real core; the real-core evidence is
 //     gate 1 / gate 2 (board measurements, see notes/P7B_GATE1.md, P7B_GATE2.md)
-//     and P7A (PCS/PMA with gearbox, P7A_RESULT.md).
+//     and P7A (PCS/PMA with gearbox, agent_docs/P7A_RESULT.md).
 //   * The port list is deliberately IDENTICAL to the port list the wrapper
 //     connects for the real `pcs64` instance (same names, same widths, same
 //     directions) so the swap is one ifdef and the surrounding wiring is

@@ -983,7 +983,7 @@ def check_multi(ck, cl, ev, info, s):
     #     conn1 rcv_nxt 应停在 pcis+1
     #   · 板侧不得物理丢帧 (mac stat_drop == 0), 也不得静默损坏
     # **这不是放宽判据, 是语义演进**: 旧断言 (conn1 rcv_nxt=+150) 测的正是 P5b 按
-    # 规格替换掉的"静态 48K/连接"语义; 多连接分池策略是 P5d 课题 (PORT_NOTES 已落档)。
+    # 规格替换掉的"静态 48K/连接"语义; 多连接分池策略是 P5d 课题 (agent_docs/PORT_NOTES 已落档)。
     check_wire(ck, cl, 'multi', s.exp,
                {0: {CONN[0]['pcis'] + 1, CONN[0]['pcis'] + 1 + 100},
                 1: {CONN[1]['pcis'] + 1, CONN[1]['pcis'] + 1 + 150}},

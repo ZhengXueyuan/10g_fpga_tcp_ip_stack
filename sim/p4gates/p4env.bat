@@ -10,7 +10,7 @@ REM   derived from THIS file's own location (%~dp0..\..), i.e. from the
 REM   checkout the script physically lives in.  Rationale: the 2026-09 matrix
 REM   runner hardcoded D:\repo\ECO\udp_hls_10g, so running it from this repo
 REM   compiled ANOTHER checkout and still exited 0 (the "empty gate" defect:
-REM   see P6B_INTEGRATION_REVIEW.md section 5).
+REM   see agent_docs/P6B_INTEGRATION_REVIEW.md section 5).
 REM
 REM   P4_REPO_ROOT may override the derived root.  The override exists so the
 REM   guard can be exercised with a deliberately wrong root (negative control);

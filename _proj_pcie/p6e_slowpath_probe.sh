@@ -21,7 +21,7 @@
 set -u
 ROUNDS=${1:-100}
 IV=${2:-20}
-# 第 3 个参数 = 每轮 ping 包数 (默认 20 = 密集). 假设: **轻流量才暴露失聪** (见 PORT_NOTES)
+# 第 3 个参数 = 每轮 ping 包数 (默认 20 = 密集). 假设: **轻流量才暴露失聪** (见 agent_docs/PORT_NOTES)
 IFACE=enp3s0
 BOARD=192.168.100.2
 TOOLS=/home/a/xdma_test/dma_ip_drivers-patched/XDMA/linux-kernel/tools   # ⚠️ 用长名: 短名 T 曾与"已跑秒数"撞车

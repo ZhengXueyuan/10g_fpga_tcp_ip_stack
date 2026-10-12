@@ -55,14 +55,14 @@ A_KEYS = ("CN", "RD", "NC", "NP", "WF", "RL", "WC")
 WORD_DIM = ("WF", "RL")
 B_KEYS = ("NE", "NR", "MR", "EN", "EO")
 Q_KEYS = ["Q" + c for c in "ABCDEFGH"]
-# v5 (2026-09-27, ISSUE_RX_BYTE_CORRUPTION section 14.6/18.8):
+# v5 (2026-09-27, agent_docs/ISSUE_RX_BYTE_CORRUPTION section 14.6/18.8):
 #   A part = the SECOND LFSR byte checker, sitting on the u_uf WRITE data port (u_m_d)
 #   B part = udp_rx's parser counters, previously dangling inside udp_split
 # 键名: DV DG DE DO DM VZ (A) 与 PS NM IC DC SB (B); 偏移/语义见 rtl/app_status_uart.v
 # 的 v5 段注释 (真值源) 与 rtl/udp_split.v 的 v5 段。
 V5_A_KEYS = ("DV", "DG", "DE", "DO", "DM", "VZ")
 V5_B_KEYS = ("PS", "NM", "IC", "DC", "SB")
-# v6 (2026-09-27, ISSUE_RX_BYTE_CORRUPTION section 18.9/18.10):
+# v6 (2026-09-27, agent_docs/ISSUE_RX_BYTE_CORRUPTION section 18.9/18.10):
 #   the THIRD LFSR byte checker, sitting on udp_split's INPUT PORT SIDE (s_axis, the
 #   stream entering u_pre).  This is the adjudication point of the section-18.9
 #   contradiction: it is the only stream on the path that was never instrumented.
@@ -171,7 +171,7 @@ def v4_section(d, pat, paylen, n_int):
 
 
 def v5_section(d, paylen, ii, umm, urb, urf, rl, wf):
-    """打印 v5 专有判读 (ISSUE_RX_BYTE_CORRUPTION section 14.6 / 18.8).
+    """打印 v5 专有判读 (agent_docs/ISSUE_RX_BYTE_CORRUPTION section 14.6 / 18.8).
 
     A 部 = u_uf **写数据口** (u_m_d) 上的第二个 LFSR 逐字节校验器:
       DV 首个失配的累计字节序号 | DG/DE 该处 收/期望 字节 | DO 该处帧内偏移
@@ -233,7 +233,7 @@ def v5_section(d, paylen, ii, umm, urb, urf, rl, wf):
 
 
 def v6_section(d, paylen, ii, umm, dv, dm, cs):
-    """打印 v6 专有判读 (ISSUE_RX_BYTE_CORRUPTION section 18.9/18.10).
+    """打印 v6 专有判读 (agent_docs/ISSUE_RX_BYTE_CORRUPTION section 18.9/18.10).
 
     位置 = **udp_split 的输入端口侧** (s_axis, 进 u_pre 之前) —— §18.9 那个
     "三者不能同时为真"矛盾的唯一裁决点 (u_pre 的输入是整条链上唯一没插桩的流)。

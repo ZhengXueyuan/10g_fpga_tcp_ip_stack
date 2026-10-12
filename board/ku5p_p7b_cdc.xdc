@@ -22,7 +22,7 @@
 #        (闸 1 实测: `rxoutclk_out` 是从到来的数据里 CDR 恢复的)。
 #   · `phy1_rxc` **不存在** (P7b 没有 RGMII) ⇒ **绝不能引用**它, 否则就是 12-4739。
 #
-# 域之间的跨域连接 (各有专门的同步器, 见 wrapper 与 P6B_SPEC §3):
+# 域之间的跨域连接 (各有专门的同步器, 见 wrapper 与 agent_docs/P6B_SPEC §3):
 #   ① `u_rxcdc` / `u_txcdc` 两个异步 FIFO (灰码指针 2FF, ASYNC_REG)
 #   ② 五条相干快照链: snap_seq 的 FE/DP 两束 + P7b 的 p7bfe/p7bdp/tx 三束 (toggle 握手)
 #   ③ PCS 状态位的**每位 2FF** (dclk/恢复域 → dp 域)

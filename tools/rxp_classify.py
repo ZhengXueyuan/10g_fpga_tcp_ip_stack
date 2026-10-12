@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""rxp_classify.py — RXP_DIAG 首失配快照的**离线判读器** (ISSUE_RX_BYTE_CORRUPTION)
+"""rxp_classify.py — RXP_DIAG 首失配快照的**离线判读器** (agent_docs/ISSUE_RX_BYTE_CORRUPTION)
 
 背景: 诊断位流在 UART 状态行行尾给出 8 个字段 (键名 = "=" 前最后两个字母,
 与 board_p5b_check.py 的 parse 口径一致):

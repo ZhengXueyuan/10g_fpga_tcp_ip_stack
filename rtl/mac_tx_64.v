@@ -15,7 +15,7 @@
 //   下一个 `S_IDLE -> S_PRE` 当作**新帧的首字**取走, 一路按正常帧发送: 补 pad、算 CRC、
 //   发一个 **FCS 完全正确的"幽灵帧"**, 载荷 = 被中止帧的中段残字。对端 (以及本板 RX 侧)
 //   无法分辨 ⇒ **坏帧被当好帧收下**。实测: FCS 残留 == 0xDEBB20E3, 载荷 = 被中止帧的
-//   字节[320..960) (见 P6B_CDC_AUDIT.md F-2 / audit_scratch/t3_txcdc)。
+//   字节[320..960) (见 agent_docs/P6B_CDC_AUDIT.md F-2 / audit_scratch/t3_txcdc)。
 // 修复: 中止后进 `S_FLUSH` —— **一个字都不发**, 把输入 FIFO 的头字逐个弹掉并计数,
 //   直到吞掉**本帧自己的 TLAST 字**(= 唯一可用的帧边界; TX 字流不带 tuser/SOP),
 //   再等够 IFG (12 字节) 才回 S_IDLE。此后 FIFO 头字必然是下一帧的首字。

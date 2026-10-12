@@ -7,7 +7,7 @@ if {![file exists [file join $REPO_ROOT CLAUDE.md]]} {
 #
 # !! 历史实验脚本 (2026-09-19 一次性) — 不要重跑 !!
 # 本次运行时的 wrapper_p4.v 只有 APP_EN 一处 ifdef (无 app 模块实例), 实验结论
-# (suppress=0 稳态 857Mbps) 见 PORT_NOTES「P5a-0 破案」。此后 RTL 已加入
+# (suppress=0 稳态 857Mbps) 见 agent_docs/PORT_NOTES「P5a-0 破案」。此后 RTL 已加入
 # app_ctrl/app_pattern/app_status_uart, 本 tcl 的文件清单**不含**它们 ⇒ 重跑会
 # 得到"实例化了不存在模块"的不一致位流。当前 app 构建用 board/build_p5.tcl。
 # 实验位流已存于 vivado_prj/p5a0_prj.runs/impl_1/wrapper_p4.bit (保留作对照)。

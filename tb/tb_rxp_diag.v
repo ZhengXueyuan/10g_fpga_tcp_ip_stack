@@ -1,6 +1,6 @@
 `timescale 1ns/1ps
 //=============================================================================
-// tb_rxp_diag.v — RXP_DIAG 首失配快照的**仪器自检门** (ISSUE_RX_BYTE_CORRUPTION)
+// tb_rxp_diag.v — RXP_DIAG 首失配快照的**仪器自检门** (agent_docs/ISSUE_RX_BYTE_CORRUPTION)
 //
 // 为什么要这条门: 诊断位流的价值全押在"快照字段到底对不对"上。仪器若把 idx/
 // got/exp/prev 打偏一拍或漏采, 板级读数会被当成机制证据 ⇒ 必须先自证。

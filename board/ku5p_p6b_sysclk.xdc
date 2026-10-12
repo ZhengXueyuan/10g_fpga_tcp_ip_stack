@@ -3,9 +3,9 @@
 #   只放**这一根时钟**: RGMII / LED / uart / reset_n 仍由 ku5p_p6a_t8p0.xdc 原样提供
 #   (不复制、不 source, 以免两份 XDC 悄悄分叉 —— P6a 是闸 G 的基线)。
 #
-#   器件事实 (P6B_SPEC §8.2, 全部有实测出处):
+#   器件事实 (agent_docs/P6B_SPEC §8.2, 全部有实测出处):
 #     · Y1 = SG7050VAN-100.000000M-KEGA3, 输出网络 SYS_CLK_P/N
-#       (原理图 PDF 出图实测: 位号 Y1 与完整型号同框; 见 P6B_SPEC §8.2 的复跑命令)
+#       (原理图 PDF 出图实测: 位号 Y1 与完整型号同框; 见 agent_docs/P6B_SPEC §8.2 的复跑命令)
 #     · ball T25/U25 = IO_L14P_T2L_N2_GC_A04_D20_65, BANK=65, IS_GLOBAL_CLK=1,
 #       DIFF_PAIR_PIN 互为对脚; 所在 CLOCK_REGION = X0Y1 **有 MMCM** (MMCM_X0Y1)
 #       ⇒ 可直接驱动 MMCM (board/ku5p_probe/clkgen_p6b/pin_probe.log 的原始读数)
@@ -30,7 +30,7 @@
 #   ⚠️ 周期必须与 wrapper 里 clk_gen_p6b 的 CLKIN1_PERIOD_NS(10.000) **同值**;
 #      156.25MHz 的输出时钟**不要手写 create_generated_clock** —— MMCME4_BASE 的输出
 #      由 Vivado 依据上述参数**自动推导**(结果恰为 6.400ns), 手写反而会冲突
-#      (两条同周期时钟 / CRITICAL WARNING)。P6B_SPEC §8.3 有这条的完整论证。
+#      (两条同周期时钟 / CRITICAL WARNING)。agent_docs/P6B_SPEC §8.3 有这条的完整论证。
 #=============================================================================
 
 create_clock -period 10.000 -name sys_clk_100 [get_ports sys_clk_p]

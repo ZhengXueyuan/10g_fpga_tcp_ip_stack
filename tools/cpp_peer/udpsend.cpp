@@ -1,6 +1,6 @@
 // udpsend.cpp -- a PLAIN-SOCKET UDP pattern sender. Deliberately does NOT use npcap.
 //
-// WHY THIS EXISTS (ISSUE_RX_BYTE_CORRUPTION.md §19.5 / §19.6)
+// WHY THIS EXISTS (agent_docs/ISSUE_RX_BYTE_CORRUPTION.md §19.5 / §19.6)
 // ----------------------------------------------------------
 // The board observed the frames ARRIVING OUT OF ORDER at line rate (v7: IW = backward
 // IP-ID jumps, 16/7 at line rate, 18 at 500 Mbps, 0 at 100 Mbps -- tracking the payload

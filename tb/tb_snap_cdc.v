@@ -70,7 +70,7 @@ module tb_snap_cdc;
     `define TB_NW 32
     `define TB_NW_SRC "DEFAULT-NO-MACRO"
 `endif
-    // 门跑 **5 遍**, 覆盖集成时的**真实束宽** + 历史宽度 (P6B_SPEC §9.2-B: "不依赖具体字数"):
+    // 门跑 **5 遍**, 覆盖集成时的**真实束宽** + 历史宽度 (agent_docs/P6B_SPEC §9.2-B: "不依赖具体字数"):
     //   NW=14 = wrapper_p4.v 的 `SNAP_FE_NW` (FE 束, b 域 = gmii_clk 125MHz) —— **真实值**
     //   NW=22 = wrapper_p4.v 的 `SNAP_DP_NW` (DP 束, b 域 = dp_clk 156.25MHz) —— **真实值**
     //           (两束中**较大者是 22**, 不是 32 —— 旧注释写错了这个事实)

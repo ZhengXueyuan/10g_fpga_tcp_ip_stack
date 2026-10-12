@@ -86,7 +86,7 @@
 //     **排空式冲刷** (读到空为止 —— 不碰 FIFO 复位, 遵守 fifo_async "两侧复位必须
 //     同源同时断言"的硬契约)。`drop_bytes` (W70) **不归零** (v2 §V1.3 冻结清单未列它;
 //     判据用 ΔW70, 不受影响 —— 登记口径)。
-//   · 复位: 两侧都接板级 `reset_n` (P6B_SPEC §4.4 硬规则; 同 u_rxcdc/u_txcdc);
+//   · 复位: 两侧都接板级 `reset_n` (agent_docs/P6B_SPEC §4.4 硬规则; 同 u_rxcdc/u_txcdc);
 //     释放时刻不同步是允许的 (v2 §V2-S6-①)。空态哨兵由消费者按 `empty` 选路。
 //   · `level` = **逻辑 32 位字**的可用数 = `2 × fifo_async.dbg_occ_r + stash_v`
 //     (dbg_occ_r 是**读域 2FF 同步后的悲观占用** ⇒ 该式只少报、不多报 ⇒
