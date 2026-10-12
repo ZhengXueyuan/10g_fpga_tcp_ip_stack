@@ -23,12 +23,19 @@
 | [PORT_NOTES.md](PORT_NOTES.md) | 全仓施工流水账与教训库（2026-08 起逐日；被引用最多） |
 | [ISSUE_RX_BYTE_CORRUPTION.md](ISSUE_RX_BYTE_CORRUPTION.md) | 专题：1G 时代 UDP RX 方向线速字节损坏（机制未证实，历史遗留） |
 
+## review_scratch/（对抗审查原始证据目录，78 件）
+
+[review_scratch/](review_scratch/) = P6b 对抗审查 agent 的全部原始产物（自写 TB `rw/tb_rvw_*.v`、
+变异体 `rw/mut*.v`、复跑 bat、`rd_*` 各轮 xsim 日志），即 P6B_REVIEW 附录 R 的 A/B 读数出处；
+总说明见 [review_scratch/_sec_R.md](review_scratch/_sec_R.md)。2026-10-13 随追加轮从根目录迁入。
+
 ## checks/（迁移证明）
 
-[checks/migration_proof.md](checks/migration_proof.md) = 两轮迁移的完整证明：基线三层计数、
-14 行 R100 原始输出、逐文件 before→after、HISTORICAL allowlist 逐条（file:line）、
-边界/排除登记、p4env 指纹 before/after 对、终态 grep 数字与全部异常处置记录。
-**改本目录任何文件前必读**——它登记了哪些引用刻意没改（历史快照/变异副本/标题自指/树图路径段）。
+[checks/](checks/) 目录 = 两轮迁移 + 追加轮的完整证明：**[checks/migration_proof.md](checks/migration_proof.md)**
+（文档迁移：基线三层计数、14 行 R100、逐文件 before→after、HISTORICAL allowlist、
+p4env 指纹对、终态 grep）与 **[checks/review_scratch_move_20261013.md](checks/review_scratch_move_20261013.md)**
+（review_scratch 整目录迁入：78 行 R100、引用改写计数、留档不改判定、终态证明）。
+**改本目录任何文件前必读**——它们登记了哪些引用刻意没改（历史快照/变异副本/标题自指/树图路径段/日志绝对路径）。
 
 ## MAPPING.md（旧路径解析表）
 
