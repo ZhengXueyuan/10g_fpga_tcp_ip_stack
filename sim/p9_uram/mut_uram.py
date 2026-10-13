@@ -20,6 +20,12 @@ mut_uram.py -- URAM 板内缓冲 (rtl/mir_uram_fifo.v) 的"该红时红"突变�
   mut_wp_nmc    : wp 增量丢掉绕回位 (AW 位写窄)           帧容量锚/长流账该红 (G2a/G8)
   mut_guard_off : 删守卫③ 的 $display                     仅供 rogue 臂对照 (arm mut_guard_off
                                                           与 guard_rogue 配成"守卫有牙"的一对)
+  --- 2026-10-13 FIX 轮 (验证 A-K5) 补 3 臂: 补上"clr 分支内部"与"64 位数据面"两类零覆盖 ---
+  mut_clrv      : clr 分支删 `v_sr <= 3'd0;` (部分清)    旧 valid 链不清 ⇒ 旧字漏进新窗口 (G5/
+                                                          G5b/GC 家族与 G9 账该红)
+  mut_omem      : dn_data 读错槽 (op_r -> op_w)           弹性堆 FWFT 读出臂 (o_occ∈1..3 时读错槽
+                                                          ⇒ G1b/G4b/… 逐字对账该红)
+  mut_oocc      : o_occ 更新丢 `+ arr_v` 项               占用账不记到达 ⇒ 弹发饿死 (G7/G2f 家族该红)
 
 用法: python mut_uram.py --arm mut_full_off|... [--repo R]
 """
@@ -85,6 +91,32 @@ MUTS = {
          "                $display(\"FATAL mir_uram_fifo: upstream grant without req (violates aux contract, t=%0t)\", $time);\n",
          "            if (up_gnt && !up_req)\n"
          "                ;   // MUT(mut_guard_off): guard display removed (rogue arm must go blind)\n", 1),
+    ],
+    # =================================================================================
+    # 2026-10-13 FIX 轮补臂 (验证 A-K5): 原 12 臂全落在"写门/读门/计数器/clr 总开关/守卫"七类
+    #   控制点上 —— **clr 分支内部单行**与**64 位数据面**两类零覆盖。以下 3 臂补齐这两类。
+    #   每臂 = 单点、锚点必须与现行 rtl/mir_uram_fifo.v 逐字一致 (hits != 1 ⇒ GENFAIL)。
+    # =================================================================================
+    # ---- A-K5-①: clr 分支"部分清" (删 v_sr 清链一行; wp/rp 仍清) ----
+    #   后果预期 (验证 §5 推演): clr 后旧 valid 链持续对齐 ⇒ 旧 ram_dout 被 arr_v 采入弹性堆
+    #   ⇒ 旧窗口的字弹进新窗口 ⇒ over_err/seq_err ⇒ G5/G5b/GC 家族 + G9e 账该红。
+    "mut_clrv": [
+        ("        end else if (clr) begin\n"
+         "            wp <= {(AW+1){1'b0}};  rp <= {(AW+1){1'b0}};  v_sr <= 3'd0;\n",
+         "        end else if (clr) begin\n"
+         "            wp <= {(AW+1){1'b0}};  rp <= {(AW+1){1'b0}};   // MUT(mut_clrv): v_sr NOT cleared (clr partial-clear)\n", 1),
+    ],
+    # ---- A-K5-②: 弹性堆 FWFT 读出臂 (dn_data 读错槽: op_r -> op_w) ----
+    #   o_occ∈1..3 时 op_w ≠ op_r ⇒ 读到非头字 (o_occ==0/4 时 op_w≡op_r, 不暴露) ⇒ 逐字对账该红。
+    "mut_omem": [
+        ("    assign      dn_data  = o_mem[op_r];\n",
+         "    assign      dn_data  = o_mem[op_w];   // MUT(mut_omem): wrong FWFT slot (op_r -> op_w)\n", 1),
+    ],
+    # ---- A-K5-③: o_occ 更新丢 `+ arr_v` (占用账不记到达) ----
+    #   o_occ 永不自增 ⇒ pop 恒 0 ⇒ 下游弹发饿死 (逐字对账/吞吐/账目家族该红)。
+    "mut_oocc": [
+        ("            o_occ <= o_occ + {2'd0, arr_v} - {2'd0, pop};\n",
+         "            o_occ <= o_occ - {2'd0, pop};   // MUT(mut_oocc): +arr_v term dropped\n", 1),
     ],
 }
 

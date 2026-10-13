@@ -24,12 +24,16 @@
 //       ⑤ 释放后**全序列**逐字出来 (弹性堆/在飞里的字一个不少)
 //   G3  ⭐ **恰空 + 首字延迟**: 空态 req=1 也不弹 (30 拍); 源放行 ⇒ 首字 2..6 拍内到且正确
 //   G4  相位/节奏扫描: 源空档与下游停收各用**独立 LFSR** (互不成简单比例) ⇒ 3000 拍零错
+//   G4b ⭐ (2026-10-13 FIX 轮; 验证 A-K6) **换种子复跑 (种子对 2/3)**: 换一对种子跑同一随机场景
+//       ⇒ 相位覆盖从"单序列"扩到 ≥3 对种子 (判定与 G4 同款: 逐字零错 + 流活着)
 //   G5  ⭐ **clr = 窗口边界 ⇒ 丢弃**: (a) clr 拍**不取数** (结构性)  (b) clr 后弹出的第一个字
 //       必须是 **post-clr** 的字 (期望队列已重同步 ⇒ 漏出旧字必 seq_err)  (c) 丢弃量 > 0
 //   G5b clr 时弹性堆/在飞里还有未弹字 ⇒ 同样必须丢干净
 //   G6  `en=0` (停排空) ⇒ up_req 恒 0 (镜像 FIFO 保持 ⇒ MIR_STATUS/MIR_DATA 读侧语义不变)
 //   G7  吞吐: 稳态 **1 字/拍** (300 拍里 >= 270 个弹出; 理论上限 300)
 //   G8  长流跨绕回: 双侧随机空档跑 24000 拍 (> 2*DEPTH 字, 多次绕回) ⇒ 零错 + 全核销
+//   G8b ⭐ (2026-10-13 FIX 轮; 验证 A-K6) **长流换种子复跑 (种子对 3/3)**: 第三对种子 6000 拍
+//       ⇒ 零错 + 终态全核销 (账闭合)
 //   GR  ⭐ (2026-10-13 F2) **复位中途**: en=1 期间拉低 rst_n ⇒ **不许取数** (up_req/dn 全 0);
 //       释放后窗口重置 + 零错 + 流照常 (判据锚 = "复位期一个字都不进")
 //   GC  ⭐ (2026-10-13 F3) **dn_req 保持 1 横穿 clr 拍**: clr 拍 **dn_gnt 必须 0**
@@ -93,6 +97,9 @@ module tb_mir_uram_fifo;
     wire [2:0]  dbg_oocc;
 
     // 两个独立 LFSR (确定性伪随机; 多项式/种子都不同 ⇒ 相位不成简单比例)
+    //   ⚠️ 2026-10-13 FIX 轮 (验证 A-K6): 相位覆盖原为**单一固定序列** (此对种子); G4b/G8b 段
+    //      在 negedge **换种子复跑** (对 2/3) ⇒ 覆盖 ≥3 对种子。换种子必须在 negedge 落笔:
+    //      LFSR always 块在 posedge 才推, 在 posedge 同一步阻塞写会被该沿的 NBA 覆盖 (种子静默丢失)。
     reg [15:0] lfsr_src = 16'h1ACE;
     reg [15:0] lfsr_dst = 16'h2BDF;
     always @(posedge clk) begin
@@ -273,6 +280,23 @@ module tb_mir_uram_fifo;
         chk ("G4b word-by-word zero error", seq_err, 0);
         chk ("G4c no phantom pop", over_err, 0);
 
+        // ---------------- G4b: 换种子复跑 (A-K6 相位覆盖; 种子对 2/3) ----------------
+        //   ⚠️ 种子在 **negedge** 落笔 (LFSR 的 always 块在 posedge 推 ⇒ posedge 同步阻塞写会被
+        //   该沿的 NBA 覆盖 = 种子静默丢失)。判据与 G4 同款 (只换随机相位, 不换结构)。
+        $display("  --- G4b: re-seeded phase scan (seed pair 2/3) ---");
+        @(negedge clk);
+        lfsr_src = 16'h7A5C; lfsr_dst = 16'h6B1F;
+        src_rand = 1; dn_pat = 1;
+        w0 = eq_w; r0 = eq_r;
+        repeat (3000) @(posedge clk);
+        src_rand = 0; dn_pat = 0; set_dn_req(1); set_src_hold(0);
+        repeat (400) @(posedge clk);                           // 部分排空 (与 G4 同款, 不做全核销)
+        $display("  [DBG] G4b: taken=%0d popped=%0d seq_err=%0d over_err=%0d",
+                 eq_w - w0, eq_r - r0, seq_err, over_err);
+        chk_range("G4b-a taken >= 500", eq_w - w0, 500, 100000);
+        chk ("G4b-b word-by-word zero err", seq_err, 0);
+        chk ("G4b-c no phantom pop", over_err, 0);
+
         // ---------------- G5: clr = 窗口边界 ⇒ 丢弃 ----------------
         $display("  --- G5: clr = window boundary -> DISCARD (no stale, no take) ---");
         set_dn_req(0); set_src_hold(0);                        // 先攒出"悬空字" (取走还没弹走)
@@ -333,6 +357,23 @@ module tb_mir_uram_fifo;
         chk ("G8b word-by-word zero error", seq_err, 0);
         chk ("G8c no phantom pop", over_err, 0);
         chk ("G8d drained: popped-taken == p0", (eq_r - r0) - (eq_w - w0), p0);
+
+        // ---------------- G8b: 长流换种子复跑 (A-K6 相位覆盖; 种子对 3/3) ----------------
+        $display("  --- G8b: long stream re-seeded (seed pair 3/3; 6000 cyc) ---");
+        do_clr;
+        @(negedge clk);
+        lfsr_src = 16'h3C6E; lfsr_dst = 16'h5F27;
+        src_rand = 1; dn_pat = 1;
+        w0 = eq_w; r0 = eq_r; p0 = eq_w - eq_r;
+        repeat (6000) @(posedge clk);
+        src_rand = 0; dn_pat = 0; set_dn_req(1); set_src_hold(1);   // ⭐ 先停源, 再全排空
+        repeat (2*DEPTH + 600) @(posedge clk);
+        $display("  [DBG] G8b: taken=%0d popped=%0d seq_err=%0d over_err=%0d",
+                 eq_w - w0, eq_r - r0, seq_err, over_err);
+        chk_range("G8b-a taken > 1000 (alive)", eq_w - w0, 1001, 10000000);
+        chk ("G8b-b word-by-word zero err", seq_err, 0);
+        chk ("G8b-c no phantom pop", over_err, 0);
+        chk ("G8b-d drained == p0", (eq_r - r0) - (eq_w - w0), p0);
 
         // ---------------- GR: 复位中途 (F2 修复的判据; en=1 期间拉低 rst_n) ----------------
         //   ⭐ 复位期"一个字都不进": 写门含 rst_n ⇒ up_req 恒 0 ⇒ 上游不成交 (旧式会在复位期

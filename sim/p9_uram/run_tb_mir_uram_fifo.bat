@@ -1,15 +1,19 @@
 @echo off
-REM run_tb_mir_uram_fifo.bat -- P9 URAM board-buffer unit gate (+ 12 mutation arms + 2 guard-teeth arms)
+REM run_tb_mir_uram_fifo.bat -- P9 URAM board-buffer unit gate (+ 15 mutation arms + 2 guard-teeth arms)
 REM   unit gate for the URAM buffer between the mirror aux port and axis_c2h_stream
 REM   usage: run_tb_mir_uram_fifo.bat [real|guard_rogue|mut_full_off|mut_full_e1|mut_issue_free|
 REM            mut_val1|mut_clr_off|mut_clr_take|mut_dnreq|mut_rstn_off|mut_en_off|mut_dnclr|
-REM            mut_wp_nmc|mut_guard_off]
+REM            mut_wp_nmc|mut_guard_off|mut_clrv|mut_omem|mut_oocc]
 REM     real        : compile rtl\mir_uram_fifo.v                    -> expect PASS_ALL (+ name-visibility guard)
 REM     mut_*       : compile a single-point mutant from mut_uram.py -> expect a HARD failure signature
 REM     guard_rogue : real RTL + `-d URAM_TB_ROGUE` (TB drives up_gnt w/o up_req)
 REM                   -> expect the RTL guard string "FATAL mir_uram_fifo: upstream grant without req"
 REM     mut_guard_off: mutant (guard $display removed) + `-d URAM_TB_ROGUE`
 REM                   -> expect the guard string ABSENT (proves the rogue arm can tell)
+REM   (2026-10-13 FIX round, verify A-K5): 3 extra arms cover the two previously-uncovered
+REM     classes -- mut_clrv (clr branch partial-clear: v_sr NOT cleared) / mut_omem (FWFT read
+REM     slot op_r->op_w) / mut_oocc (o_occ update drops +arr_v). The TB also gained re-seeded
+REM     G4b/G8b runs (verify A-K6); no bat logic change (arm name -> mut_uram.py argparse).
 REM   exit 0 only when the observed verdict matches the arm expectation.
 REM   (2026-10-13 review round F1): a mutant arm is only "caught" with HARD evidence --
 REM     the log must carry the `URAM_FIFO_GATE` verdict line, must NOT carry PASS_ALL, and must

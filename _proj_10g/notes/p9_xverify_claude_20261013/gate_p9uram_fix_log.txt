@@ -1,0 +1,65 @@
+=== ARM real ===
+URAM-GATE-VERDICT: PASS-as-expected 
+EXIT=0
+=== ARM guard_rogue ===
+URAM-GUARD-VERDICT: GUARD-FIRED-as-expected
+EXIT=0
+=== ARM mut_guard_off ===
+URAM-GUARD-VERDICT: GUARD-BLIND-CAUGHT-as-expected
+EXIT=0
+=== ARM mut_full_off ===
+URAM_FIFO_GATE: FAIL (17 checks failed)
+URAM-GATE-VERDICT: MUTANT-CAUGHT-as-expected 
+EXIT=0
+=== ARM mut_full_e1 ===
+URAM_FIFO_GATE: FAIL (1 checks failed)
+URAM-GATE-VERDICT: MUTANT-CAUGHT-as-expected 
+EXIT=0
+=== ARM mut_issue_free ===
+URAM_FIFO_GATE: FAIL (21 checks failed)
+URAM-GATE-VERDICT: MUTANT-CAUGHT-as-expected 
+EXIT=0
+=== ARM mut_val1 ===
+URAM_FIFO_GATE: FAIL (13 checks failed)
+URAM-GATE-VERDICT: MUTANT-CAUGHT-as-expected 
+EXIT=0
+=== ARM mut_clr_off ===
+URAM_FIFO_GATE: FAIL (17 checks failed)
+URAM-GATE-VERDICT: MUTANT-CAUGHT-as-expected 
+EXIT=0
+=== ARM mut_clr_take ===
+URAM_FIFO_GATE: FAIL (3 checks failed)
+URAM-GATE-VERDICT: MUTANT-CAUGHT-as-expected 
+EXIT=0
+=== ARM mut_dnreq ===
+URAM_FIFO_GATE: FAIL (24 checks failed)
+URAM-GATE-VERDICT: MUTANT-CAUGHT-as-expected 
+EXIT=0
+=== ARM mut_rstn_off ===
+URAM_FIFO_GATE: FAIL (2 checks failed)
+URAM-GATE-VERDICT: MUTANT-CAUGHT-as-expected 
+EXIT=0
+=== ARM mut_en_off ===
+URAM_FIFO_GATE: FAIL (1 checks failed)
+URAM-GATE-VERDICT: MUTANT-CAUGHT-as-expected 
+EXIT=0
+=== ARM mut_dnclr ===
+URAM_FIFO_GATE: FAIL (2 checks failed)
+URAM-GATE-VERDICT: MUTANT-CAUGHT-as-expected 
+EXIT=0
+=== ARM mut_wp_nmc ===
+URAM_FIFO_GATE: FAIL (18 checks failed)
+URAM-GATE-VERDICT: MUTANT-CAUGHT-as-expected 
+EXIT=0
+=== ARM mut_clrv ===
+URAM_FIFO_GATE: FAIL (17 checks failed)
+URAM-GATE-VERDICT: MUTANT-CAUGHT-as-expected 
+EXIT=0
+=== ARM mut_omem ===
+URAM_FIFO_GATE: FAIL (13 checks failed)
+URAM-GATE-VERDICT: MUTANT-CAUGHT-as-expected 
+EXIT=0
+=== ARM mut_oocc ===
+URAM_FIFO_GATE: FAIL (13 checks failed)
+URAM-GATE-VERDICT: MUTANT-CAUGHT-as-expected 
+EXIT=0

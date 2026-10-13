@@ -7,6 +7,21 @@
 "clr 拍不取数"只覆盖 **up 侧**，dn 侧已补门（`pop &&= !clr`，见 FIX_REPORT F3；复核 F7③）。
 **本件性质**：设计块（先写）+ RTL 实施 + 单元门 + 既有门回归。⛔ 未跑综合/未布线/未上板/未烧录；
 本机全程只有 xsim（无 Vivado 并行）。不下 PASS/FAIL 裁定、不写"时序已解决"。未测处写"未测"，未观测处写"未观测到"。
+
+**⭐ FIX 轮订正块 (2026-10-13, 同日; 依据 = `_proj_10g/notes/p9_xverify_claude_20261013/A_URAM_VERIFY.md` 的独立验证)**：
+就地订正两类（正文其余逐字保留，各处以 ⛔ 标记 + 原文引述）——
+① **缓冲占用上界 `4099 字` → `4100 字 = 32800 B`**（§1.3 口径句 / §1.7② / §3；真上界 = `DEPTH(4096) + CAP(=OQ=4)`
+且 „`occ==4096 ∧ inv==4`" 联合可达 —— **"4099"是低估 1 字 (8 B)**；单元门 G2b 判据 `[4096,4100]` 本就按真上界设 ⇒
+**是文本错、不是门错**；本件不改 RTL 逻辑、不改 TB 判据）；
+② **式 B 中途上界口径精化**（§3：中途差额 ≤`32824` → **≤34872 B** = 32800 + 镜像 FIFO ≤2048 + acc/stg ≤24；
+且 `--resid-max-mirror` 默认 `24` **只对"停源 + 排空到 early-stop"的终态成立**。工具侧只改注释/帮助文字，
+**默认值未动**；新选项 `--resid-max-mirror-mid` 本轮**只登记、不实现**）。
+③ **门补强 + 复跑（A-K5/A-K6，本件 §4/§8 按 FIX 轮口径读）**：`mut_uram.py` 补 **3 臂**
+（`mut_clrv` = clr 分支部分清/`mut_omem` = FWFT 读错槽/`mut_oocc` = `o_occ` 丢 `+arr_v` ——
+补上验证点名的"clr 分支内部"与"64 位数据面"两类零覆盖）；TB 加 **G4b/G8b 换种子复跑**（相位覆盖 ≥3 对种子）。
+**FIX 轮门读数：real = PASS_ALL（66 判据 / 0 FAIL）+ 15 突变臂全 MUTANT-CAUGHT + guard 两臂按预期；
+`p9_axis_stream` real / `p6e_counters` / `p6e_fullchain` 三门 PASS_ALL**（详见 FIX 轮原件 §3）。
+（订正轮原件 = `_proj_10g/notes/p9_xverify_claude_20261013/FIX_20261013.md`。）
 **任务口径**（TL 派单）：镜像 aux 口与 `axis_c2h_stream` 之间加一个 URAM288（≈32 KB 载荷）板内缓冲，吸收
 主机 `read()` 空档造成的丢字节；合同必须保持（aux 合同 / `MIR_DMA_CNT` 口径 / 不新增丢字节计数器 / 读侧语义 /
 两条工具恒等式）；改动面最小；单元门 + 负对照。
@@ -22,7 +37,7 @@
 | 吞吐 | 稳态 **1 字/拍**（xsim 实测 300 弹 / 300 拍）；首字延迟 **4 拍** |
 | CDC | ⭐ **不需要**：接线点两侧都在 `pcie_axi_aclk`（250 MHz）。基线里"写侧 dp_clk / 读侧 pcie"说的是 `u_mir` 内部那条边界（其 `u_fifo` = `fifo_async`）；本模块在它之后（§1.2 行号证据） |
 | 丢字 | 不新增任何计数器：满 ⇒ 不拉 `up_req` ⇒ 镜像 FIFO 自然满 ⇒ 丢字节仍只记 `W70`；"取走必交付"有结构性保证（门 G9e 终态账闭合 0 差） |
-| 门（新增） | real = **PASS_ALL（43 判据 / 0 FAIL）**；7 突变臂**全红**（含 2 臂走 RTL 结构性 FATAL 路径） |
+| 门（新增） | real = **PASS_ALL（43 判据 / 0 FAIL）**；7 突变臂**全红**（含 2 臂走 RTL 结构性 FATAL 路径）〔⛔ FIX 轮现读数：real = **66 判据 / 0 FAIL**；突变臂 = **15 条全 MUTANT-CAUGHT** + guard 两臂按预期 —— 期间经复核轮 F2/F3/F4 与 FIX 轮 A-K5/A-K6 扩门，本条按"当时"读，现口径见顶部 FIX 轮块〕 |
 | 门（既有） | `p6e_counters` **PASS_ALL** · `axis_shaper_real` **PASS_ALL** · `mir_unit_real` **PASS_ALL** · `p5_wrapper` **EXIT 0** · `aliasgate` **OK** · ⚠️ `p6e_fullchain` = 1 红（`P9-B-3d`，判据前提；诊断复跑 ⇒ 整门 PASS_ALL，见 §5.3） |
 
 ## §1 设计块
@@ -86,7 +101,9 @@
 发起门：issue = (occ != 0) && ((inv − pop) < CAP) && !clr        （CAP = OQ = 4）
 ```
 
-**三条不变式**：①（写侧不丢）`up_req = en && !clr && occ<4096`，满时不拉 ⇒ 上游不会给字 ⇒ 不覆盖未读字；②（到达安全）到达拍必有 `inflight ≥ 1` ⇒ `o_occ ≤ CAP−1 < OQ` ⇒ 弹性堆永不溢出（删掉上门 = 静默丢字，正是 `mut_issue_free` 打到的点：FATAL ×3444 + 16 条判据红）；③（存储回收点 = 读发起）`occ==0` 时无 issue、`occ==4096` 时无写 ⇒ 读写址**结构性不相撞**（`read_first` 安全的前提）；在囊 = 4096 + inv(≤4)（在飞/弹性堆不占 URAM 地址）。
+**三条不变式**：①（写侧不丢）`up_req = rst_n && en && !clr && !ufull` [⛔ FIX 轮订正 (验证 A-K1 §10): 原写
+`up_req = en && !clr && occ<4096` = **F2 修复前的旧公式**（缺 `rst_n`；且 `occ<4096` ≡ `!ufull`）—— 现版 RTL
+见 `rtl/mir_uram_fifo.v:169`]，满时不拉 ⇒ 上游不会给字 ⇒ 不覆盖未读字；②（到达安全）到达拍必有 `inflight ≥ 1` ⇒ `o_occ ≤ CAP−1 < OQ` ⇒ 弹性堆永不溢出（删掉上门 = 静默丢字，正是 `mut_issue_free` 打到的点：FATAL ×3444 + 16 条判据红）；③（存储回收点 = 读发起）`occ==0` 时无 issue、`occ==4096` 时无写 ⇒ 读写址**结构性不相撞**（`read_first` 安全的前提）；在囊 = occ(≤4096) + inv(≤CAP) **≤ 4100 字 = 32800 B**（在飞/弹性堆不占 URAM 地址；⛔ FIX 轮订正: 原写"4096 + inv(≤4)"——同一件事的另一种写法，本句与其后两处 `4099` 统一按 **4100 字** 口径）。
 
 **匹配逐项**：首字 4 拍延迟 → 成形器本就容忍 `_req/_gnt` 任意间隔（只要求 gnt 那拍数据有效），实测 **4 拍**；稳态 1 字/拍 → `inv − pop = 3 < CAP` ⇒ 每拍可再 issue ⇒ 3 拍后准时补上，实测 **300/300**；下游长停 → 弹性堆 4 字 + URAM 4096 字，`inv` 顶到 4 就停发（不覆盖）；释放 → 先吐弹性堆/在飞，URAM 继续 1 字/拍补（G2f 全排空一个不少）。
 
@@ -99,7 +116,7 @@
 ### 1.7 丢字节语义保持（对 TL 合同逐条）
 
 ① 上游 aux 合同不变（2 grant = 16 B = 1 拍）——缓冲对成形器完全扮演镜像（成形器一行未改；门 G1/G2 逐字对账）。
-② `MIR_DMA_CNT` 口径不变——计数器留在成形器（0 改动）；**登记**：它数的是"从本缓冲取走"，与"从镜像取走"之差 = 缓冲占用（≤4099 字 = 32.8 KB），**静默/排空终态下相等**。
+② `MIR_DMA_CNT` 口径不变——计数器留在成形器（0 改动）；**登记**：它数的是"从本缓冲取走"，与"从镜像取走"之差 = 缓冲占用（**≤4100 字 = 32800 B**；⛔ FIX 轮订正 (验证 A-K1): 原写"≤4099 字 = 32.8 KB" = 低估 1 字 —— 真上界 = `DEPTH(4096)+CAP(4)`），**静默/排空终态下相等**。
 ③ 不新增丢字节计数器——满 ⇒ 不拉 req；模块内无任何 drop 计数器（唯二观测口空接）。
 ④ 读侧语义不动——不碰镜像 FIFO/stash/level/主机弹出；`en=0` 不取数（门 G6a）。
 ⑤ 两条恒等式——见 §3。
@@ -117,7 +134,10 @@
 
 - **式 A（`taken − pc ∈ [0,32]`）：逐字不受影响** —— 两端都在计数点下游，缓冲占用不出现。
 - **式 B（`K − taken − ΔW70 ∈ [0,24]`）：终态下逐字成立；中途评估差额 = 缓冲占用 O。** 推导：`K − taken(mirror) − ΔW70 = 镜像残余`（原形）；工具用的 `taken(shaper)` 在缓冲下游 ⇒ `taken(mirror) − taken(shaper) = O` ⇒ 差额 = 镜像残余 + O；**源停 + 排空到 early-stop 的终态下 O = 0**。
-  ⚠️ 登记：中途（源仍在流）式 B 的差额可到 **O ≤ 4099 字 = 32.8 KB** ⇒ `--resid-max-mirror` 默认 24 只对终态成立。建议（**工具轮的事，本刀不改工具**）：① 保持"停源 → 排空到 early-stop"收尾协议（现状已如此）；② 或非静默跑法下显式放宽式 B 上界并注明；③ 或（更强）给缓冲占用加只读观测口 —— 会改快照几何，不在本刀。
+  ⚠️ 登记：中途（源仍在流）式 B 的差额可到 **O ≤ 4100 字 = 32800 B**（⛔ FIX 轮订正 (验证 A-K1): 原写"O ≤ 4099 字 = 32.8 KB"，按真上界改 4100）⇒ `--resid-max-mirror` 默认 24 只对终态成立。
+  ⛔ **FIX 轮口径精化 (验证 A-K2 §2)**: 中途差额的**严格上界 = ≤ 34872 B** —— 一般式 = `镜像残余 + O`，其中镜像残余在**镜像未静默**时还要含其 FIFO（`app_rx_mirror.v:359` 的 `fifo_async 64b×256 = 2048 B`），即 `O(≤32800) + FIFO(≤2048) + acc/stg(≤24) = 34872 B`（**算术非实测**）。
+  ⭐ 与工具的实际关系（现状口径）：默认 24 只在"停源 + 排空到 early-stop"的终态成立 —— **中途/停排空评估跑必现假红**（`closed_b=false, rc=1`），且错误信息会指向"镜像残余越界/K 口径不对"（误导归因；`premise_level0` 只管镜像 FIFO/stash，**不排除 `O > 0`**）。
+  建议（**工具侧本轮只落"文字面"、默认值不动**）：① 保持"停源 → 排空到 early-stop"收尾协议（现状已如此）；② 非静默跑法下**显式**放宽式 B 上界并注明（如 `--resid-max-mirror 34872`），工具 `--help`/注释已按此加限定（见 FIX 轮）；③ 或（更强）给缓冲占用加只读观测口 —— 会改快照几何，不在本刀；④ 新选项 `--resid-max-mirror-mid`（中途默认上界）**本轮只登记、不实现**（改默认值会动判据语义）。
 - `en=0` 时本模块不取数 ⇒ `MIR_DMA_CNT` 不会虚增。
 
 ## §4 新增门读数（原始件 = `gate_stdout/{arm_*.txt, xsim_*.log}`）
@@ -171,7 +191,7 @@ URAM_FIFO_GATE: PASS_ALL
 3. **`P9-B-3d` 判据改动权归裁定者**（本件未改该 TB，只给归因 + 诊断）。
 4. **其余含 `DP_156MHZ` 的历史 bat 未加 xpm 补丁**（配方见 §5.4）。
 5. **常驻矩阵对本刀 = 空/弱证据，且其 FROZEN 指纹是否收进新 `rtl/*.v` 未核**。
-6. **中途评估式 B 的账目偏差 = O（≤32.8 KB）已登记未量化**；只在终态排空下逐字成立。
+6. **中途评估式 B 的账目偏差 = O（≤32800 B；加镜像 FIFO/acc/stg 的精化上界 ≤34872 B）已登记未量化**；只在终态排空下逐字成立。（⛔ FIX 轮订正 (A-K1/A-K2): 原写"≤32.8 KB"按 4100 字口径改，并补精化上界。）
 7. **缓冲水位无观测口**（`dbg_occ/dbg_oocc` 空接；接快照会改窗口几何 71 字/0x14C）——已登记的仪器缺口。
 8. 镜像读侧与缓冲的"混用"语义与改前同类（`en=1` 时 level 恒低；"两条读出口不许混用"是既存登记）。
 9. 备选（未做）：`AW=13`⇒2 URAM（64 KB）；替换镜像内部 2 KB `fifo_async`（真 CDC 边界加 URAM，要动 `level` 9 位口径与 MIR_STATUS）；缓冲占用进快照。
@@ -180,8 +200,10 @@ URAM_FIFO_GATE: PASS_ALL
 
 ```bash
 cd /d/repo/XCKU5PMini/udp_hls_10g
-cmd //c 'sim\p9_uram\run_tb_mir_uram_fifo.bat real'          # PASS_ALL
-cmd //c 'sim\p9_uram\run_tb_mir_uram_fifo.bat mut_full_off'  # 其余: mut_full_e1/mut_issue_free/mut_val1/mut_clr_off/mut_clr_take/mut_dnreq
+cmd //c 'sim\p9_uram\run_tb_mir_uram_fifo.bat real'          # PASS_ALL (FIX 轮后 = 66 判据)
+cmd //c 'sim\p9_uram\run_tb_mir_uram_fifo.bat mut_full_off'  # 其余 14 臂 (权威清单 = mut_uram.py 的 MUTS 全表):
+#   mut_full_e1/mut_issue_free/mut_val1/mut_clr_off/mut_clr_take/mut_dnreq/mut_rstn_off/mut_en_off/
+#   mut_dnclr/mut_wp_nmc/mut_guard_off + FIX 轮新增 mut_clrv/mut_omem/mut_oocc (+ guard_rogue 臂)
 cmd //c 'sim\p6e_pcie\run_tb_p6e_pcie_counters.bat'          # PASS_ALL (已带 xpm 补丁)
 cmd //c 'sim\p6e_pcie\run_tb_p6e_pcie.bat'                   # 预期 1 条红 (P9-B-3d 激励前提, §5.3)
 cmd //c 'sim\p9_axis_stream\run_tb_axis_c2h_stream.bat real' # PASS_ALL

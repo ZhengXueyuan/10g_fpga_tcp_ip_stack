@@ -58,16 +58,29 @@
 //      ⇒ 本路径的记账必须把 **交付量 (板侧)** 与 **抓取量 (宿主)** 分开, 逐项打原始值。
 //   ⭐⭐⭐ 记账 = **两条独立恒等式** (D1 修复, TL 审查 2026-10-11 夜; 旧式已废, 见下"⛔ 旧式"):
 //        pc            = 抓取字节数 (宿主实际 read 到的字节)
-//        taken_bytes    = Δ`MIR_DMA_CNT` × 4 = **从镜像取走**的字节数
-//                        (已裁口径: `MIR_DMA_CNT` 数**从镜像取走 (`dma_gnt`) 的 32 位字数**;
-//                         P8/期 B 的老口径 = "环已写字数" —— 两者**不是同一个量**)
+//        taken_bytes    = Δ`MIR_DMA_CNT` × 4 = **从上游 aux 口取走**的字节数
+//                        (已裁口径: `MIR_DMA_CNT` 数**从上游 aux 口取走 (`dma_gnt`) 的 32 位字数**;
+//                         P8/期 B 的老口径 = "环已写字数" —— 两者**不是同一个量**;
+//                         ⛔ 2026-10-13 订正 (验证 A-K3): 原写"从**镜像**取走" —— P9 板内缓冲轮起
+//                         现役真支的 `dma_gnt` 来自 `u_mir_buf` (`rtl/mir_uram_fifo.v`),
+//                         计数点 = **上游 aux 口**: P9 之前 = 镜像 / P9 真支之后 = `u_mir_buf`)
 //        ΔW70          = 板侧丢字节 (快照 W70 首末差; 32 位, 见"跨回卷")
 //        K             = **源交付给采集通道**的字节数 (`--bytes`, 可用 `--k-bytes` 覆盖)
 //        **式 A (成形器侧)**:  taken_bytes − pc == 成形器/在飞残余   ∈ [0, --resid-max-shaper]
-//                               (默认 32 B; 审查给定上界)
-//        **式 B (镜像/K 侧)**: K − taken_bytes − ΔW70 == 镜像残余   ∈ [0, --resid-max-mirror]
+//                               (默认 32 B; 审查给定上界; 与 O 无关 —— 两端都在计数点下游)
+//        **式 B (镜像/K 侧)**: K − taken_bytes − ΔW70 == 镜像残余 + O(缓冲占用)
+//                               ∈ [0, --resid-max-mirror]
 //                               (默认 24 B = `rtl/app_rx_mirror.v` 头注释 `acc_cnt_r + stg_cnt`;
 //                                旧名 `--resid-max` = 本式的别名)
+//        ⛔ **2026-10-13 订正 (验证 A-K2)**: 默认 24 **只在"停源 + 排空到 early-stop"的终态成立**
+//           (终态 O = 0)。**P9 URAM 板内缓冲 (`rtl/mir_uram_fifo.v`) 进入数据面后**, 中途/停排空
+//           评估的式 B 差额 = 镜像残余 + O ⇒ 严格上界 **≤ 34872 B**
+//           (= 32800 [O 上界: DEPTH 4096 + CAP 4 字 ×8] + 2048 [镜像 FIFO ≤2 KB] + 24 [acc/stg]);
+//           ⚠️ premise (`level==0`) **不排除 O > 0** (它只管镜像 FIFO/stash) ⇒ 中途跑必现假红
+//           (`closed_b=false, rc=1`), 且旧错误信息会误导到"镜像残余越界/K 口径不对"。
+//           ⇒ 中途/停排空评估请**显式**放宽: `--resid-max-mirror 34872` (并打见证)。
+//           ⛔ **默认值本轮未动** (改默认值会动判据语义); 新选项 `--resid-max-mirror-mid`
+//           (中途默认上界) **只登记、未实现** (见 FIX_20261013.md)。
 //        ⚠️ **只有式 B 含 K 与 ΔW70**; 两条**各自判定、各自命名打印** (`MIR_STREAM_IDA/IDB`),
 //           FAIL 时指名是哪一条并打出实际值。
 //        ⛔ **旧式 `pc + ΔW70 + 残余 == taken_bytes` 已废** —— 它把两个计数点混在一起
@@ -96,6 +109,8 @@
 //                       [--buf-mb 128] [--chunk 1048576] [--resid-max-mirror 24] [--resid-max-shaper 32]
 //                       [--k-bytes N] [--sample-ms 50] [--allow-ver-mismatch] [--src udp|tcp]
 //                       [--out /tmp/mir.bin]      # 旧名 --resid-max = 式 B 上界的别名
+//   ⚠️ 默认 24 **只在"停源 + 排空到 early-stop"的终态有效** (P9 URAM 缓冲进数据面后中途差额
+//      上界 ≤34872 B) ⇒ 中途/停排空评估显式放宽: `--resid-max-mirror 34872` (2026-10-13 A-K2 订正)
 //   ./p7b_mir_dump --selftest [--bytes 65536]      # 无板自检 (内存 mock; 含负对照)
 // 退出码: 0 = 全好 / 1 = 内容失配、式 A/式 B 不成立或真读错 / 2 = 用法或身份失败 (响亮)。
 // 编译 (部署口径 = _proj_10g/notes/p7b_affinity/BUILD.md §2):
@@ -154,7 +169,11 @@ static const uint32_t RING_BYTES = RING_WORDS * 4u;
 //   ⇒ 两代的 0x148 语义不同 ⇒ **路径必须与 ver 配对** (见 path_ver_ok; 越轨 = 响亮拒)
 static const uint32_t VER_MM = 3, VER_ST = 4;
 // 残余带宽 (⭐ D1 修复后是**两条各自的**上界; 旧单条 `--resid-max` 保留为式 B 的别名)
-static const uint32_t RESID_MAX_MIRROR_DEF = 24;   // 式 B: 镜像 acc_cnt_r+stg_cnt (P8-STG 口径)
+//   ⛔ 2026-10-13 口径 (验证 A-K2): MIRROR_DEF=24 的**适用域 = 终态** (O=0, 见文件头"式 B"块);
+//      中途/停排空评估的式 B 上界 ≤ 34872 B (= 32800 O + 2048 镜像 FIFO + 24 acc/stg)。
+//      **默认值刻意不动**; 中途档 = 调用侧显式 `--resid-max-mirror 34872`。
+//      (登记待办: 新选项 `--resid-max-mirror-mid` 本轮未实现。)
+static const uint32_t RESID_MAX_MIRROR_DEF = 24;   // 式 B(终态): 镜像 acc_cnt_r+stg_cnt (P8-STG 口径)
 static const uint32_t RESID_MAX_SHAPER_DEF = 32;   // 式 A: 成形器在飞 (TL 审查建议上界)
 
 // ---------------------------------------------------------------------------
@@ -493,9 +512,12 @@ struct FdStreamIo : StreamIo {
 // ⭐⭐⭐ D1 修复: mock **按 FPGA 的两个计数点的真实定义**生成 (旧版把"源交付量 = 可见 + 丢 + 残余"
 //   硬编码进 `dma_cnt` ⇒ 那正是把 D1 藏起来的结构 —— 审查点名):
 //     · 源交付量 K (= src_k)
-//     · 镜像内: K = **取走** + drop(进 W70) + **镜像残余** (acc_cnt_r+stg_cnt, ≤24 B)
+//     · 上游侧: K = **取走** + drop(进 W70) + **上游残余** (镜像 acc_cnt_r+stg_cnt ≤24 B;
+//       ⛔ P9 板内缓冲轮起还含**缓冲占用 O** —— `u_mir_buf` 里 ≤32800 B 的存量, 终态 = 0)
 //     · 成形器侧: **取走** = 宿主可见 + **成形器残余** (在飞, ≤32 B)
-//   ⇒ `MIR_DMA_CNT` 数**取走** (丢字节**已排除**); 可见流长度 = K − drop − 镜像残余 − 成形器残余。
+//   ⇒ `MIR_DMA_CNT` 数**取走** (丢字节**已排除**); 可见流长度 = K − drop − 上游残余 − 成形器残余。
+//   ⚠️ 本 mock **没有** O 项 (它是 P9 缓冲之前的结构) ⇒ selftest 用的仍是"终态口径"那套;
+//      O ≠ 0 的中途形态由板级/自定义 mock 覆盖 (本轮未做 —— 登记见 FIX_20261013.md)。
 struct MemStreamIo : StreamIo {
     MemIo   *reg = nullptr;
     const uint8_t *data = nullptr;  // 宿主可见流 (已挖掉丢字节的洞, 尾部已去掉两种残余)
@@ -560,7 +582,7 @@ struct StreamRes {
     uint32_t words0 = 0, words1 = 0;    // MIR_DMA_CNT 原始端点值
     uint32_t w70a = 0, w70b = 0;        // 快照 W70 原始端点值
     uint64_t dwords = 0, drop = 0;      // **跨回卷累计** (逐段 mod 2^32 差分再相加)
-    uint64_t taken = 0;                 // = dwords * 4 (**从镜像取走**的字节数, ⛔ 不是"源交付量")
+    uint64_t taken = 0;                 // = dwords * 4 (**从上游 aux 口取走**的字节数; P9 缓冲轮之前 = 镜像 / 之后 = u_mir_buf —— A-K3; ⛔ 不是"源交付量")
     uint64_t k = 0;                     // 式 B 用的源交付量 K (= --bytes 或 --k-bytes)
     long long resid_shaper = 0;         // 式 A 蕴含残余 = taken − pc
     bool closed_a = false;              // 式 A 是否成立 (0 <= resid_shaper <= resid_max_shaper)
@@ -587,10 +609,12 @@ struct StreamRes {
 
 // ⭐⭐⭐ D1 修复 (TL 审查 2026-10-11 夜): **两条独立恒等式, 两条各自判定**。
 //   旧式 `pc + ΔW70 + 残余 == ΔMIR_DMA_CNT×4` **把两个计数点混在一起** ——
-//   `MIR_DMA_CNT` 数的是**从镜像取走 (`dma_gnt`) 的字**, 取走时**丢字节早已被排除**
+//   `MIR_DMA_CNT` 数的是**从上游 aux 口取走 (`dma_gnt`) 的字** (⛔ A-K3 订正: P9 板内缓冲轮起
+//   = `u_mir_buf`; 之前 = 镜像), 取走时**丢字节早已被排除**
 //   ⇒ ΔW70 不能再出现在那条式子里 (有丢字节的跑必假红; 审查实测 −688)。
 //   口径 (逐字自 TL):  K = 源交付给采集通道的字节数 (本工具 = `--bytes` / `--k-bytes`)
-//      · 镜像内:  K = 取走字节 + ΔW70 + 镜像残余(acc_cnt_r+stg_cnt, 0..24 B)   ← 式 B
+//      · 上游侧:  K = 取走字节 + ΔW70 + 上游残余(acc_cnt_r+stg_cnt, 0..24 B;
+//                 ⛔ P9 板内缓冲轮起 + O 缓冲占用, 终态 O=0)                     ← 式 B
 //      · 成形器/在飞: 取走字节 = pc + 成形器残余(≤32 B)                        ← 式 A
 //   两条都是"蕴含残余 ∈ [0, 上界]"式; 哪条不成立**指名报哪条**, 并打实际值。
 static bool resid_in_band(long long v, uint32_t maxv) { return v >= 0 && v <= (long long)maxv; }
@@ -748,7 +772,7 @@ static StreamRes run_stream(RegIo &io, StreamIo &sio, uint8_t *dst, size_t cap, 
     sample(true);                                            // 终样本
     r.words1 = last_words; r.w70b = last_w70;
     // ⭐⭐⭐ D1 修复: 两条独立恒等式 (各自蕴含各自的残余)
-    r.taken = r.dwords * 4u;                                // 从镜像取走的字节 (= ΔMIR_DMA_CNT×4)
+    r.taken = r.dwords * 4u;                                // 从上游 aux 口取走的字节 (= ΔMIR_DMA_CNT×4; A-K3)
     r.k = o.k_bytes ? o.k_bytes : o.want;                   // 源交付量 K 的口径 (见 --k-bytes)
     r.closed_a = idA_eval(r.bytes, r.taken, o.resid_max_shaper, &r.resid_shaper);
     r.closed_b = idB_eval(r.k, r.taken, r.drop, o.resid_max_mirror, &r.resid_mirror);
@@ -1122,11 +1146,12 @@ struct DualCtx {
     double t_prev_post;
 };
 
-static void dual_mmio_snap(DualShared *sh, uint32_t *w70o, uint32_t *dmao) {
-    pthread_mutex_lock(&sh->lock);
-    snap_w70_dma(*sh->io, *w70o, *dmao);
-    pthread_mutex_unlock(&sh->lock);
-}
+// ⛔ 2026-10-13 (B-1 / R1 修复; 依据 = B 捆独立验证 §2/B-1): 原 `dual_mmio_snap()` (独立持锁采样)
+//   已**删除** —— 它把 "dw70/ddma 的 MMIO 采样" 与 "基线消费 + 回写" 分成**两段独立临界区**;
+//   两线程的 `[snap, commit]` 窗发生**嵌套**时, 样本序与 commit 序相反 ⇒ 该行 `dw70` 可回绕成
+//   `2^32 − δ` 且 `rl_w70` 被回写为旧值 (失真跨行搬运)。修法 = 采样并入 commit 的**同一临界区**
+//   (见 `dual_reader_body` 的 READLOG 块)。验证轮口径: 总持锁面与原来两段锁等价, 不新增竞争面。
+//   (登记未实现: R2 回写单调性守卫 / R4 `Σdw70 ≥ 2^32` 响亮标记 —— 见 FIX_20261013.md。)
 static void dual_sample(DualShared *sh, bool force) {
     pthread_mutex_lock(&sh->lock);
     double t = now_s() - sh->t0;
@@ -1195,10 +1220,14 @@ static void dual_reader_body(DualCtx *c) {
         if (o.readlog > 0) {
             ReadRec rec;
             uint32_t w70n = 0, dman = 0;
-            double tm0 = now_s();
-            dual_mmio_snap(sh, &w70n, &dman);
-            double tm1 = now_s();
+            // ⭐ B-1 / R1 修复 (2026-10-13): **采样-基线-回写 = 同一临界区**。原来 `now_s()` +
+            //   `dual_mmio_snap()` (这把锁) 与下面的基线消费/回写 (另一把锁) 是**两段独立临界区**
+            //   ⇒ 两线程窗嵌套时该行 `dw70` 可回绕 2^32−δ 且基线被回写成旧值 (见 B 捆验证 §2.2)。
+            //   持锁面 = 原来两段锁之和 (等价), MMIO (~5 µs) 不新增竞争面 (MMIO 本就串行在锁上)。
             pthread_mutex_lock(&sh->lock);
+            double tm0 = now_s();
+            snap_w70_dma(*sh->io, w70n, dman);
+            double tm1 = now_s();
             rec.t = tm1 - sh->t0;
             rec.gap_us = (c->t_prev_post >= 0) ? (t_pre - c->t_prev_post) * 1e6 : 0.0;
             rec.mmio_us = (tm1 - tm0) * 1e6;
@@ -1282,6 +1311,12 @@ static StreamRes run_stream_dual(RegIo &io, const char *dev, uint8_t *dst, size_
     // ⚠️ r.rlog = **按线程拼接** (先 thread0 全表, 再 thread1 全表), **不是时间序**
     //    ⇒ print_readlog 的逐行 gap_us 只对"同一线程段内"负责 (段首那条的 gap 相对自己线程上一条);
     //    analyze_readlog.py 对 dt ≤ 0 的区间跳过 —— 读 dual 窗的 READLOG 表时先按此分层。
+    // ⛔ 2026-10-13 加限定 (B-1 / R3, 依据 = B 捆独立验证 §2.5): **只"分线程"不够** —— 同一线程
+    //    段内相邻两行之间同样夹着另一线程的 commit (那条增量记在另一线程的行上) ⇒ 逐行
+    //    `dw70/ddma` 的"上一条 → 本条"语义**只在【按 `t` 排序】后成立**。实测 (bx_median_adj.py):
+    //    按打印序链成立数 A1 126/253 · A1N2 126/253 · D1M 15/996 · D4M 125/253;
+    //    按 t 排序 = 100% (253/253 · 996/996 · …)。另: `Σdw70` 对 dual **不是** drop 的无条件
+    //    oracle (尾覆盖差族 + 嵌套时 +2^32/事件) ⇒ 判 drop 用 `MIR_STREAM_ACCT` 的 dW70。
     for (int k = 0; k < 2; k++)
         for (const ReadRec &x : sh.rlog[k]) r.rlog.push_back(x);
     dual_sample(&sh, true);
@@ -1372,6 +1407,12 @@ static int stream_args_check(uint64_t want, uint64_t buf_bytes, uint64_t chunk,
 // ⭐ 2026-10-13: READLOG 打印器 (逐 read 原始表 + 一页摘要)。**纯打印**, 不碰任何既有输出行。
 // ⚠️ dual 窗 (--dual 2) 的行序 = **按线程拼接** (thread0 全表 → thread1 全表), 不是时间序
 //    ⇒ 逐行 gap_us 只保证同线程段内连续; 混段读表前先分线程 (见 run_stream_dual 尾注)。
+// ⛔ 2026-10-13 (B-1 / R3) **读表口径 (dual 窗)**: ① 行序 = 线程拼接, **非时间序**;
+//    ② 逐行 `dw70/ddma` 的"上一条→本条"链**只有在【按 `t` 排序】后才成立** (无嵌套事件时) ——
+//       "先分线程"**不够** (同线程段内相邻行之间也夹另一线程的 commit)。实测: 打印序链成立数
+//       A1 126/253 · D1M 15/996; 按 t 排序 100% (B 捆验证 §2.5)。③ `Σdw70` 对 dual **不是**
+//       drop 的无条件复算 (尾覆盖差族 + 嵌套回绕 +2^32/事件 ⇒ `Σ ≥ 2^32` 即嵌套指纹)
+//       ⇒ **判 drop 用 `MIR_STREAM_ACCT` 的 dW70 / 快照差分**。
 static void print_readlog(const StreamRes &r) {
     std::vector<double> gv, mv, rv;
     gv.reserve(r.rlog.size()); mv.reserve(r.rlog.size()); rv.reserve(r.rlog.size());
@@ -1533,7 +1574,7 @@ int main(int argc, char **argv) {
                                "       %*s --xor <hex> [--pat-off N] [--no-verify] [--no-arm]\n"
                                "       %*s [--src udp|tcp] | --dma [--dma-dev /dev/xdma0_c2h_0]\n"
                                "       %*s | --stream [--stream-dev /dev/xdma0_c2h_0] [--buf-mb 128]\n"
-                               "       %*s   [--chunk 1048576] [--resid-max-mirror 24] [--resid-max-shaper 32]\n"
+                               "       %*s   [--chunk 1048576] [--resid-max-mirror 24=终态口径; 中途/停排空评估传 34872] [--resid-max-shaper 32]\n"
                                "       %*s   [--k-bytes N] [--settle 1.0] [--sample-ms 50]\n"
                                "       %*s   [--allow-ver-mismatch] [--no-strict-quiesce]  (旧名 --resid-max = 式B 别名)\n"
                                "       %*s   [--readlog 0|1] [--aio <depth 1..64>] [--aio-reserve-mib 16]\n"
@@ -2280,7 +2321,10 @@ int main(int argc, char **argv) {
         }
         if (!sr.closed_b) {
             fprintf(stderr, "FAIL: 式 B (镜像/K 侧) 不成立: K(%llu) - taken_bytes(%llu) - dW70(%llu) = %lld "
-                            "∉ [0,%u] (镜像残余越界 / K 口径不对 —— 若抓的是源流前缀请用 --k-bytes 声明源交付量)\n",
+                            "∉ [0,%u] (镜像残余越界 / K 口径不对 / O 缓冲占用 —— 若抓的是源流前缀请用 "
+                            "--k-bytes 声明源交付量; ⛔ P9 URAM 板内缓冲进数据面后, 中途/停排空评估的"
+                            "差额含缓冲占用 (终态 = 0), 上界 ≤34872 B ⇒ 非终态跑请显式 "
+                            "--resid-max-mirror 34872; 见文件头式 B 块 / FIX_20261013.md)\n",
                     (unsigned long long)sr.k, (unsigned long long)sr.taken,
                     (unsigned long long)sr.drop, sr.resid_mirror, resid_max_mirror);
             fail = 1;

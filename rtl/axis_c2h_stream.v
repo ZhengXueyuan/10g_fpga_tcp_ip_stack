@@ -3,10 +3,12 @@
 // axis_c2h_stream.v — P9: 镜像载荷 → XDMA **C2H AXI4-Stream** 的成形/搬运器
 //=============================================================================
 // 位置: 替代 P8 期 B 的三件套 (`mir_dma_ring` + `aximm_c2h_win` + `aximm_h2c_discard`)。
-//   ⛔ **上游合同一字不改** —— 吃 `app_rx_mirror` 的 aux 读口:
-//        `dma_req`(本模块→镜像, 电平) / `dma_gnt`(镜像→本模块, 同拍握手)
+//   ⛔ **上游合同一字不改** —— 吃**上游 aux 读口** (⛔ P9 板内缓冲轮起, 现役真支的上游 =
+//      `u_mir_buf` (`rtl/mir_uram_fifo.v`), **不再是** `app_rx_mirror`; 合同/握手逐字同镜像当年):
+//        `dma_req`(本模块→上游, 电平) / `dma_gnt`(上游→本模块, 同拍握手)
 //        / `dma_data[63:0]` = **2 个逻辑 32 位字** (`[31:0]` = 先出的那个字);
-//        空态不弹 / 主机弹出优先 (见 `rtl/app_rx_mirror.v` 头注释 + 单元门 G12a..k)。
+//        空态不弹 / 主机弹出优先 (合同出处 = `rtl/app_rx_mirror.v` 头注释 + 单元门 G12a..k;
+//        P9 缓冲对成形器**扮演镜像本角色** —— 见 `rtl/mir_uram_fifo.v` 头注释 + REPORT §1)。
 //   下游 = XDMA 4.2 的 `s_axis_c2h_*` (128 位, 见 `xdma_st.sv` 生成件; 配置增量 = 1 行
 //   `CONFIG.xdma_axi_intf_mm {AXI_Stream}`, 端口 75 → 50 根, 权威 = `p8_axis_conf_20261011/CONF.md` §3)。
 //
@@ -90,8 +92,13 @@
 //     可达 (tready 慢时) ⇒ 32 是紧界。工具侧 `--resid-max-shaper` 默认 32 = 按本上界设。
 //
 // ---- ⭐ `dma_words` / `MIR_DMA_CNT` 的口径 (TL 2026-10-11 裁定 ①; 冻结) ----
-//   **计数点 = 上游 aux 口** —— 数**从镜像 aux 口取走 (`dma_gnt`) 的 32 位字数**
+//   **计数点 = 上游 aux 口** —— 数**从上游 aux 口取走 (`dma_gnt`) 的 32 位字数**
 //   (一次 grant = 8 B = **+2**), **不是** `tvalid&&tready` 的下游字数。
+//   ⛔ **2026-10-13 订正 (验证 A-K3, 纯注释)**: 本口径原写"数**从镜像 aux 口取走**的 32 位字数"
+//     —— P9 板内缓冲轮起 `dma_gnt` 来自 `u_mir_buf` (`rtl/mir_uram_fifo.v`) ⇒ 计数点 =
+//     "**从上游 aux 口取走**": **P9 之前 = 镜像; P9 真支之后 = `u_mir_buf`**。语义位移的登记
+//     出处 = `rtl/mir_uram_fifo.v` 末尾"变更登记"块 + `p9_uram_20261013/REPORT.md` §1.7②/§3
+//     (与本模块**对外合同/时序无一处变化** —— 合同方的名字变了, 合同没变)。
 //   理由 (TL 逐字): 本模块设计上**内部不丢** (无空间就不拉 `dma_req`) ⇒ "取走的字数"就是
 //   "最终会交付的字数"; 且配合上面的收尾规则 (**停流静置排空一次** / "残拍并入下一个整拍" /
 //   **clr 边界丢弃**) 三条路径, 每一拍的去向都可枚举 ⇒ 稳态 `packer 残留 == 0` ⇒ 账目单一来源。
@@ -119,9 +126,10 @@ module axis_c2h_stream (
     input  wire         cap_en,             // ⭐ 采集使能 = MIR_CTRL[0]; 0 = 采集已关 (停流)
     input  wire         clr,                // 镜像 clr_pulse_rd: **窗口边界 = 丢弃残拍** + 计数归零
                                             //   (⭐ D4 板级修正轮: 旧"停流收尾送残拍"已废; 见头注释)
-    // ---- 上游: app_rx_mirror 的 aux 读口 (2 逻辑字 / 拍) ----
-    output wire         dma_req,            // 电平: 有容量才拉 (无容量 ⇒ 让镜像 FIFO 满)
-    input  wire         dma_gnt,            // 同拍握手 (镜像侧与 !empty/优先级合门)
+    // ---- 上游: **上游 aux 读口** (2 逻辑字 / 拍; ⛔ P9 板内缓冲轮起现役真支 = `u_mir_buf`/
+    //      `mir_uram_fifo`, P9 之前 = `app_rx_mirror`; 合同逐字同镜像当年 —— 见头注释 A-K3 订正) ----
+    output wire         dma_req,            // 电平: 有容量才拉 (无容量 ⇒ 让上游 FIFO 满)
+    input  wire         dma_gnt,            // 同拍握手 (上游侧与 !empty/优先级合门)
     input  wire [63:0]  dma_data,           // {后出的字, 先出的字} (字 L 在 [31:0])
     // ---- 下游: XDMA C2H AXI4-Stream ----
     output wire [127:0] s_axis_c2h_tdata,
@@ -129,7 +137,8 @@ module axis_c2h_stream (
     output wire         s_axis_c2h_tlast,
     output wire         s_axis_c2h_tvalid,
     input  wire         s_axis_c2h_tready,
-    // ---- 观测 (→ MIR_DMA_CNT @0x148; 口径 = "从镜像 aux 口**取走**的 32 位字数") ----
+    // ---- 观测 (→ MIR_DMA_CNT @0x148; 口径 = "从**上游** aux 口取走的 32 位字数" ——
+    //      P9 缓冲轮之前 = 镜像 / 之后 = `u_mir_buf`; 见头注释 A-K3 订正) ----
     output reg  [31:0]  dma_words           // mod 2^32 自然回绕; clr 归零
 );
 

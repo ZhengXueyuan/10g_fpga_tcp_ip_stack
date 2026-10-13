@@ -1,0 +1,17 @@
+TOOL_FIX_ARCHIVE 2026-10-13 (FIX round: B-1/R1 code fix + A-K2/A-K3 text corrections)
+TOOL_SOURCE_MD5=464006d9d7dcc5f365f36880ba8f8fc5   (_proj_pcie/p7b_biz/p7b_mir_dump.cpp, working tree)
+TOOL_SOURCE_MD5_DEPLOYED=464006d9d7dcc5f365f36880ba8f8fc5 (/tmp/p7b_biz_fix/p7b_mir_dump.cpp, verified identical on peer)
+TOOL_SOURCE_MD5_PREV=b4833c55642120f093fa2ee9e2544aa8 (pre-FIX source, per p9_hostread REPORT C table)
+TOOL_BINARY_MD5=48dcbcb26a4db45f576fc9664638a089  (/tmp/p7b_biz_fix/p7b_mir_dump, 108696 B, g++ 13.3.0)
+TOOL_BINARY_MD5_LIVE=7cebded7e9270b6a2d81f5db29843f4d (/tmp/p7b_biz/p7b_mir_dump = LIVE tool, NOT overwritten;
+                                                   md5 re-checked after my build = unchanged)
+BUILD_CMD=g++ -O3 -pthread -o p7b_mir_dump p7b_mir_dump.cpp     (BUILD.md §2 recipe, verbatim)
+SELFTEST: RC=0 / 52 OK / 0 FAIL / last line "MIR_SELFTEST PASS"
+  file = _tools/selftest_fix.txt (md5 a961402f6b18a69b221121d8839315e3)
+SELFTEST_DIFF_VS_ARCHIVED (p9_hostread_20261013/_tools/selftest_after_fix.txt):
+  - only 2 textual differences, both wall-clock jitter fields:
+      T10d waited_ms 51.9 -> 51.0 ;  T15 mmio_max 0.1us -> 0.4us
+  - everything else byte-identical (incl. T15 identity line n=8/Sigma ddma=16209/Sigma dw70=696)
+USAGE_SMOKE: ./p7b_mir_dump --zzz  -> rc=2 ; usage text now carries
+  "resid-max-mirror 24=终态口径; 中途/停排空评估传 34872"  (grep 34872 = 1 hit)
+NOT DONE ON PEER: no board/device access, no /dev/xdma* touched, no window run (registered as pending).
