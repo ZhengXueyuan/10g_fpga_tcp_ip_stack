@@ -1,0 +1,33 @@
+================================================================================================
+② 烧录链 6/6 逐对复核（时序 = 文件名时间戳序）
+================================================================================================
+--- 本组 hashlib 独立实算 burn/ 位流 ---
+0x23: 066a3923351b8f539a986b88d96f1093a686da57f95938e0c8837b13d30a3126  == 期望 066a3923351b8f539a986b88d96f1093a686da57f95938e0c8837b13d30a3126: True
+0x24: e3b07957aea0326a168b9db0238ef9dd933dc7a21884c92e50a7c3b0abadf1db  == 期望 e3b07957aea0326a168b9db0238ef9dd933dc7a21884c92e50a7c3b0abadf1db: True
+
+#1 0x23 S1 [BURN_0x23_S1_20261014_002134.txt]
+    烧前 0x04=0x00000024 (链接续 首期望0x24: True)  烧后 0x04=0x00000023
+    sha: WANT==实算==两条sha256sum行 True | 五判据(HIGH/DONE/路径/age=135s/无ABORT)=True | x4=True 2BARs=True NFF=0=True carrier=1
+    TCPREG_BIT_MTIME=1791908494 = 2026-10-14T00:21:34+08:00 新鲜=True
+#2 0x24 S1 [BURN_0x24_S1_20261014_002544.txt]
+    烧前 0x04=0x00000023 (链接续 ==上烧后 0x00000023: True)  烧后 0x04=0x00000024
+    sha: WANT==实算==两条sha256sum行 True | 五判据(HIGH/DONE/路径/age=133s/无ABORT)=True | x4=True 2BARs=True NFF=0=True carrier=1
+    TCPREG_BIT_MTIME=1791908744 = 2026-10-14T00:25:44+08:00 新鲜=True
+#3 0x23 S2 [BURN_0x23_S2_20261014_002937.txt]
+    烧前 0x04=0x00000024 (链接续 ==上烧后 0x00000024: True)  烧后 0x04=0x00000023
+    sha: WANT==实算==两条sha256sum行 True | 五判据(HIGH/DONE/路径/age=132s/无ABORT)=True | x4=True 2BARs=True NFF=0=True carrier=1
+    TCPREG_BIT_MTIME=1791908977 = 2026-10-14T00:29:37+08:00 新鲜=True
+#4 0x24 S2 [BURN_0x24_S2_20261014_003325.txt]
+    烧前 0x04=0x00000023 (链接续 ==上烧后 0x00000023: True)  烧后 0x04=0x00000024
+    sha: WANT==实算==两条sha256sum行 True | 五判据(HIGH/DONE/路径/age=132s/无ABORT)=True | x4=True 2BARs=True NFF=0=True carrier=1
+    TCPREG_BIT_MTIME=1791909205 = 2026-10-14T00:33:25+08:00 新鲜=True
+#5 0x23 S3 [BURN_0x23_S3_20261014_003715.txt]
+    烧前 0x04=0x00000024 (链接续 ==上烧后 0x00000024: True)  烧后 0x04=0x00000023
+    sha: WANT==实算==两条sha256sum行 True | 五判据(HIGH/DONE/路径/age=132s/无ABORT)=True | x4=True 2BARs=True NFF=0=True carrier=1
+    TCPREG_BIT_MTIME=1791909435 = 2026-10-14T00:37:15+08:00 新鲜=True
+#6 0x24 S3 [BURN_0x24_S3_20261014_004102.txt]
+    烧前 0x04=0x00000023 (链接续 ==上烧后 0x00000023: True)  烧后 0x04=0x00000024
+    sha: WANT==实算==两条sha256sum行 True | 五判据(HIGH/DONE/路径/age=132s/无ABORT)=True | x4=True 2BARs=True NFF=0=True carrier=1
+    TCPREG_BIT_MTIME=1791909662 = 2026-10-14T00:41:02+08:00 新鲜=True
+
+6/6 烧录链逐对 + sha + 五判据 + PCIe: True
