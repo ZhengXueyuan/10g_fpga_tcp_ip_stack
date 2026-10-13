@@ -935,3 +935,4 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - **机器状态**：本机已起（本 session 恢复）；对端已起（**uptime 6 min、`hw_server` active、`/tmp` 已清空** ⇒ 按 §6-新块2 重部署）。
 - **桥面**：kimi 三轮文档迁移**全收口**（任务线 `t_46ffe7622b14` 关闭；含 `review_scratch` 与 15 目录批）；**人读层审查机制已落地**（`docs/HUMAN_LAYER.md`：Tier A = README+`docs/**`〔kimi 写权〕/ Tier B = `P7B_OPEN_ITEMS.md` + 台账〔我方写权、变更须报 kimi 复核〕/ Tier C 不逐变更审）；kimi 对我方两次人读层给出**【通过】**（`m_158ca1a59914` / `m_5c25a8894b4a`）。kimi 当前**离线**（重启后未 poll）⇒ 审查任务躺日志等其收件。
 - **待 owner 定**：烧 `0x23`（已验基线）还是 `0x24`（含 URAM，已构建未烧未验）—— 建议**待 kimi 审查结清后再烧 `0x24`**。
+- ⛔ **推送受阻（网络）**：本节提交 `6cc8ffc`（+本行所在提交）**本地已提交、未推送** —— `github.com:443` 当前不可达（实测：`baidu 200 / github 000 @12s 超时`；今晨 09:1x 推送仍正常）⇒ **等网络恢复后补推 + `ls-remote` 核对**（本机已累积 ≥1 个未推送提交）。
