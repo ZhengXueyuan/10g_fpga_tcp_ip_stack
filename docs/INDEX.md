@@ -14,6 +14,7 @@
 | [modules.md](modules.md) | 模块划分：每个模块是什么 / 功能 / 接口 / 关键指标 / 已知缺陷 |
 | [metrics.md](metrics.md) | 指标汇总：速率 / 时延 / 资源 / 时序 / 判据达成，全部注明出处与构建配置 |
 | [glossary.md](glossary.md) | 术语对照表：技术词平白解释 + 项目黑话翻译（黑话只许出现在这一份） |
+| [HUMAN_LAYER.md](HUMAN_LAYER.md) | 人读层清单与审查规则（哪些件算人读层、审查看什么、变更怎么通知——owner 2026-10-13 裁定落地） |
 | [INDEX.md](INDEX.md) | 本页 |
 
 ## agent_docs/ 层（AI 权威件；由并行的整理轮从根目录移入）

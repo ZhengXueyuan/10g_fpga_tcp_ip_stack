@@ -30,7 +30,7 @@ TCP/UDP 数据段走纯硬件快路径；ARP、ping、TCP 握手等慢速控制�
 ```
 udp_hls_10g/
 ├─ docs/                      ← 给人读的导读层
-│   └─ INDEX.md               ← 索引根：docs/ 四件 + agent_docs/ 规格书与验证产物目录群 + notes/ 事实源导读
+│   └─ INDEX.md               ← 索引根：docs/ 五件导读 + 人读层审查规则 + agent_docs/ 与 notes/ 导读
 ├─ agent_docs/                ← 给 AI 读的权威工程件
 │   ├─ P6B_SUMMARY.md         ← 1G 验收一页式总览（读历史先读它）
 │   ├─ P6B_{ACCEPT,SPEC,CDC_AUDIT,REVIEW,INTEGRATION_REVIEW,COMMIT_PLAN}.md
