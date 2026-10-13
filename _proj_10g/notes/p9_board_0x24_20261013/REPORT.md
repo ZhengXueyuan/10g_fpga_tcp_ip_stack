@@ -140,7 +140,12 @@
 
 `BID=0x00000024` · `SCRATCH_0x08=0x00000002`（受控停流）· `MIR_CTRL` 读回 `0x00000002`（**功能位全 0**，bit1=奇偶位读语义）· `MIR_STATUS=0x00200000`（cap=0/level=0）· `MIR_DMA_CNT=0x00040002` · `UNIMPL_0x14C=0xffffffff` · 停流后 `CARRIER=0 / Link detected: no`、NIC 两读**逐字冻结**（`1075029181146 / 708187952`）· **无残留进程** · `/tmp/p7b_biz` 四件 md5 **逐字未变** · 恢复配方 = `reg_rw /dev/xdma0_user 0x08 w 0x0`。
 
-## §7 原始件清单（`runs/` 42 件 + `_tools/` 9 件 + `burn/` 3 件；`SHA256SUMS.txt` 56 件自核）
+## §7 原始件清单（`runs/` 42 件 + `_tools/` **10 件** + `burn/` 3 件；`SHA256SUMS.txt` 56 件自核）
+
+> ⚠️ **2026-10-13 订正（kimi 独立验证 F1）**：本节原写 `_tools/` 9 件，实为 **10 件**（已订正）。
+> **F2 加注**：`runs/ANALYZE_*` 内 `mism` 计数为 **bit** 非字节（判定不受影响；引用时注意单位）。
+> **F3/F4 登记（下轮处理，kimi 建议）**：下轮 `FINAL_STATE` 补**原始 `ps` 输出块**；`burn/BURN_*` 日志含 2 个非 UTF-8 字节（二进制残字，不改）。
+> **§8 跨组独立验证（kimi，提交 `fe28e40`，`p9_xverify_kimi_board24_20261013/VERIFY.md`）**：①–⑤ 全部可复算主张**零偏差复现**（收益 Σ/中位/均值 21/21 窗全等＝36,845,912 / 62,267,240 B；降幅 −55.8%/−38.7%/−32.9%/−30.3%；洞结构自写 xorshift64+GF(2) 复算首洞 4,229,208/L=39,608 与 4 洞相位、S 曲线 5 点全中；D4 TAIL 逐字节 MATCH；sha 判定三源一致）。板级复跑未执行（无 root，按纪律停手未动板）。
 
 - 烧录：`burn/BURN_0x24_20261013_220442.txt` · `burn/BURN_stdout_copy_20261013_220707.txt` · `burn/wrapper_p4_0x24.bit`
 - 窗协议：`runs/WIN_{S0,S1_S5,S6_S10,F0,F1_F5,F6_F9,CAPD24}_*.txt` · `ARM_P2A_raw_*.txt` · `ARM_P2B_raw_*.txt` · `ARM_D4_CHAIN_*.txt` · `STOP_PROBE_S5D4_*.txt`
