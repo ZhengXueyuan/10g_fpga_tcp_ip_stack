@@ -1,0 +1,30 @@
+=== P9 宿主读循环轮 —— A/B 与判别臂汇总 (2026-10-13; 原始窗文件 = 同目录 *.txt) ===
+工具: before = /tmp/p9_rate/p7b_mir_dump md5 5ea97067cd90f93c8c47d1f272b04667 (P9 原件, 未改)
+      after  = /tmp/p9_hostread/p7b_mir_dump md5 7cebded7e9270b6a2d81f5db29843f4d (本轮仪器+修复件, selftest PASS)
+窗协议: K=1GiB(除注明), 单源 unpaced 或 NPROC=4, FIXOFF=0, SAMPLE_MS=1000, SECS=6, BUFMB=1024, --no-verify
+        (内容档 CAPD: K=256MiB, --pat-off 自动, verify 开)
+臂           模式            块     pc(B)         dW70(B)     丢率     式B  fm(如有)
+B1   before  sync        32MiB  1056964608   12765128    1.19%    0
+A1   after   dual2        4MiB  1065353216    5459912    0.51%    0
+B4   before  sync        32MiB  1040187392   29700040    2.78%    0    (4 源)
+A4   after   dual2        4MiB  1061158912    8927176    0.83%    0    (4 源)
+LAD_1MiB     sync(table)  1MiB  1038090240   34748360    3.24%    0    fm=1050680
+LAD_16MiB    sync        16MiB  1051705344   14536600    1.36%    0
+LAD_32MiB    sync        32MiB  1056964608   11823048    1.11%    0    fm=8390712
+LAD_64MiB    sync        64MiB  1056964608   13565896    1.27%    0    fm=8390712
+N32b         sync(4K页)  32MiB  1056964608   11870152    1.11%    0
+H32          sync+大页1G  32MiB  1056964608    9938888    0.93%    0
+S1M          sync(FIXOFF0)1MiB  1039138816   34500552    3.21%    0
+D1M          dual2        1MiB  1045430272   27455432    2.56%    0
+D4M          dual2        4MiB  1065353216    5554120    0.52%    0
+AI4          aio d4       1MiB  1061052416   12115912    1.13%    0    (pending_end=0)
+AI2M         aio d3       2MiB  1061662720   11741128    1.09%    0
+A1N2         dual2(采样关)4MiB  1065353216    5461960    0.51%    0    (=A1 逐字同 ⇒ 采样无关)
+ORD1         dual2 100Mbps 4MiB    62914560     298952    0.47%    0    fm=4196408 (=2^22+2104)
+CAPD         dual2 K=256M 4MiB   264241152     907208    0.34%    0    fm=4196408; 文件 mir_CAPD.bin md5 d8ea957629a31401da29d8e91a8b479b
+拟合(同步阶梯, read 内部空档): idle(C) = 58 µs + 34.3 µs/MiB  (C 单位 MiB; 对照 H1: 57 + 36)
+驱动源码事实(只读): 每次 read = GUP(逐4KB页)+SG(逐页)+dma_map → 每 2048 描述符一段"建表-等完成" → 逐页 unmap(dirty+put);
+  传输段尾 STOPPED ⇒ 引擎每段停-重启(工作队列); AIO 的 unmap 在 engine_service 上下文内、重启之前;
+  xlx_wait_event_interruptible_timeout 重试吞信号 ⇒ 阻塞 read 只在 c2h_timeout(10s) 返回。
+
+工具源: 仓内 _proj_pcie/p7b_biz/p7b_mir_dump.cpp (本轮改, 追加式); 部署件 /tmp/p9_hostread/p7b_mir_dump.cpp 同 md5

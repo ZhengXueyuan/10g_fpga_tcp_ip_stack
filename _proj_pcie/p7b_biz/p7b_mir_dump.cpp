@@ -115,10 +115,15 @@
 #ifndef _WIN32
 #include <signal.h>        // ⭐ P9: --seconds 看门狗 (SIGALRM 打断阻塞 read)
 #include <sys/wait.h>      // ⭐ P9: T14 子进程退出码自检
+#include <sys/syscall.h>   // ⭐ 2026-10-13: --aio 走经典 AIO 原始系统调用 (无 libaio 依赖)
+#include <linux/aio_abi.h> // ⭐ 2026-10-13: struct iocb / io_event / IOCB_CMD_PREAD
+#include <pthread.h>       // ⭐ 2026-10-13: --dual 两线程交错同步读
+#include <sys/time.h>      // ⭐ 2026-10-13: setitimer (双线程看门狗)
 #endif
 
 #include <cerrno>
 #include <cstdint>
+#include <algorithm>       // ⭐ 2026-10-13: print_readlog 的中位数 (std::sort)
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -535,6 +540,20 @@ struct MemStreamIo : StreamIo {
 };
 
 struct StreamSample { double t; uint64_t pc; uint32_t words; uint32_t w70; uint64_t dacc; };
+// ⭐ 2026-10-13 (宿主读循环诊断轮): **每 read 一行**仪器 (H1-①; 复核 REVIEW.md §1/H1 建议)
+//   记录 = (t, got, pc, w70, dW70, MIR_DMA_CNT, Δdma) + **两个时间量**:
+//     gap_us  = 上一次 read 返回到本次 read 发起之间的时间 (宿主侧账面 + 每 read 寄存器读)
+//     read_us = 本次 read() 调用自身的时长 (内核 prologue + 数据 + epilogue)
+//   ⇒ "固定 ~57 µs/read" 与 "~36 µs/MiB" 两个成分**由逐 read 数据直接分开** (不再靠丢量反解)。
+struct ReadRec {
+    double   t = 0;          // 相对 t0 秒 (本记录时刻 = 现场读之后)
+    double   gap_us = 0;     // 上一记录时刻 → 本 read 发起 (宿主账面 + 采样; 不含本行的 MMIO)
+    double   mmio_us = 0;    // 本行现场读 (snap_w70_dma) 自身耗时 —— **观测者效应**见证
+    double   read_us = 0;    // 本 read() 调用时长 (AIO 档 = chunk 从提交到完成的生命期)
+    uint64_t got = 0, pc = 0;
+    uint32_t w70 = 0, dw70 = 0;
+    uint32_t dma = 0, ddma = 0;
+};
 struct StreamRes {
     uint64_t bytes = 0;                 // pc = 抓取字节数
     uint64_t reads = 0, partial = 0, nonmul64 = 0;
@@ -559,6 +578,11 @@ struct StreamRes {
     bool timed_out = false;
     double secs = 0;
     std::vector<StreamSample> series;
+    // ⭐ 2026-10-13 仪器 (READLOG): 每 read 一行的原始记录 + AIO 路径专用见证
+    std::vector<ReadRec> rlog;
+    int      aio_depth_used = 0;        // 0 = 同步平铺读 (既有路径)
+    uint64_t aio_submitted = 0;         // 已提交字节数 (AIO)
+    int      aio_pending_end = 0;       // 收尾时仍在飞的 chunk 数 (>0 ⇒ 需 flush 窗)
 };
 
 // ⭐⭐⭐ D1 修复 (TL 审查 2026-10-11 夜): **两条独立恒等式, 两条各自判定**。
@@ -595,6 +619,12 @@ struct StreamOpts {
     bool     arm = true;
     int      src_sel = -1;
     bool     strict_quiesce = true;     // ⭐ 前提未见证 (level!=0) ⇒ 调用侧必须判 FAIL (可用 --no-strict-quiesce 显式放行)
+    // ⭐ 2026-10-13 (宿主读循环诊断轮)
+    int      readlog = 0;               // 1 = 每 read 记一行 (含 W70/MIR_DMA_CNT 现场读; 默认 0 = 逐位不变)
+    int      aio_depth = 0;             // 0 = 同步平铺读; >0 = AIO 流水读 (核数 = 在飞 chunk 上限)
+    uint64_t aio_reserve = 16ull << 20; // AIO 批量段与流尾之间留的安全裕量下界 (尾段走同步读, 可被截断)
+    int      dual = 0;                  // 2 = 两线程交错同步读 (修复主臂; 每块 ≤ 4 MiB)
+    double   dual_stagger_ms = 2.0;     // dual 模式起步错拍 (线程1 等线程0 发起后再等这么久)
 };
 
 // 静默窗判定 (**前提未见证 ⇒ 必须响亮的牙**; 纯函数, 自检直接打表):
@@ -604,6 +634,15 @@ static int quiesce_verdict(bool quiesced, bool strict) {
 }
 
 // 平铺流采集 (设备与 mock 共用同一段代码 —— 这就是 selftest 的意义)
+// ⭐ 2026-10-13: 轻量现场读 = W70 (触发式快照) + MIR_DMA_CNT (直接读) —— READLOG 每 read 用。
+//   ⚠️ 它**故意**不读 W11: 每多一笔 MMIO 就多一份自造空档 (观测者效应写进报告, 见 REPORT §1)。
+static void snap_w70_dma(RegIo &io, uint32_t &w70, uint32_t &dma) {
+    io.wr(A_SNAP_CTRL, 0x1u);
+    for (int i = 0; i < 1000; i++) if ((io.rd(A_SNAP_ST) >> 1) & 1u) break;
+    w70 = io.rd(A_W70);
+    dma = io.rd(A_MIR_DMA_CNT);
+}
+
 static StreamRes run_stream(RegIo &io, StreamIo &sio, uint8_t *dst, size_t cap, const StreamOpts &o) {
     StreamRes r;
     uint32_t sb = (o.src_sel > 0) ? 4u : 0u;
@@ -619,6 +658,8 @@ static StreamRes run_stream(RegIo &io, StreamIo &sio, uint8_t *dst, size_t cap, 
     snap_read(io, w11a, last_w70);
     r.words0 = last_words; r.w70a = last_w70;
     double last_s = -1e9;
+    // ⭐ 2026-10-13 READLOG 状态 (readlog=0 时一个字节都不碰既有行为)
+    double t_prev_post = -1.0; uint32_t rl_w70 = last_w70, rl_dma = last_words;
     // 采样: 只在**两次 read 块之间**做 (寄存器是 AXI-Lite, 与数据面不吃同一条流);
     //   ⚠️ 采样本身在流上=自造一个空档 ⇒ 采样周期别设得太密 (默认 50 ms)。
     auto sample = [&](bool force) {
@@ -641,7 +682,9 @@ static StreamRes run_stream(RegIo &io, StreamIo &sio, uint8_t *dst, size_t cap, 
         size_t n = (remain < o.chunk) ? (size_t)remain : (size_t)o.chunk;
         if (!n) break;
         if (n % 64u != 0) r.nonmul64++;
+        double t_pre = (o.readlog > 0) ? now_s() : 0.0;
         long long got = sio.rd(dst + r.bytes, n);
+        double t_post = (o.readlog > 0) ? now_s() : 0.0;
         if (got < 0) {
             r.short_reads++;
             if (wd_fired()) {                               // 看门狗截断 = 操作者自己限的界 ⇒ 早停形态
@@ -663,6 +706,26 @@ static StreamRes run_stream(RegIo &io, StreamIo &sio, uint8_t *dst, size_t cap, 
         r.reads++;
         if ((uint64_t)got < (uint64_t)n) r.partial++;
         r.bytes += (uint64_t)got;
+        // ⭐ 2026-10-13 READLOG: 每 read 一行 (t, got, pc, W70, MIR_DMA_CNT) + gap/read/MMIO 三个时长。
+        //   口径 (逐字): gap_us = 上一条记录时刻 → 本次 read 发起 (宿主账面+采样); mmio_us = 本次现场读
+        //   自身耗时 (观测者效应); read_us = read() 调用时长。Δw70 属 [上一条 → 本条] 整区间。
+        if (o.readlog > 0) {
+            ReadRec rec;
+            double tm0 = now_s();
+            uint32_t w70n, dman;
+            snap_w70_dma(io, w70n, dman);
+            double tm1 = now_s();
+            rec.t = tm1 - t0;
+            rec.gap_us = (t_prev_post >= 0) ? (t_pre - t_prev_post) * 1e6 : 0.0;
+            rec.mmio_us = (tm1 - tm0) * 1e6;
+            rec.read_us = (t_post - t_pre) * 1e6;
+            rec.got = (uint64_t)got; rec.pc = r.bytes;
+            rec.w70 = w70n; rec.dw70 = (uint32_t)(w70n - rl_w70);
+            rec.dma = dman; rec.ddma = (uint32_t)(dman - rl_dma);
+            rl_w70 = w70n; rl_dma = dman;
+            t_prev_post = tm1;
+            r.rlog.push_back(rec);
+        }
         sample(false);
     }
     // 静默窗 (有界) + **见证**: 等 `MIR_STATUS.level == 0` —— 只有"源已停 + 全部交付被取走"时
@@ -690,6 +753,546 @@ static StreamRes run_stream(RegIo &io, StreamIo &sio, uint8_t *dst, size_t cap, 
     r.closed_a = idA_eval(r.bytes, r.taken, o.resid_max_shaper, &r.resid_shaper);
     r.closed_b = idB_eval(r.k, r.taken, r.drop, o.resid_max_mirror, &r.resid_mirror);
     r.secs = now_s() - t0;
+    return r;
+}
+
+// ---------------------------------------------------------------------------
+// ⭐⭐⭐ 2026-10-13 (宿主读循环诊断/修复轮): `--aio <depth>` = **流水提交读** (在飞 chunk 上限 = depth)
+// ---------------------------------------------------------------------------
+// 动因 (驱动源码只读核查, 原件 = runs/driver_cdev_sgdma.c / runs/driver_libxdma.c):
+//   · 同步 read() 路径 (`char_sgdma_read` → `char_sgdma_read_write`) 把**每次 read**做成一串
+//     **串行**步骤: GUP (逐 4 KB 页) → SG 建表 (逐页) → `dma_map_sg` → {建 ≤`desc_max`(=0x800,
+//     module param `enable_st_c2h_credit=0`) 条描述符 → 排队 → **等完成**} ×⌈页数/2048⌉ →
+//     `dma_unmap_sg` → `char_sgdma_unmap_user_buf` (逐页 `set_page_dirty_lock` + `put_page`)。
+//     **下一段描述符表在上一段完成之后才建** ⇒ 每段边界上 C2H 引擎结构性"无描述符可取"
+//     ⇒ 板内镜像 2 KB FIFO 溢出 ⇒ 丢字节 (快照 W70)。这就是"每 read 固定 + 每 MiB"两成分的候选机制。
+//   · 本路径改用**经典 AIO** (`io_submit`): 一次提交 = 一个 iocb (1 个 iov = 1 个 chunk);
+//     `cdev_read_iter → cdev_aio_read` 走 `xdma_xfer_submit_nowait` (**不等完成就返回**),
+//     完成经 `async_io_handler` → `ki_complete` → `io_getevents`。⇒ 引擎**始终有排队描述符**,
+//     宿主侧开销与数据流**重叠**。
+//   · **顺序由构造保证**: 单线程按 chunk 序调 `io_submit` (同一 syscall 内按 iov 序入队)
+//     ⇒ 环上描述符序 == 流序 (与同步路径同一条语义)。
+//   · 安全闸 (环 = 2048 条描述符, 多笔在飞共享): `depth × (chunk/4096) ≤ 1536` (stream_args_check 判;
+//     越轨 = 响亮 exit 2)。
+//   · ⚠️ 收尾: 若数据没到齐, 在飞 chunk **结构性完成不了** (nowait 无驱动侧超时) ⇒ 本函数
+//     **有界等待**后如实登记 `aio_pending_end>0` 并打 `MIR_STREAM_AIO_PENDING`
+//     (⚠️ 那些描述符会吃掉**下一条**流的头部 ⇒ 协议要求随后跑一个 flush 窗, 见 run_aio.sh)。
+//   · 看门狗: `--seconds` (SIGALRM) 打断 `io_getevents` (EINTR) ⇒ 与其他路径同口径。
+#ifndef _WIN32
+static long aio_io_setup(unsigned nr, aio_context_t *ctx) { return syscall(__NR_io_setup, nr, ctx); }
+static long aio_io_submit(aio_context_t ctx, long n, struct iocb **p) { return syscall(__NR_io_submit, ctx, n, p); }
+static long aio_io_getevents(aio_context_t ctx, long min_nr, long nr, struct io_event *ev,
+                             struct timespec *ts) {
+    return syscall(__NR_io_getevents, ctx, min_nr, nr, ev, ts);
+}
+static long aio_io_destroy(aio_context_t ctx) { return syscall(__NR_io_destroy, ctx); }
+#endif
+
+static StreamRes run_stream_aio(RegIo &io, const char *dev, uint8_t *dst, size_t cap, const StreamOpts &o) {
+    StreamRes r;
+#ifndef _WIN32
+    (void)cap;
+    uint32_t sb = (o.src_sel > 0) ? 4u : 0u;
+    int fd = open(dev, O_RDONLY);
+    if (fd < 0) { fprintf(stderr, "FATAL: open(%s): %s\n", dev, strerror(errno)); exit(2); }
+    aio_context_t ctx = 0;
+    if (aio_io_setup(1024, &ctx) < 0) {
+        fprintf(stderr, "FATAL: io_setup: %s\n", strerror(errno)); exit(2);
+    }
+    double t0 = now_s();
+    if (o.arm) {
+        io.wr(A_MIR_CTRL, 0x2u | 0x8u | sb);   // ① clr + dma_en [+ src_sel]
+        io.wr(A_MIR_CTRL, 0x1u | 0x8u | sb);   // ② cap_en + dma_en [+ src_sel]
+    }
+    r.armed = o.arm;
+    r.aio_depth_used = o.aio_depth;
+    uint32_t last_words = io.rd(A_MIR_DMA_CNT);
+    uint32_t w11a, last_w70;
+    snap_read(io, w11a, last_w70);
+    r.words0 = last_words; r.w70a = last_w70;
+    double last_s = -1e9;
+    uint32_t rl_w70 = last_w70, rl_dma = last_words;
+    double t_prev_post = -1.0;                          // ⭐ 尾段 READLOG 用 (批量段的记录不参与 gap 口径)
+    auto sample = [&](bool force) {
+        double t = now_s() - t0;
+        if (!force && (t - last_s) * 1000.0 < o.sample_ms) return;
+        uint32_t w11, w70;
+        snap_read(io, w11, w70);
+        uint32_t wd = io.rd(A_MIR_DMA_CNT);
+        uint32_t step = (uint32_t)(wd - last_words);
+        if (step > r.dword_max_step) r.dword_max_step = step;
+        r.dwords += step;
+        r.drop += (uint32_t)(w70 - last_w70);
+        last_words = wd; last_w70 = w70;
+        if (r.series.size() < 20000) r.series.push_back(StreamSample{t, r.bytes, wd, w70, r.dwords});
+        last_s = t;
+    };
+    sample(true);
+    // ⭐⭐ 两段式 (2026-10-13 设计, 由**实测**钉死):
+    //   ⛔ 实测 (aio_probe): 带未完成 iocb 时 **`io_destroy`/进程退出会在 `exit_aio` 里 D 态挂死**
+    //      (不可 kill; 只有让那些传输**真的完成**才能解 —— 连 `kill -9` 都无效)。
+    //      ⇒ **本函数在返回前必须做到"零在飞"**。
+    //   阶段 1 (**AIO 批量**): 流水提交 (在飞 ≤ depth), 提交门 = **动态安全裕量**规则:
+    //       只提交 `chunk_end ≤ K_src − reserve_now − 64` 的 chunk, reserve_now =
+    //       max(--aio-reserve(默认 16 MiB), 3×已观测丢 + depth×chunk + 1 MiB)
+    //       ⇒ 每个已提交 chunk **被源总量保证可填满** (镜像承诺 = K_src − 总丢; 丢已按 3× 余量折入)。
+    //   阶段 2 (**同步尾段**): 剩余 want 用同步 read 排空 —— 它能被看门狗截断, 且驱动在中断/超时路径
+    //       上会 `transfer_abort + xdma_engine_stop` ⇒ **不留残留描述符** (P9 协议的收尾语义)。
+    const uint64_t Ksrc = o.k_bytes;                    // 源交付总量 (main 的 --aio 门保证 >0 且 ≥ want)
+    uint64_t nchunks = (o.want + o.chunk - 1) / o.chunk;
+    std::vector<struct iocb> iocbs((size_t)nchunks);   // 地址必须稳定 ⇒ 一次性分配
+    std::vector<double> sub_t((size_t)nchunks, 0.0);
+    std::vector<uint32_t> chunk_len((size_t)nchunks, 0);
+    uint64_t submitted_bytes = 0, next_chunk = 0;
+    int inflight = 0;
+    struct io_event evs[64];
+    bool fail = false;
+    uint64_t reserve_now = o.aio_reserve, bulk_limit = 0;
+    double last_wit_t = now_s(), last_ev_t = now_s();
+    for (;;) {
+        // ---- 动态裕量 + 批量提交门 (每次进循环都重算; 丢字节现场读 W70) ----
+        {
+            uint32_t w70f, dmaf;
+            snap_w70_dma(io, w70f, dmaf);
+            uint64_t drop_seen = (uint32_t)(w70f - r.w70a);
+            uint64_t dynr = 3ull * drop_seen + (uint64_t)o.aio_depth * o.chunk + (1ull << 20);
+            reserve_now = (dynr > o.aio_reserve) ? dynr : o.aio_reserve;
+            bulk_limit = (Ksrc > reserve_now + 64ull) ? (Ksrc - reserve_now - 64ull) : 0ull;
+        }
+        while (inflight < o.aio_depth && next_chunk < nchunks && submitted_bytes < o.want) {
+            uint64_t remain = o.want - submitted_bytes;
+            uint64_t capl = (bulk_limit > submitted_bytes) ? (bulk_limit - submitted_bytes) : 0ull;
+            uint64_t len = o.chunk;
+            if (remain < len) len = remain;
+            if (capl < len) len = capl;
+            len &= ~(uint64_t)4095;                    // 4 KB 对齐 (驱动 check_transfer_align 合同)
+            if (len < 4096) break;                     // 批量段到此为止 (尾段交给同步读)
+            struct iocb &c = iocbs[(size_t)next_chunk];
+            memset(&c, 0, sizeof(c));
+            c.aio_data = (__u64)next_chunk;
+            c.aio_lio_opcode = IOCB_CMD_PREAD;
+            c.aio_fildes = (__u32)fd;
+            c.aio_buf = (__u64)(uintptr_t)(dst + submitted_bytes);
+            c.aio_nbytes = (__u32)len;
+            c.aio_offset = 0;
+            struct iocb *pl[1] = { &c };
+            long sn = aio_io_submit(ctx, 1, pl);
+            if (sn != 1) {
+                fprintf(stderr, "FAIL: io_submit 返回 %ld (在飞 %d, chunk %llu): %s\n",
+                        sn, inflight, (unsigned long long)next_chunk, strerror(errno));
+                fail = true; break;
+            }
+            sub_t[(size_t)next_chunk] = now_s();
+            chunk_len[(size_t)next_chunk] = (uint32_t)len;
+            submitted_bytes += len;
+            next_chunk++;
+            inflight++;
+        }
+        r.aio_submitted = submitted_bytes;
+        if (fail) break;
+        if (inflight == 0) break;                      // 批量段完成 (提交门已停)
+        // ---- 收割 (有界等; **在飞 > 0 时绝不退出** —— 退 = D 态挂死) ----
+        struct timespec ts = {0, 200000000};           // 200 ms 有界等
+        long n = aio_io_getevents(ctx, 1, 64, evs, &ts);
+        if (n < 0) {
+            if (errno == EINTR) {
+                if (wd_fired() && inflight == 0) { r.timed_out = true; r.ended_early = true; break; }
+                if (wd_fired() && now_s() - last_wit_t > 5.0) {
+                    last_wit_t = now_s();
+                    printf("MIR_STREAM_AIO_WITNESS 看门狗已响但在飞=%d >0 ⇒ **不退** (退 = D 态挂死); "
+                           "现场保着等完成\n", inflight);
+                }
+                continue;
+            }
+            fprintf(stderr, "FAIL: io_getevents: %s\n", strerror(errno));
+            fail = true; break;
+        }
+        if (n == 0) {
+            if (now_s() - last_ev_t > 20.0 && now_s() - last_wit_t > 5.0) {
+                last_wit_t = now_s();
+                printf("MIR_STREAM_AIO_WITNESS 在飞=%d 静默 %.0f s (数据没到? 安全裕量被击穿?) —— "
+                       "**不退**; 需外部灌流 (flush 窗) 才能收尾\n",
+                       inflight, now_s() - last_ev_t);
+            }
+            continue;
+        }
+        for (long k = 0; k < n; k++) {
+            uint64_t idx = evs[k].data;
+            long long res = (long long)evs[k].res;
+            double tev = now_s();
+            last_ev_t = tev;
+            if (res < 0) {
+                fprintf(stderr, "FAIL: aio chunk %llu 完成码 %lld\n",
+                        (unsigned long long)idx, res);
+                fail = true; continue;                 // 该笔不再占在飞; 继续收 (收完才敢退)
+            }
+            if (idx != r.reads) {
+                // 期望按提交序完成 (单流); 越序只登记 (各 iov 有各自缓冲, 内容不受影响)
+                printf("MIR_STREAM_AIO_OOO idx=%llu expect=%llu (越序完成; 登记)\n",
+                       (unsigned long long)idx, (unsigned long long)r.reads);
+            }
+            r.reads++;
+            inflight--;
+            uint64_t got = (uint64_t)res;
+            if (got < (uint64_t)chunk_len[(size_t)idx]) r.partial++;
+            r.bytes += got;
+            if (o.readlog > 0) {
+                ReadRec rec;
+                double tm0 = now_s();
+                uint32_t w70n, dman;
+                snap_w70_dma(io, w70n, dman);
+                double tm1 = now_s();
+                rec.t = tm1 - t0;
+                rec.gap_us = 0.0;                       // AIO 档无"两次 read 之间的账面" (gap 概念不适用)
+                rec.mmio_us = (tm1 - tm0) * 1e6;
+                rec.read_us = (tev - sub_t[(size_t)idx]) * 1e6;   // chunk 生命期 (提交→完成)
+                rec.got = got; rec.pc = r.bytes;
+                rec.w70 = w70n; rec.dw70 = (uint32_t)(w70n - rl_w70);
+                rec.dma = dman; rec.ddma = (uint32_t)(dman - rl_dma);
+                rl_w70 = w70n; rl_dma = dman;
+                r.rlog.push_back(rec);
+            }
+            sample(false);
+        }
+        if (fail) break;
+    }
+    r.aio_pending_end = inflight;
+    if (inflight > 0) {
+        // 只有 fail 路径会到这 (正常路径 loop 只在 inflight==0 时出)
+        printf("MIR_STREAM_AIO_STUCK n=%d —— **绝不带在飞 iocb 退出** (实测 D 态挂死): "
+               "停在此处等外部灌流; 本行 = 现场见证\n", inflight);
+        while (inflight > 0) {                          // 无界等 (退不得)
+            struct timespec ts = {0, 200000000};
+            long n = aio_io_getevents(ctx, 1, 64, evs, &ts);
+            if (n <= 0) continue;
+            for (long k = 0; k < n; k++) {
+                uint64_t idx = evs[k].data;
+                if ((long long)evs[k].res >= 0) {
+                    r.reads++; inflight--; r.bytes += (uint64_t)evs[k].res;
+                    if ((uint64_t)evs[k].res < (uint64_t)chunk_len[(size_t)idx]) r.partial++;
+                } else { inflight--; }
+            }
+        }
+        r.aio_pending_end = 0;
+    }
+    // ---- 阶段 2: 尾段 = 同步 read (可被看门狗截断; 驱动 abort ⇒ 无残留) ----
+    if (!fail) {
+        for (;;) {
+            uint64_t remain = o.want - r.bytes;
+            if (!remain) break;
+            size_t n = (remain < o.chunk) ? (size_t)remain : (size_t)o.chunk;
+            if (n % 64u != 0) r.nonmul64++;
+            double t_pre = (o.readlog > 0) ? now_s() : 0.0;
+            ssize_t got;
+            for (;;) {
+                got = read(fd, dst + r.bytes, n);
+                if (got < 0 && errno == EINTR) {
+                    if (wd_fired()) { errno = EINTR; break; }
+                    continue;
+                }
+                break;
+            }
+            double t_post = (o.readlog > 0) ? now_s() : 0.0;
+            if (got < 0) {
+                r.short_reads++;
+                if (wd_fired()) {
+                    r.timed_out = true; r.ended_early = true;
+                    printf("MIR_STREAM_END saw=tail/看门狗截断 pc=%llu want=%llu (由两式解释不足量)\n",
+                           (unsigned long long)r.bytes, (unsigned long long)o.want);
+                } else {
+                    r.read_error = true;
+                    fprintf(stderr, "FAIL: tail stream read 出错 (n=%zu): %s\n", n, strerror(errno));
+                }
+                break;
+            }
+            if (got == 0) {
+                r.short_reads++; r.ended_early = true;
+                printf("MIR_STREAM_END saw=tail/read==0 pc=%llu want=%llu (由两式解释不足量)\n",
+                       (unsigned long long)r.bytes, (unsigned long long)o.want);
+                break;
+            }
+            r.reads++;
+            if ((uint64_t)got < (uint64_t)n) r.partial++;
+            r.bytes += (uint64_t)got;
+            if (o.readlog > 0) {
+                ReadRec rec;
+                double tm0 = now_s();
+                uint32_t w70n, dman;
+                snap_w70_dma(io, w70n, dman);
+                double tm1 = now_s();
+                rec.t = tm1 - t0;
+                rec.gap_us = (t_prev_post >= 0) ? (t_pre - t_prev_post) * 1e6 : 0.0;
+                rec.mmio_us = (tm1 - tm0) * 1e6;
+                rec.read_us = (t_post - t_pre) * 1e6;
+                rec.got = (uint64_t)got; rec.pc = r.bytes;
+                rec.w70 = w70n; rec.dw70 = (uint32_t)(w70n - rl_w70);
+                rec.dma = dman; rec.ddma = (uint32_t)(dman - rl_dma);
+                rl_w70 = w70n; rl_dma = dman;
+                t_prev_post = tm1;
+                r.rlog.push_back(rec);
+            }
+            sample(false);
+        }
+    }
+    // 静默窗 + 见证 (与同步路径同口径)
+    double tb = now_s();
+    for (;;) {
+        io.wr(A_SNAP_CTRL, 0x1u);
+        (void)io.rd(A_SNAP_ST);
+        uint32_t s = io.rd(A_MIR_STATUS);
+        r.level_end = s & 0xFFFFu;
+        if (r.level_end == 0) { r.quiesced = true; break; }
+        if (o.settle_s <= 0 || now_s() - tb > o.settle_s) break;
+        { struct timespec ts = {0, 2000000}; nanosleep(&ts, nullptr); }
+    }
+    r.wait_ms = (now_s() - tb) * 1000.0;
+    r.premise_level0 = r.quiesced;
+    sample(true);
+    r.words1 = last_words; r.w70b = last_w70;
+    r.taken = r.dwords * 4u;
+    r.k = o.k_bytes ? o.k_bytes : o.want;
+    r.closed_a = idA_eval(r.bytes, r.taken, o.resid_max_shaper, &r.resid_shaper);
+    r.closed_b = idB_eval(r.k, r.taken, r.drop, o.resid_max_mirror, &r.resid_mirror);
+    r.secs = now_s() - t0;
+    aio_io_destroy(ctx);
+    close(fd);
+#else
+    (void)io; (void)dev; (void)dst; (void)cap; (void)o;
+    fprintf(stderr, "FATAL: --aio 只在 Linux 部署件可用\n");
+    exit(2);
+#endif
+    return r;
+}
+
+
+// ---------------------------------------------------------------------------
+// ⭐⭐⭐ 2026-10-13 **修复主臂**: `--dual 2` = **两线程交错同步读** (每块 ≤ 4 MiB)
+// ---------------------------------------------------------------------------
+// 动因 (本轮逐 read 仪器 + 驱动源码钉死, 见 REPORT §2/§3):
+//   · 每次 read() 的引擎空档 ≈ 固定 ~57–75 µs/read + **~34 µs/MiB**; 后者 = 驱动
+//     `char_sgdma_unmap_user_buf` (逐 4 KB 页 `set_page_dirty_lock`+`put_page`) 的宿主成本。
+//   · 在**同步**路径这段跑在**用户线程**里 (read 返回前) ⇒ 引擎空档;
+//     在 **AIO** 路径同一段跑在**引擎 service 上下文**里 (engine_service → io_done → unmap →
+//     之后才 engine_service_resume 重启引擎) ⇒ 它直接挡住引擎重启 —— 板上实测 `--aio` 只能
+//     拿掉固定项 (1 MiB 档 3.24% → 1.08%), **拿不掉每 MiB 项** (2 MiB 档仍 1.09%) ✓ 与模型一致。
+//   · **本模式**: 两线程按**奇偶分块** + 起步错拍 δ ⇒ "上一条 read 的 epilogue" 与
+//     "下一条 read 的传输"**重叠** ⇒ 引擎始终有排队描述符 ⇒ 空档→(期望)~0。
+//   · **环安全**: 每块 ≤ 4 MiB (≤1024 描述符) ⇒ 两笔在飞 ≤ 2048 = 环全宽; 且每线程只在自己
+//     上一笔**返回后**才发下一笔 ⇒ 覆盖的必是已完成槽位。
+//   · ⚠️ 起步 δ 只给"发起序"一个**时间裕量** (非硬保证); 真乱序 ⇔ 内容判据 (--pat-off) 指出
+//     —— **可检测、不静默**。δ 默认 2 ms (≫ prologue 40 µs–1 ms, ≪ 单块数据时间)。
+#ifndef _WIN32
+struct DualShared {
+    pthread_mutex_t lock;
+    StreamRes *r;
+    RegIo *io;
+    const StreamOpts *o;
+    double t0, last_s;
+    uint32_t last_words, last_w70, rl_w70, rl_dma;
+    std::vector<uint32_t> got_of, len_of;       // 逐 chunk (owner 线程写)
+    uint64_t bytes[2], reads[2], partial[2], nonmul64[2];
+    int stop, issued[2], ended[2];
+    std::vector<ReadRec> rlog[2];
+};
+struct DualCtx {
+    DualShared *sh;
+    uint8_t *dst;
+    int fd, idx;
+    uint64_t chunk, nchunks;
+    double stagger_s;
+    pthread_t peer;
+    bool has_peer;
+    double t_prev_post;
+};
+
+static void dual_mmio_snap(DualShared *sh, uint32_t *w70o, uint32_t *dmao) {
+    pthread_mutex_lock(&sh->lock);
+    snap_w70_dma(*sh->io, *w70o, *dmao);
+    pthread_mutex_unlock(&sh->lock);
+}
+static void dual_sample(DualShared *sh, bool force) {
+    pthread_mutex_lock(&sh->lock);
+    double t = now_s() - sh->t0;
+    if (force || (t - sh->last_s) * 1000.0 >= sh->o->sample_ms) {
+        uint32_t w11, w70;
+        snap_read(*sh->io, w11, w70);
+        uint32_t wd = sh->io->rd(A_MIR_DMA_CNT);
+        uint32_t step = (uint32_t)(wd - sh->last_words);
+        if (step > sh->r->dword_max_step) sh->r->dword_max_step = step;
+        sh->r->dwords += step;
+        sh->r->drop += (uint32_t)(w70 - sh->last_w70);
+        sh->last_words = wd; sh->last_w70 = w70;
+        if (sh->r->series.size() < 20000)
+            sh->r->series.push_back(StreamSample{t, sh->bytes[0] + sh->bytes[1], wd, w70, sh->r->dwords});
+        sh->last_s = t;
+    }
+    pthread_mutex_unlock(&sh->lock);
+}
+static void dual_wake_peer(DualCtx *c) {
+    if (__atomic_exchange_n(&c->sh->stop, 1, __ATOMIC_ACQ_REL) == 0 && c->has_peer)
+        pthread_kill(c->peer, SIGALRM);
+}
+static void dual_reader_body(DualCtx *c) {
+    DualShared *sh = c->sh;
+    const StreamOpts &o = *sh->o;
+    bool first = true;
+    for (uint64_t idx = (uint64_t)c->idx; idx < c->nchunks; idx += 2) {
+        if (__atomic_load_n(&sh->stop, __ATOMIC_ACQUIRE)) break;
+        if (c->idx == 1 && first && c->has_peer) {           // 错拍 (只在起步做一次)
+            for (int spin = 0; spin < 500000; spin++) {
+                if (__atomic_load_n(&sh->issued[0], __ATOMIC_ACQUIRE)) break;
+                struct timespec ts1 = {0, 200000}; nanosleep(&ts1, nullptr);
+            }
+            struct timespec ts2;
+            ts2.tv_sec = (time_t)c->stagger_s;
+            ts2.tv_nsec = (long)((c->stagger_s - (double)ts2.tv_sec) * 1e9);
+            nanosleep(&ts2, nullptr);
+        }
+        first = false;
+        uint64_t off = idx * c->chunk;
+        uint64_t remain = o.want - off;
+        size_t n = (remain < c->chunk) ? (size_t)remain : (size_t)c->chunk;
+        sh->len_of[idx] = (uint32_t)n;
+        if (n % 64u != 0) __atomic_fetch_add(&sh->nonmul64[c->idx], 1, __ATOMIC_RELAXED);
+        __atomic_store_n(&sh->issued[c->idx], 1, __ATOMIC_RELEASE);   // 发起序见证 (错拍用)
+        double t_pre = (o.readlog > 0) ? now_s() : 0.0;
+        ssize_t got;
+        for (;;) {
+            got = read(c->fd, c->dst + off, n);
+            if (got < 0 && errno == EINTR) {
+                if (wd_fired()) { errno = EINTR; break; }
+                continue;
+            }
+            break;
+        }
+        double t_post = (o.readlog > 0) ? now_s() : 0.0;
+        if (got < 0) {
+            if (wd_fired()) { sh->ended[c->idx] = 2; dual_wake_peer(c); break; }
+            sh->ended[c->idx] = 3; dual_wake_peer(c); break;
+        }
+        if (got == 0) { sh->ended[c->idx] = 1; dual_wake_peer(c); break; }
+        sh->got_of[idx] = (uint32_t)got;
+        __atomic_fetch_add(&sh->reads[c->idx], 1, __ATOMIC_RELAXED);
+        if ((uint64_t)got < n) __atomic_fetch_add(&sh->partial[c->idx], 1, __ATOMIC_RELAXED);
+        __atomic_fetch_add(&sh->bytes[c->idx], (uint64_t)got, __ATOMIC_RELAXED);
+        if (o.readlog > 0) {
+            ReadRec rec;
+            uint32_t w70n = 0, dman = 0;
+            double tm0 = now_s();
+            dual_mmio_snap(sh, &w70n, &dman);
+            double tm1 = now_s();
+            pthread_mutex_lock(&sh->lock);
+            rec.t = tm1 - sh->t0;
+            rec.gap_us = (c->t_prev_post >= 0) ? (t_pre - c->t_prev_post) * 1e6 : 0.0;
+            rec.mmio_us = (tm1 - tm0) * 1e6;
+            rec.read_us = (t_post - t_pre) * 1e6;
+            rec.got = (uint64_t)got;
+            rec.pc = off + (uint64_t)got;
+            rec.w70 = w70n; rec.dw70 = (uint32_t)(w70n - sh->rl_w70);
+            rec.dma = dman; rec.ddma = (uint32_t)(dman - sh->rl_dma);
+            sh->rl_w70 = w70n; sh->rl_dma = dman;
+            sh->rlog[c->idx].push_back(rec);
+            pthread_mutex_unlock(&sh->lock);
+            c->t_prev_post = tm1;
+        }
+        dual_sample(sh, false);
+    }
+}
+#endif
+
+// `--dual` 驱动: 建两个读线程 (0=偶在主线程 / 1=奇在 pthread) + 交错分块 + 收尾合并
+static StreamRes run_stream_dual(RegIo &io, const char *dev, uint8_t *dst, size_t cap, const StreamOpts &o) {
+    StreamRes r;
+#ifndef _WIN32
+    (void)cap;
+    uint32_t sb = (o.src_sel > 0) ? 4u : 0u;
+    int fd = open(dev, O_RDONLY);
+    if (fd < 0) { fprintf(stderr, "FATAL: open(%s): %s\n", dev, strerror(errno)); exit(2); }
+    double t0 = now_s();
+    if (o.arm) {
+        io.wr(A_MIR_CTRL, 0x2u | 0x8u | sb);
+        io.wr(A_MIR_CTRL, 0x1u | 0x8u | sb);
+    }
+    r.armed = o.arm;
+    r.aio_depth_used = -o.aio_depth;                    // 负 = dual 模式见证 (打印用)
+    uint32_t last_words = io.rd(A_MIR_DMA_CNT);
+    uint32_t w11a, last_w70;
+    snap_read(io, w11a, last_w70);
+    r.words0 = last_words; r.w70a = last_w70;
+    uint64_t nchunks = (o.want + o.chunk - 1) / o.chunk;
+    DualShared sh;
+    // ⚠️ 不 memset (结构含 mutex/vector, memset 是 UB) —— 逐项初始化
+    pthread_mutex_init(&sh.lock, nullptr);
+    sh.r = &r; sh.io = &io; sh.o = &o; sh.t0 = t0; sh.last_s = -1e9;
+    sh.last_words = last_words; sh.last_w70 = last_w70;
+    sh.rl_w70 = last_w70; sh.rl_dma = last_words;
+    sh.stop = 0; sh.issued[0] = sh.issued[1] = 0; sh.ended[0] = sh.ended[1] = 0;
+    for (int k = 0; k < 2; k++) { sh.bytes[k] = sh.reads[k] = sh.partial[k] = sh.nonmul64[k] = 0; }
+    sh.got_of.assign((size_t)nchunks, 0);
+    sh.len_of.assign((size_t)nchunks, 0);
+    dual_sample(&sh, true);                              // 起点样本
+    DualCtx c0, c1;
+    memset(&c0, 0, sizeof(c0)); memset(&c1, 0, sizeof(c1));   // (纯 POD, 无 vector)
+    c0.sh = &sh; c0.dst = dst; c0.fd = fd; c0.idx = 0; c0.chunk = o.chunk; c0.nchunks = nchunks;
+    c0.stagger_s = 0; c0.has_peer = true; c0.t_prev_post = -1.0;
+    c1.sh = &sh; c1.dst = dst; c1.fd = fd; c1.idx = 1; c1.chunk = o.chunk; c1.nchunks = nchunks;
+    c1.stagger_s = o.dual_stagger_ms / 1000.0; c1.has_peer = true; c1.t_prev_post = -1.0;
+    pthread_t th1;
+    c0.peer = pthread_self();                            // 占位; 主线程自己的 id (供 c1 用)
+    c1.peer = pthread_self();                            // ← 先记主线程 id 再建线程
+    if (pthread_create(&th1, nullptr, [](void *a) -> void * { dual_reader_body((DualCtx *)a); return nullptr; }, &c1) != 0) {
+        fprintf(stderr, "FATAL: pthread_create 失败\n"); exit(2);
+    }
+    dual_reader_body(&c0);                               // 主线程 = 偶数块读线程
+    pthread_join(th1, nullptr);
+    // 合并: pc = **流序前缀** (奇偶交错后, 取到第一笔不满块为止)
+    {
+        uint64_t pc = 0;
+        for (uint64_t j = 0; j < nchunks; j++) {
+            uint32_t got = sh.got_of[(size_t)j];
+            pc += got;
+            if (got < sh.len_of[(size_t)j]) break;       // 后续块未完成/不满 ⇒ 前缀到此
+        }
+        r.bytes = pc;
+    }
+    r.reads = sh.reads[0] + sh.reads[1];
+    r.partial = sh.partial[0] + sh.partial[1];
+    r.nonmul64 = sh.nonmul64[0] + sh.nonmul64[1];
+    r.short_reads = (sh.ended[0] || sh.ended[1]) ? 1 : 0;
+    if (sh.ended[0] || sh.ended[1]) r.ended_early = true;
+    if (sh.ended[0] == 2 || sh.ended[1] == 2) r.timed_out = true;
+    if (sh.ended[0] == 3 || sh.ended[1] == 3) r.read_error = true;
+    for (int k = 0; k < 2; k++)
+        for (const ReadRec &x : sh.rlog[k]) r.rlog.push_back(x);
+    dual_sample(&sh, true);
+    // 静默窗 + 见证 (与同步路径同口径)
+    double tb = now_s();
+    for (;;) {
+        io.wr(A_SNAP_CTRL, 0x1u);
+        (void)io.rd(A_SNAP_ST);
+        uint32_t s = io.rd(A_MIR_STATUS);
+        r.level_end = s & 0xFFFFu;
+        if (r.level_end == 0) { r.quiesced = true; break; }
+        if (o.settle_s <= 0 || now_s() - tb > o.settle_s) break;
+        { struct timespec ts = {0, 2000000}; nanosleep(&ts, nullptr); }
+    }
+    r.wait_ms = (now_s() - tb) * 1000.0;
+    r.premise_level0 = r.quiesced;
+    pthread_mutex_lock(&sh.lock);
+    r.words1 = sh.last_words; r.w70b = sh.last_w70;
+    pthread_mutex_unlock(&sh.lock);
+    r.taken = r.dwords * 4u;
+    r.k = o.k_bytes ? o.k_bytes : o.want;
+    r.closed_a = idA_eval(r.bytes, r.taken, o.resid_max_shaper, &r.resid_shaper);
+    r.closed_b = idB_eval(r.k, r.taken, r.drop, o.resid_max_mirror, &r.resid_mirror);
+    r.secs = now_s() - t0;
+    pthread_mutex_destroy(&sh.lock);
+    close(fd);
+#else
+    (void)io; (void)dev; (void)dst; (void)cap; (void)o;
+    fprintf(stderr, "FATAL: --dual 只在 Linux 部署件可用\n");
+    exit(2);
+#endif
     return r;
 }
 
@@ -746,6 +1349,46 @@ static int stream_args_check(uint64_t want, uint64_t buf_bytes, uint64_t chunk,
     return SA_OK;
 }
 
+// ⭐ 2026-10-13: READLOG 打印器 (逐 read 原始表 + 一页摘要)。**纯打印**, 不碰任何既有输出行。
+static void print_readlog(const StreamRes &r) {
+    std::vector<double> gv, mv, rv;
+    gv.reserve(r.rlog.size()); mv.reserve(r.rlog.size()); rv.reserve(r.rlog.size());
+    double gsum = 0, msum = 0, rsum = 0;
+    uint64_t dw70t = 0, ddat = 0;
+    for (size_t i = 0; i < r.rlog.size(); i++) {
+        const ReadRec &x = r.rlog[i];
+        printf("READLOG i=%zu t=%.6f gap_us=%.1f mmio_us=%.1f read_us=%.1f got=%llu pc=%llu "
+               "w70=%u dw70=%u dma=%u ddma=%u\n",
+               i, x.t, x.gap_us, x.mmio_us, x.read_us,
+               (unsigned long long)x.got, (unsigned long long)x.pc,
+               x.w70, x.dw70, x.dma, x.ddma);
+        gv.push_back(x.gap_us); mv.push_back(x.mmio_us); rv.push_back(x.read_us);
+        gsum += x.gap_us; msum += x.mmio_us; rsum += x.read_us;
+        dw70t += x.dw70; ddat += x.ddma;
+    }
+    auto med = [](std::vector<double> v) -> double {
+        if (v.empty()) return 0.0;
+        std::sort(v.begin(), v.end());
+        return v[v.size() / 2];
+    };
+    auto mn = [](const std::vector<double> &v) -> double {
+        if (v.empty()) return 0.0;
+        double m = v[0]; for (double x : v) if (x < m) m = x; return m;
+    };
+    auto mx = [](const std::vector<double> &v) -> double {
+        if (v.empty()) return 0.0;
+        double m = v[0]; for (double x : v) if (x > m) m = x; return m;
+    };
+    printf("READLOG_SUM n=%zu gap_us[min=%.1f med=%.1f max=%.1f sum_ms=%.3f] "
+           "mmio_us[min=%.1f med=%.1f max=%.1f sum_ms=%.3f] "
+           "read_us[min=%.1f med=%.1f max=%.1f sum_ms=%.3f] dw70_total=%llu ddma_total=%llu "
+           "(gap=读数之间宿主账面; mmio=本仪器自身; read=read 调用/AIO 生命期; dw70/ddma=区间增量)\n",
+           r.rlog.size(), mn(gv), med(gv), mx(gv), gsum / 1000.0,
+           mn(mv), med(mv), mx(mv), msum / 1000.0,
+           mn(rv), med(rv), mx(rv), rsum / 1000.0,
+           (unsigned long long)dw70t, (unsigned long long)ddat);
+}
+
 // 路径 ↔ ver 配对门: 0 = bar (两代都真), 1 = dma (要求 MM/ver=3), 2 = stream (要求 ST/ver=4)
 static bool path_ver_ok(int path, uint32_t ver) {
     if (path == 2) return ver == VER_ST;
@@ -764,6 +1407,36 @@ static uint8_t *buf_alloc(size_t bytes, bool prefault) {
     if (posix_memalign(&p, 4096, bytes) != 0 || !p) return nullptr;
     if (prefault) memset(p, 0, bytes);
     return (uint8_t *)p;
+}
+
+// ⭐ 2026-10-13 (C1a 判别臂): **1 GiB 大页**缓冲 (MAP_HUGETLB)。
+//   目的: 分辨"每 4 KB 页的宿主成本 (GUP/dma_map/set_page_dirty/put_page)"与"每描述符的引擎成本"。
+//   ⚠️ 驱动 `char_sgdma_map_user_buf_to_sgl` 仍按 4 KB 建 SG 条目 ⇒ **描述符数不变** ⇒
+//      若亏损按页塌缩 = 宿主页级成本; 若不变 = 描述符/引擎侧。失败响亮 (不降级、不静默)。
+static uint8_t *buf_alloc_huge(size_t bytes) {
+#ifdef _WIN32
+    (void)bytes; return nullptr;
+#else
+    if (bytes == 0 || (bytes % (1ull << 30))) return nullptr;   // 只支持 1 GiB 整数倍 (本机 pool = 1 GiB 页)
+    int flags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB;
+#ifdef MAP_HUGE_1GB
+    flags |= MAP_HUGE_1GB;
+#elif defined(MAP_HUGE_SHIFT)
+    flags |= (30 << MAP_HUGE_SHIFT);
+#endif
+    void *p = mmap(nullptr, bytes, PROT_READ | PROT_WRITE, flags, -1, 0);
+    if (p == MAP_FAILED) return nullptr;
+    memset(p, 0, bytes);            // 预触 (大页在 mmap 时已提交; 清零 = 与既有预触语义一致)
+    return (uint8_t *)p;
+#endif
+}
+
+static void buf_free_huge(uint8_t *p, size_t bytes) {
+#ifdef _WIN32
+    (void)p; (void)bytes;
+#else
+    if (p) munmap(p, bytes);
+#endif
 }
 
 int main(int argc, char **argv) {
@@ -787,6 +1460,11 @@ int main(int argc, char **argv) {
     uint32_t resid_max_shaper = RESID_MAX_SHAPER_DEF;   // 式 A (成形器侧)
     uint64_t k_bytes = 0;                  // 式 B 的 K; 0 = 取 --bytes
     double settle_s = 1.0, sample_ms = 50.0;
+    int readlog = 0, aio_depth = 0;        // ⭐ 2026-10-13: 逐 read 仪器 / 流水读 (默认均关 = 逐位不变)
+    uint32_t aio_reserve_mib = 16;         // ⭐ AIO 批量段的安全裕量下界 (MiB)
+    int dual = 0;                          // ⭐ 2 = 两线程交错同步读 (修复主臂)
+    double dual_stagger_ms = 2.0;
+    bool buf_huge = false;                 // ⭐ C1a: PC 缓冲用 1 GiB 大页 (MAP_HUGETLB)
     const char *stream_dev = nullptr;
     for (int i = 1; i < argc; i++) {
         std::string a = argv[i];
@@ -816,6 +1494,12 @@ int main(int argc, char **argv) {
         else if (a == "--sample-ms") { const char *p = nxt(); if (p) sample_ms = atof(p); }
         else if (a == "--allow-ver-mismatch") allow_ver_mismatch = true;        // ⭐⭐ P9
         else if (a == "--no-strict-quiesce") strict_quiesce = false;            // ⭐ P9 (TL 裁定 3)
+        else if (a == "--readlog") { const char *p = nxt(); if (p) readlog = (int)strtol(p, nullptr, 0); }
+        else if (a == "--aio") { const char *p = nxt(); if (p) aio_depth = (int)strtol(p, nullptr, 0); }
+        else if (a == "--aio-reserve-mib") { const char *p = nxt(); if (p) aio_reserve_mib = (uint32_t)strtoul(p, nullptr, 0); }
+        else if (a == "--buf-huge") buf_huge = true;
+        else if (a == "--dual") { const char *p = nxt(); if (p) dual = (int)strtol(p, nullptr, 0); }
+        else if (a == "--dual-stagger-ms") { const char *p = nxt(); if (p) dual_stagger_ms = atof(p); }
         else if (a == "--src") {                                                // ⭐ 期 A
             const char *p = nxt();
             if (!p) { fprintf(stderr, "FATAL: --src 需要 udp|tcp\n"); return 2; }
@@ -830,10 +1514,11 @@ int main(int argc, char **argv) {
                                "       %*s   [--chunk 1048576] [--resid-max-mirror 24] [--resid-max-shaper 32]\n"
                                "       %*s   [--k-bytes N] [--settle 1.0] [--sample-ms 50]\n"
                                "       %*s   [--allow-ver-mismatch] [--no-strict-quiesce]  (旧名 --resid-max = 式B 别名)\n"
+                               "       %*s   [--readlog 0|1] [--aio <depth 1..64>] [--aio-reserve-mib 16]\n"
                                "       %s --selftest [--bytes K]\n", argv[0], (int)strlen(argv[0]), "",
                                (int)strlen(argv[0]), "", (int)strlen(argv[0]), "",
                                (int)strlen(argv[0]), "", (int)strlen(argv[0]), "",
-                               (int)strlen(argv[0]), "", argv[0]);
+                               (int)strlen(argv[0]), "", (int)strlen(argv[0]), "", argv[0]);
                return 2; }
     }
     if (use_stream && use_dma) { fprintf(stderr, "FATAL: --stream 与 --dma 互斥 (同一次跑只走一条读出口)\n"); return 2; }
@@ -847,6 +1532,37 @@ int main(int argc, char **argv) {
         char msg[256] = {0};
         int rc = stream_args_check(want, (uint64_t)buf_mb << 20, chunk, msg, sizeof(msg));
         if (rc != SA_OK) { fprintf(stderr, "FATAL: --stream 参数不合规: %s\n", msg); return 2; }
+        // ⭐ 2026-10-13: --aio 专属几何门 (在打开设备之前 ⇒ 纯参数错不需要板子)
+        if (aio_depth != 0) {
+            if (aio_depth < 1 || aio_depth > 64) {
+                fprintf(stderr, "FATAL: --aio %d 越界 (1..64)\n", aio_depth); return 2;
+            }
+            if (k_bytes == 0 || k_bytes < want) {
+                fprintf(stderr, "FATAL: --aio 需要 --k-bytes ≥ --bytes (源交付总量 K_src; 给了 %llu, "
+                                "want=%llu) —— 批量段的\"保证可填满\"规则以 K_src 为基准\n",
+                        (unsigned long long)k_bytes, (unsigned long long)want);
+                return 2;
+            }
+            if (chunk % 4096u) {
+                fprintf(stderr, "FATAL: --aio 要求 --chunk 4 KB 对齐 (给了 %llu; 驱动 GUP/SG 按页 + "
+                                "check_transfer_align 对非增量地址要求 buf_lsb==0)\n", (unsigned long long)chunk);
+                return 2;
+            }
+            if (want % 4096u) {
+                fprintf(stderr, "FATAL: --aio 要求 --bytes 4 KB 对齐 (给了 %llu)\n", (unsigned long long)want);
+                return 2;
+            }
+            if ((uint64_t)aio_depth * (chunk / 4096u) > 1536u) {
+                fprintf(stderr, "FATAL: --aio 深度×描述符越限: depth(%d)×(chunk/4096=%llu) = %llu > 1536 "
+                                "(C2H 引擎描述符环共 2048 条, desc_max=0x800; 多笔在飞共享环 ⇒ 留余量)\n",
+                        aio_depth, (unsigned long long)(chunk / 4096u),
+                        (unsigned long long)((uint64_t)aio_depth * (chunk / 4096u)));
+                return 2;
+            }
+        }
+        if (readlog < 0 || readlog > 1) {
+            fprintf(stderr, "FATAL: --readlog 只认 0|1 (给了 %d)\n", readlog); return 2;
+        }
     }
 
     // ---------------- --selftest: 内存 mock, 跑**同一段** dump/verify 代码 ----------------
@@ -1157,6 +1873,61 @@ int main(int argc, char **argv) {
                    srd.resid_mirror, (int)srd.closed_b, passd ? "OK" : "FAIL");
             if (!passd) bad = 1;
         }
+        // T15 ⭐ 2026-10-13: READLOG 仪器在**同一段** run_stream 上的实体检验 (mock 板, 有丢字节档)
+        //   判据: 每成功 read 恰一条记录; Σddma×4 == taken; Σdw70 == drop; 末条 pc == bytes;
+        //         三个时长非负且 mmio 在合理量级 (mock 上应 ≪ 1 ms); 记录数 == reads。
+        {
+            const uint64_t K = 65536; const uint32_t D = 696, MR = 4, SR = 8, G = 1000;
+            const uint64_t TAKEN = K - D - MR, VIS = TAKEN - SR;
+            static MemIo mr; static MemStreamIo str; static std::vector<uint8_t> visr;
+            mr.bid = 0x22; mr.ver = VER_ST;
+            mk_visible(visr, VIS, G, D);
+            str.reg = &mr; str.data = visr.data(); str.len = VIS; str.hole_at = G;
+            str.src_k = K; str.drop_total = D; str.mirror_resid = MR; str.shaper_resid = SR;
+            str.max_per_read = 8192; str.arm();                  // 碎片读 ⇒ 多条 READLOG
+            StreamOpts o; o.want = K; o.chunk = 65536;
+            o.resid_max_mirror = resid_max_mirror; o.resid_max_shaper = resid_max_shaper;
+            o.settle_s = 0.0; o.sample_ms = 0.0; o.readlog = 1;
+            std::vector<uint8_t> dstr((size_t)VIS + 64);
+            StreamRes srr = run_stream(mr, str, dstr.data(), dstr.size(), o);
+            uint64_t sum_ddma = 0, sum_dw = 0; double mmax = 0; bool negt = false, pcmono = true;
+            uint64_t prevpc = 0;
+            for (size_t i = 0; i < srr.rlog.size(); i++) {
+                const ReadRec &x = srr.rlog[i];
+                sum_ddma += x.ddma; sum_dw += x.dw70;
+                if (x.mmio_us > mmax) mmax = x.mmio_us;
+                if (x.gap_us < 0 || x.mmio_us < 0 || x.read_us < 0) negt = true;
+                if (x.pc < prevpc) pcmono = false;
+                prevpc = x.pc;
+            }
+            bool passr = (srr.rlog.size() == (size_t)srr.reads) && (srr.reads > 1) &&
+                         (sum_ddma == srr.dwords) && (sum_dw == srr.drop) &&
+                         (!srr.rlog.empty() && srr.rlog.back().pc == srr.bytes) &&
+                         pcmono && !negt && (mmax < 5000.0) && (srr.taken == TAKEN) &&
+                         (srr.drop == D) && (srr.closed_a && srr.closed_b);
+            printf("MIR_SELFTEST T15 readlog n=%zu reads=%llu Σddma=%llu(=dwords %llu) Σdw70=%llu(=drop %llu) "
+                   "mmio_max=%.1fus pcmono=%d neg=%d pc_last=%llu %s\n",
+                   srr.rlog.size(), (unsigned long long)srr.reads,
+                   (unsigned long long)sum_ddma, (unsigned long long)srr.dwords,
+                   (unsigned long long)sum_dw, (unsigned long long)srr.drop, mmax,
+                   (int)pcmono, (int)negt,
+                   (unsigned long long)(srr.rlog.empty() ? 0 : srr.rlog.back().pc),
+                   passr ? "OK" : "FAIL");
+            if (!passr) bad = 1;
+            // T15b 负对照: readlog=0 ⇒ **一条记录都没有** (逐位不变模式不许偷偷记账)
+            StreamOpts o2 = o; o2.readlog = 0;
+            static MemIo mr2; static MemStreamIo str2;
+            mr2.bid = 0x22; mr2.ver = VER_ST;
+            str2.reg = &mr2; str2.data = visr.data(); str2.len = VIS; str2.hole_at = G;
+            str2.src_k = K; str2.drop_total = D; str2.mirror_resid = MR; str2.shaper_resid = SR;
+            str2.max_per_read = 8192; str2.arm();
+            StreamRes srr2 = run_stream(mr2, str2, dstr.data(), dstr.size(), o2);
+            bool passr2 = (srr2.rlog.empty()) && (srr2.reads == srr.reads) && (srr2.bytes == srr.bytes);
+            printf("MIR_SELFTEST T15b readlog-off n=%zu (期望 0) reads=%llu bytes=%llu %s\n",
+                   srr2.rlog.size(), (unsigned long long)srr2.reads,
+                   (unsigned long long)srr2.bytes, passr2 ? "OK" : "FAIL");
+            if (!passr2) bad = 1;
+        }
         // T11 ver 两态 × 三路径的门矩阵 (6 格; 越轨必须被拒)
         {
             struct { int path; uint32_t ver; bool want; const char *tag; } V[] = {
@@ -1216,6 +1987,21 @@ int main(int argc, char **argv) {
             printf("MIR_SELFTEST T13 bigbuf mb=%u alloc=%d writable=%d zero-fail-path=%d %s\n",
                    buf_mb, (int)ok1, (int)ok2, (int)ok3, (ok1 && ok2 && ok3) ? "OK" : "FAIL");
             if (!(ok1 && ok2 && ok3)) bad = 1;
+            // T13b ⭐ 2026-10-13: 1 GiB 大页缓冲 (C1a 臂) —— 有页可分配时必须可写; 无页环境按 SKIP 记
+            {
+                uint8_t *hp = buf_alloc_huge(1ull << 30);
+                if (!hp) {
+                    printf("MIR_SELFTEST T13b hugebuf: SKIP (MAP_HUGETLB 1 GiB 分配失败 —— pool 无页?)\n");
+                } else {
+                    bool w = true;
+                    hp[0] = 7; hp[(1ull << 30) - 1] = 7; hp[1ull << 29] = 7;
+                    memset(hp, 0, 1ull << 30);
+                    w = (hp[0] == 0 && hp[1ull << 29] == 0 && hp[(1ull << 30) - 1] == 0);
+                    buf_free_huge(hp, 1ull << 30);
+                    printf("MIR_SELFTEST T13b hugebuf alloc=1 writable=%d %s\n", (int)w, w ? "OK" : "FAIL");
+                    if (!w) bad = 1;
+                }
+            }
         }
 #ifndef _WIN32
         // T14 (子进程) --stream 参数门的**退出码**有牙: 违规必须在打开设备之前 RC=2 且打 FATAL
@@ -1231,6 +2017,12 @@ int main(int argc, char **argv) {
                     {"--stream --bytes 65540 --bid 0x22",               2, "--bytes",  "want%8!=0"},
                     {"--stream --bytes 8192 --buf-mb 0 --bid 0x22",     2, "--buf-mb", "buf-mb 0"},
                     {"--stream --dma --bid 0x22 --bytes 8192",          2, "互斥",     "stream+dma"},
+                    // ⭐ 2026-10-13: 新参数门 (都在打开设备之前)
+                    {"--stream --aio 2 --chunk 1088 --bid 0x22 --bytes 8192 --k-bytes 8192", 2, "4 KB 对齐", "aio chunk 非 4K"},
+                    {"--stream --aio 2 --bid 0x22 --bytes 8192",                 2, "--k-bytes", "aio 缺 K_src"},
+                    {"--stream --aio 200 --bid 0x22 --bytes 8192",              2, "--aio",     "aio depth 越界"},
+                    {"--stream --aio 8 --chunk 1048576 --bid 0x22 --bytes 8192 --k-bytes 8192", 2, "越限", "depth×desc 越限"},
+                    {"--stream --readlog 5 --bid 0x22 --bytes 8192",            2, "--readlog", "readlog 只认 0|1"},
                 };
                 int nb = 0;
                 for (auto &t : S) {
@@ -1314,13 +2106,18 @@ int main(int argc, char **argv) {
         }
         // PC 侧大缓冲: 预分配一次 (声明在循环外; 全程**不重分配**)
         const size_t buf_bytes = (size_t)buf_mb << 20;
-        uint8_t *buf = buf_alloc(buf_bytes, true);
-        if (!buf) {
-            fprintf(stderr, "FATAL: 预分配 %zu B PC 缓冲失败 (--buf-mb %u) —— 不降级、不静默\n",
-                    buf_bytes, buf_mb);
+        if (buf_huge && (buf_bytes % (1ull << 30))) {
+            fprintf(stderr, "FATAL: --buf-huge 要求 --buf-mb 是 1024 的倍数 (1 GiB 页); 给了 %u\n", buf_mb);
             return 2;
         }
-        printf("MIR_STREAM_BUF bytes=%zu mb=%u prefault=1 aligned=4096\n", buf_bytes, buf_mb);
+        uint8_t *buf = buf_huge ? buf_alloc_huge(buf_bytes) : buf_alloc(buf_bytes, true);
+        if (!buf) {
+            fprintf(stderr, "FATAL: 预分配 %zu B PC 缓冲失败 (--buf-mb %u%s) —— 不降级、不静默\n",
+                    buf_bytes, buf_mb, buf_huge ? " --buf-huge 1 (1 GiB 大页, 需 pool 有页且 size 为 1 GiB 倍数)" : "");
+            return 2;
+        }
+        printf("MIR_STREAM_BUF bytes=%zu mb=%u prefault=1 aligned=4096 huge=%d\n", buf_bytes, buf_mb,
+               (int)buf_huge);
         printf("MIR_STREAM_CFG dev=%s bytes=%llu chunk=%llu resid_max_shaper=%u resid_max_mirror=%u "
                "k_bytes=%llu settle=%.2f sample_ms=%.1f arm=%d src=%d\n",
                stream_dev ? stream_dev : dma_dev, (unsigned long long)want, (unsigned long long)chunk,
@@ -1328,6 +2125,9 @@ int main(int argc, char **argv) {
                (int)!noarm, src_sel);
         printf("MIR_STREAM_ALIGN want_mod_64=%llu chunk_mod_64=%llu (PG195: 描述符长度须 64 B 倍数)\n",
                (unsigned long long)(want % 64u), (unsigned long long)(chunk % 64u));
+        // ⭐ 2026-10-13: 本轮新增两条 (自定义行, 既有行不动)
+        printf("MIR_STREAM_CFG2 readlog=%d aio_depth=%d (readlog=1 每 read 一行 READLOG; "
+               "aio_depth>0 = 流水提交读)\n", readlog, aio_depth);
         // 看门狗 (只有显式 --seconds 才武装; 默认 0 = 不武装 → 阻塞 read 可能久等)
         double wd_s = secs_given ? secs : 0.0;
         printf("MIR_STREAM_WATCHDOG secs=%.1f (0=off; SIGALRM 打断阻塞 read)\n", wd_s);
@@ -1336,19 +2136,41 @@ int main(int argc, char **argv) {
             struct sigaction sa; memset(&sa, 0, sizeof(sa));
             sa.sa_handler = on_alarm;                 // 不置 SA_RESTART ⇒ 阻塞 read 被 EINTR 打断
             sigaction(SIGALRM, &sa, nullptr);
-            alarm((unsigned)(wd_s + 0.999));
+            // ⭐ 2026-10-13 (dual 轮实测坑): `alarm()` 只响一次 —— 若那一次落在**不在 read 里**的
+            //   线程上, 另一个阻塞在 read 的线程**永远收不到** ⇒ 只能等驱动 10 s 超时 (D1M 实测
+            //   墙钟 13.9 s / read_error=1)。改用**周期定时器** (250 ms) ⇒ 每个阻塞线程轮到自己。
+            struct itimerval it; memset(&it, 0, sizeof(it));
+            it.it_value.tv_sec = (time_t)(wd_s + 0.999);
+            it.it_interval.tv_sec = 0;
+            it.it_interval.tv_usec = 250000;
+            setitimer(ITIMER_REAL, &it, nullptr);
         }
 #endif
-        FdStreamIo sio(stream_dev ? stream_dev : dma_dev);
         StreamOpts so;
         so.want = want; so.chunk = chunk;
         so.resid_max_mirror = resid_max_mirror; so.resid_max_shaper = resid_max_shaper;
         so.k_bytes = k_bytes;
         so.settle_s = settle_s; so.sample_ms = sample_ms;
         so.arm = !noarm; so.src_sel = src_sel; so.strict_quiesce = strict_quiesce;
-        StreamRes sr = run_stream(io, sio, buf, buf_bytes, so);
+        so.readlog = readlog; so.aio_depth = aio_depth;
+        so.aio_reserve = (uint64_t)aio_reserve_mib << 20;
+        so.dual = dual; so.dual_stagger_ms = dual_stagger_ms;
+        StreamRes sr;
+        if (dual == 2) {
+            sr = run_stream_dual(io, stream_dev ? stream_dev : dma_dev, buf, buf_bytes, so);
+        } else if (aio_depth > 0) {
+            // ⚠️ AIO 档自己 open 设备 (ST C2H 只允许**一个** opener: `char_sgdma_open` 的
+            //    `engine->device_open` 门) ⇒ 这里**不能**再构造 FdStreamIo (否则第二个 open -EBUSY)。
+            sr = run_stream_aio(io, stream_dev ? stream_dev : dma_dev, buf, buf_bytes, so);
+        } else {
+            FdStreamIo sio(stream_dev ? stream_dev : dma_dev);
+            sr = run_stream(io, sio, buf, buf_bytes, so);
+        }
 #ifndef _WIN32
-        if (wd_s > 0) alarm(0);
+        if (wd_s > 0) {
+            struct itimerval z; memset(&z, 0, sizeof(z));
+            setitimer(ITIMER_REAL, &z, nullptr);
+        }
 #endif
         // ---- 原始值全打 (U1) ----
         printf("MIR_STREAM_DONE pc=%llu reads=%llu partial=%llu nonmul64=%llu short=%d ended_early=%d "
@@ -1357,6 +2179,9 @@ int main(int argc, char **argv) {
                (unsigned long long)sr.partial, (unsigned long long)sr.nonmul64, sr.short_reads,
                (int)sr.ended_early, (int)sr.read_error, sr.secs,
                sr.secs > 0 ? (double)sr.bytes / sr.secs : 0.0);
+        if (sr.aio_depth_used > 0)
+            printf("MIR_STREAM_AIO_SUM depth=%d submitted=%llu pending_end=%d (0 = 收尾零在飞 = 可干净退出)\n",
+                   sr.aio_depth_used, (unsigned long long)sr.aio_submitted, sr.aio_pending_end);
         printf("MIR_STREAM_ACCT pc=%llu taken_bytes=%llu dW70=%llu w70a=%u w70b=%u words0=%u words1=%u "
                "dwords=%llu K=%llu\n",
                (unsigned long long)sr.bytes, (unsigned long long)sr.taken,
@@ -1407,6 +2232,9 @@ int main(int argc, char **argv) {
         }
         printf("MIR_STREAM_NOTE 采样本身在流上=自造空档 (%zu 点); 首版板内不加缓冲 ⇒ 宿主空档直接变丢字节\n",
                sr.series.size());
+        // ⭐⭐⭐ 2026-10-13 仪器: 逐 read 原始表 (独立 READLOG 行; 全部 = 追加, 既有行一字不动)
+        if (readlog > 0) print_readlog(sr);
+        else printf("READLOG_OFF (--readlog 0: 逐 read 仪器未启用; 既有行为逐位不变)\n");
         // 落盘
         if (sr.bytes) {
             FILE *f = fopen(out, "wb");
@@ -1447,7 +2275,7 @@ int main(int argc, char **argv) {
             printf("MIR_STREAM_QUIESCE_OVERRIDE strict=0 level_end=%u (显式放行: 前提未见证, 账本按\"不可判\"读)\n",
                    sr.level_end);
         }
-        free(buf);
+        if (buf_huge) buf_free_huge(buf, buf_bytes); else free(buf);
         return fail ? 1 : 0;
     }
 

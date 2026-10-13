@@ -1,0 +1,99 @@
+=== WIN ORD1 K=67108864 MBPS=100 PAYLEN=1472 BATCH=32 SECS=12 SAMPLE_MS=1000 CHUNK=4194304 READLOG=1 AIO=0 PIN=none TOOL=/tmp/p9_hostread/p7b_mir_dump T0=1791849602.068322797
+--- 环境见证 ---
+TOOL_MD5=7cebded7e9270b6a2d81f5db29843f4d
+Adaptive RX: off  TX: n/a rx-usecs:0 rx-usecs-irq:0 rx-usecs-low:n/a rx-usecs-high:n/a 
+CARRIER_PRE=1
+NIC_PRE:      port_tx_bytes: 95320708306      port_tx_packets: 62795744      port_rx_bytes: 3923135536622      port_rx_packets: 2584411049 
+SOFTIRQ_PRE:       NET_TX:       5106      77073      79543     130313          0        260       4739         97       NET_RX:   59264979    7943313    6542194   11505625       3517       4799      52551       1265 
+--- pre 快照 ---
+SNAP_BEGIN ORD1_pre gen=8234
+W0   0x20   rx_stat_frames         0x03be2fe2
+W1   0x24   rx_stat_bytes          0x318e9764
+W5   0x34   gmii_free_FE           0x1dac53a9
+W10  0x48   udpapp_rx_frames       0x03be22f8
+W11  0x4C   udpapp_rx_bytes        0x85472aa0
+W13  0x54   udpapp_mismatch        0x55dbf2b3
+W70  0x138  mir_drop_bytes         0x4a666698
+W46  0xD8   cls_dbg_stat_ovf       0x00000000
+W47  0xDC   cls_dbg_stat_route_ovf 0x00000000
+W48  0xE0   cls_dbg_stat_stall_in  0x00000000
+W49  0xE4   cls_dbg_occ            0x00000000
+SNAP_END ORD1_pre nff=0
+OFF_AUTO: W11=0x85472aa0 => OFF=2236033696
+--- 起 mir_dump: /tmp/p9_hostread/p7b_mir_dump --bid 0x00000023 --bytes 67108864 --stream --src udp --pat-off 2236033696 --buf-mb 1024 --sample-ms 1000 --settle 0.3 --seconds 12 --readlog 1 --chunk 4194304 --dual 2 ---
+TOOL_ARGS: --bid 0x00000023 --bytes 67108864 --stream --src udp --pat-off 2236033696 --buf-mb 1024 --sample-ms 1000 --settle 0.3 --seconds 12 --readlog 1 --chunk 4194304 --dual 2
+READER_CPUS_ALLOWED=Cpus_allowed_list:0-7 READER_CPU_START=3
+--- 起发端 (有界: --bytes 67108864, --mbps 100) TS=1791849603.174969337 ---
+SRC_RC=0 TE=1791849612.276685689
+TOOL_RC=1 TZ=1791849625.943410418 (墙钟 TZ-TSTART=23.776s)
+--- mir_dump 日志 (逐字) ---
+MIR_ID magic=50360001 (exp 50360001) bid=00000023 (exp 00000023)
+MIR_SRC src_sel=0 readback=0
+MIR_STATUS ver=4 src_sel=0 cap=0 any_drop=1 unf=0 level=0
+MIR_VER ver=4 path=stream expect=4 unimpl=0x14C
+MIR_UNIMPL addr=14c val=ffffffff (exp ffffffff)
+MIR_STREAM_BUF bytes=1073741824 mb=1024 prefault=1 aligned=4096 huge=0
+MIR_STREAM_CFG dev=/dev/xdma0_c2h_0 bytes=67108864 chunk=4194304 resid_max_shaper=32 resid_max_mirror=24 k_bytes=0 settle=0.30 sample_ms=1000.0 arm=1 src=0
+MIR_STREAM_ALIGN want_mod_64=0 chunk_mod_64=0 (PG195: 描述符长度须 64 B 倍数)
+MIR_STREAM_CFG2 readlog=1 aio_depth=0 (readlog=1 每 read 一行 READLOG; aio_depth>0 = 流水提交读)
+MIR_STREAM_WATCHDOG secs=12.0 (0=off; SIGALRM 打断阻塞 read)
+MIR_STREAM_DONE pc=62914560 reads=15 partial=0 nonmul64=0 short=1 ended_early=1 read_error=0 secs=19.850 rate_Bps=3169547
+MIR_STREAM_ACCT pc=62914560 taken_bytes=66809912 dW70=298952 w70a=1248224920 w70b=1248523872 words0=0 words1=16702478 dwords=16702478 K=67108864
+MIR_STREAM_QUIESCE level_end=0 quiesced=1 premise_level0=1 waited_ms=0.0 settle_s=0.30 strict=1 (前提: FIFO 尾部已排空; 打包器残留由 FPGA 侧停流 flush 清)
+MIR_STREAM_IDA 式A(成形器) taken_bytes - pc == shaper_resid -> 3895352  band=[0,32] closed_a=0
+MIR_STREAM_IDB 式B(镜像/K) K - taken_bytes - dW70 == mirror_resid -> 0  band=[0,24] closed_b=1 (K 来源=--bytes; --resid-max 旧名未用)
+MIR_STREAM_WRAP words0=0 words1=16702478 wrap_seen=0 dword_max_step=3146376 (回卷余量: 单步 <2^32)
+MIR_STREAM_SAMPLE i=0 t=0.000 pc=0 drop=1248224920 words=0 dword_acc=0
+MIR_STREAM_SAMPLE i=1 t=4.453 pc=4194304 drop=1248267872 words=1049102 dword_acc=1049102
+MIR_STREAM_SAMPLE i=2 t=5.512 pc=16777216 drop=1248310880 words=4194318 dword_acc=4194318
+MIR_STREAM_SAMPLE i=3 t=6.575 pc=29360128 drop=1248396352 words=7340694 dword_acc=7340694
+MIR_STREAM_SAMPLE i=4 t=7.634 pc=41943040 drop=1248439376 words=10485906 dword_acc=10485906
+MIR_STREAM_SAMPLE i=5 t=8.693 pc=54525952 drop=1248480864 words=13631502 dword_acc=13631502
+MIR_STREAM_SAMPLE i=6 t=19.850 pc=62914560 drop=1248523872 words=16702478 dword_acc=16702478
+MIR_STREAM_GAP first=0 last=3895352 max=3895352 nondecreasing=0 host_miss_bytes=3895352 host_miss_pct=5.8305 (= (taken-pc)/taken; 宿主跟不上的比例)
+MIR_STREAM_NOTE 采样本身在流上=自造空档 (7 点); 首版板内不加缓冲 ⇒ 宿主空档直接变丢字节
+READLOG i=0 t=4.452761 gap_us=0.0 mmio_us=5.5 read_us=4452680.0 got=4194304 pc=4194304 w70=1248267872 dw70=42952 dma=1049102 ddma=1049102
+READLOG i=1 t=5.160195 gap_us=11.4 mmio_us=5.3 read_us=707417.4 got=4194304 pc=12582912 w70=1248310880 dw70=43008 dma=3146254 ddma=1049088
+READLOG i=2 t=5.867631 gap_us=1.5 mmio_us=6.2 read_us=707428.2 got=4194304 pc=20971520 w70=1248353888 dw70=43008 dma=5243406 ddma=1049088
+READLOG i=3 t=6.574883 gap_us=3.1 mmio_us=5.2 read_us=707242.9 got=4194304 pc=29360128 w70=1248396352 dw70=42464 dma=7340694 ddma=1049224
+READLOG i=4 t=7.282359 gap_us=5.8 mmio_us=5.2 read_us=707465.3 got=4194304 pc=37748736 w70=1248439376 dw70=43024 dma=9437842 ddma=1049084
+READLOG i=5 t=7.989905 gap_us=1.8 mmio_us=5.4 read_us=707538.8 got=4194304 pc=46137344 w70=1248479968 dw70=40592 dma=11535598 ddma=1049692
+READLOG i=6 t=8.693354 gap_us=0.3 mmio_us=5.5 read_us=703442.4 got=4194304 pc=54525952 w70=1248480864 dw70=0 dma=13631502 ddma=1048064
+READLOG i=7 t=9.400535 gap_us=5.9 mmio_us=20.3 read_us=707154.7 got=4194304 pc=62914560 w70=1248523872 dw70=0 dma=15728654 ddma=1048064
+READLOG i=8 t=4.804553 gap_us=0.0 mmio_us=5.3 read_us=4802362.0 got=4194304 pc=8388608 w70=1248267872 dw70=0 dma=2097166 ddma=1048064
+READLOG i=9 t=5.511946 gap_us=27.7 mmio_us=5.3 read_us=707359.5 got=4194304 pc=16777216 w70=1248310880 dw70=0 dma=4194318 ddma=1048064
+READLOG i=10 t=6.219344 gap_us=7.2 mmio_us=5.3 read_us=707386.1 got=4194304 pc=25165824 w70=1248353888 dw70=0 dma=6291470 ddma=1048064
+READLOG i=11 t=6.926655 gap_us=1.2 mmio_us=5.1 read_us=707304.4 got=4194304 pc=33554432 w70=1248396352 dw70=0 dma=8388758 ddma=1048064
+READLOG i=12 t=7.634180 gap_us=0.3 mmio_us=4.9 read_us=707519.7 got=4194304 pc=41943040 w70=1248439376 dw70=0 dma=10485906 ddma=1048064
+READLOG i=13 t=8.341582 gap_us=7.9 mmio_us=5.2 read_us=707388.0 got=4194304 pc=50331648 w70=1248480864 dw70=896 dma=12583438 ddma=1047840
+READLOG i=14 t=9.048876 gap_us=0.4 mmio_us=5.3 read_us=707288.6 got=4194304 pc=58720256 w70=1248523872 dw70=43008 dma=14680590 ddma=1049088
+READLOG_SUM n=15 gap_us[min=0.0 med=1.8 max=27.7 sum_ms=0.075] mmio_us[min=4.9 med=5.3 max=20.3 sum_ms=0.095] read_us[min=703442.4 med=707388.0 max=4802362.0 sum_ms=18446.978] dw70_total=298952 ddma_total=15728654 (gap=读数之间宿主账面; mmio=本仪器自身; read=read 调用/AIO 生命期; dw70/ddma=区间增量)
+MIR_VERIFY rc=1 first_mismatch=4196408 of pc=62914560 (want=67108864; 不足量看式B)
+FAIL: content mismatch at 4196408
+FAIL: 式 A (成形器) 不成立: taken_bytes(66809912) - pc(62914560) = 3895352 ∉ [0,32] (成形器/在飞残余越界)
+--- 发端关键行 ---
+[p1] PIN_RULE=avoid-nic PIN_DEGRADED=none PIN_CPU=6 PIN_CORES_ONLINE=0-7 PIN_NIC_IFACE=enp1s0f0np0,enp1s0f1np1 PIN_NIC_CPUS=0,1,2,3,4,5 PIN_NIC_EXCLUDED=none PIN_CORE_LOAD=6679028 PIN_ALLOWED_MASK=40 PIN_GETCPU_START=6 PIN_FREQ_START_KHZ=800000 PIN_GOV=schedutil PIN_NIC_IRQLINES=12 PIN_NIC_IFACE_SRC=auto PIN_TUPLE_ORDER=own_sib_t PIN_PAIR_RULE=n/a PIN_PAIR_DEGRADED=n/a PIN_CPU_IO=n/a PIN_CPU_WORK=n/a PIN_PC_IO=n/a PIN_PC_WORK=n/a PIN_PAIR_EXCL=n/a PIN_PAIR_REQ=n/a UDP_SUM pkts=45591 pay_bytes=67108864 dur_s=5.630 pps=8097 pay_Mbps=95.351 wire_Mbps=98.072 off_start=2236033696 off_end=2303142560 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1 
+--- post 快照 ---
+SNAP_BEGIN ORD1_post gen=8260
+W0   0x20   rx_stat_frames         0x03bee211
+W1   0x24   rx_stat_bytes          0x35aecf36
+W5   0x34   gmii_free_FE           0xfbaebe1c
+W10  0x48   udpapp_rx_frames       0x03bed50f
+W11  0x4C   udpapp_rx_bytes        0x89472aa0
+W13  0x54   udpapp_mismatch        0x59d7f0f9
+W70  0x138  mir_drop_bytes         0x4a6af660
+W46  0xD8   cls_dbg_stat_ovf       0x00000000
+W47  0xDC   cls_dbg_stat_route_ovf 0x00000000
+W48  0xE0   cls_dbg_stat_stall_in  0x00000000
+W49  0xE4   cls_dbg_occ            0x00000000
+SNAP_END ORD1_post nff=0
+NIC_POST:      port_tx_bytes: 95389929270      port_tx_packets: 62841361      port_rx_bytes: 3953332242390      port_rx_packets: 2604303478 
+SOFTIRQ_POST:       NET_TX:       5106      77073      79543     130338          0        260       4758         97       NET_RX:   59904979    7943313    6542196   11517681       3520       4800      52585       1266 
+--- 读侧 CPU 采样 (末 4 行; 全文在 rstat_ORD1.log) ---
+READER_STAT i=21 t=1791849622.628433338 utime=0 stime=0 threads=1
+READER_STAT i=22 t=1791849623.631056255 utime=0 stime=0 threads=1
+READER_STAT i=23 t=1791849624.633916623 utime=0 stime=0 threads=1
+READER_STAT i=24 t=1791849625.636341883 utime=0 stime=0 threads=1
+--- 文件 ---
+-rw-r--r-- 1 root root 62914560 Oct 13 08:00 ./mir_ORD1.bin
+=== END ORD1 1791849626.007502769

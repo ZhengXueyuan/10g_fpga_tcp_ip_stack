@@ -1,0 +1,116 @@
+=== WIN N32b K=1073741824 MBPS=0 PAYLEN=1472 BATCH=32 SECS=6 SAMPLE_MS=1000 CHUNK=33554432 READLOG=1 AIO=0 PIN=none TOOL=/tmp/p9_hostread/p7b_mir_dump T0=1791848848.261510672
+--- 环境见证 ---
+TOOL_MD5=441796f68c5af0f6dfd77a223ffd89aa
+Adaptive RX: off  TX: n/a rx-usecs:0 rx-usecs-irq:0 rx-usecs-low:n/a rx-usecs-high:n/a 
+CARRIER_PRE=1
+NIC_PRE:      port_tx_bytes: 82032703684      port_tx_packets: 54041621      port_rx_bytes: 2997384544004      port_rx_packets: 1974561849 
+SOFTIRQ_PRE:       NET_TX:       4664      77041      79429     130133          0        258       4651         36       NET_RX:   46847818    5910044    5972112   10106081       3376       4583      50306       1164 
+--- pre 快照 ---
+SNAP_BEGIN N32b_pre gen=2300
+W0   0x20   rx_stat_frames         0x03389c16
+W1   0x24   rx_stat_bytes          0x1987bb16
+W5   0x34   gmii_free_FE           0xb0ce7b9d
+W10  0x48   udpapp_rx_frames       0x03389236
+W11  0x4C   udpapp_rx_bytes        0x85472aa0
+W13  0x54   udpapp_mismatch        0x58dbedf1
+W70  0x138  mir_drop_bytes         0x00440130
+W46  0xD8   cls_dbg_stat_ovf       0x00000000
+W47  0xDC   cls_dbg_stat_route_ovf 0x00000000
+W48  0xE0   cls_dbg_stat_stall_in  0x00000000
+W49  0xE4   cls_dbg_occ            0x00000000
+SNAP_END N32b_pre nff=0
+OFF_AUTO: W11=0x85472aa0 => OFF=2236033696
+OFF_FIX: W11=0x85472aa0 但 FIXOFF 生效 => OFF=0
+--- 起 mir_dump: /tmp/p9_hostread/p7b_mir_dump --bid 0x00000023 --bytes 1073741824 --stream --src udp --pat-off 0 --buf-mb 1024 --sample-ms 1000 --settle 0.3 --seconds 6 --readlog 1 --chunk 33554432 --no-verify ---
+TOOL_ARGS: --bid 0x00000023 --bytes 1073741824 --stream --src udp --pat-off 0 --buf-mb 1024 --sample-ms 1000 --settle 0.3 --seconds 6 --readlog 1 --chunk 33554432 --no-verify
+READER_CPUS_ALLOWED=Cpus_allowed_list:0-7 READER_CPU_START=1
+--- 起发端 (有界: --bytes 1073741824, --mbps 0) TS=1791848849.334333200 ---
+SRC_RC=0 TE=1791848852.732580284
+TOOL_RC=1 TZ=1791848865.199758119 (墙钟 TZ-TSTART=16.873s)
+--- mir_dump 日志 (逐字) ---
+MIR_ID magic=50360001 (exp 50360001) bid=00000023 (exp 00000023)
+MIR_SRC src_sel=0 readback=0
+MIR_STATUS ver=4 src_sel=0 cap=0 any_drop=1 unf=0 level=0
+MIR_VER ver=4 path=stream expect=4 unimpl=0x14C
+MIR_UNIMPL addr=14c val=ffffffff (exp ffffffff)
+MIR_STREAM_BUF bytes=1073741824 mb=1024 prefault=1 aligned=4096 huge=0
+MIR_STREAM_CFG dev=/dev/xdma0_c2h_0 bytes=1073741824 chunk=33554432 resid_max_shaper=32 resid_max_mirror=24 k_bytes=0 settle=0.30 sample_ms=1000.0 arm=1 src=0
+MIR_STREAM_ALIGN want_mod_64=0 chunk_mod_64=0 (PG195: 描述符长度须 64 B 倍数)
+MIR_STREAM_CFG2 readlog=1 aio_depth=0 (readlog=1 每 read 一行 READLOG; aio_depth>0 = 流水提交读)
+MIR_STREAM_WATCHDOG secs=6.0 (0=off; SIGALRM 打断阻塞 read)
+MIR_STREAM_END saw=read/看门狗截断 pc=1056964608 want=1073741824 (由两式解释不足量)
+MIR_STREAM_DONE pc=1056964608 reads=32 partial=1 nonmul64=0 short=1 ended_early=1 read_error=0 secs=16.451 rate_Bps=64250390
+MIR_STREAM_ACCT pc=1056964608 taken_bytes=1061871672 dW70=11870152 w70a=4456752 w70b=16326904 words0=0 words1=265467918 dwords=265467918 K=1073741824
+MIR_STREAM_QUIESCE level_end=0 quiesced=1 premise_level0=1 waited_ms=0.0 settle_s=0.30 strict=1 (前提: FIFO 尾部已排空; 打包器残留由 FPGA 侧停流 flush 清)
+MIR_STREAM_IDA 式A(成形器) taken_bytes - pc == shaper_resid -> 4907064  band=[0,32] closed_a=0
+MIR_STREAM_IDB 式B(镜像/K) K - taken_bytes - dW70 == mirror_resid -> 0  band=[0,24] closed_b=1 (K 来源=--bytes; --resid-max 旧名未用)
+MIR_STREAM_WRAP words0=0 words1=265467918 wrap_seen=0 dword_max_step=83886080 (回卷余量: 单步 <2^32)
+MIR_STREAM_SAMPLE i=0 t=0.000 pc=0 drop=4456752 words=0 dword_acc=0
+MIR_STREAM_SAMPLE i=1 t=1.077 pc=134217728 drop=6320376 words=33554440 dword_acc=33554440
+MIR_STREAM_SAMPLE i=2 t=2.148 pc=469762048 drop=9966864 words=117440520 dword_acc=117440520
+MIR_STREAM_SAMPLE i=3 t=3.218 pc=805306368 drop=13608824 words=201326600 dword_acc=201326600
+MIR_STREAM_SAMPLE i=4 t=6.000 pc=1056964608 drop=16326904 words=265467918 dword_acc=265467918
+MIR_STREAM_SAMPLE i=5 t=16.451 pc=1056964608 drop=16326904 words=265467918 dword_acc=265467918
+MIR_STREAM_GAP first=0 last=4907064 max=4907064 nondecreasing=1 host_miss_bytes=4907064 host_miss_pct=0.4621 (= (taken-pc)/taken; 宿主跟不上的比例)
+MIR_STREAM_NOTE 采样本身在流上=自造空档 (6 点); 首版板内不加缓冲 ⇒ 宿主空档直接变丢字节
+READLOG i=0 t=0.754345 gap_us=0.0 mmio_us=5.3 read_us=754327.7 got=33554432 pc=33554432 w70=4772408 dw70=315656 dma=8388616 ddma=8388616
+READLOG i=1 t=0.861773 gap_us=2.0 mmio_us=5.1 read_us=107420.6 got=33554432 pc=67108864 w70=5306248 dw70=533840 dma=16777224 ddma=8388608
+READLOG i=2 t=0.969022 gap_us=3.9 mmio_us=5.0 read_us=107239.8 got=33554432 pc=100663296 w70=5806840 dw70=500592 dma=25165832 ddma=8388608
+READLOG i=3 t=1.077346 gap_us=1.0 mmio_us=5.3 read_us=108317.7 got=33554432 pc=134217728 w70=6320376 dw70=513536 dma=33554440 ddma=8388608
+READLOG i=4 t=1.184952 gap_us=6.5 mmio_us=5.1 read_us=107594.5 got=33554432 pc=167772160 w70=6710264 dw70=389888 dma=41943048 ddma=8388608
+READLOG i=5 t=1.291795 gap_us=1.2 mmio_us=5.1 read_us=106836.6 got=33554432 pc=201326592 w70=7069240 dw70=358976 dma=50331656 ddma=8388608
+READLOG i=6 t=1.398688 gap_us=0.1 mmio_us=5.1 read_us=106887.1 got=33554432 pc=234881024 w70=7427184 dw70=357944 dma=58720264 ddma=8388608
+READLOG i=7 t=1.505628 gap_us=0.2 mmio_us=4.6 read_us=106935.4 got=33554432 pc=268435456 w70=7800440 dw70=373256 dma=67108872 ddma=8388608
+READLOG i=8 t=1.612516 gap_us=0.1 mmio_us=5.0 read_us=106883.1 got=33554432 pc=301989888 w70=8156472 dw70=356032 dma=75497480 ddma=8388608
+READLOG i=9 t=1.719879 gap_us=1.5 mmio_us=5.1 read_us=107356.1 got=33554432 pc=335544320 w70=8517192 dw70=360720 dma=83886088 ddma=8388608
+READLOG i=10 t=1.826787 gap_us=0.2 mmio_us=5.1 read_us=106902.7 got=33554432 pc=369098752 w70=8870928 dw70=353736 dma=92274696 ddma=8388608
+READLOG i=11 t=1.933736 gap_us=0.2 mmio_us=5.0 read_us=106944.1 got=33554432 pc=402653184 w70=9228896 dw70=357968 dma=100663304 ddma=8388608
+READLOG i=12 t=2.040815 gap_us=0.1 mmio_us=5.0 read_us=107072.8 got=33554432 pc=436207616 w70=9590104 dw70=361208 dma=109051912 ddma=8388608
+READLOG i=13 t=2.147930 gap_us=0.2 mmio_us=5.3 read_us=107109.7 got=33554432 pc=469762048 w70=9963128 dw70=373024 dma=117440520 ddma=8388608
+READLOG i=14 t=2.255307 gap_us=7.6 mmio_us=5.1 read_us=107364.2 got=33554432 pc=503316480 w70=10359808 dw70=396680 dma=125829128 ddma=8388608
+READLOG i=15 t=2.362285 gap_us=0.1 mmio_us=5.0 read_us=106972.9 got=33554432 pc=536870912 w70=10720392 dw70=360584 dma=134217736 ddma=8388608
+READLOG i=16 t=2.469658 gap_us=0.2 mmio_us=5.0 read_us=107368.0 got=33554432 pc=570425344 w70=11077168 dw70=356776 dma=142606344 ddma=8388608
+READLOG i=17 t=2.576583 gap_us=6.9 mmio_us=5.0 read_us=106913.4 got=33554432 pc=603979776 w70=11444024 dw70=366856 dma=150994952 ddma=8388608
+READLOG i=18 t=2.683922 gap_us=0.2 mmio_us=5.1 read_us=107333.3 got=33554432 pc=637534208 w70=11805112 dw70=361088 dma=159383560 ddma=8388608
+READLOG i=19 t=2.791137 gap_us=0.4 mmio_us=5.0 read_us=107208.9 got=33554432 pc=671088640 w70=12165560 dw70=360448 dma=167772168 ddma=8388608
+READLOG i=20 t=2.898034 gap_us=0.2 mmio_us=5.0 read_us=106892.3 got=33554432 pc=704643072 w70=12520120 dw70=354560 dma=176160776 ddma=8388608
+READLOG i=21 t=3.005039 gap_us=0.2 mmio_us=5.1 read_us=107000.0 got=33554432 pc=738197504 w70=12882232 dw70=362112 dma=184549384 ddma=8388608
+READLOG i=22 t=3.111057 gap_us=0.2 mmio_us=5.2 read_us=106011.7 got=33554432 pc=771751936 w70=13249856 dw70=367624 dma=192937992 ddma=8388608
+READLOG i=23 t=3.218261 gap_us=0.4 mmio_us=5.0 read_us=107199.0 got=33554432 pc=805306368 w70=13605880 dw70=356024 dma=201326600 ddma=8388608
+READLOG i=24 t=3.325245 gap_us=5.8 mmio_us=5.0 read_us=106973.0 got=33554432 pc=838860800 w70=13963200 dw70=357320 dma=209715208 ddma=8388608
+READLOG i=25 t=3.431915 gap_us=0.2 mmio_us=5.0 read_us=106665.1 got=33554432 pc=872415232 w70=14325304 dw70=362104 dma=218103816 ddma=8388608
+READLOG i=26 t=3.538873 gap_us=0.2 mmio_us=5.1 read_us=106952.1 got=33554432 pc=905969664 w70=14684280 dw70=358976 dma=226492424 ddma=8388608
+READLOG i=27 t=3.645838 gap_us=0.2 mmio_us=5.1 read_us=106960.2 got=33554432 pc=939524096 w70=15044728 dw70=360448 dma=234881032 ddma=8388608
+READLOG i=28 t=3.753039 gap_us=0.2 mmio_us=4.6 read_us=107195.5 got=33554432 pc=973078528 w70=15408256 dw70=363528 dma=243269640 ddma=8388608
+READLOG i=29 t=3.859936 gap_us=0.2 mmio_us=5.0 read_us=106891.8 got=33554432 pc=1006632960 w70=15767096 dw70=358840 dma=251658248 ddma=8388608
+READLOG i=30 t=3.966960 gap_us=0.2 mmio_us=5.1 read_us=107018.7 got=33554432 pc=1040187392 w70=16126072 dw70=358976 dma=260046856 ddma=8388608
+READLOG i=31 t=6.000440 gap_us=0.2 mmio_us=5.3 read_us=2033474.4 got=16777216 pc=1056964608 w70=16326904 dw70=200832 dma=265467918 ddma=5421062
+READLOG_SUM n=32 gap_us[min=0.0 med=0.2 max=7.6 sum_ms=0.041] mmio_us[min=4.6 med=5.1 max=5.3 sum_ms=0.162] read_us[min=106011.7 med=107018.7 max=2033474.4 sum_ms=6000.222] dw70_total=11870152 ddma_total=265467918 (gap=读数之间宿主账面; mmio=本仪器自身; read=read 调用/AIO 生命期; dw70/ddma=区间增量)
+FAIL: 式 A (成形器) 不成立: taken_bytes(1061871672) - pc(1056964608) = 4907064 ∉ [0,32] (成形器/在飞残余越界)
+--- 发端关键行 ---
+PIN_RULE=avoid-nic PIN_DEGRADED=none PIN_CPU=5 PIN_CORES_ONLINE=0-7 PIN_NIC_IFACE=enp1s0f0np0,enp1s0f1np1 PIN_NIC_CPUS=0,1,2,3,4,5 PIN_NIC_EXCLUDED=none PIN_CORE_LOAD=5991926 PIN_ALLOWED_MASK=20 PIN_GETCPU_START=5 PIN_FREQ_START_KHZ=800000 PIN_GOV=schedutil PIN_NIC_IRQLINES=12 PIN_NIC_IFACE_SRC=auto PIN_TUPLE_ORDER=own_sib_t PIN_PAIR_RULE=n/a PIN_PAIR_DEGRADED=n/a PIN_CPU_IO=n/a PIN_CPU_WORK=n/a PIN_PC_IO=n/a PIN_PC_WORK=n/a PIN_PAIR_EXCL=n/a PIN_PAIR_REQ=n/a
+UDP_SUM pkts=729445 pay_bytes=1073741824 dur_s=3.394 pps=214915 pay_Mbps=2530.840 wire_Mbps=2603.052 off_start=0 off_end=1073741824 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+--- post 快照 ---
+SNAP_BEGIN N32b_post gen=2342
+W0   0x20   rx_stat_frames         0x0343bd8c
+W1   0x24   rx_stat_bytes          0x5b87e2ae
+W5   0x34   gmii_free_FE           0x4e87074a
+W10  0x48   udpapp_rx_frames       0x0343b39b
+W11  0x4C   udpapp_rx_bytes        0xc5472aa0
+W13  0x54   udpapp_mismatch        0x989bee8b
+W70  0x138  mir_drop_bytes         0x00f920f8
+W46  0xD8   cls_dbg_stat_ovf       0x00000000
+W47  0xDC   cls_dbg_stat_route_ovf 0x00000000
+W48  0xE0   cls_dbg_stat_stall_in  0x00000000
+W49  0xE4   cls_dbg_occ            0x00000000
+SNAP_END N32b_post nff=0
+NIC_POST:      port_tx_bytes: 83140010076      port_tx_packets: 54771083      port_rx_bytes: 3017759401100      port_rx_packets: 1987984021 
+SOFTIRQ_POST:       NET_TX:       4664      77050      79429     130133          0        260       4651         36       NET_RX:   47255556    6297356    5972113   10106083       3379       4584      50331       1165 
+--- 读侧 CPU 采样 (末 4 行; 全文在 rstat_N32b.log) ---
+READER_STAT i=14 t=1791848861.770991641 utime=0 stime=0 threads=1
+READER_STAT i=15 t=1791848862.773870306 utime=0 stime=0 threads=1
+READER_STAT i=16 t=1791848863.776599881 utime=0 stime=0 threads=1
+READER_STAT i=17 t=1791848864.779567596 utime=0 stime=0 threads=1
+--- 文件 ---
+crw-rw-rw- 1 root root 1, 3 Oct 12 22:31 /dev/null
+=== END N32b 1791848865.297241028

@@ -1,0 +1,54 @@
+=== WIN AI4M K=1073741824 MBPS=0 PAYLEN=1472 BATCH=32 SECS=6 SAMPLE_MS=1000 CHUNK=4194304 READLOG=1 AIO=2 PIN=none TOOL=/tmp/p9_hostread/p7b_mir_dump T0=1791849023.059783549
+--- 环境见证 ---
+TOOL_MD5=441796f68c5af0f6dfd77a223ffd89aa
+Adaptive RX: off  TX: n/a rx-usecs:0 rx-usecs-irq:0 rx-usecs-low:n/a rx-usecs-high:n/a 
+CARRIER_PRE=1
+NIC_PRE:      port_tx_bytes: 86461993066      port_tx_packets: 56959580      port_rx_bytes: 3212313431778      port_rx_packets: 2116148744 
+SOFTIRQ_PRE:       NET_TX:       4664      77055      79438     130138          0        260       4659         36       NET_RX:   49769551    6679477    6410049   10505959       3493       4699      51265       1236 
+--- pre 快照 ---
+SNAP_BEGIN AI4M_pre gen=5414
+W0   0x20   rx_stat_frames         0x0365225c
+W1   0x24   rx_stat_bytes          0x2189506a
+W5   0x34   gmii_free_FE           0x0cb9ae14
+W10  0x48   udpapp_rx_frames       0x036517ca
+W11  0x4C   udpapp_rx_bytes        0x85472aa0
+W13  0x54   udpapp_mismatch        0x57dbf6cb
+W70  0x138  mir_drop_bytes         0x02fcd050
+W46  0xD8   cls_dbg_stat_ovf       0x00000000
+W47  0xDC   cls_dbg_stat_route_ovf 0x00000000
+W48  0xE0   cls_dbg_stat_stall_in  0x00000000
+W49  0xE4   cls_dbg_occ            0x00000000
+SNAP_END AI4M_pre nff=0
+OFF_AUTO: W11=0x85472aa0 => OFF=2236033696
+OFF_FIX: W11=0x85472aa0 但 FIXOFF 生效 => OFF=0
+--- 起 mir_dump: /tmp/p9_hostread/p7b_mir_dump --bid 0x00000023 --bytes 1073741824 --stream --src udp --pat-off 0 --buf-mb 1024 --sample-ms 1000 --settle 0.3 --seconds 6 --readlog 1 --chunk 4194304 --aio 2 --k-bytes 1073741824 --no-verify ---
+TOOL_ARGS: --bid 0x00000023 --bytes 1073741824 --stream --src udp --pat-off 0 --buf-mb 1024 --sample-ms 1000 --settle 0.3 --seconds 6 --readlog 1 --chunk 4194304 --aio 2 --k-bytes 1073741824 --no-verify
+READER_CPUS_ALLOWED= READER_CPU_START=
+--- 起发端 (有界: --bytes 1073741824, --mbps 0) TS=1791849024.131843570 ---
+SRC_RC=0 TE=1791849027.062073346
+TOOL_RC=2 TZ=1791849027.063327817 (墙钟 TZ-TSTART=3.939s)
+--- mir_dump 日志 (逐字) ---
+FATAL: --aio 深度×描述符越限: depth(2)×(chunk/4096=1024) = 2048 > 1536 (C2H 引擎描述符环共 2048 条, desc_max=0x800; 多笔在飞共享环 ⇒ 留余量)
+--- 发端关键行 ---
+PIN_RULE=avoid-nic PIN_DEGRADED=none PIN_CPU=6 PIN_CORES_ONLINE=0-7 PIN_NIC_IFACE=enp1s0f0np0,enp1s0f1np1 PIN_NIC_CPUS=0,1,2,3,4,5 PIN_NIC_EXCLUDED=none PIN_CORE_LOAD=6545411 PIN_ALLOWED_MASK=40 PIN_GETCPU_START=6 PIN_FREQ_START_KHZ=3509242 PIN_GOV=schedutil PIN_NIC_IRQLINES=12 PIN_NIC_IFACE_SRC=auto PIN_TUPLE_ORDER=own_sib_t PIN_PAIR_RULE=n/a PIN_PAIR_DEGRADED=n/a PIN_CPU_IO=n/a PIN_CPU_WORK=n/a PIN_PC_IO=n/a PIN_PC_WORK=n/a PIN_PAIR_EXCL=n/a PIN_PAIR_REQ=n/a
+UDP_SUM pkts=729445 pay_bytes=1073741824 dur_s=2.926 pps=249297 pay_Mbps=2935.716 wire_Mbps=3019.480 off_start=0 off_end=1073741824 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+--- post 快照 ---
+SNAP_BEGIN AI4M_post gen=5415
+W0   0x20   rx_stat_frames         0x037043c5
+W1   0x24   rx_stat_bytes          0x638959d8
+W5   0x34   gmii_free_FE           0x31f8263a
+W10  0x48   udpapp_rx_frames       0x0370392f
+W11  0x4C   udpapp_rx_bytes        0xc5472aa0
+W13  0x54   udpapp_mismatch        0x979bf24a
+W70  0x138  mir_drop_bytes         0x42fcc820
+W46  0xD8   cls_dbg_stat_ovf       0x00000000
+W47  0xDC   cls_dbg_stat_route_ovf 0x00000000
+W48  0xE0   cls_dbg_stat_stall_in  0x00000000
+W49  0xE4   cls_dbg_occ            0x00000000
+SNAP_END AI4M_post nff=0
+NIC_POST:      port_tx_bytes: 87569291736      port_tx_packets: 57689029      port_rx_bytes: 3217589951202      port_rx_packets: 2119624712 
+SOFTIRQ_POST:       NET_TX:       4664      77057      79438     130138          0        260       4660         36       NET_RX:   49939891    7069846    6410049   10505960       3493       4700      51266       1236 
+--- 读侧 CPU 采样 (末 4 行; 全文在 rstat_AI4M.log) ---
+--- 文件 ---
+crw-rw-rw- 1 root root 1, 3 Oct 12 22:31 /dev/null
+=== END AI4M 1791849027.154979440
