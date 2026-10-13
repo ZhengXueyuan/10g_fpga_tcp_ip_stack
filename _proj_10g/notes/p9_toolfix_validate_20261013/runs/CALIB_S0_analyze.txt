@@ -1,0 +1,25 @@
+== file: _proj_10g/notes/p9_board_0x24_20261013/runs/WIN_S0_20261013_220859.txt
+== rows: 255
+== ACCT: {'pc': 1069547520, 'taken': 1071001688, 'dW70': 2740136, 'w70a': 0, 'w70b': 2740136, 'words0': 0, 'words1': 267750422, 'dwords': 267750422, 'K': 1073741824}
+== DONE: MIR_STREAM_DONE pc=1069547520 reads=255 partial=0 nonmul64=0 short=1 ended_early=1 read_error=0 secs=13.726 rate_Bps=77918456
+
+[R1-a] line-level uint32 wrap
+  rows=255  dw70 min=0 max=561152  wrap_candidates(dw70>=2^31)=0
+  max(dw70) >= 2^31 ? False
+
+[R1-b] chain closure, t-sorted
+  t-sorted; non-increasing t pairs (should be 0): 0
+  w70-chain closures = 255 / 255  (rate=100.0000%)
+  dma-chain closures = 255 / 255  (rate=100.0000%)
+
+[R1-b] tail reconciliation
+  sum(dw70)=2740136  ACCT dW70=2740136  lastrow.w70=2740136  ACCT w70b=2740136  tail=(w70b-last)&M32=0
+  err = dW70 - sum(dw70) - tail = 0  (expect 0)
+  sum(ddma)=267395606  ACCT dwords=267750422  lastrow.dma=267395606  ACCT words1=267750422  tail_d=354816
+  err2 = dwords - sum(ddma) - tail_d = 0  (expect 0)
+
+[calib] print-order morphology (NOT a criterion)
+  print-order adjacent w70-chain closures = 124 / 254
+  rows with dw70==0: 124 / 255
+  t range: 0.671518 .. 3.576391 ; pc range: 4194304 .. 1069547520
+  rows by thread (print order): thread0 rows = i ascending 0..? ; note i is print index, thread concat
