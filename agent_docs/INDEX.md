@@ -29,6 +29,21 @@
 变异体 `rw/mut*.v`、复跑 bat、`rd_*` 各轮 xsim 日志），即 P6B_REVIEW 附录 R 的 A/B 读数出处；
 总说明见 [review_scratch/_sec_R.md](review_scratch/_sec_R.md)。2026-10-13 随追加轮从根目录迁入。
 
+## 验证产物目录群（第三批迁入，15 目录，441 跟踪件 + 约 4700 被忽略残渣）
+
+第三批（2026-10-13，owner「同族目录同批处置」）整目录迁入，各自的 R100/引用改写/留档判定
+见 [checks/batch3_verify_dirs_move_20261013.md](checks/batch3_verify_dirs_move_20261013.md)。
+按用途分四组：
+
+| 组 | 目录 | 内容 |
+|---|---|---|
+| CDC/审查门证据 | `audit_scratch/`（132 件）· `int_scratch/`（40）· `p6b_final_verify/`（21） | P6b 跨域审计 t1–t9 门（含 rtl_orig A/B 副本与全套 xsim 日志）· 集成审查负对照副本 · 终验门脚本与读数 |
+| 时序/资源验证 | `p5e_verify/`（6）· `p5f_verify/`（26）· `p6_verify/`（32）· `p6a_ku5p_verify/`（18，CLAUDE.md 指名读数出处） | K7→KU5P 各轮 report_timing/report_utilization 原件与 worst-endpoint 清单 |
+| 板级诊断读数 | `p5diag_verify/`（66）· `p6_verify/` 的 console_* · `p6b_accept_final/`（13 + 冻结位流） | 诊断位流 .line 原始读数 · P6b 正式验收主机侧日志与 frozen_p6b_final.bit |
+| 探针/一次性实验 | `_p7a_probe/`（22）· `_pcie/`（9）· `_tmp_w9probe/`（5）· `_tmp_w9verify/`（51） | P7a 向导探针 · PCIe 工厂探针 · w9 字节损坏专题实验链（head/wt RTL 快照 + sweep） |
+
+全忽略残渣目录（不入库，仅磁盘随迁）：`p5d_verify/`（42 件）· `whs_reroll_probe/`（3067 件）。
+
 ## checks/（迁移证明）
 
 [checks/](checks/) 目录 = 两轮迁移 + 追加轮的完整证明：**[checks/migration_proof.md](checks/migration_proof.md)**
