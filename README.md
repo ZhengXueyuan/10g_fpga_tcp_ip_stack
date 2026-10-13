@@ -18,7 +18,10 @@ TCP/UDP 数据段走纯硬件快路径；ARP、ping、TCP 握手等慢速控制�
   业务实测 → 长时发送 → 窗口机制分析 → 缺陷修复批次（重放越界 / 零窗探询 / 窗口守卫，均已构建并板级验证）。
 - **PCIe 数据通路（里程碑 P8/P9）**：用户指定的"SFP+ → 板上协议栈 → PCIe → 驱动 → PC 程序"链路已打通，
   镜像载荷在 UDP/TCP 两种来源、任意字节对齐下逐字节零失配；PCIe 用户接口已从内存映射模式改造为流模式（AXIS）并完成板级对照验证。
-- **进行中**：测试台架恢复（重烧 0x23 位流）；随后按用户排定的顺序推进——① 补测线速档 → ② 加 URAM 板内缓冲 → ③ 清理剩余未结项。
+- **P9 增量（2026-10-13，PCIe 通路性能轮）**：测试台架已恢复（重烧 0x23 位流、身份检查全过）；
+  线速档补测完成——PC 侧单探针 **8.66 Gbps（入口速率的 94%）**，丢字节机制定案 = 电脑读数据调用内部的固定空档，
+  新双缓冲模式让丢字节量再降 **57–70%**；URAM 板内缓冲（32 KB）已实施并过单元门。
+- **进行中**：构建 0x24（带 URAM 缓冲的位流）；随后清理剩余未结项（清单见 `_proj_10g/notes/P7B_OPEN_ITEMS.md`）。
 - **文档分层（2026-10-13 起）**：`docs/` 给人读（进度 / 模块 / 指标 / 术语四份导读）；`agent_docs/` 给 AI 会话读（规格书、验收原件、流水账）；
   `_proj_10g/notes/` 是全部原始事实源。
 
@@ -27,7 +30,7 @@ TCP/UDP 数据段走纯硬件快路径；ARP、ping、TCP 握手等慢速控制�
 ```
 udp_hls_10g/
 ├─ docs/                      ← 给人读的导读层
-│   └─ INDEX.md               ← 索引根：docs/ 四件 + agent_docs/ 十四件 + notes/ 事实源导读
+│   └─ INDEX.md               ← 索引根：docs/ 四件 + agent_docs/ 规格书与验证产物目录群 + notes/ 事实源导读
 ├─ agent_docs/                ← 给 AI 读的权威工程件
 │   ├─ P6B_SUMMARY.md         ← 1G 验收一页式总览（读历史先读它）
 │   ├─ P6B_{ACCEPT,SPEC,CDC_AUDIT,REVIEW,INTEGRATION_REVIEW,COMMIT_PLAN}.md
@@ -35,7 +38,11 @@ udp_hls_10g/
 │   ├─ P7A_{SPEC,RESULT,COMMIT_PLAN}.md
 │   ├─ P7B_SPEC.md            ← 10G 施工规格（阶段关卡判据表）
 │   ├─ PORT_NOTES.md          ← 施工流水账与教训（2026-08 起逐日）
-│   └─ ISSUE_RX_BYTE_CORRUPTION.md
+│   ├─ ISSUE_RX_BYTE_CORRUPTION.md
+│   ├─ review_scratch/        ← P6b 对抗审查原始证据（78 件）
+│   ├─ （15 个验证产物目录）    ← p5*/p6* 各轮构建与板级验证原始产物（共 441 件）
+│   ├─ INDEX.md / MAPPING.md  ← AI 向索引 + 旧→新路径映射表
+│   └─ checks/                ← 文档迁移证明与检查证据
 ├─ _proj_10g/notes/           ← 原始事实源（台账 / 未结项总表 / 各轮板级原件）
 ├─ rtl/ · board/ · sim/ · tb/ · tools/ · hls/ · _proj_pcie/   ← 源码 / 构建 / 仿真 / 板级工具
 └─ CLAUDE.md                  ← 工程规范与铁律（AI 施工纪律）
