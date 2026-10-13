@@ -104,7 +104,7 @@ sha256 `6635e873293674bf…` → **`790424b9ab77c7492fb644055b12df46488ec44897c3
 | **一次收口（计数式）** | `P7B_ROUND #1` 恰 **1** 次（`#1 MISMATCH_N=5` → `#2 =0`）· `BUILD_EXIT` 恰 1 · `P7B DONE` 恰 1 · `Exiting Vivado` 恰 **3** 条 |
 | **P7B_WNS / P7B_WHS** | **+0.066 / +0.010**（`P7B_CONVERGED_AT_ROUND = 2`；`IS_LOCKED_POSTGEN = 0`） |
 | **三类失败端点** | **0 / 0 / 0**（setup 0/258,575 · hold 0/258,575 · pulse-width 0/84,196）；报告面 `Slack (VIOLATED)` **0 条**；报告原文 `All user specified timing constraints are met.` |
-| **位流** | sha256 = **`e3b07957aea0326a168b9db0238ef9dd933dc7a21884c92e50e7c3b0abadf1db`** · **15,431,261 B**（与历史八档**逐字节同长** ⇒ 只有 sha256/BID 能分版） |
+| **位流** | sha256 = **`e3b07957aea0326a168b9db0238ef9dd933dc7a21884c92e50a7c3b0abadf1db`** · **15,431,261 B**（与历史八档**逐字节同长** ⇒ 只有 sha256/BID 能分版）⚠️ **2026-10-13 TL 代落盘时第 50 位转录笔误（原写 `…e50e7c3…`）**；实算双工具 / `SHA256SUMS.txt` / Vivado `impl_1` 原件三方一致 = 本值（订正依据 = `p9_board_0x24_20261013/REPORT.md` §0.1） |
 | **构建前归档（#54）** | `p7b_build_archive/20261013_082630/`（19 件 + SHA256SUMS）——归档的是**上一代（0x23）** impl 产物；`wrapper_p4.bit` sha256 实测 = `066a3923…3126` = **0x23 位流**（provenance 已核） |
 | **硬门（12 键）** | `DROPPED-CONSTRAINT-FAIL` / `IMPLICIT-NET-FAIL`（5 键）/ `DRC-KEY-FAIL`（6 键）**全 0 命中** |
 | **DRC（routed）** | **0 Error / 0 Critical**；Warning 五族（DPIP-2 4 · DPOP-3 2 · DPOP-4 4 · DPOR-2 18 · REQP-1858 41 = 69 checks）与 0x23 **逐数相同** |

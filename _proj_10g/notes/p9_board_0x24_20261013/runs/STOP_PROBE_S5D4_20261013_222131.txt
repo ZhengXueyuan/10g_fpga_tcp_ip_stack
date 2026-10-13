@@ -1,0 +1,36 @@
+=== STOP_PROBE S5D4 1791901291.578591153
+--- 停流前: MIR_STATUS / MIR_CTRL / MIR_DMA_CNT (逐字) ---
+Read 32-bit value at address 0x13c (0x7db1a396113c): 0x00240000
+Read 32-bit value at address 0x144 (0x770a3b8dc144): 0x0000000b
+Read 32-bit value at address 0x148 (0x73fe17c87148): 0x00040002
+--- 写 MIR_CTRL = 0x8 (停流; bit1=0 => 无 clr 脉冲) ---
+Write 32-bits value 0x00000008 to 0x144 (0x0x797c95599144)
+--- 停流后即刻: MIR_STATUS / MIR_CTRL / MIR_DMA_CNT ---
+Read 32-bit value at address 0x13c (0x716b8a88613c): 0x00200000
+Read 32-bit value at address 0x144 (0x7b59005dc144): 0x0000000a
+Read 32-bit value at address 0x148 (0x79bfa9571148): 0x00040002
+--- 读短尾 (= 恰一拍 8 B): dma_from_device -s 8 (stdout+stderr 全留) ---
+/dev/xdma0_c2h_0 ** Average BW = 8, 0.006154
+TAIL_RC=0 ELAPSED=0
+--- tail 文件 ---
+-rw-r--r-- 1 root root 8 Oct 13 22:21 ./tail_S5D4.bin
+ 23 b9 0e 8c a6 5b d3 20
+TAIL_EXPECT exp=23b90e8ca65bd320 got=23b90e8ca65bd320
+TAIL_MATCH yes
+--- 读后: MIR_STATUS / MIR_DMA_CNT (level 应 0) ---
+Read 32-bit value at address 0x13c (0x75070359d13c): 0x00200000
+Read 32-bit value at address 0x148 (0x787823334148): 0x00040002
+--- dmesg 尾部 (找 underflow / timeout / xdma 报错) ---
+[ 2518.596393] xdma:engine_reg_dump: 0-C2H0-ST: ioread32(0x000000007d9edab7) = 0x1fc18006 (id).
+[ 2518.596397] xdma:engine_reg_dump: 0-C2H0-ST: ioread32(0x00000000305bafca) = 0x00000001 (status).
+[ 2518.596400] xdma:engine_reg_dump: 0-C2H0-ST: ioread32(0x00000000fc96e0bb) = 0x00f83e1f (control)
+[ 2518.596403] xdma:engine_reg_dump: 0-C2H0-ST: ioread32(0x00000000dfa90ec0) = 0x038d0000 (first_desc_lo)
+[ 2518.596406] xdma:engine_reg_dump: 0-C2H0-ST: ioread32(0x00000000306486d5) = 0x00000001 (first_desc_hi)
+[ 2518.596409] xdma:engine_reg_dump: 0-C2H0-ST: ioread32(0x00000000ea4e5d3e) = 0x0000003f (first_desc_adjacent).
+[ 2518.596412] xdma:engine_reg_dump: 0-C2H0-ST: ioread32(0x0000000002f909d7) = 0x00000344 (completed_desc_count).
+[ 2518.596414] xdma:engine_reg_dump: 0-C2H0-ST: ioread32(0x00000000d9a8cafb) = 0x00f83e1e (interrupt_enable_mask)
+[ 2518.596418] xdma:engine_status_dump: SG engine 0-C2H0-ST status: 0x00000001: BUSY
+[ 2518.596419] xdma:transfer_abort: abort transfer 0x000000005e15d112, desc 1024, engine desc queued 0.
+[ 2550.369449] workqueue: output_poll_execute hogged CPU for >10000us 5 times, consider switching to WQ_UNBOUND
+[ 2550.381449] workqueue: i915_hpd_poll_init_work [i915] hogged CPU for >10000us 5 times, consider switching to WQ_UNBOUND
+=== STOP_PROBE_END S5D4 1791901292.606391948

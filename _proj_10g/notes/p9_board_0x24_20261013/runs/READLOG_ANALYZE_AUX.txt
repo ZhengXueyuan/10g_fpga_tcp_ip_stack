@@ -1,0 +1,5 @@
+win                     chunkMiB  n   entry_MBps read_us  gap_us mmio_us idle_us data_us  drop_MB  huge aio 式B
+WIN_S0_20261013_220859    4.00  255     184.0  22811.5    0.20    5.70     3.4 22796.7     2.70     0   0 res=0 closed=1
+WIN_F0_20261013_220930    4.00  254     174.1  24193.5    0.20    5.90    86.5 24086.9     5.24     0   0 res=0 closed=1
+WIN_CAPD24_20261013_221608    4.00   63     183.4  22921.2    0.20    5.80    46.1 22874.8     0.75     0   0 res=0 closed=1
+fit huge=0 aio=0: idle(C)= 45.3 µs + 0.0 µs/MiB   (read−data)(C)= 55.9 + 0.0 µs/MiB

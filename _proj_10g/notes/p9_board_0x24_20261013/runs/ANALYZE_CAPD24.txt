@@ -1,0 +1,19 @@
+=== ① 图案自检 (p7b_pattern.h 两条向量 + 跳跃版对慢版) ===
+SELFTEST off0_15    7f0b02e536a14ed61ab049b856add63f OK
+SELFTEST off1460_67 0300422d9b47cac0 OK
+SELFTEST OK (且 pattern_jump 已在 PATTERN_JUMP_SELFTEST.txt 与慢版 11 点对照)
+参数: off=1076295680 pc=264241152 fm=4229208
+--- ② 头部 [0, +65536) 无位移对账: first_mismatch=-1 mism=0  (期望 0/-1: 洞在 4229208)
+--- ③ 切片洞前区 [3180632, 4229208) 无位移对账: first_mismatch=-1 mism=0  (期望 0/-1)
+--- ④ L 搜索 (窗口 16B): 候选 [39608] (共 1)
+--- ⑤ 删除长度 L = 39608 B  (0x23 基线 = 42,952 B)
+--- ⑥ 切片洞后区 [4229208, +3145728) 位移 L 后对账: first_mismatch=-1(切片内) mism=0  (期望 0/-1)
+--- ⑦ 洞边界 dump (绝对 4229208 前后 16B; 左=无位移期望 右=抓取) ---
+GOT[4229192:4229208] = 4cba6ba77c1a2168dd3ded30a6bb9e4a
+EXP[4229192:4229208] = 4cba6ba77c1a2168dd3ded30a6bb9e4a
+GOT[4229208:4229224] = 61bf15c3e8edfe68df2325652e95973a
+EXP_noShift        = 8b1a7580bc5b5ee35dff6854e44a3906
+EXP_shift39608        = 61bf15c3e8edfe68df2325652e95973a
+--- ⑧ 尾区 [263192576, +1048576) 位移 L 后对账: first_mismatch=0 mism=4193473  (期望 0/-1)
+--- ⑨ 账 ---
+pc=264241152  fm=4229208  L=39608  fm+?  L-pc+K 关系交报告层; 本脚本只报形态

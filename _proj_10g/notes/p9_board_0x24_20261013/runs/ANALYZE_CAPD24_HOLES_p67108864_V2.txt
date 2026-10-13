@@ -1,0 +1,7 @@
+SELFTEST off0_15    7f0b02e536a14ed61ab049b856add63f OK
+SELFTEST off1460_67 0300422d9b47cac0 OK
+file=runs/capd_p67108864.bin len=65536 P=67108864
+首段候选 S0=[171944] (共 1)
+⚠️ 洞在 67143768 但距片尾不足 LH_MAX, 无法定位 (剩余 30632 B)
+== 共定位 1 个洞 ==
+  pos=67143768  L=None

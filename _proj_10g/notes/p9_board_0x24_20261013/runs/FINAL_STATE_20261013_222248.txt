@@ -1,0 +1,62 @@
+=== FINAL_STATE_BEGIN 1791901369.326002898
+--- ① 停流前 NIC 收速率 (2 s 窗) ---
+     port_rx_bytes: 1071720419586
+     port_rx_packets: 706008259
+-- 2s later --
+     port_rx_bytes: 1074175892364
+     port_rx_packets: 707625830
+CARRIER=1
+--- ② 写 0x08 = 0x2 (受控停流) ---
+Write 32-bits value 0x00000002 to 0x8 (0x0x7a9470fb9008)
+--- ③ 写 MIR_CTRL(0x144) = 0 (功能位全 0; bit1 写 0 = 无 clr 翻转) ---
+Write 32-bits value 0x00000000 to 0x144 (0x0x7527ffb9a144)
+--- ④ 停流后 NIC + carrier/link ---
+     port_rx_bytes: 1075029181146
+     port_rx_packets: 708187952
+-- 2s later --
+     port_rx_bytes: 1075029181146
+     port_rx_packets: 708187952
+CARRIER=0
+LINK=Link detected: no
+--- ⑤ 终态寄存器 ---
+MAGIC_0x00=Read 32-bit value at address 0x0 (0x71594cb3c000): 0x50360001
+BID_0x04=Read 32-bit value at address 0x4 (0x72be45405004): 0x00000024
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x702094da0008): 0x00000002
+MARKER_0x14=Read 32-bit value at address 0x14 (0x7074462a7014): 0xdeadbeef
+MIR_STATUS_0x13C=Read 32-bit value at address 0x13c (0x7ef54d0f313c): 0x00200000
+MIR_CTRL_0x144=Read 32-bit value at address 0x144 (0x737d7afec144): 0x00000002
+MIR_DMA_CNT_0x148=Read 32-bit value at address 0x148 (0x7566b4d92148): 0x00040002
+UNIMPL_0x14C=Read 32-bit value at address 0x14c (0x7de7edf5014c): 0xffffffff
+--- ⑥ 快照 (触发式, 关键字) ---
+SNAP_BEGIN final gen=5665
+W0   0x20   rx_stat_frames         0x00ec98b5
+W1   0x24   rx_stat_bytes          0x7ae1e091
+W5   0x34   gmii_free_FE           0x950141b4
+W11  0x4C   udpapp_rx_bytes        0x5056f810
+W13  0x54   udpapp_mismatch        0x4adfc6d9
+W43  0xCC   mtx_stat_tx_words      0x94ed038c
+W70  0x138  mir_drop_bytes         0x05f41768
+W53  0xF4   app_rx_bytes           0x00000000
+W54  0xF8   app_mismatch           0x00000000
+SNAP_END final nff=0
+--- ⑦ 残留进程 (对端) ---
+PROC_SCAN_DONE
+--- ⑧ 只读核对 (/tmp/p7b_biz 未被动过) ---
+7cebded7e9270b6a2d81f5db29843f4d  /tmp/p7b_biz/p7b_mir_dump
+b4833c55642120f093fa2ee9e2544aa8  /tmp/p7b_biz/p7b_mir_dump.cpp
+e0d4da5834cb95d67afb0cc523d1f92f  /tmp/p7b_biz/p7b_udp_src
+97c66382cf2a0c334f5e6466ce714ad2  /tmp/p7b_biz/p7b_snap.sh
+--- ⑨ dmesg 尾部 ---
+1737
+[ 2518.596418] xdma:engine_status_dump: SG engine 0-C2H0-ST status: 0x00000001: BUSY
+[ 2518.596419] xdma:transfer_abort: abort transfer 0x000000005e15d112, desc 1024, engine desc queued 0.
+[ 2550.369449] workqueue: output_poll_execute hogged CPU for >10000us 5 times, consider switching to WQ_UNBOUND
+[ 2550.381449] workqueue: i915_hpd_poll_init_work [i915] hogged CPU for >10000us 5 times, consider switching to WQ_UNBOUND
+[ 2907.542451] sfc 0000:01:00.1 enp1s0f1np1: link down
+[ 2907.543436] sfc 0000:01:00.1 enp1s0f1np1: link down
+--- ⑩ 网络面 ---
+10 (unmanaged)
+Adaptive RX: off  TX: n/a
+rx-usecs:	0
+    inet 192.168.100.100/32 scope global enp1s0f1np1
+=== FINAL_STATE_END 1791901377.430527080

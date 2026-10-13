@@ -371,7 +371,7 @@ $PY _proj_10g/notes/p7b_board_stagec/an_runs.py <run_STC_*.log> ...   # 逐跑�
 3. **网络前置**（每次重来）：`/32` + `nmcli device set enp1s0f1np1 managed no`；现取 `ip route get` 当见证。
 4. **重烧位流（⛔ 先由 owner 定版，二选一）**：
    - **`0x23`（已验基线，板上末代）**：`_proj_10g/notes/p9_build_0x23/wrapper_p4.bit`，sha256 `066a3923351b8f539a986b88d96f1093a686da57f95938e0c8837b13d30a3126`（15,431,261 B，BID `0x23`）；
-   - **`0x24`（本日新构建，未烧未验）**：`_proj_10g/notes/p9_build_0x24/wrapper_p4.bit`，sha256 **`e3b07957aea0326a168b9db0238ef9dd933dc7a21884c92e50e7c3b0abadf1db`**（15,431,261 B，BID `0x24`；= 0x23 全部内容 + **URAM 板内缓冲**〔32 KB〕+ F2/F3 修正；构建 `WNS +0.066 / WHS +0.010 / 三类失败端点 0/0/0`、`URAM288=1`）。
+   - **`0x24`（本日新构建，未烧未验）**：`_proj_10g/notes/p9_build_0x24/wrapper_p4.bit`，sha256 **`e3b07957aea0326a168b9db0238ef9dd933dc7a21884c92e50a7c3b0abadf1db`**（15,431,261 B，BID `0x24`；⚠️ 2026-10-13 TL 订正：此处曾转录为 `…e50e7c3…` ＝ 转抄笔误；实算双工具 / `SHA256SUMS` / Vivado `impl_1` 原件三方一致 = 本值；= 0x23 全部内容 + **URAM 板内缓冲**〔32 KB〕+ F2/F3 修正；构建 `WNS +0.066 / WHS +0.010 / 三类失败端点 0/0/0`、`URAM288=1`）。
    - ⚠️ **读侧工具现已同步到 0x24**（`EXPECT_BID=0x00000024`）⇒ **若烧 `0x23` 需显式覆盖 `EXPECT_BID=0x00000023`**（旧位流口径；`p9_build_0x23/` 与各板级现场件仍保留那一代的真值）。
    - 烧法照 `_proj_10g/notes/p9_board_0x23_20261011/burn_0x23.sh` 模式（⛔ 只烧归档件；烧后核板侧 `0x04`；**绝不写 QSPI**）；PCIe 判据照旧（`LnkSta`：x4 有救 / x0 没救；场景 C 连根端口一起 `remove`+`rescan`）。
 5. **撤受控停流**：`reg_rw /dev/xdma0_user 0x08 w 0x0`（⇒ `carrier=1`）。

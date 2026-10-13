@@ -20,7 +20,7 @@
 [08:40] F synth URAM 硬门复核: URAM288 = 1 ✓; 8-6793 = 56 条**全 retx_ram** (0x23 同 56) ⇒ 新件 0 条
 [08:57:04] F impl (routed) 收口; 08:57 bitstream 出 (15,431,261 B, 08:58:12 父进程退出)
 [08:59:37] F 构建收口: BAT_RC=0 / BUILD_EXIT=0 / BITSTREAM-OK; **P7B_WNS=0.066 / P7B_WHS=0.010**; 三类失败端点 **0/0/0** (258,575/258,575/84,196); Slack(VIOLATED)=0; 硬门 12 键全 0 命中; 一次收口 (P7B_ROUND#1 恰 1 · BUILD_EXIT 恰 1 · Exiting Vivado 恰 3); XDMA 断言组逐条同 0x23; DRC 0E/0C; route 0 错
-[09:00] G 位流 sha256 = **e3b07957aea0326a168b9db0238ef9dd933dc7a21884c92e50e7c3b0abadf1db** (15,431,261 B)
+[09:00] G 位流 sha256 = **e3b07957aea0326a168b9db0238ef9dd933dc7a21884c92e50a7c3b0abadf1db** (15,431,261 B)  [⚠️ 2026-10-13 TL 订正: 原录第 50 位 e 为转抄笔误]
 [09:00→09:01] H 查询#1: q_0x24.tcl 行内 `#` 注释 ⇒ Tcl `wrong # args` (自伤, 89 s 即退 QUERY_EXIT=1) ⇒ 修 (注释独立成行)
 [09:02:05→09:04:43] H' 查询#2: QUERY_EXIT=0; 读数见 q_stdout.txt
 [09:05→] I 归档 (board_rpt 14 件 + query_out + 位流 + routed dcp 63,244,955 B) + FP_BINDING_CHECK (257/257 == 盘上; 唯一 ≠HEAD = wrapper_p4.v) + INPUT_HASHES after build **逐字相同** (260 件, 构建期间零改动) + SHA256SUMS + REPORT.md
