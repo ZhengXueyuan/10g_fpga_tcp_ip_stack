@@ -74,11 +74,16 @@ else
 fi
 TPID=$!
 sleep 0.4
-echo "READER_CPUS_ALLOWED=$(grep -m1 Cpus_allowed_list /proc/$TPID/status 2>/dev/null | tr -d '\t') READER_CPU_START=$(awk '{print $39}' /proc/$TPID/stat 2>/dev/null)"
-# 读侧 CPU 采样 (1 Hz; 最多 120 行)
+# ⭐ 2026-10-13 订正 (复核【低-7】/ §2.5 仪器失效): 旧版直接采 $TPID —— 那是 `timeout` **包装进程**,
+#    其 utime/stime 恒 0 (`threads=1`; 见 rstat_*.log) ⇒ 读侧 CPU 见证结构性失效。
+#    改采 timeout 的**子进程** (= 真工具; `taskset` 在同进程内 exec, 不加层), 取不到才回退并打见证。
+TOOLPID=$(pgrep -P "$TPID" 2>/dev/null | head -1)
+if [ -z "$TOOLPID" ]; then TOOLPID=$TPID; RPID_FB=1; else RPID_FB=0; fi
+echo "READER_CPUS_ALLOWED=$(grep -m1 Cpus_allowed_list /proc/$TOOLPID/status 2>/dev/null | tr -d '\t') READER_CPU_START=$(awk '{print $39}' /proc/$TOOLPID/stat 2>/dev/null) READER_PID=$TOOLPID READER_PID_FALLBACK=$RPID_FB"
+# 读侧 CPU 采样 (1 Hz; 最多 120 行; 目标 = 真工具 pid, 见上订正)
 ( for i in $(seq 1 120); do
-    [ -r /proc/$TPID/stat ] || break
-    awk -v i="$i" -v t="$(date +%s.%N)" '{print "READER_STAT i="i" t="t" utime="$14" stime="$15" threads="$20}' /proc/$TPID/stat 2>/dev/null
+    [ -r /proc/$TOOLPID/stat ] || break
+    awk -v i="$i" -v t="$(date +%s.%N)" '{print "READER_STAT i="i" t="t" utime="$14" stime="$15" threads="$20}' /proc/$TOOLPID/stat 2>/dev/null
     sleep 1
   done ) > "rstat_${TAG}.log" 2>/dev/null &
 RPID=$!
@@ -99,7 +104,8 @@ for p in $(seq 1 "$NPROC"); do
 done
 SRC_RC=0
 for sp in $SPIDS; do wait "$sp" || SRC_RC=1; done
-SRC_RC=$?
+# ⭐ 2026-10-13 订正 (复核【低-6】): 原有一行 `SRC_RC=$?` 会用 for 循环自身的状态**覆盖**上面的累加器
+#    ⇒ 该见证**不可能失败** (恒 0)。已删; 现 SRC_RC 真实反映"任一源非零退出"。
 TE=$(date +%s.%N)
 echo "SRC_RC=$SRC_RC TE=$TE"
 wait $TPID; TOOL_RC=$?

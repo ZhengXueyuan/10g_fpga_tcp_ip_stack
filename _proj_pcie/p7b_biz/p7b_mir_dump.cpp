@@ -1066,7 +1066,7 @@ static StreamRes run_stream_aio(RegIo &io, const char *dev, uint8_t *dst, size_t
 
 
 // ---------------------------------------------------------------------------
-// ⭐⭐⭐ 2026-10-13 **修复主臂**: `--dual 2` = **两线程交错同步读** (每块 ≤ 4 MiB)
+// ⭐⭐⭐ 2026-10-13 **修复主臂**: `--dual 2` = **两线程交错同步读** (块径任意; 见下"环安全")
 // ---------------------------------------------------------------------------
 // 动因 (本轮逐 read 仪器 + 驱动源码钉死, 见 REPORT §2/§3):
 //   · 每次 read() 的引擎空档 ≈ 固定 ~57–75 µs/read + **~34 µs/MiB**; 后者 = 驱动
@@ -1074,13 +1074,30 @@ static StreamRes run_stream_aio(RegIo &io, const char *dev, uint8_t *dst, size_t
 //   · 在**同步**路径这段跑在**用户线程**里 (read 返回前) ⇒ 引擎空档;
 //     在 **AIO** 路径同一段跑在**引擎 service 上下文**里 (engine_service → io_done → unmap →
 //     之后才 engine_service_resume 重启引擎) ⇒ 它直接挡住引擎重启 —— 板上实测 `--aio` 只能
-//     拿掉固定项 (1 MiB 档 3.24% → 1.08%), **拿不掉每 MiB 项** (2 MiB 档仍 1.09%) ✓ 与模型一致。
+//     拿掉固定项 (1 MiB 档 3.21% → 1.13%(AI4)), **拿不掉每 MiB 项** (2 MiB 档仍 1.09%) ✓ 与模型一致。
 //   · **本模式**: 两线程按**奇偶分块** + 起步错拍 δ ⇒ "上一条 read 的 epilogue" 与
 //     "下一条 read 的传输"**重叠** ⇒ 引擎始终有排队描述符 ⇒ 空档→(期望)~0。
-//   · **环安全**: 每块 ≤ 4 MiB (≤1024 描述符) ⇒ 两笔在飞 ≤ 2048 = 环全宽; 且每线程只在自己
-//     上一笔**返回后**才发下一笔 ⇒ 覆盖的必是已完成槽位。
-//   · ⚠️ 起步 δ 只给"发起序"一个**时间裕量** (非硬保证); 真乱序 ⇔ 内容判据 (--pat-off) 指出
-//     —— **可检测、不静默**。δ 默认 2 ms (≫ prologue 40 µs–1 ms, ≪ 单块数据时间)。
+//   · **环安全 (2026-10-13 复核订正: 机制 = `desc_lock` 跨等待持有, 不是"两笔在飞共享环"的算术)**:
+//     同步路径 `char_sgdma_read_write` 里 prologue (GUP/SG/map, cdev_sgdma.c:414) 在
+//     `xdma_xfer_submit` **之前**、epilogue (`char_sgdma_unmap_user_buf`, :422) 在它**返回之后**;
+//     而 `xdma_xfer_submit` 在【建表→排队→等完成】全程持有 `engine->desc_lock`
+//     (驱动只读副本 runs/driver_libxdma.c: `mutex_lock` :3553 → `transfer_init` :3560 →
+//     `transfer_queue` :3584 → 等完成 :3594-3600 → `mutex_unlock` :3680; 解锁只出现在错误分支
+//     :3562/:3586/:3676 与 `while(nents)` 之后) ⇒ 同一引擎上**任一时刻至多一笔 transfer 在环**
+//     (第二线程连建表都要等锁) ⇒ `--dual` **不可能加宽在飞描述符**, 与块径无关; 且单笔 transfer
+//     本身被 `transfer_init` 双向钳在环宽内 (:2967-2969 min(剩余, desc_max=0x800=2048)
+//     + :2998-2999 环边界钳) ⇒ **环不可能溢出**。⇒ **不需要块径几何门** (任意 chunk 都安全)。
+//     ⛔ 曾写"每块 ≤ 4 MiB ⇒ 两笔在飞 ≤ 2048 = 环全宽"作废 (既与驱动事实不符、也不必要)。
+//     `--aio` 的几何闸理由**不同**: `xdma_xfer_submit_nowait` **不持 desc_lock** (nowait 路径无锁
+//     进入, :3824 起) ⇒ 多笔真同时在环 ⇒ `depth×(chunk/4096) ≤ 1536` 保留。
+//   · **顺序 / 块交换残余 (如实登记, 不设门)**: 提交序 = desc_lock 先到先得 + "另一线程早已在锁上等"
+//     的结构性偏置 (A 必须先返回、做 epilogue, 待其发起下一笔时 B 已在等锁 ⇒ 交替自持);
+//     起步 δ 只是**加保险**, 与块时**无耦合检查**。块交换对**字节记账完全不可见** (`pc` = 流序前缀
+//     和, 与块序无关; 式A/式B/dW70 全不变) ⇒ **只有开内容判据的窗能抓** ⇒ 用 `--dual` 做顺序/
+//     内容结论**必须开 verify** (不加 `--no-verify`); δ 默认 2 ms (≫ prologue 40 µs–1 ms,
+//     4 MiB 档 ≪ 单块数据时间 ~11 ms)。
+//   · 模式优先级: main 分派 `if (dual == 2) … else if (aio_depth > 0) …` ⇒ `--dual 2 --aio N` 同时给时
+//     **静默走 dual** (aio 被忽略; 参数门仍会按 aio 检查 —— 已知粗糙点, 登记不修)。
 #ifndef _WIN32
 struct DualShared {
     pthread_mutex_t lock;
@@ -1262,6 +1279,9 @@ static StreamRes run_stream_dual(RegIo &io, const char *dev, uint8_t *dst, size_
     if (sh.ended[0] || sh.ended[1]) r.ended_early = true;
     if (sh.ended[0] == 2 || sh.ended[1] == 2) r.timed_out = true;
     if (sh.ended[0] == 3 || sh.ended[1] == 3) r.read_error = true;
+    // ⚠️ r.rlog = **按线程拼接** (先 thread0 全表, 再 thread1 全表), **不是时间序**
+    //    ⇒ print_readlog 的逐行 gap_us 只对"同一线程段内"负责 (段首那条的 gap 相对自己线程上一条);
+    //    analyze_readlog.py 对 dt ≤ 0 的区间跳过 —— 读 dual 窗的 READLOG 表时先按此分层。
     for (int k = 0; k < 2; k++)
         for (const ReadRec &x : sh.rlog[k]) r.rlog.push_back(x);
     dual_sample(&sh, true);
@@ -1350,6 +1370,8 @@ static int stream_args_check(uint64_t want, uint64_t buf_bytes, uint64_t chunk,
 }
 
 // ⭐ 2026-10-13: READLOG 打印器 (逐 read 原始表 + 一页摘要)。**纯打印**, 不碰任何既有输出行。
+// ⚠️ dual 窗 (--dual 2) 的行序 = **按线程拼接** (thread0 全表 → thread1 全表), 不是时间序
+//    ⇒ 逐行 gap_us 只保证同线程段内连续; 混段读表前先分线程 (见 run_stream_dual 尾注)。
 static void print_readlog(const StreamRes &r) {
     std::vector<double> gv, mv, rv;
     gv.reserve(r.rlog.size()); mv.reserve(r.rlog.size()); rv.reserve(r.rlog.size());

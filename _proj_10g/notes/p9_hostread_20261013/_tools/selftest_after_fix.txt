@@ -1,0 +1,62 @@
+SELFTEST_ARCHIVE 2026-10-13 (宿主读循环订正轮; 重跑以绑指纹, 补 H-2 缺口)
+TOOL_BINARY_MD5=7cebded7e9270b6a2d81f5db29843f4d
+TOOL_SOURCE_MD5=b4833c55642120f093fa2ee9e2544aa8
+BUILD_CMD=g++ -O3 -pthread -o p7b_mir_dump p7b_mir_dump.cpp
+--- selftest 输出 (逐字) ---
+MIR_SELFTEST T1 bytes=65536 words=16384 rc=0 first_mis=-1 OK
+MIR_SELFTEST T2 (corrupt byte 57) rc=1 first_mis=57 bytes=65536 OK
+MIR_SELFTEST T3 K%4 check: want=65536 want%4=0 OK(本例合法)
+MIR_SELFTEST T4 sentinel=5a5a5a5a (exp 5a5a5a5a) unf=1 OK
+MIR_SELFTEST T4b src_sel rb: set=1 clr=0 OK
+MIR_SELFTEST T5 (ring wrap, cnt0=3648) words=1024 bytes=4096 rc=0 fm=-1 clob=0 short=0 lag=128 OK
+MIR_SELFTEST T6 (corrupt first ring word) rc=1 fm=2 OK
+MIR_SELFTEST T7 (writer wraps during read) clob=1 OK
+MIR_SELFTEST T8 式A A zero                     taken-pc=0 -> closed_a=1 resid=0 (期望 1/0) OK
+MIR_SELFTEST T8 式A A resid=8                  taken-pc=8 -> closed_a=1 resid=8 (期望 1/8) OK
+MIR_SELFTEST T8 式A A resid==band(edge)        taken-pc=32 -> closed_a=1 resid=32 (期望 1/32) OK
+MIR_SELFTEST T8 式A A band+1(必须红)        taken-pc=33 -> closed_a=0 resid=33 (期望 0/33) OK
+MIR_SELFTEST T8 式A A negative(必须红)      taken-pc=-24 -> closed_a=0 resid=-24 (期望 0/-24) OK
+MIR_SELFTEST T8 式A A taken-only(必须红)    taken-pc=4096 -> closed_a=0 resid=4096 (期望 0/4096) OK
+MIR_SELFTEST T8 式B B zero                     K-taken-drop=0 -> closed_b=1 resid=0 (期望 1/0) OK
+MIR_SELFTEST T8 式B B resid=4                  K-taken-drop=4 -> closed_b=1 resid=4 (期望 1/4) OK
+MIR_SELFTEST T8 式B B resid==band(edge)        K-taken-drop=24 -> closed_b=1 resid=24 (期望 1/24) OK
+MIR_SELFTEST T8 式B B band+1(必须红)        K-taken-drop=25 -> closed_b=0 resid=25 (期望 0/25) OK
+MIR_SELFTEST T8 式B B taken>K(必须红)       K-taken-drop=-200 -> closed_b=0 resid=-200 (期望 0/-200) OK
+MIR_SELFTEST T8 式B B K=0,drop=696(审查例形,必须红) K-taken-drop=-696 -> closed_b=0 resid=-696 (期望 0/-696) OK
+MIR_SELFTEST T9 stream clean: pc=65524 taken=65532 drop=0 式A=[8/32 closed=1] 式B=[4/24 closed=1] rc=0 fm=-1 partial=7 nonmul64=8 premise=1 series=10 OK
+MIR_STREAM_END saw=read==0 pc=64828 want=65536 (由两式解释不足量)
+MIR_SELFTEST T10 (D1 reg) pc=64828 taken=64836 drop=696 式A=8(closed=1) 式B=4(closed=1) ended_early=1 fm=1000(期望 1000) 旧式=pc+drop-taken=688(应∉[0,24]) OK
+MIR_SELFTEST T10b stream BOTH-red (bias=+64 字): 式A resid=264(期望 264, closed=0) 式B resid=-252(期望 -252, closed=0) OK
+MIR_SELFTEST T10c stream wrap: words0=4294963200 words1=12287(wrapped=1) dwords=16383 taken=65532 式A=8/1 式B=4/1 OK
+MIR_SELFTEST T10d quiesce premise: level_end=1024 quiesced=0 premise=0 waited_ms=51.9 verdict(strict)=1 verdict(lax)=0 OK
+MIR_SELFTEST T10e shaper overflow: 式A resid=40(期望 40 > 32 ⇒ closed=0) 式B resid=4(closed=1) OK
+MIR_STREAM_END saw=read==0 pc=64828 want=65536 (由两式解释不足量)
+MIR_SELFTEST T15 readlog n=8 reads=8 Σddma=16209(=dwords 16209) Σdw70=696(=drop 696) mmio_max=0.1us pcmono=1 neg=0 pc_last=64828 OK
+MIR_STREAM_END saw=read==0 pc=64828 want=65536 (由两式解释不足量)
+MIR_SELFTEST T15b readlog-off n=0 (期望 0) reads=8 bytes=64828 OK
+MIR_SELFTEST T11 ver-gate stream+ver4        path=2 ver=4 -> 1 (期望 1) OK
+MIR_SELFTEST T11 ver-gate stream+ver3(必须拒) path=2 ver=3 -> 0 (期望 0) OK
+MIR_SELFTEST T11 ver-gate dma+ver3           path=1 ver=3 -> 1 (期望 1) OK
+MIR_SELFTEST T11 ver-gate dma+ver4(必须拒) path=1 ver=4 -> 0 (期望 0) OK
+MIR_SELFTEST T11 ver-gate bar+ver3           path=0 ver=3 -> 1 (期望 1) OK
+MIR_SELFTEST T11 ver-gate bar+ver4           path=0 ver=4 -> 1 (期望 1) OK
+MIR_SELFTEST T12 sargs defaults                 -> rc=0 (期望 0) OK 
+MIR_SELFTEST T12 sargs buf=0                    -> rc=1 (期望 1) OK --buf-mb 为 0 (PC 缓冲不能为空)
+MIR_SELFTEST T12 sargs chunk=0                  -> rc=2 (期望 2) OK --chunk 为 0
+MIR_SELFTEST T12 sargs chunk=100 (非 64 倍数) -> rc=3 (期望 3) OK --chunk 100 不是 64 的倍数 (PG195 描述符长度约束的口径)
+MIR_SELFTEST T12 sargs want=0                   -> rc=4 (期望 4) OK --bytes 为 0
+MIR_SELFTEST T12 sargs want%8=4                 -> rc=5 (期望 5) OK --bytes 65540 不是 8 的倍数 (镜像按 64 位字打包: K % 8 == 0 是 P8-STG 起的合同)
+MIR_SELFTEST T12 sargs want>buf                 -> rc=6 (期望 6) OK --bytes 268435456 > PC 缓冲 134217728 B (--buf-mb 要够大)
+MIR_SELFTEST T13 bigbuf mb=128 alloc=1 writable=1 zero-fail-path=1 OK
+MIR_SELFTEST T13b hugebuf alloc=1 writable=1 OK
+MIR_SELFTEST T14 subproc chunk non-64     rc=2 (期望 2) 含'--chunk'=1 OK
+MIR_SELFTEST T14 subproc want%8!=0        rc=2 (期望 2) 含'--bytes'=1 OK
+MIR_SELFTEST T14 subproc buf-mb 0         rc=2 (期望 2) 含'--buf-mb'=1 OK
+MIR_SELFTEST T14 subproc stream+dma       rc=2 (期望 2) 含'互斥'=1 OK
+MIR_SELFTEST T14 subproc aio chunk 非 4K rc=2 (期望 2) 含'4 KB 对齐'=1 OK
+MIR_SELFTEST T14 subproc aio 缺 K_src    rc=2 (期望 2) 含'--k-bytes'=1 OK
+MIR_SELFTEST T14 subproc aio depth 越界 rc=2 (期望 2) 含'--aio'=1 OK
+MIR_SELFTEST T14 subproc depth×desc 越限 rc=2 (期望 2) 含'越限'=1 OK
+MIR_SELFTEST T14 subproc readlog 只认 0|1 rc=2 (期望 2) 含'--readlog'=1 OK
+MIR_SELFTEST PASS
+SELFTEST_RC=0
