@@ -936,3 +936,11 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - **桥面**：kimi 三轮文档迁移**全收口**（任务线 `t_46ffe7622b14` 关闭；含 `review_scratch` 与 15 目录批）；**人读层审查机制已落地**（`docs/HUMAN_LAYER.md`：Tier A = README+`docs/**`〔kimi 写权〕/ Tier B = `P7B_OPEN_ITEMS.md` + 台账〔我方写权、变更须报 kimi 复核〕/ Tier C 不逐变更审）；kimi 对我方两次人读层给出**【通过】**（`m_158ca1a59914` / `m_5c25a8894b4a`）。kimi 当前**离线**（重启后未 poll）⇒ 审查任务躺日志等其收件。
 - **待 owner 定**：烧 `0x23`（已验基线）还是 `0x24`（含 URAM，已构建未烧未验）—— 建议**待 kimi 审查结清后再烧 `0x24`**。
 - ⛔ **推送受阻（网络）**：本节提交 `6cc8ffc`（+本行所在提交）**本地已提交、未推送** —— `github.com:443` 当前不可达（实测：`baidu 200 / github 000 @12s 超时`；今晨 09:1x 推送仍正常）⇒ **等网络恢复后补推 + `ls-remote` 核对**（本机已累积 ≥1 个未推送提交）。
+
+## §10-41 2026-10-13 21:5x：**台架重部署轮收口（关机重启后）—— 台架就绪；烧板轮待 owner 定版**
+- 对端 **21:34 开机**（uptime 6 min 见证）、`hw_server` active、`/tmp` 全清空；**重部署 25/25 md5 逐字同 · 9/9 编译 RC=0 · `p7b_mir_dump` 二进制逐字击中 `7cebded7…` · 板外自检 52 OK / 0 FAIL / PASS（+ `udp_src` OK）**；窗脚本三件（`run_win_hw.sh`/`analyze_readlog.py`/`final_state_rt.sh`）上 `/tmp/`（md5 与仓内同）。报告 = `p9_bench_redeploy_20261013/REPORT.md`（TL 代落盘）。
+- **两条工具坑（本轮实测，必修）**：① `peer_ssh.py --put` 远端路径**必须加 `MSYS_NO_PATHCONV=1`** —— 否则 MSYS 改写远端 `/tmp/…` ⇒ 假 `FileNotFoundError`（28/28 全红、看着像本地文件不存在）；② 本机 GBK stdout 打印对端输出（含 `∉` 等）抛 `UnicodeEncodeError` ⇒ 需 `PYTHONIOENCODING=utf-8`。
+- **BUILD.md §3 表落后两代**（`p7b_tcp_src` / `p7b_udp_src` / `tcpreg_j6.sh`）：现编产物逐字 = P8 轮冻结指纹（有独立记录佐证）⇒ 未改 BUILD.md（禁改仓内文件），引用按报告 §3 口径读。
+- **对端现态（只读见证）**：XDMA_NOT_LOADED · NIC DOWN、无 `/32`（`ip route get` 走 WiFi）、`carrier=0` · `lspci 02:00.0 = Xilinx 9034`（上电即 QSPI 厂商设计 ⇒ **场景 C**）；烧板轮三件配方（网络前置/`insmod`/PCIe 根端口级 rescan）已入报告 §5（**只列未执行**）。
+- ⚠️ **烧 `0x24` 时**：`run_win_hw.sh` 默认 `EXPECT_BID=0x00000023` ⇒ **须显式 `EXPECT_BID=0x00000024`**。
+- **推送仍受阻**（github 不可达）—— 本地累积未推提交（含本节）。kimi 审查任务 `t_9b6fd090aff1` 仍待其上线收件。
