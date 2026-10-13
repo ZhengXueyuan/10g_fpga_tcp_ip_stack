@@ -1,0 +1,43 @@
+== S1: 最大占用 (dn_req=0, 源常就绪, en=1, 无 clr) ==
+  [PASS] O_max(occ+inv) == 4100 字, 实测 = 4100 (occ,o_occ,inflight)=(4096, 4, 0) @cyc4100
+  [PASS] occ 分量取到 4096 (ufull 同拍 inv=4)
+  [INFO] 文档口径: rtl脚注/REPORT§1.7②/§3 = 4099; REPORT§1.5③ = 4096+4 = 4100; TB G2b 允许 [4096,4100]
+== S2: 稳态吞吐 (源常就绪, dn_req=1) ==
+  [PASS] 300 拍弹 300 字 (1 字/拍), 实测 = 300
+== S3: 多种子随机相位扫描 + 逐字对账 (超出 TB 的固定种子覆盖) ==
+  [PASS] seed=0: 逐字对账 seq_err=0 over_err=0 (丢/重/错序全 0)
+  [PASS] seed=0: clr 拍弹字 clr_pop=0
+  [PASS] seed=0: 复位期取数 rst_take=0
+  [PASS] seed=1: 逐字对账 seq_err=0 over_err=0 (丢/重/错序全 0)
+  [PASS] seed=1: clr 拍弹字 clr_pop=0
+  [PASS] seed=1: 复位期取数 rst_take=0
+  [PASS] seed=2: 逐字对账 seq_err=0 over_err=0 (丢/重/错序全 0)
+  [PASS] seed=2: clr 拍弹字 clr_pop=0
+  [PASS] seed=2: 复位期取数 rst_take=0
+  [PASS] seed=3: 逐字对账 seq_err=0 over_err=0 (丢/重/错序全 0)
+  [PASS] seed=3: clr 拍弹字 clr_pop=0
+  [PASS] seed=3: 复位期取数 rst_take=0
+  [PASS] seed=4: 逐字对账 seq_err=0 over_err=0 (丢/重/错序全 0)
+  [PASS] seed=4: clr 拍弹字 clr_pop=0
+  [PASS] seed=4: 复位期取数 rst_take=0
+  [PASS] seed=5: 逐字对账 seq_err=0 over_err=0 (丢/重/错序全 0)
+  [PASS] seed=5: clr 拍弹字 clr_pop=0
+  [PASS] seed=5: 复位期取数 rst_take=0
+  [PASS] seed=6: 逐字对账 seq_err=0 over_err=0 (丢/重/错序全 0)
+  [PASS] seed=6: clr 拍弹字 clr_pop=0
+  [PASS] seed=6: 复位期取数 rst_take=0
+  [PASS] seed=7: 逐字对账 seq_err=0 over_err=0 (丢/重/错序全 0)
+  [PASS] seed=7: clr 拍弹字 clr_pop=0
+  [PASS] seed=7: 复位期取数 rst_take=0
+  [PASS] 全部种子 inv<=CAP(4), 实测 max=4
+  [PASS] 全部种子 occ<=4096, 实测 max=775
+== S4: clr 拍 dn_req 保持 1 (F3 语义复算) ==
+  [PASS] clr 前已攒字 60 (>0)
+  [PASS] clr 拍 dn_gnt 强制 0, 实测 = 0
+== S5: 式 B 中途上界复算 ==
+  [INFO] O_max = 4100 字 = 32800 B
+  [INFO] 工具默认: --resid-max-mirror 24 B (--resid-max-shaper 32 B)
+  [INFO] 式 B 真中途上界 = 镜像残余(<=24 B) + O_max = 32824 B ; 默认 24 差 1367 倍
+  [PASS] 默认 24 不是中途上界 (构造性成立)
+
+RESULT: ALL-PASS (fails=0)
