@@ -1,0 +1,44 @@
+# 板级复跑（可选加分）身份门核验 — 2026-10-13 Kimi 独立验证
+
+## 判定：未执行复跑（门核验通过项 + 阻断项如下；按纪律「任何一步身份门不过 ⇒ 立即停手登记，不烧不跑」）
+
+### 核验命令与输出（原始留档）
+
+1) ping
+   $ ping -n 1 -w 2000 192.168.0.38
+   答复来自 192.168.0.38: 字节=32 时间=87ms TTL=64  （通）
+
+2) 工具指纹（对端现读）
+   $ python tools/peer_ssh.py "md5sum /tmp/p7b_biz/p7b_mir_dump /tmp/p7b_biz/p7b_udp_src; md5sum /tmp/p7b_biz/p7b_snap.sh /tmp/p9_rate/p7b_snap.sh"
+   7cebded7e9270b6a2d81f5db29843f4d  /tmp/p7b_biz/p7b_mir_dump   == 期望 7cebded7e9270b6a2d81f5db29843f4d  ✓
+   e0d4da5834cb95d67afb0cc523d1f92f  /tmp/p7b_biz/p7b_udp_src    == 期望 e0d4da5834cb95d67afb0cc523d1f92f  ✓
+   97c66382cf2a0c334f5e6466ce714ad2  /tmp/p7b_biz/p7b_snap.sh    == 期望 97c66382cf2a0c334f5e6466ce714ad2  ✓
+   97c66382cf2a0c334f5e6466ce714ad2  /tmp/p9_rate/p7b_snap.sh    ✓（双副本同 md5）
+
+3) 残留进程
+   $ python tools/peer_ssh.py "ps aux | grep -E 'p7b_mir_dump|p7b_udp_src|run_win_hw' | grep -v grep; echo PROC_CHECK_DONE"
+   （无输出）PROC_CHECK_DONE  ⇒ 无残留进程 ✓
+
+4) 权限门（阻断项）
+   $ python tools/peer_ssh.py "sudo -n true 2>&1 && echo SUDO_NOPASS_OK || echo SUDO_NEEDS_PW; ls -la /dev/xdma0_user"
+   sudo: a password is required
+   SUDO_NEEDS_PW
+   crw------- 1 root root 235, 0 Oct 13 22:07 /dev/xdma0_user      ⇒ 属主 root、权限 600
+   本机 env: PEER_PW set: False（本会话无 PEER_PW；项目纪律「口令不落盘」）
+
+5) p7b_snap.sh 自身声明（对端源码）
+   /tmp/p9_board_0x24/p7b_snap.sh 第 49 行: "需要 root (/dev/xdma0_user 是 crw------- root): 用 tools/peer_ssh.py --sudo 跑本脚本。"
+
+### 未执行原因
+- 板上身份读取（0x00/0x04 BID、0x08 停流态）= reg_rw 走 /dev/xdma0_user ⇒ 需 root ⇒ peer_ssh.py --sudo ⇒ 需 PEER_PW 环境变量；本会话无 PEER_PW，sudo 要密码。
+- 复跑本身还需：解除受控停流（0x08 写 0）、跑 p7b_mir_dump（/dev/xdma0_c2h_0 同为 root 600）、
+  收尾受控停流（0x08 写 0x2 + MIR_CTRL=0）—— 全部需 root。
+- ⇒ 身份门无法在只读/无特权条件下执行 ⇒ 按纪律停手登记，未跑、未烧、未动 QSPI、未改板态。
+
+### 若将来补跑所需的构型（同主轮）
+K=1073741824 / chunk 4194304 / --dual 2 / --pat-off 0 / unpaced / --no-verify / --readlog 1
+（主轮 TOOL_ARGS 逐字见 kx_stats.out；见证要求：TOOL_ARGS 行 + PIN_CPU 行 + p7b_snap.sh 快照 ID）
+
+### 覆盖面（为什么没跑也足以支撑本轮结论）
+①-⑤ 的全部量化主张均由盘上原始件独立复算覆盖（见 VERIFY.md 各节）；板级复跑仅额外提供
+「同构型第二个时段抽样」的时间稳定性见证 —— 该覆盖项本轮缺失，如实登记。

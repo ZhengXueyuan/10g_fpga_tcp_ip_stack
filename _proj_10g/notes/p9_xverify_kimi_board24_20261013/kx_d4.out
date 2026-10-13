@@ -1,0 +1,11 @@
+D4 链窗口: ['S3D4', 'S4D4', 'S5D4']
+S3D4: OFF=1344731136 src_bytes=1048584 K=1048584 pc=1048576 taken=1048584 dW70=0 式A=8(复算8,closed_a=1) 式B=0(复算0,closed_b=1) VERIFY rc=0 fm=-1 DONE pc/reads/partial/nonmul64/short/early/err=[1048576, 1, 0, 0, 0, 0, 0] => MATCH
+S4D4: OFF=1345779720 src_bytes=1048576 K=1048576 pc=1048576 taken=1048576 dW70=0 式A=0(复算0,closed_a=1) 式B=0(复算0,closed_b=1) VERIFY rc=0 fm=-1 DONE pc/reads/partial/nonmul64/short/early/err=[1048576, 1, 0, 0, 0, 0, 0] => MATCH
+S5D4: OFF=1346828296 src_bytes=1048584 K=1048584 pc=1048576 taken=1048584 dW70=0 式A=8(复算8,closed_a=1) 式B=0(复算0,closed_b=1) VERIFY rc=0 fm=-1 DONE pc/reads/partial/nonmul64/short/early/err=[1048576, 1, 0, 0, 0, 0, 0] => MATCH
+
+停流探针: MIR_STATUS 0x00240000 -> 0x00200000; MIR_CTRL 0x0000000b --写0x00000008--> 0x0000000a; MIR_DMA_CNT 0x00040002 -> ['0x00040002', '0x00040002', '0x00040002']
+  TAIL_RC=0 ELAPSED=0; tail=23b90e8ca65bd320
+  EXPECT 文件=23b90e8ca65bd320; 本复算 mir(OFF+K,8)^A5 = 23b90e8ca65bd320
+  逐字节 MATCH: True
+
+D4 链整体: ALL MATCH
