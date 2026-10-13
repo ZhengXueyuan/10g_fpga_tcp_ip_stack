@@ -1,0 +1,47 @@
+=== RUN_WINDOW TAG=F_A1 NPROC=4 BID=0x00000023 1791908701.116939000 Wed Oct 14 00:25:01     2026
+--- 工具指纹现取 ---
+48dcbcb26a4db45f576fc9664638a089  /tmp/p7b_biz/p7b_mir_dump
+e0d4da5834cb95d67afb0cc523d1f92f  /tmp/p9_uram_ab/p7b_udp_src
+7b40bcbb4adc2bf776d421656b65e7a9  /tmp/p9_uram_ab/run_win_hw.sh
+CARRIER_NOW=1
+--- 启动窗口 (对端 root, 后台 + 轮询) ---
+LAUNCHED_PID=25407
+[poll 1 1791908728] --- 文件 ---
+crw-rw-rw- 1 root root 1, 3 Oct 13 21:34 /dev/null
+=== END F_A1 1791908717.291065381
+---
+1
+--- 取回窗口 stdout + 原始日志 ---
+-rw-r--r-- 1 root root 37959 Oct 14 00:25 /tmp/p9_uram_ab/mir_F_A1.log
+-rw-r--r-- 1 root root   996 Oct 14 00:25 /tmp/p9_uram_ab/rstat_F_A1.log
+-rw-r--r-- 1 root root 44092 Oct 14 00:25 /tmp/p9_uram_ab/win_F_A1.log
+-rw-r--r-- 1 root root 994 Oct 14 00:25 /tmp/p9_uram_ab/src_F_A1_p1.log
+-rw-r--r-- 1 root root 994 Oct 14 00:25 /tmp/p9_uram_ab/src_F_A1_p2.log
+-rw-r--r-- 1 root root 899 Oct 14 00:25 /tmp/p9_uram_ab/src_F_A1_p3.log
+-rw-r--r-- 1 root root 899 Oct 14 00:25 /tmp/p9_uram_ab/src_F_A1_p4.log
+--- 窗口 stdout 已归档: /d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_uram_ab_20261014/runs/WIN_F_A1_20261014_002501.txt (44430 B) ---
+--- 原始件取回 (mir/rstat/src) ---
+GET OK /tmp/p9_uram_ab/mir_F_A1.log -> D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_uram_ab_20261014/runs/mir_F_A1_20261014_002501.log
+GET OK /tmp/p9_uram_ab/rstat_F_A1.log -> D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_uram_ab_20261014/runs/rstat_F_A1_20261014_002501.log
+GET OK /tmp/p9_uram_ab/src_F_A1_p1.log -> D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_uram_ab_20261014/runs/src_F_A1_p1_20261014_002501.log
+GET OK /tmp/p9_uram_ab/src_F_A1_p2.log -> D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_uram_ab_20261014/runs/src_F_A1_p2_20261014_002501.log
+GET OK /tmp/p9_uram_ab/src_F_A1_p3.log -> D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_uram_ab_20261014/runs/src_F_A1_p3_20261014_002501.log
+GET OK /tmp/p9_uram_ab/src_F_A1_p4.log -> D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_uram_ab_20261014/runs/src_F_A1_p4_20261014_002501.log
+--- 关键读数摘 (现取) ---
+TOOL_MD5=48dcbcb26a4db45f576fc9664638a089
+CARRIER_PRE=1
+NIC_PRE:      port_tx_bytes: 25751150463      port_tx_packets: 16964655      port_rx_bytes: 1255471668032      port_rx_packets: 827056529 
+OFF_FIX: W11=0x40000000 但 FIXOFF 生效 => OFF=0
+READER_CPUS_ALLOWED=Cpus_allowed_list:0-7 READER_CPU_START=7 READER_PID=25567 READER_PID_FALLBACK=0
+SRC_RC=0 TE=1791908706.842822989
+TOOL_RC=1 TZ=1791908717.218341288 (墙钟 TZ-TSTART=14.472s)
+MIR_ID magic=50360001 (exp 50360001) bid=00000023 (exp 00000023)
+MIR_STREAM_DONE pc=1061158912 reads=253 partial=0 nonmul64=0 short=1 ended_early=1 read_error=1 secs=14.050 rate_Bps=75528143
+MIR_STREAM_ACCT pc=1061158912 taken_bytes=1061490032 dW70=12251792 w70a=9437496 w70b=21689288 words0=0 words1=265372508 dwords=265372508 K=1073741824
+MIR_STREAM_QUIESCE level_end=0 quiesced=1 premise_level0=1 waited_ms=0.0 settle_s=0.30 strict=1 (前提: FIFO 尾部已排空; 打包器残留由 FPGA 侧停流 flush 清)
+MIR_STREAM_IDA 式A(成形器) taken_bytes - pc == shaper_resid -> 331120  band=[0,32] closed_a=0
+MIR_STREAM_IDB 式B(镜像/K) K - taken_bytes - dW70 == mirror_resid -> 0  band=[0,24] closed_b=1 (K 来源=--bytes; --resid-max 旧名未用)
+MIR_STREAM_GAP first=0 last=331120 max=331120 nondecreasing=0 host_miss_bytes=331120 host_miss_pct=0.0312 (= (taken-pc)/taken; 宿主跟不上的比例)
+TOOL_MD5_EXPECT=48dcbcb26a4db45f576fc9664638a089
+TOOL_MD5_MATCH=yes
+=== RUN_WINDOW_END TAG=F_A1 1791908736.789341200

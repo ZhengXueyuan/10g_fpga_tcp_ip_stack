@@ -1,0 +1,103 @@
+# P9 URAM A/B 轮 (p9_uram_ab_20261014) -- 时间线
+# 目标: 把 0x24(URAM) 相对 0x23(基线) 的收益从"跨会话 n=1"升级为"同会话交替烧录 A/B"
+# 只做测量与归档, 不下 PASS/FAIL 裁定; 「未观测到」≠「不存在」。
+# 轮顶规定序列: [0x23 -> 0x24 -> 0x23 -> 0x24 -> 0x23 -> 0x24] (6 次, 末次停 0x24); 每臂每烧 S+F 两窗。
+# 本机 = D:\repo\XCKU5PMini\udp_hls_10g (git 仓根); 对端 = 192.168.0.38 (user a); 板 = KU5P @ 对端 PCIe 槽。
+# 目录: 对端 /tmp/p9_uram_ab/ (脚本副本+原始日志) ; 本地 _proj_10g/notes/p9_uram_ab_20261014/{runs,burn,_tools}
+
+=== 00 开工核 (2026-10-14 00:19-00:20 +0800, 全部现取) ===
+[00:19] 对端可达 (TCP 判据, 不用 ping 退出码):
+        TCP OPEN 192.168.0.38:22 / TCP OPEN 192.168.0.38:3121
+[00:19] uptime -s = 2026-10-13 21:34:23  (boot; 现时 = Wed Oct 14 12:19:42 AM CST 2026)
+        hw_server: systemctl is-active = active; ss = LISTEN 0 16 0.0.0.0:3121
+[00:19] 工具 md5 (对端现读):
+        /tmp/p7b_biz/p7b_mir_dump       = 48dcbcb26a4db45f576fc9664638a089  (修复版, 108696 B, mtime Oct 13 23:22)  <= 派单期望
+        /tmp/p7b_biz/p7b_mir_dump.cpp   = 464006d9d7dcc5f365f36880ba8f8fc5  (源; 派单期望)
+        /tmp/p7b_biz/p7b_udp_src        = e0d4da5834cb95d67afb0cc523d1f92f
+        /tmp/p9_rate/p7b_snap.sh        = 97c66382cf2a0c334f5e6466ce714ad2
+        /tmp/run_win_hw.sh              = 7b40bcbb4adc2bf776d421656b65e7a9
+[00:19] 目录: /tmp/p9_board_0x24 在; /tmp/p9_rate 在; /tmp/p9_uram_ab 不存在 (本轮新建)。
+[00:19] 残留进程扫描: 空 (无 p7b_*/mir_dump/udp_src/tcpdump)。
+[00:19] 板侧身份 (sudo reg_rw, 现读):
+        0x00=0x50360001 · 0x04=0x00000024 · 0x08=0x00000002 (受控停流) · 0x14=0xdeadbeef
+        0x13C=0x00220000 (ver=4/any_drop_sticky=1/level=0) · 0x144=0x00000000 · 0x148=0x0ff9f1a6 · 0x14C=0xffffffff
+        lspci 02:00.0: Region0 [1M] + Region1 [64K] (2 BARs) · LnkSta Width x4 · CARRIER=0
+        => 板现态 = 0x24 + 受控停流 (与派单前提逐条相符)
+[00:19] 本地两个 .bit sha256 (双件复算):
+        0x23 = 066a3923351b8f539a986b88d96f1093a686da57f95938e0c8837b13d30a3126  (15431261 B)  <= 派单/归档一致
+        0x24 = e3b07957aea0326a168b9db0238ef9dd933dc7a21884c92e50a7c3b0abadf1db  (15431261 B)  <= 派单/归档一致
+[00:19] 本地 p7b_biz_tcpreg/{run_program_tcpreg.bat,program_tcpreg_ku5p.tcl} 在位 (烧录 launcher)。
+
+=== 01 环境前置 + 解停流 (00:21) ===
+[00:21] 对端部署 /tmp/p9_uram_ab/: run_win_hw.sh(7b40bcbb…) · p7b_udp_src(e0d4da58…) · p7b_snap.sh(97c66382…)
+        · p7b_mir_dump.arch_48dcbcb2 (48dcbcb2… 归档副本, 仅存档; 窗口 TOOL 仍指 /tmp/p7b_biz/p7b_mir_dump)
+        · env_pre.sh / final_state.sh / stop_probe.sh (本地 _tools 副本 --put)
+[00:21] runs/ENV_PRE_*.txt: /32 UP · route dev enp1s0f1np1 · nmcli 10 (unmanaged) · Adaptive RX off / rx-usecs 0
+[00:21] 撤停流: 0x08 w 0x0 => 0x08=0x00000000 · CARRIER=1 · Speed 10000Mb/s · Link detected yes
+
+=== 02 交替烧录序列 (0x23 -> 0x24 -> 0x23 -> 0x24 -> 0x23 -> 0x24) ===
+
+--- 腿1 (A1): 烧 0x23 #1 [00:21-00:24] BURN_OK · BID=0x00000023 · 2BARs · LnkSta x4 · carrier=1
+[00:24] S_A1: dW70 = 9,437,496 B (9.44 MB) · pc=1061158912 · closed_b=1 · closed_a=0 · host_miss_pct=0.2955 · SRC_RC=0 · TOOL_MD5=48dcbcb2… MATCH
+[00:25] F_A1: dW70 = 12,251,792 B (12.25 MB) · pc=1061158912 · closed_b=1 · closed_a=0 · host_miss_pct=0.0312 · SRC_RC=0 · TOOL_MD5 MATCH
+        (注: A1 两窗 MIR_STREAM_DONE 带 read_error=1/结束早 — 如实登记; 主读数 = ACCT 差分, 不受影响)
+--- 腿2 (B1): 烧 0x24 #1 [00:27-00:28] BURN_OK · BID=0x00000024 · 2BARs · LnkSta x4 · carrier=1
+[00:28] S_B1: dW70 = 3,702,344 B (3.70 MB) · pc=1069547520 · closed_b=1 · host_miss_pct=0.0460 · TOOL_MD5 MATCH
+[00:28] F_B1: dW70 = 7,333,800 B (7.33 MB) · pc=1065353216 · closed_b=1 · host_miss_pct=0.0989 · TOOL_MD5 MATCH
+--- 腿3 (A2): 烧 0x23 #2 [00:31-00:32] BURN_OK · BID=0x00000023 · 2BARs · LnkSta x4 · carrier=1
+[00:32] S_A2: dW70 = 9,748,424 B (9.75 MB) · pc=1061158912 · closed_b=1 · TOOL_MD5 MATCH
+[00:32] F_A2: dW70 = 11,500,296 B (11.50 MB) · pc=1061158912 · closed_b=1 · TOOL_MD5 MATCH
+--- 腿4 (B2): 烧 0x24 #2 [00:34-00:36] BURN_OK · BID=0x00000024 · 2BARs · LnkSta x4 · carrier=1
+[00:36] S_B2: dW70 = 9,178,616 B (9.18 MB) · pc=1061158912 · closed_b=1 · TOOL_MD5 MATCH   (臂内散布可见)
+[00:36] F_B2: dW70 = 3,540,072 B (3.54 MB) · pc=1069547520 · closed_b=1 · TOOL_MD5 MATCH
+--- 腿5 (A3): 烧 0x23 #3 [00:39-00:39] BURN_OK · BID=0x00000023 · 2BARs · LnkSta x4 · carrier=1
+[00:39] S_A3: dW70 = 9,785,144 B (9.79 MB) · pc=1061158912 · closed_b=1 · TOOL_MD5 MATCH
+[00:40] F_A3: dW70 = 9,596,872 B (9.60 MB) · pc=1061158912 · closed_b=1 · TOOL_MD5 MATCH
+--- 腿6 (B3): 烧 0x24 #3 [00:43-00:43] BURN_OK · BID=0x00000024 · 2BARs · LnkSta x4 · carrier=1  (末次 = 停在 0x24)
+[00:43] S_B3: dW70 = 1,167,272 B (1.17 MB) · pc=1069547520 · closed_b=1 · TOOL_MD5 MATCH
+[00:44] F_B3: dW70 = 5,484,456 B (5.48 MB) · pc=1065353216 · closed_b=1 · TOOL_MD5 MATCH
+
+=== 03 三口径对账 (runs/STATS_AB.txt, ab_consistency.py) ===
+12/12 窗: pre/post 快照 W70 原值差 == MIR_STREAM_ACCT dW70 == Σ READLOG dw70  (THREE_WAY_MISMATCH_WINDOWS=0)
+臂汇总 (dW70, 字节):
+  S_0x23 n=3 [9,437,496 / 9,748,424 / 9,785,144] median=9,748,424 mean=9,657,021 min..max=9.44..9.79 MB
+  S_0x24 n=3 [3,702,344 / 9,178,616 / 1,167,272] median=3,702,344 mean=4,682,744 min..max=1.17..9.18 MB
+  F_0x23 n=3 [12,251,792 / 11,500,296 / 9,596,872] median=11,500,296 mean=11,116,320 min..max=9.60..12.25 MB
+  F_0x24 n=3 [7,333,800 / 3,540,072 / 5,484,456] median=5,484,456 mean=5,452,776 min..max=3.54..7.33 MB
+观测 (不下裁定): 同会话 A/B 两构型均为"臂 A(0x23) 3 值全 > 臂 B(0x24) 3 值"(完全分离); 但臂 B 内散布远大于臂 A
+  (S: 7.9x vs 1.04x; F: 2.1x vs 1.28x)。host_miss_pct 两臂同带 (0.03-0.32%)。
+
+=== 04 收尾 (runs/FINAL_STATE_*.txt) ===
+[00:44] 停流前 NIC 2 s 窗: 1812298156002 -> 1814753630298 B (+2,455,474,296 B/2 s = 9.82 Gbps 泛洪在场见证)
+[00:44] 写 0x08=0x2 + MIR_CTRL(0x144)=0 => CARRIER=0 / Link detected: no / NIC 逐字冻结 (1815697807132 / 1196112016 两读同)
+[00:44] 终态寄存器: 0x00=0x50360001 · 0x04=0x00000024 · 0x08=0x00000002 · 0x14=0xdeadbeef
+        0x13C=0x00220000(ver=4/any_drop_sticky=1/level=0) · 0x144=0x00000000 · 0x148=0x0feb1416 · 0x14C=0xffffffff
+[00:44] 快照 final gen=532 W70=0x00657f50 (= 6,651,728 = F_B3 的 w70b 逐位同; nff=0)
+[00:44] 残留进程扫描 = 空 (PROC_SCAN_DONE, 无命中)
+[00:44] /tmp/p7b_biz 四件 md5 逐字未变: p7b_mir_dump=48dcbcb2… / .cpp=464006d9… / p7b_udp_src=e0d4da58… / p7b_snap.sh=97c66382…
+[00:44] dmesg (总 2171 行; boot=2026-10-13 21:34:23): 新增 xdma:transfer_abort @11405.866 s (= 00:44:28.9, 末窗工具早停收尾 fd 释放产物)
+        + sfc link down x2 @11432.758/11432.832 s (= 00:44:55.8, 受控停流写 0x08=2 的预期形态)
+终态 = 0x24 + 受控停流; 恢复 = reg_rw /dev/xdma0_user 0x08 w 0x0
+
+=== 05 本轮偏离登记 (逐条; 派单 vs 实际) ===
+[D-1] 脚本指针差异: 派单写"S 臂参数以 run_arm.sh 原文为准", 但 _tools/run_arm.sh 是行为套件臂运行器
+      (默认 K=1MiB/--buf-mb 128/--seconds 30/MBPS=20/BATCH=1, 无 --dual/--readlog), 不是 URAM 收益臂窗口协议;
+      URAM 收益臂窗口协议在 run_win_hw.sh (≈ p9_hostread_20261013/_tools, md5 7b40bcbb4adc2bf776d421656b65e7a9;
+      对端 /tmp/run_win_hw.sh 同 md5)。本轮按派单正文参数集逐项落到 run_win_hw.sh 执行, 且窗口 TOOL_ARGS 与
+      0x24 板级轮 S0 的 TOOL_ARGS 逐字同构 (除 --bid 随臂)。如实记录差异。
+      复跑配方: cd /tmp/p9_uram_ab && D=/tmp/p9_uram_ab TAG=<TAG> K=1073741824 MBPS=0 PAYLEN=1472 BATCH=32
+        SECS=6 SAMPLE_MS=1000 CHUNK=4194304 READLOG=1 AIO=0 DUAL=2 BUFMB=1024 FIXOFF=0 DECL=--no-verify
+        NPROC=<1|4> NW=71 EXPECT_BID=<arm> TOOL=/tmp/p7b_biz/p7b_mir_dump OUT=/dev/null bash run_win_hw.sh
+[D-2] 工具代际: 本卷 TOOL = 修复版 48dcbcb2… (23:22 切换, 派单指定); 0x24 板级轮 TOOL = 7cebded7…。
+      ⇒ 本卷读数与 0x24 板级轮"同参数、不同工具代际"。12/12 窗 TOOL_MD5 现取行 = 48dcbcb2 全中。
+[D-3] PCIe 恢复全程设备级一次成功 (6/6 烧), 根端口级分支未触发 (起点 = 我方设计, 非厂商 QSPI 场景 C)。
+[D-4] read_error/早停形态: A 臂 6 窗中 5 窗 read_error=1 (pc 停在 253x4MiB = 1061158912), B 臂 1 窗 (S_B2) 同形态,
+      其余 B 窗 read_error=0 (pc 254-255 读)。如实登记; 主读数 = ACCT 差分, 三口径 12/12 闭合不受影响。
+[D-5] 我方驱动脚本小修: run_window.sh 首窗后把 --get 目的路径改为 Windows 形 (原 MSYS 形 /d/... 让 Windows
+      Python 找不到目的目录); S_A1 的 mir/rstat/src 原始日志在修正后补取 (对端原件, 内容未改)。
+[D-6] 被烧录机制改写的既有跟踪文件 (本轮唯一 M): _proj_10g/notes/p7b_biz_tcpreg/tcpreg_program_stdout.txt
+      (烧录 launcher 的 stdout 落点, 每次烧录必覆盖; 历轮同)。6 次副本已归档 burn/BURN_*_stdout_copy_*.txt。
+      未做任何 git 提交 / 未动 rtl,board,sim,工具源码。
+[D-7] 对端: 新增 /tmp/p9_uram_ab/ (脚本副本+原始日志); /tmp/p7b_biz 全程只读 (收尾四件 md5 逐字未变);
+      /tmp/p9_board_0x24 与 /tmp/p9_rate 未动 (窗口 snap 从 /tmp/p9_rate/p7b_snap.sh 读, 该件 97c66382 未改)。
+[D-8] 未跑项 (不在本派单范围): 干净抓取 / 内容臂 / D4 停流链 / --src tcp / H2C。

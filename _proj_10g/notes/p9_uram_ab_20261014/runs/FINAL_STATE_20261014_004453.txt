@@ -1,0 +1,72 @@
+=== FINAL_STATE_BEGIN 1791909894.567503761
+--- ① 停流前 NIC 收速率 (2 s 窗) ---
+     port_rx_bytes: 1812298156002
+     port_rx_packets: 1193872447
+-- 2s later --
+     port_rx_bytes: 1814753630298
+     port_rx_packets: 1195490019
+CARRIER=1
+--- ② 写 0x08 = 0x2 (受控停流) ---
+Write 32-bits value 0x00000002 to 0x8 (0x0x789001d7e008)
+--- ③ 写 MIR_CTRL(0x144) = 0 (功能位全 0; bit1 写 0 = 无 clr 翻转) ---
+Write 32-bits value 0x00000000 to 0x144 (0x0x7a5348d88144)
+--- ④ 停流后 NIC + carrier/link ---
+     port_rx_bytes: 1815697807132
+     port_rx_packets: 1196112016
+-- 2s later --
+     port_rx_bytes: 1815697807132
+     port_rx_packets: 1196112016
+CARRIER=0
+LINK=Link detected: no
+--- ⑤ 终态寄存器 ---
+MAGIC_0x00=Read 32-bit value at address 0x0 (0x7396786c3000): 0x50360001
+BID_0x04=Read 32-bit value at address 0x4 (0x7aecae704004): 0x00000024
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x7e1ec72f5008): 0x00000002
+MARKER_0x14=Read 32-bit value at address 0x14 (0x7aa7b6a7b014): 0xdeadbeef
+MIR_STATUS_0x13C=Read 32-bit value at address 0x13c (0x7d07a8de313c): 0x00220000
+MIR_CTRL_0x144=Read 32-bit value at address 0x144 (0x717e2d813144): 0x00000000
+MIR_DMA_CNT_0x148=Read 32-bit value at address 0x148 (0x774182099148): 0x0feb1416
+UNIMPL_0x14C=Read 32-bit value at address 0x14c (0x7bea5234514c): 0xffffffff
+--- ⑥ 快照 (触发式, 关键字) ---
+SNAP_BEGIN final gen=532
+W0   0x20   rx_stat_frames         0x00164325
+W1   0x24   rx_stat_bytes          0x8400c522
+W5   0x34   gmii_free_FE           0xe8f533a8
+W11  0x4C   udpapp_rx_bytes        0x80000000
+W13  0x54   udpapp_mismatch        0x3fc00d7f
+W43  0xCC   mtx_stat_tx_words      0xe8f3d1a7
+W70  0x138  mir_drop_bytes         0x00657f50
+W53  0xF4   app_rx_bytes           0x00000000
+W54  0xF8   app_mismatch           0x00000000
+SNAP_END final nff=0
+--- ⑦ 残留进程 (对端) ---
+PROC_SCAN_DONE
+--- ⑧ 只读核对 (/tmp/p7b_biz 未被动过) ---
+48dcbcb26a4db45f576fc9664638a089  /tmp/p7b_biz/p7b_mir_dump
+464006d9d7dcc5f365f36880ba8f8fc5  /tmp/p7b_biz/p7b_mir_dump.cpp
+e0d4da5834cb95d67afb0cc523d1f92f  /tmp/p7b_biz/p7b_udp_src
+97c66382cf2a0c334f5e6466ce714ad2  /tmp/p7b_biz/p7b_snap.sh
+--- ⑨ dmesg 尾部 ---
+2171
+[11405.865524] xdma:engine_reg_dump: 0-C2H0-ST: ioread32(0x0000000037349e88) = 0x00000000 (completed_desc_count).
+[11405.865535] xdma:engine_reg_dump: 0-C2H0-ST: ioread32(0x0000000095b73c34) = 0x00f83e1e (interrupt_enable_mask)
+[11405.865548] xdma:engine_status_dump: SG engine 0-C2H0-ST status: 0x00000001: BUSY
+[11405.865556] xdma:transfer_abort: abort transfer 0x00000000bdc09f62, desc 1024, engine desc queued 0.
+[11432.757909] sfc 0000:01:00.1 enp1s0f1np1: link down
+[11432.832066] sfc 0000:01:00.1 enp1s0f1np1: link down
+--- ⑩ 网络面 ---
+10 (unmanaged)
+Adaptive RX: off  TX: n/a
+rx-usecs:	0
+    inet 192.168.100.100/32 scope global enp1s0f1np1
+=== FINAL_STATE_END 1791909902.673181378
+2026-10-13 21:34:23
+2171
+[11405.865503] xdma:engine_reg_dump: 0-C2H0-ST: ioread32(0x0000000044aa9b81) = 0x00000001 (first_desc_hi)
+[11405.865513] xdma:engine_reg_dump: 0-C2H0-ST: ioread32(0x0000000068bee8f0) = 0x0000003f (first_desc_adjacent).
+[11405.865524] xdma:engine_reg_dump: 0-C2H0-ST: ioread32(0x0000000037349e88) = 0x00000000 (completed_desc_count).
+[11405.865535] xdma:engine_reg_dump: 0-C2H0-ST: ioread32(0x0000000095b73c34) = 0x00f83e1e (interrupt_enable_mask)
+[11405.865548] xdma:engine_status_dump: SG engine 0-C2H0-ST status: 0x00000001: BUSY
+[11405.865556] xdma:transfer_abort: abort transfer 0x00000000bdc09f62, desc 1024, engine desc queued 0.
+[11432.757909] sfc 0000:01:00.1 enp1s0f1np1: link down
+[11432.832066] sfc 0000:01:00.1 enp1s0f1np1: link down
