@@ -67,13 +67,14 @@ cd /tmp/p7b_biz || exit 9
 #   ⛔ 2026-10-10 (构建 C 门同步轮): 本轮之前门里只列了 61/8 与 63/9 两档, 而 `NW` 默认早已随
 #      构建抬到 65 ⇒ **默认跑必然 J6_GEOM_FAIL + exit 3** (新位流测不了)。现在档表是唯一来源。
 NW=${NW:-71}
-EXPECT_BID=${EXPECT_BID:-0x00000023}   # 2026-10-12 P9 D4 clr 口径修正 (71 字; 原 0x00000022 = P9 XDMA MM→AXIS / 0x21 = P8-STG 16 B 弹性暂存 / 0x20 = P8 镜像 8 B/拍)
+EXPECT_BID=${EXPECT_BID:-0x00000024}   # 2026-10-13 P9 URAM 板内缓冲 (71 字; 原 0x00000023 = P9 D4 clr 口径修正 / 0x22 = P9 XDMA MM→AXIS / 0x21 = P8-STG 16 B 弹性暂存)
 export NW EXPECT_BID        # ⚠️ 必须 export: 取数器 p7b_snap.sh 读的是**它自己的环境**
 # 十六进制**大小写归一** (只用于比较, 打印仍用原样; 判据语义零改动 —— 先例 = p7b_snap.sh 的
 #   Stage C 订正 / j6_r6fix.sh 的 geom_gate 块: `reg_rw` 打小写而期望值写大写时字符串比较必假红)
 norm(){ printf "%s" "$1" | tr "A-F" "a-f"; }
 # 档表格式: "NW|BID|WEXTRA|说明"  (WEXTRA 空 = t0/t1 字表退回 5 20 43 53 54)
 GEOM_TIERS=(
+  "71|0x00000024|61 62|P9 URAM 板内缓冲 (2026-10-13) 71 字 / BID 0x24 (URAM288 4096x64 = 32 KB 板内缓冲 `u_mir_buf` + F2/F3 修正; 几何/未实现地址 0x14C 不变)"
   "71|0x00000023|61 62|P9 D4 clr 口径修正 (2026-10-12) 71 字 / BID 0x23 (C2H 引擎 clr 口径修正: clr 丢弃残拍不发拍 + 非 clr 停流排空后只发一拍短尾; 几何/未实现地址 0x14C 不变)"
   "71|0x00000022|61 62|P9 XDMA MM→AXIS (2026-10-11) 71 字 / BID 0x22 (XDMA 用户接口 MM→AXIS: 新件 `axis_c2h_stream` + 端口表 75→50; 几何/未实现地址 0x14C 不变)"
   "71|0x00000021|61 62|P8-STG 16 B 弹性暂存 (2026-10-11) 71 字 / BID 0x21 (采集侧 8 B 单槽 → 16 B 字节粒度弹性暂存, 相位鲁棒; 几何/未实现地址 0x14C 不变)"

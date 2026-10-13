@@ -1,0 +1,5 @@
+指纹件数               = 257
+① 指纹 == 盘上现读     : 257 / 257  (不一致 0)
+② HEAD 里可查 (tracked) = 257 ; 逐字 == HEAD : 256 ; **≠ HEAD : 1**
+   ≠HEAD board/wrapper_p4.v
+③ 未跟踪 (HEAD 无此件) = 0

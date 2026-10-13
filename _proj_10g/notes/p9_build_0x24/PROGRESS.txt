@@ -1,0 +1,28 @@
+[2026-10-13 07:47] P9 构建轮 start (BID 0x24 = URAM 板内缓冲 + F2/F3 修正)。开工 HEAD=f46a221; wrapper BID_V=32'h00000023 (:4316); SNAP_NW_P6E=71 / 未实现 0x14C; 并行面: _proj_pcie/p7b_biz/p7b_mir_dump.cpp 有他人 M (不在任何门闭包内)
+[07:48] 侦察发现: board/build_p7b_ku5p.tcl 的 import 清单**不含** rtl/mir_uram_fifo.v (URAM 实施轮 xsim-only 未补) ⇒ 不补=黑盒; 先例=173b18d 同区域加 axis_c2h_stream.v。bash: 不动 rtl/**
+[07:50] A1 wrapper BID 0x23→0x24: 2 hunk (:2144 版本戳 + :4316 BID/新块+旧块降级), +50/−3; 非注释改动行**恰 1** = BUILD_ID_V; :1319-1322 禁碰区 diff 0; sha bcb24891…→c06690ce6fce414a2018d1b46c21d01ec9b903ca0513d6e1cb89bb4aa4c82743 (4907 行)
+[07:51] A2 build tcl +1 行导入 rtl/mir_uram_fifo.v (+6 行注释); sha 6635e873…→790424b9ab77c7492fb644055b12df46488ec44897c31aa275fa5959f9a76113
+[07:52] B 读侧同步 0x23→0x24 (阶段⑨): gen_edits24.py (old 侧 24/24 逐字自检) + splice_phase9.py (6 锚点唯一命中) + 预扫 _scan_newhits.py (19 未登记 → 逐条核 → ALLOW 9 条 + 1 条 agent_docs/int_scratch [kimi 迁移导致旧 ALLOW 失配])
+[07:52] B 读数: dry-run 24/24 hits=1/1 · B 面 4 族 340 文件 0 未登记 · rehearse OK 0 fail · negctl×4 全有牙 · neg_rehearse 恰 1 红 · apply RC=0 (14/14 SHA 全变) · assert RC=0 · face 332 行/165 文件 0 未登记 · post negctl×4 有牙 + 反演重建 neg_rehearse 恰 1 红
+[07:53] C1 input hashes before gates (117 件)
+[07:54:15→07:54:58] C2 mut 门: MUTANT-CAUGHT-as-expected (54 项 FAIL), RC=0
+[07:55:11] ⚠️ 环境: 并行文档迁移会话重写 3 件(**纯注释**路径引用: rtl/mac_tx_64.v ×2 / board/build_p6a_ku5p.tcl ×1 / board/build_p5_diag.tcl ×1) — 非我引入; 因"仅注释"不触发停下条件, 登记+重绑
+[07:55:17] C3 mut2 门首次: MUT-BWIRE-GENFAIL (anchor_hits=0) ⇒ 发现 mut_bwire.py 锚点**自 173b18d (AXIS 落地) 起陈旧** (环例化被删) ⇒ 门结构性空转。修: 锚改为现行同语义线 `.dma_data (mir_dma_data)`→`64'd0` (+docstring 重对说明); sha 02423944…→20f26e51…
+[07:55:51→07:56:29] C3' mut2 门重跑: MUTANT-CAUGHT-as-expected (11 项 FAIL, 全为**内容**判据翻红=设计语义), RC=0
+[07:57:10→08:22:34] D 矩阵 17/17 · gates failed 0 · VERDICT FROZEN (DIGEST_COMPILE bc18cc8b… before=after 212 件; DIGEST_ALL 28fda2c4… before=after 257 件) · GIT_HEAD before=30d2253 after=**97c13e6** (并行 docs 会话 6 提交; 均未触矩阵哈希集 — 由 DIGEST 逐位相同证明)
+[08:23] D2 assert 复跑 (矩阵后环境变化再核): RC=0 / SEARCH_FACE OK 4 族 332 文件 0 未登记; input hashes after gates 比对 = 仅我的 mut_bwire.py + 上述 3 件外来注释改写
+[08:24:40→08:25:0x] C4 mut 门**重跑** (绑定外来注释改写后的字节): MUTANT-CAUGHT-as-expected (54 项), RC=0
+[08:25:26→08:26:04] C5 p6e 全链门: PASS_ALL (含 P9-B-3d lower leg / P9-B-3h upper leg), RC=0
+[08:26:06→08:26:2x] C6 p6e counters 门: PASS_ALL, RC=0
+[08:26:28] E1 BUILD_INPUT_HASHES (260 件) + BUILD_START; impl_1 现态 = 0x23 位流 (066a3923…3126)
+[08:26:30] F 构建启动 (唯一入口 board/run_build_p7b_ku5p.bat, MSYS_NO_PATHCONV=1 cmd /c 单斜杠式); 本次独有串 = ARCHIVE_DONE 20261013_082630 files=19 (归档 = 0x23 产物, sha 已核 066a3923…3126)
+[08:37:03] F synth 收口: P7B_CONVERGED_AT_ROUND=2 / IS_LOCKED_POSTGEN=0 / P7B_NFILES=**443** (= 0x23 的 442 + 1 = 新件) / synth 资源: LUT 62,763 (+137) · FF 53,113 (+352) · **BRAM 312 不变** · **URAM 1 (0→1)** · URAM288 原语 1
+[08:40] F synth URAM 硬门复核: URAM288 = 1 ✓; 8-6793 = 56 条**全 retx_ram** (0x23 同 56) ⇒ 新件 0 条
+[08:57:04] F impl (routed) 收口; 08:57 bitstream 出 (15,431,261 B, 08:58:12 父进程退出)
+[08:59:37] F 构建收口: BAT_RC=0 / BUILD_EXIT=0 / BITSTREAM-OK; **P7B_WNS=0.066 / P7B_WHS=0.010**; 三类失败端点 **0/0/0** (258,575/258,575/84,196); Slack(VIOLATED)=0; 硬门 12 键全 0 命中; 一次收口 (P7B_ROUND#1 恰 1 · BUILD_EXIT 恰 1 · Exiting Vivado 恰 3); XDMA 断言组逐条同 0x23; DRC 0E/0C; route 0 错
+[09:00] G 位流 sha256 = **e3b07957aea0326a168b9db0238ef9dd933dc7a21884c92e50e7c3b0abadf1db** (15,431,261 B)
+[09:00→09:01] H 查询#1: q_0x24.tcl 行内 `#` 注释 ⇒ Tcl `wrong # args` (自伤, 89 s 即退 QUERY_EXIT=1) ⇒ 修 (注释独立成行)
+[09:02:05→09:04:43] H' 查询#2: QUERY_EXIT=0; 读数见 q_stdout.txt
+[09:05→] I 归档 (board_rpt 14 件 + query_out + 位流 + routed dcp 63,244,955 B) + FP_BINDING_CHECK (257/257 == 盘上; 唯一 ≠HEAD = wrapper_p4.v) + INPUT_HASHES after build **逐字相同** (260 件, 构建期间零改动) + SHA256SUMS + REPORT.md
+[09:2x] J 收口: ⛔ 未烧板/未写 QSPI/未改 rtl/未碰对端机; 文件改动留在工作树 (未提交, 同 0x23 轮惯例); HEAD 现读 = 0b06a2e (并行会话)
+[09:3x] K ⚠️ REPORT.md 落盘被平台拒 (子 agent 不得写报告 .md —— 已知间歇故障族) ⇒ 按派单约定**全文回传 TL**, 由 TL 代落盘到本目录 REPORT.md。SHA256SUMS.txt 已生成 (71 件, 不含 REPORT.md)

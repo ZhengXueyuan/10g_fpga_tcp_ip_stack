@@ -1,0 +1,673 @@
+
+****** Vivado v2025.2 (64-bit)
+  **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+  **** Start of session at: Tue Oct 13 09:02:05 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source {D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_build_0x24\q_0x24.tcl}
+# set dcp [lindex $argv 0]
+# set out [lindex $argv 1]
+# file mkdir $out
+# open_checkpoint $dcp
+Command: open_checkpoint {D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_build_0x24\wrapper_p4_routed.dcp}
+
+Starting open_checkpoint Task
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.025 . Memory (MB): peak = 326.930 ; gain = 4.898
+INFO: [Device 21-403] Loading part xcku5p-ffvb676-1-e
+Netlist sorting complete. Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.801 . Memory (MB): peak = 1682.438 ; gain = 0.000
+INFO: [Netlist 29-17] Analyzing 7890 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 1 CPU seconds
+INFO: [Project 1-479] Netlist was created with Vivado 2025.2
+INFO: [Project 1-570] Preparing netlist for logic optimization
+Read ShapeDB Complete: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.227 . Memory (MB): peak = 1899.562 ; gain = 39.707
+INFO: [Timing 38-478] Restoring timing data from binary archive.
+INFO: [Timing 38-479] Binary timing data restore complete.
+INFO: [Project 1-856] Restoring constraints from binary archive.
+INFO: [Constraints 18-5170] The checkpoint was created with non-default parameter values which do not match the current Vivado settings.  Mismatching parameters are:
+  general.maxThreads
+INFO: [Project 1-853] Binary constraint restore complete.
+INFO: [Designutils 20-5722] Start Reading Physical Databases.
+Reading placement.
+Read Netlist Cache: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.106 . Memory (MB): peak = 4143.250 ; gain = 0.000
+Reading placer database...
+Read Device Cache: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.024 . Memory (MB): peak = 4143.250 ; gain = 0.000
+Read PlaceDB: Time (s): cpu = 00:00:03 ; elapsed = 00:00:03 . Memory (MB): peak = 4143.250 ; gain = 0.000
+Read PulsedLatchDB: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 4143.250 ; gain = 0.000
+Reading routing.
+Read RouteStorage: Time (s): cpu = 00:00:03 ; elapsed = 00:00:01 . Memory (MB): peak = 4143.250 ; gain = 0.000
+Read Physdb Files: Time (s): cpu = 00:00:06 ; elapsed = 00:00:05 . Memory (MB): peak = 4143.250 ; gain = 0.000
+Restored from archive | CPU: 6.000000 secs | Memory: 0.000000 MB |
+Finished XDEF File Restore: Time (s): cpu = 00:00:06 ; elapsed = 00:00:05 . Memory (MB): peak = 4143.250 ; gain = 0.000
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.045 . Memory (MB): peak = 4143.250 ; gain = 0.000
+INFO: [Project 1-111] Unisim Transformation Summary:
+  A total of 1407 instances were transformed.
+  DSP48E2 => DSP48E2 (DSP_ALU, DSP_A_B_DATA, DSP_C_DATA, DSP_MULTIPLIER, DSP_M_DATA, DSP_OUTPUT, DSP_PREADD, DSP_PREADD_DATA): 4 instances
+  IBUF => IBUF (IBUFCTRL, INBUF): 1 instance 
+  IBUFDS => IBUFDS (DIFFINBUF, IBUFCTRL): 1 instance 
+  RAM16X1D => RAM32X1D (RAMD32(x2)): 35 instances
+  RAM16X1S => RAM32X1S (RAMS32): 224 instances
+  RAM256X1S => RAM256X1S (MUXF7(x2), MUXF8, RAMS64E(x4)): 8 instances
+  RAM32M => RAM32M (RAMD32(x6), RAMS32(x2)): 41 instances
+  RAM32M16 => RAM32M16 (RAMD32(x14), RAMS32(x2)): 153 instances
+  RAM32X1D => RAM32X1D (RAMD32(x2)): 13 instances
+  RAM64M => RAM64M (RAMD64E(x4)): 241 instances
+  RAM64M8 => RAM64M8 (RAMD64E(x8)): 554 instances
+  RAM64X1D => RAM64X1D (RAMD64E(x2)): 132 instances
+
+INFO: [Project 1-604] Checkpoint was created with Vivado v2025.2 (64-bit) build 6299465
+WARNING: [Vivado 12-23575] Critical violations of the methodology design rules detected. Critical violations may contribute to timing failures or cause functional issues in hardware. Run report_methodology for more information.
+open_checkpoint: Time (s): cpu = 00:01:02 ; elapsed = 00:00:54 . Memory (MB): peak = 4143.250 ; gain = 3829.906
+# catch {report_timing -delay_type max -max_paths 5 -sort_by slack -file $out/global_top5.rpt}
+INFO: [Timing 38-91] UpdateTimingParams: Speed grade: -1, Temperature grade: E, Delay Type: max.
+INFO: [Timing 38-191] Multithreading enabled for timing update using a maximum of 2 CPUs
+INFO: [Timing 38-78] ReportTimingParams: -max_paths 5 -nworst 1 -delay_type max -sort_by slack.
+report_timing: Time (s): cpu = 00:00:47 ; elapsed = 00:00:25 . Memory (MB): peak = 4179.676 ; gain = 36.426
+# set gp [get_timing_paths -delay_type max -max_paths 5 -sort_by slack -quiet]
+# set i 0
+# foreach p $gp {
+#   incr i
+#   puts "G #$i slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+# }
+G #1 slack=0.066 lvl=16 sp=u_tcp_tx/FSM_sequential_rx_state_reg[1]/C ep=u_tcb/rcv_nxt_r_reg[4][20]/CE
+G #2 slack=0.066 lvl=16 sp=u_tcp_tx/FSM_sequential_rx_state_reg[1]/C ep=u_tcb/rcv_nxt_r_reg[4][3]/CE
+G #3 slack=0.066 lvl=16 sp=u_tcp_tx/FSM_sequential_rx_state_reg[1]/C ep=u_tcb/rcv_nxt_r_reg[4][4]/CE
+G #4 slack=0.066 lvl=16 sp=u_tcp_tx/FSM_sequential_rx_state_reg[1]/C ep=u_tcb/rcv_nxt_r_reg[4][6]/CE
+G #5 slack=0.078 lvl=16 sp=u_tcp_tx/FSM_sequential_rx_state_reg[1]/C ep=u_tcb/rcv_nxt_r_reg[4][15]/CE
+# puts "G_DONE n=[llength $gp]"
+G_DONE n=5
+# catch {report_timing -group g_hw.clk_out0 -delay_type max -max_paths 10 -sort_by slack -file $out/dp_top10.rpt}
+INFO: [Timing 38-78] ReportTimingParams: -max_paths 10 -nworst 1 -delay_type max -sort_by slack.
+# catch {report_timing -group g_hw.clk_out0 -delay_type max -max_paths 50 -sort_by slack -file $out/dp_top50.rpt}
+INFO: [Timing 38-78] ReportTimingParams: -max_paths 50 -nworst 1 -delay_type max -sort_by slack.
+# set dp [get_timing_paths -group g_hw.clk_out0 -delay_type max -max_paths 10 -sort_by slack -quiet]
+# set i 0
+# foreach p $dp {
+#   incr i
+#   puts "DP #$i slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+# }
+DP #1 slack=0.066 lvl=16 sp=u_tcp_tx/FSM_sequential_rx_state_reg[1]/C ep=u_tcb/rcv_nxt_r_reg[4][20]/CE
+DP #2 slack=0.066 lvl=16 sp=u_tcp_tx/FSM_sequential_rx_state_reg[1]/C ep=u_tcb/rcv_nxt_r_reg[4][3]/CE
+DP #3 slack=0.066 lvl=16 sp=u_tcp_tx/FSM_sequential_rx_state_reg[1]/C ep=u_tcb/rcv_nxt_r_reg[4][4]/CE
+DP #4 slack=0.066 lvl=16 sp=u_tcp_tx/FSM_sequential_rx_state_reg[1]/C ep=u_tcb/rcv_nxt_r_reg[4][6]/CE
+DP #5 slack=0.078 lvl=16 sp=u_tcp_tx/FSM_sequential_rx_state_reg[1]/C ep=u_tcb/rcv_nxt_r_reg[4][15]/CE
+DP #6 slack=0.078 lvl=16 sp=u_tcp_tx/FSM_sequential_rx_state_reg[1]/C ep=u_tcb/rcv_nxt_r_reg[4][19]/CE
+DP #7 slack=0.078 lvl=16 sp=u_tcp_tx/FSM_sequential_rx_state_reg[1]/C ep=u_tcb/rcv_nxt_r_reg[4][22]/CE
+DP #8 slack=0.078 lvl=16 sp=u_tcp_tx/FSM_sequential_rx_state_reg[1]/C ep=u_tcb/rcv_nxt_r_reg[4][26]/CE
+DP #9 slack=0.079 lvl=16 sp=u_tcp_tx/FSM_sequential_rx_state_reg[1]/C ep=u_tcb/rcv_nxt_r_reg[4][17]/CE
+DP #10 slack=0.079 lvl=16 sp=u_tcp_tx/FSM_sequential_rx_state_reg[1]/C ep=u_tcb/rcv_nxt_r_reg[4][21]/CE
+# puts "DP_DONE n=[llength $dp]"
+DP_DONE n=10
+# set dw [get_timing_paths -group g_hw.clk_out0 -delay_type max -max_paths 1 -sort_by slack -quiet]
+# if {[llength $dw] > 0} {
+#   set p [lindex $dw 0]
+#   puts "DPWNS slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+# } else { puts "DPWNS NOPATH" }
+DPWNS slack=0.066 lvl=16 sp=u_tcp_tx/FSM_sequential_rx_state_reg[1]/C ep=u_tcb/rcv_nxt_r_reg[4][20]/CE
+# proc fam {tag pat} {
+#   set cells [get_cells -hier -quiet -filter "NAME =~ $pat"]
+#   puts "F $tag ncell=[llength $cells]"
+#   if {[llength $cells] == 0} { puts "F $tag NOCELL"; return }
+#   set pf [get_timing_paths -delay_type max -max_paths 1 -sort_by slack -quiet -from $cells]
+#   if {[llength $pf] > 0} {
+#     set p [lindex $pf 0]
+#     puts "F $tag from_worst slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+#   } else { puts "F $tag from_NOPATH" }
+#   set pt [get_timing_paths -delay_type max -max_paths 1 -sort_by slack -quiet -to $cells]
+#   if {[llength $pt] > 0} {
+#     set p [lindex $pt 0]
+#     puts "F $tag to_worst slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+#   } else { puts "F $tag to_NOPATH" }
+# }
+# fam mir_buf     {*u_mir_buf*}
+F mir_buf ncell=495
+F mir_buf from_worst slack=0.573 lvl=9 sp=u_mir_buf/wp_reg[4]/C ep=u_mir/u_fifo/empty_r_reg/D
+F mir_buf to_worst slack=0.590 lvl=1 sp=u_mir/clrt_sr_r_reg[1]/C ep=u_mir_buf/o_mem_reg[3][62]/CE
+# fam mb_wp       {*u_mir_buf/wp_*}
+F mb_wp ncell=13
+F mb_wp from_worst slack=0.573 lvl=9 sp=u_mir_buf/wp_reg[4]/C ep=u_mir/u_fifo/empty_r_reg/D
+F mb_wp to_worst slack=1.049 lvl=4 sp=u_pcie_regs/s_axil_arready_reg/C ep=u_mir_buf/wp_reg[12]/CE
+# fam mb_rp       {*u_mir_buf/rp_*}
+F mb_rp ncell=13
+F mb_rp from_worst slack=0.624 lvl=9 sp=u_mir_buf/rp_reg[5]/C ep=u_mir/u_fifo/empty_r_reg/D
+F mb_rp to_worst slack=1.349 lvl=5 sp=u_mir/clrt_sr_r_reg[2]/C ep=u_mir_buf/rp_reg[1]/CE
+# fam mb_vsr      {*u_mir_buf/v_sr*}
+F mb_vsr ncell=3
+F mb_vsr from_worst slack=1.493 lvl=1 sp=u_mir_buf/v_sr_reg[2]/C ep=u_mir_buf/o_mem_reg[3][62]/CE
+F mb_vsr to_worst slack=1.905 lvl=4 sp=u_mir/clrt_sr_r_reg[2]/C ep=u_mir_buf/v_sr_reg[0]/D
+# fam mb_oocc     {*u_mir_buf/o_occ*}
+F mb_oocc ncell=6
+F mb_oocc from_worst slack=1.914 lvl=2 sp=u_mir_buf/o_occ_reg[0]/C ep=u_mir_axis/dma_words_reg[4]/CE
+F mb_oocc to_worst slack=1.797 lvl=1 sp=u_mir/clrt_sr_r_reg[2]/C ep=u_mir_buf/o_occ_reg[1]/D
+# fam mb_omem     {*u_mir_buf/o_mem*}
+F mb_omem ncell=260
+F mb_omem from_worst slack=1.682 lvl=1 sp=u_mir_buf/o_mem_reg[3][47]/C ep=u_mir_axis/s0_data_reg[47]/D
+F mb_omem to_worst slack=0.590 lvl=1 sp=u_mir/clrt_sr_r_reg[1]/C ep=u_mir_buf/o_mem_reg[3][62]/CE
+# fam mb_opw      {*u_mir_buf/op_w*}
+F mb_opw ncell=3
+F mb_opw from_worst slack=1.567 lvl=1 sp=u_mir_buf/op_w_reg[1]/C ep=u_mir_buf/o_mem_reg[3][62]/CE
+F mb_opw to_worst slack=2.227 lvl=1 sp=u_mir/clrt_sr_r_reg[2]/C ep=u_mir_buf/op_w_reg[0]/CE
+# fam mb_opr      {*u_mir_buf/op_r*}
+F mb_opr ncell=4
+F mb_opr from_worst slack=0.972 lvl=1 sp=u_mir_buf/op_r_reg[1]/C ep=u_mir_axis/s1_data_reg[4]/D
+F mb_opr to_worst slack=1.683 lvl=4 sp=u_mir/clrt_sr_r_reg[2]/C ep=u_mir_buf/op_r_reg[0]/CE
+# fam mb_ram      {*u_mir_buf/u_ram*}
+F mb_ram ncell=80
+F mb_ram from_worst slack=1.996 lvl=0 sp=u_mir_buf/u_ram/xpm_memory_base_inst/gen_wr_a.gen_word_narrow.mem_reg_uram_0/CLK ep=u_mir_buf/u_ram/xpm_memory_base_inst/gen_rd_b.gen_doutb_pipe.gen_stages.doutb_pipe_reg[1][31]/D
+F mb_ram to_worst slack=0.710 lvl=4 sp=u_pcie_regs/s_axil_arready_reg/C ep=u_mir_buf/u_ram/xpm_memory_base_inst/gen_wr_a.gen_word_narrow.mem_reg_uram_0/BWE_B[1]
+# fam m1_all      {*u_mir*}
+F m1_all ncell=2687
+F m1_all from_worst slack=0.480 lvl=6 sp=u_mir/u_fifo/rbin_r_reg[3]/C ep=u_pcie_regs/s_axil_rdata_reg[13]/D
+F m1_all to_worst slack=0.473 lvl=7 sp=u_pcie_regs/s_axil_arready_reg/C ep=u_mir/u_fifo/empty_r_reg/D
+# fam m1_app_core {*u_mir/*}
+F m1_app_core ncell=1810
+F m1_app_core from_worst slack=0.480 lvl=6 sp=u_mir/u_fifo/rbin_r_reg[3]/C ep=u_pcie_regs/s_axil_rdata_reg[13]/D
+F m1_app_core to_worst slack=0.473 lvl=7 sp=u_pcie_regs/s_axil_arready_reg/C ep=u_mir/u_fifo/empty_r_reg/D
+# fam m1_ring     {*u_mir_ring*}
+F m1_ring ncell=0
+F m1_ring NOCELL
+# fam m1_c2h      {*u_mir_c2h*}
+F m1_c2h ncell=0
+F m1_c2h NOCELL
+# fam m1_h2c      {*u_mir_h2c*}
+F m1_h2c ncell=0
+F m1_h2c NOCELL
+# fam m1_axi_cell {*mir_axi*}
+F m1_axi_cell ncell=381
+F m1_axi_cell from_worst slack=1.279 lvl=9 sp=u_mir_axis/b_v_reg/C ep=u_pcie_xdma/inst/udma_wrapper/dma_top/dma_enable.axist.dma_axist/axist_c2h[0].dma_axist_slv/axi_rdy_100_reg/D
+F m1_axi_cell to_worst slack=0.821 lvl=3 sp=u_pcie_regs/mir_ctrl_r_reg[3]/C ep=u_mir_axis/s1_data_reg[58]/CE
+# fam axis_inst   {*u_mir_axis*}
+F axis_inst ncell=381
+F axis_inst from_worst slack=1.279 lvl=9 sp=u_mir_axis/b_v_reg/C ep=u_pcie_xdma/inst/udma_wrapper/dma_top/dma_enable.axist.dma_axist/axist_c2h[0].dma_axist_slv/axi_rdy_100_reg/D
+F axis_inst to_worst slack=0.821 lvl=3 sp=u_pcie_regs/mir_ctrl_r_reg[3]/C ep=u_mir_axis/s1_data_reg[58]/CE
+# fam axis_ip     {*udma_wrapper*dma_axist*}
+F axis_ip ncell=844
+F axis_ip from_worst slack=0.832 lvl=8 sp=u_pcie_xdma/inst/udma_wrapper/dma_top/dma_enable.axist.dma_axist/axist_c2h[0].dma_axist_slv/axi_rem_100_reg[3]/C ep=u_pcie_xdma/inst/udma_wrapper/dma_top/dma_enable.axist.dma_axist/axist_c2h[0].dma_axist_slv/axi_rdy_100_reg/D
+F axis_ip to_worst slack=0.832 lvl=8 sp=u_pcie_xdma/inst/udma_wrapper/dma_top/dma_enable.axist.dma_axist/axist_c2h[0].dma_axist_slv/axi_rem_100_reg[3]/C ep=u_pcie_xdma/inst/udma_wrapper/dma_top/dma_enable.axist.dma_axist/axist_c2h[0].dma_axist_slv/axi_rdy_100_reg/D
+# fam axis_slave  {*axist_c2h*}
+F axis_slave ncell=566
+F axis_slave from_worst slack=0.832 lvl=8 sp=u_pcie_xdma/inst/udma_wrapper/dma_top/dma_enable.axist.dma_axist/axist_c2h[0].dma_axist_slv/axi_rem_100_reg[3]/C ep=u_pcie_xdma/inst/udma_wrapper/dma_top/dma_enable.axist.dma_axist/axist_c2h[0].dma_axist_slv/axi_rdy_100_reg/D
+F axis_slave to_worst slack=0.832 lvl=8 sp=u_pcie_xdma/inst/udma_wrapper/dma_top/dma_enable.axist.dma_axist/axist_c2h[0].dma_axist_slv/axi_rem_100_reg[3]/C ep=u_pcie_xdma/inst/udma_wrapper/dma_top/dma_enable.axist.dma_axist/axist_c2h[0].dma_axist_slv/axi_rdy_100_reg/D
+# fam axis_all    {*axis_c2h*}
+F axis_all ncell=0
+F axis_all NOCELL
+# fam qcnt_reg    {*qcnt_reg*}
+F qcnt_reg ncell=6
+F qcnt_reg from_worst slack=1.447 lvl=3 sp=u_mir_axis/qcnt_reg[5]/C ep=u_mir_axis/s1_data_reg[57]/CE
+F qcnt_reg to_worst slack=1.621 lvl=4 sp=u_mir/clrt_sr_r_reg[2]/C ep=u_mir_axis/qcnt_reg[1]/CE
+# fam clr_drop    {*clr_drop*}
+F clr_drop ncell=0
+F clr_drop NOCELL
+# fam dma_words   {*dma_words_reg*}
+F dma_words ncell=35
+F dma_words from_worst slack=2.231 lvl=3 sp=u_mir_axis/dma_words_reg[29]/C ep=u_pcie_regs/s_axil_rdata_reg[29]/D
+F dma_words to_worst slack=0.935 lvl=4 sp=u_mir/clrt_sr_r_reg[2]/C ep=u_mir_axis/dma_words_reg[4]/CE
+# fam stg_cnt     {*stg_cnt_reg*}
+F stg_cnt ncell=5
+F stg_cnt from_worst slack=2.191 lvl=7 sp=u_mir/stg_cnt_reg[0]/C ep=u_mir/u_fifo/mem_reg_64_127_28_34/RAMF/I
+F stg_cnt to_worst slack=2.051 lvl=13 sp=u_udp_split/u_uf/wptr_reg[1]/C ep=u_mir/stg_cnt_reg[3]/D
+# fam stg_data    {*stg_data_reg*}
+F stg_data ncell=128
+F stg_data from_worst slack=3.583 lvl=3 sp=u_mir/stg_data_reg[89]/C ep=u_mir/u_fifo/mem_reg_64_127_28_34/RAMF/I
+F stg_data to_worst slack=1.140 lvl=13 sp=u_udp_split/u_uf/wptr_reg[1]/C ep=u_mir/stg_data_reg[67]/D
+# fam acc_cnt_r   {*acc_cnt_r_reg*}
+F acc_cnt_r ncell=4
+F acc_cnt_r from_worst slack=1.686 lvl=7 sp=u_mir/acc_cnt_r_reg[0]/C ep=u_mir/u_fifo/mem_reg_64_127_28_34/RAMF/I
+F acc_cnt_r to_worst slack=2.532 lvl=5 sp=u_mir/acc_cnt_r_reg[0]/C ep=u_mir/acc_cnt_r_reg[0]/CE
+# fam ps_timer    {*ps_timer_reg*}
+F ps_timer ncell=420
+F ps_timer from_worst slack=1.852 lvl=9 sp=u_tcp_tx/ps_timer_reg[4][4]/C ep=u_tcp_tx/u_retx/ra_e_r_reg[9]_rep__11/D
+F ps_timer to_worst slack=0.899 lvl=14 sp=u_tcp_tx/FSM_sequential_rx_state_reg[1]/C ep=u_tcp_tx/ps_timer_reg[3][18]/D
+# fam ps_phase    {*ps_phase_reg*}
+F ps_phase ncell=48
+F ps_phase from_worst slack=2.581 lvl=7 sp=u_tcp_tx/ps_phase_reg[7][2]/C ep=u_tcp_tx/ps_timer_reg[6][15]/D
+F ps_phase to_worst slack=0.865 lvl=14 sp=u_tcp_tx/FSM_sequential_rx_state_reg[1]/C ep=u_tcp_tx/ps_phase_reg[15][0]/CE
+# fam ps_stage    {*ps_stage_*}
+F ps_stage ncell=173
+F ps_stage from_worst slack=0.550 lvl=14 sp=u_tcp_tx/ps_stage_rdy_reg/C ep=u_tcb/rcv_nxt_r_reg[4][20]/CE
+F ps_stage to_worst slack=0.505 lvl=11 sp=u_tcp_tx/u_retx/g_byte[1].mem_e_reg_3_bram_0/CLKBWRCLK ep=u_tcp_tx/ps_stage_byte_reg[7]/D
+# fam ps_rd_d1    {*ps_rd_d1_reg*}
+F ps_rd_d1 ncell=1
+F ps_rd_d1 from_worst slack=5.825 lvl=1 sp=u_tcp_tx/ps_rd_d1_reg/C ep=u_tcp_tx/ps_rd_d2_reg/D
+F ps_rd_d1 to_worst slack=1.196 lvl=14 sp=u_tcp_tx/FSM_sequential_rx_state_reg[0]/C ep=u_tcp_tx/ps_rd_d1_reg/D
+# fam ps_rd_d2    {*ps_rd_d2_reg*}
+F ps_rd_d2 ncell=1
+F ps_rd_d2 from_worst slack=4.880 lvl=0 sp=u_tcp_tx/ps_rd_d2_reg/C ep=u_tcp_tx/ps_stage_byte_reg[6]/CE
+F ps_rd_d2 to_worst slack=2.392 lvl=1 sp=u_clkgen/rel_sr_reg[3]/C ep=u_tcp_tx/ps_rd_d2_reg/CLR
+# fam ctrl_probe  {*ctrl_probe*}
+F ctrl_probe ncell=7
+F ctrl_probe from_worst slack=0.238 lvl=17 sp=u_tcp_tx/ctrl_probe_reg/C ep=u_tcp_tx/ctrl_tcpcsum_reg[13]/D
+F ctrl_probe to_worst slack=2.181 lvl=1 sp=u_clkgen/rel_sr_reg[3]/C ep=u_tcp_tx/ctrl_probe_reg/CLR
+# fam tx_is_probe {*tx_is_probe*}
+F tx_is_probe ncell=2
+F tx_is_probe from_worst slack=2.647 lvl=4 sp=u_tcp_tx/tx_is_probe_reg/C ep=u_tcp_tx/m_axis_tdata_reg[50]/D
+F tx_is_probe to_worst slack=2.188 lvl=1 sp=u_clkgen/rel_sr_reg[3]/C ep=u_tcp_tx/tx_is_probe_reg/CLR
+# fam ctrl_pld    {*ctrl_pld_reg*}
+F ctrl_pld ncell=8
+F ctrl_pld from_worst slack=1.647 lvl=12 sp=u_tcp_tx/ctrl_pld_reg[4]/C ep=u_tcp_tx/ctrl_tcpcsum_reg[13]/D
+F ctrl_pld to_worst slack=2.176 lvl=1 sp=u_clkgen/rel_sr_reg[3]/C ep=u_tcp_tx/ctrl_pld_reg[3]/CLR
+# fam probe_net   {*probe_sel*}
+F probe_net ncell=0
+F probe_net NOCELL
+# fam whi_r       {*whi_r_reg*}
+F whi_r ncell=512
+F whi_r from_worst slack=2.263 lvl=7 sp=u_tcp_tx/whi_r_reg[3][20]/C ep=u_tcp_tx/ring_hi_reg[3]/D
+F whi_r to_worst slack=1.715 lvl=5 sp=u_tcp_tx/fin_cnt_reg[1]/C ep=u_tcp_tx/whi_r_reg[4][19]/CE
+# fam ring_hi     {*ring_hi_reg*}
+F ring_hi ncell=132
+F ring_hi from_worst slack=1.231 lvl=9 sp=u_tcp_tx/ring_hi_reg[20]/C ep=u_tcb/rcv_wnd_r_reg[7][14]/CE
+F ring_hi to_worst slack=0.930 lvl=11 sp=u_tcp_tx/FSM_sequential_rx_state_reg[1]/C ep=u_tcp_tx/ring_hi_reg[3]/D
+# fam pend_wnd    {*pend_wnd*}
+F pend_wnd ncell=123
+F pend_wnd from_worst slack=3.109 lvl=3 sp=u_tcp_rx/pend_wnd_val_reg[10]/C ep=u_tcb/rcv_nxt_r_reg[9][10]/D
+F pend_wnd to_worst slack=1.024 lvl=15 sp=u_tcp_tx/FSM_sequential_rx_state_reg[1]/C ep=u_tcp_rx/pend_wnd_reg/D
+# fam ackok       {*ackok*}
+F ackok ncell=194
+F ackok from_worst slack=3.409 lvl=2 sp=u_tcp_rx/ackok_l_reg/C ep=u_tcp_rx/pend_id_reg[0]/CE
+F ackok to_worst slack=1.936 lvl=5 sp=u_classify/u_wf/rptr_reg[2]/C ep=u_tcp_rx/ackok_l_reg/CE
+# fam ack_adv     {*ack_adv*}
+F ack_adv ncell=277
+F ack_adv from_worst slack=4.528 lvl=2 sp=u_tcp_rx/ack_adv_l_reg/C ep=u_tcp_rx/pend_id_reg[0]/CE
+F ack_adv to_worst slack=0.780 lvl=4 sp=u_classify/u_wf/dout_reg[44]/C ep=u_tcp_rx/ack_adv_l_reg/D
+# fam dup_l_reg   {*dup_l_reg*}
+F dup_l_reg ncell=75
+F dup_l_reg from_worst slack=4.726 lvl=2 sp=u_tcp_rx/dup_l_reg/C ep=u_tcp_rx/dup_cnt_reg[3][0]/CE
+F dup_l_reg to_worst slack=0.804 lvl=4 sp=u_classify/u_wf/dout_reg[44]/C ep=u_tcp_rx/dup_l_reg/D
+# set ur [get_cells -hier -quiet -filter {REF_NAME =~ *URAM*}]
+# puts "U uram_cells=[llength $ur]"
+U uram_cells=1
+# set k 0
+# foreach c $ur {
+#   incr k
+#   if {$k <= 8} {
+#     set pn ""
+#     catch { set pn [get_property PARENT [get_property PARENT $c]] }
+#     puts "U  cell=[get_property NAME $c] ref=[get_property REF_NAME $c] parent2=$pn"
+#   }
+# }
+U  cell=u_mir_buf/u_ram/xpm_memory_base_inst/gen_wr_a.gen_word_narrow.mem_reg_uram_0 ref=URAM288 parent2=u_mir_buf/u_ram
+# foreach nfam {mir_c2h mir_axi} {
+#   set mnets [get_nets -hier -quiet -filter "NAME =~ *${nfam}*"]
+#   puts "N ${nfam}_nets=[llength $mnets]"
+#   if {[llength $mnets] > 0} {
+#     set mpins [get_pins -quiet -of_objects $mnets]
+#     puts "N ${nfam}_pins=[llength $mpins]"
+#     if {[llength $mpins] > 0} {
+#       set pf [get_timing_paths -delay_type max -max_paths 1 -sort_by slack -quiet -from $mpins]
+#       if {[llength $pf] > 0} { set p [lindex $pf 0]
+#         puts "N ${nfam} from_worst slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+#       } else { puts "N ${nfam} from_NOPATH" }
+#       set pt [get_timing_paths -delay_type max -max_paths 1 -sort_by slack -quiet -to $mpins]
+#       if {[llength $pt] > 0} { set p [lindex $pt 0]
+#         puts "N ${nfam} to_worst slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+#       } else { puts "N ${nfam} to_NOPATH" }
+#     }
+#   }
+# }
+N mir_c2h_nets=135
+N mir_c2h_pins=286
+N mir_c2h from_worst slack=1.279 lvl=9 sp=u_mir_axis/b_v_reg/C ep=u_pcie_xdma/inst/udma_wrapper/dma_top/dma_enable.axist.dma_axist/axist_c2h[0].dma_axist_slv/axi_rdy_100_reg/D
+N mir_c2h to_NOPATH
+N mir_axi_nets=491
+N mir_axi_pins=2112
+N mir_axi from_worst slack=1.279 lvl=9 sp=u_mir_axis/b_v_reg/C ep=u_pcie_xdma/inst/udma_wrapper/dma_top/dma_enable.axist.dma_axist/axist_c2h[0].dma_axist_slv/axi_rdy_100_reg/D
+N mir_axi to_worst slack=0.821 lvl=3 sp=u_pcie_regs/mir_ctrl_r_reg[3]/C ep=u_mir_axis/s1_data_reg[58]/CE
+# set m1 [get_cells -hier -quiet -filter {NAME =~ *u_mir*}]
+# puts "M m1_cells=[llength $m1]"
+M m1_cells=2687
+# if {[llength $m1] > 0} {
+#   set pf [get_timing_paths -group g_hw.clk_out0 -delay_type max -max_paths 1 -sort_by slack -quiet -from $m1]
+#   if {[llength $pf] > 0} { set p [lindex $pf 0]
+#     puts "M m1_dp_from slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+#   } else { puts "M m1_dp_from NOPATH" }
+#   set pt [get_timing_paths -group g_hw.clk_out0 -delay_type max -max_paths 1 -sort_by slack -quiet -to $m1]
+#   if {[llength $pt] > 0} { set p [lindex $pt 0]
+#     puts "M m1_dp_to slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+#   } else { puts "M m1_dp_to NOPATH" }
+#   # å…¨æ—¶é’Ÿé¢ (ä¸åˆ†ç»?) â€”â€? å? pcie åŸ?
+#   set pf2 [get_timing_paths -delay_type max -max_paths 3 -sort_by slack -quiet -from $m1]
+#   set k 0
+#   foreach p $pf2 { incr k
+#     puts "M m1_any_from #$k slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+#   }
+#   set pt2 [get_timing_paths -delay_type max -max_paths 3 -sort_by slack -quiet -to $m1]
+#   set k 0
+#   foreach p $pt2 { incr k
+#     puts "M m1_any_to #$k slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+#   }
+# } else { puts "M SKIP (no m1 cells)" }
+M m1_dp_from slack=1.686 lvl=7 sp=u_mir/acc_cnt_r_reg[0]/C ep=u_mir/u_fifo/mem_reg_64_127_28_34/RAMF/I
+M m1_dp_to slack=1.105 lvl=12 sp=u_udp_split/u_uf/wptr_reg[1]/C ep=u_mir/drop_bytes_reg[12]/CE
+M m1_any_from #1 slack=0.480 lvl=6 sp=u_mir/u_fifo/rbin_r_reg[3]/C ep=u_pcie_regs/s_axil_rdata_reg[13]/D
+M m1_any_from #2 slack=0.485 lvl=6 sp=u_mir/u_fifo/rbin_r_reg[3]/C ep=u_pcie_regs/s_axil_rdata_reg[24]/D
+M m1_any_from #3 slack=0.499 lvl=6 sp=u_mir/u_fifo/rbin_r_reg[3]/C ep=u_pcie_regs/s_axil_rdata_reg[10]/D
+M m1_any_to #1 slack=0.473 lvl=7 sp=u_pcie_regs/s_axil_arready_reg/C ep=u_mir/u_fifo/empty_r_reg/D
+M m1_any_to #2 slack=0.590 lvl=1 sp=u_mir/clrt_sr_r_reg[1]/C ep=u_mir_buf/o_mem_reg[3][62]/CE
+M m1_any_to #3 slack=0.605 lvl=1 sp=u_mir/clrt_sr_r_reg[1]/C ep=u_mir_buf/o_mem_reg[3][45]/CE
+# set mb [get_cells -hier -quiet -filter {NAME =~ *u_mir_buf*}]
+# puts "MB mb_cells=[llength $mb]"
+MB mb_cells=495
+# if {[llength $mb] > 0} {
+#   set pf [get_timing_paths -group g_hw.clk_out0 -delay_type max -max_paths 1 -sort_by slack -quiet -from $mb]
+#   if {[llength $pf] > 0} { set p [lindex $pf 0]
+#     puts "MB mb_dp_from slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+#   } else { puts "MB mb_dp_from NOPATH" }
+#   set pt [get_timing_paths -group g_hw.clk_out0 -delay_type max -max_paths 1 -sort_by slack -quiet -to $mb]
+#   if {[llength $pt] > 0} { set p [lindex $pt 0]
+#     puts "MB mb_dp_to slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+#   } else { puts "MB mb_dp_to NOPATH" }
+# } else { puts "MB SKIP (no u_mir_buf cells)" }
+MB mb_dp_from NOPATH
+MB mb_dp_to NOPATH
+# foreach spec {{*u_mir_buf* 200} {*u_mir_buf/wp_* 20} {*u_mir_buf/rp_* 20} {*u_mir_buf/o_mem* 20} {*u_mir_buf/o_occ* 10} {*u_mir_buf/u_ram* 30} {*qcnt_reg* 30}} {
+#   set pat [lindex $spec 0]
+#   set lim [lindex $spec 1]
+#   set cells [get_cells -hier -quiet -filter "NAME =~ $pat"]
+#   puts "E pat=$pat ncell=[llength $cells]"
+#   set k 0
+#   foreach c $cells {
+#     incr k
+#     if {$k <= $lim} { puts "E   cell=[get_property NAME $c] ref=[get_property REF_NAME $c]" }
+#   }
+# }
+E pat=*u_mir_buf* ncell=495
+E   cell=u_mir_buf ref=mir_uram_fifo
+E   cell=u_mir_buf/GND ref=GND
+E   cell=u_mir_buf/GND_1 ref=GND
+E   cell=u_mir_buf/VCC ref=VCC
+E   cell=u_mir_buf/o_mem[0][63]_i_1 ref=LUT6
+E   cell=u_mir_buf/o_mem[1][63]_i_1 ref=LUT6
+E   cell=u_mir_buf/o_mem[2][63]_i_1 ref=LUT6
+E   cell=u_mir_buf/o_mem[3][63]_i_1 ref=LUT6
+E   cell=u_mir_buf/o_mem_reg[0][0] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][10] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][11] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][12] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][13] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][14] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][15] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][16] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][17] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][18] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][19] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][1] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][20] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][21] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][22] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][23] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][24] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][25] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][26] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][27] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][28] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][29] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][2] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][30] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][31] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][32] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][33] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][34] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][35] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][36] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][37] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][38] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][39] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][3] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][40] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][41] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][42] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][43] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][44] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][45] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][46] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][47] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][48] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][49] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][4] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][50] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][51] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][52] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][53] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][54] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][55] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][56] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][57] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][58] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][59] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][5] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][60] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][61] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][62] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][63] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][6] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][7] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][8] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][9] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][0] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][10] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][11] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][12] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][13] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][14] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][15] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][16] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][17] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][18] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][19] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][1] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][20] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][21] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][22] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][23] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][24] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][25] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][26] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][27] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][28] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][29] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][2] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][30] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][31] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][32] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][33] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][34] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][35] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][36] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][37] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][38] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][39] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][3] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][40] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][41] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][42] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][43] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][44] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][45] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][46] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][47] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][48] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][49] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][4] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][50] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][51] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][52] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][53] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][54] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][55] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][56] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][57] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][58] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][59] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][5] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][60] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][61] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][62] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][63] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][6] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][7] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][8] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[1][9] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][0] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][10] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][11] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][12] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][13] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][14] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][15] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][16] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][17] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][18] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][19] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][1] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][20] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][21] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][22] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][23] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][24] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][25] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][26] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][27] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][28] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][29] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][2] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][30] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][31] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][32] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][33] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][34] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][35] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][36] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][37] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][38] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][39] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][3] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][40] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][41] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][42] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][43] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][44] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][45] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][46] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][47] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][48] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][49] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][4] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][50] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][51] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][52] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][53] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][54] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][55] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][56] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][57] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][58] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][59] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][5] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][60] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][61] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][62] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][63] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][6] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][7] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][8] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[2][9] ref=FDRE
+E pat=*u_mir_buf/wp_* ncell=13
+E   cell=u_mir_buf/wp_reg[0] ref=FDCE
+E   cell=u_mir_buf/wp_reg[10] ref=FDCE
+E   cell=u_mir_buf/wp_reg[11] ref=FDCE
+E   cell=u_mir_buf/wp_reg[12] ref=FDCE
+E   cell=u_mir_buf/wp_reg[1] ref=FDCE
+E   cell=u_mir_buf/wp_reg[2] ref=FDCE
+E   cell=u_mir_buf/wp_reg[3] ref=FDCE
+E   cell=u_mir_buf/wp_reg[4] ref=FDCE
+E   cell=u_mir_buf/wp_reg[5] ref=FDCE
+E   cell=u_mir_buf/wp_reg[6] ref=FDCE
+E   cell=u_mir_buf/wp_reg[7] ref=FDCE
+E   cell=u_mir_buf/wp_reg[8] ref=FDCE
+E   cell=u_mir_buf/wp_reg[9] ref=FDCE
+E pat=*u_mir_buf/rp_* ncell=13
+E   cell=u_mir_buf/rp_reg[0] ref=FDCE
+E   cell=u_mir_buf/rp_reg[10] ref=FDCE
+E   cell=u_mir_buf/rp_reg[11] ref=FDCE
+E   cell=u_mir_buf/rp_reg[12] ref=FDCE
+E   cell=u_mir_buf/rp_reg[1] ref=FDCE
+E   cell=u_mir_buf/rp_reg[2] ref=FDCE
+E   cell=u_mir_buf/rp_reg[3] ref=FDCE
+E   cell=u_mir_buf/rp_reg[4] ref=FDCE
+E   cell=u_mir_buf/rp_reg[5] ref=FDCE
+E   cell=u_mir_buf/rp_reg[6] ref=FDCE
+E   cell=u_mir_buf/rp_reg[7] ref=FDCE
+E   cell=u_mir_buf/rp_reg[8] ref=FDCE
+E   cell=u_mir_buf/rp_reg[9] ref=FDCE
+E pat=*u_mir_buf/o_mem* ncell=260
+E   cell=u_mir_buf/o_mem[0][63]_i_1 ref=LUT6
+E   cell=u_mir_buf/o_mem[1][63]_i_1 ref=LUT6
+E   cell=u_mir_buf/o_mem[2][63]_i_1 ref=LUT6
+E   cell=u_mir_buf/o_mem[3][63]_i_1 ref=LUT6
+E   cell=u_mir_buf/o_mem_reg[0][0] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][10] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][11] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][12] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][13] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][14] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][15] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][16] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][17] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][18] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][19] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][1] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][20] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][21] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][22] ref=FDRE
+E   cell=u_mir_buf/o_mem_reg[0][23] ref=FDRE
+E pat=*u_mir_buf/o_occ* ncell=6
+E   cell=u_mir_buf/o_occ[0]_i_1 ref=LUT5
+E   cell=u_mir_buf/o_occ[1]_i_1 ref=LUT6
+E   cell=u_mir_buf/o_occ[2]_i_1 ref=LUT6
+E   cell=u_mir_buf/o_occ_reg[0] ref=FDCE
+E   cell=u_mir_buf/o_occ_reg[1] ref=FDCE
+E   cell=u_mir_buf/o_occ_reg[2] ref=FDCE
+E pat=*u_mir_buf/u_ram* ncell=80
+E   cell=u_mir_buf/u_ram ref=xpm_memory_sdpram
+E   cell=u_mir_buf/u_ram_i_100 ref=LUT5
+E   cell=u_mir_buf/u_ram_i_101 ref=LUT3
+E   cell=u_mir_buf/u_ram_i_102 ref=LUT6
+E   cell=u_mir_buf/u_ram_i_104 ref=LUT6
+E   cell=u_mir_buf/u_ram_i_105 ref=LUT6
+E   cell=u_mir_buf/u_ram_i_106 ref=LUT6
+E   cell=u_mir_buf/u_ram_i_107 ref=LUT6
+E   cell=u_mir_buf/u_ram_i_108 ref=LUT2
+E   cell=u_mir_buf/u_ram_i_66 ref=LUT6
+E   cell=u_mir_buf/u_ram_i_99 ref=LUT6
+E   cell=u_mir_buf/u_ram/xpm_memory_base_inst ref=xpm_memory_base
+E   cell=u_mir_buf/u_ram/xpm_memory_base_inst/GND ref=GND
+E   cell=u_mir_buf/u_ram/xpm_memory_base_inst/GND_1 ref=GND
+E   cell=u_mir_buf/u_ram/xpm_memory_base_inst/VCC ref=VCC
+E   cell=u_mir_buf/u_ram/xpm_memory_base_inst/gen_rd_b.gen_doutb_pipe.gen_stages.doutb_pipe_reg[1][0] ref=FDRE
+E   cell=u_mir_buf/u_ram/xpm_memory_base_inst/gen_rd_b.gen_doutb_pipe.gen_stages.doutb_pipe_reg[1][10] ref=FDRE
+E   cell=u_mir_buf/u_ram/xpm_memory_base_inst/gen_rd_b.gen_doutb_pipe.gen_stages.doutb_pipe_reg[1][11] ref=FDRE
+E   cell=u_mir_buf/u_ram/xpm_memory_base_inst/gen_rd_b.gen_doutb_pipe.gen_stages.doutb_pipe_reg[1][12] ref=FDRE
+E   cell=u_mir_buf/u_ram/xpm_memory_base_inst/gen_rd_b.gen_doutb_pipe.gen_stages.doutb_pipe_reg[1][13] ref=FDRE
+E   cell=u_mir_buf/u_ram/xpm_memory_base_inst/gen_rd_b.gen_doutb_pipe.gen_stages.doutb_pipe_reg[1][14] ref=FDRE
+E   cell=u_mir_buf/u_ram/xpm_memory_base_inst/gen_rd_b.gen_doutb_pipe.gen_stages.doutb_pipe_reg[1][15] ref=FDRE
+E   cell=u_mir_buf/u_ram/xpm_memory_base_inst/gen_rd_b.gen_doutb_pipe.gen_stages.doutb_pipe_reg[1][16] ref=FDRE
+E   cell=u_mir_buf/u_ram/xpm_memory_base_inst/gen_rd_b.gen_doutb_pipe.gen_stages.doutb_pipe_reg[1][17] ref=FDRE
+E   cell=u_mir_buf/u_ram/xpm_memory_base_inst/gen_rd_b.gen_doutb_pipe.gen_stages.doutb_pipe_reg[1][18] ref=FDRE
+E   cell=u_mir_buf/u_ram/xpm_memory_base_inst/gen_rd_b.gen_doutb_pipe.gen_stages.doutb_pipe_reg[1][19] ref=FDRE
+E   cell=u_mir_buf/u_ram/xpm_memory_base_inst/gen_rd_b.gen_doutb_pipe.gen_stages.doutb_pipe_reg[1][1] ref=FDRE
+E   cell=u_mir_buf/u_ram/xpm_memory_base_inst/gen_rd_b.gen_doutb_pipe.gen_stages.doutb_pipe_reg[1][20] ref=FDRE
+E   cell=u_mir_buf/u_ram/xpm_memory_base_inst/gen_rd_b.gen_doutb_pipe.gen_stages.doutb_pipe_reg[1][21] ref=FDRE
+E   cell=u_mir_buf/u_ram/xpm_memory_base_inst/gen_rd_b.gen_doutb_pipe.gen_stages.doutb_pipe_reg[1][22] ref=FDRE
+E pat=*qcnt_reg* ncell=6
+E   cell=u_mir_axis/qcnt_reg[0] ref=FDCE
+E   cell=u_mir_axis/qcnt_reg[1] ref=FDCE
+E   cell=u_mir_axis/qcnt_reg[2] ref=FDCE
+E   cell=u_mir_axis/qcnt_reg[3] ref=FDCE
+E   cell=u_mir_axis/qcnt_reg[4] ref=FDCE
+E   cell=u_mir_axis/qcnt_reg[5] ref=FDCE
+# puts "N_DONE"
+N_DONE
+INFO: [Common 17-206] Exiting Vivado at Tue Oct 13 09:04:42 2026...

@@ -97,7 +97,13 @@ import_files -norecurse ${root_dir}/rtl/snap_cdc.v ${root_dir}/_proj_pcie/rtl/ax
                          ${root_dir}/rtl/clk_gen_p6b.v ${root_dir}/rtl/fifo_async.v \
                          ${root_dir}/rtl/snap_seq.v \
                          ${root_dir}/rtl/app_rx_mirror.v \
-                         ${root_dir}/rtl/axis_c2h_stream.v
+                         ${root_dir}/rtl/axis_c2h_stream.v \
+                         ${root_dir}/rtl/mir_uram_fifo.v
+# ⚠️ P9 (2026-10-13, 构建轮 0x24): `rtl/mir_uram_fifo.v` (= `u_mir_buf`, URAM288 32 KB 板内缓冲)
+#   是 **URAM 实施轮 (2026-10-13) 新增的件** —— 那一轮是 xsim-only, 没碰本清单 ⇒
+#   构建轮补这一行。**缺它 = 该模块是黑盒** (Vivado 对未导入的被例化模块不报硬错,
+#   只是把 `u_mir_buf` 当 black box ⇒ URAM288 不推断、缓冲不存在 = 安静失效)。
+#   加件先例 = 173b18d (同一区域加 `axis_c2h_stream.v`)。
 # ⛔ P9 (2026-10-11): 期 B 的三件套 (`rtl/mir_dma_ring.v` / `rtl/aximm_c2h_win.v` /
 #   `rtl/aximm_h2c_discard.v`) **不再导入** —— AXIS 改造后 wrapper 不再例化它们
 #   (它们的单元门仍保留在 `sim/p7b_mirdma/` `sim/p7b_h2cdisc/`, 直接编模块本身)。
