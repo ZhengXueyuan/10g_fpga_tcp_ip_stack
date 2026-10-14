@@ -1,0 +1,23 @@
+negctrl -- negative control for gate_elab_22
+============================================
+
+Mutant: mdio_vio_top.v with EXACTLY ONE line deleted (verified by diff, 1 line):
+    .param_bad   (param_bad),          // 2026-10-10 additions (were left unconnected)
+(i.e. the pre-fix defect shape: port param_bad left unconnected)
+
+Reproduce (from gate_elab_22/):
+    copy /Y negctrl\mdio_vio_top.v mdio_vio_top.v
+    run.bat
+
+Expected RED -- xelab.log gains (line number of the instance start = 127):
+    WARNING: [VRFC 10-3645] port 'param_bad' remains unconnected for this instance
+      [ ...gate_elab_22\mdio_vio_top.v:127]
+=> check_elab.bat must print:
+    GATE_FAIL: F2_PORT_UNCONNECTED_10-3645
+    and exit /b 1
+NOTE: XELAB_RC will still be 0 -- the red lives on the warning LINE, which is
+exactly why check_elab.bat greps the log instead of trusting the exit code.
+
+Restore:
+    copy /Y <known-good mdio_vio_top.v> mdio_vio_top.v
+    (sha256 of the good one is in ../SHA256SUMS.txt)
