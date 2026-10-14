@@ -1131,3 +1131,12 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
   - **RFC**：仅低-1（§7.2 严格 `<` + 推导；同族自核再揪一处 `≥`〔穷举验证〕）⇒ **`v3r3`（871 行）**；**不影响施工**（注"实施轮照 v3r2 开工"）。
 - **kimi 三点确认**：v2r3/v3r3 随到随审（R3-1 逐字核，重点查"**持有者提前清 0 而 closing 仍 1**"第三形态）· TL 文档轮两项（OPEN_ITEMS `:68/:417` + v3 SUPERSEDED 头）按常规口径接 · **0x26 构建可与 v2r3 即审并行**（其走只读通道）。
 - **送即审**（fold-3 四件，本刻）；**在飞 = RFC 实施轮**。板 = `0x24` + 受控停流（未动）。
+
+## §10-63 2026-10-15 04:1x：**阶段二轮 4/8 = RFC 实施轮收口（7 臂全绿 + 两门逐字复现 + 修正轮）+ 设计 errata E-1..E-5 成清单（提交 `a1581ad`）**
+- **唯一功能改点 = 1 行**：`rtl/tcp_rx.v` `seq_lt = seq_diff[31]`（真差口径；rev2 sha **`79376158…`**）+ 注释订正/尾回加；929→936 行纯 CRLF。工具：`gen_stim_tcp_rx.py`（env 门控尾段**默认关** + oracle 臂化 + w6a 建模〔rev2 补锁存〕）· `gen_stim_tcp_chain.py:355` oracle · `tb_tcp_rx.v` +189（**全在 `ifdef SEQRF_TAIL` 内**）· `.gitignore` 白名单 · 新门 `sim/p3sim_rfc/`（frozen 旧 HEAD 逐字节 + mutgen + bat + logs）。
+- **门读数（run4 终版）**：**7 臂全绿** —— A 三模式 `ALL PASS` + SNDWND + RC=0 · A-off resp 三份 sha == 冻结基线（**criterion-0 字节级**）· G（frozen+env legacy）`LEGACY OK` + **XFAIL{F5,F1,F2}** · M1 ≡ A 逐字节 · M2 红点恰 **{F2}** / M3 **{F5}** / M4 **{F1,F2,F5}**（冻结首分歧签名逐条命中）；A/G 逐帧增量、守恒（两臂 5 帧）、终态、W68ADV `dut==tb` 与设计 §5.4 逐项全中。
+- **既有门守恒**：`p3sim` **RC=1 + `hard LINE 63` 签名逐字不变**（§5.6 预测成立；仅 hard 模型侧 2 数值行随 w6a 建模变、按 §5.3-5 口径登记）· `p3sim_sw` RC=0 零扰动（diff 恰 3 行）· 生成器默认输出 `cmp` 逐字节同。
+- **TL 裁定（两格 + 一处回加）**：**§6-A = 模型锁存**（亲读 `:731` `wnd_l <= s_axis_tdata[63:48];` **无条件在 `if (s_axis_tlast)`（:732）之前** ⇒ 设计 §5.5 前提为误、模型镜像 DUT）· **§6-B = 维持实施形态**（CLI 默认 `fixed` = 与 DUT 同参；seq 臂走 env `legacy`；备选「加 `-d SNDWND_LEGACY`」**登记不采用**〔双变量〕）· §6-D-3 注释尾回加。**修正轮重跑：run3↔run4 全量 diff = 恰 9 行且全为哈希打印 ⇒ 判据/读数逐字节不变**；p3sim 补跑逐字同。
+- **设计 errata 清单 E-1..E-5**（交 v3r4 文档轮 + kimi 复审）：**E-1** §5.5 `wnd_l` 前提错（沿革：v2 已有、v3 换了个错法）· **E-2** §5.4 W-a 机理句错（结论仍立、正确理由 = "两帧窗同值不可分辨"；⛔ 原"不能改不同窗"应删/反转）· **E-3** D8 quirk **不存在**（整条撤销）· **E-4** §5.3-4 G 臂 CLI 措辞（seq 臂/SNDWND guard 是两独立开关）· **E-5** §5.6 "逐字不变"边界收窄（RC/签名/DUT resp/nostall+stall）。
+- **构建轮已派**（`p9_build_0x26`）：wrapper BID `:4322` 0x25→0x26 + 两处 p6e TB 硬编码 + 读侧 `--bid 0x26` + 矩阵（预期漂移恰 `{tcp_rx.v, wrapper_p4.v}`）+ p6e 双门复跑（预期 144/0 与 counters PASS_ALL）+ 构建 0x26 + 归档 + **定向 STA**。**不烧板。**
+- 板 = `0x24` + 受控停流（未动）。
