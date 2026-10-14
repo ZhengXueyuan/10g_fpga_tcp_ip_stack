@@ -369,6 +369,14 @@ module tb_p6e_pcie_counters;
 
         // ================= 判据 H: RX 侧新仪表 (W26 满拍数 / W27 峰值 / W30 帧数 / W31 字节数) ==
         // 消费者钉住: vs_tready=0 ⇒ vlan_strip 收 1 个字之后 od_free=0 ⇒ u_rxcdc 只进不出。
+        // ⚠️ F-3 门修复 (2026-10-15, `p9_p6e_h1fix_20261015`): **合成流必须以 SOP (tuser=1)
+        //   开场**。F-3 的 vlan_strip (`RESYNC_EN=1` 档) 复位后先丢弃输入字直到第一个 tuser=1
+        //   才开帧 (`rtl/vlan_strip.v:112` `fwd = resync || s_axis_tuser`) ⇒ 不给 SOP 时输入字
+        //   全被"消费后丢弃"、u_rxcdc 永不累积 (H1 期望 256 实读 5)。真 MAC 激励 (全链门) 的
+        //   首个交付字必是 SOP ⇒ 本门此前缺的正是这一拍。SOP 保持到 H0 之后 (≥1 个 gmii 周期,
+        //   保证**首个压入的字**必带 tuser; dp/gmii 异步 ⇒ 不能只给"名义一拍")。
+        //   ⚠️ 激励 vs 历史基线差异: F-3 之前的 5 份 backup 全部 `tuser≡0` ⇒ 与它们相比本段
+        //   多出"开场 SOP 拍" (其余字仍 tuser=0) ⇒ 历史 backup 的 comparability 限定于此。
         $display("  --- 判据 H: 从 FE 侧灌 %0d 拍 + 钉住 DP 消费者 ⇒ u_rxcdc 必满 ---", N_RXPSH);
         force u_dut.vs_tready = 1'b0;                 // u_classify 的输出 net (DP 侧消费者)
         @(negedge u_dut.dp_clk);
@@ -376,20 +384,24 @@ module tb_p6e_pcie_counters;
         force u_dut.rxsrc_tdata  = 64'hFEDCBA9876543210;
         force u_dut.rxsrc_tkeep  = 8'hFF;             // 每字 8 字节 (W31 的口径: Σpopc)
         force u_dut.rxsrc_tlast  = 1'b1;              // 每字一帧 (W30 的口径: TLAST 数)
+        force u_dut.rxsrc_tuser  = 1'b1;              // F-3: 开场 SOP —— 首字必须是帧首字
         repeat (5) @(posedge u_dut.dp_clk);
-        if (u_dut.rxsrc_tvalid === 1'b1 && u_dut.vs_tready === 1'b0)
-            $display("  [PASS] H0 rxsrc_tvalid/vs_tready 有确定电平且跟着 force 走");
+        if (u_dut.rxsrc_tvalid === 1'b1 && u_dut.vs_tready === 1'b0
+            && u_dut.rxsrc_tuser === 1'b1)
+            $display("  [PASS] H0 rxsrc_tvalid/vs_tready/rxsrc_tuser 有确定电平且跟着 force 走");
         else begin
-            $display("  [FAIL] H0 rxsrc_tvalid=%b vs_tready=%b ⇒ 有无驱动源的线",
-                     u_dut.rxsrc_tvalid, u_dut.vs_tready);
+            $display("  [FAIL] H0 rxsrc_tvalid=%b vs_tready=%b rxsrc_tuser=%b ⇒ 有无驱动源的线",
+                     u_dut.rxsrc_tvalid, u_dut.vs_tready, u_dut.rxsrc_tuser);
             fails = fails + 1;
         end
+        force u_dut.rxsrc_tuser = 1'b0;               // 开场 SOP 到此为止 (已覆盖首字; 见上注)
         repeat (N_RXPSH - 5) @(posedge u_dut.dp_clk);
         @(negedge u_dut.dp_clk);
         release u_dut.rxsrc_tvalid;
         release u_dut.rxsrc_tdata;
         release u_dut.rxsrc_tkeep;
         release u_dut.rxsrc_tlast;
+        release u_dut.rxsrc_tuser;
         snap_take(ok_r);
         u_dut.u_pcie_xdma.axil_read(32'h88, v); w26v = v;   // W26 rxcdc_full_cycles
         u_dut.u_pcie_xdma.axil_read(32'h8c, v); w27v = v;   // W27 {16'd0,rxcdc_occ_max}

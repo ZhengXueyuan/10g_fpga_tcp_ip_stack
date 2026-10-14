@@ -1,0 +1,80 @@
+====================================================================================================
+== PREFIX  (pre-fix 2026-10-15 01:10:01; F-3 无 SOP)
+   file: D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_p6e_h1fix_20261015\xsim_p6e_cnt_PREFIX_011001.log
+====================================================================================================
+  --- 判据 H: 从 FE 侧灌 400 拍 + 钉住 DP 消费者 ⇒ u_rxcdc 必满 ---
+  [PASS] H0 rxsrc_tvalid/vs_tready 有确定电平且跟着 force 走
+  [INFO] H 读数(灌满后): W26=3 W27=5
+  [FAIL] �������������������������������) = 5 (期望 256)
+  [PASS] H2 W26 = 3 (>0: FIFO 满过, 满拍数被记下来)
+  [INFO] H 读数(排空后): W30=320 W31=2560 W0=0
+  [PASS] H3 W30 = 320 >= DEPTH ⇒ 读侧 TLAST 计数与灌满一致
+  [PASS] ��������������, ��7.�����������) = 2560
+  [PASS] ac_r���������������������������) = 0
+FAIL      tb_p6e_pcie_counters: 1 项失败
+
+====================================================================================================
+== AFTER_FIX run1 (2026-10-15 03:04:17)
+   file: D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_p6e_h1fix_20261015\xsim_p6e_cnt_AFTER_FIX.log
+====================================================================================================
+  --- 判据 H: 从 FE 侧灌 400 拍 + 钉住 DP 消费者 ⇒ u_rxcdc 必满 ---
+  [PASS] H0 rxsrc_tvalid/vs_tready/rxsrc_tuser 有确定电平且跟着 force 走
+  [INFO] H 读数(灌满后): W26=69 W27=256
+  [PASS] �������������������������������) = 256
+  [PASS] H2 W26 = 69 (>0: FIFO 满过, 满拍数被记下来)
+Error: [Unisim RAMB36E2-11] Memory Collision at time 12483.201 ns.
+A simultaneous WRITE on port B (0040) and READ on port A (0000) occured.
+The WRITE was successful but the READ may be corrupted. Instance: tb_p6e_pcie_counters.u_dut.u_slow_rx.u_ff.gen_mem[0].u_main
+  [INFO] H 读数(排空后): W30=257 W31=2056 W0=0
+  [PASS] H3 W30 = 257 >= DEPTH ⇒ 读侧 TLAST 计数与灌满一致
+  [PASS] ��������������, ��7.�����������) = 2056
+  [PASS] ac_r���������������������������) = 0
+PASS_ALL  tb_p6e_pcie_counters: W16/W17 + W26/W27/W28/W29/W30/W31 增量逻辑全过
+
+====================================================================================================
+== AFTER_FIX run2 (2026-10-15 03:05:41)
+   file: D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_p6e_h1fix_20261015\xsim_p6e_cnt_AFTER_FIX_RUN2.log
+====================================================================================================
+  --- 判据 H: 从 FE 侧灌 400 拍 + 钉住 DP 消费者 ⇒ u_rxcdc 必满 ---
+  [PASS] H0 rxsrc_tvalid/vs_tready/rxsrc_tuser 有确定电平且跟着 force 走
+  [INFO] H 读数(灌满后): W26=69 W27=256
+  [PASS] �������������������������������) = 256
+  [PASS] H2 W26 = 69 (>0: FIFO 满过, 满拍数被记下来)
+Error: [Unisim RAMB36E2-11] Memory Collision at time 12483.201 ns.
+A simultaneous WRITE on port B (0040) and READ on port A (0000) occured.
+The WRITE was successful but the READ may be corrupted. Instance: tb_p6e_pcie_counters.u_dut.u_slow_rx.u_ff.gen_mem[0].u_main
+  [INFO] H 读数(排空后): W30=257 W31=2056 W0=0
+  [PASS] H3 W30 = 257 >= DEPTH ⇒ 读侧 TLAST 计数与灌满一致
+  [PASS] ��������������, ��7.�����������) = 2056
+  [PASS] ac_r���������������������������) = 0
+PASS_ALL  tb_p6e_pcie_counters: W16/W17 + W26/W27/W28/W29/W30/W31 增量逻辑全过
+
+====================================================================================================
+== HISTORY pre-F-3 on-disk 16376 (10-13 08:26)
+   file: D:\repo\XCKU5PMini\udp_hls_10g\sim\p6e_pcie\xsim_p6e_cnt_16376.backup.log
+====================================================================================================
+  --- 判据 H: 从 FE 侧灌 400 拍 + 钉住 DP 消费者 ⇒ u_rxcdc 必满 ---
+  [PASS] H0 rxsrc_tvalid/vs_tready 有确定电平且跟着 force 走
+  [INFO] H 读数(灌满后): W26=69 W27=256
+  [PASS] �������������������������������) = 256
+  [PASS] H2 W26 = 69 (>0: FIFO 满过, 满拍数被记下来)
+  [INFO] H 读数(排空后): W30=257 W31=2056 W0=0
+  [PASS] H3 W30 = 257 >= DEPTH ⇒ 读侧 TLAST 计数与灌满一致
+  [PASS] ��������������, ��7.�����������) = 2056
+  [PASS] ac_r���������������������������) = 0
+PASS_ALL  tb_p6e_pcie_counters: W16/W17 + W26/W27/W28/W29/W30/W31 增量逻辑全过
+
+====================================================================================================
+== HISTORY pre-F-3 on-disk 22556 (10-13 22:34)
+   file: D:\repo\XCKU5PMini\udp_hls_10g\sim\p6e_pcie\xsim_p6e_cnt_22556.backup.log
+====================================================================================================
+  --- 判据 H: 从 FE 侧灌 400 拍 + 钉住 DP 消费者 ⇒ u_rxcdc 必满 ---
+  [PASS] H0 rxsrc_tvalid/vs_tready 有确定电平且跟着 force 走
+  [INFO] H 读数(灌满后): W26=69 W27=256
+  [PASS] �������������������������������) = 256
+  [PASS] H2 W26 = 69 (>0: FIFO 满过, 满拍数被记下来)
+  [INFO] H 读数(排空后): W30=257 W31=2056 W0=0
+  [PASS] H3 W30 = 257 >= DEPTH ⇒ 读侧 TLAST 计数与灌满一致
+  [PASS] ��������������, ��7.�����������) = 2056
+  [PASS] ac_r���������������������������) = 0
+PASS_ALL  tb_p6e_pcie_counters: W16/W17 + W26/W27/W28/W29/W30/W31 增量逻辑全过
