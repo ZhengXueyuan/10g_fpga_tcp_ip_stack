@@ -4319,8 +4319,16 @@ module wrapper_p4 (
 
     axi_regs #(
         .MAGIC_V    (32'h50360001),
-        .BUILD_ID_V (32'h00000025),     // ⚠️ 每次改动自增 (前置闸读这一项认位流; F-3 = 0x25)
-                                        //   ⭐ 本轮 (2026-10-15): **0x24 → 0x25** = F-3 修复
+        .BUILD_ID_V (32'h00000026),     // ⚠️ 每次改动自增 (前置闸读这一项认位流; RFC seq 修复 = 0x26)
+                                        //   ⭐ 本轮构建 (2026-10-15): **0x25 → 0x26** = RFC seq 修复
+                                        //      (`rtl/tcp_rx.v` 的 `seq_lt = seq_diff[31]` 真差口径
+                                        //      (RFC 793 SEQ_LT); **唯一功能改点 = 1 行表达式** +
+                                        //      注释; 设计件 = `_proj_10g/notes/
+                                        //      p9_fix_rfcseq_design_20261014/
+                                        //      P7B_BUILDG_RFC_SEQ_DESIGN_v3r2.md`)。几何**不变**
+                                        //      (71 字 / 0x14C) ⇒ 读侧只需 `EXPECT_BID` **0x25 → 0x26**
+                                        //      (构建轮同批落盘: 阶段 ⑪ = 24 处 / 14 文件)。
+                                        //   ⭐ 上一轮 (2026-10-15): **0x24 → 0x25** = F-3 修复
                                         //      (`rtl/vlan_strip.v` 的 RESYNC_EN 重同步门 + 本文件
                                         //      的 `VLAN_STRIP_RESYNC` 选择; 设计件 =
                                         //      `_proj_10g/notes/p9_fix_f3_design_20261014/

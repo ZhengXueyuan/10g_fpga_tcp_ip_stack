@@ -1,0 +1,84 @@
+
+****** Vivado v2025.2 (64-bit)
+  **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+  **** Start of session at: Thu Oct 15 05:19:45 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source {D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_build_0x26\q_0x26_detail.tcl}
+# set dcp [lindex $argv 0]
+# set out [lindex $argv 1]
+# file mkdir $out
+# open_checkpoint $dcp
+Command: open_checkpoint {D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_build_0x25\wrapper_p4_routed.dcp}
+
+Starting open_checkpoint Task
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.026 . Memory (MB): peak = 327.785 ; gain = 5.812
+INFO: [Device 21-403] Loading part xcku5p-ffvb676-1-e
+Netlist sorting complete. Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.804 . Memory (MB): peak = 1683.344 ; gain = 0.000
+INFO: [Netlist 29-17] Analyzing 7890 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 1 CPU seconds
+INFO: [Project 1-479] Netlist was created with Vivado 2025.2
+INFO: [Project 1-570] Preparing netlist for logic optimization
+Read ShapeDB Complete: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.183 . Memory (MB): peak = 1896.145 ; gain = 33.855
+INFO: [Timing 38-478] Restoring timing data from binary archive.
+INFO: [Timing 38-479] Binary timing data restore complete.
+INFO: [Project 1-856] Restoring constraints from binary archive.
+INFO: [Constraints 18-5170] The checkpoint was created with non-default parameter values which do not match the current Vivado settings.  Mismatching parameters are:
+  general.maxThreads
+INFO: [Project 1-853] Binary constraint restore complete.
+INFO: [Designutils 20-5722] Start Reading Physical Databases.
+Reading placement.
+Read Netlist Cache: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.107 . Memory (MB): peak = 4136.652 ; gain = 0.000
+Reading placer database...
+Read Device Cache: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.024 . Memory (MB): peak = 4136.652 ; gain = 0.000
+Read PlaceDB: Time (s): cpu = 00:00:04 ; elapsed = 00:00:03 . Memory (MB): peak = 4136.652 ; gain = 0.000
+Read PulsedLatchDB: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 4136.652 ; gain = 0.000
+Reading routing.
+Read RouteStorage: Time (s): cpu = 00:00:02 ; elapsed = 00:00:01 . Memory (MB): peak = 4136.652 ; gain = 0.000
+Read Physdb Files: Time (s): cpu = 00:00:06 ; elapsed = 00:00:05 . Memory (MB): peak = 4136.652 ; gain = 0.000
+Restored from archive | CPU: 6.000000 secs | Memory: 0.000000 MB |
+Finished XDEF File Restore: Time (s): cpu = 00:00:06 ; elapsed = 00:00:05 . Memory (MB): peak = 4136.652 ; gain = 0.000
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.045 . Memory (MB): peak = 4136.652 ; gain = 0.000
+INFO: [Project 1-111] Unisim Transformation Summary:
+  A total of 1407 instances were transformed.
+  DSP48E2 => DSP48E2 (DSP_ALU, DSP_A_B_DATA, DSP_C_DATA, DSP_MULTIPLIER, DSP_M_DATA, DSP_OUTPUT, DSP_PREADD, DSP_PREADD_DATA): 4 instances
+  IBUF => IBUF (IBUFCTRL, INBUF): 1 instance 
+  IBUFDS => IBUFDS (DIFFINBUF, IBUFCTRL): 1 instance 
+  RAM16X1D => RAM32X1D (RAMD32(x2)): 35 instances
+  RAM16X1S => RAM32X1S (RAMS32): 224 instances
+  RAM256X1S => RAM256X1S (MUXF7(x2), MUXF8, RAMS64E(x4)): 8 instances
+  RAM32M => RAM32M (RAMD32(x6), RAMS32(x2)): 41 instances
+  RAM32M16 => RAM32M16 (RAMD32(x14), RAMS32(x2)): 153 instances
+  RAM32X1D => RAM32X1D (RAMD32(x2)): 13 instances
+  RAM64M => RAM64M (RAMD64E(x4)): 241 instances
+  RAM64M8 => RAM64M8 (RAMD64E(x8)): 554 instances
+  RAM64X1D => RAM64X1D (RAMD64E(x2)): 132 instances
+
+INFO: [Project 1-604] Checkpoint was created with Vivado v2025.2 (64-bit) build 6299465
+WARNING: [Vivado 12-23575] Critical violations of the methodology design rules detected. Critical violations may contribute to timing failures or cause functional issues in hardware. Run report_methodology for more information.
+open_checkpoint: Time (s): cpu = 00:01:01 ; elapsed = 00:00:53 . Memory (MB): peak = 4136.652 ; gain = 3821.039
+# foreach {tag pin} {accl u_tcp_rx/acc_l_reg/D ackresp u_tcp_rx/ackresp_l_reg/D w6a u_tcp_rx/w6a_ok_l_reg/D dup u_tcp_rx/dup_l_reg/D} {
+#   set p [get_pins -quiet $pin]
+#   puts "D $tag pin=$pin found=[llength $p]"
+#   if {[llength $p] > 0} {
+#     catch {report_timing -to $p -delay_type max -max_paths 1 -sort_by slack -file $out/$tag.rpt}
+#     set tp [get_timing_paths -to $p -delay_type max -max_paths 1 -sort_by slack -quiet]
+#     if {[llength $tp] > 0} {
+#       set t [lindex $tp 0]
+#       puts "D $tag slack=[get_property SLACK $t] lvl=[get_property LOGIC_LEVELS $t] sp=[get_property STARTPOINT_PIN $t] ep=[get_property ENDPOINT_PIN $t]"
+#       puts "D $tag datapath_delay=[get_property DATAPATH_DELAY $t] logic_delay=[get_property DATAPATH_LOGIC_DELAY $t] route_delay=[get_property DATAPATH_NET_DELAY $t] clk_skew=[get_property CLOCK_PATH_SKEW $t]"
+#     } else { puts "D $tag NOPATH" }
+#   }
+# }
+D accl pin=u_tcp_rx/acc_l_reg/D found=1
+INFO: [Timing 38-91] UpdateTimingParams: Speed grade: -1, Temperature grade: E, Delay Type: max.
+INFO: [Timing 38-191] Multithreading enabled for timing update using a maximum of 2 CPUs
+INFO: [Timing 38-78] ReportTimingParams: -to_pins  -max_paths 1 -nworst 1 -delay_type max -sort_by slack.
+report_timing: Time (s): cpu = 00:00:43 ; elapsed = 00:00:24 . Memory (MB): peak = 4179.039 ; gain = 42.387
+D accl slack=1.290 lvl=10 sp=u_tcp_rx/conn_id_l_reg[3]/C ep=u_tcp_rx/acc_l_reg/D
+ERROR: [Common 17-54] The object 'timing_path' does not have a property 'CLOCK_PATH_SKEW'.
+INFO: [Common 17-206] Exiting Vivado at Thu Oct 15 05:21:02 2026...

@@ -67,13 +67,14 @@ cd /tmp/p7b_biz || exit 9
 #   ⛔ 2026-10-10 (构建 C 门同步轮): 本轮之前门里只列了 61/8 与 63/9 两档, 而 `NW` 默认早已随
 #      构建抬到 65 ⇒ **默认跑必然 J6_GEOM_FAIL + exit 3** (新位流测不了)。现在档表是唯一来源。
 NW=${NW:-71}
-EXPECT_BID=${EXPECT_BID:-0x00000025}   # 2026-10-15 F-3 修复 (71 字; 原 0x00000024 = P9 URAM 板内缓冲 / 0x23 = P9 D4 clr 口径修正 / 0x22 = P9 XDMA MM→AXIS)
+EXPECT_BID=${EXPECT_BID:-0x00000026}   # 2026-10-15 RFC seq 修复 (71 字; 原 0x00000025 = F-3 修复 / 0x24 = P9 URAM 板内缓冲 / 0x23 = P9 D4 clr 口径修正)
 export NW EXPECT_BID        # ⚠️ 必须 export: 取数器 p7b_snap.sh 读的是**它自己的环境**
 # 十六进制**大小写归一** (只用于比较, 打印仍用原样; 判据语义零改动 —— 先例 = p7b_snap.sh 的
 #   Stage C 订正 / j6_r6fix.sh 的 geom_gate 块: `reg_rw` 打小写而期望值写大写时字符串比较必假红)
 norm(){ printf "%s" "$1" | tr "A-F" "a-f"; }
 # 档表格式: "NW|BID|WEXTRA|说明"  (WEXTRA 空 = t0/t1 字表退回 5 20 43 53 54)
 GEOM_TIERS=(
+  "71|0x00000026|61 62|RFC seq 修复 (2026-10-15) 71 字 / BID 0x26 (RFC seq 修复: `rtl/tcp_rx.v` 的 `seq_lt = seq_diff[31]` 真差口径 (RFC 793 SEQ_LT); 几何/未实现地址 0x14C 不变)"
   "71|0x00000025|61 62|F-3 修复 (2026-10-15) 71 字 / BID 0x25 (F-3: `rtl/vlan_strip.v` RESYNC_EN 重同步门 + `board/wrapper_p4.v` `VLAN_STRIP_RESYNC` 双域开/单域关; 几何/未实现地址 0x14C 不变)"
   "71|0x00000024|61 62|P9 URAM 板内缓冲 (2026-10-13) 71 字 / BID 0x24 (URAM288 4096x64 = 32 KB 板内缓冲 `u_mir_buf` + F2/F3 修正; 几何/未实现地址 0x14C 不变)"
   "71|0x00000023|61 62|P9 D4 clr 口径修正 (2026-10-12) 71 字 / BID 0x23 (C2H 引擎 clr 口径修正: clr 丢弃残拍不发拍 + 非 clr 停流排空后只发一拍短尾; 几何/未实现地址 0x14C 不变)"

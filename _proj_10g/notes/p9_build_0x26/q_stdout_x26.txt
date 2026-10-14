@@ -1,0 +1,290 @@
+
+****** Vivado v2025.2 (64-bit)
+  **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+  **** Start of session at: Thu Oct 15 05:15:51 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source {D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_build_0x26\q_0x26.tcl}
+# set dcp [lindex $argv 0]
+# set out [lindex $argv 1]
+# file mkdir $out
+# open_checkpoint $dcp
+Command: open_checkpoint {D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_build_0x26\wrapper_p4_routed.dcp}
+
+Starting open_checkpoint Task
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.030 . Memory (MB): peak = 327.176 ; gain = 5.531
+INFO: [Device 21-403] Loading part xcku5p-ffvb676-1-e
+Netlist sorting complete. Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.804 . Memory (MB): peak = 1683.660 ; gain = 0.000
+INFO: [Netlist 29-17] Analyzing 7888 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 1 CPU seconds
+INFO: [Project 1-479] Netlist was created with Vivado 2025.2
+INFO: [Project 1-570] Preparing netlist for logic optimization
+Read ShapeDB Complete: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.176 . Memory (MB): peak = 1895.309 ; gain = 34.168
+INFO: [Timing 38-478] Restoring timing data from binary archive.
+INFO: [Timing 38-479] Binary timing data restore complete.
+INFO: [Project 1-856] Restoring constraints from binary archive.
+INFO: [Constraints 18-5170] The checkpoint was created with non-default parameter values which do not match the current Vivado settings.  Mismatching parameters are:
+  general.maxThreads
+INFO: [Project 1-853] Binary constraint restore complete.
+INFO: [Designutils 20-5722] Start Reading Physical Databases.
+Reading placement.
+Read Netlist Cache: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.108 . Memory (MB): peak = 4144.641 ; gain = 0.000
+Reading placer database...
+Read Device Cache: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.024 . Memory (MB): peak = 4144.641 ; gain = 0.000
+Read PlaceDB: Time (s): cpu = 00:00:03 ; elapsed = 00:00:03 . Memory (MB): peak = 4144.641 ; gain = 0.000
+Read PulsedLatchDB: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 4144.641 ; gain = 0.000
+Reading routing.
+Read RouteStorage: Time (s): cpu = 00:00:02 ; elapsed = 00:00:01 . Memory (MB): peak = 4144.641 ; gain = 0.000
+Read Physdb Files: Time (s): cpu = 00:00:05 ; elapsed = 00:00:05 . Memory (MB): peak = 4144.641 ; gain = 0.000
+Restored from archive | CPU: 6.000000 secs | Memory: 0.000000 MB |
+Finished XDEF File Restore: Time (s): cpu = 00:00:06 ; elapsed = 00:00:05 . Memory (MB): peak = 4144.641 ; gain = 0.000
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.043 . Memory (MB): peak = 4144.641 ; gain = 0.000
+INFO: [Project 1-111] Unisim Transformation Summary:
+  A total of 1407 instances were transformed.
+  DSP48E2 => DSP48E2 (DSP_ALU, DSP_A_B_DATA, DSP_C_DATA, DSP_MULTIPLIER, DSP_M_DATA, DSP_OUTPUT, DSP_PREADD, DSP_PREADD_DATA): 4 instances
+  IBUF => IBUF (IBUFCTRL, INBUF): 1 instance 
+  IBUFDS => IBUFDS (DIFFINBUF, IBUFCTRL): 1 instance 
+  RAM16X1D => RAM32X1D (RAMD32(x2)): 35 instances
+  RAM16X1S => RAM32X1S (RAMS32): 224 instances
+  RAM256X1S => RAM256X1S (MUXF7(x2), MUXF8, RAMS64E(x4)): 8 instances
+  RAM32M => RAM32M (RAMD32(x6), RAMS32(x2)): 41 instances
+  RAM32M16 => RAM32M16 (RAMD32(x14), RAMS32(x2)): 153 instances
+  RAM32X1D => RAM32X1D (RAMD32(x2)): 13 instances
+  RAM64M => RAM64M (RAMD64E(x4)): 241 instances
+  RAM64M8 => RAM64M8 (RAMD64E(x8)): 554 instances
+  RAM64X1D => RAM64X1D (RAMD64E(x2)): 132 instances
+
+INFO: [Project 1-604] Checkpoint was created with Vivado v2025.2 (64-bit) build 6299465
+WARNING: [Vivado 12-23575] Critical violations of the methodology design rules detected. Critical violations may contribute to timing failures or cause functional issues in hardware. Run report_methodology for more information.
+open_checkpoint: Time (s): cpu = 00:01:01 ; elapsed = 00:00:52 . Memory (MB): peak = 4144.641 ; gain = 3833.559
+# catch {report_timing -delay_type max -max_paths 5 -sort_by slack -file $out/global_top5.rpt}
+INFO: [Timing 38-91] UpdateTimingParams: Speed grade: -1, Temperature grade: E, Delay Type: max.
+INFO: [Timing 38-191] Multithreading enabled for timing update using a maximum of 2 CPUs
+INFO: [Timing 38-78] ReportTimingParams: -max_paths 5 -nworst 1 -delay_type max -sort_by slack.
+report_timing: Time (s): cpu = 00:00:45 ; elapsed = 00:00:24 . Memory (MB): peak = 4189.238 ; gain = 44.598
+# set gp [get_timing_paths -delay_type max -max_paths 5 -sort_by slack -quiet]
+# set i 0
+# foreach p $gp {
+#   incr i
+#   puts "G #$i slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+# }
+G #1 slack=0.019 lvl=19 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]_replica/C ep=u_app/pw_data_reg[41]/D
+G #2 slack=0.022 lvl=19 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]_replica/C ep=u_app/stg_reg[45]/D
+G #3 slack=0.023 lvl=19 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]_replica/C ep=u_app/stg_reg[51]/D
+G #4 slack=0.023 lvl=17 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]_replica/C ep=u_tcb/snd_wnd_r_reg[1][3]/CE
+G #5 slack=0.023 lvl=17 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]_replica/C ep=u_tcb/snd_wnd_r_reg[1][6]/CE
+# puts "G_DONE n=[llength $gp]"
+G_DONE n=5
+# catch {report_timing -group g_hw.clk_out0 -delay_type max -max_paths 10 -sort_by slack -file $out/dp_top10.rpt}
+INFO: [Timing 38-78] ReportTimingParams: -max_paths 10 -nworst 1 -delay_type max -sort_by slack.
+# catch {report_timing -group g_hw.clk_out0 -delay_type max -max_paths 50 -sort_by slack -file $out/dp_top50.rpt}
+INFO: [Timing 38-78] ReportTimingParams: -max_paths 50 -nworst 1 -delay_type max -sort_by slack.
+# set dp [get_timing_paths -group g_hw.clk_out0 -delay_type max -max_paths 10 -sort_by slack -quiet]
+# set i 0
+# foreach p $dp {
+#   incr i
+#   puts "DP #$i slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+# }
+DP #1 slack=0.019 lvl=19 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]_replica/C ep=u_app/pw_data_reg[41]/D
+DP #2 slack=0.022 lvl=19 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]_replica/C ep=u_app/stg_reg[45]/D
+DP #3 slack=0.023 lvl=19 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]_replica/C ep=u_app/stg_reg[51]/D
+DP #4 slack=0.023 lvl=17 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]_replica/C ep=u_tcb/snd_wnd_r_reg[1][3]/CE
+DP #5 slack=0.023 lvl=17 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]_replica/C ep=u_tcb/snd_wnd_r_reg[1][6]/CE
+DP #6 slack=0.024 lvl=16 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]_replica/C ep=u_tcb/snd_nxt_r_reg[13][6]/CE
+DP #7 slack=0.024 lvl=17 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]_replica/C ep=u_tcb/rcv_wnd_r_reg[4][12]/CE
+DP #8 slack=0.024 lvl=17 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]_replica/C ep=u_tcb/rcv_wnd_r_reg[4][15]/CE
+DP #9 slack=0.024 lvl=17 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]_replica/C ep=u_tcb/rcv_wnd_r_reg[4][2]/CE
+DP #10 slack=0.024 lvl=17 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]_replica/C ep=u_tcb/rcv_wnd_r_reg[4][6]/CE
+# puts "DP_DONE n=[llength $dp]"
+DP_DONE n=10
+# set dw [get_timing_paths -group g_hw.clk_out0 -delay_type max -max_paths 1 -sort_by slack -quiet]
+# if {[llength $dw] > 0} {
+#   set p [lindex $dw 0]
+#   puts "DPWNS slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+# } else { puts "DPWNS NOPATH" }
+DPWNS slack=0.019 lvl=19 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]_replica/C ep=u_app/pw_data_reg[41]/D
+# proc fam {tag pat} {
+#   set cells [get_cells -hier -quiet -filter "NAME =~ $pat"]
+#   puts "F $tag ncell=[llength $cells]"
+#   if {[llength $cells] == 0} { puts "F $tag NOCELL"; return }
+#   set pf [get_timing_paths -delay_type max -max_paths 1 -sort_by slack -quiet -from $cells]
+#   if {[llength $pf] > 0} {
+#     set p [lindex $pf 0]
+#     puts "F $tag from_worst slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+#   } else { puts "F $tag from_NOPATH" }
+#   set pt [get_timing_paths -delay_type max -max_paths 1 -sort_by slack -quiet -to $cells]
+#   if {[llength $pt] > 0} {
+#     set p [lindex $pt 0]
+#     puts "F $tag to_worst slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+#   } else { puts "F $tag to_NOPATH" }
+# }
+# fam rfc_accl     {*u_tcp_rx/acc_l_reg*}
+F rfc_accl ncell=3
+F rfc_accl from_worst slack=1.714 lvl=8 sp=u_tcp_rx/acc_l_reg/C ep=u_tcp_tx/u_ackq/dout_reg[36]/D
+F rfc_accl to_worst slack=0.319 lvl=6 sp=u_tcp_rx/conn_id_l_reg[3]/C ep=u_tcp_rx/acc_l_reg/D
+# fam rfc_ackresp  {*u_tcp_rx/ackresp_l_reg*}
+F rfc_ackresp ncell=1
+F rfc_ackresp from_worst slack=2.007 lvl=6 sp=u_tcp_rx/ackresp_l_reg/C ep=u_tcp_tx/u_ackq/dout_reg[36]/D
+F rfc_ackresp to_worst slack=0.343 lvl=6 sp=u_tcp_rx/conn_id_l_reg[3]/C ep=u_tcp_rx/ackresp_l_reg/D
+# fam rfc_w6a       {*u_tcp_rx/w6a_ok_l_reg*}
+F rfc_w6a ncell=4
+F rfc_w6a from_worst slack=3.171 lvl=4 sp=u_tcp_rx/w6a_ok_l_reg/C ep=u_tcp_rx/pend_id_reg[1]/CE
+F rfc_w6a to_worst slack=0.347 lvl=6 sp=u_tcp_rx/conn_id_l_reg[3]/C ep=u_tcp_rx/w6a_ok_l_reg/D
+# fam rfc_seql_cell {*seq_lt*}
+F rfc_seql_cell ncell=0
+F rfc_seql_cell NOCELL
+# fam rfc_u_tcp_rx  {*u_tcp_rx*}
+F rfc_u_tcp_rx ncell=4490
+F rfc_u_tcp_rx from_worst slack=0.319 lvl=6 sp=u_tcp_rx/conn_id_l_reg[3]/C ep=u_tcp_rx/acc_l_reg/D
+F rfc_u_tcp_rx to_worst slack=0.319 lvl=6 sp=u_tcp_rx/conn_id_l_reg[3]/C ep=u_tcp_rx/acc_l_reg/D
+# fam ref_tcp_tx   {*u_tcp_tx*}
+F ref_tcp_tx ncell=16331
+F ref_tcp_tx from_worst slack=0.019 lvl=19 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]_replica/C ep=u_app/pw_data_reg[41]/D
+F ref_tcp_tx to_worst slack=0.171 lvl=11 sp=u_tcp_tx/u_retx/g_byte[1].mem_e_reg_0_bram_0/CLKBWRCLK ep=u_tcp_tx/ps_stage_byte_reg[0]/D
+# fam ref_tcbcsum  {*ctrl_tcpcsum_reg*}
+F ref_tcbcsum ncell=35
+F ref_tcbcsum from_worst slack=4.668 lvl=2 sp=u_tcp_tx/ctrl_tcpcsum_reg[4]/C ep=u_tcp_tx/hold48_reg[20]/D
+F ref_tcbcsum to_worst slack=0.445 lvl=17 sp=u_tcp_tx/ctrl_ack_reg[19]/C ep=u_tcp_tx/ctrl_tcpcsum_reg[13]/D
+# fam ref_app_udp  {*u_app_udp*}
+F ref_app_udp ncell=2723
+F ref_app_udp from_worst slack=0.211 lvl=20 sp=u_app_udp/u_txf/dout_reg[68]/C ep=u_udp_tx/ip_csum_r_reg[0][9]/D
+F ref_app_udp to_worst slack=0.225 lvl=10 sp=u_udp_tx_cfg/peer_mac_r_reg[24]/C ep=u_app_udp/stat_tx_frames_reg[4]/CE
+# fam ref_udp_tx   {*u_udp_tx*}
+F ref_udp_tx ncell=2613
+F ref_udp_tx from_worst slack=0.225 lvl=10 sp=u_udp_tx_cfg/peer_mac_r_reg[24]/C ep=u_app_udp/stat_tx_frames_reg[4]/CE
+F ref_udp_tx to_worst slack=0.211 lvl=20 sp=u_app_udp/u_txf/dout_reg[68]/C ep=u_udp_tx/ip_csum_r_reg[0][9]/D
+# fam ref_tcb      {*u_tcb*}
+F ref_tcb ncell=5402
+F ref_tcb from_worst slack=0.614 lvl=12 sp=u_tcb/rcv_nxt_r_reg[13][18]/C ep=u_app_ctrl/wu_zero_reg[14]/D
+F ref_tcb to_worst slack=0.023 lvl=17 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]_replica/C ep=u_tcb/snd_wnd_r_reg[1][3]/CE
+# fam ref_fifo_b   {*u_fifo_b*}
+F ref_fifo_b ncell=1661
+F ref_fifo_b from_worst slack=0.211 lvl=19 sp=u_tcp_tx/u_fifo_b/rptr_reg[4]/C ep=u_app/pw_data_reg[41]/D
+F ref_fifo_b to_worst slack=0.516 lvl=13 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]_replica/C ep=u_tcp_tx/u_fifo_b/mem_reg_128_191_21_27/RAMA/WE
+# fam ref_mac_rx   {*u_mac_rx*}
+F ref_mac_rx ncell=2573
+F ref_mac_rx from_worst slack=0.780 lvl=11 sp=u_mac_rx/in_first_reg/C ep=u_mac_rx/stat_crc_err_reg[24]/CE
+F ref_mac_rx to_worst slack=0.243 lvl=13 sp=u_pcs/inst/i_pcs64_top_1/i_pcs64_CORE/i_RX_TOP/i_RX_DESTRIPER/i_CLK_COMP/dataout_reg[63]/C ep=u_mac_rx/stat_crc_err_reg[24]/CE
+# fam ref_app_pat  {*u_app/*}
+F ref_app_pat ncell=2323
+F ref_app_pat from_worst slack=1.502 lvl=7 sp=u_app/FSM_sequential_rxs_reg/C ep=u_tcp_echo/u_fifo/gen_side.side_dout_r_reg[6]/D
+F ref_app_pat to_worst slack=0.019 lvl=19 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]_replica/C ep=u_app/pw_data_reg[41]/D
+# foreach nfam {seq_lt seq_diff seq32 ra_rcv_nxt} {
+#   set mnets [get_nets -hier -quiet -filter "NAME =~ *u_tcp_rx/${nfam}*"]
+#   puts "N ${nfam}_nets=[llength $mnets]"
+#   foreach n $mnets { puts "N   net=[get_property NAME $n]" }
+#   if {[llength $mnets] > 0} {
+#     set mpins [get_pins -quiet -of_objects $mnets]
+#     puts "N ${nfam}_pins=[llength $mpins]"
+#     set k 0
+#     foreach pp $mpins { incr k; if {$k <= 8} { puts "N   pin=[get_property NAME $pp] dir=[get_property DIRECTION $pp]" } }
+#     if {[llength $mpins] > 0} {
+#       set pf [get_timing_paths -delay_type max -max_paths 1 -sort_by slack -quiet -from $mpins]
+#       if {[llength $pf] > 0} { set p [lindex $pf 0]
+#         puts "N ${nfam} from_worst slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+#       } else { puts "N ${nfam} from_NOPATH" }
+#       set pt [get_timing_paths -delay_type max -max_paths 1 -sort_by slack -quiet -to $mpins]
+#       if {[llength $pt] > 0} { set p [lindex $pt 0]
+#         puts "N ${nfam} to_worst slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+#       } else { puts "N ${nfam} to_NOPATH" }
+#       # DP 组内 from/to
+#       set pf2 [get_timing_paths -group g_hw.clk_out0 -delay_type max -max_paths 1 -sort_by slack -quiet -from $mpins]
+#       if {[llength $pf2] > 0} { set p [lindex $pf2 0]
+#         puts "N ${nfam} dp_from slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+#       } else { puts "N ${nfam} dp_from NOPATH" }
+#       set pt2 [get_timing_paths -group g_hw.clk_out0 -delay_type max -max_paths 1 -sort_by slack -quiet -to $mpins]
+#       if {[llength $pt2] > 0} { set p [lindex $pt2 0]
+#         puts "N ${nfam} dp_to slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+#       } else { puts "N ${nfam} dp_to NOPATH" }
+#     }
+#   }
+# }
+N seq_lt_nets=1
+N   net=u_tcp_rx/seq_lt
+N seq_lt_pins=6
+N   pin=u_tcp_rx/acc_l_reg_i_2/DI[7] dir=IN
+N   pin=u_tcp_rx/acc_l_i_6/I0 dir=IN
+N   pin=u_tcp_rx/w6a_ok_l_i_8/I0 dir=IN
+N   pin=u_tcp_rx/ackresp_l_i_1/I1 dir=IN
+N   pin=u_tcp_rx/w6a_ok_l_i_1/I3 dir=IN
+N   pin=u_tcp_rx/w6a_ok_l_reg_i_4/O[7] dir=OUT
+N seq_lt from_NOPATH
+N seq_lt to_NOPATH
+N seq_lt dp_from NOPATH
+N seq_lt dp_to NOPATH
+N seq_diff_nets=0
+N seq32_nets=0
+N ra_rcv_nxt_nets=0
+# set rx [get_cells -hier -quiet -filter {NAME =~ *u_tcp_rx*}]
+# puts "RX rx_cells=[llength $rx]"
+RX rx_cells=4490
+# if {[llength $rx] > 0} {
+#   set pf [get_timing_paths -group g_hw.clk_out0 -delay_type max -max_paths 1 -sort_by slack -quiet -from $rx]
+#   if {[llength $pf] > 0} { set p [lindex $pf 0]
+#     puts "RX rx_dp_from slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+#   } else { puts "RX rx_dp_from NOPATH" }
+#   set pt [get_timing_paths -group g_hw.clk_out0 -delay_type max -max_paths 1 -sort_by slack -quiet -to $rx]
+#   if {[llength $pt] > 0} { set p [lindex $pt 0]
+#     puts "RX rx_dp_to slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+#   } else { puts "RX rx_dp_to NOPATH" }
+#   set pf2 [get_timing_paths -delay_type max -max_paths 3 -sort_by slack -quiet -from $rx]
+#   set k 0
+#   foreach p $pf2 { incr k
+#     puts "RX rx_any_from #$k slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+#   }
+#   set pt2 [get_timing_paths -delay_type max -max_paths 3 -sort_by slack -quiet -to $rx]
+#   set k 0
+#   foreach p $pt2 { incr k
+#     puts "RX rx_any_to #$k slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+#   }
+# } else { puts "RX SKIP (no u_tcp_rx cells)" }
+RX rx_dp_from slack=0.319 lvl=6 sp=u_tcp_rx/conn_id_l_reg[3]/C ep=u_tcp_rx/acc_l_reg/D
+RX rx_dp_to slack=0.319 lvl=6 sp=u_tcp_rx/conn_id_l_reg[3]/C ep=u_tcp_rx/acc_l_reg/D
+RX rx_any_from #1 slack=0.319 lvl=6 sp=u_tcp_rx/conn_id_l_reg[3]/C ep=u_tcp_rx/acc_l_reg/D
+RX rx_any_from #2 slack=0.331 lvl=6 sp=u_tcp_rx/conn_id_l_reg[3]/C ep=u_tcp_rx/dup_l_reg/D
+RX rx_any_from #3 slack=0.343 lvl=6 sp=u_tcp_rx/conn_id_l_reg[3]/C ep=u_tcp_rx/ackresp_l_reg/D
+RX rx_any_to #1 slack=0.319 lvl=6 sp=u_tcp_rx/conn_id_l_reg[3]/C ep=u_tcp_rx/acc_l_reg/D
+RX rx_any_to #2 slack=0.331 lvl=6 sp=u_tcp_rx/conn_id_l_reg[3]/C ep=u_tcp_rx/dup_l_reg/D
+RX rx_any_to #3 slack=0.343 lvl=6 sp=u_tcp_rx/conn_id_l_reg[3]/C ep=u_tcp_rx/ackresp_l_reg/D
+# foreach spec {{*u_tcp_rx/acc_l_reg* 10} {*u_tcp_rx/ackresp_l_reg* 10} {*u_tcp_rx/w6a_ok_l_reg* 10} {*seq_lt* 20} {*seq_diff* 20} {*u_tcp_rx/seq_hi_r* 10}} {
+#   set pat [lindex $spec 0]
+#   set lim [lindex $spec 1]
+#   set cells [get_cells -hier -quiet -filter "NAME =~ $pat"]
+#   puts "E pat=$pat ncell=[llength $cells]"
+#   set k 0
+#   foreach c $cells {
+#     incr k
+#     if {$k <= $lim} { puts "E   cell=[get_property NAME $c] ref=[get_property REF_NAME $c]" }
+#   }
+# }
+E pat=*u_tcp_rx/acc_l_reg* ncell=3
+E   cell=u_tcp_rx/acc_l_reg ref=FDCE
+E   cell=u_tcp_rx/acc_l_reg_i_2 ref=CARRY8
+E   cell=u_tcp_rx/acc_l_reg_i_5 ref=CARRY8
+E pat=*u_tcp_rx/ackresp_l_reg* ncell=1
+E   cell=u_tcp_rx/ackresp_l_reg ref=FDCE
+E pat=*u_tcp_rx/w6a_ok_l_reg* ncell=4
+E   cell=u_tcp_rx/w6a_ok_l_reg ref=FDCE
+E   cell=u_tcp_rx/w6a_ok_l_reg_i_16 ref=CARRY8
+E   cell=u_tcp_rx/w6a_ok_l_reg_i_3 ref=CARRY8
+E   cell=u_tcp_rx/w6a_ok_l_reg_i_4 ref=CARRY8
+E pat=*seq_lt* ncell=0
+E pat=*seq_diff* ncell=0
+E pat=*u_tcp_rx/seq_hi_r* ncell=22
+E   cell=u_tcp_rx/seq_hi_r[15]_i_1 ref=LUT6
+E   cell=u_tcp_rx/seq_hi_r[15]_i_2 ref=LUT5
+E   cell=u_tcp_rx/seq_hi_r[15]_i_3 ref=LUT4
+E   cell=u_tcp_rx/seq_hi_r[15]_i_4 ref=LUT4
+E   cell=u_tcp_rx/seq_hi_r[15]_i_5 ref=LUT4
+E   cell=u_tcp_rx/seq_hi_r[15]_i_6 ref=LUT4
+E   cell=u_tcp_rx/seq_hi_r_reg[0] ref=FDCE
+E   cell=u_tcp_rx/seq_hi_r_reg[10] ref=FDCE
+E   cell=u_tcp_rx/seq_hi_r_reg[11] ref=FDCE
+E   cell=u_tcp_rx/seq_hi_r_reg[12] ref=FDCE
+# puts "N_DONE"
+N_DONE
+INFO: [Common 17-206] Exiting Vivado at Thu Oct 15 05:18:00 2026...
