@@ -44,7 +44,28 @@
 //   残段) 则中止剥离支, 该字按新帧首字直通 (重置到 S_W1), 不会永久卡死。
 // 尾字对齐已核: 剥后帧 >= 56B (原 >= 60B), 输出 keep 恒为连续高位有效。
 
-module vlan_strip (
+// ---- F-3 (2026-10-14) 追加合同 (仅 RESYNC_EN=1 时生效) ---------------------------
+// 复位释放后, 本模块先把输入字**弹出并丢弃**直到第一个 tuser=1 (SOP) 字, 才把它与之后的字
+//   当帧内容处理; 被丢弃的字计入 stat_resync_words。RESYNC_EN=0 时本条不存在 (逐位等价)。
+// 不变量: resync==0 期间本模块不产生输出、不推进 FSM、不装载 hold (只弹字)。
+// 为什么这是对的: 上游 u_rxcdc 的读侧复位只接板级 reset_n (指针同代硬契约), 所以 DP 复位释放
+//   的瞬间队首可能是"帧中字"; 唯一的帧边界信息 = tuser (rtl/mac_rx_64.v:42-43 与
+//   _proj_10g/p7b_mac/rtl/mac_rx_10g.v:16 的 TERM 字都是 tuser=0; SOP 恰一帧一次)。
+// ----------------------------------------------------------------------------------
+
+module vlan_strip #(
+    // ---------------------------------------------------------------------------
+    // F-3 (2026-10-14, 见 _proj_10g/notes/p9_fix_f3_design_20261014/DESIGN.md):
+    //   RESYNC_EN = 1: 复位释放后**先丢弃输入字直到第一个 tuser (SOP) 再开帧** —— 只在
+    //                 "数据面独立时钟域"(DP_156MHZ) 的构建里打开。
+    //   RESYNC_EN = 0: 既有行为 (默认值; 默认参数下不产生任何逻辑, 见设计件 §2.4 的 I1/I2)。
+    //   为什么需要: MMCM 失锁→重锁时 DP 功能逻辑被 dp_rst_n 复位, 而 u_rxcdc 的读侧只接板级
+    //   reset_n(指针同代硬契约) ⇒ 释放瞬间 FIFO 队首多半是**帧中字** ⇒ 不设门就会把它当帧首
+    //   交付一个"帧中截断但带 tcrs=1"的片段。实测 = agent_docs/P6B_CDC_AUDIT.md §A.3 (三接线都红)。
+    //   未同步期间被丢弃的字计入 stat_resync_words (弹出但未当帧内容收下)。
+    // ---------------------------------------------------------------------------
+    parameter RESYNC_EN = 1'b0
+)(
     input  wire        clk,
     input  wire        rst_n,
     // 来自 mac_rx_64 (m_axis)
@@ -80,6 +101,16 @@ module vlan_strip (
     reg [3:0]  hold_keep;    // 对应 keep (4 位)
     reg        tail_crs, tail_err;   // 尾字沿用末输入字的 tlast 侧带
 
+    // ---- F-3 重同步门 --------------------------------------------------------
+    // resync: 已重同步到帧首. 复位释放后为 0; 一旦有一个字被"当帧内容收下"(acc_f && rst_n) 置 1,
+    //   保持到下次复位。不变量: resync==0 ⇒ state==S_PASS ∧ m_axis_tvalid==0 (复位值, 且 FSM
+    //   的推进条件已全部被 acc_f 门控)。
+    reg         resync;
+    // fwd: 本拍这个输入字是否被当帧内容处理。
+    //   RESYNC_EN=0 ⇒ 恒 1 (常数折叠 ⇒ 与旧文逐位等价)
+    //   RESYNC_EN=1 ⇒ 未同步期间只有 tuser=1 的字被收下, 其余字弹出并丢弃
+    wire        fwd   = (!RESYNC_EN) || resync || s_axis_tuser;
+
     wire [31:0] cur_hi = s_axis_tdata[63:32];
     wire [31:0] cur_lo = s_axis_tdata[31:0];
     // byte 12-13 = 字流第 2 字高 2 字节 (与 rx_classify 的 w1[31:16] 同一位置)
@@ -88,6 +119,10 @@ module vlan_strip (
     // 输出寄存器可装载: 空 或 本拍被下游取走 (1-deep 弹性, 上游 tready 同源)
     wire        od_free = !m_axis_tvalid || m_axis_tready;
     wire        acc     = s_axis_tvalid && s_axis_tready;
+    wire        acc_f = acc && fwd;   // 帧逻辑"认账"的接受拍 (F-3: 受 fwd 门控; RESYNC_EN=0 ⇒ ≡acc)
+    wire        rsw   = RESYNC_EN && acc && !(acc_f && rst_n);
+                                      // 弹出但未当帧内容收下 = 被丢弃 (含复位窗口内的浪费)
+    reg  [31:0] stat_resync_words;    // F-3 观测: 丢弃字数 (⚠️ 若做 (A7) 把这一行挪到端口表)
     // tlast 落在本拍拼出的输出字 (末输入字低半无有效字节)
     wire        last_now = s_axis_tlast && (s_axis_tkeep[3:0] == 4'b0);
     // S_W1 进剥离支 (帧第 2 字 + TPID 命中 + 非尾拍 + 正常续帧)
@@ -96,9 +131,9 @@ module vlan_strip (
     wire        shifting = (state == S_SHIFT) && !s_axis_tuser;
 
     // 输出寄存器装载条件 (装载拍即输出字成形拍, 字在下一拍出现在 m_axis)
-    wire        load_pass  = (state == S_PASS)  && acc;
-    wire        load_w1    = (state == S_W1)    && acc && !vlan_go;
-    wire        load_shift = (state == S_SHIFT) && acc;
+    wire        load_pass  = (state == S_PASS)  && acc_f;
+    wire        load_w1    = (state == S_W1)    && acc_f && !vlan_go;
+    wire        load_shift = (state == S_SHIFT) && acc_f;
     wire        load_tail  = (state == S_TAIL)  && od_free;
     wire        od_load    = load_pass || load_w1 || load_shift || load_tail;
 
@@ -138,6 +173,8 @@ module vlan_strip (
             m_axis_tvalid <= 1'b0; m_axis_tlast <= 1'b0;
             m_axis_tuser <= 1'b0; m_axis_tcrs <= 1'b0; m_axis_terr <= 1'b0;
             stat_stripped <= 32'd0; dbg_vlan <= 1'b0;
+            resync <= 1'b0;                    // F-3: 复位 = 未同步 (等下一个 SOP)
+            stat_resync_words <= 32'd0;
         end else begin
             // ---- 输出寄存器 (1-deep 弹性) ----
             if (od_load) begin
@@ -153,11 +190,11 @@ module vlan_strip (
             end
 
             // ---- 半字暂存 (hold): 只在剥离支装载 ----
-            if ((state == S_W1) && acc && vlan_go) begin
+            if ((state == S_W1) && acc_f && vlan_go) begin
                 // tag 字: 高半字进 hold (低半字 = TCI 丢弃), 本拍不产生输出字
                 hold      <= cur_hi;
                 hold_keep <= s_axis_tkeep[7:4];
-            end else if (shifting && acc) begin
+            end else if (shifting && acc_f) begin
                 // 剥离支常规拍: 本字低半字成为下一输出字的高半
                 hold      <= cur_lo;
                 hold_keep <= s_axis_tkeep[3:0];
@@ -165,12 +202,18 @@ module vlan_strip (
                 tail_err  <= s_axis_terr;
             end
 
+            // ---- F-3: 重同步到帧首 + 丢弃计数 ----
+            // `acc_f && rst_n` = 本拍这个字真的被当帧内容收下了 ⇒ 已对齐 (未同步期间 fwd 只在
+            //   tuser 拍为 1, 所以这一拍一定是 SOP 拍); 复位期间不置位 (那时收下也不算数)。
+            if (acc_f && rst_n) resync <= 1'b1;
+            if (rsw)            stat_resync_words <= stat_resync_words + 32'd1;
+
             // ---- 帧状态机 ----
             case (state)
-                S_PASS: if (acc) begin
+                S_PASS: if (acc_f) begin
                     state <= (s_axis_tuser && !s_axis_tlast) ? S_W1 : S_PASS;
                 end
-                S_W1: if (acc) begin
+                S_W1: if (acc_f) begin
                     if (vlan_go) begin
                         // 本帧 VLAN: 剥 tag, 进入错位拼接支
                         state    <= S_SHIFT;
@@ -187,7 +230,7 @@ module vlan_strip (
                         state <= S_PASS;
                     end
                 end
-                S_SHIFT: if (acc) begin
+                S_SHIFT: if (acc_f) begin
                     if (s_axis_tuser) begin
                         // 上游残段 (无 tlast): 本字按新帧首字直通重建
                         state    <= (s_axis_tlast) ? S_PASS : S_W1;

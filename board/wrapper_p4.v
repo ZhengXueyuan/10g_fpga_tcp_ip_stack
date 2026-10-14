@@ -714,11 +714,17 @@ module wrapper_p4 (
     //    (agent_docs/P6B_SPEC §8.3 的施工纪律; 本板 RGMII 在 HDIO 且零 IDELAY ⇒ 不需要 IDELAYCTRL
     //     ⇒ 不需要 200MHz)。
     wire dp_rst_n = ~dp_rst_dp;        // 低有效 (与 reset_n 同极性), 见上面极性说明
+    // F-3 (2026-10-14): vlan_strip 的"复位后等 SOP"重同步门只在**数据面独立时钟域**的构建里打开。
+    //   单域构建里 mac_rx 与 vlan_strip 复位同源同拍 ⇒ mac_rx 复位后必从新前导起步 ⇒ 首个交付字
+    //   必是 SOP ⇒ 不需要门; 且默认构建必须逐位等价 (CLAUDE.md「应用接口」的硬合同)。
+    localparam VLAN_STRIP_RESYNC = 1'b1;
 `else
     // 单域 (默认构建 / P6a): 数据面 = 前端时钟。**与 P6b 之前的网表逐位等价**
     //   (wire 别名无逻辑; dp_rst_n 直接就是 reset_n)。
     wire dp_clk   = gmii_clk;
     wire dp_rst_n = reset_n;
+    // F-3 (2026-10-14): 单域构建不设门 (mac_rx 与 vlan_strip 复位同源同拍, 见双域支的说明)。
+    localparam VLAN_STRIP_RESYNC = 1'b0;
 `ifdef PCIE_OBS
     // 单域构建里没有 MMCM ⇒ "锁定"恒真: 快照段 (PCIE_OBS) 的 W25 与 SNAP_STATUS[6] 仍要
     // 有一根线可读 (对抗审查 F1: 两个宏的四种组合都要能编过)。
@@ -931,7 +937,7 @@ module wrapper_p4 (
     wire [31:0] vlan_stat_stripped;   // 板级观测: UART 帧行未接 (后续可加)
     wire        vlan_dbg;
 
-    vlan_strip u_vlan_strip (
+    vlan_strip #(.RESYNC_EN(VLAN_STRIP_RESYNC)) u_vlan_strip (
         .clk            (dp_clk),
         .rst_n          (dp_rst_n),
         .s_axis_tdata   (rx_tdata),
@@ -4313,7 +4319,14 @@ module wrapper_p4 (
 
     axi_regs #(
         .MAGIC_V    (32'h50360001),
-        .BUILD_ID_V (32'h00000024),     // ⚠️ 每次改动自增 (前置闸读这一项认位流; 构建 F = 0x1A)
+        .BUILD_ID_V (32'h00000025),     // ⚠️ 每次改动自增 (前置闸读这一项认位流; F-3 = 0x25)
+                                        //   ⭐ 本轮 (2026-10-15): **0x24 → 0x25** = F-3 修复
+                                        //      (`rtl/vlan_strip.v` 的 RESYNC_EN 重同步门 + 本文件
+                                        //      的 `VLAN_STRIP_RESYNC` 选择; 设计件 =
+                                        //      `_proj_10g/notes/p9_fix_f3_design_20261014/
+                                        //      DESIGN_v2.md`)。几何**不变** (71 字 / 0x14C) ⇒
+                                        //      读侧只需 `EXPECT_BID` **0x24 → 0x25** (⚠️ 属构建/
+                                        //      板级轮, 本轮未做)。
                                         //   ⭐ 本轮构建 (2026-10-13): **0x23 → 0x24**。
                                         //      0x24 内容 = **P9 URAM 板内缓冲 (修正收口)** (P8/P9 数据通路
                                         //      的弹性扩容 + 复核轮两处静默通道修正):

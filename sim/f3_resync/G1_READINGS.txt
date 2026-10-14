@@ -1,0 +1,154 @@
+F-3 RESYNC gate G1 -- curated readings (2026-10-15, final clean-slate run, GATE PASS)
+gate = sim/f3_resync/run_tb_f3_resync.bat ; TB = sim/f3_resync/tb_f3_resync.v
+design = _proj_10g/notes/p9_fix_f3_design_20261014/DESIGN_v2.md S3.2-G1
+compiled rtl/vlan_strip.v sha256 = 04a12ff26c320909 (all F/L/CTRL arms); mutants mut_m1=49fd69cea3df1293 / mut_m2=4fdc480a8d7925b1
+per-arm raw logs: sim/f3_resync/<arm>/xs.log (gitignored); this file = the F3R lines only.
+
+=== runF  [F  RESYNC_EN=1 (new RTL, gate ON)] ===
+F3R ARM=F resync_en=1 ctrl_ifg=0
+F3R TB-STIM frames=12 bytes=1200 stopIdx=340 stopIdxIfg=392
+F3R STOP at si=340 (frame K=3); W_snap=26 fe_acc=26
+F3R WITNESS dp_rst_dp RISE at 2884000 (t0)
+F3R WITNESS dp_rst_dp FALL at 14922000 (t1) stall_edges=0 (应=0) rstwin_edges=6 (应>0)
+F3R RELOCK: fe_acc=96 dut_acc=96 (窗口内静默丢 0)
+F3R DELIV[0] len=64 WHOLE 帧4 crs=1 tuser_direct=1 tuser_legacy=0
+F3R DELIV[1] len=64 WHOLE 帧5 crs=1 tuser_direct=1 tuser_legacy=0
+F3R DELIV[2] len=64 WHOLE 帧6 crs=1 tuser_direct=1 tuser_legacy=0
+F3R DELIV[3] len=64 WHOLE 帧7 crs=1 tuser_direct=1 tuser_legacy=0
+F3R DELIV[4] len=64 WHOLE 帧8 crs=1 tuser_direct=1 tuser_legacy=0
+F3R DELIV[5] len=64 WHOLE 帧9 crs=1 tuser_direct=1 tuser_legacy=0
+F3R DELIV[6] len=64 WHOLE 帧10 crs=1 tuser_direct=1 tuser_legacy=0
+F3R DELIV[7] len=64 WHOLE 帧11 crs=1 tuser_direct=1 tuser_legacy=0
+F3R SHAPE ndel=8 whole=8 frag=0 stale_frag=0 trunc_with_crs=0 unrec=0 srco_nz=0
+F3R PURPOSE fe_acc=96 dut_acc=96 silent_drop=0 mac_frames=12 mac_drop=0 ovf=0
+F3R POP-ACCT pop_pre=25 pop_rst=2 pop_post=69 taken_all=89 taken_post=64 rsw=5 mirror=5
+F3R STALE-CONSERV dw_all=64 pushes_after=70 => stale_words=0                           �����������)
+F3R RESYNC-WIT resync_final=1 (F/CTRL 臂应=1; L/M1/M2 变体按各自语义) dpc_edges=5432
+F3R J1 frag=0 trunc_with_crs=0 unrec=0 => PASS
+F3R J2 first_frame_first_word_tuser=1 (direct) legacy=0 => PASS
+F3R J3 rsw=5 mirror=5 eq=1 pos=1 =>     PASS
+F3R J4 pop_post=69 taken_post=64 rsw=5 => PASS
+F3R J5 stale_words=0 srco_nz=0 => PASS
+F3R J6 whole=8 expected=8 unrec=0 => PASS
+F3R CHK J1=1 J2=1 J3eq=1 J3pos=1 J4=1 J5=1 J6=1 ALL=1
+F3R ALL PASS
+
+=== runL  [L  RESYNC_EN=0 (new RTL, negative control)] ===
+F3R ARM=L resync_en=0 ctrl_ifg=0
+F3R TB-STIM frames=12 bytes=1200 stopIdx=340 stopIdxIfg=392
+F3R STOP at si=340 (frame K=3); W_snap=26 fe_acc=26
+F3R WITNESS dp_rst_dp RISE at 2884000 (t0)
+F3R WITNESS dp_rst_dp FALL at 14922000 (t1) stall_edges=0 (应=0) rstwin_edges=6 (应>0)
+F3R RELOCK: fe_acc=96 dut_acc=96 (窗口内静默丢 0)
+F3R DELIV[0] len=40 **片段** 源帧=3 偏移=24 crs=1 tuser_direct=0 <==�������(���������������������������)
+F3R DELIV[1] len=64 WHOLE 帧4 crs=1 tuser_direct=1 tuser_legacy=0
+F3R DELIV[2] len=64 WHOLE 帧5 crs=1 tuser_direct=1 tuser_legacy=0
+F3R DELIV[3] len=64 WHOLE 帧6 crs=1 tuser_direct=1 tuser_legacy=0
+F3R DELIV[4] len=64 WHOLE 帧7 crs=1 tuser_direct=1 tuser_legacy=0
+F3R DELIV[5] len=64 WHOLE 帧8 crs=1 tuser_direct=1 tuser_legacy=0
+F3R DELIV[6] len=64 WHOLE 帧9 crs=1 tuser_direct=1 tuser_legacy=0
+F3R DELIV[7] len=64 WHOLE 帧10 crs=1 tuser_direct=1 tuser_legacy=0
+F3R DELIV[8] len=64 WHOLE 帧11 crs=1 tuser_direct=1 tuser_legacy=0
+F3R SHAPE ndel=9 whole=8 frag=1 stale_frag=1 trunc_with_crs=1 unrec=0 srco_nz=1
+F3R PURPOSE fe_acc=96 dut_acc=96 silent_drop=0 mac_frames=12 mac_drop=0 ovf=0
+F3R POP-ACCT pop_pre=25 pop_rst=2 pop_post=69 taken_all=94 taken_post=69 rsw=0 mirror=0
+F3R STALE-CONSERV dw_all=69 pushes_after=70 => stale_words=0                           �����������)
+F3R RESYNC-WIT resync_final=1 (F/CTRL 臂应=1; L/M1/M2 变体按各自语义) dpc_edges=5432
+F3R J1 frag=1 trunc_with_crs=1 unrec=0 => FAIL
+F3R J2 first_frame_first_word_tuser=0 (direct) legacy=0 => FAIL
+F3R J3 rsw=0 mirror=0 eq=1 pos=0 => POS-FAIL
+F3R J4 pop_post=69 taken_post=69 rsw=0 => PASS
+F3R J5 stale_words=0 srco_nz=1 => FAIL
+F3R J6 whole=8 expected=8 unrec=0 => PASS
+F3R CHK J1=0 J2=0 J3eq=1 J3pos=0 J4=1 J5=0 J6=1 ALL=0
+F3R XFAIL-REPRODUCED frag=1 trunc_with_crs=1 stale_frag=1
+
+=== runM1  [M1 mutant fwd = 1 b1 (no tuser predicate)] ===
+F3R ARM=M1 resync_en=1 ctrl_ifg=0
+F3R TB-STIM frames=12 bytes=1200 stopIdx=340 stopIdxIfg=392
+F3R STOP at si=340 (frame K=3); W_snap=26 fe_acc=26
+F3R WITNESS dp_rst_dp RISE at 2884000 (t0)
+F3R WITNESS dp_rst_dp FALL at 14922000 (t1) stall_edges=0 (应=0) rstwin_edges=6 (应>0)
+F3R RELOCK: fe_acc=96 dut_acc=96 (窗口内静默丢 0)
+F3R DELIV[0] len=40 **片段** 源帧=3 偏移=24 crs=1 tuser_direct=0 <==�������(���������������������������)
+F3R DELIV[1] len=64 WHOLE 帧4 crs=1 tuser_direct=1 tuser_legacy=0
+F3R DELIV[2] len=64 WHOLE 帧5 crs=1 tuser_direct=1 tuser_legacy=0
+F3R DELIV[3] len=64 WHOLE 帧6 crs=1 tuser_direct=1 tuser_legacy=0
+F3R DELIV[4] len=64 WHOLE 帧7 crs=1 tuser_direct=1 tuser_legacy=0
+F3R DELIV[5] len=64 WHOLE 帧8 crs=1 tuser_direct=1 tuser_legacy=0
+F3R DELIV[6] len=64 WHOLE 帧9 crs=1 tuser_direct=1 tuser_legacy=0
+F3R DELIV[7] len=64 WHOLE 帧10 crs=1 tuser_direct=1 tuser_legacy=0
+F3R DELIV[8] len=64 WHOLE 帧11 crs=1 tuser_direct=1 tuser_legacy=0
+F3R SHAPE ndel=9 whole=8 frag=1 stale_frag=1 trunc_with_crs=1 unrec=0 srco_nz=1
+F3R PURPOSE fe_acc=96 dut_acc=96 silent_drop=0 mac_frames=12 mac_drop=0 ovf=0
+F3R POP-ACCT pop_pre=25 pop_rst=2 pop_post=69 taken_all=94 taken_post=69 rsw=0 mirror=5
+F3R STALE-CONSERV dw_all=69 pushes_after=70 => stale_words=0                           �����������)
+F3R RESYNC-WIT resync_final=1 (F/CTRL 臂应=1; L/M1/M2 变体按各自语义) dpc_edges=5432
+F3R J1 frag=1 trunc_with_crs=1 unrec=0 => FAIL
+F3R J2 first_frame_first_word_tuser=0 (direct) legacy=0 => FAIL
+F3R J3 rsw=0 mirror=5 eq=0 pos=0 =>  EQ-FAIL
+F3R J4 pop_post=69 taken_post=69 rsw=0 => PASS
+F3R J5 stale_words=0 srco_nz=1 => FAIL
+F3R J6 whole=8 expected=8 unrec=0 => PASS
+F3R CHK J1=0 J2=0 J3eq=0 J3pos=0 J4=1 J5=0 J6=1 ALL=0
+F3R XFAIL-REPRODUCED frag=1 trunc_with_crs=1 stale_frag=1
+
+=== runM2  [M2 mutant fwd = ... || s_axis_tlast (tail instead of head)] ===
+F3R ARM=M2 resync_en=1 ctrl_ifg=0
+F3R TB-STIM frames=12 bytes=1200 stopIdx=340 stopIdxIfg=392
+F3R STOP at si=340 (frame K=3); W_snap=26 fe_acc=26
+F3R WITNESS dp_rst_dp RISE at 2884000 (t0)
+F3R WITNESS dp_rst_dp FALL at 14922000 (t1) stall_edges=0 (应=0) rstwin_edges=6 (应>0)
+F3R RELOCK: fe_acc=96 dut_acc=96 (窗口内静默丢 0)
+F3R DELIV[0] len=8 **片段** 源帧=3 偏移=56 crs=1 tuser_direct=0 <==�������(���������������������������)
+F3R DELIV[1] len=64 WHOLE 帧4 crs=1 tuser_direct=1 tuser_legacy=0
+F3R DELIV[2] len=64 WHOLE 帧5 crs=1 tuser_direct=1 tuser_legacy=0
+F3R DELIV[3] len=64 WHOLE 帧6 crs=1 tuser_direct=1 tuser_legacy=0
+F3R DELIV[4] len=64 WHOLE 帧7 crs=1 tuser_direct=1 tuser_legacy=0
+F3R DELIV[5] len=64 WHOLE 帧8 crs=1 tuser_direct=1 tuser_legacy=0
+F3R DELIV[6] len=64 WHOLE 帧9 crs=1 tuser_direct=1 tuser_legacy=0
+F3R DELIV[7] len=64 WHOLE 帧10 crs=1 tuser_direct=1 tuser_legacy=0
+F3R DELIV[8] len=64 WHOLE 帧11 crs=1 tuser_direct=1 tuser_legacy=0
+F3R SHAPE ndel=9 whole=8 frag=1 stale_frag=1 trunc_with_crs=1 unrec=0 srco_nz=1
+F3R PURPOSE fe_acc=96 dut_acc=96 silent_drop=0 mac_frames=12 mac_drop=0 ovf=0
+F3R POP-ACCT pop_pre=25 pop_rst=2 pop_post=69 taken_all=83 taken_post=65 rsw=4 mirror=5
+F3R STALE-CONSERV dw_all=65 pushes_after=70 => stale_words=0                           �����������)
+F3R RESYNC-WIT resync_final=1 (F/CTRL 臂应=1; L/M1/M2 变体按各自语义) dpc_edges=5432
+F3R J1 frag=1 trunc_with_crs=1 unrec=0 => FAIL
+F3R J2 first_frame_first_word_tuser=0 (direct) legacy=0 => FAIL
+F3R J3 rsw=4 mirror=5 eq=0 pos=1 =>  EQ-FAIL
+F3R J4 pop_post=69 taken_post=65 rsw=4 => PASS
+F3R J5 stale_words=0 srco_nz=1 => FAIL
+F3R J6 whole=8 expected=8 unrec=0 => PASS
+F3R CHK J1=0 J2=0 J3eq=0 J3pos=1 J4=1 J5=0 J6=1 ALL=0
+F3R XFAIL-REPRODUCED frag=1 trunc_with_crs=1 stale_frag=1
+
+=== runC  [CTRL RESYNC_EN=1 + injection moved into inter-frame gap (FIFO empty + FE frozen)] ===
+F3R ARM=CTRL resync_en=1 ctrl_ifg=1
+F3R TB-STIM frames=12 bytes=1200 stopIdx=340 stopIdxIfg=392
+F3R WITNESS ctrl-precond si=392 (IFG=[376,399]) rx_empty=1 stable4=1
+F3R STOP at si=392 (frame K=3); W_snap=32 fe_acc=32
+F3R WITNESS dp_rst_dp RISE at 3300000 (t0)
+F3R WITNESS dp_rst_dp FALL at 15338000 (t1) stall_edges=0 (应=0) rstwin_edges=6 (应>0)
+F3R RELOCK: fe_acc=32 dut_acc=32 (窗口内静默丢 0)
+F3R DELIV[0] len=64 WHOLE 帧4 crs=1 tuser_direct=1 tuser_legacy=0
+F3R DELIV[1] len=64 WHOLE 帧5 crs=1 tuser_direct=1 tuser_legacy=0
+F3R DELIV[2] len=64 WHOLE 帧6 crs=1 tuser_direct=1 tuser_legacy=0
+F3R DELIV[3] len=64 WHOLE 帧7 crs=1 tuser_direct=1 tuser_legacy=0
+F3R DELIV[4] len=64 WHOLE 帧8 crs=1 tuser_direct=1 tuser_legacy=0
+F3R DELIV[5] len=64 WHOLE 帧9 crs=1 tuser_direct=1 tuser_legacy=0
+F3R DELIV[6] len=64 WHOLE 帧10 crs=1 tuser_direct=1 tuser_legacy=0
+F3R DELIV[7] len=64 WHOLE 帧11 crs=1 tuser_direct=1 tuser_legacy=0
+F3R SHAPE ndel=8 whole=8 frag=0 stale_frag=0 trunc_with_crs=0 unrec=0 srco_nz=0
+F3R PURPOSE fe_acc=96 dut_acc=96 silent_drop=0 mac_frames=12 mac_drop=0 ovf=0
+F3R POP-ACCT pop_pre=32 pop_rst=0 pop_post=64 taken_all=96 taken_post=64 rsw=0 mirror=0
+F3R STALE-CONSERV dw_all=64 pushes_after=64 => stale_words=0                           �����������)
+F3R RESYNC-WIT resync_final=1 (F/CTRL 臂应=1; L/M1/M2 变体按各自语义) dpc_edges=6507
+F3R J1 frag=0 trunc_with_crs=0 unrec=0 => PASS
+F3R J2 first_frame_first_word_tuser=1 (direct) legacy=0 => PASS
+F3R J3 rsw=0 mirror=0 eq=1 pos=0 =>     PASS
+F3R J4 pop_post=64 taken_post=64 rsw=0 => PASS
+F3R J5 stale_words=0 srco_nz=0 => PASS
+F3R J6 whole=8 expected=8 unrec=0 => PASS
+F3R CHK J1=1 J2=1 J3eq=1 J3pos=0 J4=1 J5=1 J6=1 ALL=1
+F3R ALL PASS
