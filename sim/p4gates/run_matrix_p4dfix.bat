@@ -209,6 +209,19 @@ REM   compile PCIE_OBS / P7B_10G / UDP_TX_OVL, and with TCP_TX_OVL off the r6
 REM   tcp_tx_frame `ack_seen` start gate is NOT in it either.  Do not quote it
 REM   as a board-config wrapper gate -- see sim\p4gates\p5wrapper_src.f header.
 call :gate p5_wrapper  sim\p5sim\run_tb_p5_wrapper.bat     p5wrapper_src.f -                           -
+REM ---- f3_resync (registered 2026-10-15; F-3 fix G1 gate / ledger #20) ------
+REM   F-3 (MMCM unlock/relock) DP-side resync gate: rtl\vlan_strip.v RESYNC_EN
+REM   (+ board\wrapper_p4.v VLAN_STRIP_RESYNC).  Five arms, sequential:
+REM     F    = new RTL RESYNC_EN=1           -> CHK line all green
+REM     L    = new RTL RESYNC_EN=0           -> verbatim historical defect shape (XFAIL-REPRODUCED)
+REM     M1   = mutant fwd=1'b1               -> teeth: J1 red, J3eq=0, ALL=0
+REM     M2   = mutant fwd=...||s_axis_tlast -> teeth: J1 red, J3eq=0, ALL=0
+REM     CTRL = RESYNC_EN=1 + injection in IFG -> positive control (J3pos=0, zero loss)
+REM   Arm identity travels via -d defines (NOT testplusarg -- xsim splits on '=').
+REM   Registered the p5_wrapper way (#19): private cwd (P4_WORKDIR) + declared
+REM   manifest sim\p4gates\f3resync_src.f (8 files; each DUT variant appears as
+REM   exactly one literal in the gate .bat).
+call :gate f3_resync  sim\f3_resync\run_tb_f3_resync.bat   f3resync_src.f -                            -
 
 call :log "--- revision fingerprint (after) ---"
 "%PY%" "%P4GATE_PY%" fingerprint --root "%REPO_ROOT%" --out "%FP_AFTER%" --label after >>"%MATRIX_LOG%" 2>&1

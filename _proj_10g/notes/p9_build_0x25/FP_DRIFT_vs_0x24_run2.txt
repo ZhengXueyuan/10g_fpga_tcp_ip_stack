@@ -1,0 +1,16 @@
+BASE sim/p4sim/P4_MATRIX_FINGERPRINT_20261013_075711_after.txt: 257 files
+NEW  sim/p4sim/P4_MATRIX_FINGERPRINT_20261015_014604_before.txt: 264 files
+CONTENT-CHANGED (4):
+  C board/wrapper_p4.v
+  C rtl/vlan_strip.v
+  C sim/p4gates/paths.txt
+  C sim/p4gates/run_matrix_p4dfix.bat
+ADDED (7):
+  + rtl/fifo_async.v
+  + sim/f3_resync/mut/mk_mut_f3.py
+  + sim/f3_resync/mut/mut_m1.v
+  + sim/f3_resync/mut/mut_m2.v
+  + sim/f3_resync/run_tb_f3_resync.bat
+  + sim/f3_resync/tb_f3_resync.v
+  + sim/p4gates/f3resync_src.f
+GONE (0):

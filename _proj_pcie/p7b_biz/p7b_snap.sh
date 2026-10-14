@@ -1,6 +1,8 @@
 #!/bin/bash
-# p7b_snap.sh -- 板侧快照窗口取数器 (**现役 = 71 字 / BID 0x24**; 标题原文 = "板侧 **63** 字
+# p7b_snap.sh -- 板侧快照窗口取数器 (**现役 = 71 字 / BID 0x25**; 标题原文 = "板侧 **63** 字
 #   快照窗口的取数器 (P7b Stage C: BID=10 / SNAP_NW=63)" —— 那一代已过时, 见下逐代订正)
+#   ⭐ F-3 修复 (2026-10-15): 身份 0x24 → **0x25** (**字长/未实现地址不变** = 71 字 / 0x14C;
+#      `rtl/vlan_strip.v` 的 RESYNC_EN 重同步门 + `board/wrapper_p4.v` 的 `VLAN_STRIP_RESYNC`)。
 #   ⭐ P9 URAM 板内缓冲 (2026-10-13): 身份 0x23 → **0x24** (**字长/未实现地址不变** = 71 字 / 0x14C;
 #      新件 `rtl/mir_uram_fifo.v` = `u_mir_buf` (URAM288 4096×64 = 32 KB 板内缓冲 + F2/F3 修正))。
 #   ⭐ P9 D4 clr 口径修正 (2026-10-12): 身份 0x22 → **0x23** (**字长/未实现地址不变** = 71 字 / 0x14C;
@@ -64,7 +66,7 @@ D=/dev/xdma0_user
 #      (0x200 在 7 位译码下回绕到 word 0 = MAGIC ⇒ 假 FAIL)。
 NW=${NW:-71}
 UNIMPL_ADDR=${UNIMPL_ADDR:-$(printf '0x%X' $(( 0x20 + 4*NW + 16 )))}   # 71 ⇒ 0x14C (M1 期B 起; 70 字及更早 = 0x138/0x12C/0x124/0x11C/0x114/0xEC —— 读旧位流须显式覆盖)
-EXPECT_BID=${EXPECT_BID:-0x00000024}
+EXPECT_BID=${EXPECT_BID:-0x00000025}
 # ⛔ 2026-10-07 Stage C: 原默认值 = 0x00000009 (P7B-WU 二轮 = 9)。
 # ⛔ 2026-10-10 (构建 C 门同步轮): 再上一代的默认 = **0x0000000A** (Stage C 63 字) ——
 #    现役 = **0x00000017** (65 字; 源码 `board/wrapper_p4.v` 的 `BUILD_ID_V = 32'h00000017`)。

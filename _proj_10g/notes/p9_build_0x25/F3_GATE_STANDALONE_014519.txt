@@ -1,0 +1,55 @@
+[P4GUARD OK] root=d:\repo\xcku5pmini\udp_hls_10g self=d:\repo\xcku5pmini\udp_hls_10g manifests=7
+MUTGEN SRC D:\repo\XCKU5PMini\udp_hls_10g\rtl\vlan_strip.v sha256=04a12ff26c320909
+MUTGEN m1 changed_lines=[112] out=D:\repo\XCKU5PMini\udp_hls_10g\sim\f3_resync\mut\mut_m1.v sha256=49fd69cea3df1293
+MUTGEN m1 SUBST     wire        fwd   = (!RESYNC_EN) || resync || s_axis_tuser;
+MUTGEN m1 SUBST     wire        fwd   = 1'b1;
+MUTGEN m2 changed_lines=[112] out=D:\repo\XCKU5PMini\udp_hls_10g\sim\f3_resync\mut\mut_m2.v sha256=4fdc480a8d7925b1
+MUTGEN m2 SUBST     wire        fwd   = (!RESYNC_EN) || resync || s_axis_tuser;
+MUTGEN m2 SUBST     wire        fwd   = (!RESYNC_EN) || resync || s_axis_tlast;
+==================== SUMMARY ====================
+  F    runF  RC=0    expect 0: CHK all green
+  L    runL  RC=0    expect 0: XFAIL-REPRODUCED historical shape
+  M1   runM1 RC=0   expect 0: J1 red, J3eq=0, ALL=0
+  M2   runM2 RC=0   expect 0: J1 red, J3eq=0, ALL=0
+  CTRL runC  RC=0    expect 0: CHK green with J3pos=0
+---- key readings ----
+  [runF]
+F3R ARM=F resync_en=1 ctrl_ifg=0
+F3R WITNESS dp_rst_dp RISE at 2884000 (t0)
+F3R WITNESS dp_rst_dp FALL at 14922000 (t1) stall_edges=0 (应=0) rstwin_edges=6 (应>0)
+F3R SHAPE ndel=8 whole=8 frag=0 stale_frag=0 trunc_with_crs=0 unrec=0 srco_nz=0
+F3R POP-ACCT pop_pre=25 pop_rst=2 pop_post=69 taken_all=89 taken_post=64 rsw=5 mirror=5
+F3R CHK J1=1 J2=1 J3eq=1 J3pos=1 J4=1 J5=1 J6=1 ALL=1
+  [runL]
+F3R ARM=L resync_en=0 ctrl_ifg=0
+F3R WITNESS dp_rst_dp RISE at 2884000 (t0)
+F3R WITNESS dp_rst_dp FALL at 14922000 (t1) stall_edges=0 (应=0) rstwin_edges=6 (应>0)
+F3R SHAPE ndel=9 whole=8 frag=1 stale_frag=1 trunc_with_crs=1 unrec=0 srco_nz=1
+F3R POP-ACCT pop_pre=25 pop_rst=2 pop_post=69 taken_all=94 taken_post=69 rsw=0 mirror=0
+F3R CHK J1=0 J2=0 J3eq=1 J3pos=0 J4=1 J5=0 J6=1 ALL=0
+F3R XFAIL-REPRODUCED frag=1 trunc_with_crs=1 stale_frag=1
+  [runM1]
+F3R ARM=M1 resync_en=1 ctrl_ifg=0
+F3R WITNESS dp_rst_dp RISE at 2884000 (t0)
+F3R WITNESS dp_rst_dp FALL at 14922000 (t1) stall_edges=0 (应=0) rstwin_edges=6 (应>0)
+F3R SHAPE ndel=9 whole=8 frag=1 stale_frag=1 trunc_with_crs=1 unrec=0 srco_nz=1
+F3R POP-ACCT pop_pre=25 pop_rst=2 pop_post=69 taken_all=94 taken_post=69 rsw=0 mirror=5
+F3R CHK J1=0 J2=0 J3eq=0 J3pos=0 J4=1 J5=0 J6=1 ALL=0
+F3R XFAIL-REPRODUCED frag=1 trunc_with_crs=1 stale_frag=1
+  [runM2]
+F3R ARM=M2 resync_en=1 ctrl_ifg=0
+F3R WITNESS dp_rst_dp RISE at 2884000 (t0)
+F3R WITNESS dp_rst_dp FALL at 14922000 (t1) stall_edges=0 (应=0) rstwin_edges=6 (应>0)
+F3R SHAPE ndel=9 whole=8 frag=1 stale_frag=1 trunc_with_crs=1 unrec=0 srco_nz=1
+F3R POP-ACCT pop_pre=25 pop_rst=2 pop_post=69 taken_all=83 taken_post=65 rsw=4 mirror=5
+F3R CHK J1=0 J2=0 J3eq=0 J3pos=1 J4=1 J5=0 J6=1 ALL=0
+F3R XFAIL-REPRODUCED frag=1 trunc_with_crs=1 stale_frag=1
+  [runC]
+F3R ARM=CTRL resync_en=1 ctrl_ifg=1
+F3R WITNESS ctrl-precond si=392 (IFG=[376,399]) rx_empty=1 stable4=1
+F3R WITNESS dp_rst_dp RISE at 3300000 (t0)
+F3R WITNESS dp_rst_dp FALL at 15338000 (t1) stall_edges=0 (应=0) rstwin_edges=6 (应>0)
+F3R SHAPE ndel=8 whole=8 frag=0 stale_frag=0 trunc_with_crs=0 unrec=0 srco_nz=0
+F3R POP-ACCT pop_pre=32 pop_rst=0 pop_post=64 taken_all=96 taken_post=64 rsw=0 mirror=0
+F3R CHK J1=1 J2=1 J3eq=1 J3pos=0 J4=1 J5=1 J6=1 ALL=1
+F3-RESYNC-GATE: PASS 

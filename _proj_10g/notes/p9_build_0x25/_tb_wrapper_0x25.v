@@ -1,0 +1,950 @@
+`timescale 1ns/1ps
+//=============================================================================
+// tb_p6e_pcie_wrapper.v — P6e 合体的 **真 wrapper 全链门** (工程坑 8)
+//=============================================================================
+// 为什么必须另开一门: snap_cdc / axi_regs 各自的单元门都自己搭链, **不走 wrapper 的
+//   `ifdef PCIE_OBS` 接线分支** —— "每个字各接的是哪一路计数" "snap_req/valid 有没有接反"
+//   "复位有没有接对" 这类错在单元门里完全隐身 (P5a W1 / P5e-T2 两次血的教训:
+//   子模块 TB 全绿, 板上却是静默故障)。
+//
+// 本门怎么抓: 把数据面那 29 路计数源用 `force` 打成**互不相同的常数**, 然后**从 AXI 侧**
+//   把 36 个字读回来, 逐字比对常数 ⇒ 任何"接错一路"都会当场现形。
+//   ⚠️ P6b 起快照是**两个域的两束** (FE 10 字 + DP 22 字) 经 rtl/snap_seq.v 链式触发拼成
+//      32 字 —— 本门因此额外承担"两束的索引表抄错"的检测 (那是新的第 ⑦ 处扩窗风险点,
+//      lint 完全看不见), 逐字读回是唯一手段。
+//   (gmii_free 那一路故意**不 force**: 它是自由计数器, 用"两次快照之间必须递增"来验它 ——
+//    既证明它接对了, 又证明 gmii 域在仿真里真的在跑。)
+//   ⚠️ 逐字比对的**地址必须覆盖到最后一个字** (0x9C): 只验前一半的话, "读侧选字位宽截断"
+//      (高地址回绕读低地址的字) 这类错会从门里逃逸 —— 24 字版扩窗前就是靠这一点抓到的。
+//
+// ⭐⭐ force 的目标必须是**生产者节点** (2026-09-29 审查 F1 修 —— 本门最大的覆盖缺口):
+//   `force` 会压掉该 net 的**一切驱动** ⇒ 只打 wrapper 级线 (如 `force u_dut.mac_tx_frames`)
+//   时, "生产者 ↔ 线"这根连接**完全不被检验**: 实测把 wrapper 的
+//   `.stat_frames(mac_tx_frames)` 改回 `.stat_frames()` (W20 恒 0), 门**照样 PASS_ALL**;
+//   改成打 `u_dut.u_mac_tx.stat_frames` (生产者的寄存器) 后, **同一个变异体当场 FAIL**。
+//   ⇒ 判据 6 现在除下面 3 路例外外**全部打生产者节点**。**新加字必须遵守这条**。
+//   三路例外 (为什么只能打 wrapper 级, 逐条给理由 —— 不是偷懒):
+//     · W2 `wl_last` —— 生产者**在 wrapper 自己身上** (帧长锁存寄存器, 见 wrapper 的
+//       `always @(posedge gmii_clk)` 那段), 没有子模块节点可打; 打它本身即"打到最深处",
+//       它被掩盖的是锁存逻辑 (而锁存逻辑由 `wl_last_lat`/`rx_wire_last` 那条路另验)。
+//     · W16/W17 `srx_hls_bytes` / `hr_cnt` —— 同上是 wrapper 自己的寄存器, 生产者就是本模块
+//       的 always 块。它们的**增量逻辑**由另一条专门的门覆盖:
+//       `sim/p6e_pcie/run_tb_p6e_pcie_counters.bat` (驱动**真握手/真 hls_rst_n**, 断言恰好 +N,
+//       含"只 tvalid / 只 tready 都不许计数"的负对照)。本门只负责
+//       "这两路确实落在快照的 W16/W17 位置上" —— 两条门各验一半, 别张冠李戴。
+//     · W5 `gmii_free` 完全不 force (见上一条)。
+//     · W24 `dp_free` / W25 `mmcm_locked` 也**完全不 force** (P6b 新增): 它们是"数据面
+//       真的跑在 156.25MHz 独立时钟上"的**功能正证据** —— 判据 5b 用两次快照的
+//       ΔW24/ΔW5 比值验 (两个自由计数、两个域, 比值必须 ≈ 156.25/125 = 1.25)。
+//
+// 门里还有: AXI 读通路 (MAGIC/BUILD_ID = 合体版 24 字 = 4)、触发/done 协议、字冻结、
+//   未实现地址 SLVERR、HW_STATUS 的 user_lnk_up。
+//   ⛔ 2026-10-07 订正 (P7B_STAGEB_FIX.md): 本句 "24 字 = 4" 是 24 字时代的叙述 (扩窗时未跟着改);
+//      现役几何 = **63 字 / BUILD_ID = 9 / 未实现地址 0x11C** (源码 = `board/wrapper_p4.v:3125`
+//      `SNAP_NW_P6E = 63` + `:3882` `BUILD_ID_V = 32'h00000009`) —— 见下判据 2 与判据 9 的就地订正。
+//      ⛔ 2026-10-10 订正 (构建 C 门同步轮): 上面这句**已过时** —— 现役 = **65 字 / BUILD_ID = 17 /
+//      未实现地址 0x124** (源码 `SNAP_NW_P6E = 65` + `BUILD_ID_V = 32'h00000017`)。原句保留;
+//      本文件里**两条**跟着地图走的判据 (**判据 2** = BUILD_ID 期望值、**判据 9** = 未实现地址)
+//      已同批订正 —— 它们必须一起改 (参数化即可, 见两处的就地说明)。
+// ============================================================================
+// 依赖替身 sim/p6e_pcie/xdma_0_sim_stub.v (IP 的功能模型只在 Vivado 工程里, 见其头注释)
+// 跑法: run_tb_p6e_pcie.bat (编译时须定义 PCIE_OBS + DEV_USP + APP_MODE, 与真实构建一致)
+//=============================================================================
+module tb_p6e_pcie_wrapper;
+
+    reg        reset_n = 0;
+    reg        phy1_rxc = 0;
+    reg  [3:0] phy1_rxd = 0;
+    reg        phy1_rxctl = 0;
+    wire       phy1_txc;
+    wire [3:0] phy1_txd;
+    wire       phy1_txctl;
+    wire       led_d0, led_d1, led_d2, led_d3;
+    wire       uart_txd;
+    // PCIe 侧
+    reg        pcie_sys_clk_p = 0, pcie_sys_clk_n = 1;
+    wire [3:0] pcie_txp, pcie_txn;
+    reg  [3:0] pcie_rxp = 0, pcie_rxn = 0;
+    // P6b: 数据面时钟源 (核心板 Y1 = 100.000000MHz 差分有源晶振, T25/U25)
+    reg        sys_clk_p = 0, sys_clk_n = 1;
+
+    always #4 phy1_rxc = ~phy1_rxc;                                    // 125MHz = 1G 的 RXC
+    always #5 pcie_sys_clk_p = ~pcie_sys_clk_p;                        // 100MHz 差分参考钟
+    always #5 pcie_sys_clk_n = ~pcie_sys_clk_n;
+    always #5 sys_clk_p = ~sys_clk_p;                                  // Y1 = 100MHz (周期 10ns)
+    // ⚠️ sys_clk_n 必须与 sys_clk_p **反相** (真 IBUFDS 是差分输入; 对抗审查 F3-3):
+    //    同相驱动在 P6B_SIM_CLKGEN 的行为级旁路下无害, 但谁把旁路关掉就会得到"没有时钟"。
+    always #5 sys_clk_n = ~sys_clk_p;
+
+    // ⚠️ 端口表 = DEV_USP + PCIE_OBS 的组合 (与 build_p6e_ku5p.tcl 的 verilog_define 一致):
+    //    DEV_USP ⇒ 没有 fpga_gclk; PCIE_OBS ⇒ 有 4 个 PCIe 口 + sys_clk_p/n
+//    (P6b: sys_clk_p/n 包在 `ifdef PCIE_OBS 内 —— P6a 那条分支仍是单域, 见 P6B_SPEC §B-B2)
+    wrapper_p4 u_dut (
+        .reset_n        (reset_n),
+        .phy1_rxc       (phy1_rxc),
+        .phy1_rxd       (phy1_rxd),
+        .phy1_rxctl     (phy1_rxctl),
+        .phy1_txc       (phy1_txc),
+        .phy1_txd       (phy1_txd),
+        .phy1_txctl     (phy1_txctl),
+        .led_d0         (led_d0),
+        .led_d1         (led_d1),
+        .led_d2         (led_d2),
+        .led_d3         (led_d3),
+        .uart_txd       (uart_txd),
+        .pcie_sys_clk_p (pcie_sys_clk_p),
+        .pcie_sys_clk_n (pcie_sys_clk_n),
+        .pcie_txp       (pcie_txp),
+        .pcie_txn       (pcie_txn),
+        .pcie_rxp       (pcie_rxp),
+        .pcie_rxn       (pcie_rxn),
+        .sys_clk_p      (sys_clk_p),
+        .sys_clk_n      (sys_clk_n)
+    );
+
+    integer    fails = 0;
+    integer    k, ok_r, gen0;
+    reg [31:0] v, v5a, v5b, a0, b0;
+    reg [31:0] v24a, v24b;      // P6b: W24 (数据面自由计数)
+    integer    d5, d24;         // P6b: 判据 5b 的增量
+    // ---- ⭐ M1 (2026-10-11): 载荷镜像窗判据用的注入驱动器 + 读数 (见文件尾 "M1" 块) ----
+    reg [63:0] mi_data  = 64'd0;
+    reg [7:0]  mi_keep  = 8'd0;
+    reg        mi_valid = 1'b0;
+    integer    mi_i;
+    reg [31:0] mi_w70a, mi_w70b;
+    reg [31:0] mi_cnt_a, mi_cnt_b;      // M1-11: MIR_DMA_CNT 基线/末值 (环字计数器)
+    // ---- ⭐ M1 期 A (2026-10-11): TCP 口 (app_rx_*) 注入驱动器 (src_sel 判据用) ----
+    reg [63:0] mt_data  = 64'd0;
+    reg [7:0]  mt_keep  = 8'd0;
+    reg        mt_valid = 1'b0;
+    // ---- ⭐ M1 期 B (2026-10-11): C2H 环 / H2C 丢弃从机的全链判据用 ----
+    reg [127:0] exp_beat_v = 128'd0;
+    integer     mbi, mbr;      // 注入/逐拍比对循环变量
+
+    // ⭐⭐ 2026-10-13 (P9-B-3d 修法轮; 复核 §I2 意见 1): 注入量/弹性预算**绑具名常量** ——
+    //   防"下游容量一变、旧注入量不再够填满 ⇒ 该判据再次静默失效"(同一个坑第二次踩;
+    //   本判据上一版就是这样被 URAM 缓冲从 ≈2 KB 抬到 ≈34 KB 而失效的)。
+    //   弹性预算 (字节; **结构性上界**): 镜像 FIFO 2048 + 镜像打包 stg/acc ≤24 +
+    //   URAM 缓冲 32768 + 缓冲弹性堆 32 + 缓冲在飞 ≤24 + 成形器暂存 32 + 粒度/舍入裕量
+    //   ⇒ 取 35 KiB (35840 B) 封顶 (实测吸收远低于此, 见 P9-B-3 的 [INFO] 行)。
+    localparam P9B3_INJECT_BEATS      = 20000;                // 注入拍数 (每拍 1 个 32 位字 = 4 B)
+    localparam P9B3_INJECT_BYTES      = P9B3_INJECT_BEATS * 4; // = 80000 B (~2.3× 弹性上界)
+    localparam P9B3_ELASTIC_MAX_BYTES = 35840;                // 35 KiB 弹性上界 (预算见上)
+    localparam P9B3_RESID_ACCEPT      = 1;                    // 闭账容差: 打包残余 ≤1 个 32 位字
+    localparam P9B3_DRAIN_CYCLES      = 20000;                // 恢复期全排空等待 (弹性/8 ≈ 4480 拍)
+
+    // M1 注入一拍 (dp 域; posedge + 非阻塞 ⇒ 与 DUT 采样的竞争为零, 工程坑 3/17)。
+    //   ⚠️ 只由本 initial 块经 task 推进 —— **不另开 always 块驱同一批 reg** (多过程驱动铁律)。
+    task mir_beat(input [63:0] d, input [7:0] k);
+        begin
+            @(posedge u_dut.dp_clk); mi_data <= d; mi_keep <= k; mi_valid <= 1'b1;
+            @(posedge u_dut.dp_clk); mi_valid <= 1'b0;
+            @(posedge u_dut.dp_clk);
+        end
+    endtask
+    // ⭐ 期 A: TCP 口注入 (同一驱动器风格, 独立 reg 组 —— 两路可以同拍打, 用来验"只镜像一路")
+    task tcp_beat(input [63:0] d, input [7:0] k);
+        begin
+            @(posedge u_dut.dp_clk); mt_data <= d; mt_keep <= k; mt_valid <= 1'b1;
+            @(posedge u_dut.dp_clk); mt_valid <= 1'b0;
+            @(posedge u_dut.dp_clk);
+        end
+    endtask
+
+    task chk(input [255:0] name, input [31:0] got, input [31:0] exp);
+        begin
+            if (got === exp) $display("  [PASS] %0s = %08x", name, got);
+            else begin $display("  [FAIL] %0s = %08x (期望 %08x)", name, got, exp); fails = fails + 1; end
+        end
+    endtask
+
+    // ⭐ 期 B: 向 UDP tap 注入**一个环字** —— 注入字节 = 目标字 ^0xA5 (镜像会 XOR 回去),
+    //   于是"环里的逻辑字" == 本 task 的 `w` (判据锚; 不靠人肉推字节序 —— 字节序已由
+    //   M1-2 的手算锚 0xA1A6A7A4 钉过)。
+    task mir_word(input [31:0] w);
+        begin
+            mir_beat({(w[7:0]^8'hA5), (w[15:8]^8'hA5), (w[23:16]^8'hA5), (w[31:24]^8'hA5), 32'd0},
+                     8'hF0);
+        end
+    endtask
+
+    // 128 位比较 (chk 只吃 32 位; 环行读是 128 位)
+    task chk128(input [255:0] name, input [127:0] got, input [127:0] exp);
+        begin
+            if (got === exp) $display("  [PASS] %0s = %032x", name, got);
+            else begin $display("  [FAIL] %0s = %032x (期望 %032x)", name, got, exp); fails = fails + 1; end
+        end
+    endtask
+
+    // 触发一次快照并等 done (SNAP_STATUS.bit1); 返回 1 = 成功
+    task snap_take(output integer ok);
+        begin
+            u_dut.u_pcie_xdma.axil_write(32'h18, 32'h1);
+            ok = 0;
+            for (k = 0; k < 300; k = k + 1) begin
+                u_dut.u_pcie_xdma.axil_read(32'h1c, v);
+                if (v[1] === 1'b1) begin ok = 1; k = 1000; end
+            end
+        end
+    endtask
+
+    initial begin
+        $display("=== tb_p6e_pcie_wrapper: P6e 合体真 wrapper 全链门 ===");
+        repeat (20) @(posedge phy1_rxc);
+        reset_n = 1;
+        repeat (300) @(posedge u_dut.u_pcie_xdma.aclk);      // 等 axi_aresetn 释放 + link up
+
+        $display("  --- 判据 1-3: AXI 读通路 (替身主机 → wrapper 内 axi_regs) ---");
+        u_dut.u_pcie_xdma.axil_read(32'h00, v); chk("1  MAGIC", v, 32'h50360001);
+        // 原句 (51 字时代, 逐字保留):
+        //   u_dut.u_pcie_xdma.axil_read(32'h04, v); chk("2  BUILD_ID (P7b 五束 51 字=7)", v, 32'h00000007);
+        // ⛔ 2026-10-07 订正 (P7B_STAGEB_FIX.md; 出处 P7B_STAGEB_RX8_REGRESSION.md §6-③ "BID=7 双硬编码"):
+        //    窗口 51 → 61 (BIZ) → **63** (Stage A / P7B-WU 二轮) ⇒ 源码 `board/wrapper_p4.v:3882`
+        //    的 `BUILD_ID_V = 32'h00000009` (该处注释逐字: "验收脚本/取数器的 NW 与 EXPECT_BID
+        //    必须跟着改") ⇒ 期望值 7 → **9**。判据语义不变 (= BUILD_ID 必须等于本构建的地图版本)。
+        // 原句 (63 字 / P7B-WU 二轮时代, 逐字保留):
+        //   u_dut.u_pcie_xdma.axil_read(32'h04, v); chk("2  BUILD_ID (P7b 63 字=9; 原 51 字=7)", v, 32'h00000009);
+        // ⛔ 2026-10-10 订正 (构建 C 门同步轮): 窗口 63 → **65 字** ⇒ `board/wrapper_p4.v` 的
+        //    `BUILD_ID_V = 32'h00000017` ⇒ 期望值 9 → **17**。判据语义不变
+        //    (= BUILD_ID 必须等于**本构建**的地图版本); 本条与上面判据 9 的地址是同一次订正。
+        // ⛔ 2026-10-11 (M1 实施轮): 期望值 0x1D → **0x1E** —— 树上 `wrapper_p4.v` 的
+        //    `BUILD_ID_V = 32'h0000001E` (snd_wnd 守卫构建, 已收口); 本刀**不 bump BID**
+        //    (bump 留给阶段二构建) ⇒ 该常量必须等于**当前树的**地图版本, 否则判据 2 结构性假红。
+        //    ⚠️ 与下面判据 9 的地址是同一次"跟地图走"订正 (设计件 v2 §V5-A-2 点名两条)。
+        u_dut.u_pcie_xdma.axil_read(32'h04, v); chk("2  BUILD_ID (F-3 修复 构建 = 0x25)", v, 32'h00000025);
+        u_dut.u_pcie_xdma.axil_read(32'h14, v); chk("3  MARKER", v, 32'hDEADBEEF);
+        // HW_STATUS 字段: [7:5]=msi_vec_w [4]=msi_enable [3]=user_lnk_up [2:0]=0
+        u_dut.u_pcie_xdma.axil_read(32'h10, v);
+        if (v[3] === 1'b1) $display("  [PASS] 4  HW_STATUS.bit3 = user_lnk_up = 1 (替身已报链路起)");
+        else begin $display("  [FAIL] 4  HW_STATUS.bit3 = %b (期望 1), HW_STATUS=%08x", v[3], v);
+                   fails = fails + 1; end
+
+        // ---- 判据 5: gmii 域活着 (自由计数在跑) ----
+        // ⚠️ ok_r 用独立变量: snap_take 的输出端口会覆盖调用处传进来的变量,
+        //    拿同一个变量当"代际基线"会被悄悄改写 (本门第一版就踩了这个)。
+        $display("  --- 判据 5: gmii_clk 域活性 (W5 两次快照之间必须递增) ---");
+        snap_take(ok_r); u_dut.u_pcie_xdma.axil_read(32'h34, v5a);
+        repeat (2000) @(posedge phy1_rxc);
+        snap_take(ok_r); u_dut.u_pcie_xdma.axil_read(32'h34, v5b);
+        $display("  [INFO] W5(gmii_free): %08x -> %08x", v5a, v5b);
+        if (v5b > v5a) $display("  [PASS] 5  gmii 域自由计数在跑 (快照 CDC 真的在搬数)");
+        else begin $display("  [FAIL] 5  W5 没递增 (gmii 域死了或 W5 接错)"); fails = fails + 1; end
+
+        // ---- 判据 5b (P6b 新增): **两个域真在两个不同频率上** ----
+        // W24 = dp_free (156.25MHz 域) / W5 = gmii_free (125MHz 域), 都不 force。
+        // 同一次快照的比值 —— 两个自由计数、两个域 ⇒ 比值必须 ≈ 156.25/125 = 1.25。
+        // ⚠️ 这条是本门唯一**不靠 force** 就能证明"数据面确实搬到了新域"的判据;
+        //    只改 Clock Summary / 只加一条空约束是骗不过它的 (它是功能读数)。
+        $display("  --- 判据 5b: W24(dp 域) / W5(fe 域) 的增量比必须 ≈ 1.25 ---");
+        snap_take(ok_r); u_dut.u_pcie_xdma.axil_read(32'h34, v5a);
+                         u_dut.u_pcie_xdma.axil_read(32'h80, v24a);
+        repeat (4000) @(posedge phy1_rxc);
+        snap_take(ok_r); u_dut.u_pcie_xdma.axil_read(32'h34, v5b);
+                         u_dut.u_pcie_xdma.axil_read(32'h80, v24b);
+        d5  = v5b  - v5a;
+        d24 = v24b - v24a;
+        $display("  [INFO] W5(fe)=%0d->%0d (Δ%0d)  W24(dp)=%0d->%0d (Δ%0d)", v5a, v5b, d5, v24a, v24b, d24);
+        if (d5 == 0) begin
+            $display("  [FAIL] 5b ΔW5 = 0 (前端域停摆 ⇒ 比值无意义)"); fails = fails + 1;
+        end else if ((d24 > (d5*124)/100) && (d24 < (d5*126)/100))
+            $display("  [PASS] 5b ΔW24/ΔW5 = %0d/%0d = %.4f ∈ [1.24, 1.26] ⇒ 数据面跑在 156.25MHz (1.25×125MHz)",
+                     d24, d5, d24 * 1.0 / d5);
+        else begin
+            $display("  [FAIL] 5b ΔW24/ΔW5 = %.4f 不在 [1.24, 1.26]: **数据面没跑在 156.25MHz**",
+                     d24 * 1.0 / d5);
+            fails = fails + 1;
+        end
+        // W25 = {31'd0, mmcm_locked}: 不 force ⇒ 直接读, 必须是 1
+        u_dut.u_pcie_xdma.axil_read(32'h84, v); chk("5c W25 = mmcm_locked == 1 (DP 时钟源锁定)", v, 32'd1);
+
+        // ---- 判据 6: 24 个字的**逐路映射** (核心: 把源打成互不相同的常数再读回来) ----
+        // ⭐ force 目标 = **生产者节点** (子模块例化点的端口名), 不是 wrapper 级线 ——
+        //    原理与实测证据见文件头注释「force 的目标必须是生产者节点」。加新字照抄此模式。
+        $display("  --- 判据 6: 快照 32 字逐路映射 (源 force 成常数; 29 路 force + 3 路活体) ---");
+        force u_dut.u_mac_rx.stat_frames      = 32'h11111111;   // W0  MAC 收帧
+        force u_dut.u_mac_rx.stat_bytes       = 32'h22222222;   // W1  MAC 收字节
+        force u_dut.wl_last                   = 16'hABCD;       // W2  (wrapper 自己的锁存寄存器, 见头注释)
+        force u_dut.u_mac_rx.stat_crc_err     = 32'h33333333;   // W3  FCS 错
+        force u_dut.u_mac_rx.stat_drop        = 32'h44444444;   // W4  MAC 丢弃
+        force u_dut.u_slow_rx.stat_commit     = 32'h66666666;   // W6  提交给 HLS 的慢帧
+        force u_dut.u_slow_tx.stat_frames     = 32'h77777777;   // W7  HLS 慢路径发帧 (ping 回包)
+        force u_dut.u_app_udp.stat_tx_frames  = 32'h88888888;   // W8  图案 app 发帧
+        force u_dut.u_app_udp.stat_tx_bytes   = 32'h99999999;   // W9  图案 app 发字节
+        force u_dut.u_app_udp.stat_rx_frames  = 32'hAAAAAAAA;   // W10 图案 app 收帧
+        force u_dut.u_app_udp.stat_rx_bytes   = 32'hBBBBBBBB;   // W11 图案 app 收字节
+        force u_dut.u_app_udp.stat_rx_null    = 32'hCCCCCCCC;   // W12 空帧
+        force u_dut.u_app_udp.stat_mismatch   = 32'hDDDDDDDD;   // W13 图案失配
+        force u_dut.u_tcp_tx.stat_frames      = 32'hEEEEEEEE;   // W14 **TCP fast path**(tcp_tx_frame) 发帧
+        force u_dut.u_tcp_tx.stat_bytes       = 32'hFFFFFFFF;   // W15 **TCP fast path** 发字节 ——
+        //   ⚠️ 注释更正 (2026-09-29): 这两路原写成"MAC 发帧/字节"是**错的**。它们接的是
+        //   `tcp_tx_frame` 的计数 (TCP fast path); MAC 级计数是 W20 = `mac_tx_64.stat_frames`
+        //   (原来悬空, 本轮接出)。原来那行错标签正是"MAC 发=0 却明明在线速跑"的来源。
+        // ---- W16-W23: 本轮新增 (慢路径健康位 + MAC 级 TX 锚点) ----
+        force u_dut.srx_hls_bytes             = 32'h01020304;   // W16 HLS 真读走的字节 (wrapper 自计数, 见头注释)
+        force u_dut.hr_cnt                    = 32'h05060708;   // W17 hls_rst_n 低电平拍数 (同上)
+        force u_dut.u_slow_tx.stat_purge      = 32'h090A0B0C;   // W18 slow_tx_adp 回卷
+        force u_dut.u_slow_rx.stat_drop       = 32'h0D0E0F10;   // W19 slow_rx_adp 丢帧
+        force u_dut.u_mac_tx.stat_frames      = 32'h11121314;   // W20 **MAC 级**发帧 (原悬空; ⭐ F1 的关键一路)
+        force u_dut.u_mac_tx.stat_abort       = 32'h15161718;   // W21 MAC 帧内中止
+        force u_dut.u_tcp_rx.stat_pass        = 32'h191A1B1C;   // W22 TCP fast path 接受帧
+        force u_dut.u_tcp_rx.stat_drop_nonmatch = 32'h1D1E1F20; // W23 TCP fast path nonmatch
+        // ---- F4 新增的 4 路 (W32..W35, 全在 FE 束) ----
+        force u_dut.u_mac_rx.stat_drop_partial = 32'h35363738;   // W32 C10 必需
+        force u_dut.u_mac_rx.stat_orphan_bytes = 32'h393A3B3C;   // W33 C10 必需
+        force u_dut.u_mac_rx.stat_drop_full    = 32'h3D3E3F40;   // W34 健康位
+        force u_dut.u_mac_rx.stat_fifo_ovf     = 32'h41424344;   // W35 恒 0 健康位
+        // ---- P6b 新增的 6 路 (W26/W27/W28/W29/W30/W31) ----
+        force u_dut.rxcdc_full_cycles         = 32'h21222324;   // W26 RX FIFO 满拍数 (FE)
+        force u_dut.rxcdc_occ_max             = 16'h2526;       // W27 RX FIFO 占用峰值 (FE)
+        force u_dut.txcdc_occ_max             = 16'h2728;       // W28 TX FIFO 占用峰值 (DP)
+        force u_dut.txwire_stall_cycles       = 32'h292A2B2C;   // W29 DP 在等线拍数 (DP)
+        force u_dut.rxcdc_out_frames          = 32'h2D2E2F30;   // W30 RX FIFO 读侧 TLAST 数 (DP)
+        force u_dut.rxcdc_out_bytes           = 32'h31323334;   // W31 RX FIFO 读侧 Σpopc (DP)
+        // ---- ⭐ M1 (2026-10-11): W70 的映射证明 —— force **生产者节点** = 镜像模块自己的寄存器
+        //      (不是 wrapper 线 `biz_w70`; 见文件头"force 的目标必须是生产者节点") ----
+        force u_dut.u_mir.drop_bytes          = 32'h4D494D31;   // W70 app_rx_mirror.drop_bytes (M1)
+        // gmii_free (W5) / dp_free (W24) / mmcm_locked (W25) 故意不 force
+        // (判据 5/5b/5c 已用活性、域比值与锁定位验过 —— "活体"比常数更强)
+        repeat (10) @(posedge phy1_rxc);                     // 让 force 生效于 gmii 域
+        // 诊断: force 到底落在哪根线上 —— 新加的字曾读回 zzzz, 用这行区分
+        // "force 没落上" vs "快照路径没接对" (打印两束的最高位段)
+        // (F1 改打生产者后, 这里读的 wrapper 线是**被生产者驱动**的: 它显示 Z/z 就说明
+        //  生产者没接上 — 这正是打线时看不见、打生产者后才看得见的那一类错。)
+        $display("  [DBG] 源: rx_stat_frames=%h mac_tx_frames=%h rxcdc_out_bytes=%h",
+                 u_dut.rx_stat_frames, u_dut.mac_tx_frames, u_dut.rxcdc_out_bytes);
+        $display("  [DBG] fe_src[319:256]=%h  dp_src[191:128]=%h",
+                 u_dut.fe_src[319:256], u_dut.dp_src[191:128]);
+        snap_take(ok_r);
+        u_dut.u_pcie_xdma.axil_read(32'h20, v); chk("6 W0 = rx_stat_frames",  v, 32'h11111111);
+        u_dut.u_pcie_xdma.axil_read(32'h24, v); chk("6 W1 = rx_stat_bytes",   v, 32'h22222222);
+        u_dut.u_pcie_xdma.axil_read(32'h28, v); chk("6 W2 = {16'd0,wl_last}", v, 32'h0000ABCD);
+        u_dut.u_pcie_xdma.axil_read(32'h2c, v); chk("6 W3 = rx_stat_crc_err", v, 32'h33333333);
+        u_dut.u_pcie_xdma.axil_read(32'h30, v); chk("6 W4 = rx_stat_drop",    v, 32'h44444444);
+        u_dut.u_pcie_xdma.axil_read(32'h38, v); chk("6 W6 = srx_stat_commit", v, 32'h66666666);
+        u_dut.u_pcie_xdma.axil_read(32'h3c, v); chk("6 W7  = stx_stat_frames", v, 32'h77777777);
+        u_dut.u_pcie_xdma.axil_read(32'h40, v); chk("6 W8  = udpapp_tx_frames", v, 32'h88888888);
+        u_dut.u_pcie_xdma.axil_read(32'h44, v); chk("6 W9  = udpapp_tx_bytes",  v, 32'h99999999);
+        u_dut.u_pcie_xdma.axil_read(32'h48, v); chk("6 W10 = udpapp_rx_frames", v, 32'hAAAAAAAA);
+        u_dut.u_pcie_xdma.axil_read(32'h4c, v); chk("6 W11 = udpapp_rx_bytes",  v, 32'hBBBBBBBB);
+        u_dut.u_pcie_xdma.axil_read(32'h50, v); chk("6 W12 = udpapp_rx_null",   v, 32'hCCCCCCCC);
+        u_dut.u_pcie_xdma.axil_read(32'h54, v); chk("6 W13 = udpapp_mismatch",  v, 32'hDDDDDDDD);
+        u_dut.u_pcie_xdma.axil_read(32'h58, v); chk("6 W14 = tx_stat_frames (TCP)",   v, 32'hEEEEEEEE);
+        u_dut.u_pcie_xdma.axil_read(32'h5c, v); chk("6 W15 = tx_stat_bytes (TCP)",    v, 32'hFFFFFFFF);
+        // ⚠️ chk 的名字走 `[255:0]` 向量端口 ⇒ **含中文的名字会被 xsim 打乱/吃掉**
+        //    (本门既有行也这样, 是渲染问题不是功能问题) ⇒ 新加的行一律纯 ASCII 便于读读数。
+        u_dut.u_pcie_xdma.axil_read(32'h60, v); chk("6 W16 = srx_hls_bytes",  v, 32'h01020304);
+        u_dut.u_pcie_xdma.axil_read(32'h64, v); chk("6 W17 = hr_cnt",         v, 32'h05060708);
+        u_dut.u_pcie_xdma.axil_read(32'h68, v); chk("6 W18 = stx_stat_purge", v, 32'h090A0B0C);
+        u_dut.u_pcie_xdma.axil_read(32'h6c, v); chk("6 W19 = srx_stat_drop",  v, 32'h0D0E0F10);
+        u_dut.u_pcie_xdma.axil_read(32'h70, v); chk("6 W20 = mac_tx_frames",  v, 32'h11121314);
+        u_dut.u_pcie_xdma.axil_read(32'h74, v); chk("6 W21 = tx_stat_abort",  v, 32'h15161718);
+        u_dut.u_pcie_xdma.axil_read(32'h78, v); chk("6 W22 = rx_stat_pass",   v, 32'h191A1B1C);
+        u_dut.u_pcie_xdma.axil_read(32'h7c, v); chk("6 W23 = rx_stat_nonmatch", v, 32'h1D1E1F20);
+        // ---- P6b 新增的 8 个字 (W24/W25 不 force, 见上) ----
+        u_dut.u_pcie_xdma.axil_read(32'h88, v); chk("6 W26 = rxcdc_full_cycles",   v, 32'h21222324);
+        u_dut.u_pcie_xdma.axil_read(32'h8c, v); chk("6 W27 = {16'd0,rxcdc_occ_max}", v, 32'h00002526);
+        u_dut.u_pcie_xdma.axil_read(32'h90, v); chk("6 W28 = {16'd0,txcdc_occ_max}", v, 32'h00002728);
+        u_dut.u_pcie_xdma.axil_read(32'h94, v); chk("6 W29 = txwire_stall_cycles", v, 32'h292A2B2C);
+        u_dut.u_pcie_xdma.axil_read(32'h98, v); chk("6 W30 = rxcdc_out_frames",    v, 32'h2D2E2F30);
+        u_dut.u_pcie_xdma.axil_read(32'h9c, v); chk("6 W31 = rxcdc_out_bytes",     v, 32'h31323334);
+        // ---- F4 的 4 个新字 (W32..W35) ----
+        u_dut.u_pcie_xdma.axil_read(32'hA0, v); chk("6 W32 = stat_drop_partial (C10)", v, 32'h35363738);
+        u_dut.u_pcie_xdma.axil_read(32'hA4, v); chk("6 W33 = stat_orphan_bytes (C10)", v, 32'h393A3B3C);
+        u_dut.u_pcie_xdma.axil_read(32'hA8, v); chk("6 W34 = stat_drop_full",          v, 32'h3D3E3F40);
+        u_dut.u_pcie_xdma.axil_read(32'hAC, v); chk("6 W35 = stat_fifo_ovf (恒 0 健康位)", v, 32'h41424344);
+        // ---- ⭐ M1: W70 @ 0x138 (71 字窗口的新末字; "地址 ↔ 字"映射的逐字证明) ----
+        u_dut.u_pcie_xdma.axil_read(32'h138, v); chk("6 W70 = u_mir.drop_bytes (M1)", v, 32'h4D494D31);
+        // ⚠️ W24/W25 用**活体**判据 (不 force): 见判据 5b/5c —— 它们证明"这两路确实接在
+        //    数据面域的自由计数与 LOCKED 上", 比灌常数更强。
+
+        // ---- 判据 7: 未触发时 24 个字必须冻结 (读窗口原子性) ----
+        // ⚠️ 2026-09-29 审查 F7 修: 这里原来读 **W0 (0x20)**, 而 W0 在本门里被 force 成常数
+        //    ⇒ 判据恒真 = **空判据** (抓不到任何东西)。改读 **W5 (0x34) = `gmii_free`**:
+        //    它是本门唯一**不被 force** 的字, 且在 gmii 域每拍 +1 ⇒ 真出现隐性重触发 /
+        //    窗口撕裂时它必变。这样判据才有判别力 (同坑 18)。
+        $display("  --- 判据 7: 未触发 ⇒ 字冻结 (探针 = W5 自由计数, 全门唯一未 force 的字) ---");
+        u_dut.u_pcie_xdma.axil_read(32'h34, a0);
+        repeat (500) @(posedge u_dut.u_pcie_xdma.aclk);
+        u_dut.u_pcie_xdma.axil_read(32'h34, b0);
+        chk("7 W5 (gmii_free, free-running) frozen while not triggered", b0, a0);
+
+        // ---- 判据 8: 触发清 done, gen 递增 ----
+        $display("  --- 判据 8: 触发清 done / gen 递增 ---");
+        u_dut.u_pcie_xdma.axil_read(32'h1c, v);
+        gen0 = v[31:16];
+        snap_take(ok_r);                                     // ⚠️ 输出端口别用 gen0 (会被覆盖)
+        u_dut.u_pcie_xdma.axil_read(32'h1c, v);
+        if (v[31:16] == gen0 + 1) $display("  [PASS] 8  gen 恰好 +1 (%0d -> %0d)", gen0, v[31:16]);
+        else begin $display("  [FAIL] 8  gen = %0d (期望 %0d)", v[31:16], gen0+1); fails = fails + 1; end
+
+        // ---- 判据 9: 未实现地址必须回 SLVERR ----
+        // ⚠️ 这里查的是 **rresp = SLVERR (2)**, 不是数据值: 板上主机脚本看到 0xffffffff,
+        //    那是 **XDMA 的 AXI-Lite 主机**在错误响应时填的数据, 不是 axi_regs 的行为
+        //    (axi_regs 的读 mux 对未实现地址给 0 + rresp=SLVERR)。替身不模仿 XDMA 那一段,
+        //    所以本门只能验 rresp —— 两边各验自己能验的那一半, 别把结论张冠李戴。
+        // ⚠️ **P7b (2026-09-29) 地图又长了**: 51 字快照占 0x20..0xE8 (word 58) ⇒ 未实现地址 = word 59 = **0xEC**
+        //    (随地图扩张挪过: 0x18 -> 0x44 -> 0x60 -> 0x84 -> 0xA0 -> 0xB0 -> 0xEC).
+        //    绝不能用 ≥0x100 的地址: `ar_word = araddr[7:2]` 6 位 ⇒ 每 256 字节回绕
+        //    (0x100 别名到 MAGIC ⇒ 假 PASS 于"读出的不是 0xffffffff"这类判据)。
+        // ⛔ 2026-10-10 订正 (构建 C 门同步轮): 窗口 63 → **65 字** (新增 W63/W64;
+        //    `board/wrapper_p4.v` 的 `SNAP_NW_P6E = 65`) ⇒ 末字 W64 @ 0x120 ⇒
+        //    **未实现地址 = 0x20 + 4*65 = 0x124** (word 73)。`0x11C` 现在是窗口内的真字 W63
+        //    ⇒ 原地址上的判据必然红 (断言失去判别力) ⇒ 只换地址常量。
+        //    红线不变 (读侧译码 7 位 ⇒ **绝不能挑 ≥0x200**); 判据语义不变 (只验 rresp=SLVERR)。
+        //    原句 (63 字时代) 保留在下方。
+        // ⛔ 2026-10-07 订正 (P7B_STAGEB_FIX.md; 出处 P7B_STAGEB_RX8_REGRESSION.md §6-③):
+        //    63 字地图 (0x20..0x118) 下 **0xEC = W51 已是真字** ⇒ 未实现地址 = word 63 = **0x11C**;
+        //    且读侧译码 BIZ 轮起已 6→**7** 位 (`ar_word = araddr[8:2]`) ⇒ 回绕红线从 ≥0x100
+        //    改成 **绝不能挑 ≥0x200** (见 `P7B_BIZ_WINDOW.md` §1 / `board/wrapper_p4.v:3108-3112`)。
+        //    判据语义不变 (未实现地址必须回 rresp=SLVERR), 只换地址常量。
+        // 原句 (51 字时代, 逐字保留):
+        //   u_dut.u_pcie_xdma.axil_read(32'hEC, v);
+        //   chk("9  未实现地址 0xEC ⇒ rresp = SLVERR", {30'd0, u_dut.u_pcie_xdma.last_rresp}, 32'd2);
+        // 原句 (63 字时代, 逐字保留):
+        //   u_dut.u_pcie_xdma.axil_read(32'h11C, v);
+        //   chk("9  未实现地址 0x11C ⇒ rresp = SLVERR", {30'd0, u_dut.u_pcie_xdma.last_rresp}, 32'd2);
+        // ⛔ 2026-10-10 (构建 F): 窗口 67 → **70 字** (`SNAP_NW_P6E = 70`) ⇒ 末字 W69 @ 0x134
+        //    ⇒ 未实现地址 = 0x20 + 4*70 = **0x138** (word 78)。0x12C/0x130/0x134 现在是窗口内的真字。
+        // ⛔ 2026-10-11 (M1 实施轮): 0x138 → **0x148** —— M1 把快照扩到 **71 字** (W70 =
+        //    `app_rx_mirror.drop_bytes` @ 0x138, 现在是**真字**) 并在其后再插三个 MIR 字
+        //    (0x13C/0x140/0x144) ⇒ 未实现地址 = 0x20+4*71+12 = **0x148** (word 82)。
+        //    设计件 v2 §V5-A-2 点名的"两条几何常量"之一; 红线不变 (7 位译码 ⇒ 绝不 ≥0x200)。
+        // ⛔ 2026-10-11 (M1 期 B 接线轮): 0x148 → **0x14C** —— 期 B 在 MIR 块再加第 4 个字
+        //    MIR_DMA_CNT@0x148 (环写字数, 现在是**真字**) ⇒ 未实现地址 = 0x20+4*71+16
+        //    = **0x14C** (word 83)。同批的三处地址常量 = 本文件 / tb_biz_win.v / check_window.py。
+        u_dut.u_pcie_xdma.axil_read(32'h14C, v);
+        chk("9  unimpl 0x14C => rresp=SLVERR", {30'd0, u_dut.u_pcie_xdma.last_rresp}, 32'd2);
+
+        // ⚠️ release 的层次名必须与上面 force 的目标**逐字一致** (坑 22: 名字不一致时
+        //    xelab 直接报 "not declared under prefix"; 但漏 release 是**静默**的 —— 后续判据
+        //    会带着残留 force 跑, 所以这里逐条列全, 一条不漏)。
+        release u_dut.u_mac_rx.stat_frames;
+        release u_dut.u_mac_rx.stat_bytes;
+        release u_dut.wl_last;
+        release u_dut.u_mac_rx.stat_crc_err;
+        release u_dut.u_mac_rx.stat_drop;
+        release u_dut.u_slow_rx.stat_commit;
+        release u_dut.u_slow_tx.stat_frames;
+        release u_dut.u_app_udp.stat_tx_frames;
+        release u_dut.u_app_udp.stat_tx_bytes;
+        release u_dut.u_app_udp.stat_rx_frames;
+        release u_dut.u_app_udp.stat_rx_bytes;
+        release u_dut.u_app_udp.stat_rx_null;
+        release u_dut.u_app_udp.stat_mismatch;
+        release u_dut.u_tcp_tx.stat_frames;
+        release u_dut.u_tcp_tx.stat_bytes;
+        release u_dut.srx_hls_bytes;
+        release u_dut.hr_cnt;
+        release u_dut.u_slow_tx.stat_purge;
+        release u_dut.u_slow_rx.stat_drop;
+        release u_dut.u_mac_tx.stat_frames;
+        release u_dut.u_mac_tx.stat_abort;
+        release u_dut.u_tcp_rx.stat_pass;
+        release u_dut.u_tcp_rx.stat_drop_nonmatch;
+        release u_dut.u_mac_rx.stat_drop_partial;
+        release u_dut.u_mac_rx.stat_orphan_bytes;
+        release u_dut.u_mac_rx.stat_drop_full;
+        release u_dut.u_mac_rx.stat_fifo_ovf;
+        release u_dut.rxcdc_full_cycles;
+        release u_dut.rxcdc_occ_max;
+        release u_dut.txcdc_occ_max;
+        release u_dut.txwire_stall_cycles;
+        release u_dut.rxcdc_out_frames;
+        release u_dut.rxcdc_out_bytes;
+        release u_dut.u_mir.drop_bytes;         // M1 (与上面 force 逐字对应)
+
+        // =====================================================================
+        // ⭐ M1 (2026-10-11): 载荷镜像窗 —— §V1.1 的 **S1 六条双向断言** + 内容/有牙
+        // =====================================================================
+        // 注入方式 = force **tap 源** (`u_dut.app_udp_rx_*`, udp_split 的 app 口) + force
+        //   `tready=1` (真 app 的 tready 是"每字 8 拍"慢消费; 本门要逐字可控)。镜像模块只采样
+        //   `tvalid && tready` ⇒ 与真实链路同一条合同, 且**不经过**任何功能路径改写。
+        // ⚠️ 所有 level 期望值都是**确定性**的 (注入量凑整字 + 每步留足 CDC 与排空拍数)。
+        $display("  --- M1: payload mirror window (S1 six assertions) ---");
+        force u_dut.app_udp_rx_tvalid = mi_valid;
+        force u_dut.app_udp_rx_tkeep  = mi_keep;
+        force u_dut.app_udp_rx_tdata  = mi_data;
+        force u_dut.app_udp_rx_tlast  = 1'b0;
+        force u_dut.app_udp_rx_tready = 1'b1;
+
+        // M1-0: 空载 STATUS (负对照 (b) 的一半): level==0 / unf==0
+        u_dut.u_pcie_xdma.axil_read(32'h13C, v);
+        chk("M1-0a idle level == 0", {16'd0, v[15:0]}, 32'd0);
+        chk("M1-0b idle unf_sticky == 0", {31'd0, v[16]}, 32'd0);
+        // M1-1: 起测协议 ① clr (0x144=0x2) → ② cap_en=1 (0x144=0x1); 读回 capture_on
+        u_dut.u_pcie_xdma.axil_write(32'h144, 32'h2);
+        u_dut.u_pcie_xdma.axil_write(32'h144, 32'h1);
+        repeat (60) @(posedge u_dut.u_pcie_xdma.aclk);
+        u_dut.u_pcie_xdma.axil_read(32'h13C, v);
+        chk("M1-1a ctrl: capture_on == 1", {31'd0, v[18]}, 32'd1);
+        // M1-2: 注入 8 B (01..08 ⇒ 1 个 FIFO 字 = **2 个逻辑字**; 手算锚见单元门 G9g/G9h)
+        //   P8 阶段三: 粒度 4 B -> 8 B ⇒ 单个 4 B 注入**不再进账** (单元门 G3 钉这条契约)
+        mir_beat(64'h0102030405060708, 8'hFF);
+        repeat (60) @(posedge u_dut.u_pcie_xdma.aclk);
+        u_dut.u_pcie_xdma.axil_read(32'h13C, v);
+        chk("M1-2a level == 2 (8B = 2 logical words)", {16'd0, v[15:0]}, 32'd2);
+        chk("M1-2b any_drop == 0 (no drop)", {31'd0, v[17]}, 32'd0);
+        // M1-3: 读 DATA (0x140) 两次 ⇒ 两个字内容 + 读逐次减 1 (判据 1)
+        u_dut.u_pcie_xdma.axil_read(32'h140, v);
+        chk("M1-3a content == 0xA1A6A7A4", v, 32'hA1A6A7A4);
+        u_dut.u_pcie_xdma.axil_read(32'h13C, v);
+        chk("M1-3b level == 1 (dec by 1, stash holds 2nd)", {16'd0, v[15:0]}, 32'd1);
+        u_dut.u_pcie_xdma.axil_read(32'h140, v);
+        chk("M1-3c word1 == 0xADA2A3A0 (0x08^0xA5=0xAD)", v, 32'hADA2A3A0);
+        u_dut.u_pcie_xdma.axil_read(32'h13C, v);
+        chk("M1-3d level == 0 (both popped)", {16'd0, v[15:0]}, 32'd0);
+        // M1-4: 判据 2 (S1 回归牙) —— 逐字读**全部 71 个快照字** (含 0x120=W64 与新 W70 @0x138),
+        //        level 必须**不变**。⚠️ 先补 1 字让 level 有值 —— 否则"不变"是空判据。
+        mir_beat(64'h2122232425262728, 8'hFF);      // 8B ⇒ 1 字: 0x81868784 / 0x8D828380
+        repeat (60) @(posedge u_dut.u_pcie_xdma.aclk);
+        u_dut.u_pcie_xdma.axil_read(32'h13C, v);
+        chk("M1-4a pre: level == 2", {16'd0, v[15:0]}, 32'd2);
+        for (mi_i = 0; mi_i < 71; mi_i = mi_i + 1) begin
+            u_dut.u_pcie_xdma.axil_read(32'h20 + mi_i*4, v);
+        end
+        u_dut.u_pcie_xdma.axil_read(32'h13C, v);
+        chk("M1-4b lvl unchanged == 2 (S1 tooth)", {16'd0, v[15:0]}, 32'd2);
+        // M1-5: 判据 4 (地址负对照): 读 0x14C ⇒ SLVERR 且 level 不变 (期 B: 0x148 → 0x14C)
+        u_dut.u_pcie_xdma.axil_read(32'h14C, v);
+        chk("M1-5a 0x14C rresp = SLVERR", {30'd0, u_dut.u_pcie_xdma.last_rresp}, 32'd2);
+        u_dut.u_pcie_xdma.axil_read(32'h13C, v);
+        chk("M1-5b lvl unchanged == 2", {16'd0, v[15:0]}, 32'd2);
+        // M1-6: 判据 5: 写非白名单地址 (0x100 = 快照区) ⇒ SLVERR 且 level 不变
+        u_dut.u_pcie_xdma.axil_write(32'h100, 32'hDEADBEEF);
+        chk("M1-6a 0x100 bresp = SLVERR", {30'd0, u_dut.u_pcie_xdma.last_bresp}, 32'd2);
+        u_dut.u_pcie_xdma.axil_read(32'h13C, v);
+        chk("M1-6b lvl unchanged == 2", {16'd0, v[15:0]}, 32'd2);
+        // M1-7: 判据 3: 正常读掉两字 (8B 字 = 2 逻辑字); 再读 ⇒ 哨兵 + unf + level 仍 0
+        u_dut.u_pcie_xdma.axil_read(32'h140, v);
+        chk("M1-7a word2 == 0x81868784", v, 32'h81868784);
+        u_dut.u_pcie_xdma.axil_read(32'h140, v);
+        chk("M1-7a2 word3 == 0x8D828380", v, 32'h8D828380);
+        u_dut.u_pcie_xdma.axil_read(32'h140, v);
+        chk("M1-7b empty read = MIR_SENT", v, 32'h5A5A5A5A);
+        u_dut.u_pcie_xdma.axil_read(32'h13C, v);
+        chk("M1-7c unf_sticky set", {31'd0, v[16]}, 32'd1);
+        chk("M1-7d level still == 0", {16'd0, v[15:0]}, 32'd0);
+        // M1-8: clr 清 sticky (协议: clr **不改变** cap_en ⇒ 写 0x3 = clr=1 & cap_en=1)
+        u_dut.u_pcie_xdma.axil_write(32'h144, 32'h3);
+        repeat (80) @(posedge u_dut.u_pcie_xdma.aclk);
+        u_dut.u_pcie_xdma.axil_read(32'h13C, v);
+        chk("M1-8a unf_sticky cleared", {31'd0, v[16]}, 32'd0);
+        chk("M1-8b cap_en kept by clr", {31'd0, v[18]}, 32'd1);
+        // M1-9: any_drop / dW70 有牙 (负对照 (a) 的仿真版): 8B/拍 连续 300 拍 **且无排空**
+        //   P8 阶段三: 旧版这里丢字 = "4 B/拍结构上限"; 结构类现在**不可达** ⇒ 本相位丢的是
+        //   **FIFO 满类** (300 拍 = 2400 B > FIFO 2 KB)。与 M1-11 分工: 本相位 = 满类牙, M1-11 = 正面判据。
+        snap_take(ok_r);
+        u_dut.u_pcie_xdma.axil_read(32'h138, mi_w70a);
+        begin : m1burst
+            integer bi;
+            for (bi = 0; bi < 300; bi = bi + 1) begin
+                @(posedge u_dut.dp_clk);
+                mi_data  <= {bi[31:0], bi[31:0]};
+                mi_keep  <= 8'hFF;
+                mi_valid <= 1'b1;
+            end
+            @(posedge u_dut.dp_clk);
+            mi_valid <= 1'b0;
+        end
+        repeat (200) @(posedge u_dut.u_pcie_xdma.aclk);
+        snap_take(ok_r);
+        u_dut.u_pcie_xdma.axil_read(32'h138, mi_w70b);
+        $display("  [INFO] M1-9 W70: %08x -> %08x (爆发 300 拍 x 8B/拍)", mi_w70a, mi_w70b);
+        if ((mi_w70b - mi_w70a) > 0) $display("  [PASS] M1-9a dW70 > 0 (拒收被计到 + 快照路径真)");
+        else begin $display("  [FAIL] M1-9a dW70 == 0 (爆发竟无拒收 => 计数字段或快照路径哑)"); fails = fails + 1; end
+        u_dut.u_pcie_xdma.axil_read(32'h13C, v);
+        chk("M1-9b any_drop_sticky == 1", {31'd0, v[17]}, 32'd1);
+
+        // =====================================================================
+        // M1-11 (P8 阶段三新增): **8 B/拍持续源 + dma_en=1 排空 ⇒ dW70 == 0**
+        // =====================================================================
+        // 手算: 300 拍 x 8B = 2400 B = 600 个逻辑字; aux 口 = 2 字/次 ⇒ dMIR_DMA_CNT == 600。
+        //   旧版 (4 B/拍) 在同一条构造下必丢 1200 B ⇒ 本判据 = 修复的直接牙 (全链版)。
+        $display("  --- M1-11: sustained 8B/beat + dma_en=1 => dW70 == 0 ---");
+        u_dut.u_pcie_xdma.axil_write(32'h144, 32'hA);      // [3]dma_en=1 [1]clr=1 (冲刷 M1-9 残留)
+        repeat (600) @(posedge u_dut.u_pcie_xdma.aclk);
+        u_dut.u_pcie_xdma.axil_write(32'h144, 32'h9);      // [3]dma_en=1 [0]cap_en=1
+        repeat (60) @(posedge u_dut.u_pcie_xdma.aclk);
+        u_dut.u_pcie_xdma.axil_read(32'h148, mi_cnt_a);    // 环字计数器基线 (clr 后 = 0)
+        snap_take(ok_r);
+        u_dut.u_pcie_xdma.axil_read(32'h138, mi_w70a);     // W70 基线 (快照字)
+        begin : m1burst11
+            integer bi2;
+            for (bi2 = 0; bi2 < 300; bi2 = bi2 + 1) begin
+                @(posedge u_dut.dp_clk);
+                mi_data  <= {bi2[31:0], bi2[31:0]};
+                mi_keep  <= 8'hFF;
+                mi_valid <= 1'b1;
+            end
+            @(posedge u_dut.dp_clk);
+            mi_valid <= 1'b0;
+        end
+        repeat (400) @(posedge u_dut.u_pcie_xdma.aclk);    // 等 aux 抽干 (2 字/rd 拍, 600 字很快)
+        u_dut.u_pcie_xdma.axil_read(32'h148, mi_cnt_b);
+        snap_take(ok_r);
+        u_dut.u_pcie_xdma.axil_read(32'h138, mi_w70b);
+        u_dut.u_pcie_xdma.axil_read(32'h13C, v);
+        $display("  [INFO] M1-11 DMA_CNT: %08x -> %08x ; W70: %08x -> %08x ; level=%0d",
+                 mi_cnt_a, mi_cnt_b, mi_w70a, mi_w70b, v[15:0]);
+        chk("M1-11a dW70 == 0 (structural drop unreachable)", mi_w70b - mi_w70a, 32'd0);
+        chk("M1-11b dMIR_DMA_CNT == 600 (300x8B = 600 words)", mi_cnt_b - mi_cnt_a, 32'd600);
+        chk("M1-11c level == 0 after drain", {16'd0, v[15:0]}, 32'd0);
+
+        // =====================================================================
+        // ⭐ M1 期 A (2026-10-11): src_sel 源选择 —— 正/负对照各半 (派单裁定文本)
+        // =====================================================================
+        // 判据设计 (每一条都带"该红时红"的对照):
+        //   M1-10a 读回: 写 MIR_CTRL[2] ⇒ MIR_STATUS[23] == 1 (源选择位真落进寄存器)
+        //   M1-10b 负对照: src_sel=1 (选 TCP) 时**打 UDP 口** ⇒ level 必须仍 0
+        //                  (未选中的那一源一个字节都不进镜像 —— 这就是"只镜像一路"的牙)
+        //   M1-10c 正:     src_sel=1 时打 TCP 口 ⇒ level==1 + 内容 == 手算锚
+        //   M1-10d 同拍双打: TCP+UDP **同拍** tvalid ⇒ 只有 TCP 进账 (1 字, 不是 2 字)
+        //   M1-10e 切回:   写回 src_sel=0 ⇒ 读回 bit23==0; TCP 被忽略 / UDP 进账
+        $display("  --- M1 期 A: src_sel source select (MIR_CTRL[2] / MIR_STATUS[23]) ---");
+        force u_dut.app_rx_tvalid = mt_valid;
+        force u_dut.app_rx_tkeep  = mt_keep;
+        force u_dut.app_rx_tdata  = mt_data;
+        force u_dut.app_rx_tlast  = 1'b0;
+        force u_dut.app_rx_tready = 1'b1;
+
+        // M1-10a: 切源协议 (cap_en=0 下切 → clr → cap_en=1) + 读回
+        u_dut.u_pcie_xdma.axil_write(32'h144, 32'h6);       // clr=1 + src_sel=1 (cap_en=0)
+        u_dut.u_pcie_xdma.axil_write(32'h144, 32'h5);       // cap_en=1 + src_sel=1
+        repeat (600) @(posedge u_dut.u_pcie_xdma.aclk);     // 等 clr 的排空式冲刷跑完 (≤256 字)
+        u_dut.u_pcie_xdma.axil_read(32'h13C, v);
+        chk("M1-10a1 src_sel readback == 1", {31'd0, v[23]}, 32'd1);
+        chk("M1-10a2 capture_on == 1", {31'd0, v[18]}, 32'd1);
+        chk("M1-10a3 clr 后的 level == 0", {16'd0, v[15:0]}, 32'd0);
+        // M1-10b: 负对照 —— 选 TCP 时打 UDP (3 字) ⇒ level 必须仍 0
+        mir_beat(64'h0102030405060708, 8'hF0);
+        mir_beat(64'h1112131415161718, 8'hF0);
+        mir_beat(64'h2122232425262728, 8'hF0);
+        repeat (60) @(posedge u_dut.u_pcie_xdma.aclk);
+        u_dut.u_pcie_xdma.axil_read(32'h13C, v);
+        chk("M1-10b UDP 未被选中 => level 仍 0", {16'd0, v[15:0]}, 32'd0);
+        // M1-10c: 正 —— 打 TCP (8B: 01..08 ^A5) ⇒ level==2 + 内容 (先出的字)
+        tcp_beat(64'h0102030405060708, 8'hFF);
+        repeat (60) @(posedge u_dut.u_pcie_xdma.aclk);
+        u_dut.u_pcie_xdma.axil_read(32'h13C, v);
+        chk("M1-10c1 TCP 被选中 => level == 2", {16'd0, v[15:0]}, 32'd2);
+        u_dut.u_pcie_xdma.axil_read(32'h140, v);
+        chk("M1-10c2 TCP 载荷字 == 0xA1A6A7A4", v, 32'hA1A6A7A4);
+        // M1-10d: 同拍双打 (TCP 8B + UDP 8B, 同拍 tvalid=1) ⇒ 只 TCP 进账 (level +2, 不是 +4)
+        begin : m1both
+            @(posedge u_dut.dp_clk);
+            mt_data <= 64'h1122334455667788; mt_keep <= 8'hFF; mt_valid <= 1'b1;
+            mi_data <= 64'hAABBCCDD11223344; mi_keep <= 8'hFF; mi_valid <= 1'b1;
+            @(posedge u_dut.dp_clk);
+            mt_valid <= 1'b0; mi_valid <= 1'b0;
+            @(posedge u_dut.dp_clk);
+        end
+        repeat (60) @(posedge u_dut.u_pcie_xdma.aclk);
+        u_dut.u_pcie_xdma.axil_read(32'h13C, v);
+        chk("M1-10d1 同拍双打 => level == 3 (只 TCP, +2)", {16'd0, v[15:0]}, 32'd3);
+        u_dut.u_pcie_xdma.axil_read(32'h140, v);
+        chk("M1-10d2 同拍双打 => 字 1 是 TCP 侧", v, 32'hADA2A3A0);
+        u_dut.u_pcie_xdma.axil_read(32'h140, v);
+        chk("M1-10d3 字 2 == 0xE19687B4 (TCP 新 8B)", v, 32'hE19687B4);
+        // M1-10e: 切回 UDP —— 写 0x2 = clr=1 & cap_en=0 & src_sel=0; 再 0x1 = cap_en=1
+        u_dut.u_pcie_xdma.axil_write(32'h144, 32'h2);
+        u_dut.u_pcie_xdma.axil_write(32'h144, 32'h1);
+        repeat (600) @(posedge u_dut.u_pcie_xdma.aclk);
+        u_dut.u_pcie_xdma.axil_read(32'h13C, v);
+        chk("M1-10e1 src_sel readback == 0", {31'd0, v[23]}, 32'd0);
+        tcp_beat(64'h3132333435363738, 8'hFF);              // TCP 现在未被选中 (8B)
+        repeat (60) @(posedge u_dut.u_pcie_xdma.aclk);
+        u_dut.u_pcie_xdma.axil_read(32'h13C, v);
+        chk("M1-10e2 切回后 TCP 不进账 => level 0", {16'd0, v[15:0]}, 32'd0);
+        mir_beat(64'h55565758595A5B5C, 8'hFF);              // UDP 又进账 (8B)
+        repeat (60) @(posedge u_dut.u_pcie_xdma.aclk);
+        u_dut.u_pcie_xdma.axil_read(32'h13C, v);
+        chk("M1-10e3 切回后 UDP 进账 => level 2", {16'd0, v[15:0]}, 32'd2);
+        u_dut.u_pcie_xdma.axil_read(32'h140, v);
+        chk("M1-10e4 UDP 载荷字 == 0xFDF2F3F0", v, 32'hFDF2F3F0);
+
+        // =====================================================================
+        // ⭐⭐ P9 (2026-10-11): C2H = **AXIS 成形器** (替代期 B 的环 + AXI-MM 从机) —— 全链
+        // =====================================================================
+        // 覆盖: ① 打包 (2 次 aux grant = 16 B = 1 个 128 位拍) + **手算内容锚**;
+        //   ② tkeep/tlast 合同 (非末拍 FFFF / 停流 flush 拍 = keep 00FF + tlast=1;
+        //      替身侧对**每拍**做合同断言: `str_keep_bad`); ③ **背压 ⇒ 不拉 dma_req ⇒
+        //      镜像 FIFO 满 ⇒ 丢字节只记 W70** (TL 裁定的核心性质, 本组最重的一条);
+        //   ④ `dma_en` 门 / `clr` (= **窗口边界 ⇒ 丢弃残拍**, D4 板级修正轮后) /
+        //      `MIR_DMA_CNT` 口径 (= **从镜像 aux 口取走的 32 位字数**, 每 grant +2); ⑤ H2C 恒吞噬。
+        // ⚠️ 期望值全部**手算锚**: 注入 w ⇒ 逻辑字 == w; 拍 = {w3,w2,w1,w0} (低字在前)。
+        // ⚠️ 读 MIR_CTRL 的读回时**必须掩掉 bit1** (clr 是 toggle, 多次写后取值 = 翻转奇偶性)。
+        $display("  --- P9-B: C2H AXIS shaper + H2C swallow (P9) ---");
+        u_dut.u_pcie_xdma.axis_mon_clear;
+        u_dut.u_pcie_xdma.axis_tready_set(1'b1);
+        // P9-B-0: 起测协议 (① clr+dma_en → ② cap_en) + 计数器归零 + 读回
+        u_dut.u_pcie_xdma.axil_write(32'h144, 32'hA);      // [3]dma_en=1 [1]clr=1
+        u_dut.u_pcie_xdma.axil_write(32'h144, 32'h9);      // [3]dma_en=1 [0]cap_en=1
+        repeat (400) @(posedge u_dut.u_pcie_xdma.aclk);
+        u_dut.u_pcie_xdma.axil_read(32'h148, v);
+        chk("P9-B-0a MIR_DMA_CNT 是可读真字 (clr 后 == 0)", v, 32'd0);
+        u_dut.u_pcie_xdma.axil_read(32'h144, v);
+        chk("P9-B-0b MIR_CTRL 读回: cap_en=1/src_sel=0/dma_en=1 (掩 bit1 toggle)",
+            {29'd0, v[3], v[2], v[0]}, 32'b101);
+        u_dut.u_pcie_xdma.axil_read(32'h13C, v);
+        chk("P9-B-0c MIR_STATUS.ver == 4 (P9: 口径变更 bump)", {28'd0, v[22:19]}, 32'd4);
+        // P9-B-1: 注入 4 逻字 (= 16 B) ⇒ **恰好 1 个 AXIS 拍** + 手算内容锚
+        mir_word(32'hB1B6B7B4);
+        mir_word(32'h81868784);
+        mir_word(32'h91969794);
+        mir_word(32'hE1E6E7E4);
+        u_dut.u_pcie_xdma.axis_wait_beats(1, 2000);
+        chk("P9-B-1a 有界等待内收到拍 (无超时)", {31'd0, u_dut.u_pcie_xdma.str_to}, 32'd0);
+        chk("P9-B-1b 拍数 == 1", {31'd0, u_dut.u_pcie_xdma.str_n}, 32'd1);
+        chk128("P9-B-1c 拍内容 == 手算锚 {w3,w2,w1,w0}",
+               u_dut.u_pcie_xdma.str_data[0],
+               {32'hE1E6E7E4, 32'h91969794, 32'h81868784, 32'hB1B6B7B4});
+        chk("P9-B-1d tkeep == FFFF (非末拍)", {16'd0, u_dut.u_pcie_xdma.str_keep[0]}, 32'hFFFF);
+        chk("P9-B-1e tlast == 0 (方案 A: 全流一个无限长包)", {31'd0, u_dut.u_pcie_xdma.str_last[0]}, 32'd0);
+        u_dut.u_pcie_xdma.axil_read(32'h148, v);
+        chk("P9-B-1f MIR_DMA_CNT == 4 (一次交付 4 个 32 位字)", v, 32'd4);
+        repeat (200) @(posedge u_dut.u_pcie_xdma.aclk);
+        chk("P9-B-1g 替身侧合同断言: 无 keep 违规", {31'd0, u_dut.u_pcie_xdma.str_keep_bad}, 32'd0);
+        // P9-B-2: 多拍 (再注入 16 字 = 4 拍) —— 逐拍对账 + 计数器 20
+        for (mbi = 4; mbi < 20; mbi = mbi + 1) mir_word(32'hC0DE_0000 | mbi[31:0]);
+        u_dut.u_pcie_xdma.axis_wait_beats(5, 4000);
+        chk("P9-B-2a 无超时", {31'd0, u_dut.u_pcie_xdma.str_to}, 32'd0);
+        chk("P9-B-2b 拍数 == 5 (1+4)", {31'd0, u_dut.u_pcie_xdma.str_n}, 32'd5);
+        u_dut.u_pcie_xdma.axil_read(32'h148, v);
+        chk("P9-B-2c MIR_DMA_CNT == 20 (4+16)", v, 32'd20);
+        for (mbr = 0; mbr < 4; mbr = mbr + 1) begin
+            exp_beat_v = {(32'hC0DE_0000 | (4*(1+mbr)+3)), (32'hC0DE_0000 | (4*(1+mbr)+2)),
+                          (32'hC0DE_0000 | (4*(1+mbr)+1)), (32'hC0DE_0000 | (4*(1+mbr)+0))};
+            chk128("P9-B-2d 拍内容逐拍 (beat 1+i)", u_dut.u_pcie_xdma.str_data[1+mbr], exp_beat_v);
+        end
+        // =====================================================================
+        // P9-B-3 ⭐ **背压 ⇒ 不拉 dma_req ⇒ 镜像 FIFO 满 ⇒ 丢字节只记 W70**
+        //   (TL 裁定的核心性质; 也是"宿主 read 空档"的仿真等价物)
+        // ⭐⭐ 2026-10-13 (P9-B-3d 修法轮; 复核 §I2 意见 1/2/3; 判据验收权威在复核者/用户):
+        //   旧判据 = "灌 **700** 拍 (2.8 KB) ⇒ ΔW70 > 0" —— URAM 板内缓冲本刀把下游弹性从
+        //   ≈2 KB 抬到 ≈34 KB 后, 2.8 KB **不再够填满** ⇒ ΔW70=0 而红 (**不是**计数路径坏了;
+        //   原件 = p9_uram_20261013/REPORT.md §5.3 + diag_p9b3d/DIAG_stdout.txt)。改法 =
+        //     ① 注入量/弹性预算绑**具名常量** (P9B3_*, 见声明处; 防容量再变时又静默失效);
+        //     ② 判据升级为**双边账** (比 ">0" 有判别力, 且抗容量变化):
+        //        下界腿 = ΔW70 ≥ 注入字节 − 弹性上界; 上界腿 = 交付量 == 注入字数 − ΔW70/4
+        //        (容差 ±1 字 = 镜像打包残余; ">0" 只证"路径活着", 抓不到多计/少计)。
+        //     ③ 同步订正本条旁的陈旧推理注释 ("下游弹性只有几十字节" 已随 URAM 缓冲作废)。
+        // ⚠️ 注入用 `mir_word` (每次恰 1 个逻辑字, 值 = `32'hDEAD0000 | k`)
+        //   ⇒ 交付的每拍必须 == golden 切片 `{w(4i+3),w(4i+2),w(4i+1),w(4i)}`。
+        //   丢字节一律发生在**最新数据**上 (FIFO 语义) ⇒ 交付流 = golden 的**前缀**。
+        // =====================================================================
+        $display("  --- P9-B-3: backpressure -> no dma_req -> FIFO-full drops (W70 only) ---");
+        u_dut.u_pcie_xdma.axis_tready_set(1'b0);           // 下游停收
+        u_dut.u_pcie_xdma.axis_mon_clear;                  // 清拍计数
+        snap_take(ok_r);
+        u_dut.u_pcie_xdma.axil_read(32'h138, mi_w70a);     // W70 基线
+        u_dut.u_pcie_xdma.axil_read(32'h148, mi_cnt_a);    // MIR_DMA_CNT 基线 (P9-B-3h 闭账用)
+        begin : p9_stall
+            integer bi;
+            for (bi = 0; bi < P9B3_INJECT_BEATS; bi = bi + 1) mir_word(32'hDEAD_0000 | bi[31:0]);
+        end
+        repeat (600) @(posedge u_dut.u_pcie_xdma.aclk);
+        u_dut.u_pcie_xdma.axil_read(32'h148, v);
+        chk("P9-B-3a tready=0 ⇒ 一拍都没被收下", {31'd0, u_dut.u_pcie_xdma.str_n}, 32'd0);
+        // ⚠️ 计数点 = 成形器 aux 口 (TL 裁定 ①): 停收期它仍会取走到**暂存满**再停
+        //    (成形器暂存 32 B = 4 grant = +8 字; 缓冲自己吸走的那 32 KB **不**计入本计数)
+        //    ⇒ 这里是 **20 + 8 = 28** (与"暂存满"口径签名一致)。
+        chk("P9-B-3b tready=0 ⇒ 计数只推进到暂存满 (20 + 4 grant x2 = 28)", v, 32'd28);
+        chk("P9-B-3c ⭐ 暂存满 ⇒ **不拉 dma_req** (无空间不请求)", {31'd0, u_dut.mir_dma_req}, 32'd0);
+        snap_take(ok_r);
+        u_dut.u_pcie_xdma.axil_read(32'h138, mi_w70b);     // W70 末值
+        $display("  [INFO] P9-B-3 W70: %08x -> %08x (注入 %0d 拍 = %0d B, 下游停收)",
+                 mi_w70a, mi_w70b, P9B3_INJECT_BEATS, P9B3_INJECT_BYTES);
+        begin : p9_lower
+            integer dw70;
+            dw70 = mi_w70b - mi_w70a;
+            $display("  [INFO] P9-B-3 dW70 = %0d B (弹性上界预算 = %0d B, 实测吸收 = %0d B)",
+                     dw70, P9B3_ELASTIC_MAX_BYTES, P9B3_INJECT_BYTES - dw70);
+            if (dw70 >= (P9B3_INJECT_BYTES - P9B3_ELASTIC_MAX_BYTES))
+                $display("  [PASS] P9-B-3d lower leg: dW70 >= inject - elastic_max (= %0d)",
+                         P9B3_INJECT_BYTES - P9B3_ELASTIC_MAX_BYTES);
+            else begin
+                $display("  [FAIL] P9-B-3d lower leg: dW70 = %0d B < %0d (少计, 或吸收超结构性上界)",
+                         dw70, P9B3_INJECT_BYTES - P9B3_ELASTIC_MAX_BYTES);
+                fails = fails + 1;
+            end
+        end
+        // 恢复: tready=1 ⇒ 剩下的数据按序流出, 逐拍内容 == golden 前缀 (无损坏)
+        u_dut.u_pcie_xdma.axis_tready_set(1'b1);
+        u_dut.u_pcie_xdma.axis_wait_beats(4, 6000);
+        chk("P9-B-3e 恢复后无超时", {31'd0, u_dut.u_pcie_xdma.str_to}, 32'd0);
+        // ⭐ 全排空等待 (旧版只等 600 拍 —— 够不着新容量): 缓冲要吐 ≤ 弹性上界/8 个字,
+        //   aux 1 grant/拍上下 ⇒ 实测 ~4400 拍; 给 P9B3_DRAIN_CYCLES (4× 余量)。
+        repeat (P9B3_DRAIN_CYCLES) @(posedge u_dut.u_pcie_xdma.aclk);
+        u_dut.u_pcie_xdma.axil_read(32'h148, v);
+        $display("  [INFO] P9-B-3 delivered words = %0d ; beats = %0d ; keep_bad = %0d",
+                 v, u_dut.u_pcie_xdma.str_n, u_dut.u_pcie_xdma.str_keep_bad);
+        chk("P9-B-3f 恢复期无 keep 合同违规", {31'd0, u_dut.u_pcie_xdma.str_keep_bad}, 32'd0);
+        begin : p9_close
+            // ⭐ 上界腿 (闭账): 交付 == 注入 − 丢弃/4 (±1 字 = 镜像打包残余)。
+            //   "多计" ⇒ 交付 > 期望 (红); "少计/丢账" ⇒ 交付 < 期望−容差 (红)。
+            integer dw70, expw, deliv;
+            dw70  = mi_w70b - mi_w70a;
+            expw  = P9B3_INJECT_BEATS - (dw70 / 4);
+            deliv = v - mi_cnt_a;
+            $display("  [INFO] P9-B-3 close: injected=%0d w, dW70/4=%0d w, expected_delivered=%0d w, delivered=%0d w",
+                     P9B3_INJECT_BEATS, dw70/4, expw, deliv);
+            if ((deliv <= expw) && (deliv >= (expw - P9B3_RESID_ACCEPT)))
+                $display("  [PASS] P9-B-3h upper leg: delivered == inject - dW70/4 (±%0d)", P9B3_RESID_ACCEPT);
+            else begin
+                $display("  [FAIL] P9-B-3h upper leg: delivered = %0d w (期望 %0d..%0d w)",
+                         deliv, expw - P9B3_RESID_ACCEPT, expw);
+                fails = fails + 1;
+            end
+        end
+        begin : p9_chk_prefix
+            integer ci;
+            for (ci = 0; ci < 4; ci = ci + 1) begin
+                exp_beat_v = {(32'hDEAD_0000 | (4*ci+3)), (32'hDEAD_0000 | (4*ci+2)),
+                              (32'hDEAD_0000 | (4*ci+1)), (32'hDEAD_0000 | (4*ci+0))};
+                chk128("P9-B-3g 恢复后拍内容 == golden 前缀 (无损坏)", u_dut.u_pcie_xdma.str_data[ci], exp_beat_v);
+            end
+        end
+        // =====================================================================
+        // P9-B-4: **停流 flush** (`dma_en` 1→0) —— 半个 8 B ⇒ keep=00FF + tlast=1
+        // =====================================================================
+        $display("  --- P9-B-4: stop-flow flush (tlast beat, keep packed to LSB) ---");
+        u_dut.u_pcie_xdma.axil_write(32'h144, 32'hA);      // clr + dma_en=1
+        u_dut.u_pcie_xdma.axil_write(32'h144, 32'h9);      // dma_en=1 + cap_en=1
+        repeat (400) @(posedge u_dut.u_pcie_xdma.aclk);
+        u_dut.u_pcie_xdma.axis_mon_clear;
+        u_dut.u_pcie_xdma.axil_read(32'h148, mi_cnt_a);    // 计数器基线
+        mir_word(32'h11223344);                            // 只注入 2 个逻辑字 = 8 B (= 半个拍)
+        mir_word(32'h55667788);
+        repeat (200) @(posedge u_dut.u_pcie_xdma.aclk);
+        chk("P9-B-4a 半个拍**不出** (tvalid=0: 停流前只发整拍)", {31'd0, u_dut.u_pcie_xdma.str_n}, 32'd0);
+        u_dut.u_pcie_xdma.axil_write(32'h144, 32'h1);      // dma_en=1→0 (cap_en 保持=1) ⇒ flush
+        u_dut.u_pcie_xdma.axis_wait_beats(1, 2000);
+        chk("P9-B-4b flush 拍出现 (无超时)", {31'd0, u_dut.u_pcie_xdma.str_to}, 32'd0);
+        chk("P9-B-4c flush 拍数 == 1", {31'd0, u_dut.u_pcie_xdma.str_n}, 32'd1);
+        chk128("P9-B-4d flush 拍 = {64'd0, 半个 8 B} (有效字节挤 LSB)",
+               u_dut.u_pcie_xdma.str_data[0], {64'd0, 32'h55667788, 32'h11223344});
+        chk("P9-B-4e flush 拍 tkeep == 00FF (挤 LSB 且非全 0)",
+            {16'd0, u_dut.u_pcie_xdma.str_keep[0]}, 32'h00FF);
+        chk("P9-B-4f flush 拍 tlast == 1", {31'd0, u_dut.u_pcie_xdma.str_last[0]}, 32'd1);
+        chk("P9-B-4g 替身侧合同断言: 无 keep 违规", {31'd0, u_dut.u_pcie_xdma.str_keep_bad}, 32'd0);
+        u_dut.u_pcie_xdma.axil_read(32'h148, v);
+        chk("P9-B-4h flush 拍也计交付 (== 基线+2)", v - mi_cnt_a, 32'd2);
+        // =====================================================================
+        // P9-B-5: `dma_en` 门 + `clr` (残拍丢弃不计数)
+        // =====================================================================
+        u_dut.u_pcie_xdma.axil_write(32'h144, 32'h2);      // clr=1, cap_en=0, dma_en=0
+        repeat (400) @(posedge u_dut.u_pcie_xdma.aclk);
+        u_dut.u_pcie_xdma.axil_read(32'h148, v);
+        chk("P9-B-5a clr 后计数器归零", v, 32'd0);
+        u_dut.u_pcie_xdma.axis_mon_clear;
+        u_dut.u_pcie_xdma.axil_write(32'h144, 32'h1);      // cap_en=1, dma_en=0
+        repeat (100) @(posedge u_dut.u_pcie_xdma.aclk);
+        mir_word(32'h5A5A1234);
+        mir_word(32'hA5A54321);
+        repeat (400) @(posedge u_dut.u_pcie_xdma.aclk);
+        u_dut.u_pcie_xdma.axil_read(32'h148, v);
+        chk("P9-B-5b dma_en=0 ⇒ 不动 (计数器仍 0)", v, 32'd0);
+        chk("P9-B-5c dma_en=0 ⇒ 一拍都不发", {31'd0, u_dut.u_pcie_xdma.str_n}, 32'd0);
+        u_dut.u_pcie_xdma.axil_read(32'h13C, v);
+        chk("P9-B-5d dma_en=0 ⇒ 字留在 level 里 (== 2)", {16'd0, v[15:0]}, 32'd2);
+        u_dut.u_pcie_xdma.axil_write(32'h144, 32'h9);      // dma_en=1 (cap_en 保持)
+        repeat (400) @(posedge u_dut.u_pcie_xdma.aclk);
+        u_dut.u_pcie_xdma.axil_read(32'h148, v);
+        // ⚠️ 计数点 = **aux 口取走** (TL 裁定 ①): 8 B 被弹出 = **+2** (不等到成拍/交付)。
+        chk("P9-B-5e dma_en=1 ⇒ 弹出即计数 (== 2; 计数点 = aux 口)", v, 32'd2);
+        u_dut.u_pcie_xdma.axil_read(32'h13C, v);
+        chk("P9-B-5f 镜像 FIFO 已抽干 ⇒ level == 0", {16'd0, v[15:0]}, 32'd0);
+        chk("P9-B-5g 半拍留在暂存 (en=1/cap_en=1 ⇒ stop=0 ⇒ 不出末拍)", {31'd0, u_dut.u_pcie_xdma.str_n}, 32'd0);
+        // =====================================================================
+        // P9-B-5h ⭐ `clr` = **窗口边界 ⇒ 丢弃残拍** (D4 板级修正轮; 与单元门 G7/G7x 同形)
+        //   旧口径 (clr 把残拍作短末拍送出) 已被板级 0x22 实测推翻 —— 它让 EOP 早关描述符 ⇒
+        //   宿主首块 [8,4096) 全零 + 尾部截断 8,176 B + 第二次 read 超时 10 s
+        //   (件 = _proj_10g/notes/p9_board_0x22_20261011/runs/D4_BOUNDARY.txt) ⇒ 现口径 = 丢弃。
+        // =====================================================================
+        $display("  --- P9-B-5h: clr = window boundary -> DISCARD residue (no beat) ---");
+        u_dut.u_pcie_xdma.axis_mon_clear;                  // 清拍数/末拍数/合同/超时
+        u_dut.u_pcie_xdma.axil_write(32'h144, 32'h2);      // clr (cap_en=0, dma_en=0; 与板级起测同形)
+        repeat (600) @(posedge u_dut.u_pcie_xdma.aclk);    // 600 > 静置窗 (32 拍) ⇒ 若冒拍必被看见
+        chk("P9-B-5h clr drops residue", {31'd0, u_dut.u_pcie_xdma.str_n}, 32'd0);
+        chk("P9-B-5i clr: zero tlast beats", {31'd0, u_dut.u_pcie_xdma.str_last_n}, 32'd0);
+        chk("P9-B-5j clr: no keep viol", {31'd0, u_dut.u_pcie_xdma.str_keep_bad}, 32'd0);
+        u_dut.u_pcie_xdma.axil_read(32'h148, v);
+        chk("P9-B-5l clr 后计数归零", v, 32'd0);
+        // =====================================================================
+        // P9-B-5m ⭐ `clr` **单独触发** (en/cap_en 都保持 1) —— 旧版这里期望"短末拍";
+        //   D4 板级修正轮后 = **丢弃**; 并加**正面判据**: 新窗口头部不得出现 pre-clr 字节
+        //   (G7 同形 ⇒ 残拍若漏进新窗口, 头拍会带陈旧 8 B ⇒ 本组必红)。
+        // =====================================================================
+        $display("  --- P9-B-5m: clr alone -> discard; new window head has NO stale bytes ---");
+        u_dut.u_pcie_xdma.axis_mon_clear;
+        u_dut.u_pcie_xdma.axil_write(32'h144, 32'h9);      // cap_en=1 + dma_en=1 (clr 位=0 ⇒ 不翻转)
+        repeat (300) @(posedge u_dut.u_pcie_xdma.aclk);
+        mir_word(32'h0BADF00D);                            // 2 个字 = 8 B = 半个拍 (停流前不出)
+        mir_word(32'hFEEDFACE);
+        repeat (300) @(posedge u_dut.u_pcie_xdma.aclk);
+        chk("P9-B-5m0 half held (stop=0)", {31'd0, u_dut.u_pcie_xdma.str_n}, 32'd0);
+        u_dut.u_pcie_xdma.axil_write(32'h144, 32'hB);      // clr toggle (en/cap_en 保持 1)
+        repeat (600) @(posedge u_dut.u_pcie_xdma.aclk);
+        chk("P9-B-5m1 clr drops residue", {31'd0, u_dut.u_pcie_xdma.str_n}, 32'd0);
+        chk("P9-B-5m2 clr: zero tlast", {31'd0, u_dut.u_pcie_xdma.str_last_n}, 32'd0);
+        u_dut.u_pcie_xdma.axil_read(32'h148, v);
+        chk("P9-B-5m3 clr 后计数归零", v, 32'd0);
+        // ⭐ 正面判据: 新窗口灌 4 个字 ⇒ 恰 1 个整拍, 内容**逐字节 == 新字**
+        mir_word(32'h11111111);
+        mir_word(32'h22222222);
+        mir_word(32'h33333333);
+        mir_word(32'h44444444);
+        u_dut.u_pcie_xdma.axis_wait_beats(1, 4000);        // 有界等头拍 (清窗外无拍 ⇒ str_to 置位)
+        repeat (300) @(posedge u_dut.u_pcie_xdma.aclk);    // ⚠️ 等**新窗口全部拍落定**再数拍:
+                                                           //   旧口径下残拍会先到 ⇒ 早读会把"2 拍"看成"1 拍"
+        chk("P9-B-5m4 new head (no tmo)", {31'd0, u_dut.u_pcie_xdma.str_to}, 32'd0);
+        chk("P9-B-5m5 new window 1 beat", {31'd0, u_dut.u_pcie_xdma.str_n}, 32'd1);
+        chk128("P9-B-5m6 head == new words", u_dut.u_pcie_xdma.str_data[0],
+               {32'h44444444, 32'h33333333, 32'h22222222, 32'h11111111});
+        chk("P9-B-5m7 head keep == FFFF", {16'd0, u_dut.u_pcie_xdma.str_keep[0]}, 32'hFFFF);
+        chk("P9-B-5m8 head tlast == 0", {31'd0, u_dut.u_pcie_xdma.str_last[0]}, 32'd0);
+        chk("P9-B-5m9 no keep viol", {31'd0, u_dut.u_pcie_xdma.str_keep_bad}, 32'd0);
+        u_dut.u_pcie_xdma.axil_read(32'h148, v);
+        chk("P9-B-5m10 count == 4", v, 32'd4);
+        // =====================================================================
+        // P9-B-6: H2C = **恒 tready=1 的吞噬口** (端口真接上 = 两根线非 Z)
+        // =====================================================================
+        $display("  --- P9-B-6: H2C swallow (tready=1 constant) ---");
+        u_dut.u_pcie_xdma.h2c_mon_clear;
+        u_dut.u_pcie_xdma.h2c_valid_set(1'b1);
+        repeat (50) @(posedge u_dut.u_pcie_xdma.aclk);
+        u_dut.u_pcie_xdma.h2c_valid_set(1'b0);
+        // ⚠️ 计数边界容差 ±2 拍 (置位拍/撤销拍与 aclk 沿的相位差; 判据 = "几乎全吞",
+        //    判别力落在"恒 tready=1" vs "tready=0 则一拍不吞"这个量级上)。
+        if ((u_dut.u_pcie_xdma.h2c_go_n >= 48) && (u_dut.u_pcie_xdma.h2c_go_n <= 52))
+            $display("  [PASS] P9-B-6a H2C tvalid 全被吞 (tready 恒 1; 计数 %0d)", u_dut.u_pcie_xdma.h2c_go_n);
+        else begin $display("  [FAIL] P9-B-6a h2c_go_n = %0d (期望 ~50: 恒 tready=1)", u_dut.u_pcie_xdma.h2c_go_n);
+                   fails = fails + 1; end
+        if (u_dut.mir_h2c_tvalid === 1'b1 || u_dut.mir_h2c_tvalid === 1'b0)
+            $display("  [PASS] P9-B-6b H2C 四条边带线真接上 (u_dut.mir_h2c_tvalid 非 Z/X)");
+        else begin $display("  [FAIL] P9-B-6b u_dut.mir_h2c_tvalid = %b (Z/X ⇒ 端口没接)", u_dut.mir_h2c_tvalid);
+                   fails = fails + 1; end
+
+        // 清场: clr → cap_en=0 (回退态) + 释放全部注入 force (两路都放)
+        u_dut.u_pcie_xdma.axil_write(32'h144, 32'h2);
+        u_dut.u_pcie_xdma.axil_write(32'h144, 32'h0);
+        release u_dut.app_udp_rx_tvalid;
+        release u_dut.app_udp_rx_tkeep;
+        release u_dut.app_udp_rx_tdata;
+        release u_dut.app_udp_rx_tlast;
+        release u_dut.app_udp_rx_tready;
+        release u_dut.app_rx_tvalid;
+        release u_dut.app_rx_tkeep;
+        release u_dut.app_rx_tdata;
+        release u_dut.app_rx_tlast;
+        release u_dut.app_rx_tready;
+
+        if (fails == 0) $display("PASS_ALL  tb_p6e_pcie_wrapper: 全链门全过");
+        else            $display("FAIL      tb_p6e_pcie_wrapper: %0d 项失败", fails);
+        $display("=== done ===");
+        $finish;
+    end
+
+    initial begin #4000000; $display("TIMEOUT"); $finish; end
+endmodule

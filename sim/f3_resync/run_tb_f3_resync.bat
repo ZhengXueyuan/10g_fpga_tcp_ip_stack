@@ -21,23 +21,42 @@ REM   NOTE: verdicts are grepped as SINGLE literal strings from the TB's
 REM         "F3R CHK ..." line -- no pipes / no nested parens in echoed text
 REM         (cmd parses those inside a block and mangles them silently).
 REM   from Git Bash: cmd //c 'sim\f3_resync\run_tb_f3_resync.bat'
+REM
+REM   ---- matrix registration (2026-10-15, #20) -------------------------------
+REM   REPO_ROOT now comes from sim\p4gates\p4env.bat (the single source of truth
+REM   for every matrix gate) + a p4gate.py selfcheck tripwire.  The older
+REM   bespoke `for %%I` root derivation made p4gate.py manifestcheck read every
+REM   xvlog token as UNRESOLVED ("bat carries 0 files") => the gate could not be
+REM   registered with a non-empty compile manifest (same defect the p5_wrapper
+REM   registration hit, 2026-10-10).  The compile step is split so each of the
+REM   three mutually-exclusive DUT variants appears exactly ONCE in the bat.
+REM   NOTE FOR EDITORS: keep %-tilde patterns out of comments (cmd expands
+REM   percent-substitutions in REM lines too; an invalid one is FATAL).
 REM ==========================================================================
 setlocal
+call "%~dp0..\p4gates\p4env.bat" || exit /b 1
+
 set "HERE=%~dp0"
 if "%HERE:~-1%"=="\" set "HERE=%HERE:~0,-1%"
-set "ROOT=%HERE%\..\.."
-for %%I in ("%ROOT%") do set "ROOT=%%~fI"
-if not exist "%ROOT%\CLAUDE.md" (
-  echo [PATHGUARD FAIL] cannot locate repo root from %~f0
-  echo   derived ROOT = %ROOT%
-  exit /b 1
-)
+set "ROOT=%REPO_ROOT%"
+"%PY%" "%P4GATE_PY%" selfcheck --root "%REPO_ROOT%" --bat "%~f0" --quiet || exit /b 1
+
+REM ---- matrix hook (2026-10-15 #20): private cwd + declared manifest --------
+REM   The matrix runner exports P4_WORKDIR (its per-gate private directory, so
+REM   stale xsim.dir locks cannot cross-contaminate -- pit 7 of this project).
+REM   Standalone runs keep the historical behaviour (arm dirs under sim\f3_resync).
+set "ARMBASE=%HERE%"
+if not "%P4_WORKDIR%"=="" set "ARMBASE=%P4_WORKDIR%"
 cd /d "%HERE%"
+"%PY%" "%P4GATE_PY%" checkpaths --root "%REPO_ROOT%" --manifest "%GATES%\f3resync_src.f" --path "%CD%" --path "%ARMBASE%" --quiet || exit /b 1
+
 set "XV=C:\AMDDesignTools\2025.2\Vivado\bin"
 set "PY=C:\Users\zhxue\anaconda3\python.exe"
-set "RTL=%ROOT%\rtl\vlan_strip.v"
-set "TB=%HERE%\tb_f3_resync.v"
-set "MUTGEN=%HERE%\mut\mk_mut_f3.py"
+set "RTL=%REPO_ROOT%\rtl\vlan_strip.v"
+set "CELLDIR=%REPO_ROOT%\rtl"
+set "TB=%REPO_ROOT%\sim\f3_resync\tb_f3_resync.v"
+set "MUTDIR=%REPO_ROOT%\sim\f3_resync\mut"
+set "MUTGEN=%REPO_ROOT%\sim\f3_resync\mut\mk_mut_f3.py"
 if not exist "%XV%\xvlog.bat" (echo [FAIL] xvlog missing: %XV% & exit /b 1)
 if not exist "%RTL%" (echo [FAIL] RTL missing: %RTL% & exit /b 1)
 if not exist "%TB%"  (echo [FAIL] TB missing: %TB% & exit /b 1)
@@ -50,20 +69,20 @@ tasklist | findstr /I "xsim.exe xelab.exe" >NUL && (
 )
 
 REM ---- mutant generation (anchored + counted; stale anchor => hard fail) ----
-if not exist "%HERE%\mut" mkdir "%HERE%\mut"
-"%PY%" "%MUTGEN%" "%ROOT%" > "%HERE%\mut\mutgen.log" 2>&1
-if errorlevel 1 (type "%HERE%\mut\mutgen.log" & echo MUTGEN-FAIL & exit /b 1)
-type "%HERE%\mut\mutgen.log"
+if not exist "%MUTDIR%" mkdir "%MUTDIR%"
+"%PY%" "%MUTGEN%" "%ROOT%" > "%MUTDIR%\mutgen.log" 2>&1
+if errorlevel 1 (type "%MUTDIR%\mutgen.log" & echo MUTGEN-FAIL & exit /b 1)
+type "%MUTDIR%\mutgen.log"
 
-call :run F     runF "-d F3_ARMID_F" "%RTL%" F
+call :run F     runF "-d F3_ARMID_F" F
 set "RCF=%errorlevel%"
-call :run L     runL "-d F3_RESYNC_L -d F3_ARMID_L" "%RTL%" L
+call :run L     runL "-d F3_RESYNC_L -d F3_ARMID_L" L
 set "RCL=%errorlevel%"
-call :run M1    runM1 "-d F3_ARMID_M1" "%HERE%\mut\mut_m1.v" M1
+call :run M1    runM1 "-d F3_ARMID_M1" M1
 set "RCM1=%errorlevel%"
-call :run M2    runM2 "-d F3_ARMID_M2" "%HERE%\mut\mut_m2.v" M2
+call :run M2    runM2 "-d F3_ARMID_M2" M2
 set "RCM2=%errorlevel%"
-call :run CTRL  runC "-d F3_STOP_IFG -d F3_ARMID_CTRL" "%RTL%" CTRL
+call :run CTRL  runC "-d F3_STOP_IFG -d F3_ARMID_CTRL" CTRL
 set "RCC=%errorlevel%"
 
 echo ==================== SUMMARY ====================
@@ -83,7 +102,7 @@ if not "%RCC%"=="0"  set /a FAILS+=1
 echo ---- key readings ----
 for %%A in (runF runL runM1 runM2 runC) do (
   echo   [%%A]
-  findstr /C:"F3R ARM=" /C:"F3R WITNESS" /C:"F3R SHAPE" /C:"F3R POP-ACCT" /C:"F3R CHK " /C:"F3R XFAIL-REPRODUCED" "%%A\xs.log"
+  findstr /C:"F3R ARM=" /C:"F3R WITNESS" /C:"F3R SHAPE" /C:"F3R POP-ACCT" /C:"F3R CHK " /C:"F3R XFAIL-REPRODUCED" "%ARMBASE%\%%A\xs.log"
 )
 
 if "%FAILS%"=="0" (echo F3-RESYNC-GATE: PASS & exit /b 0)
@@ -92,19 +111,31 @@ exit /b 1
 
 REM ==========================================================================
 :run
-REM %1=armname %2=workdir %3=defs %4=vlan_strip source %5=arm id tag
+REM %1=armname %2=workdir %3=defs %4=arm id tag
 set "NAME=%~1"
 set "WD=%~2"
 set "DEFS=%~3"
-set "VSRC=%~4"
-set "ARMID=%~5"
-if not exist "%HERE%\%WD%" mkdir "%HERE%\%WD%"
-pushd "%HERE%\%WD%"
+set "ARMID=%~4"
+REM compiled source (per arm): F/L/CTRL -> real RTL;  M1/M2 -> mutant (1:1 with the three xvlog lines above)
+set "SRC=%RTL%"
+if /i "%ARMID%"=="M1" set "SRC=%MUTDIR%\mut_m1.v"
+if /i "%ARMID%"=="M2" set "SRC=%MUTDIR%\mut_m2.v"
+if not exist "%ARMBASE%\%WD%" mkdir "%ARMBASE%\%WD%"
+pushd "%ARMBASE%\%WD%"
 if exist xsim.dir rmdir /s /q xsim.dir
-echo VSRC=%VSRC% DEFS=%DEFS% ARM=%ARMID% > srcpath.log
-"%PY%" -c "import hashlib,sys;p=sys.argv[1];print('SRC-SHA256', p, hashlib.sha256(open(p,'rb').read()).hexdigest()[:16])" "%VSRC%" >> srcpath.log 2>&1
-call "%XV%\xvlog.bat" -work xil_defaultlib %DEFS% "%ROOT%\rtl\crc32_8b.v" "%ROOT%\rtl\fifo_sync.v" "%ROOT%\rtl\fifo_async.v" "%ROOT%\rtl\mac_rx_64.v" "%VSRC%" "%TB%" > xv.log 2>&1
-if errorlevel 1 (type xv.log & popd & echo XVLOG-FAIL [%NAME%] & exit /b 1)
+echo VSRC=%SRC% DEFS=%DEFS% ARM=%ARMID% > srcpath.log
+"%PY%" -c "import hashlib,sys;p=sys.argv[1];print('SRC-SHA256', p, hashlib.sha256(open(p,'rb').read()).hexdigest()[:16])" "%SRC%" >> srcpath.log 2>&1
+REM ---- compile: shared cells + TB exactly once; the 3 DUT variants are mutually
+REM      exclusive (each appears as exactly one literal on one xvlog line) ----
+call "%XV%\xvlog.bat" -work xil_defaultlib %DEFS% ^
+  "%CELLDIR%\crc32_8b.v" "%CELLDIR%\fifo_sync.v" "%CELLDIR%\fifo_async.v" "%CELLDIR%\mac_rx_64.v" > xv.log 2>&1
+if errorlevel 1 (type xv.log & popd & echo XVLOG-FAIL-CELLS [%NAME%] & exit /b 1)
+if /i "%ARMID%"=="M1" call "%XV%\xvlog.bat" -work xil_defaultlib %DEFS% "%MUTDIR%\mut_m1.v" >> xv.log 2>&1
+if /i "%ARMID%"=="M2" call "%XV%\xvlog.bat" -work xil_defaultlib %DEFS% "%MUTDIR%\mut_m2.v" >> xv.log 2>&1
+if /i not "%ARMID%"=="M1" if /i not "%ARMID%"=="M2" call "%XV%\xvlog.bat" -work xil_defaultlib %DEFS% "%RTL%" >> xv.log 2>&1
+if errorlevel 1 (type xv.log & popd & echo XVLOG-FAIL-DUT [%NAME%] & exit /b 1)
+call "%XV%\xvlog.bat" -work xil_defaultlib %DEFS% "%TB%" >> xv.log 2>&1
+if errorlevel 1 (type xv.log & popd & echo XVLOG-FAIL-TB [%NAME%] & exit /b 1)
 findstr /I /C:"Synth 8-11241" /C:"undeclared symbol" /C:"VRFC 10-3091] actual bit length 1 differs from formal bit length" /C:"VRFC 10-2989" /C:"implicitly declared" xv.log >NUL && (echo IMPLICIT-WIRE-FAIL [%NAME%]: & findstr /I /C:"Synth 8-11241" /C:"undeclared symbol" /C:"VRFC 10-3091] actual bit length 1 differs from formal bit length" /C:"VRFC 10-2989" /C:"implicitly declared" xv.log & popd & exit /b 1)
 call "%XV%\xelab.bat" -debug typical -timescale 1ns/1ps -L xil_defaultlib xil_defaultlib.tb_f3_resync -s tb_f3_resync -log xe.log > xe_out.log 2>&1
 if errorlevel 1 (type xe_out.log & popd & echo XELAB-FAIL [%NAME%] & exit /b 1)
