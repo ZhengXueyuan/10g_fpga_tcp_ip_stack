@@ -317,7 +317,14 @@ module tcp_rx #(
     wire [16:0] acc_wnd  = {1'b0, ra_rcv_wnd} + {1'b0, ACC_MARGIN};
     wire        win_ok   = (seq_diff < acc_wnd);
     wire        seq_eq   = (seq32 == ra_rcv_nxt);
-    wire        seq_lt   = (seq32 < ra_rcv_nxt);   // 重复/旧段 (回绕安全: 无符号比较)
+    // RFC 793 SEQ_LT: (int32)(seq32 - ra_rcv_nxt) < 0。旧写法 `seq32 < ra_rcv_nxt` 是**绝对比较**,
+    // 只在 `seq32 - rcv_nxt` 作为普通整数落在 [-2^31, 2^31-1] 时与之逐位相同 (等价域; 端点
+    // -2^31 也相同)。分歧域 = 该真差超出 [-2^31, 2^31-1]; 目标向 = 回卷后旧段 (rcv_nxt 已越过
+    // 0xFFFFFFFF 而段 seq 仍在回卷前) 旧写法判"远超前段"⇒ 静默不回 ACK; 新写法判"旧段"⇒ 回
+    // ACK (RFC 793/5961)。反向域 (旧"未来段") 的行为差异只在段超出接受界时可见, 属政策重分类。
+    // 边界: 差恰为 0x80000000 时判 seq_lt=1 (two's complement 直译; RFC 1982 §3.2 该点未定义;
+    // 见 p9_fix_rfcseq_design_20261014/P7B_BUILDG_RFC_SEQ_DESIGN_v3.md §3.2/§3.3/§3.4)。
+    wire        seq_lt   = seq_diff[31];           // = $signed(seq32 - ra_rcv_nxt) < 0
     // P4d-fix: 回卷会话期间 ACK 上界 = 高水位 retx_hi (回卷前 snd_nxt = 真正发送
     // 过的字节)。回卷把 snd_nxt 降到 snd_una, 若仍用 snd_nxt 判上界, 对端"确认
     // 已到达数据"的合法 ACK (ack > 回卷后 snd_nxt) 被拒 —— TCP 不重传 ACK,
@@ -353,7 +360,7 @@ module tcp_rx #(
     wire        dup_ack  = base_ok && (plen_w == 16'd0) && ack_ok && !ack_adv &&
                            (ra_snd_nxt != ra_snd_una);
     wire        acc      = base_ok && win_ok && seq_eq;
-    // 窗口内乱序 (seq > rcv_nxt) 与重复 (seq < rcv_nxt): 丢数据仍回 ACK (快速重传/dup-ACK 依赖)
+    // 窗口内乱序 (相对差为正) 与重复/旧段 (RFC SEQ_LT: 相对差的高位为 1): 丢数据仍回 ACK (快速重传/dup-ACK 依赖)
     // P5b C16-修订兜底: `seq_eq && !win_ok` (顺序段但窗瞬时不足 — 即使加了
     // ACC_MARGIN 仍越界, 即 Δ > margin 的极端情形) 也必须回 ACK, 否则静默丢弃
     // 只让对端等 200ms RTO (RFC 793 要求不可接受的段回 ACK)。远超前段

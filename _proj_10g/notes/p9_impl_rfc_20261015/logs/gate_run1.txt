@@ -1,0 +1,137 @@
+  [PASS] criterion 4: seq_diff[31] + RFC 793 SEQ_LT present; no live old-compare line
+MUTGEN OK src=D:\repo\XCKU5PMini\udp_hls_10g\rtl\tcp_rx.v sha256=a35cd9809d233ebd anchor='seq_lt   = seq_diff[31];' x1
+MUTGEN OK ackresp_anchor='(win_ok || seq_lt)' x1
+MUTGEN OUT D:\repo\XCKU5PMini\udp_hls_10g\sim\p3sim_rfc\mut\mut_M1.v sha256=1d442c7cbdcafc75 changed_lines=[327] ins=0
+MUTGEN OUT D:\repo\XCKU5PMini\udp_hls_10g\sim\p3sim_rfc\mut\mut_M2.v sha256=91e112b5b9dc936f changed_lines=[327, 370] ins=1
+MUTGEN OUT D:\repo\XCKU5PMini\udp_hls_10g\sim\p3sim_rfc\mut\mut_M3.v sha256=d8984caee0107611 changed_lines=[327] ins=0
+MUTGEN OUT D:\repo\XCKU5PMini\udp_hls_10g\sim\p3sim_rfc\mut\mut_M4.v sha256=5cbe90b9a96d8e04 changed_lines=[327] ins=0
+  [PASS] A hash guard: RSRC == a35cd9809d233ebd3bc08bee1df6faa3c1c68882578dfba4cfe20c1cbf6fbc02
+42 frames, hardwin=[1033,3033), sw cfg2=5057 zero=5387
+RF tail cfg2=5971 pos=[5971, 6007, 6233, 6459, 6685, 6911, 7043] arm=rfc
+nostall: 316 lines, stats {'pss': 26, 'nonmatch': 8, 'ipcsum': 1, 'crc': 1, 'seq': 6, 'ack': 20, 'bytes': 1943}, mac [42, 1, 0, 4929]
+stall: 316 lines, stats {'pss': 26, 'nonmatch': 8, 'ipcsum': 1, 'crc': 1, 'seq': 6, 'ack': 20, 'bytes': 1943}, mac [42, 1, 0, 4929]
+hard: 116 lines, stats {'pss': 22, 'nonmatch': 6, 'ipcsum': 1, 'crc': 0, 'seq': 7, 'ack': 17, 'bytes': 395}, mac [36, 1, 6, 3001]
+GEN-NOTAIL [A]: no rf_pos banner 
+  [PASS] AO hash guard: RSRC == a35cd9809d233ebd3bc08bee1df6faa3c1c68882578dfba4cfe20c1cbf6fbc02
+  [PASS] G hash guard: RSRC == 7517c94951598c7e42d11ba7d8e62164acc762cbbd8718356e4f8bf3bc6d1489
+42 frames, hardwin=[1033,3033), sw cfg2=5057 zero=5387
+RF tail cfg2=5971 pos=[5971, 6007, 6233, 6459, 6685, 6911, 7043] arm=legacy
+nostall: 313 lines, stats {'pss': 25, 'nonmatch': 11, 'ipcsum': 1, 'crc': 1, 'seq': 4, 'ack': 18, 'bytes': 1943}, mac [42, 1, 0, 4929]
+stall: 313 lines, stats {'pss': 25, 'nonmatch': 11, 'ipcsum': 1, 'crc': 1, 'seq': 4, 'ack': 18, 'bytes': 1943}, mac [42, 1, 0, 4929]
+hard: 113 lines, stats {'pss': 21, 'nonmatch': 9, 'ipcsum': 1, 'crc': 0, 'seq': 5, 'ack': 15, 'bytes': 395}, mac [36, 1, 6, 3001]
+GEN-NOTAIL [G]: no rf_pos banner 
+HASHGUARD-FAIL [M1] src=D:\repo\XCKU5PMini\udp_hls_10g\sim\p3sim_rfc\mut\mut_M1.v 
+HASHGUARD-FAIL [M2] src=D:\repo\XCKU5PMini\udp_hls_10g\sim\p3sim_rfc\mut\mut_M2.v 
+HASHGUARD-FAIL [M3] src=D:\repo\XCKU5PMini\udp_hls_10g\sim\p3sim_rfc\mut\mut_M3.v 
+HASHGUARD-FAIL [M4] src=D:\repo\XCKU5PMini\udp_hls_10g\sim\p3sim_rfc\mut\mut_M4.v 
+==================== SUMMARY ====================
+  A  FIXED   runA_a     RC=1    expect 0
+  AO A-OFF   runAO_off  RC=0   expect 0
+  G  LEGACY  runG_g     RC=1    expect 0
+  M1 REDUND  runM1_m1   RC=1   expect 0 (== A arm)
+  M2 HALF    runM2_m2   RC=1   expect 0 (mechanism OK; red={F2})
+  M3 BOUND   runM3_m3   RC=1   expect 0 (mechanism OK; red={F5})
+  M4 ZERO    runM4_m4   RC=1   expect 0 (mechanism OK; red={F1,F2,F5})
+  [FAIL] runA_a\xs1 missing 
+  [FAIL] runA_a\xs2 missing 
+  [FAIL] runA_a\xs3 missing 
+  [FAIL] runA_a\chk_ns missing 
+  [FAIL] runA_a\chk_h missing 
+  [FAIL] runA_a\chk_rc.txt missing 
+  [FAIL] runAO_off\xs1 missing 
+  [FAIL] runAO_off\xs2 missing 
+  [FAIL] runAO_off\xs3 missing 
+  [FAIL] runAO_off\chk_ns missing 
+  [FAIL] runAO_off\chk_h missing 
+  [FAIL] runG_g\xs1 missing 
+  [FAIL] runG_g\xs2 missing 
+  [FAIL] runG_g\xs3 missing 
+  [FAIL] runG_g\chk_ns missing 
+  [FAIL] runG_g\chk_h missing 
+  [FAIL] runG_g\chk_rc.txt missing 
+  [FAIL] runM1_m1\xs1 missing 
+  [FAIL] runM1_m1\xs2 missing 
+  [FAIL] runM1_m1\xs3 missing 
+  [FAIL] runM1_m1\chk_ns missing 
+  [FAIL] runM1_m1\chk_h missing 
+  [FAIL] runM1_m1\gen.log missing 
+  [FAIL] runM1_m1\chk_rc.txt missing 
+  [FAIL] runM2_m2\xs1 missing 
+  [FAIL] runM2_m2\xs2 missing 
+  [FAIL] runM2_m2\xs3 missing 
+  [FAIL] runM2_m2\chk_ns missing 
+  [FAIL] runM2_m2\chk_h missing 
+  [FAIL] runM2_m2\gen.log missing 
+  [FAIL] runM2_m2\chk_rc.txt missing 
+  [FAIL] runM3_m3\xs1 missing 
+  [FAIL] runM3_m3\xs2 missing 
+  [FAIL] runM3_m3\xs3 missing 
+  [FAIL] runM3_m3\chk_ns missing 
+  [FAIL] runM3_m3\chk_h missing 
+  [FAIL] runM3_m3\gen.log missing 
+  [FAIL] runM3_m3\chk_rc.txt missing 
+  [FAIL] runM4_m4\xs1 missing 
+  [FAIL] runM4_m4\xs2 missing 
+  [FAIL] runM4_m4\xs3 missing 
+  [FAIL] runM4_m4\chk_ns missing 
+  [FAIL] runM4_m4\chk_h missing 
+  [FAIL] runM4_m4\gen.log missing 
+  [FAIL] runM4_m4\chk_rc.txt missing 
+FINDSTR: 无法打开 runA_a\xs1.log
+  [FAIL] A xs1: no "RFSEQ ALL PASS" 
+FINDSTR: 无法打开 runA_a\xs1.log
+FINDSTR: 无法打开 runA_a\xs1.log
+  [FAIL] A xs1: SNDWND legs no longer all-pass 
+FINDSTR: 无法打开 runA_a\xs2.log
+  [FAIL] A xs2: no "RFSEQ ALL PASS" 
+FINDSTR: 无法打开 runA_a\xs2.log
+FINDSTR: 无法打开 runA_a\xs2.log
+  [FAIL] A xs2: SNDWND legs no longer all-pass 
+FINDSTR: 无法打开 runA_a\xs3.log
+  [FAIL] A xs3: no "RFSEQ ALL PASS" 
+FINDSTR: 无法打开 runA_a\xs3.log
+FINDSTR: 无法打开 runA_a\xs3.log
+  [FAIL] A xs3: SNDWND legs no longer all-pass 
+FINDSTR: 无法打开 runA_a\chk_rc.txt
+  [FAIL] ARM A: model check nostall,stall RC != 0 
+FINDSTR: 无法打开 runA_a\chk_ns.log
+FINDSTR: 无法打开 runA_a\chk_ns.log
+  [FAIL] ARM A: no OK verdict line 
+系统找不到指定的文件。
+FINDSTR: 无法打开 runA_a\chk_h.log
+  [FAIL] hard-mode divergence signature changed/absent -- the known pre-existing
+         red was: hard LINE 63 exp META ... resp FEND 1, identical at HEAD 7517c949.
+         If it is FIXED now, update this gate; else investigate.
+  [PASS] hash guard: A-off resp_tcp_rx.memh == frozen pre-change
+  [PASS] hash guard: A-off resp_tcp_rx_stall.memh == frozen pre-change
+  [PASS] hash guard: A-off resp_tcp_rx_hard.memh == frozen pre-change
+FINDSTR: 无法打开 runG_g\xs1.log
+  [FAIL] G xs1: no "RFSEQ LEGACY OK" 
+FINDSTR: 无法打开 runG_g\xs1.log
+  [FAIL] G xs1: no F5 XFAIL marker 
+FINDSTR: 无法打开 runG_g\xs1.log
+  [FAIL] G xs1: no F1 XFAIL marker 
+FINDSTR: 无法打开 runG_g\xs1.log
+  [FAIL] G xs1: no F2 XFAIL marker 
+FINDSTR: 无法打开 runG_g\xs1.log
+FINDSTR: 无法打开 runG_g\xs2.log
+  [FAIL] G xs2: no "RFSEQ LEGACY OK" 
+FINDSTR: 无法打开 runG_g\xs2.log
+  [FAIL] G xs2: no F5 XFAIL marker 
+FINDSTR: 无法打开 runG_g\xs2.log
+  [FAIL] G xs2: no F1 XFAIL marker 
+FINDSTR: 无法打开 runG_g\xs2.log
+  [FAIL] G xs2: no F2 XFAIL marker 
+FINDSTR: 无法打开 runG_g\xs2.log
+FINDSTR: 无法打开 runG_g\xs3.log
+  [FAIL] G xs3: no "RFSEQ LEGACY OK" 
+FINDSTR: 无法打开 runG_g\xs3.log
+  [FAIL] G xs3: no F5 XFAIL marker 
+FINDSTR: 无法打开 runG_g\xs3.log
+  [FAIL] G xs3: no F1 XFAIL marker 
+FINDSTR: 无法打开 runG_g\xs3.log
+  [FAIL] G xs3: no F2 XFAIL marker 
+FINDSTR: 无法打开 runG_g\xs3.log
+FINDSTR: 无法打开 runG_g\chk_rc.txt
+此时不应有 RC。
+GATE-RC=255

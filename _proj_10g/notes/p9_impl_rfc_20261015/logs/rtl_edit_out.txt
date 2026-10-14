@@ -1,0 +1,17 @@
+OLD1[320]:     wire        seq_lt   = (seq32 < ra_rcv_nxt);   // 重复/旧段 (回绕安全: 无符号比较)
+OLD2[356]:     // 窗口内乱序 (seq > rcv_nxt) 与重复 (seq < rcv_nxt): 丢数据仍回 ACK (快速重传/dup-ACK 依赖)
+APPLIED 929 -> 936 lines (CRLF 929 -> 936)
+NEW sha256=a35cd9809d233ebd3bc08bee1df6faa3c1c68882578dfba4cfe20c1cbf6fbc02
+NEW blob would-be git-hash per git hash-object (see bat/README)
+--- new block 1 (lines 320..327) ---
+    // RFC 793 SEQ_LT: (int32)(seq32 - ra_rcv_nxt) < 0。旧写法 `seq32 < ra_rcv_nxt` 是**绝对比较**,
+    // 只在 `seq32 - rcv_nxt` 作为普通整数落在 [-2^31, 2^31-1] 时与之逐位相同 (等价域; 端点
+    // -2^31 也相同)。分歧域 = 该真差超出 [-2^31, 2^31-1]; 目标向 = 回卷后旧段 (rcv_nxt 已越过
+Traceback (most recent call last):
+  File "D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_impl_rfc_20261015\apply_rtl_edit.py", line 86, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_impl_rfc_20261015\apply_rtl_edit.py", line 79, in main
+    print(l)
+    ~~~~~^^^
+UnicodeEncodeError: 'gbk' codec can't encode character '\u21d2' in position 42: illegal multibyte sequence

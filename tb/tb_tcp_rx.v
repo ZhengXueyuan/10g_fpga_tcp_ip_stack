@@ -21,6 +21,23 @@ module tb_tcp_rx;
     localparam SNDWND_ARM = 1'b1;
 `endif
 
+    // ======== ⭐ P7B-BUILDG-RFC-SEQ 尾部段 (`-d SEQRF_TAIL` 开) ========
+    //   段 = 设计件 v3r2 §5.4: 帧序 F5→F3→F4→F1→F2 (F5 边界 d=2^31 / F3 等价域交付
+    //   100B / F4 远超前段静默 / F1 回卷后旧数据段 / F2 回卷后旧纯 ACK); 位置与重配值
+    //   由 tools/gen_stim_tcp_rx.py 写 rf_legs.memh / rf_cfg.memh (与激励同源)。
+    //   FIXED  (默认, 配修复后 rtl/tcp_rx.v): 期望 F5/F1 回 ACK + F3 交付 + F2 推
+    //          snd_una→0x10 (fend_pad)。
+    //   LEGACY (-d, 配 frozen/tcp_rx_prefix.v): 期望 F5/F1 无 ACK + F2 静默
+    //          (snd_una 停 0) = RFC 偏离复现; F3/F4 两臂逐位相同。
+    //   ⚠️ 本 define 只管**尾部段期望**; SNDWND guard 臂是另一开关 (见上)。
+`ifdef SEQRF_TAIL
+`ifdef SEQRF_LEGACY
+    localparam SEQRF_ARM = 1'b0;
+`else
+    localparam SEQRF_ARM = 1'b1;
+`endif
+`endif
+
     reg        clk, rst_n;
     reg [7:0]  rx_d;
     reg        rx_dv, rx_er;
@@ -67,6 +84,21 @@ module tb_tcp_rx;
     reg [15:0] wnd_dir, wnd_a0, wnd_a1, wnd_a2, wnd_z, wnd_b1, wnd_b2;
     reg [31:0] una_dir, rcv_dir, una_b2;
     reg        lega_ok, legb1_ok, legb2_ok;
+
+    // ---- ⭐ P7B-BUILDG-RFC-SEQ 尾部段 (位置/重配值来自 rf_legs.memh / rf_cfg.memh) ----
+    //   7 位置: [0]=RF_CFG2 重配窗 (6B) [1]=SNAP_S0 段前基线 [2..6]=F5/F3/F4/F1/F2
+    //   各帧末 +30 的快照 (照 SNDWND 腿: 该帧 fend/drain 已落定)。快照数组索引
+    //   0..5 ↔ rf_pos[1..6] (0 = 段前基线)。gnt 自由 (尾段在 gnt 抢占窗之外)。
+`ifdef SEQRF_TAIL
+    reg [31:0] rf_pos [0:6];
+    reg [31:0] rf_cfg [0:5];      // 6 字段重配值 (生成器写, TB 盲写)
+    integer    rfk;
+    reg [31:0] rf_pass [0:5], rf_dseq [0:5], rf_dnm [0:5], rf_ackc [0:5], rf_mw [0:5];
+    reg [31:0] rf_una [0:5], rf_rcv [0:5], rf_w68 [0:5], rf_w68t [0:5];
+    reg [31:0] mwcnt;             // m_axis 接受词计数 (TB 侧独立计数, 非 DUT 线)
+    reg        rf_f5_ok, rf_f3_ok, rf_f4_ok, rf_f1_ok, rf_f2_ok;
+    reg        rf_cons_ok, rf_end_ok, rf_w68_ok;
+`endif
 
     wire [63:0] s_tdata;
     wire [7:0]  s_tkeep;
@@ -277,6 +309,17 @@ module tb_tcp_rx;
                         cfg_upd_id  <= 4'd0;
                         cfg_upd_sel <= 3'd4;
                         cfg_upd_val <= 32'h0;
+`ifdef SEQRF_TAIL
+                    end else if (rf_pos[0] != 32'd0 &&
+                                 i >= rf_pos[0] && i < rf_pos[0] + 6) begin
+                        // ⭐ RFC-seq 尾段前置: 全 6 字段重配 conn0 = TAIL0
+                        //   (rcv_nxt=0x100 snd_nxt=0x200 snd_una=0 等; 尾段判据的基线;
+                        //    位置/值同源自 rf_legs.memh / rf_cfg.memh)
+                        cfg_upd_wr <= 1;
+                        cfg_upd_id  <= 4'd0;
+                        cfg_upd_sel <= (i - rf_pos[0]) % 6;
+                        cfg_upd_val <= rf_cfg[(i - rf_pos[0]) % 6];
+`endif
                     end else begin
                         cfg_upd_wr <= 0;
                     end
@@ -318,6 +361,24 @@ module tb_tcp_rx;
                         wnd_b2  <= u_tcb.snd_wnd_r[0];
                         una_b2  <= u_tcb.snd_una_r[0];
                     end
+`ifdef SEQRF_TAIL
+                    // ---- ⭐ RFC-seq 尾段快照 (位置来自 rf_legs.memh; [0]=段前基线,
+                    //      [k]=第 k 帧末 +30 ⇒ fend/drain 已落定; 采样同 SNDWND 腿) ----
+                    for (rfk = 0; rfk < 6; rfk = rfk + 1) begin
+                        if (rf_pos[0] != 32'd0 && rf_pos[rfk + 1] != 32'd0 &&
+                            i == rf_pos[rfk + 1]) begin
+                            rf_pass[rfk] <= stat_pass;
+                            rf_dseq[rfk] <= stat_seq;
+                            rf_dnm [rfk] <= stat_nonmatch;
+                            rf_ackc[rfk] <= stat_ack;
+                            rf_mw  [rfk] <= mwcnt;
+                            rf_una [rfk] <= u_tcb.snd_una_r[0];
+                            rf_rcv [rfk] <= u_tcb.rcv_nxt_r[0];
+                            rf_w68 [rfk] <= stat_ack_adv;
+                            rf_w68t[rfk] <= exp_ack_adv;
+                        end
+                    end
+`endif
                 end else begin
                     cfg_upd_wr <= 0; gnt_hold <= 0;
                     rx_dv <= 0; rx_er <= 0; done <= 1;
@@ -334,6 +395,10 @@ module tb_tcp_rx;
 
     initial begin
         clk = 0; rst_n = 0; hardstall = 0;
+`ifdef SEQRF_TAIL
+        mwcnt = 32'd0;   // ⚠️ 必须显式初始化: 未初始化 reg = x, x+1 = x ⇒ 全部 mwd 判据
+                         //    永久为 x (实测踩过: 首跑 mwd=x 让 5 条腿全假红)
+`endif
         $readmemh("stim_data.memh", stim_d);
         $readmemh("stim_dv.memh",   stim_v);
         $readmemh("stim_er.memh",   stim_e);
@@ -353,6 +418,19 @@ module tb_tcp_rx;
         $display("SNDWND sw_pos cfg2=%0d zero=%0d dir=%0d a0=%0d a1=%0d a2=%0d z=%0d b1=%0d b2=%0d",
                  sw_pos[0], sw_pos[1], sw_pos[2], sw_pos[3], sw_pos[4],
                  sw_pos[5], sw_pos[6], sw_pos[7], sw_pos[8]);
+`ifdef SEQRF_TAIL
+        // ⭐ RFC-seq 尾段位置/重配值 (同源 memh; 先填 0 ⇒ 读失败 = 判据全红 =
+        //    响亮失败, 不是静默通过 —— 同 SNDWND 腿的守卫写法)
+        for (rfk = 0; rfk < 7; rfk = rfk + 1) rf_pos[rfk] = 32'd0;
+        $readmemh("rf_legs.memh", rf_pos);
+        for (rfk = 0; rfk < 6; rfk = rfk + 1) rf_cfg[rfk] = 32'd0;
+        $readmemh("rf_cfg.memh", rf_cfg);
+        if (SEQRF_ARM) $display("RFSEQ ARM=FIXED (RFC seq_lt)");
+        else           $display("RFSEQ ARM=LEGACY (pre-fix seq_lt)");
+        $display("RFSEQ rf_pos cfg2=%0d s0=%0d f5=%0d f3=%0d f4=%0d f1=%0d f2=%0d",
+                 rf_pos[0], rf_pos[1], rf_pos[2], rf_pos[3], rf_pos[4],
+                 rf_pos[5], rf_pos[6]);
+`endif
         if ($test$plusargs("STALL")) fd = $fopen("resp_tcp_rx_stall.memh", "w");
         else if ($test$plusargs("HARD")) fd = $fopen("resp_tcp_rx_hard.memh", "w");
         else fd = $fopen("resp_tcp_rx.memh", "w");
@@ -431,6 +509,114 @@ module tb_tcp_rx;
             else $display("[FAIL] SNDWND LEGACY arm: legA=%b legB1=%b legB2=%b",
                           lega_ok, legb1_ok, legb2_ok);
         end
+`ifdef SEQRF_TAIL
+        // ================= ⭐ P7B-BUILDG-RFC-SEQ 尾部段判据 =====================
+        //   期望 (设计件 v3r2 §5.4 写死常量; 增量 = 相邻快照差; 快照 idx 0=段前
+        //   基线, 1..5 = F5/F3/F4/F1/F2 之后):
+        //     F5: [A] dseq+1 ack+1 | [G] dnm+1   (两臂 pass+0 mw+0)
+        //     F3: 两臂相同: pass+1 ack+1 mw+13 (交付 100B; ack=0 ⇒ snd_una 不动)
+        //     F4: 两臂相同: dnm+1 (远超前段静默; ack+0 mw+0)
+        //     F1: [A] dseq+1 ack+1 | [G] dnm+1
+        //     F2: [A] pass+1 | [G] dnm+1  (两臂 ack+0 mw+0)
+        //   守恒: 每帧 pass+dseq+dnm 增量 == 1 (两臂都 5 帧); 终态 snd_una [A]=0x10
+        //   / [G]=0x0, rcv_nxt 两臂 = 0x164; W68ADV 增量 [A]=1 / [G]=0 (且 dut==tb)。
+        rf_f5_ok = (rf_pass[1]-rf_pass[0] == 32'd0) && (rf_mw[1]-rf_mw[0] == 32'd0) &&
+                   ((SEQRF_ARM) ? ((rf_dseq[1]-rf_dseq[0] == 32'd1) &&
+                                   (rf_dnm [1]-rf_dnm [0] == 32'd0) &&
+                                   (rf_ackc[1]-rf_ackc[0] == 32'd1))
+                                : ((rf_dseq[1]-rf_dseq[0] == 32'd0) &&
+                                   (rf_dnm [1]-rf_dnm [0] == 32'd1) &&
+                                   (rf_ackc[1]-rf_ackc[0] == 32'd0)));
+        rf_f3_ok = (rf_pass[2]-rf_pass[1] == 32'd1) && (rf_dseq[2]-rf_dseq[1] == 32'd0) &&
+                   (rf_dnm[2]-rf_dnm[1] == 32'd0) && (rf_ackc[2]-rf_ackc[1] == 32'd1) &&
+                   (rf_mw[2]-rf_mw[1] == 32'd13);
+        rf_f4_ok = (rf_pass[3]-rf_pass[2] == 32'd0) && (rf_dseq[3]-rf_dseq[2] == 32'd0) &&
+                   (rf_dnm[3]-rf_dnm[2] == 32'd1) && (rf_ackc[3]-rf_ackc[2] == 32'd0) &&
+                   (rf_mw[3]-rf_mw[2] == 32'd0);
+        rf_f1_ok = (rf_pass[4]-rf_pass[3] == 32'd0) && (rf_mw[4]-rf_mw[3] == 32'd0) &&
+                   ((SEQRF_ARM) ? ((rf_dseq[4]-rf_dseq[3] == 32'd1) &&
+                                   (rf_dnm [4]-rf_dnm [3] == 32'd0) &&
+                                   (rf_ackc[4]-rf_ackc[3] == 32'd1))
+                                : ((rf_dseq[4]-rf_dseq[3] == 32'd0) &&
+                                   (rf_dnm [4]-rf_dnm [3] == 32'd1) &&
+                                   (rf_ackc[4]-rf_ackc[3] == 32'd0)));
+        rf_f2_ok = (rf_ackc[5]-rf_ackc[4] == 32'd0) && (rf_mw[5]-rf_mw[4] == 32'd0) &&
+                   ((SEQRF_ARM) ? ((rf_pass[5]-rf_pass[4] == 32'd1) &&
+                                   (rf_dseq[5]-rf_dseq[4] == 32'd0) &&
+                                   (rf_dnm [5]-rf_dnm [4] == 32'd0))
+                                : ((rf_pass[5]-rf_pass[4] == 32'd0) &&
+                                   (rf_dseq[5]-rf_dseq[4] == 32'd0) &&
+                                   (rf_dnm [5]-rf_dnm [4] == 32'd1)));
+        rf_cons_ok = ((rf_pass[1]-rf_pass[0]) + (rf_dseq[1]-rf_dseq[0]) + (rf_dnm[1]-rf_dnm[0]) == 32'd1) &&
+                     ((rf_pass[2]-rf_pass[1]) + (rf_dseq[2]-rf_dseq[1]) + (rf_dnm[2]-rf_dnm[1]) == 32'd1) &&
+                     ((rf_pass[3]-rf_pass[2]) + (rf_dseq[3]-rf_dseq[2]) + (rf_dnm[3]-rf_dnm[2]) == 32'd1) &&
+                     ((rf_pass[4]-rf_pass[3]) + (rf_dseq[4]-rf_dseq[3]) + (rf_dnm[4]-rf_dnm[3]) == 32'd1) &&
+                     ((rf_pass[5]-rf_pass[4]) + (rf_dseq[5]-rf_dseq[4]) + (rf_dnm[5]-rf_dnm[4]) == 32'd1) &&
+                     ((rf_pass[5]-rf_pass[0]) + (rf_dseq[5]-rf_dseq[0]) + (rf_dnm[5]-rf_dnm[0]) == 32'd5);
+        rf_end_ok = ((SEQRF_ARM) ? (rf_una[5] == 32'h00000010)
+                                 : (rf_una[5] == 32'h00000000)) &&
+                    (rf_rcv[5] == 32'h00000164);
+        rf_w68_ok = ((rf_w68t[5]-rf_w68t[0]) == ((SEQRF_ARM) ? 32'd1 : 32'd0)) &&
+                    ((rf_w68 [5]-rf_w68 [0]) == (rf_w68t[5]-rf_w68t[0]));
+        // ---- 原始读数 (臂间差异集直接可读: A.ACK={F5,F3,F1} vs G.ACK={F3}) ----
+        $display("RFSEQ F5 passd=%0d dseqd=%0d dnmd=%0d ackd=%0d mwd=%0d",
+                 rf_pass[1]-rf_pass[0], rf_dseq[1]-rf_dseq[0], rf_dnm[1]-rf_dnm[0],
+                 rf_ackc[1]-rf_ackc[0], rf_mw[1]-rf_mw[0]);
+        $display("RFSEQ F3 passd=%0d dseqd=%0d dnmd=%0d ackd=%0d mwd=%0d",
+                 rf_pass[2]-rf_pass[1], rf_dseq[2]-rf_dseq[1], rf_dnm[2]-rf_dnm[1],
+                 rf_ackc[2]-rf_ackc[1], rf_mw[2]-rf_mw[1]);
+        $display("RFSEQ F4 passd=%0d dseqd=%0d dnmd=%0d ackd=%0d mwd=%0d",
+                 rf_pass[3]-rf_pass[2], rf_dseq[3]-rf_dseq[2], rf_dnm[3]-rf_dnm[2],
+                 rf_ackc[3]-rf_ackc[2], rf_mw[3]-rf_mw[2]);
+        $display("RFSEQ F1 passd=%0d dseqd=%0d dnmd=%0d ackd=%0d mwd=%0d",
+                 rf_pass[4]-rf_pass[3], rf_dseq[4]-rf_dseq[3], rf_dnm[4]-rf_dnm[3],
+                 rf_ackc[4]-rf_ackc[3], rf_mw[4]-rf_mw[3]);
+        $display("RFSEQ F2 passd=%0d dseqd=%0d dnmd=%0d ackd=%0d mwd=%0d",
+                 rf_pass[5]-rf_pass[4], rf_dseq[5]-rf_dseq[4], rf_dnm[5]-rf_dnm[4],
+                 rf_ackc[5]-rf_ackc[4], rf_mw[5]-rf_mw[4]);
+        $display("RFSEQ END snd_una=%08h rcv_nxt=%08h snd_wnd=%04h w68d=%0d (dut %0d)",
+                 rf_una[5], rf_rcv[5], u_tcb.snd_wnd_r[0],
+                 rf_w68t[5]-rf_w68t[0], rf_w68[5]-rf_w68[0]);
+        if (rf_f5_ok) $display("RFSEQ F5 PASS");
+        else          $display("[FAIL] RFSEQ F5 exp passd=0 dseqd=%0d dnmd=%0d ackd=%0d mwd=0",
+                               SEQRF_ARM ? 32'd1 : 32'd0, SEQRF_ARM ? 32'd0 : 32'd1,
+                               SEQRF_ARM ? 32'd1 : 32'd0);
+        if (rf_f3_ok) $display("RFSEQ F3 PASS");
+        else          $display("[FAIL] RFSEQ F3 exp passd=1 dseqd=0 dnmd=0 ackd=1 mwd=13");
+        if (rf_f4_ok) $display("RFSEQ F4 PASS");
+        else          $display("[FAIL] RFSEQ F4 exp passd=0 dseqd=0 dnmd=1 ackd=0 mwd=0");
+        if (rf_f1_ok) $display("RFSEQ F1 PASS");
+        else          $display("[FAIL] RFSEQ F1 exp passd=0 dseqd=%0d dnmd=%0d ackd=%0d mwd=0",
+                               SEQRF_ARM ? 32'd1 : 32'd0, SEQRF_ARM ? 32'd0 : 32'd1,
+                               SEQRF_ARM ? 32'd1 : 32'd0);
+        if (rf_f2_ok) $display("RFSEQ F2 PASS");
+        else          $display("[FAIL] RFSEQ F2 exp passd=%0d dseqd=0 dnmd=%0d ackd=0 mwd=0",
+                               SEQRF_ARM ? 32'd1 : 32'd0, SEQRF_ARM ? 32'd0 : 32'd1);
+        if (!rf_cons_ok) $display("[FAIL] RFSEQ conservation: per-frame pass+dseq+dnm != 1 (or total != 5)");
+        if (!rf_end_ok)  $display("[FAIL] RFSEQ end state: snd_una=%08h (exp %08h) rcv_nxt=%08h (exp 00000164)",
+                                  rf_una[5], SEQRF_ARM ? 32'h10 : 32'h0, rf_rcv[5]);
+        if (!rf_w68_ok)  $display("[FAIL] RFSEQ W68 delta: tb=%0d (exp %0d) dut=%0d",
+                                  rf_w68t[5]-rf_w68t[0], SEQRF_ARM ? 32'd1 : 32'd0,
+                                  rf_w68[5]-rf_w68[0]);
+        if (SEQRF_ARM) begin
+            if (rf_f5_ok && rf_f3_ok && rf_f4_ok && rf_f1_ok && rf_f2_ok &&
+                rf_cons_ok && rf_end_ok && rf_w68_ok)
+                $display("RFSEQ ALL PASS");
+            else $display("[FAIL] RFSEQ FIXED arm: f5=%b f3=%b f4=%b f1=%b f2=%b cons=%b end=%b w68=%b",
+                          rf_f5_ok, rf_f3_ok, rf_f4_ok, rf_f1_ok, rf_f2_ok,
+                          rf_cons_ok, rf_end_ok, rf_w68_ok);
+        end else begin
+            if (rf_f5_ok) $display("RFSEQ F5 XFAIL-REPRODUCED (no-ACK under pre-fix seq_lt)");
+            if (rf_f1_ok) $display("RFSEQ F1 XFAIL-REPRODUCED (no-ACK under pre-fix seq_lt)");
+            if (rf_f2_ok) $display("RFSEQ F2 XFAIL-REPRODUCED (snd_una stalled at 0)");
+            if (rf_f5_ok && rf_f3_ok && rf_f4_ok && rf_f1_ok && rf_f2_ok &&
+                rf_cons_ok && rf_end_ok && rf_w68_ok)
+                $display("RFSEQ LEGACY OK (RFC偏离复现: F5/F1 无 ACK + F2 静默 snd_una=0; F3/F4 两臂相同)");
+            else $display("[FAIL] RFSEQ LEGACY arm: f5=%b f3=%b f4=%b f1=%b f2=%b cons=%b end=%b w68=%b",
+                          rf_f5_ok, rf_f3_ok, rf_f4_ok, rf_f1_ok, rf_f2_ok,
+                          rf_cons_ok, rf_end_ok, rf_w68_ok);
+        end
+`endif
         // ⭐ 构建 F: W68 判据 (双边等式 + 非空见证; 形状与 tb_tcp_tx_ovl 的 W66/W67 同款)
         //   ⚠️ 本门的整体口径另有既存红 (HARD 臂的 python 期望失配), 与本判据无关;
         //      本判据只保证"dut 与 TB 独立复算逐字相等, 且非空"。
@@ -446,6 +632,9 @@ module tb_tcp_rx;
 
     // ---- AXIS 输出 + 元数据 + fend + ACK 捕获 ----
     always @(posedge clk) begin
+`ifdef SEQRF_TAIL
+        if (rst_n && m_tvalid && tready) mwcnt <= mwcnt + 32'd1;   // RFC-seq 尾段词计
+`endif
         if (rst_n && m_tvalid && tready)
             $fwrite(fd, "%016h %02h %d %d %d\n",
                     m_tdata, m_tkeep, m_tlast, m_tuser[0], m_tuser[1]);

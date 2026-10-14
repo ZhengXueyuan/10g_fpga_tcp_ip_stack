@@ -1,0 +1,14 @@
+# P7B-BUILDG-RFC-SEQ gate frozen revision (2026-10-15; rev2 after TL correction round)
+# A-revision = RFC-fixed (this commit); G-revision = pre-fix frozen copy.
+# rev2 changes: rtl comment tail re-added (TL ruling 3); model w6a branch now LATCHES wnd_l (TL ruling 1); A_SHA resynced.
+
+793761589de8089325c9f2f94986a696e1b198b978bfef341f370d0975a2b9f1 *rtl/tcp_rx.v
+7517c94951598c7e42d11ba7d8e62164acc762cbbd8718356e4f8bf3bc6d1489 *sim/p3sim_rfc/frozen/tcp_rx_prefix.v
+99cf45a8e5978bc79b36df3c9dbf924b8c8dce6a7263eeef6503dd1f7d67add7 *tb/tb_tcp_rx.v
+cbad26a5da16ff3a6a751840c05a385d3496ce13837f09a86bcd47426634a3d0 *tools/gen_stim_tcp_rx.py
+26109ac5f5113df3924443e9f0b17ebfc92f5e4e121615197467fb8a268c698b *tools/gen_stim_tcp_chain.py
+37d76b6d097706df3b87502a2ab2ea7acce35823db28da4746df711630607aad *sim/p3sim_rfc/run_rfcseq_gate.bat
+f3a703e3ffe18432b8cf459e98688cd4d43d62fdbac593f74ec789e3c93cdfd5 *sim/p3sim_rfc/mut/mk_mut_rfc.py
+776a57effebe4cc2788c953716e0936e3b881c5bac4520955ee2746c146eaf5d *.gitignore
+git-blob A-revision: d42da2c82e52ae1c9b806d8335a796e99be2a451
+git-blob G-revision: c8c7113b2766cdcc078da34f0522a88bac82c372

@@ -352,7 +352,9 @@ def rx_model(frames, snd_nxt_init=None, snd_nxt_events=(), good=None,
                         seq_diff = (seq32 - tb['rcv_nxt']) & 0xFFFFFFFF
                         win_ok = seq_diff < tb['rcv_wnd']
                         seq_eq = seq32 == tb['rcv_nxt']
-                        seq_lt = seq32 < tb['rcv_nxt']
+                        # ⭐ BUILDG-RFC-SEQ: RFC 793 SEQ_LT ((int32)差 < 0; 无臂 ——
+                        #   该门只编活 RTL; 其激励全在等价域 ⇒ 期望输出逐字不变)
+                        seq_lt = ((seq32 - tb['rcv_nxt']) & 0xFFFFFFFF) >= 0x80000000
                         ack_ok = (((ack32 - tb['snd_una']) & 0xFFFFFFFF) <=
                                   ((tb['snd_nxt'] - tb['snd_una']) & 0xFFFFFFFF))
                         ack_adv = ack_ok and ack32 != tb['snd_una']

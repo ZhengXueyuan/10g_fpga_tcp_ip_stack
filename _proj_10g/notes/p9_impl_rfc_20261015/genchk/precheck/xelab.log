@@ -1,0 +1,25 @@
+Vivado Simulator v2025.2
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+Running: C:/AMDDesignTools/2025.2/Vivado/bin/unwrapped/win64.o/xelab.exe -debug typical -timescale 1ns/1ps -L xil_defaultlib xil_defaultlib.tb_tcp_rx -s tb_tcp_rx 
+Multi-threading is on. Using 18 slave threads.
+Starting static elaboration
+Pass Through NonSizing Optimizer
+WARNING: [VRFC 10-3645] port 'stat_drop_full' remains unconnected for this instance [D:/repo/XCKU5PMini/udp_hls_10g/tb/tb_tcp_rx.v:168]
+WARNING: [VRFC 10-3645] port 'retx_req' remains unconnected for this instance [D:/repo/XCKU5PMini/udp_hls_10g/tb/tb_tcp_rx.v:178]
+WARNING: [VRFC 10-3645] port 'rd_sip' remains unconnected for this instance [D:/repo/XCKU5PMini/udp_hls_10g/tb/tb_tcp_rx.v:212]
+WARNING: [VRFC 10-3645] port 'rc_id' remains unconnected for this instance [D:/repo/XCKU5PMini/udp_hls_10g/tb/tb_tcp_rx.v:223]
+WARNING: [VRFC 10-3645] port 'crc_nxt' remains unconnected for this instance [D:/repo/XCKU5PMini/udp_hls_10g/rtl/mac_rx_64.v:126]
+WARNING: [VRFC 10-3645] port 'dbg_wptr' remains unconnected for this instance [D:/repo/XCKU5PMini/udp_hls_10g/rtl/mac_rx_64.v:364]
+Completed static elaboration
+Starting simulation data flow analysis
+Completed simulation data flow analysis
+Time Resolution for simulation is 1ps
+Compiling module xil_defaultlib.crc32_8b
+Compiling module xil_defaultlib.fifo_sync
+Compiling module xil_defaultlib.mac_rx_64
+Compiling module xil_defaultlib.tcp_rx
+Compiling module xil_defaultlib.tcp_cam
+Compiling module xil_defaultlib.tcb
+Compiling module xil_defaultlib.tb_tcp_rx
+Built simulation snapshot tb_tcp_rx

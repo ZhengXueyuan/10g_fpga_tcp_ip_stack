@@ -1,0 +1,215 @@
+  [PASS] criterion 4: seq_diff[31] + RFC 793 SEQ_LT present; no live old-compare line
+  [PASS] A-source hash guard: rtl/tcp_rx.v == a35cd9809d233ebd3bc08bee1df6faa3c1c68882578dfba4cfe20c1cbf6fbc02
+MUTGEN OK src=D:\repo\XCKU5PMini\udp_hls_10g\rtl\tcp_rx.v sha256=a35cd9809d233ebd anchor='seq_lt   = seq_diff[31];' x1
+MUTGEN OK ackresp_anchor='(win_ok || seq_lt)' x1
+MUTGEN OUT D:\repo\XCKU5PMini\udp_hls_10g\sim\p3sim_rfc\mut\mut_M1.v sha256=1d442c7cbdcafc75 changed_lines=[327] ins=0
+MUTGEN OUT D:\repo\XCKU5PMini\udp_hls_10g\sim\p3sim_rfc\mut\mut_M2.v sha256=91e112b5b9dc936f changed_lines=[327, 370] ins=1
+MUTGEN OUT D:\repo\XCKU5PMini\udp_hls_10g\sim\p3sim_rfc\mut\mut_M3.v sha256=d8984caee0107611 changed_lines=[327] ins=0
+MUTGEN OUT D:\repo\XCKU5PMini\udp_hls_10g\sim\p3sim_rfc\mut\mut_M4.v sha256=5cbe90b9a96d8e04 changed_lines=[327] ins=0
+  [PASS] A hash guard: RSRC == a35cd9809d233ebd3bc08bee1df6faa3c1c68882578dfba4cfe20c1cbf6fbc02
+  [PASS] AO hash guard: RSRC == a35cd9809d233ebd3bc08bee1df6faa3c1c68882578dfba4cfe20c1cbf6fbc02
+  [PASS] G hash guard: RSRC == 7517c94951598c7e42d11ba7d8e62164acc762cbbd8718356e4f8bf3bc6d1489
+==================== SUMMARY ====================
+  A  FIXED   runA_a     RC=0    expect 0
+  AO A-OFF   runAO_off  RC=0   expect 0
+  G  LEGACY  runG_g     RC=0    expect 0
+  M1 REDUND  runM1_m1   RC=0   expect 0 (== A arm)
+  M2 HALF    runM2_m2   RC=0   expect 0 (mechanism OK; red={F2})
+  M3 BOUND   runM3_m3   RC=0   expect 0 (mechanism OK; red={F5})
+  M4 ZERO    runM4_m4   RC=0   expect 0 (mechanism OK; red={F1,F2,F5})
+  [FAIL] runA_a\xs1 missing 
+  [FAIL] runA_a\xs2 missing 
+  [FAIL] runA_a\xs3 missing 
+  [FAIL] runA_a\chk_ns missing 
+  [FAIL] runA_a\chk_h missing 
+  [FAIL] runAO_off\xs1 missing 
+  [FAIL] runAO_off\xs2 missing 
+  [FAIL] runAO_off\xs3 missing 
+  [FAIL] runAO_off\chk_ns missing 
+  [FAIL] runAO_off\chk_h missing 
+  [FAIL] runG_g\xs1 missing 
+  [FAIL] runG_g\xs2 missing 
+  [FAIL] runG_g\xs3 missing 
+  [FAIL] runG_g\chk_ns missing 
+  [FAIL] runG_g\chk_h missing 
+  [FAIL] runM1_m1\xs1 missing 
+  [FAIL] runM1_m1\xs2 missing 
+  [FAIL] runM1_m1\xs3 missing 
+  [FAIL] runM1_m1\chk_ns missing 
+  [FAIL] runM1_m1\chk_h missing 
+  [FAIL] runM2_m2\xs1 missing 
+  [FAIL] runM2_m2\xs2 missing 
+  [FAIL] runM2_m2\xs3 missing 
+  [FAIL] runM2_m2\chk_ns missing 
+  [FAIL] runM2_m2\chk_h missing 
+  [FAIL] runM3_m3\xs1 missing 
+  [FAIL] runM3_m3\xs2 missing 
+  [FAIL] runM3_m3\xs3 missing 
+  [FAIL] runM3_m3\chk_ns missing 
+  [FAIL] runM3_m3\chk_h missing 
+  [FAIL] runM4_m4\xs1 missing 
+  [FAIL] runM4_m4\xs2 missing 
+  [FAIL] runM4_m4\xs3 missing 
+  [FAIL] runM4_m4\chk_ns missing 
+  [FAIL] runM4_m4\chk_h missing 
+  [FAIL] A xs1: no "RFSEQ ALL PASS" 
+  [FAIL] A xs1: has [FAIL] RFSEQ line 
+  [FAIL] A xs2: no "RFSEQ ALL PASS" 
+  [FAIL] A xs2: has [FAIL] RFSEQ line 
+  [FAIL] A xs3: no "RFSEQ ALL PASS" 
+  [FAIL] A xs3: has [FAIL] RFSEQ line 
+nostall: 316 lines, stats {'pss': 26, 'nonmatch': 8, 'ipcsum': 1, 'crc': 1, 'seq': 6, 'ack': 20, 'bytes': 1943}, mac [42, 1, 0, 4929] OK
+stall: 316 lines, stats {'pss': 26, 'nonmatch': 8, 'ipcsum': 1, 'crc': 1, 'seq': 6, 'ack': 20, 'bytes': 1943}, mac [42, 1, 0, 4929] OK
+  [PASS] hard-mode: known pre-existing divergence signature unchanged, LINE 63
+  [PASS] hash guard: A-off resp_tcp_rx.memh == frozen pre-change
+  [PASS] hash guard: A-off resp_tcp_rx_stall.memh == frozen pre-change
+  [PASS] hash guard: A-off resp_tcp_rx_hard.memh == frozen pre-change
+  [FAIL] G xs1: no "RFSEQ LEGACY OK" 
+  [FAIL] G xs1: no F5 XFAIL marker 
+  [FAIL] G xs1: no F1 XFAIL marker 
+  [FAIL] G xs1: no F2 XFAIL marker 
+  [FAIL] G xs1: has [FAIL] RFSEQ line 
+  [FAIL] G xs2: no "RFSEQ LEGACY OK" 
+  [FAIL] G xs2: no F5 XFAIL marker 
+  [FAIL] G xs2: no F1 XFAIL marker 
+  [FAIL] G xs2: no F2 XFAIL marker 
+  [FAIL] G xs2: has [FAIL] RFSEQ line 
+  [FAIL] G xs3: no "RFSEQ LEGACY OK" 
+  [FAIL] G xs3: no F5 XFAIL marker 
+  [FAIL] G xs3: no F1 XFAIL marker 
+  [FAIL] G xs3: no F2 XFAIL marker 
+  [FAIL] G xs3: has [FAIL] RFSEQ line 
+nostall: 313 lines, stats {'pss': 25, 'nonmatch': 11, 'ipcsum': 1, 'crc': 1, 'seq': 4, 'ack': 18, 'bytes': 1943}, mac [42, 1, 0, 4929] OK
+stall: 313 lines, stats {'pss': 25, 'nonmatch': 11, 'ipcsum': 1, 'crc': 1, 'seq': 4, 'ack': 18, 'bytes': 1943}, mac [42, 1, 0, 4929] OK
+  [FAIL] M1 xs1: no "RFSEQ ALL PASS" 
+  [FAIL] M1 xs2: no "RFSEQ ALL PASS" 
+  [FAIL] M1 xs3: no "RFSEQ ALL PASS" 
+  [PASS] M1 resp_tcp_rx.memh bytes == A arm
+  [PASS] M1 resp_tcp_rx_stall.memh bytes == A arm
+  [PASS] M1 resp_tcp_rx_hard.memh bytes == A arm
+  [FAIL] M2 xs1: F5 not green 
+  [FAIL] M2 xs1: F3 not green 
+  [FAIL] M2 xs1: F4 not green 
+  [FAIL] M2 xs1: F1 not green 
+  [FAIL] M2 xs2: F5 not green 
+  [FAIL] M2 xs2: F3 not green 
+  [FAIL] M2 xs2: F4 not green 
+  [FAIL] M2 xs2: F1 not green 
+  [FAIL] M2 xs3: F5 not green 
+  [FAIL] M2 xs3: F3 not green 
+  [FAIL] M2 xs3: F4 not green 
+  [FAIL] M2 xs3: F1 not green 
+  [FAIL] M2: frozen first-divergence signature absent/changed 
+  [FAIL] M3 xs1: F3 not green 
+  [FAIL] M3 xs1: F4 not green 
+  [FAIL] M3 xs1: F1 not green 
+  [FAIL] M3 xs1: F2 not green 
+  [FAIL] M3 xs2: F3 not green 
+  [FAIL] M3 xs2: F4 not green 
+  [FAIL] M3 xs2: F1 not green 
+  [FAIL] M3 xs2: F2 not green 
+  [FAIL] M3 xs3: F3 not green 
+  [FAIL] M3 xs3: F4 not green 
+  [FAIL] M3 xs3: F1 not green 
+  [FAIL] M3 xs3: F2 not green 
+  [FAIL] M3: frozen first-divergence signature absent/changed 
+  [FAIL] M4 xs1: F3 not green 
+  [FAIL] M4 xs1: F4 not green 
+  [FAIL] M4 xs2: F3 not green 
+  [FAIL] M4 xs2: F4 not green 
+  [FAIL] M4 xs3: F3 not green 
+  [FAIL] M4 xs3: F4 not green 
+  [FAIL] M4: frozen first-divergence signature absent/changed 
+  [PASS] env-arm negative control: MISMATCH reported without legacy env
+---- key readings ----
+  [runA_a xs1]
+RFSEQ ARM=FIXED (RFC seq_lt)
+RFSEQ F5 passd=0 dseqd=1 dnmd=0 ackd=1 mwd=x
+RFSEQ F3 passd=1 dseqd=0 dnmd=0 ackd=1 mwd=x
+RFSEQ F4 passd=0 dseqd=0 dnmd=1 ackd=0 mwd=x
+RFSEQ F1 passd=0 dseqd=1 dnmd=0 ackd=1 mwd=x
+RFSEQ F2 passd=1 dseqd=0 dnmd=0 ackd=0 mwd=x
+RFSEQ END snd_una=00000010 rcv_nxt=00000164 snd_wnd=4000 w68d=1 (dut 1)
+[FAIL] RFSEQ F5 exp passd=0 dseqd=1 dnmd=0 ackd=1 mwd=0
+[FAIL] RFSEQ F3 exp passd=1 dseqd=0 dnmd=0 ackd=1 mwd=13
+[FAIL] RFSEQ F4 exp passd=0 dseqd=0 dnmd=1 ackd=0 mwd=0
+[FAIL] RFSEQ F1 exp passd=0 dseqd=1 dnmd=0 ackd=1 mwd=0
+[FAIL] RFSEQ F2 exp passd=1 dseqd=0 dnmd=0 ackd=0 mwd=0
+[FAIL] RFSEQ FIXED arm: f5=x f3=x f4=x f1=x f2=x cons=1 end=1 w68=1
+  [runAO_off xs1]
+  [runG_g xs1]
+RFSEQ ARM=LEGACY (pre-fix seq_lt)
+RFSEQ F5 passd=0 dseqd=0 dnmd=1 ackd=0 mwd=x
+RFSEQ F3 passd=1 dseqd=0 dnmd=0 ackd=1 mwd=x
+RFSEQ F4 passd=0 dseqd=0 dnmd=1 ackd=0 mwd=x
+RFSEQ F1 passd=0 dseqd=0 dnmd=1 ackd=0 mwd=x
+RFSEQ F2 passd=0 dseqd=0 dnmd=1 ackd=0 mwd=x
+RFSEQ END snd_una=00000000 rcv_nxt=00000164 snd_wnd=4000 w68d=0 (dut 0)
+[FAIL] RFSEQ F5 exp passd=0 dseqd=0 dnmd=1 ackd=0 mwd=0
+[FAIL] RFSEQ F3 exp passd=1 dseqd=0 dnmd=0 ackd=1 mwd=13
+[FAIL] RFSEQ F4 exp passd=0 dseqd=0 dnmd=1 ackd=0 mwd=0
+[FAIL] RFSEQ F1 exp passd=0 dseqd=0 dnmd=1 ackd=0 mwd=0
+[FAIL] RFSEQ F2 exp passd=0 dseqd=0 dnmd=1 ackd=0 mwd=0
+[FAIL] RFSEQ LEGACY arm: f5=x f3=x f4=x f1=x f2=x cons=1 end=1 w68=1
+  [runM1_m1 xs1]
+RFSEQ ARM=FIXED (RFC seq_lt)
+RFSEQ F5 passd=0 dseqd=1 dnmd=0 ackd=1 mwd=x
+RFSEQ F3 passd=1 dseqd=0 dnmd=0 ackd=1 mwd=x
+RFSEQ F4 passd=0 dseqd=0 dnmd=1 ackd=0 mwd=x
+RFSEQ F1 passd=0 dseqd=1 dnmd=0 ackd=1 mwd=x
+RFSEQ F2 passd=1 dseqd=0 dnmd=0 ackd=0 mwd=x
+RFSEQ END snd_una=00000010 rcv_nxt=00000164 snd_wnd=4000 w68d=1 (dut 1)
+[FAIL] RFSEQ F5 exp passd=0 dseqd=1 dnmd=0 ackd=1 mwd=0
+[FAIL] RFSEQ F3 exp passd=1 dseqd=0 dnmd=0 ackd=1 mwd=13
+[FAIL] RFSEQ F4 exp passd=0 dseqd=0 dnmd=1 ackd=0 mwd=0
+[FAIL] RFSEQ F1 exp passd=0 dseqd=1 dnmd=0 ackd=1 mwd=0
+[FAIL] RFSEQ F2 exp passd=1 dseqd=0 dnmd=0 ackd=0 mwd=0
+[FAIL] RFSEQ FIXED arm: f5=x f3=x f4=x f1=x f2=x cons=1 end=1 w68=1
+  [runM2_m2 xs1]
+RFSEQ ARM=FIXED (RFC seq_lt)
+RFSEQ F5 passd=0 dseqd=1 dnmd=0 ackd=1 mwd=x
+RFSEQ F3 passd=1 dseqd=0 dnmd=0 ackd=1 mwd=x
+RFSEQ F4 passd=0 dseqd=0 dnmd=1 ackd=0 mwd=x
+RFSEQ F1 passd=0 dseqd=1 dnmd=0 ackd=1 mwd=x
+RFSEQ F2 passd=0 dseqd=0 dnmd=1 ackd=0 mwd=x
+RFSEQ END snd_una=00000000 rcv_nxt=00000164 snd_wnd=4000 w68d=0 (dut 0)
+[FAIL] RFSEQ F5 exp passd=0 dseqd=1 dnmd=0 ackd=1 mwd=0
+[FAIL] RFSEQ F3 exp passd=1 dseqd=0 dnmd=0 ackd=1 mwd=13
+[FAIL] RFSEQ F4 exp passd=0 dseqd=0 dnmd=1 ackd=0 mwd=0
+[FAIL] RFSEQ F1 exp passd=0 dseqd=1 dnmd=0 ackd=1 mwd=0
+[FAIL] RFSEQ F2 exp passd=1 dseqd=0 dnmd=0 ackd=0 mwd=0
+[FAIL] RFSEQ end state: snd_una=00000000 (exp 00000010) rcv_nxt=00000164 (exp 00000164)
+[FAIL] RFSEQ W68 delta: tb=0 (exp 1) dut=0
+[FAIL] RFSEQ FIXED arm: f5=x f3=x f4=x f1=x f2=0 cons=1 end=0 w68=0
+  [runM3_m3 xs1]
+RFSEQ ARM=FIXED (RFC seq_lt)
+RFSEQ F5 passd=0 dseqd=0 dnmd=1 ackd=0 mwd=x
+RFSEQ F3 passd=1 dseqd=0 dnmd=0 ackd=1 mwd=x
+RFSEQ F4 passd=0 dseqd=0 dnmd=1 ackd=0 mwd=x
+RFSEQ F1 passd=0 dseqd=1 dnmd=0 ackd=1 mwd=x
+RFSEQ F2 passd=1 dseqd=0 dnmd=0 ackd=0 mwd=x
+RFSEQ END snd_una=00000010 rcv_nxt=00000164 snd_wnd=4000 w68d=1 (dut 1)
+[FAIL] RFSEQ F5 exp passd=0 dseqd=1 dnmd=0 ackd=1 mwd=0
+[FAIL] RFSEQ F3 exp passd=1 dseqd=0 dnmd=0 ackd=1 mwd=13
+[FAIL] RFSEQ F4 exp passd=0 dseqd=0 dnmd=1 ackd=0 mwd=0
+[FAIL] RFSEQ F1 exp passd=0 dseqd=1 dnmd=0 ackd=1 mwd=0
+[FAIL] RFSEQ F2 exp passd=1 dseqd=0 dnmd=0 ackd=0 mwd=0
+[FAIL] RFSEQ FIXED arm: f5=0 f3=x f4=x f1=x f2=x cons=1 end=1 w68=1
+  [runM4_m4 xs1]
+RFSEQ ARM=FIXED (RFC seq_lt)
+RFSEQ F5 passd=0 dseqd=0 dnmd=1 ackd=0 mwd=x
+RFSEQ F3 passd=1 dseqd=0 dnmd=0 ackd=1 mwd=x
+RFSEQ F4 passd=0 dseqd=0 dnmd=1 ackd=0 mwd=x
+RFSEQ F1 passd=0 dseqd=0 dnmd=1 ackd=0 mwd=x
+RFSEQ F2 passd=0 dseqd=0 dnmd=1 ackd=0 mwd=x
+RFSEQ END snd_una=00000000 rcv_nxt=00000164 snd_wnd=4000 w68d=0 (dut 0)
+[FAIL] RFSEQ F5 exp passd=0 dseqd=1 dnmd=0 ackd=1 mwd=0
+[FAIL] RFSEQ F3 exp passd=1 dseqd=0 dnmd=0 ackd=1 mwd=13
+[FAIL] RFSEQ F4 exp passd=0 dseqd=0 dnmd=1 ackd=0 mwd=0
+[FAIL] RFSEQ F1 exp passd=0 dseqd=1 dnmd=0 ackd=1 mwd=0
+[FAIL] RFSEQ F2 exp passd=1 dseqd=0 dnmd=0 ackd=0 mwd=0
+[FAIL] RFSEQ end state: snd_una=00000000 (exp 00000010) rcv_nxt=00000164 (exp 00000164)
+[FAIL] RFSEQ W68 delta: tb=0 (exp 1) dut=0
+[FAIL] RFSEQ FIXED arm: f5=0 f3=x f4=x f1=0 f2=0 cons=1 end=0 w68=0
+RFCSEQ-GATE: FAIL count=44
+GATE-RC=1

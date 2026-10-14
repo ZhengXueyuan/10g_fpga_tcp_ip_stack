@@ -1,0 +1,22 @@
+# p3_tcp_rx hard-mode divergence evidence (sim/p3sim gate; pre vs post RFC-seq fix)
+# (regenerated after TL correction round; POST2 == POST byte-identical)
+# PRE (frozen baseline, BASE_p3_tcp_rx_stdout.txt):
+nostall: 297 lines, stats {'pss': 24, 'nonmatch': 7, 'ipcsum': 1, 'crc': 1, 'seq': 4, 'ack': 17, 'bytes': 1843}, mac [37, 1, 0, 4233] OK
+stall: 297 lines, stats {'pss': 24, 'nonmatch': 7, 'ipcsum': 1, 'crc': 1, 'seq': 4, 'ack': 17, 'bytes': 1843}, mac [37, 1, 0, 4233] OK
+hard LINE 63: exp 'META 0A000001 D431 0014 1 00000000' resp 'FEND 1'
+hard STATS: exp {'pss': 19, 'nonmatch': 6, 'ipcsum': 1, 'crc': 0, 'seq': 5, 'ack': 14, 'bytes': 295} resp ['21', '4', '1', '1', '5', '14', '295']
+hard: 96 lines, stats {'pss': 19, 'nonmatch': 6, 'ipcsum': 1, 'crc': 0, 'seq': 5, 'ack': 14, 'bytes': 295}, mac [31, 1, 6, 2305] MISMATCH
+BASE-RC=1
+
+# POST (POST_p3_tcp_rx_stdout.txt) == POST2 (POST2_p3_tcp_rx_stdout.txt, after correction round; diff-RC=0):
+nostall: 297 lines, stats {'pss': 24, 'nonmatch': 7, 'ipcsum': 1, 'crc': 1, 'seq': 4, 'ack': 17, 'bytes': 1843}, mac [37, 1, 0, 4233] OK
+stall: 297 lines, stats {'pss': 24, 'nonmatch': 7, 'ipcsum': 1, 'crc': 1, 'seq': 4, 'ack': 17, 'bytes': 1843}, mac [37, 1, 0, 4233] OK
+hard LINE 63: exp 'META 0A000001 D431 0014 1 00000000' resp 'FEND 1'
+hard STATS: exp {'pss': 20, 'nonmatch': 5, 'ipcsum': 1, 'crc': 0, 'seq': 5, 'ack': 14, 'bytes': 295} resp ['21', '4', '1', '1', '5', '14', '295']
+hard: 97 lines, stats {'pss': 20, 'nonmatch': 5, 'ipcsum': 1, 'crc': 0, 'seq': 5, 'ack': 14, 'bytes': 295}, mac [31, 1, 6, 2305] MISMATCH
+POST-RC=1  POST2-RC=1
+
+# DUT resp sha256 (identical pre/post/post2):
+7c95315f2f0761ca02a4a8c1c6845d030a5487434936ff9b23e14e33c36a7f80 *sim/p3sim/resp_tcp_rx.memh
+7c95315f2f0761ca02a4a8c1c6845d030a5487434936ff9b23e14e33c36a7f80 *sim/p3sim/resp_tcp_rx_stall.memh
+2d96e7cc175027c6b8eb242efaefd36abbcfaa56dce8972f4c13b14e2db453ee *sim/p3sim/resp_tcp_rx_hard.memh

@@ -24,6 +24,13 @@ import zlib
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+# ⭐ BUILDG-RFC-SEQ (设计件 v3r2 §5.5): `seq_lt` oracle 的**臂**。
+#   SEQRFC_ARM=legacy ⇒ 旧式绝对比较 `seq32 < rcv_nxt` (配 frozen/tcp_rx_prefix.v
+#   的 G 臂); 缺省 fixed = RFC 793 SEQ_LT (`(int32)(seq32-rcv_nxt) < 0`, 即差的
+#   最高位)。⚠️ 与 `check` 的 CLI 臂参数 (第 3 参, 控制 SNDWND guard) 是**两个
+#   独立开关** —— G 臂两者都必须用 legacy, 否则模型与 DUT 语义错配。
+SEQ_RFC = os.environ.get('SEQRFC_ARM', 'fixed') != 'legacy'
+
 PRE = bytes([0x55] * 7) + b'\xD5'
 IFG = bytes([0x07] * 12)
 SRC_MAC = bytes([0x00, 0x0A, 0x35, 0x01, 0xFE, 0xC0])
@@ -108,6 +115,60 @@ def check_leg_intervals():
     assert not acc((hi + 0x1000) & 0xFFFFFFFF), 'A2 (oob) must be OUT of [snd_una, ack_hi]'
     assert acc(lo), 'B1 (zero-advance) must be IN (interval includes the equals sign)'
     assert acc((lo + 0x100) & 0xFFFFFFFF), 'B2 (advancing) must be IN'
+
+# ---- ⭐ BUILDG-RFC-SEQ 尾部段常量 (env SEQRFC_TAIL=1 开; 默认关 ⇒ 生成物字节不变) ----
+#   帧序 F5→F3→F4→F1→F2 的两条硬理由 (设计件 §5.4): ① F2 必须最后 (终态 snd_una
+#   的唯一写者 —— F5/F1/F4 在两臂都无 fend); ② F5 必须先于 F3 (F3 交付会把
+#   rcv_nxt 推到 0x164 ⇒ F5 的 d 离开边界点 0x80000000)。位置写 rf_legs.memh /
+#   重配值写 rf_cfg.memh (TB 与模型同源 ⇒ 无硬编码漂移)。
+RF_PAD0 = 200                     # 腿相位尾 → 尾段空隙 (等 SNDWND 腿 drain 落定)
+RF_GAP = 60                       # 帧间空闲 (与腿段同节奏)
+RF_SNAP_LAG = 30                  # 快照点 = 帧末字节 + 本值 (照 SNDWND 腿)
+RF_TAIL_IDLE = 120                # 尾段后空闲 (末快照 +40 < 流长 的守卫用)
+TAIL0 = dict(rcv_nxt=0x100, snd_nxt=0x200, snd_una=0x0,
+             rcv_wnd=0x2000, snd_wnd=0x2000, state=1)
+
+
+def build_tail():
+    """⭐ BUILDG-RFC-SEQ 尾部段 5 帧 (SEQRFC_TAIL=1; 期望表 = 设计件 §5.4):
+
+      F5 rf_f5_bound: 数据 100B, seq=rcv_nxt+2^31 (d=0x80000000 = 边界行)
+      F3 rf_f3_data : 数据 100B, seq==rcv_nxt, ack=0 (等价域正例; 交付 100B)
+      F4 rf_f4_far  : 数据 100B, seq=rcv_nxt+0x20000 (等价域正例; 远超前段, 静默)
+      F1 rf_f1_wrap : 数据 100B, seq=2^31-0x80 附近 (回卷后旧数据段 = 目标帧)
+      F2 rf_f2_ack  : 纯 ACK 60B 填充帧 (回卷后旧纯 ACK = 链 B; w6a→S_PAD)
+
+    全部合法段 (conn0 4 元组 / flags=ACK / doff=5 / IP csum / FCS 正确); wnd 字段
+    统一 0x4000。帧序硬理由见上方常量块。
+    """
+    F = []
+    def add(nm, seq, ack, n, pad=False):
+        fb, fcs = mk_tcp_frame(SPORT0, DPORT0, seq, ack, 0x10, n,
+                               wnd=0x4000, pad=pad)
+        F.append((nm, fb, fcs))
+    add('rf_f5_bound', 0x80000100, 0x10, 100)
+    add('rf_f3_data',  0x00000100, 0x00, 100)
+    add('rf_f4_far',   0x00020164, 0x10, 100)
+    add('rf_f1_wrap',  0xFFFFFF80, 0x10, 100)
+    add('rf_f2_ack',   0xFFFFFFC0, 0x10, 0, pad=True)
+    return F
+
+
+def check_tail_domains():
+    """尾段两侧域自检 (写死; 设计件 §5.4 的 d_mod 列)。运行中的 rcv_nxt: F5/F3 前
+    = 0x100 (重配基线), F4/F1/F2 前 = 0x164 (F3 交付 100B)。
+    目标向三帧 (F5/F1/F2): 旧式绝对比较 seq_lt_abs = 0 (静默/无 w6a) 而新式
+    seq_lt_rfc = 1 ⇒ 两臂差异的机器证明; F3/F4 等价域 (两版逐位相同)。"""
+    seqs = [0x80000100, 0x00000100, 0x00020164, 0xFFFFFF80, 0xFFFFFFC0]
+    rcv = [0x100, 0x100, 0x164, 0x164, 0x164]
+    d = [(s - r) & 0xFFFFFFFF for s, r in zip(seqs, rcv)]
+    assert d[0] == 0x80000000, hex(d[0])            # 边界行 (§3.3: 判 seq_lt=1)
+    assert d[3] >= 0x80000000 and d[4] >= 0x80000000
+    assert d[1] == 0 and d[2] == 0x20000
+    old = [int(s < r) for s, r in zip(seqs, rcv)]
+    new = [1 if x >= 0x80000000 else 0 for x in d]
+    assert old == [0, 0, 0, 0, 0], old             # 旧式: 目标三帧全静默
+    assert new == [1, 0, 0, 1, 1], new             # 新式: F5/F1/F2 判旧段
 
 # CAM 配置 (与 TB 配置阶段一致): 条目 0/1/2
 CAM_CFG = [
@@ -315,7 +376,37 @@ def generate(simdir):
     assert snap_dir >= DIR_HOLD1 + 40, ('SNAP_DIR must follow gnt release', snap_dir)
     assert snap_b2 + 40 < len(segs), ('tail too short for SNAP_B2', snap_b2, len(segs))
 
-    frames = base + directed + legs
+    # ---- ⭐ BUILDG-RFC-SEQ 尾部段 (env SEQRFC_TAIL=1; 默认关 ⇒ 上面全部字节索引
+    #      与生成物逐字节不变 —— 判据 0 的守恒前提) ----
+    rf = None
+    tail = []
+    if os.environ.get('SEQRFC_TAIL') == '1':
+        check_tail_domains()
+        tail = build_tail()
+        assert len(tail) == 5
+        segs += [(0, 0x07, 0)] * RF_PAD0
+        rf_cfg2 = len(segs)                 # 6 字段重配窗 (慢路径写 conn0; 内容无关)
+        segs += [(0, 0x07, 0)] * 6
+        snap0 = rf_cfg2 + 6 + 30            # 重配后基线 (窗末 +30, 照腿段)
+        segs += [(0, 0x07, 0)] * 60         # → F5 = 窗末 +60 (SNAP_S0 落在其前 30B)
+        rf_pos = [rf_cfg2, snap0]
+        for nm, fb, fcs in tail:
+            nb = len(PRE + fb + fcs)
+            segs += [(0, b, 1) for b in (PRE + fb + fcs)]
+            rf_pos.append(len(segs) + RF_SNAP_LAG)   # 帧末 +30 (fend/drain 已落定)
+            segs += [(0, 0x07, 0)] * RF_GAP
+        segs += [(0, 0x07, 0)] * RF_TAIL_IDLE
+        # 结构性自检 (布局不变量; 任一条不成立 = 生成即硬失败)
+        assert rf_pos[1] == rf_cfg2 + 6 + 30
+        off = rf_cfg2 + 6 + 60
+        for i, (nm, fb, fcs) in enumerate(tail):
+            nb = len(PRE + fb + fcs)
+            assert rf_pos[2 + i] == off + nb + RF_SNAP_LAG, (nm, rf_pos[2 + i])
+            off += nb + RF_GAP
+        assert rf_pos[6] + 40 < len(segs), ('tail too short for SNAP_F2', rf_pos[6], len(segs))
+        rf = dict(cfg2=rf_cfg2, pos=rf_pos)
+
+    frames = base + directed + legs + tail
     nstim = len(segs)
     data = [s[1] for s in segs]
     dv = [s[2] for s in segs]
@@ -347,7 +438,14 @@ def generate(simdir):
     # ⭐ SNDWND 三腿位置表 (TB tb_tcp_rx.v 读; 顺序见其头部注)
     with open(os.path.join(simdir, 'sw_legs.memh'), 'w') as fh:
         fh.write('\n'.join('%X' % p for p in sw_pos) + '\n')
-    return frames, hw0, hw1, sw
+    # ⭐ BUILDG-RFC-SEQ 尾部段: 位置表 + 重配值 (TB 读; 顺序见 tb_tcp_rx.v 头部注)
+    if rf is not None:
+        with open(os.path.join(simdir, 'rf_legs.memh'), 'w') as fh:
+            fh.write('\n'.join('%X' % p for p in rf['pos']) + '\n')
+        with open(os.path.join(simdir, 'rf_cfg.memh'), 'w') as fh:
+            for fld in FIELDS:
+                fh.write('%X\n' % TAIL0[fld])
+    return frames, hw0, hw1, sw, rf
 
 
 # ---------------- 周期精确参考模型 ----------------
@@ -386,7 +484,7 @@ def model(simdir, mode, guard=True):
     False = 遗留臂 (-d SNDWND_LEGACY)。两臂的判据线 (FEND/STATS/TCBF) 在该语料里
     本该逐字相同 —— 腿的判别力**不**来自模型比对, 而来自 TB 的显式终态断言与腿 C
     (本工程纪律: 同源 oracle 一致 ≠ 正确)。"""
-    frames, hw0, hw1, sw = generate(simdir)
+    frames, hw0, hw1, sw, rf = generate(simdir)
     data = [int(x, 16) for x in open(os.path.join(simdir, 'stim_data.memh'))]
     dv = [int(x) for x in open(os.path.join(simdir, 'stim_dv.memh'))]
     nstim = len(data)
@@ -420,6 +518,7 @@ def model(simdir, mode, guard=True):
     conn_id_l = 0
     acc_l = ackresp_l = ack_adv_l = False
     ackok_l = False            # ⭐ P7B-SNDWND-GUARD: ack_ok 锁存 (镜像 RTL :691)
+    w6a_ok_l = False           # ⭐ BUILDG-RFC-SEQ: w6a_ok 锁存 (镜像 RTL :710)
     ack32_l = seq32_l = rcv_nxt_l = 0
     plen_l = wnd_l = 0
     drop_ack = False
@@ -457,7 +556,7 @@ def model(simdir, mode, guard=True):
     def tcp_cycle(w, m_tready, gnt):
         nonlocal st, wcnt, w1_lo, w2r, w3r, ipc_s9
         nonlocal src_ip_r, src_port_r, seq_hi_r, cam_hit_l, conn_id_l
-        nonlocal acc_l, ackresp_l, ack_adv_l, ackok_l, ack32_l, seq32_l, rcv_nxt_l, plen_l, wnd_l
+        nonlocal acc_l, ackresp_l, ack_adv_l, ackok_l, w6a_ok_l, ack32_l, seq32_l, rcv_nxt_l, plen_l, wnd_l
         nonlocal drop_ack, hold16, pcount, ev, ed, ek, el, eu, tail_stage, td, tk, tu
         nonlocal pend_rcv, pend_una, pend_wnd, pend_id
         nonlocal pend_rcv_val, pend_una_val, pend_wnd_val, drn
@@ -481,6 +580,7 @@ def model(simdir, mode, guard=True):
         cam_hit_l_n, conn_id_l_n = cam_hit_l, conn_id_l
         acc_l_n, ackresp_l_n, ack_adv_l_n = acc_l, ackresp_l, ack_adv_l
         ackok_l_n = ackok_l
+        w6a_ok_l_n = w6a_ok_l
         ack32_l_n, seq32_l_n, rcv_nxt_l_n, plen_l_n = ack32_l, seq32_l, rcv_nxt_l, plen_l
         w1_lo_n, w2r_n, w3r_n, ipc_s9_n = w1_lo, w2r, w3r, ipc_s9
         src_ip_r_n, src_port_r_n, seq_hi_r_n = src_ip_r, src_port_r, seq_hi_r
@@ -556,7 +656,11 @@ def model(simdir, mode, guard=True):
                             seq_diff = (seq32 - t['rcv_nxt']) & 0xFFFFFFFF
                             win_ok = seq_diff < t['rcv_wnd']
                             seq_eq = seq32 == t['rcv_nxt']
-                            seq_lt = seq32 < t['rcv_nxt']
+                            # ⭐ BUILDG-RFC-SEQ: 臂化 oracle (设计件 §5.5 逐字)。
+                            #   fixed = RFC 793 SEQ_LT: (int32)(seq32-rcv_nxt) < 0
+                            #   legacy = 修复前旧式绝对比较 (配 frozen prefix 的 G 臂)
+                            seq_lt = (((seq32 - t['rcv_nxt']) & 0xFFFFFFFF) >= 0x80000000) \
+                                if SEQ_RFC else (seq32 < t['rcv_nxt'])
                             ack_ok = (((ack32 - t['snd_una']) & 0xFFFFFFFF) <=
                                       ((t['snd_nxt'] - t['snd_una']) & 0xFFFFFFFF))
                             ack_adv = ack_ok and ack32 != t['snd_una']
@@ -567,8 +671,14 @@ def model(simdir, mode, guard=True):
                             acc = base_ok and win_ok and seq_eq
                             ackresp = (base_ok and not seq_eq and
                                        (win_ok or seq_lt) and plen_w != 0)
+                            # ⭐ BUILDG-RFC-SEQ: w6a_ok 建模 (镜像 RTL :349-350;
+                            #   此前模型无此支 —— 纯 ACK 进 S_PAD 的唯一入口曾是
+                            #   :598-600 的 acc_l 支)
+                            w6a_ok = (base_ok and plen_w == 0 and
+                                      ((seq_diff <= t['rcv_wnd']) or seq_lt))
                             acc_l_n, ackresp_l_n, ack_adv_l_n = acc, ackresp, ack_adv
                             ackok_l_n = ack_ok   # ⭐ SNDWND-GUARD: 镜像 RTL :691
+                            w6a_ok_l_n = w6a_ok   # ⭐ BUILDG-RFC-SEQ: 镜像 RTL :710
                             ack32_l_n, seq32_l_n = ack32, seq32
                             plen_l_n = plen_w
                             rcv_nxt_l_n = t['rcv_nxt']
@@ -603,6 +713,24 @@ def model(simdir, mode, guard=True):
                                 hold16_n = w[0] & 0xFFFF
                                 pcount_n = 2 if plen_l >= 2 else 1
                             wnd_l_n = (w[0] >> 48) & 0xFFFF
+                            wcnt_n = 7
+                        elif w6a_ok_l:
+                            # ⭐ BUILDG-RFC-SEQ: 窗口内非边界纯 ACK (镜像 RTL :766-771)
+                            #   —— 吞到帧尾, fend_pad 处理其 ACK/窗口字段 (snd_una
+                            #   推进的唯一途径; 尾段 F2 = 链 B 走这条)。
+                            # ⭐ TL 裁定 (2026-10-15 修正轮): **锁存 wnd_l = 本帧窗**
+                            #   （门模型必须镜像 DUT）。设计件 v3r2 §5.5 原写"不锁存
+                            #   （取上帧陈值）"，其前提"`wnd_l` 只在 `:724`（w6-tlast
+                            #   支）/`:764`（acc_l 支）被写"经**现读证伪**：RTL `:731`
+                            #   `wnd_l <= s_axis_tdata[63:48];` **无条件位于 `default:`
+                            #   (wcnt==6) accept 支内、`if (s_axis_tlast)`(:732) 之前**
+                            #   （git blame `122b0c07` 即插在 tlast 判断之外）⇒ w6a 帧
+                            #   的 fend_pad 取**本帧**窗（与 acc_l 支同语义；
+                            #   另证 = P7B_SNDWND_GUARD_DESIGN.md:83-89 的 fend_pad 行）。
+                            #   设计侧 errata（§5.5 前提 / §5.4 W-a 机理句 / §9-D8
+                            #   quirk 前提）已列于轮报告补记，供 v3r4 文档轮。
+                            wnd_l_n = (w[0] >> 48) & 0xFFFF
+                            st_n = 'PAD'
                             wcnt_n = 7
                         elif ackresp_l:
                             st_n, drop_ack_n = 'DROP', True
@@ -762,6 +890,7 @@ def model(simdir, mode, guard=True):
         cam_hit_l, conn_id_l = cam_hit_l_n, conn_id_l_n
         acc_l, ackresp_l, ack_adv_l = acc_l_n, ackresp_l_n, ack_adv_l_n
         ackok_l = ackok_l_n
+        w6a_ok_l = w6a_ok_l_n
         ack32_l, seq32_l, rcv_nxt_l, plen_l = ack32_l_n, seq32_l_n, rcv_nxt_l_n, plen_l_n
         wnd_l = wnd_l_n
         drop_ack = drop_ack_n
@@ -833,6 +962,10 @@ def model(simdir, mode, guard=True):
             tcb[0][FIELDS[j - sw['cfg2']]] = TCB0[FIELDS[j - sw['cfg2']]]
         if j == sw['zero']:
             tcb[0]['snd_wnd'] = 0
+        # ---- ⭐ BUILDG-RFC-SEQ 尾段基线重配 (TB 于字节 [RF_CFG2, RF_CFG2+6) 写
+        #      conn0 = TAIL0; 同点镜像; rf=None (默认关) 时零动作) ----
+        if rf is not None and rf['cfg2'] <= j < rf['cfg2'] + 6:
+            tcb[0][FIELDS[j - rf['cfg2']]] = TAIL0[FIELDS[j - rf['cfg2']]]
         # ---- mac_rx_64 每周期 (字节 j 于周期 j+67 进入) ----
         wr = False
         din = None
@@ -1001,9 +1134,12 @@ if __name__ == '__main__':
         for mode in modes:
             ok = check(simdir, mode, guard=(arm == 'fixed')) and ok
         sys.exit(0 if ok else 1)
-    frames, hw0, hw1, sw = generate(simdir)
+    frames, hw0, hw1, sw, rf = generate(simdir)
     print('%d frames, hardwin=[%d,%d), sw cfg2=%d zero=%d' %
           (len(frames), hw0, hw1, sw['cfg2'], sw['zero']))
+    if rf is not None:
+        print('RFSEQ rf_pos cfg2=%d pos=%s arm=%s' %
+              (rf['cfg2'], rf['pos'], 'rfc' if SEQ_RFC else 'legacy'))
     for mode in ('nostall', 'stall', 'hard'):
         lines, stats, mstat, tcb = model(simdir, mode)
         print('%s: %d lines, stats %s, mac %s' % (mode, len(lines), stats, mstat))

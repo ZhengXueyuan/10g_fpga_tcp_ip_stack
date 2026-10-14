@@ -1,0 +1,14 @@
+lines 936 crlf 936 lonely_lf 0
+sha256 a35cd9809d233ebd3bc08bee1df6faa3c1c68882578dfba4cfe20c1cbf6fbc02
+has seq_diff[31] def: 1
+has RFC 793 SEQ_LT: 1
+old expr occurrences: 0
+old comment frag: 0
+live-code lines containing "seq32 < ra_rcv_nxt": 0
+319 '    wire        seq_eq   = (seq32 == ra_rcv_nxt);'
+320 '    // RFC 793 SEQ_LT: (int32)(seq32 - ra_rcv_nxt) < 0。旧写法 `seq32 < ra_rcv_nxt` 是**绝对比较**,'
+321 '    // 只在 `seq32 - rcv_nxt` 作为普通整数落在 [-2^31, 2^31-1] 时与之逐位相同 (等价域; 端点'
+322 '    // -2^31 也相同)。分歧域 = 该真差超出 [-2^31, 2^31-1]; 目标向 = 回卷后旧段 (rcv_nxt 已越过'
+323 Traceback (most recent call last):
+  File "<stdin>", line 17, in <module>
+UnicodeEncodeError: 'gbk' codec can't encode character '\u21d2' in position 43: illegal multibyte sequence

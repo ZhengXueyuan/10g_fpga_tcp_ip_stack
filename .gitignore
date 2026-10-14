@@ -38,6 +38,21 @@ sim/p3sim_sw/mut/*
 !sim/p3sim_sw/logs
 sim/p3sim_sw/logs/*
 !sim/p3sim_sw/logs/*.txt
+# P7B-BUILDG-RFC-SEQ gate (2026-10-15).  Same policy as sim/p3sim_sw: whitelist =
+# gate driver, frozen pre-fix RTL byte copy (sha256-pinned G-arm source), anchored
+# mutant **generator** (mut_M*.v itself is regenerable => excluded) and curated
+# logs (.txt) only; all run workdirs (runA_a/...) stay ignored (regenerable).
+sim/p3sim_rfc/*
+!sim/p3sim_rfc/run_rfcseq_gate.bat
+!sim/p3sim_rfc/frozen
+sim/p3sim_rfc/frozen/*
+!sim/p3sim_rfc/frozen/tcp_rx_prefix.v
+!sim/p3sim_rfc/mut
+sim/p3sim_rfc/mut/*
+!sim/p3sim_rfc/mut/mk_mut_rfc.py
+!sim/p3sim_rfc/logs
+sim/p3sim_rfc/logs/*
+!sim/p3sim_rfc/logs/*.txt
 tools/__pycache__/
 
 # Vivado board build artifacts (board/ bring-up)
