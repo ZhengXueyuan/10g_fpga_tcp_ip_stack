@@ -1,0 +1,20 @@
+diff --git a/board/wrapper_p4.v b/board/wrapper_p4.v
+index 417d8eb..0772ac3 100644
+--- a/board/wrapper_p4.v
++++ b/board/wrapper_p4.v
+@@ -1211,7 +1211,14 @@ module wrapper_p4 (
+                   //   `run_cont_gate.bat` 的 A vs G 实证; 参数语义的臂覆盖 =
+                   //   `run_tailcarry_gate.bat` 的 ARM B = P7B_10G + carry 关)。
+                   //   `rtl/app_pattern.v` 里的参数与实现**一字未动** (参数仍在, 默认 1'b0)。
+-                  .TX_TAILCARRY(1'b0)) u_app (
++                  .TX_TAILCARRY(1'b0),
++                  // ⭐ P9 (2026-10-15): 换流门 (close-out-then-switch; 设计件 =
++                  //   _proj_10g/notes/p9_fix_upok_design_20261014/DESIGN_v2r3.md)。
++                  //   1 = 同槽新连接事件改走"先收尾后换流" ⇒ 新会话的图案复位
++                  //   (`app_pattern.v` 换流块的 tx_lfsr<=SEED) 落在 active=0 的拍上,
++                  //   不再被同拍装配写覆盖 (P-3 类 "复位被静默丢掉" ⇒ 对端整条相位错)。
++                  //   默认 1'b0 ⇒ 其余全部例化点 (含 sim/ 下的镜像件) 逐位不变。
++                  .TX_SWCLOSE(1'b1)) u_app (
+         .clk            (dp_clk),
+         .rst_n          (dp_rst_n),
+         .ev_up          (app_ev_up),

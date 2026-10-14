@@ -40,7 +40,14 @@ module app_pattern #(
     //   frozen/app_pattern_rev0e804099.v, 见 P7B_BIZ_WINDOW.md/run_cont_gate.bat 的同款手法)。
     //   ⚠️ 只在 `P7B_10G` (A2 整字路) 下有意义 —— 逐字节构建的尾字本来就是 1 B/拍;
     //      未定义 P7B_10G 时本参数**结构性无效** (TAILC_OK 恒 0, 与默认逐位等价)。
-    parameter        TX_TAILCARRY = 1'b0
+    parameter        TX_TAILCARRY = 1'b0,
+    // ⭐ P9 (2026-10-15): 连续模式换流改走"先收尾后换流"(close-out-then-switch)。
+    //   1 = 同槽新连接事件 ⇒ 先走既有 W3 收尾(0 载荷 tlast) ⇒ 收尾完成(active=0) 的
+    //   下一拍才应用换流块(含唯一 TX 图案复位 :739) ⇒ 复位绝不被同拍装配写覆盖 (I1)。
+    //   默认 1'b0 ⇒ 全部既有例化逐位不变 (SWC_OK 是纯常量 ⇒ 新逻辑整条折叠)。
+    // ⚠️ 只在 TX_CONTINUOUS 有效时起作用 (SWC_OK = TX_SWCLOSE && CONT_OK)。
+    //   设计件 = _proj_10g/notes/p9_fix_upok_design_20261014/DESIGN_v2r3.md
+    parameter        TX_SWCLOSE   = 1'b0
 ) (
     input  wire        clk,
     input  wire        rst_n,
@@ -383,6 +390,10 @@ module app_pattern #(
     //   低窗 70 也照样被吞) ⇒ 修法必须是"记住事件 + 补做", 不能靠加延迟。
     reg         up_pend_r;     // 有未消费的 CONN_UP (当时判据为假)
     reg  [3:0]  up_pend_id;    // 它的槽号 (补做时用同一个槽)
+    // ---- ⭐ P9 (TX_SWCLOSE): 同槽换流的"已受理、等收尾"请求 ---------------------
+    //   I4: sw_pend 与 up_pend_r 至多一个非 0 (登记时互相清; 应用拍全清)。
+    reg         sw_pend;       // 请求已受理, 等收尾完成 (E6 写; 应用拍清)
+    reg  [3:0]  sw_slot;       // 请求的槽号 (事件拍锁存 = I3)
 
     // ---------------- P5d-D2: "连接不可发"时的 TX 硬化 (D1 曝光的缺陷②) ----
     // 背景 (现象已在 sim/p5sim 的 close 门实测复现, 非推测): app 的呈交口对
@@ -416,6 +427,9 @@ module app_pattern #(
     //   TX_BYTES=0 视为非法配置 ⇒ CONT_OK=0 ⇒ 退化为今天的"TX_BYTES=0 静默停滞"
     //   (结构性退化, 不是巧合; 见设计件 §1.3①)。
     localparam CONT_OK = TX_CONTINUOUS && (TX_BYTES != 32'd0);
+    // ⭐ P9: 换流门总开关 (纯参数常量表达式 ⇒ SWC_OK=0 时下列新逻辑整条被综合折叠
+    //   ⇒ 默认构建网表 = 老网表; 设计件 §2.4 的逐位零回归论证)。
+    localparam SWC_OK = TX_SWCLOSE && CONT_OK;
     // 帧边界处 remain 耗尽 ⇒ 重装载一个量子。LFSR **不**重装载 ⇒ 线上图案流无缝。
     // ⚠️ 复用同一个 `remain == 32'd0` 表达式 (它在 :451/:456/:676 已存在) ⇒ 不新增
     //    32 输入归约 (全局 #64 的机制点)。
@@ -488,7 +502,11 @@ module app_pattern #(
     //      从图案起点重发。
     //   close_send: 本拍发 0 载荷 + tlast 收尾字 (帧器可能已把 opener 收下并停在
     //     S_RECV ⇒ 必须补 tlast, 否则下一个 beat 会被当续载荷吞掉)。
-    wire        drop_pw    = closing && pw_valid && (seg_sent == 12'd0);
+    // ⭐ P9 E9: 追加项 = 换流收尾丢残字 (`SWC_OK && sw_pend`): 事件拍之后不再交付
+    //   旧流载荷字节 ⇒ P-A 判据 ("事件拍后不得再交付旧流载荷") 成立。撤掉零代价
+    //   (该字从未计数, 新会话从图案起点重发); 只对换流挂起期生效 ⇒ SWC_OK=0 折叠。
+    wire        drop_pw    = closing && pw_valid &&
+                             ((seg_sent == 12'd0) || (SWC_OK && sw_pend));
     wire        close_send = closing && !op_beat &&
                              (drop_pw || (!pw_valid &&
                                           (op_sent || (seg_sent != 12'd0))));
@@ -501,17 +519,30 @@ module app_pattern #(
     // pipe 本拍纵使 s_ready (帧器已收下 opener 在 S_RECV 等) 也只会装到收尾字 ✓。
     // ⭐ 构建 E (A3): ev_up 的**事件源**换成 `up_ev` —— 被吞过的 ev_up 由
     //   `up_pend_r` 补做 (见下面 ev_up 块)。判据本身 (下面 `up_ok`) **逐字未动**。
-    wire        up_ev   = ev_up || up_pend_r;
-    wire [3:0]  up_slot = ev_up ? ev_slot : up_pend_id;
-    wire        up_ok   = !active || ((up_slot == act_id) &&
-                                      (frm_wait || (seg_sent == 12'd0)));
-    wire        up_do   = up_ev && up_ok;
+    // ⭐ P9 (TX_SWCLOSE): 换流门四不变量 (设计件 §2.1):
+    //   I1 = 应用拍恒 active=0 (⇒ asm_go≡0 ⇒ P-3 的 :739 同拍覆盖写结构性不可能);
+    //   I2 = 受理 = 应用 ∨ 登记 (无第三态: 每个 ev_up 要么当拍应用、要么进 sw_pend/up_pend_r);
+    //   I3 = 应用拍槽源 = 事件拍锁存槽 (sw_slot/up_pend_id), 不是任何"当时现读"值;
+    //   I4 = sw_pend 与 up_pend_r 至多一个非 0 (见下面的登记块)。
+    //   ⚠️ SWC_OK=0 ⇒ `up_slot` 逐字等于原式、`sw_apply ≡ up_do`
+    //      ⇒ 默认构建行为逐位不变 (门中已验: run_cont_gate.bat 的 A vs G 19 文件锚)。
+    wire        up_ev   = ev_up || up_pend_r || (SWC_OK && sw_pend);
+    wire [3:0]  up_slot = ev_up ? ev_slot :
+                          (SWC_OK ? (up_pend_r ? up_pend_id : sw_slot) : up_pend_id);
+    wire        same_slot = (up_slot == act_id);
+    wire        idle_now  = !active;
+    wire        up_ok   = idle_now || (same_slot && (frm_wait || (seg_sent == 12'd0)));  // 原名/原式保留
+    wire        up_do   = up_ev && up_ok;                                                // 仅供 SWC_OK=0
+    wire        sw_apply = SWC_OK ? (idle_now && up_ev) : up_do;                         // I1/I2
+    // 事件分类 (到达态 × 槽关系; 模块级线, 是下面登记块的输入)
+    wire        ev_same_act  = ev_up && same_slot && !idle_now;   // 同槽 + 存活 (含 closing)
+    wire        ev_other_act = ev_up && !same_slot && !idle_now;  // 别的槽 + 存活
     // ev_restart = "本拍**真的**发生换流" (旧式 = `ev_up && 判据`): 用它做
     // ①W3 块让位 (closing && !ev_restart) ②rst_close 的撞车帧计数 ③a2_hold 的
     // 预取抑制。改成 up_do 后这三处的语义不变 —— 补做拍上 closing 恒 0
     // (closing ⟹ active 是块内不变量: closing 只在 active 时置位、与 active 同拍清),
     // 且那一拍 asm_go 恒 0 ⇒ ①② 是空操作、③ 与旧行为同值。
-    wire        ev_restart = up_do;
+    wire        ev_restart = sw_apply;
     wire        rst_close  = ev_restart && closing && !op_beat &&
                              (pw_valid || close_send);
     // 本帧"已在飞" (frm_inflight): 把装配分成两段:
@@ -680,6 +711,7 @@ module app_pattern #(
             pw_valid <= 1'b0; bad_frm <= 1'b0; frm_idx <= 16'd0; closing <= 1'b0;
             frm_wait <= 1'b0; op_pend <= 1'b0; op_sent <= 1'b0;
             up_pend_r <= 1'b0; up_pend_id <= 4'd0;   // 构建 E (A3)
+            sw_pend   <= 1'b0; sw_slot   <= 4'd0;    // P9 (TX_SWCLOSE)
             close_req <= 1'b0; close_id <= 4'd0;
             active <= 1'b0; act_id <= 4'd0; done <= 1'b0;
             stat_tx_bytes <= 32'd0; stat_tx_frames <= 32'd0;
@@ -708,9 +740,10 @@ module app_pattern #(
                 //   图案流按**连接起点**认 (对端从 SEED 起发), 而新连接从 ev_up
                 //   那一刻就开始了 —— 补做换流只影响 TX 侧哪一帧起发, 不该把
                 //   RX 期望序列在补做拍再重置一次 (那会把 raw ev_up 之后收到的
-                //   合法上行字节误判成失配)。TX 换流本体在下面 `if (up_do)` 块。
+                //   合法上行字节误判成失配)。TX 换流本体在下面 `if (sw_apply)` 块
+                //   (P9 起; SWC_OK=0 时它与原 `up_do` 逐位等价)。
             end
-            if (up_do) begin
+            if (sw_apply) begin
                 // 新连接: 启动图案发送 (单会话; 其它槽的新事件忽略)
                 // P5d-D2: 同槽 ev_up = **新会话** (对端按连接起点认图案流; 继续旧
                 // 流会让对端整段错位, 见 tools/cpp_peer --expect-pattern), 故旧
@@ -732,6 +765,12 @@ module app_pattern #(
                 //    (frm_wait || seg_sent==0))` —— **一字未改**, 只是把事件源
                 //    从 raw `ev_slot` 抽到 `up_slot` (= 补做事件时用登记的槽号),
                 //    并提到上面的 `up_ok` (同一个表达式, 单一来源)。
+                // ⭐ P9 E8: 判据从 `up_do` 改成 `sw_apply` (块体**一字不动**;
+                //   SWC_OK=0 ⇒ sw_apply ≡ up_do ⇒ 默认构建逐位不变)。
+                //   SWC_OK=1 时 sw_apply 只在 idle_now && up_ev 成立 ⇒ 应用拍恒
+                //   active=0 (I1) ⇒ asm_go≡0 ⇒ :739 的 SEED 不会被同拍装配写覆盖。
+                //   块体的 `act_id <= up_slot` 经 E5 的 mux 消费 sw_slot/up_pend_id (I3);
+                //   内层 `if (up_ok)` 保留 (sw_apply ⟹ idle_now ⟹ up_ok=1 ⇒ 恒真, H-2 闭合)。
                 if (up_ok) begin
                     active   <= 1'b1;
                     act_id   <= up_slot;
@@ -781,10 +820,24 @@ module app_pattern #(
             //         (不撤销的话会把一个已经拆掉的连接当成活的重新发流)。
             //   ⚠️ 块序即优先级: 这三条都在换流块**之后**, 且互补 (up_do 与
             //      "ev_up && !up_ok" 结构性互斥) ⇒ up_pend_r 单一写者、无覆盖。
+            // ---- ⭐ P9 (TX_SWCLOSE) E6: SWC 面登记 / A3 原逻辑逐字保留 (else 面) ----
+            //   I2: 每个 ev_up 要么当拍应用 (sw_apply, 上一块已执行)、要么在这里登记;
+            //   I4: 登记时互相清 ⇒ sw_pend / up_pend_r 至多一个非 0。
+            //   ⚠️ SWC 面**不**给 sw_pend 写任何以 ev_down 为条件的清位 (唯一清位 =
+            //      sw_apply) ⇒ (P-2) 撤销对换流路径结构性够不着。
+            if (SWC_OK) begin
+                if (sw_apply) begin sw_pend <= 1'b0; up_pend_r <= 1'b0; end
+                else if (ev_same_act)  begin sw_pend <= 1'b1; sw_slot <= ev_slot; up_pend_r <= 1'b0; end
+                else if (ev_other_act) begin up_pend_r <= 1'b1; up_pend_id <= ev_slot; sw_pend <= 1'b0; end
+            end else begin
+            // ⚠️ 下面 5 行**逐字保留 (含缩进)**: sim/p7b_longsend/mk_mut_cont.py 的 M5
+            //    变异锚点 = 这 5 行的原文 (hits==1 硬断言) —— 改缩进/合并会打哑那条
+            //    既有门 (等价锚门)。语义 = A3 待补登记, 一字未动。
             if (up_do) up_pend_r <= 1'b0;
             else if (ev_up) begin
                 up_pend_r  <= 1'b1;
                 up_pend_id <= ev_slot;
+            end
             end
             if (ev_down && up_pend_r && (ev_slot == up_pend_id) && !ev_up)
                 up_pend_r <= 1'b0;
@@ -797,6 +850,10 @@ module app_pattern #(
             if (ev_down && active && (ev_slot == act_id)) begin
                 closing <= 1'b1;
             end
+            // ⭐ P9 E7: 换流请求走同一条 W3 收尾 (H-1) —— 原行不动, 这是并列新行。
+            //   已在 closing 时同值写入 (无冲突); 它让"存活 + 同槽"事件立刻进入收尾,
+            //   而不是等下一次帧间隙 (后者 = N-1: 复位被装配写覆盖的那条老路)。
+            if (SWC_OK && ev_same_act) closing <= 1'b1;
 
             // ---- W3 收尾 ----
             // P5e: 换流撞车拍 (ev_restart) 由上面的 ev_up 块接管 (它撤字 + 发
@@ -886,7 +943,10 @@ module app_pattern #(
                     if (!bad_frm) begin
                         wc_buf <= wc_nxt;
                         wc_n   <= wc_nnxt;
-                        if (wc_b) tx_lfsr <= xs_next8(tx_lfsr);
+                        // ⭐ P9 E10: 换流应用拍禁写 tx_lfsr。本支**永久冗余** (wc_go 含
+                        //   `!a2_hold`, 而 a2_hold ⊇ ev_restart = sw_apply ⇒ 应用拍恒不可达);
+                        //   保留作防御 (防将来把应用拍挪回 active=1 就静默复发)。
+                        if (wc_b && !(SWC_OK && sw_apply)) tx_lfsr <= xs_next8(tx_lfsr);
                     end
                 end else if (a2_ldw && !TAILC_OK) begin
                     // A2: **整字 1 拍装载** —— 8 个连续字节由常量 XOR 网 (xs_word8)
@@ -906,20 +966,32 @@ module app_pattern #(
                     pw_valid <= 1'b1;
                     bcnt     <= 4'd0;
                     stg      <= 64'd0;
-                    if (!bad_frm) tx_lfsr <= xs_next8(tx_lfsr);
+                    // ⭐ P9 E10: 同上 (本支亦永久冗余: a2_ldw 含 !a2_hold)。
+                    if (!bad_frm && !(SWC_OK && sw_apply)) tx_lfsr <= xs_next8(tx_lfsr);
                 end else if (bcnt < need_a) begin
 `else
                 end else if (bcnt < need) begin
 `endif
                     bcnt    <= bcnt + 4'd1;
                     stg     <= stg_n;
-                    if (!bad_frm) tx_lfsr <= xs_next(tx_lfsr);
+                    // ⭐ P9 E10: **有效目标** —— 逐字节支是本文件唯一没有被 `!a2_hold`
+                    //   挡住的装配写 (P-3 的覆盖者就是这里); 应用拍 active=0 ⇒ asm_go=0
+                    //   ⇒ 结构性不可达, 本门是第二道防线。
+                    if (!bad_frm && !(SWC_OK && sw_apply)) tx_lfsr <= xs_next(tx_lfsr);
                 end
             end
             // ---- P5d-D2: frm_wait 解除 (tx_ok 恢复 ⇒ 启动下一帧, 从 remain 续) ----
             // 与上面的帧启动门**同一组赋值** (只在 frm_wait 拍生效, 而 asm_go 在
             // frm_wait 拍恒 0 ⇒ 两者互斥, 不会同拍双写)。
-            if (frm_wait && tx_ok) begin
+            // ⭐ P9 E13 (v2r3 版守卫): 换流收尾期 / 应用拍禁走"解除 frm_wait + 起新帧"
+            //   这条路。危险窗 = [事件拍, 应用拍]: [事件拍, W3 完成拍] 内 closing=1
+            //   (封死); 应用拍 closing=0 但 sw_apply=1 (封死); 应用之后 frm_wait 已被
+            //   换流块清 0 ⇒ 条件自然假。
+            //   ⚠️ 守卫用 `closing` 而不是 `sw_pend` (v2r2 版): E6 的"最新优先"允许收尾
+            //   在飞时把请求交接给 up_pend_r (那一拍 sw_pend<=0) —— 交接后收尾仍在飞,
+            //   只有 closing 覆盖"任意持有者" (设计件 v2r3 §1.2; R3-1 反例序列)。
+            //   ⚠️ SWC_OK=0 ⇒ 门恒真 ⇒ 默认构建逐位不变 (legacy 同款竞争不修, §1.4)。
+            if (frm_wait && tx_ok && !(SWC_OK && (closing || sw_apply))) begin
                 frm_wait <= 1'b0;
                 bad_frm  <= (i_bad_frame != 16'd0) &&
                             ((frm_idx + 16'd1) == i_bad_frame);

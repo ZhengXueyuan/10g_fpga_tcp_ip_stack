@@ -1,0 +1,6 @@
+SRC D:\repo\XCKU5PMini\udp_hls_10g\rtl\app_pattern.v  88816 B  sha256 61650b2836e7c8390f9acd982ecc4cdf9ea4fc3c483bb3ef1ef3d4cc2de1b9e2
+WROTE m6_v1_eq               M6 E4/E5/E6 -> v1 字面方程 (H-1 两个静默丢弃洞; 期望红 = 全部臂)
+WROTE m6b_closing_drop       M6B closing 态事件被丢 (期望红 = {u_swc3, u_swc3b})
+WROTE m7_guard_swpend        M7 E13 守卫 -> sw_pend 版 (期望红 = {u_swc5h}; R3-1 交接序列必红)
+ANCHORS: all 3 mutants matched (5 subs, each hits==expect)
+MUTGEN OK (3 mutants)

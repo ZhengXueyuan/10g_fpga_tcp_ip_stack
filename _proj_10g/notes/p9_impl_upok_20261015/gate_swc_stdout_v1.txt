@@ -1,0 +1,85 @@
+HEADSHA 811a84e4bd0e8b20ba8ac007cbb16a8f310091b141f7a6d59964dd8288f317bc
+SRC D:\repo\XCKU5PMini\udp_hls_10g\rtl\app_pattern.v  88739 B  sha256 6eb3bf3514ec9861e5b988180e6751471fdb52159cd08855f88a444465c0c9b0
+WROTE m6_v1_eq               M6 E4/E5/E6 -> v1 字面方程 (H-1 两个静默丢弃洞; 期望红 = 全部臂)
+WROTE m6b_closing_drop       M6B closing 态事件被丢 (期望红 = {u_swc3, u_swc3b})
+WROTE m7_guard_swpend        M7 E13 守卫 -> sw_pend 版 (期望红 = {u_swc5h}; R3-1 交接序列必红)
+ANCHORS: all 3 mutants matched (5 subs, each hits==expect)
+MUTGEN OK (3 mutants)
+INFO: [VRFC 10-2263] Analyzing Verilog file "D:/repo/XCKU5PMini/udp_hls_10g/rtl/app_pattern.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module app_pattern
+INFO: [VRFC 10-2263] Analyzing Verilog file "D:/repo/XCKU5PMini/udp_hls_10g/sim/p9_swc_gate/tb_p9_swc.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module tb_p9_swc
+ERROR: [VRFC 10-8885] declarations are not allowed in an unnamed block [D:/repo/XCKU5PMini/udp_hls_10g/sim/p9_swc_gate/tb_p9_swc.v:552]
+ERROR: [VRFC 10-8530] module 'tb_p9_swc' is ignored due to previous errors [D:/repo/XCKU5PMini/udp_hls_10g/sim/p9_swc_gate/tb_p9_swc.v:89]
+INFO: [VRFC 10-2263] Analyzing Verilog file "D:/repo/XCKU5PMini/udp_hls_10g/rtl/app_pattern.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module app_pattern
+INFO: [VRFC 10-2263] Analyzing Verilog file "D:/repo/XCKU5PMini/udp_hls_10g/sim/p9_swc_gate/tb_p9_swc.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module tb_p9_swc
+ERROR: [VRFC 10-8885] declarations are not allowed in an unnamed block [D:/repo/XCKU5PMini/udp_hls_10g/sim/p9_swc_gate/tb_p9_swc.v:552]
+ERROR: [VRFC 10-8530] module 'tb_p9_swc' is ignored due to previous errors [D:/repo/XCKU5PMini/udp_hls_10g/sim/p9_swc_gate/tb_p9_swc.v:89]
+INFO: [VRFC 10-2263] Analyzing Verilog file "D:/repo/XCKU5PMini/udp_hls_10g/sim/p9_swc_gate/head_app_pattern.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module app_pattern
+INFO: [VRFC 10-2263] Analyzing Verilog file "D:/repo/XCKU5PMini/udp_hls_10g/sim/p9_swc_gate/tb_p9_swc.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module tb_p9_swc
+ERROR: [VRFC 10-8885] declarations are not allowed in an unnamed block [D:/repo/XCKU5PMini/udp_hls_10g/sim/p9_swc_gate/tb_p9_swc.v:552]
+ERROR: [VRFC 10-8530] module 'tb_p9_swc' is ignored due to previous errors [D:/repo/XCKU5PMini/udp_hls_10g/sim/p9_swc_gate/tb_p9_swc.v:89]
+INFO: [VRFC 10-2263] Analyzing Verilog file "D:/repo/XCKU5PMini/udp_hls_10g/sim/p9_swc_gate/head_app_pattern.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module app_pattern
+INFO: [VRFC 10-2263] Analyzing Verilog file "D:/repo/XCKU5PMini/udp_hls_10g/sim/p9_swc_gate/tb_p9_swc.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module tb_p9_swc
+ERROR: [VRFC 10-8885] declarations are not allowed in an unnamed block [D:/repo/XCKU5PMini/udp_hls_10g/sim/p9_swc_gate/tb_p9_swc.v:552]
+ERROR: [VRFC 10-8530] module 'tb_p9_swc' is ignored due to previous errors [D:/repo/XCKU5PMini/udp_hls_10g/sim/p9_swc_gate/tb_p9_swc.v:89]
+INFO: [VRFC 10-2263] Analyzing Verilog file "D:/repo/XCKU5PMini/udp_hls_10g/rtl/app_pattern.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module app_pattern
+INFO: [VRFC 10-2263] Analyzing Verilog file "D:/repo/XCKU5PMini/udp_hls_10g/sim/p9_swc_gate/tb_p9_swc.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module tb_p9_swc
+ERROR: [VRFC 10-8885] declarations are not allowed in an unnamed block [D:/repo/XCKU5PMini/udp_hls_10g/sim/p9_swc_gate/tb_p9_swc.v:552]
+ERROR: [VRFC 10-8530] module 'tb_p9_swc' is ignored due to previous errors [D:/repo/XCKU5PMini/udp_hls_10g/sim/p9_swc_gate/tb_p9_swc.v:89]
+INFO: [VRFC 10-2263] Analyzing Verilog file "D:/repo/XCKU5PMini/udp_hls_10g/sim/p9_swc_gate/mut/m6_v1_eq.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module app_pattern
+INFO: [VRFC 10-2263] Analyzing Verilog file "D:/repo/XCKU5PMini/udp_hls_10g/sim/p9_swc_gate/tb_p9_swc.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module tb_p9_swc
+ERROR: [VRFC 10-8885] declarations are not allowed in an unnamed block [D:/repo/XCKU5PMini/udp_hls_10g/sim/p9_swc_gate/tb_p9_swc.v:552]
+ERROR: [VRFC 10-8530] module 'tb_p9_swc' is ignored due to previous errors [D:/repo/XCKU5PMini/udp_hls_10g/sim/p9_swc_gate/tb_p9_swc.v:89]
+INFO: [VRFC 10-2263] Analyzing Verilog file "D:/repo/XCKU5PMini/udp_hls_10g/sim/p9_swc_gate/mut/m6b_closing_drop.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module app_pattern
+INFO: [VRFC 10-2263] Analyzing Verilog file "D:/repo/XCKU5PMini/udp_hls_10g/sim/p9_swc_gate/tb_p9_swc.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module tb_p9_swc
+ERROR: [VRFC 10-8885] declarations are not allowed in an unnamed block [D:/repo/XCKU5PMini/udp_hls_10g/sim/p9_swc_gate/tb_p9_swc.v:552]
+ERROR: [VRFC 10-8530] module 'tb_p9_swc' is ignored due to previous errors [D:/repo/XCKU5PMini/udp_hls_10g/sim/p9_swc_gate/tb_p9_swc.v:89]
+INFO: [VRFC 10-2263] Analyzing Verilog file "D:/repo/XCKU5PMini/udp_hls_10g/sim/p9_swc_gate/mut/m7_guard_swpend.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module app_pattern
+INFO: [VRFC 10-2263] Analyzing Verilog file "D:/repo/XCKU5PMini/udp_hls_10g/sim/p9_swc_gate/tb_p9_swc.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module tb_p9_swc
+ERROR: [VRFC 10-8885] declarations are not allowed in an unnamed block [D:/repo/XCKU5PMini/udp_hls_10g/sim/p9_swc_gate/tb_p9_swc.v:552]
+ERROR: [VRFC 10-8530] module 'tb_p9_swc' is ignored due to previous errors [D:/repo/XCKU5PMini/udp_hls_10g/sim/p9_swc_gate/tb_p9_swc.v:89]
+==================== SUMMARY ====================
+  F   live RTL + SWC=1            RC=1    (expect 0; EXP_FIXED)
+  F10 live RTL + SWC=1 + P7B_10G  RC=1    (expect 0; EXP_FIXED)
+  H   frozen pre-edit RTL         RC=1    (expect 0; EXP_HEAD)
+  H10 frozen pre-edit + P7B_10G   RC=1    (expect 0; EXP_HEAD)
+  OFF live RTL + SWC=0            RC=1    (expect 0; EXP_HEAD)
+  M6  mutant v1-equations         RC=1    (expect 0; EXP_M6)
+  M6B mutant closing-drop         RC=1    (expect 0; EXP_M6B)
+  M7  mutant v2r2-guard           RC=1    (expect 0; EXP_M7)
+  ---- criteria table (F run) ----
+FINDSTR: �޷��� runF\xs.log
+  ---- OFF run arm reds (expect ARM0/1/2/9 red) ----
+FINDSTR: �޷��� runOFF\xs.log
+  ---- mutant red sets ----
+  [M6 reds]  (expect all 10 arms red)
+FINDSTR: �޷��� runM6\xs.log
+  [M6B reds] (expect ARM3/ARM4 red)
+FINDSTR: �޷��� runM6B\xs.log
+  [M7 reds]  (expect ARM9 red)
+FINDSTR: �޷��� runM7\xs.log
+  ---- compile-source witness ----
+RSRC=D:\repo\XCKU5PMini\udp_hls_10g\rtl\app_pattern.v DEFS=-d P9_SWC_ARM -d P9_EXP_FIXED 
+RSRC=D:\repo\XCKU5PMini\udp_hls_10g\rtl\app_pattern.v DEFS=-d P9_SWC_ARM -d P9_EXP_FIXED -d P7B_10G 
+RSRC=D:\repo\XCKU5PMini\udp_hls_10g\sim\p9_swc_gate\head_app_pattern.v DEFS=-d P9_HEAD_RTL -d P9_EXP_HEAD 
+RSRC=D:\repo\XCKU5PMini\udp_hls_10g\sim\p9_swc_gate\head_app_pattern.v DEFS=-d P9_HEAD_RTL -d P9_EXP_HEAD -d P7B_10G 
+RSRC=D:\repo\XCKU5PMini\udp_hls_10g\rtl\app_pattern.v DEFS=-d P9_SWC_OFF -d P9_EXP_HEAD 
+RSRC=D:\repo\XCKU5PMini\udp_hls_10g\sim\p9_swc_gate\mut\m6_v1_eq.v DEFS=-d P9_SWC_ARM -d P9_EXP_M6 
+RSRC=D:\repo\XCKU5PMini\udp_hls_10g\sim\p9_swc_gate\mut\m6b_closing_drop.v DEFS=-d P9_SWC_ARM -d P9_EXP_M6B 
+RSRC=D:\repo\XCKU5PMini\udp_hls_10g\sim\p9_swc_gate\mut\m7_guard_swpend.v DEFS=-d P9_SWC_ARM -d P9_EXP_M7 
+P9-SWC-GATE: FAIL count=8
