@@ -324,6 +324,8 @@ $PY _proj_10g/notes/p7b_board_stagec/an_runs.py <run_STC_*.log> ...   # 逐跑�
 
 ## §6-新块（2026-10-12 01:5x）：⛔ **本机与对端即将关机（用户指示）—— 恢复必做清单**
 
+> ⛔ **已过时 ⇒ 见下新块**（本块讲 `0x23` 的那一代；其后续 = §6-新块2〔2026-10-13〕，**最新 = 文件末尾的 §6-新块〔2026-10-16〕**；板上现役 = **`0x28`** —— 本块里"重烧 `0x23` / r6-fix / 受控停流"等口径一律按历史读）。
+
 > 背景：用户 2026-10-12 指示「把 PCIe 相关功能全部收完 → 测试修完 → 提交推送 → **关闭对端与本机**，离开 8 小时」。
 > 关机后：**板子断电 ⇒ JTAG 易失位流丢失**（上电从 QSPI 起**厂商 XDMA+DDR4 设计**、PCIe 正常枚举、**不踩"配置晚于 POST"的坑**）；
 > **对端 `/tmp` 会清空** ⇒ 台架 + 工具二进制全要重部署。**本机重启后 git 用 `-C` 或 `cd` 到仓根**（仓根 = `udp_hls_10g`）。
@@ -333,7 +335,7 @@ $PY _proj_10g/notes/p7b_board_stagec/an_runs.py <run_STC_*.log> ...   # 逐跑�
 2. **重部署台架与工具**到对端 `/tmp/p7b_biz/`：**配方以 `_proj_10g/notes/p7b_affinity/BUILD.md` 为准**（⚠️ 树里其它编译行互相打架）。
    源码在 `_proj_pcie/p7b_biz/`：`p7b_mir_dump.cpp`（**已含 `--stream`**）· `p7b_udp_src.cpp` · `p7b_tcp_src.cpp` · `p7b_snap.sh` · `p7b_affinity.h` · `p7b_pattern.h`。
 3. **网络前置**（每次重来）：`/32` + `nmcli device set enp1s0f1np1 managed no`（防 NetworkManager 冲掉）。
-4. **重烧位流（必做）**：现役 = **`0x23`**，位流 = `_proj_10g/notes/p9_build_0x23/wrapper_p4.bit`，
+4. **重烧位流（必做）**：现役 = **`0x23`**（⛔ 2026-10-16 过时 ⇒ 现役 0x28，见 §6 新块），位流 = `_proj_10g/notes/p9_build_0x23/wrapper_p4.bit`，
    **sha256 `066a3923351b8f539a986b88d96f1093a686da57f95938e0c8837b13d30a3126`**（15,431,261 B，BID `0x23`，`ver=4`）。
    烧法照 `_proj_10g/notes/p9_board_0x23_20261011/burn_0x23.sh`（⛔ 只烧归档件；烧后核板侧 `0x04==0x23`；**绝不写 QSPI**）。
    ⚠️ 若 PCIe 端点不见了：设备级 `remove`+`rescan`（判据 `LnkSta`：x4 有救 / x0 没救）；场景 C（POST 时是厂商设计、只 1 BAR）需**连根端口一起** rescan。
@@ -361,6 +363,8 @@ $PY _proj_10g/notes/p7b_board_stagec/an_runs.py <run_STC_*.log> ...   # 逐跑�
 
 ## §6-新块2（2026-10-13 09:1x）：⛔ **本机与对端再次关机（用户指示）—— 恢复必做清单（最新版）**
 
+> ⛔ **已过时 ⇒ 见下新块**（"（最新版）"这个自称已不成立；**最新 = 文件末尾的 §6-新块〔2026-10-16〕**，板上现役 = **`0x28`** —— 本块里的 `0x23`/`0x24` 二选一烧录口径按历史读）。
+
 > owner 逐字：「本轮结束后关闭远程和本机」（本轮 = 构建 `0x24` 轮，已收口于 `09e34a6`）。
 > 关机后：**板子断电 ⇒ JTAG 易失位流丢失**（上电从 QSPI 起**厂商设计**、PCIe 正常枚举）；**对端 `/tmp` 清空** ⇒ 台架+工具全要重部署。
 > **本块取代 §6-新块（2026-10-12）为新 session 的第一恢复口径**；与 10-12 块的差异已就地标注在 A 节。
@@ -369,7 +373,7 @@ $PY _proj_10g/notes/p7b_board_stagec/an_runs.py <run_STC_*.log> ...   # 逐跑�
 1. **对端上电 + 等 systemd**：`hw_server`（听 `0.0.0.0:3121`）；`192.168.0.38` 可达性用 **TCP 判据**（不用 ping 退出码）。
 2. **重部署 `/tmp/p7b_biz/`**：配方照旧 = `_proj_10g/notes/p7b_affinity/BUILD.md`（⚠️ 编译口径 **`-O3 -pthread`**，2026-10-09 用户裁定）。⚠️ **工具已更新（本日宿主读轮）**：`p7b_mir_dump.cpp` 新源件 md5 **`b4833c55642120f093fa2ee9e2544aa8`**（新选项 `--readlog/--aio/--dual/--buf-huge/--aio-reserve-mib` + `READLOG` 等新行；**默认路径行为不变**；二进制 `7cebded7…`）；仪器源与窗协议 = `_proj_10g/notes/p9_hostread_20261013/_tools/`（`run_win_hw.sh` / `analyze_readlog.py`）。
 3. **网络前置**（每次重来）：`/32` + `nmcli device set enp1s0f1np1 managed no`；现取 `ip route get` 当见证。
-4. **重烧位流（⛔ 先由 owner 定版，二选一）**：
+4. **重烧位流（⛔ 先由 owner 定版，二选一）**（⛔ 2026-10-16 过时 ⇒ 现役 0x28，见 §6 新块）：
    - **`0x23`（已验基线，板上末代）**：`_proj_10g/notes/p9_build_0x23/wrapper_p4.bit`，sha256 `066a3923351b8f539a986b88d96f1093a686da57f95938e0c8837b13d30a3126`（15,431,261 B，BID `0x23`）；
    - **`0x24`（本日新构建，未烧未验）**：`_proj_10g/notes/p9_build_0x24/wrapper_p4.bit`，sha256 **`e3b07957aea0326a168b9db0238ef9dd933dc7a21884c92e50a7c3b0abadf1db`**（15,431,261 B，BID `0x24`；⚠️ 2026-10-13 TL 订正：此处曾转录为 `…e50e7c3…` ＝ 转抄笔误；实算双工具 / `SHA256SUMS` / Vivado `impl_1` 原件三方一致 = 本值；= 0x23 全部内容 + **URAM 板内缓冲**〔32 KB〕+ F2/F3 修正；构建 `WNS +0.066 / WHS +0.010 / 三类失败端点 0/0/0`、`URAM288=1`）。
    - ⚠️ **读侧工具现已同步到 0x24**（`EXPECT_BID=0x00000024`）⇒ **若烧 `0x23` 需显式覆盖 `EXPECT_BID=0x00000023`**（旧位流口径；`p9_build_0x23/` 与各板级现场件仍保留那一代的真值）。
@@ -396,3 +400,34 @@ $PY _proj_10g/notes/p7b_board_stagec/an_runs.py <run_STC_*.log> ...   # 逐跑�
 5. **文档结构迁移仍在途**（Kimi 组）—— 恢复时**先读根 `README.md`**（最新结构权威入口）与 `agent_docs/`；**人读层（README/docs）变更须通知 kimi 审查**（`docs/HUMAN_LAYER.md`，owner 2026-10-13 裁定）。
 6. ⚠️ **NIC 读数教训（本日实测，防误读）**：对端 NIC `port_rx_*` 是 **~1 s latch 统计**（跳幅 1.2277e9 B = 808,790×1518 B、跳间隔 0.94–1.04 s）⇒ **短窗速率只能落在量子格点上，不可当连续测量**。
 7. **板上缓冲尺寸**：1 URAM（32 KB）已按 owner 裁定构建进 `0x24`；**升级（8/16/40 URAM）留数据后再定**（实测空档量级 0.4–1.4 MB/块，与 1 URAM 差 1–2 个数量级 —— 但宿主读轮修复后剩余丢字节已降到 ~34 KB/块量级，**URAM 收益待 0x24 板级直测**）。
+
+---
+
+## §6-新块（2026-10-16 04:2x）：现态与下一轮恢复必做清单
+
+> 本块 = **最新恢复口径**，取代 §6-新块〔2026-10-12〕与 §6-新块2〔2026-10-13〕 —— 两旧块里的"重烧 `0x23`/`0x24`"、"r6-fix 现役"、"`0x24` 未烧未验"、"受控停流"等口径**一律按历史读**（就地注已加；⛔ **"0x23"字样一律按过时读**）。
+> 背景：四真缺陷战役（F-3 `0x25` / RFC seq `0x26` / 换流门 `0x27` / mdio）+ E12 四计数器（`0x28`）+ B4 触发面直测 + mdio A+ 臂全部收口（台账 §10-53→§10-86；`P7B_OPEN_ITEMS.md` 已刷新到终态）。
+> ⭐ **两机本轮未关机**（mdio A+ 轮收尾逐字 = "不关机"）⇒ 板 = `0x28` 现役、对端台架已部署、NIC 已配 —— **直接开工即可**（下面 B 节只在"再次断电/重启"时才需要）。
+
+### A. 现态（2026-10-16 04:2x 终态）
+- **板 = `0x28`**（`0x04 = 0x00000028`）+ **`0x08 = 0`**（未受控停流）+ **`carrier = 1`**；快照 **75 字** / 未实现地址 **`0x15C`** 回 `0xffffffff` / `MAGIC 0x50360001` / `MARKER 0xdeadbeef`；`LnkSta` x4；`/dev/xdma0_{user,control,c2h_0,h2c_0}` 全在；E12 四计数器（W71..W74）归零（原件 = `_proj_10g/notes/p9_board_0x28_k0_20261016/env/FINAL_STATE_B4FINAL.txt`；mdio A+ 轮收尾三处 sha 门 + 五判据 BURN_OK）。
+- **对端**：`/tmp/p7b_biz/` 已部署 —— **md5 以 B4 / mdio A+ 轮为准**（源码跨 `_proj_pcie/p7b_biz/` + `_proj_10g/notes/p7b_biz_tcpreg/` 两目录；配方 = `p7b_affinity/BUILD.md`）；NIC = `192.168.100.100/32` + `enp1s0f1np1 unmanaged` + **`Adaptive RX: off / rx-usecs 0`**（⚠️ **每次测量前仍现取见证**：`ip route get` / `CARRIER` / `ethtool -c`；判活看 `identify_bars` 的 `2 BARs`，不看 `lspci`）。
+
+### B. 若再次断电/重启（下轮恢复必做，照做即可）
+1. **对端上电 + 等 systemd**：`hw_server` 听 `0.0.0.0:3121`；可达性用 **TCP 判据**（不用 ping 退出码）。
+2. **重部署 `/tmp/p7b_biz/`**：配方 = `_proj_10g/notes/p7b_affinity/BUILD.md`（**编译口径 `-O3 -pthread`**，2026-10-09 用户裁定；⚠️ 树里其它编译行互相打架，一律以 BUILD.md 为准）。
+3. **NIC 配方**（每次重来）：`ip addr add 192.168.100.100/32 dev enp1s0f1np1` + `nmcli device set enp1s0f1np1 managed no`（防 NetworkManager 冲掉 `/32` ⇒ 根治，否则全部 connect timeout 会被误判成"板子死了"）+ `ethtool -C enp1s0f1np1 adaptive-rx off rx-usecs 0`（否则"读数低"先撞对端网卡 RX 中断合并）。
+4. **重烧 `0x28`（必做）**：位流 = `_proj_10g/notes/p9_build_0x28/wrapper_p4.bit`，**sha256 `79c9cf434eb66723b97f654cbece9ea061632e2297c0a8ab0ea0dc198c43bec8`**（15,431,261 B；BID `0x28`）。
+   烧法照 `_proj_10g/notes/p9_board_0x28_k0_20261016/burn/burn_0x28.sh`（用法 `PEER_PW=<pw> bash burn_0x28.sh`；脚本自带**归档件 + `impl_1` 双核 sha 门**）。⛔ **只烧归档件**；烧后核板侧 **`0x04 == 0x28`** + `End of startup status: HIGH`；**绝不写 QSPI**。
+5. **PCIe 恢复（场景 C）**：POST 时 FPGA = QSPI 厂商设计（只 1 BAR）⇒ 烧我们的（2 BAR）后若 `BAR 1 … can't assign` ⇒ **连根端口 `00:1c.0` 一起 `remove` + `rescan`**（桥窗 1M→2M）；判据 = `identify_bars` 的 `2 BARs` 与 `LnkSta` x4（**不看 `lspci` 的 10ee:9034**）。
+6. **撤受控停流（若板处于 `0x08 = 0x2`）**：`reg_rw /dev/xdma0_user 0x08 w 0x0` —— ⚠️ 新烧后 `0x08` 自读即 0 ⇒ **无需执行**（`0x08` 既是 SCRATCH 又是 `TX_DIS` 门）。
+7. **工具坑两条**：`peer_ssh.py --get /tmp/…` 的远端参数需 **`MSYS_NO_PATHCONV=1`**（⚠️ 与 `cmd //c` **不能并用** —— 互相抵消、静默不执行）；"跑 bat 正确式" = `MSYS_NO_PATHCONV=1 … cmd /c …`（见 `burn_0x28.sh` 头注）。另：**构建轮判据只看 stdout、不看退出码**（Vivado 报 ERROR 时 bat 仍退 0）。
+
+### C. 下一轮候选（按序；细节 = `P7B_OPEN_ITEMS.md`）
+1. **S-0 bisect（`0x1A→0x24`）**（零构建：每代一次烧录 + S-0 构型复跑；先跑三点廉价档 `0x1A` / `0x1C` / `0x1E`）—— 定 `0x24` 负对照资格（候选使能件 = build E 的 A3【推断】）。
+2. **涓流连接机理**（~1 Mbps / ~400 s × 2 例；先补"板侧连接移除时刻"见证；⛔ 引用 `max n` 必带读法防线 C-1 注）。
+3. **P-3 窗口命中**（若必须判 ⇒ 新仪器，一次构建；与"快照构建"同批评估）。
+4. **快照阵列异步复位族**（`0x28` 全局 WNS `+0.065` = 周期 1.02%，宿主 = `user_reset_reg → snap_words_r_reg[{2224,2066,2277}]/CLR`）⇒ **任何加快照字的改动先看它**（快照字 ≈ +96 FF/字 三份）。
+5. **kimi 解禁后的复审队列**：v3r3 errata 附录 · SUPERSEDED ×4 · 折叠-4 / fold-5 产出 · 收尾文档轮直改（`:75`/`:480`）。
+
+*本块与上文各 §6 块冲突时以本块为准；**判据层 PASS/FAIL 裁定权在用户/判据所有者**。*
