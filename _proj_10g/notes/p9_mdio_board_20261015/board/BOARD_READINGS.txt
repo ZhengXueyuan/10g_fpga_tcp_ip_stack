@@ -1,0 +1,62 @@
+=== p9_mdio_board_20261015 · BOARD READINGS ===
+date: 2026-10-15 13:16-13:23   (all JTAG volatile; QSPI NEVER touched)
+
+--- precondition check (DESIGN v2r4 sec 4.0 / R4-M2) ---
+peer 192.168.0.38 reachable (tools/peer_ssh.py)            : OK
+systemctl is-active hw_server                              : active
+get_hw_targets -> 192.168.0.38:3121/xilinx_tcf/Digilent/210251391367 : opened OK
+peer tool baseline in place                                : /tmp/p7b_biz/p7b_tcp_src md5 79be2a09...
+  /tmp/p7b_biz/p7b_snap.sh md5 32b97715... (both = B1/B2 handoff values)
+  reg_rw T=/home/a/xdma_test/dma_ip_drivers-patched/XDMA/linux-kernel/tools : present (used)
+PRE witness (before mdio burn): 0x04 = 0x00000027, 0x08 = 0x00000000, carrier = 1
+  (= B1/B2 handoff "latest active"; recorded in burn/BURN_mdio_20261015_131632.txt)
+
+--- STEP 1: burn mdio bitstream (burn/burn_mdio.sh) ---
+sha gate: WANT=GOT=4c74c219bf6cceb668b882cfa4d4a356ae128dfd8137578709453cf980e7132a ; size 15,431,263 B
+five criteria: End of startup status: HIGH / TCPREG_PROG_DONE / path match / no ABORT / fresh stdout
+  => BURN_OK
+expected side effect: PCIe endpoint vanishes (mdio design has none). NOT recovered here on purpose.
+
+--- STEP 2: VIO arms (board/PROBE_STDOUT.txt ; driver board/probe_mdio_v2.tcl) ---
+device programmed with design having 1 VIO core ; probes resolved = vio_start / vio_phyad /
+  vio_regad / vio_wr_data / vio_probe_in  (all five trap-recipe steps as documented)
+STATUS_WIDTH=22                      <- DIRECT proof the 22-bit width sync took effect
+WRITE_CHECK phyad set to 5, reads back <05>       <- output path proven before trusting scan
+IDLE_STATUS rd=0000 done=0 busy=0 rstn=1 mdio=1 ssl=0 pbad=0   <- old-bit position sanity
+
+ARM J-A (32 addr x {reg2,reg3} = 64 transactions):
+  answered set           = {0,1}   exactly            (ARM_J_A_ANSWERED 0,1)
+  addr 0 : PHYID1=001C PHYID2=C915 -> id 001CC915
+  addr 1 : PHYID1=001C PHYID2=C915 -> id 001CC915
+  addr 2..31 : PHYID1=FFFF PHYID2=FFFF (30 silent, bus pulled up) <- negative control reproduced
+  no-response list empty (every transaction done=1)
+  every record: busy=0 rstn=1 mdio=1(in idle) ssl=0 pbad=0
+  ARM_J_A_SSL_SUM=0 ; ARM_J_A_PBAD_SUM=0
+
+ARM J-B (interleave freshness): (1,r2)(7,r2)(0,r2)(7,r2)(0,r2)(1,r2)(31,r2)
+  ARM_J_B_RD = 001C FFFF 001C FFFF 001C 001C FFFF     <- exactly the expected pattern
+  (silent reads return FFFF, never a stale 001C; every 001C is separated by >=1 FFFF
+   except the by-design adjacent final (0,r2)->(1,r2) pair)
+
+ARM J-D (new bits): every TX record carries ssl= (bit20) and pbad= (bit21) columns, all 0.
+  NOTE (DESIGN sec 4.2 / R-b): "constant 0" and "not wired" are indistinguishable on this arm.
+
+ARM J-C (optional write-through): NOT RUN (design marks it optional / low priority; J-B already
+  covers the freshness/no-echo question; writing ANAR carries link risk per R6). Registered.
+
+--- STEP 3: 收尾 (burn/burn_arm.sh 0x27 ; copied from B2, OUT redirected) ---
+0x27 source + sha gate: notes/p9_build_0x27/wrapper_p4.bit sha256 5c17b14f0656cf6680b7d16f7f1659faa4ca9225cf0cb0461765be7a91943385
+  the file ACTUALLY burned = .../p9_board_rfcseq_20261015/burn/wrapper_p4_0x27.bit (BIT_WIN inside the
+  script is hard-coded to the B2 round dir; this round's copy has the SAME sha) -> verified by sha256.
+burn: HIGH / DONE / path / fresh / no ABORT => BURN_OK
+PCIe recovery: DEVICE_LEVEL_OK (one pass) ; LnkSta Speed 5GT/s (downgraded), Width x4 ; 2 BARs
+identity gate: MAGIC 0x50360001 / BID 0x00000027 / MARKER 0xdeadbeef / UNIMPL 0x14C=0xffffffff
+  ID_RC=0 ; WINDOW_SCAN_NFF=0 (71 words, no 0xffffffff inside)
+0x08 set to 0 (未受控停流)  -> state = 0x27 + 0x08=0 + carrier=1  (= B1/B2 handoff state; DEVIATION
+  from DESIGN v2r2 sec 4.4 "0x24 + controlled stall" registered -- task said follow "latest active")
+HARD_CRITERIA_CHECK.txt: C1 (ID_RC=0) PASS / C2 (LnkSta Width x4) PASS / C3 (BID=0x27) PASS
+
+--- FINAL_STATE (FINAL_STATE_FINAL.txt) ---
+BID 0x00000027 ; SCRATCH 0x08 = 0x00000000 ; ID_RC=0 ; LnkSta x4 ; /dev/xdma0_{user,control,c2h_0,h2c_0}
+NIC: carrier=1, 192.168.100.100/32, unmanaged, Adaptive RX off / rx-usecs 0, 10000Mb/s link yes
+no stale p7b_/tcpdump/rfcseq processes

@@ -3,7 +3,7 @@
   **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
   **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
   **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
-  **** Start of session at: Thu Oct 15 13:00:22 2026
+  **** Start of session at: Thu Oct 15 13:19:57 2026
     ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
     ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
 
@@ -32,7 +32,7 @@ INFO: [Labtoolstcl 44-466] Opening hw_target 192.168.0.38:3121/xilinx_tcf/Digile
 # set dev [lindex [get_hw_devices xcku5p*] 0]
 # current_hw_device $dev
 # refresh_hw_device -update_hw_probes false $dev
-INFO: [Labtools 27-1434] Device xcku5p (JTAG device index = 0) is programmed with a design that has no supported soft debug core(s) in it.
+INFO: [Labtools 27-2302] Device xcku5p (JTAG device index = 0) is programmed with a design that has 1 VIO core(s).
 # set_property PARAM.FREQUENCY 1000000 [get_hw_targets $tgt]
 # puts "TCPREG_BIT = $bit"
 TCPREG_BIT = D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_board_rfcseq_20261015\burn\wrapper_p4_0x27.bit
@@ -46,7 +46,7 @@ TCPREG_PROG device=xcku5p_0 freq=1MHz
 # set_property PROGRAM.FILE $bit $dev
 # if {[catch {program_hw_devices $dev} em]} { puts "TCPREG-ABORT PROGRAM FAILED: $em"; exit 1 }
 INFO: [Labtools 27-3164] End of startup status: HIGH
-program_hw_devices: Time (s): cpu = 00:02:04 ; elapsed = 00:02:04 . Memory (MB): peak = 598.891 ; gain = 0.512
+program_hw_devices: Time (s): cpu = 00:02:04 ; elapsed = 00:02:04 . Memory (MB): peak = 600.715 ; gain = 0.512
 # refresh_hw_device -update_hw_probes false $dev
 INFO: [Labtools 27-1434] Device xcku5p (JTAG device index = 0) is programmed with a design that has no supported soft debug core(s) in it.
 # puts "TCPREG_PROG_DONE (检查上�? 'End of startup status: HIGH')"
@@ -56,4 +56,4 @@ INFO: [Labtoolstcl 44-464] Closing hw_target 192.168.0.38:3121/xilinx_tcf/Digile
 # disconnect_hw_server
 # close_hw_manager
 # exit 0
-INFO: [Common 17-206] Exiting Vivado at Thu Oct 15 13:02:33 2026...
+INFO: [Common 17-206] Exiting Vivado at Thu Oct 15 13:22:08 2026...

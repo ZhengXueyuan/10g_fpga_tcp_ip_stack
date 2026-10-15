@@ -1,0 +1,55 @@
+=== BURN_BEGIN bid=0x27 1792041591.734176500 Thu Oct 15 13:19:51     2026
+--- 1) 位流 sha256 三重核 (报告 WANT + SHA256SUMS.txt + 尺寸) ---
+SRC /d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_build_0x27/wrapper_p4.bit size=15431261 mtime=2026-10-15 09:44:19.244498600 +0800
+SHA_WANT=5c17b14f0656cf6680b7d16f7f1659faa4ca9225cf0cb0461765be7a91943385
+SHA_GOT =5c17b14f0656cf6680b7d16f7f1659faa4ca9225cf0cb0461765be7a91943385
+SHA_OK (报告锚 + SHA256SUMS + 15,431,261 B 三重通过)
+5c17b14f0656cf6680b7d16f7f1659faa4ca9225cf0cb0461765be7a91943385 */d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_mdio_board_20261015/burn/wrapper_p4_0x27.bit
+--- 2) 烧前现态 + hw_server + xdma 驱动 ---
+active
+--- lspci before ---
+--- lsmod ---
+xdma                  110592  0
+xdma                  110592  0
+/dev/xdma0_control
+/dev/xdma0_user
+--- 3) 烧录 (JTAG via 192.168.0.38:3121, 1MHz) 1792041596 ---
+BURN_STDOUT=/d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p7b_biz_tcpreg/tcpreg_program_stdout.txt mtime=1792041728 T0=1792041596 age=132s
+# puts "TCPREG_BIT = $bit"
+TCPREG_BIT = D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_board_rfcseq_20261015\burn\wrapper_p4_0x27.bit
+# puts "TCPREG_PROG device=$dev freq=1MHz"
+TCPREG_PROG device=xcku5p_0 freq=1MHz
+# if {![file exists $bit]} { puts "TCPREG-ABORT: bitstream missing"; exit 1 }
+# if {[catch {program_hw_devices $dev} em]} { puts "TCPREG-ABORT PROGRAM FAILED: $em"; exit 1 }
+INFO: [Labtools 27-3164] End of startup status: HIGH
+# puts "TCPREG_PROG_DONE (检查上�? 'End of startup status: HIGH')"
+TCPREG_PROG_DONE (检查上�? 'End of startup status: HIGH')
+BURN_OK (HIGH+DONE+路径+新鲜度+无ABORT)
+--- 4) PCIe 恢复 (先设备级; 失败再根端口级) 1792041729 ---
+DEVICE_LEVEL_OK
+--- lspci 02:00.0 ---
+02:00.0 Serial controller: Xilinx Corporation Device 9034
+		LnkSta:	Speed 5GT/s (downgraded), Width x4
+crw------- 1 root root 235, 36 Oct 15 13:22 /dev/xdma0_c2h_0
+crw------- 1 root root 235,  1 Oct 15 13:22 /dev/xdma0_control
+crw------- 1 root root 235, 32 Oct 15 13:22 /dev/xdma0_h2c_0
+crw------- 1 root root 235,  0 Oct 15 13:22 /dev/xdma0_user
+[53548.495906] xdma:probe_one: 0000:02:00.0 xdma0, pdev 0x00000000b3ce8911, xdev 0x00000000be132ff3, 0x000000008907ef6d, usr 16, ch 1,1.
+[54724.062657] xdma:identify_bars: 2 BARs: config 1, user 0, bypass -1.
+[54724.062860] xdma:probe_one: 0000:02:00.0 xdma0, pdev 0x00000000b3ce8911, xdev 0x00000000be132ff3, 0x000000008907ef6d, usr 16, ch 1,1.
+--- 5) 身份门 (BID 0x27) ---
+MAGIC_0x00=Read 32-bit value at address 0x0 (0x748e618dd000): 0x50360001
+BID_0x04=Read 32-bit value at address 0x4 (0x75f8d9bd2004): 0x00000027
+MARKER_0x14=Read 32-bit value at address 0x14 (0x799f0b577014): 0xdeadbeef
+UNIMPL_0x14C=Read 32-bit value at address 0x14c (0x7c4f7852c14c): 0xffffffff
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x7ccf7ceab008): 0x00000000
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x00000027   (want 0x00000027 = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1792041740.904364836
+ID_RC=0
+WINDOW_SCAN_NFF=0
+--- 6) 解除受控停流 (0x08=0) ---
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x73aafab69008): 0x00000000
+=== BURN_END bid=0x27 1792041742.786535700

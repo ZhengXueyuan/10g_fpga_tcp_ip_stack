@@ -1,0 +1,49 @@
+=== p9_mdio_board_20261015 · ELAB GATE READINGS ===
+date: 2026-10-15 ~13:10-13:12
+gate: notes/p9_fix_mdio_impl_20261015/gate_elab_22  (COPIED to gate/gate_run/ and run there;
+      no file in the set was edited; copy verified 11/11 via `sha256sum -c SHA256SUMS.txt`)
+      NOTE: the dispatch text said "_proj_mdio/gate_elab_22/run.bat"; that path does NOT exist.
+      The gate lives in the impl round dir (impl REPORT sec 3 / DESIGN v2r2 sec 3.4). Registered.
+invocation: cmd //c "<abs path>\run.bat"   (full-path form; plain `cmd //c run.bat` failed to resolve)
+
+--- ANCHOR VERIFICATION (impl REPORT sec 4-A; the unverified claim) ---
+EXPECTED: the 10-3609 overwrite witness must point at vio_0.v:49 (i.e. the PATCHED STUB is
+          now the effective definition, because run.bat orders it LAST).
+OBSERVED (gate_run/xvlog.stdout.txt:103, verbatim):
+  WARNING: [VRFC 10-3609] overwriting previous definition of module 'vio_0'
+    [.../gate_run/vio_0.v:49]
+=> ANCHOR_AS_EXPECTED = YES. Corroboration: xelab "Compiling module" table this run contains
+   NO unisims_ver LUT6/FDRE_default/GND primitives (the earlier skeleton run had them, because
+   there the netlist was the effective definition). With the stub effective, elab completes
+   with a 22-bit port and no width mismatch.
+
+--- run 1 (good inputs): PASS ---
+GATE_EXIT=0 ; tail: GATE_PASS
+evidence lines (gate_run/check_elab.bat echo block):
+  XELAB_RC=0
+  10-3609 anchor: gate_run/vio_0.v:49  (see above)
+  mdio_vio_top.v:88  wire [21:0] vio_probe_in;
+  mdio_vio_top.v:149 assign vio_probe_in = {stat_start_lost, param_bad, mdio_i, eth_rstn, busy, done_sticky, rd_data};
+  vio_0.v:60         input [21 : 0] probe_in0;
+  build_mdio.tcl:30  CONFIG.C_PROBE_IN0_WIDTH {22} \
+  findstr for VRFC 10-3645 / VRFC 10-3091: no output (0 hits)
+F1 elab_rc=0 / F2 no 10-3645 / F3 no 10-3091 / F4 text / F5 text+tcl : all hold -> GATE_PASS
+
+--- run 2 (negctrl: negctrl/mdio_vio_top.v = good file minus exactly 1 line) ---
+GATE_EXIT=1 ; tail: GATE_FAIL: F2_PORT_UNCONNECTED_10-3645
+xelab.log:8 verbatim:
+  WARNING: [VRFC 10-3645] port 'param_bad' remains unconnected for this instance
+    [.../gate_run/mdio_vio_top.v:127]
+XELAB_RC still 0 -- the red lives on the WARNING LINE (exactly why the old "print XELAB_RC only"
+skeleton was not a gate). Matches GATE_NOTES.md / APPLY_AND_EXPECT.txt prediction (line :127).
+=> NEGATIVE CONTROL HAS TEETH.
+
+--- run 3 (restore good file, sha verified 79c360f8...): PASS again (final state) ---
+GATE_EXIT=0 ; GATE_PASS ; anchor still vio_0.v:49
+post-restore gate dir `sha256sum -c SHA256SUMS.txt` = 11/11 OK
+
+--- files ---
+gate/GATE_STDOUT.txt            final PASS run (run 3)
+gate/logs_pass/                 run 1 logs (xvlog.stdout.txt / xelab.log / elab_rc.txt + stdout copy)
+gate/logs_neg/                  run 2 (negctrl) logs
+gate/gate_run/                  the executed copy (final logs + xsim.dir snapshot dir)

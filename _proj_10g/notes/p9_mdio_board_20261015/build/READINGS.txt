@@ -1,0 +1,37 @@
+=== p9_mdio_board_20261015 · BUILD READINGS ===
+date: 2026-10-15 ~13:11-13:16 (vivado batch, build_mdio.tcl via run_build_mdio.bat)
+source tree: D:/repo/XCKU5PMini/_proj_mdio (create_project -force wipes pj_mdio/ ; archive = notes/p9_fix_mdio_impl_20261015/archive_20260928/)
+
+--- inputs (sha256, byte-identical to the gate dir copies and to _proj_mdio) ---
+rtl/mdio_vio_top.v  79c360f83aff1789eb1144ef1045a3a5fd1cebed27d2f3cb76484d056b6956e6  (5259 B, edited E1-E5)
+build_mdio.tcl      b7ff3c45ea89399b789308e0ac31340e3c6de1e490813855a446ad623846aecd  (E6: C_PROBE_IN0_WIDTH {22})
+rtl/mdio_master.v   89d5c89e295ce988b2013ecdb07f94d158001e0ef1e5585020f82e481f8d35db  (P7B tool-debt fixed version)
+xdc/ku5p_mdio.xdc   f6014147f87ee4d95832b8f9b4aa85589be266ce7667dd9fb20c730e7cc90abe  (1,951 B, unchanged)
+
+--- timing (from pj_mdio/timing_summary.rpt, "Design Timing Summary") ---
+                       NEW (2026-10-15)        OLD BASELINE (2026-09-28, archived)
+WNS                     +7.328 ns               +7.091 ns
+TNS                      0.000                   0.000
+TNS failing endpoints    0                       0
+TNS total endpoints   2755                     (n/a in old excerpt)
+WHS                     +0.029 ns               +0.020 ns
+THS                      0.000                   0.000
+THS failing endpoints    0                       0
+WPWS                    +4.427 ns               +4.427 ns
+TPWS                     0.000                   0.000
+TPWS failing endpoints    0                       0
+"All user specified timing constraints are met."  (present in new rpt)
+=> no anomaly; WNS same order of magnitude (+7 ns class) as predicted by DESIGN v2r2 sec 3.2
+   (this build = +1 FF + constant + 6 more VIO bits)
+
+--- artifacts ---
+mdio_vio_top.bit   sha256 4c74c219bf6cceb668b882cfa4d4a356ae128dfd8137578709453cf980e7132a  15,431,263 B  mtime 2026-10-15 13:15:21
+mdio_vio_top.ltx   sha256 46f53c81b305fdf1f4260fd18f6c4c7c011c2f6d3ef2cc967c1972a3bb4f75fc  14,756 B
+   (old ltx = 14,414 B from archive_20260928; old bit = 46417aff...92ad2 -> new bit differs, as expected)
+   ltx pre-check: contains exactly 22 bits "vio_probe_in[0..21]" (22 unique names) => width sync present in the built artifact
+
+--- stdout markers (BUILD_STDOUT.txt) ---
+TIMING_WNS 7.328 / TIMING_WHS 0.029 / TIMING_TNS <nworst-100 list, min = 7.328>
+BITSTREAM D:/repo/XCKU5PMini/_proj_mdio/pj_mdio/mdio_prj.runs/impl_1/mdio_vio_top.bit
+BITSTREAM_BYTES 15431263
+=== BUILD DONE ===   (process exit 0)

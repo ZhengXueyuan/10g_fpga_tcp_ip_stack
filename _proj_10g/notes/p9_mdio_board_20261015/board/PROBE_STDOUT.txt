@@ -1,0 +1,300 @@
+
+****** Vivado v2025.2 (64-bit)
+  **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+  **** Start of session at: Thu Oct 15 13:18:49 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source probe_mdio_v2.tcl
+# set here [file normalize [file dirname [info script]]]
+# set bit  [lindex $argv 0]
+# if {$bit eq ""} {
+#     set bit D:/repo/XCKU5PMini/_proj_mdio/pj_mdio/mdio_prj.runs/impl_1/mdio_vio_top.bit
+# }
+# if {![file exists $bit]} { error "bitstream not found: $bit" }
+# set ltx [file rootname $bit].ltx
+# puts "BIT $bit"
+BIT D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_mdio_board_20261015\board\artifacts\mdio_vio_top.bit
+# puts "LTX $ltx"
+LTX D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_mdio_board_20261015\board\artifacts\mdio_vio_top.ltx
+# open_hw_manager
+# connect_hw_server -url 192.168.0.38:3121
+INFO: [Labtools 27-2285] Connecting to hw_server url TCP:192.168.0.38:3121
+INFO: [Labtools 27-3415] Connecting to cs_server url TCP:localhost:0
+INFO: [Labtools 27-3417] Launching cs_server...
+INFO: [Labtools 27-2221] Launch Output:
+
+
+******** Xilinx cs_server v2025.2.0
+  ****** Build date   : Nov 14 2025-07:16:52
+    **** Build number : 2025.2.1763075812
+      ** Copyright 2017-2022 Xilinx, Inc. All Rights Reserved.
+      ** Copyright 2022-2026 Advanced Micro Devices, Inc. All Rights Reserved.
+
+
+
+# current_hw_target [lindex [get_hw_targets] 0]
+# open_hw_target
+INFO: [Labtoolstcl 44-466] Opening hw_target 192.168.0.38:3121/xilinx_tcf/Digilent/210251391367
+# set dev [lindex [get_hw_devices] 0]
+# current_hw_device $dev
+# puts "DEVICE $dev"
+DEVICE xcku5p_0
+# if {[file exists $ltx]} {
+#     set_property PROBES.FILE $ltx $dev
+#     set_property FULL_PROBES.FILE $ltx $dev
+#     puts "PROBES $ltx"
+# } else {
+#     error "no .ltx next to $bit -- VIO probes will not be enumerable"
+# }
+PROBES D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_mdio_board_20261015\board\artifacts\mdio_vio_top.ltx
+# refresh_hw_device $dev
+INFO: [Labtools 27-2302] Device xcku5p (JTAG device index = 0) is programmed with a design that has 1 VIO core(s).
+INFO: [Labtools 27-1889] Uploading output probe values for VIO core [hw_vio_1]
+# set vio [lindex [get_hw_vios -of_objects $dev] 0]
+# if {$vio eq ""} { error "no VIO found on $dev -- does the bitstream contain it?" }
+# puts "VIO $vio"
+VIO hw_vio_1
+# proc findprobe {vio names} {
+#     set all [get_hw_probes -of_objects $vio]
+#     foreach n $names {
+#         foreach p $all {
+#             if {$p eq $n} { return $p }
+#         }
+#     }
+#     return ""
+# }
+# set P_START  [findprobe $vio {vio_start  probe_out0}]
+# set P_PHYAD  [findprobe $vio {vio_phyad  probe_out2}]
+# set P_REGAD  [findprobe $vio {vio_regad  probe_out3}]
+# set P_WRDATA [findprobe $vio {vio_wr_data probe_out4}]
+# set P_STATUS [findprobe $vio {vio_probe_in probe_in0}]
+# puts "PROBES start=$P_START phyad=$P_PHYAD regad=$P_REGAD wr=$P_WRDATA status=$P_STATUS"
+PROBES start=vio_start phyad=vio_phyad regad=vio_regad wr=vio_wr_data status=vio_probe_in
+# foreach {n p} [list start $P_START phyad $P_PHYAD regad $P_REGAD status $P_STATUS] {
+#     if {$p eq ""} { error "could not resolve VIO probe '$n'" }
+# }
+# puts "ALLPROBES [get_hw_probes -of_objects $vio]"
+ALLPROBES vio_probe_in u_vio_n_2 vio_force_rst vio_phyad vio_regad vio_start vio_wr_data
+# set WIDTH_CHECK "FAIL"
+# catch {set WIDTH_CHECK [get_property WIDTH $P_STATUS]}
+# puts "STATUS_WIDTH=$WIDTH_CHECK  (want 22)"
+STATUS_WIDTH=22  (want 22)
+# proc vset {vio p val} {
+#     set w 1
+#     catch {set w [get_property WIDTH $p]}
+#     set n [expr {int(ceil($w / 4.0))}]
+#     set s [format "%0${n}X" [expr {$val & ((1 << $w) - 1)}]]
+#     set_property OUTPUT_VALUE $s $p
+#     commit_hw_vio $vio
+# }
+# proc vget {vio p} {
+#     refresh_hw_vio $vio
+#     set s [get_property INPUT_VALUE $p]
+#     set r "HEX"
+#     catch {set r [get_property INPUT_VALUE_RADIX $p]}
+#     switch -- $r {
+#         HEX     { return [expr "0x$s"] }
+#         BIN     { return [expr "0b$s"] }
+#         OCT     { return [expr "0o$s"] }
+#         default { return [expr {$s}] }
+#     }
+# }
+# proc mdio_read {phyad regad} {
+#     global vio P_START P_PHYAD P_REGAD P_STATUS
+#     vset $vio $P_PHYAD $phyad
+#     vset $vio $P_REGAD $regad
+#     vset $vio $P_START 1            ;# rising edge -> one frame
+#     vset $vio $P_START 0            ;# re-arm the edge detector
+#     set v 0
+#     for {set i 0} {$i < 40} {incr i} {
+#         set v [vget $vio $P_STATUS]
+#         if {($v >> 16) & 1} break   ;# done_sticky
+#         after 20
+#     }
+#     return [list [expr {$v & 0xFFFF}] [expr {($v >> 16) & 1}] \
+#                  [expr {($v >> 17) & 1}] [expr {($v >> 18) & 1}] \
+#                  [expr {($v >> 19) & 1}] [expr {($v >> 20) & 1}] \
+#                  [expr {($v >> 21) & 1}]]
+# }
+# proc tx_line {tag phyad regad r} {
+#     lassign $r rd done busy rstn mdio ssl pbad
+#     puts [format "TX %s phyad=%02d regad=%02d rd=%04X done=%d busy=%d rstn=%d mdio=%d ssl=%d pbad=%d" \
+#           $tag $phyad $regad $rd $done $busy $rstn $mdio $ssl $pbad]
+#     return $r
+# }
+# vset $vio $P_PHYAD 5
+# set rb [get_property OUTPUT_VALUE $P_PHYAD]
+# puts "WRITE_CHECK phyad set to 5, reads back <$rb>"
+WRITE_CHECK phyad set to 5, reads back <05>
+# vset $vio $P_PHYAD 0
+# set v [vget $vio $P_STATUS]
+# lassign [list [expr {$v & 0xFFFF}] [expr {($v >> 16) & 1}] [expr {($v >> 17) & 1}] \
+#          [expr {($v >> 18) & 1}] [expr {($v >> 19) & 1}] [expr {($v >> 20) & 1}] \
+#          [expr {($v >> 21) & 1}]] rd0 d0 b0 r0 m0 s0 p0
+# puts [format "IDLE_STATUS rd=%04X done=%d busy=%d rstn=%d mdio=%d ssl=%d pbad=%d" \
+#       $rd0 $d0 $b0 $r0 $m0 $s0 $p0]
+IDLE_STATUS rd=0000 done=0 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+# puts "ARM_J_A_BEGIN"
+ARM_J_A_BEGIN
+# set found {}
+# set ssl_sum 0
+# set pbad_sum 0
+# set noresp {}
+# for {set a 0} {$a < 32} {incr a} {
+#     set r2 [tx_line "A_r2" $a 2 [mdio_read $a 2]]
+#     lassign $r2 id1 done1 busy1 rstn1 mdio1 ssl1 pbad1
+#     incr ssl_sum $ssl1
+#     incr pbad_sum $pbad1
+#     if {!$done1} { lappend noresp [format "a%02d_r2" $a] }
+#     set r3 [tx_line "A_r3" $a 3 [mdio_read $a 3]]
+#     lassign $r3 id2 done2 busy2 rstn2 mdio2 ssl2 pbad2
+#     incr ssl_sum $ssl2
+#     incr pbad_sum $pbad2
+#     if {!$done2} { lappend noresp [format "a%02d_r3" $a] }
+#     if {$id1 == 0xFFFF && $id2 == 0xFFFF} {
+#         puts [format "PHYID %2d -- silent (bus pulled up, 0xFFFF)" $a]
+#     } else {
+#         puts [format "PHYID %2d -- PHYID1=%04X PHYID2=%04X  (id = %04X%04X)  mdio_idle=%d" \
+#               $a $id1 $id2 $id1 $id2 $mdio1]
+#         lappend found $a
+#     }
+# }
+TX A_r2 phyad=00 regad=02 rd=001C done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+TX A_r3 phyad=00 regad=03 rd=C915 done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+PHYID  0 -- PHYID1=001C PHYID2=C915  (id = 001CC915)  mdio_idle=1
+TX A_r2 phyad=01 regad=02 rd=001C done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+TX A_r3 phyad=01 regad=03 rd=C915 done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+PHYID  1 -- PHYID1=001C PHYID2=C915  (id = 001CC915)  mdio_idle=1
+TX A_r2 phyad=02 regad=02 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+TX A_r3 phyad=02 regad=03 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+PHYID  2 -- silent (bus pulled up, 0xFFFF)
+TX A_r2 phyad=03 regad=02 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+TX A_r3 phyad=03 regad=03 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+PHYID  3 -- silent (bus pulled up, 0xFFFF)
+TX A_r2 phyad=04 regad=02 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+TX A_r3 phyad=04 regad=03 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+PHYID  4 -- silent (bus pulled up, 0xFFFF)
+TX A_r2 phyad=05 regad=02 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+TX A_r3 phyad=05 regad=03 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+PHYID  5 -- silent (bus pulled up, 0xFFFF)
+TX A_r2 phyad=06 regad=02 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+TX A_r3 phyad=06 regad=03 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+PHYID  6 -- silent (bus pulled up, 0xFFFF)
+TX A_r2 phyad=07 regad=02 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+TX A_r3 phyad=07 regad=03 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+PHYID  7 -- silent (bus pulled up, 0xFFFF)
+TX A_r2 phyad=08 regad=02 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+TX A_r3 phyad=08 regad=03 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+PHYID  8 -- silent (bus pulled up, 0xFFFF)
+TX A_r2 phyad=09 regad=02 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+TX A_r3 phyad=09 regad=03 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+PHYID  9 -- silent (bus pulled up, 0xFFFF)
+TX A_r2 phyad=10 regad=02 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+TX A_r3 phyad=10 regad=03 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+PHYID 10 -- silent (bus pulled up, 0xFFFF)
+TX A_r2 phyad=11 regad=02 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+TX A_r3 phyad=11 regad=03 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+PHYID 11 -- silent (bus pulled up, 0xFFFF)
+TX A_r2 phyad=12 regad=02 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+TX A_r3 phyad=12 regad=03 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+PHYID 12 -- silent (bus pulled up, 0xFFFF)
+TX A_r2 phyad=13 regad=02 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+TX A_r3 phyad=13 regad=03 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+PHYID 13 -- silent (bus pulled up, 0xFFFF)
+TX A_r2 phyad=14 regad=02 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+TX A_r3 phyad=14 regad=03 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+PHYID 14 -- silent (bus pulled up, 0xFFFF)
+TX A_r2 phyad=15 regad=02 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+TX A_r3 phyad=15 regad=03 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+PHYID 15 -- silent (bus pulled up, 0xFFFF)
+TX A_r2 phyad=16 regad=02 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+TX A_r3 phyad=16 regad=03 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+PHYID 16 -- silent (bus pulled up, 0xFFFF)
+TX A_r2 phyad=17 regad=02 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+TX A_r3 phyad=17 regad=03 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+PHYID 17 -- silent (bus pulled up, 0xFFFF)
+TX A_r2 phyad=18 regad=02 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+TX A_r3 phyad=18 regad=03 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+PHYID 18 -- silent (bus pulled up, 0xFFFF)
+TX A_r2 phyad=19 regad=02 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+TX A_r3 phyad=19 regad=03 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+PHYID 19 -- silent (bus pulled up, 0xFFFF)
+TX A_r2 phyad=20 regad=02 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+TX A_r3 phyad=20 regad=03 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+PHYID 20 -- silent (bus pulled up, 0xFFFF)
+TX A_r2 phyad=21 regad=02 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+TX A_r3 phyad=21 regad=03 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+PHYID 21 -- silent (bus pulled up, 0xFFFF)
+TX A_r2 phyad=22 regad=02 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+TX A_r3 phyad=22 regad=03 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+PHYID 22 -- silent (bus pulled up, 0xFFFF)
+TX A_r2 phyad=23 regad=02 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+TX A_r3 phyad=23 regad=03 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+PHYID 23 -- silent (bus pulled up, 0xFFFF)
+TX A_r2 phyad=24 regad=02 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+TX A_r3 phyad=24 regad=03 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+PHYID 24 -- silent (bus pulled up, 0xFFFF)
+TX A_r2 phyad=25 regad=02 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+TX A_r3 phyad=25 regad=03 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+PHYID 25 -- silent (bus pulled up, 0xFFFF)
+TX A_r2 phyad=26 regad=02 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+TX A_r3 phyad=26 regad=03 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+PHYID 26 -- silent (bus pulled up, 0xFFFF)
+TX A_r2 phyad=27 regad=02 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+TX A_r3 phyad=27 regad=03 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+PHYID 27 -- silent (bus pulled up, 0xFFFF)
+TX A_r2 phyad=28 regad=02 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+TX A_r3 phyad=28 regad=03 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+PHYID 28 -- silent (bus pulled up, 0xFFFF)
+TX A_r2 phyad=29 regad=02 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+TX A_r3 phyad=29 regad=03 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+PHYID 29 -- silent (bus pulled up, 0xFFFF)
+TX A_r2 phyad=30 regad=02 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+TX A_r3 phyad=30 regad=03 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+PHYID 30 -- silent (bus pulled up, 0xFFFF)
+TX A_r2 phyad=31 regad=02 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+TX A_r3 phyad=31 regad=03 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+PHYID 31 -- silent (bus pulled up, 0xFFFF)
+# puts "ARM_J_A_ANSWERED [join $found {,}]"
+ARM_J_A_ANSWERED 0,1
+# puts "ARM_J_A_NO_RESPONSE [join $noresp {,}]"
+ARM_J_A_NO_RESPONSE 
+# puts "ARM_J_A_SSL_SUM=$ssl_sum"
+ARM_J_A_SSL_SUM=0
+# puts "ARM_J_A_PBAD_SUM=$pbad_sum"
+ARM_J_A_PBAD_SUM=0
+# puts "ARM_J_A_END"
+ARM_J_A_END
+# puts "ARM_J_B_BEGIN"
+ARM_J_B_BEGIN
+# set jb_seq [list [list 1 2] [list 7 2] [list 0 2] [list 7 2] [list 0 2] [list 1 2] [list 31 2]]
+# set jb_rd {}
+# foreach pair $jb_seq {
+#     lassign $pair a g
+#     set r [tx_line "B" $a $g [mdio_read $a $g]]
+#     lappend jb_rd [format "%04X" [lindex $r 0]]
+# }
+TX B phyad=01 regad=02 rd=001C done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+TX B phyad=07 regad=02 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+TX B phyad=00 regad=02 rd=001C done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+TX B phyad=07 regad=02 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+TX B phyad=00 regad=02 rd=001C done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+TX B phyad=01 regad=02 rd=001C done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+TX B phyad=31 regad=02 rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+# puts "ARM_J_B_RD [join $jb_rd { }]"
+ARM_J_B_RD 001C FFFF 001C FFFF 001C 001C FFFF
+# puts "ARM_J_B_END"
+ARM_J_B_END
+# puts "ARM_J_D_BEGIN"
+ARM_J_D_BEGIN
+# puts "ARM_J_D_NOTE every TX line above carries ssl= and pbad=; production arm expects 0"
+ARM_J_D_NOTE every TX line above carries ssl= and pbad=; production arm expects 0
+# puts "ARM_J_D_END"
+ARM_J_D_END
+# disconnect_hw_server
+# puts "PROBE_MDIO_V2_DONE"
+PROBE_MDIO_V2_DONE
+INFO: [Common 17-206] Exiting Vivado at Thu Oct 15 13:19:38 2026...
