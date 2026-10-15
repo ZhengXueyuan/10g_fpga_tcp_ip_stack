@@ -1,0 +1,63 @@
+
+****** xsim v2025.2 (64-bit)
+  **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+  **** Start of session at: Thu Oct 15 23:11:46 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source xsim.dir/tbswc/xsim_script.tcl
+# xsim {tbswc} -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+TB_P9_SWC CFG=HEAD_RTL EXP=EXP_HEAD P7B_10G=0
+TB_P9_SWC ARMNAMES 0=swc0 1=swc1 2=swc2 3=swc3 4=swc3b 5=swc4 6=swc5a 7=swc5b 8=swc5c 9=swc5h 10=swcwing
+  [MISMATCH] arm=1 cyc=52 got=34 exp=7f
+  [MISMATCH] arm=2 cyc=84 got=34 exp=7f
+  [MISMATCH] arm=0 cyc=1841 got=03 exp=7f
+  [WING-VIOL] stray opener while idle arm=10 cyc=1878 tid=0
+  [PC-VIOL] early opener arm=10 cyc=1878 tid=0
+  R0 orc=4905 bb0=03 bb0v=1 nst=5 pcv=0 nclw=0 nclwf=0 wbad=0 domv=0 tidv=1 tid=0 act=1 done=0
+  R1 orc=6320 bb0=34 bb0v=1 nst=5 pcv=0 nclw=0 nclwf=0 wbad=0 domv=0 tidv=1 tid=0 act=1 done=0
+  R2 orc=8 bb0=34 bb0v=1 nst=0 pcv=0 nclw=0 nclwf=0 wbad=0 domv=0 tidv=0 tid=0 act=0 done=0
+  R3 orc=0 bb0=7f bb0v=1 nst=6 pcv=0 nclw=1 nclwf=0 wbad=0 domv=0 tidv=1 tid=0 act=1 done=0
+  R4 orc=0 bb0=7f bb0v=1 nst=6 pcv=0 nclw=1 nclwf=0 wbad=0 domv=0 tidv=1 tid=0 act=1 done=0
+  R5 orc=0 bb0=7f bb0v=1 nst=5 pcv=0 nclw=1 nclwf=0 wbad=0 domv=0 tidv=1 tid=0 act=1 done=0
+  R6 orc=0 bb0=7f bb0v=1 nst=5 pcv=0 nclw=0 nclwf=0 wbad=0 domv=0 tidv=1 tid=0 act=1 done=0
+  R7 orc=0 bb0=7f bb0v=1 nst=5 pcv=0 nclw=0 nclwf=0 wbad=0 domv=0 tidv=1 tid=0 act=1 done=0
+  R8 orc=0 bb0=7f bb0v=1 nst=5 pcv=0 nclw=0 nclwf=0 wbad=0 domv=0 tidv=1 tid=0 act=1 done=0
+  R9 orc=0 bb0=7f bb0v=1 nst=5 pcv=0 nclw=0 nclwf=0 wbad=0 domv=0 tidv=1 tid=0 act=1 done=0
+  R10 orc=0 bb0=7f bb0v=1 nst=5 pcv=1 nclw=0 nclwf=1 wbad=1 domv=0 tidv=1 tid=0 act=1 done=0
+  [ n/a ] E12 counter rows skipped (frozen head has no E12 ports)
+  C0 P-A=0 P-B=0 P-C=1 STARTS=1 TID=1 WING=1 red=1 exp_red=1
+  C1 P-A=0 P-B=0 P-C=1 STARTS=1 TID=1 WING=1 red=1 exp_red=1
+  C2 P-A=0 P-B=0 P-C=1 STARTS=0 TID=1 WING=1 red=1 exp_red=1
+  C3 P-A=1 P-B=1 P-C=1 STARTS=1 TID=1 WING=1 red=0 exp_red=0
+  C4 P-A=1 P-B=1 P-C=1 STARTS=1 TID=1 WING=1 red=0 exp_red=0
+  C5 P-A=1 P-B=1 P-C=1 STARTS=1 TID=1 WING=1 red=0 exp_red=0
+  C6 P-A=1 P-B=1 P-C=1 STARTS=1 TID=1 WING=1 red=0 exp_red=0
+  C7 P-A=1 P-B=1 P-C=1 STARTS=1 TID=1 WING=1 red=0 exp_red=0
+  C8 P-A=1 P-B=1 P-C=1 STARTS=1 TID=1 WING=1 red=0 exp_red=0
+  C9 P-A=1 P-B=1 P-C=1 STARTS=1 TID=0 WING=1 red=1 exp_red=1
+  C10 P-A=1 P-B=1 P-C=1 STARTS=1 TID=1 WING=0 red=1 exp_red=1
+  [ ok ] ARM0 red=1 exp_red=1
+  [ ok ] ARM1 red=1 exp_red=1
+  [ ok ] ARM2 red=1 exp_red=1
+  [ ok ] ARM3 red=0 exp_red=0
+  [ ok ] ARM4 red=0 exp_red=0
+  [ ok ] ARM5 red=0 exp_red=0
+  [ ok ] ARM6 red=0 exp_red=0
+  [ ok ] ARM7 red=0 exp_red=0
+  [ ok ] ARM8 red=0 exp_red=0
+  [ ok ] ARM9 red=1 exp_red=1
+  [ ok ] ARM10 red=1 exp_red=1
+  [ n/a ] W2 frm_wait-close-word check skipped (SWC_OK=0: HEAD-form, not fixed); nclwf arm10=1 = positive control for ruling B
+  [ n/a ] W1 dominance check skipped (SWC_OK=0: sw_apply == up_do can be true while active)
+  [ n/a ] W3..W6 E12 counter checks skipped (frozen head: no E12 ports)
+TB_P9_SWC_SUM errs=0
+TB_P9_SWC: OK
+TB_P9_SWC DONE
+$finish called at time : 51324900 ps : File "D:/repo/XCKU5PMini/udp_hls_10g/sim/p9_swc_gate/tb_p9_swc.v" Line 995
+exit
+INFO: [Common 17-206] Exiting xsim at Thu Oct 15 23:11:48 2026...

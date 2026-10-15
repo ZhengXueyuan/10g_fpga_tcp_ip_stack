@@ -1126,6 +1126,13 @@ module wrapper_p4 (
     //      (与 biz_w51..w56 / biz_w61/w62 同一条教训)。
     wire [31:0] app_frmwait_cyc;   // W63 源
     wire [31:0] app_bp_cyc;        // W64 源
+    // ⭐ P9 E12 (2026-10-15): 换流门 4 个纯观测计数器 (W71..W74 源)。
+    //   语义逐字定义 = rtl/app_pattern.v 的 E12 计数块 (事件数, 不是拍数)。
+    //   ⚠️ 只在 APP_MODE 分支里存在 (app_pattern 的例化) ⇒ 非 APP_MODE 构建必须兜常量。
+    wire [31:0] app_up_ev;         // W71 源 (app 实收 ev_up 事件数)
+    wire [31:0] app_sw_req;        // W72 源 (收尾请求数)
+    wire [31:0] app_sw_apply;      // W73 源 (换流应用数)
+    wire [31:0] app_up_pend;       // W74 源 (A3 登记数)
     //   (分开声明是刻意的: `check_window.py` 的"已声明"判据与 udpapp_tx_ovf 同款,
     //    只认 `wire [31:0] <name>` 紧邻形式 —— 逗号列表会躲过那条扫描。)
     wire        app_uart_txd;
@@ -1250,7 +1257,12 @@ module wrapper_p4 (
         .dbg_lfsr       (),
         .led            (app_led),
         .stat_frmwait_cyc (app_frmwait_cyc),   // W63: frm_wait 拍数 (窗口/信用停顿)
-        .stat_bp_cyc      (app_bp_cyc)         // W64: pw_valid && !m_tready 拍数 (帧器背压)
+        .stat_bp_cyc      (app_bp_cyc),        // W64: pw_valid && !m_tready 拍数 (帧器背压)
+        // ⭐ P9 E12 (2026-10-15): 换流门 4 个纯观测计数器 (W71..W74)
+        .stat_up_ev       (app_up_ev),         // W71: app 实收 ev_up 事件数
+        .stat_sw_req      (app_sw_req),        // W72: 收尾请求数 (ev_same_act)
+        .stat_sw_apply    (app_sw_apply),      // W73: 换流应用数 (sw_apply)
+        .stat_up_pend     (app_up_pend)        // W74: A3 登记数 (ev_other_act)
     );
 
     axis_pipe #(.W(77)) u_app_pipe (
@@ -3270,7 +3282,18 @@ module wrapper_p4 (
     //   从"环已写 32 位字数"改为"**从镜像 aux 口取走的 32 位字数**" (`u_mir_axis.dma_words`;
     //   计数点 = `dma_gnt`, 每 grant +2; ⛔ 不是 tvalid&&tready 握手口径 —— D2 订正轮),
     //   地址/单位/名字逐字不变 ⇒ 读侧同步 = **BID-only** (留给构建轮 `0x21→0x22`)。
-    localparam SNAP_NW_P6E = 71;        // 总字数 W0..W70 (未实现地址 = 0x14C = word 83)
+    //   ⭐ P9 E12 (2026-10-15): 71 → **75** (W71..W74 = `app_pattern` 的换流门 4 个
+    //   纯观测计数器; 源 = `u_app` 的 dp 域寄存器输出 ⇒ 进 **p7bdp 束**
+    //   (SNAP_P7BDP_NW 31 → 35, 槽 31..34))。
+    //   预算复算: 75 ≤ 119 (7 位译码上限) ✓; 快照占 0x20..0x148 (末字 W74 @ 0x148);
+    //   MIR 块随 `axi_regs.SNAP_LAST_IDX` 自动下移 ⇒ MIR_STATUS/DATA/CTRL/DMA_CNT =
+    //   0x14C/0x150/0x154/0x158, **未实现地址 = 0x15C** (word 87);
+    //   `{snap_idx,5'b0}` 最大 = (75-1)<<5 = 2368 < 4096 ⇒ `axi_regs.snap_base`
+    //   仍是 [11:0] (**不动**); `snap_idx = r_word[6:0]-8` 最大 74 ⇒ 7 位 ✓ (回绕红线仍 ≥0x200)。
+    //   ⚠️ 三处地址常量同改 (本构建轮口径): 本文件注释 / `sim/p6e_pcie/tb_p6e_pcie_wrapper.v`
+    //   (已同批改) / `check_window.py` + `tb_biz_win.v` (登记, 属后续轮) —— 读侧链式同步
+    //   (`apply_readside_bid1c.py`) 归构建轮。
+    localparam SNAP_NW_P6E = 75;        // 总字数 W0..W74 (未实现地址 = 0x15C = word 87)
     // ⭐ P7B-GAP9-TX (2026-10-10): 63 → **65** (W63/W64 = app_pattern 的两个停滞计数器)。
     //   预算复算: 65 ≤ 119 (7 位译码上限) ✓; 未实现地址 = 0x20+4*65 = **0x124** (word 73, 真正未实现);
     //   `{snap_idx,5'b0}` 最大 = (65-1)<<5 = 2048 < 4096 ⇒ `axi_regs.snap_base` 仍是 [11:0] (**不动**);
@@ -3291,12 +3314,14 @@ module wrapper_p4 (
     localparam SNAP_DP_NW  = 22;        // DP 束字数 (b 域 = dp_clk)
     // P7b 三条新束的字数 (与上面同源: 装配段 `snap_dout_all` 的项数必须与之对账)
     localparam SNAP_P7BFE_NW = 3;       // W36..W38 (b 域 = gmii_clk)
-    localparam SNAP_P7BDP_NW = 31;      // W39/W40, W45..W50 + W51..W60 (BIZ) + W61/W62 (WU)
+    localparam SNAP_P7BDP_NW = 35;      // W39/W40, W45..W50 + W51..W60 (BIZ) + W61/W62 (WU)
                                         //   + **W63/W64 (P7B-GAP9-TX 的两个停滞计数器)**
                                         //   + **W66 (构建 E: tcp_tx_frame.stat_winstall)**
                                         //   + **W67/W68/W69 (构建 F: 三个纯观测仪器 —— 板帽侧
                                         //     等窗拍数 / 推进 ACK 事件数 / 等窗拍操作点锁存)**
-                                        //   + **W70 (M1: app_rx_mirror.drop_bytes, 槽 30)** (b 域 = dp_clk)
+                                        //   + **W70 (M1: app_rx_mirror.drop_bytes, 槽 30)**
+                                        //   + **W71..W74 (P9 E12: app_pattern 的换流门 4 个
+                                        //     纯观测计数器, 槽 31..34)** (b 域 = dp_clk)
                                         //   ⚠️ 槽号 ↔ 字号**不连续**是刻意的 (W65 在 tx 束槽 4;
                                         //      槽 2..5 是给 W41..W44 留的**占位**(由 tx 束搬) ⇒ 不驱动真值):
                                         //      新字一律落窗口 MSB 端, 旧字逐项不动。
@@ -3650,7 +3675,7 @@ module wrapper_p4 (
     //    端口的拼接上在 xsim 里**读回 z** (本门实测: seen 全 1 而
     //    dout 全 z) —— 这种错只有逐字读回的门能抓。
     wire [95:0]  p7bfe_dout;    // [2:0] → 槽 0/1/2
-    wire [SNAP_P7BDP_NW*32-1:0] p7bdp_dout;  // [0..30] → 槽 0..30 (BIZ 12→16; WU 16→24; GAP9-TX 24→26; 构建 E 26→27; 构建 F 27→30; **M1 30→31**)
+    wire [SNAP_P7BDP_NW*32-1:0] p7bdp_dout;  // [0..34] → 槽 0..34 (BIZ 12→16; WU 16→24; GAP9-TX 24→26; 构建 E 26→27; 构建 F 27→30; M1 30→31; **P9 E12 31→35**)
     wire [SNAP_TX_NW*32-1:0] txsnap_dout;  // [4:0] → 槽 0..4 (槽 4 = W65; P7B-A7-LINE)
     wire        p7bfe_valid, p7bdp_valid, txsnap_valid;
     wire        p7bfe_busy,  p7bdp_busy,  txsnap_busy;
@@ -4006,22 +4031,35 @@ module wrapper_p4 (
     //   ⚠️ 32 位自然回卷 (156.25 MHz 下 27.487 s) ⇒ 判据必须 mod 2^32 且记原始值。
     wire [31:0] biz_w63 = app_frmwait_cyc;         // 槽 24 → W63 frm_wait 拍数 (= 窗口/信用停顿)
     wire [31:0] biz_w64 = app_bp_cyc;              // 槽 25 → W64 帧器背压拍数
+    // ⭐ P9 E12 (2026-10-15): 槽 31..34 → W71..W74 (换流门 4 个纯观测计数器; 纯观测)
+    //   口径: **事件数** (不是拍数); 语义逐字定义 = rtl/app_pattern.v 的 E12 计数块。
+    //   ⚠️ 32 位自然回卷 (156.25 MHz 下 27.487 s) ⇒ 判据必须 mod 2^32 且记原始值。
+    wire [31:0] biz_w71 = app_up_ev;               // 槽 31 → W71 app 实收 ev_up 事件数
+    wire [31:0] biz_w72 = app_sw_req;              // 槽 32 → W72 收尾请求数 (ev_same_act)
+    wire [31:0] biz_w73 = app_sw_apply;            // 槽 33 → W73 换流应用数 (sw_apply)
+    wire [31:0] biz_w74 = app_up_pend;             // 槽 34 → W74 A3 登记数 (ev_other_act)
 `else
     // 非 APP_MODE 构建: u_app_ctrl 不存在 ⇒ 常量占位 (装配出来恒 0, 是预期的)
     wire [31:0] biz_w61 = 32'd0;
     wire [31:0] biz_w62 = 32'd0;
     wire [31:0] biz_w63 = 32'd0;   // P7B-GAP9-TX (app_pattern 不存在 ⇒ 常量)
     wire [31:0] biz_w64 = 32'd0;
+    wire [31:0] biz_w71 = 32'd0;   // P9 E12 (app_pattern 不存在 ⇒ 常量)
+    wire [31:0] biz_w72 = 32'd0;
+    wire [31:0] biz_w73 = 32'd0;
+    wire [31:0] biz_w74 = 32'd0;
 `endif
     // ⚠️ **6 个源全是 dp 域寄存器输出** ⇒ 满足 snap_cdc 的前提 (din_b 只在 clk_b 沿变化);
     //    源与**槽号**的对应关系写在名字里 (`biz_w<字>`), 装配处不再数拼接 —— 这是刻意的:
     //    本工程两次踩过"拼接项数/顺序错一处只读出另一个字的正确值"(见本段开头的扩窗注释),
     //    逐字具名后, "槽位错位"这一类错在文本层面就可见 (静态检查器 `check_window.py` 会核)。
 
-    // p7bdp 的 16 个槽: 槽 0/1/6..11 是本模块的信号, 槽 2..5 由 **tx 束**搬来
+    // p7bdp 的 35 个槽 (P9 E12 起; 原 16 = 槽 0..15 时代): 槽 0/1/6..11 是本模块的信号, 槽 2..5 由 **tx 束**搬来
     //   (W41..W44 在 tx_mii_clk 域, 不能在这里引用) ⇒ 这里只驱动自己的那些槽,
     //   装配时 (snap_dout_all) 才把 tx 束的 4 个字插到 W41..W44 的位置。
     //   P7B-BIZ 新增 槽 12..21 (W51..W60): 源 = 上面那 10 条 `biz_w5x` (全是 dp 域寄存器输出)。
+    //   ⭐ P9 E12 新增 槽 31..34 (W71..W74): 源 = 上面 4 条 `biz_w7x`
+    //      (app_pattern 的 E12 计数器; 全是 dp 域寄存器输出 ⇒ 满足 snap_cdc 前提)。
     wire [SNAP_P7BDP_NW*32-1:0] p7bdp_din;
     genvar gi;
     generate
@@ -4063,6 +4101,10 @@ module wrapper_p4 (
     assign p7bdp_din[28*32 +: 32] = biz_w68;   // 槽 28 → W68 tcp_rx.stat_ack_adv (构建 F)
     assign p7bdp_din[29*32 +: 32] = biz_w69;   // 槽 29 → W69 tcp_tx_frame.o_win_at_winstall (构建 F)
     assign p7bdp_din[30*32 +: 32] = biz_w70;   // 槽 30 → W70 app_rx_mirror.drop_bytes (M1; dp 域寄存器输出)
+    assign p7bdp_din[31*32 +: 32] = biz_w71;   // 槽 31 → W71 app_pattern.stat_up_ev (P9 E12; dp 域寄存器输出)
+    assign p7bdp_din[32*32 +: 32] = biz_w72;   // 槽 32 → W72 app_pattern.stat_sw_req (P9 E12)
+    assign p7bdp_din[33*32 +: 32] = biz_w73;   // 槽 33 → W73 app_pattern.stat_sw_apply (P9 E12)
+    assign p7bdp_din[34*32 +: 32] = biz_w74;   // 槽 34 → W74 app_pattern.stat_up_pend (P9 E12)
 
     snap_cdc #(.W(32), .NW(SNAP_P7BFE_NW)) u_snap_p7bfe (
         .clk_a(pcie_axi_aclk), .rst_n(pcie_axi_aresetn), .req_a(snap_req),
@@ -4104,18 +4146,24 @@ module wrapper_p4 (
     // 合体 busy: 任一束在飞就是 busy (主机的 "trigger→poll done"协议靠它)
     assign snap_busy = snap_seq_busy | p7bfe_busy | p7bdp_busy | txsnap_busy;
 
-    // ---- 70 字装配 (**逐项写出**: 每项的槽号在注释里, 不依赖"从右往左"的记忆) ----
+    // ---- 75 字装配 (**逐项写出**: 每项的槽号在注释里, 不依赖"从右往左"的记忆) ----
+    //   ⭐ P9 E12: 新增 W71..W74 落在**最上面** (= MSB 端); 旧 71 项逐项未动。
     //   ⭐ 构建 F: 新增 W67/W68/W69 落在**最上面** (= MSB 端); 旧 67 项逐项未动。
     //   ⭐ 构建 E: 新增 W66 落在**最上面** (= MSB 端); 旧 66 项逐项未动。
     //   ⚠️ 这条总线是 axi 域的组合量, 源全是 snap_cdc 的 `dout_a` 寄存器 ⇒ 采集沿稳定。
-    //   ⚠️ 非 P7B 构建里三条新束的 din 全是常量 ⇒ 后 **35** 个字读回恒 0
-    //      (3 + (31-4) + 5 = 35; 预期, 不是缺陷 —— 原注写 27 是 24 槽时代的口径, 就地订正
-    //       + 构建 E 把 26→27 槽 ⇒ 30→31 + 构建 F 把 27→30 槽 ⇒ 33→34 + **M1 把 30→31 槽 ⇒ 34→35**);
+    //   ⚠️ 非 P7B 构建里三条新束的 din 全是常量 ⇒ 后 **39** 个字读回恒 0
+    //      (3 + (35-4) + 5 = 39; 预期, 不是缺陷 —— 原注写 27 是 24 槽时代的口径, 就地订正
+    //       + 构建 E 把 26→27 槽 ⇒ 30→31 + 构建 F 把 27→30 槽 ⇒ 33→34 + M1 把 30→31 槽 ⇒ 34→35
+    //       + **P9 E12 把 31→35 槽 ⇒ 38→39**);
     //      非 APP_MODE 构建里 W51..W54 / W56 同理 (逐字源 = 常量), 但 **W55/W57/W58 仍真**
     //      (它们的源 = tcp_tx_frame, 在任何构建里都例化)。
     //   ⚠️ **新增项一律写在最上面 (= 向量 MSB 端 = 最高槽号)**: 这样 W0..W50 的槽号
     //      逐项不动 (已入库的板级读数不受影响)。写错位置 = 全体旧字平移 = 假读数。
     wire [SNAP_NW_P6E*32-1:0] snap_dout_all = {
+        p7bdp_dout[34*32 +: 32],   // W74 app_pattern.stat_up_pend (A3 登记数; P9 E12; 槽 34)
+        p7bdp_dout[33*32 +: 32],   // W73 app_pattern.stat_sw_apply (换流应用数; P9 E12; 槽 33)
+        p7bdp_dout[32*32 +: 32],   // W72 app_pattern.stat_sw_req (收尾请求数; P9 E12; 槽 32)
+        p7bdp_dout[31*32 +: 32],   // W71 app_pattern.stat_up_ev (app 实收 ev_up 事件数; P9 E12; 槽 31)
         p7bdp_dout[30*32 +: 32],   // W70 app_rx_mirror.drop_bytes (M1 载荷镜像拒收字节数; 槽 30)
         p7bdp_dout[29*32 +: 32],   // W69 tcp_tx_frame.o_win_at_winstall (等窗拍 {在飞, 有效窗} 锁存; 构建 F)
         p7bdp_dout[28*32 +: 32],   // W68 tcp_rx.stat_ack_adv (推进 snd_una 的 ACK 次数; 构建 F)
@@ -4781,9 +4829,11 @@ module wrapper_p4 (
                                         //        设计件 = `_proj_10g/notes/P7B_LONGSEND_DESIGN.md`。
                                         //        ⚠️ 本构建 `done` 恒 0 / `close_req` 不置位 (常量关死);
                                         //        板级"还在发"只能看 W51/W52 在涨 (active 不在快照里)。
-        .SNAP_NW    (SNAP_NW_P6E)       // 70 = 14+22 (snap_seq) + 3+(30-4)+5 (P7b 三束; 构建 F 27→30)
+        .SNAP_NW    (SNAP_NW_P6E)       // 75 = 14+22 (snap_seq) + 3+(35-4)+5 (P7b 三束; 构建 F 27→30; M1 30→31; P9 E12 31→35)
                                         //   ⚠️ 2026-10-10 (构建 F): 70 = 14+22 + 3+(30-4) + 5
                                         //      (P7B-GAP9-TX 24→26; 构建 E 26→27; 构建 F 27→30)。
+                                        //   ⚠️ 2026-10-15 (P9 E12): 75 = 14+22 + 3+(35-4) + 5
+                                        //      (M1 30→31; P9 E12 31→35 —— 4 个换流门计数器)。
                                         //   ⚠️ 2026-10-10 (P7B-A7): 原 65 / 末项 4 → **5**
                                         //   (tx 束加槽 4 = W65 线占空计数器)。
                                         //   ⚠️ 算式订正 (2026-10-07 二轮): 旧注 "14+22+3+24+4" = **67** ≠ 63。
@@ -4817,7 +4867,8 @@ module wrapper_p4 (
         //   (snap_seq 的 FE+DP 两束 + 本轮新加的 p7bfe/p7bdp/tx 三束):
         //   · busy  = 合体 ⇒ 主机不会在任一束还在飞的时候重触发
         //   · valid = `snap_valid_all` ⇒ 五束本代全到齐才采 (否则读到 "**半代**快照")
-        //   · din   = `snap_dout_all` (65 字, axi 域装配, 见采集段; WU 加 W61/W62, GAP9-TX 加 W63/W64)
+        //   · din   = `snap_dout_all` (75 字, axi 域装配, 见采集段; WU 加 W61/W62, GAP9-TX 加 W63/W64,
+        //             M1 加 W70, P9 E12 加 W71..W74)
         .snap_busy      (snap_busy),
         .snap_valid     (snap_valid_all),
         .snap_din       (snap_dout_all),

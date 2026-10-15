@@ -94,7 +94,15 @@ module app_pattern #(
     //   ⚠️ 未连接时 (既有 TB/镜像件不接这两个口) 功能 zero-cost: 综合会保留寄存器
     //      (它们要出现在板级快照里), 但**不改变任何数据通路**。
     output reg  [31:0] stat_frmwait_cyc,   // `frm_wait && active` 拍数 = 窗口/信用停顿
-    output reg  [31:0] stat_bp_cyc         // `pw_valid && !m_tready && !closing` 拍数 = 帧器背压
+    output reg  [31:0] stat_bp_cyc,        // `pw_valid && !m_tready && !closing` 拍数 = 帧器背压
+    // ---- ⭐ P9 E12 (2026-10-15): 换流门的 4 个**纯观测**计数器 ------------------
+    //   语义逐字定义 = 下面 (ev_other_act 之后的) 计数块; 板级出口 = 快照 W71..W74
+    //   (wrapper 拼装; 几何 71→75 字)。零回归: SWC_OK=0 ⇒ 计数块整条折叠
+    //   (寄存器只被复位写 0 ⇒ 综合删除) ⇒ 默认构建逐位不变 (设计件 §2.4 同款论证)。
+    output reg  [31:0] stat_up_ev,       // app **实收** ev_up 脉冲数 (与 app_ctrl.stat_ev_up 0x90 互核)
+    output reg  [31:0] stat_sw_req,      // 收尾请求数 (同槽存活事件 = E7 新行的条件)
+    output reg  [31:0] stat_sw_apply,    // 换流应用数 (sw_apply 拍数)
+    output reg  [31:0] stat_up_pend      // A3 登记数 (SWC 面 ev_other_act ⇒ up_pend_r 置位)
 );
     // ---------------- LFSR (xorshift64) ----------------
     function [63:0] xs_next;
@@ -546,6 +554,45 @@ module app_pattern #(
     // 事件分类 (到达态 × 槽关系; 模块级线, 是下面登记块的输入)
     wire        ev_same_act  = ev_up && same_slot && !idle_now;   // 同槽 + 存活 (含 closing)
     wire        ev_other_act = ev_up && !same_slot && !idle_now;  // 别的槽 + 存活
+    // =====================================================================
+    // ⭐ P9 E12 (2026-10-15): 四个**纯观测**计数器 (设计件 §2.3-E12 / v2 §4.4)
+    // =====================================================================
+    // 目的 (设计件 §4.3 逐字): "一次板级读数即可把 (P-1)/(P-2)/(P-3) 判死"
+    //   —— 把"事件送达 → 收尾请求 → 换流应用 → A3 登记"这条链的每一格变成读数。
+    // 口径 (逐条 = 各计数事件的定义; 三条事件线都是 1 拍脉冲 ⇒ 计数 = 事件数):
+    //   ① stat_up_ev    = app **实收** ev_up 脉冲数 (raw 输入口)。
+    //      互核 = `app_ctrl.stat_ev_up` (寄存器 0x90, 到板上的同一根线) ⇒ 两数逐步
+    //      一致即"事件确实送到了 app" (一方丢脉冲会立刻在差值上现形)。
+    //   ② stat_sw_req   = **收尾请求数** = 同槽存活事件数 (`ev_same_act`) ——
+    //      它与 E7 新行 `if (SWC_OK && ev_same_act) closing <= 1'b1;` 同源
+    //      ("换流请求走了同一条 W3 收尾")。
+    //   ③ stat_sw_apply = **换流应用数** (`sw_apply` 拍数) = 换流块真的应用了换流
+    //      (含"当拍应用"与"登记完成后的应用"两种来源)。
+    //   ④ stat_up_pend  = **A3 登记数** (SWC 面 = `ev_other_act`: 异槽存活事件
+    //      进了 `up_pend_r`; 见下面的登记块)。
+    // 恒等式 (SWC_OK=1 下逐拍成立; 门里有判据 W3/W4/W5):
+    //   每个 ev_up 脉冲**恰**落进 {当拍应用 (idle_now ⇒ sw_apply), 收尾请求
+    //   (ev_same_act), A3 登记 (ev_other_act)} 之一 (三态互斥) ⇒
+    //     Δstat_up_ev == Δ(ev_up ∧ sw_apply) + Δstat_sw_req + Δstat_up_pend
+    //   —— I2 ("受理 = 应用 ∨ 登记, 无第三态") 的反例 (事件凭空消失) 在板级
+    //   一次读数里即可见。
+    // ⚠️ 纯观测: 不驱动任何控制 (只吃上面那几条事件线)。
+    // ⚠️ 32 位自然回卷 (156.25 MHz 下 27.487 s) ⇒ 判据必须 mod 2^32 且记原始值。
+    // ⚠️ `SWC_OK=0` (默认关) ⇒ 整个 else 支折叠: 四个寄存器只被复位写 0 ⇒ 综合
+    //   删除 (与 E3 的 sw_pend/sw_slot 同款) ⇒ 默认构建逐位不变。
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            stat_up_ev    <= 32'd0;
+            stat_sw_req   <= 32'd0;
+            stat_sw_apply <= 32'd0;
+            stat_up_pend  <= 32'd0;
+        end else if (SWC_OK) begin
+            if (ev_up)         stat_up_ev    <= stat_up_ev    + 32'd1;
+            if (ev_same_act)   stat_sw_req   <= stat_sw_req   + 32'd1;
+            if (sw_apply)      stat_sw_apply <= stat_sw_apply + 32'd1;
+            if (ev_other_act)  stat_up_pend  <= stat_up_pend  + 32'd1;
+        end
+    end
     // ev_restart = "本拍**真的**发生换流" (旧式 = `ev_up && 判据`): 用它做
     // ①W3 块让位 (closing && !ev_restart) ②rst_close 的撞车帧计数 ③a2_hold 的
     // 预取抑制。改成 up_do 后这三处的语义不变 —— 补做拍上 closing 恒 0

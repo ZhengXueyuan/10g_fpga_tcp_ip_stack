@@ -1,0 +1,121 @@
+
+****** xsim v2025.2 (64-bit)
+  **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+  **** Start of session at: Thu Oct 15 23:11:31 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source xsim.dir/tbswc/xsim_script.tcl
+# xsim {tbswc} -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+TB_P9_SWC CFG=SWC_ARM EXP=EXP_FIXED P7B_10G=0
+TB_P9_SWC ARMNAMES 0=swc0 1=swc1 2=swc2 3=swc3 4=swc3b 5=swc4 6=swc5a 7=swc5b 8=swc5c 9=swc5h 10=swcwing
+  R0 orc=0 bb0=7f bb0v=1 nst=5 pcv=0 nclw=1 nclwf=0 wbad=0 domv=0 tidv=1 tid=0 act=1 done=0
+  R1 orc=0 bb0=7f bb0v=1 nst=7 pcv=0 nclw=1 nclwf=0 wbad=0 domv=0 tidv=1 tid=0 act=1 done=0
+  R2 orc=0 bb0=7f bb0v=1 nst=7 pcv=0 nclw=1 nclwf=0 wbad=0 domv=0 tidv=1 tid=0 act=1 done=0
+  R3 orc=0 bb0=7f bb0v=1 nst=6 pcv=0 nclw=1 nclwf=0 wbad=0 domv=0 tidv=1 tid=0 act=1 done=0
+  R4 orc=0 bb0=7f bb0v=1 nst=6 pcv=0 nclw=1 nclwf=0 wbad=0 domv=0 tidv=1 tid=0 act=1 done=0
+  R5 orc=0 bb0=7f bb0v=1 nst=5 pcv=0 nclw=1 nclwf=0 wbad=0 domv=0 tidv=1 tid=0 act=1 done=0
+  R6 orc=0 bb0=7f bb0v=1 nst=5 pcv=0 nclw=0 nclwf=0 wbad=0 domv=0 tidv=1 tid=0 act=1 done=0
+  R7 orc=0 bb0=7f bb0v=1 nst=5 pcv=0 nclw=0 nclwf=0 wbad=0 domv=0 tidv=1 tid=0 act=1 done=0
+  R8 orc=0 bb0=7f bb0v=1 nst=5 pcv=0 nclw=0 nclwf=0 wbad=0 domv=0 tidv=1 tid=0 act=1 done=0
+  R9 orc=0 bb0=7f bb0v=1 nst=5 pcv=0 nclw=0 nclwf=0 wbad=0 domv=0 tidv=1 tid=1 act=1 done=0
+  R10 orc=0 bb0=7f bb0v=1 nst=5 pcv=0 nclw=0 nclwf=0 wbad=0 domv=0 tidv=1 tid=0 act=1 done=0
+  E0 dut uev=2 srq=1 sap=2 sup=0 | tb upn=2 swac=2 req=1 pend=0
+  E1 dut uev=2 srq=1 sap=2 sup=0 | tb upn=2 swac=2 req=1 pend=0
+  E2 dut uev=2 srq=1 sap=2 sup=0 | tb upn=2 swac=2 req=1 pend=0
+  E3 dut uev=2 srq=1 sap=2 sup=0 | tb upn=2 swac=2 req=1 pend=0
+  E4 dut uev=2 srq=1 sap=2 sup=0 | tb upn=2 swac=2 req=1 pend=0
+  E5 dut uev=2 srq=0 sap=2 sup=0 | tb upn=2 swac=2 req=0 pend=0
+  E6 dut uev=2 srq=1 sap=2 sup=0 | tb upn=2 swac=2 req=1 pend=0
+  E7 dut uev=2 srq=1 sap=2 sup=0 | tb upn=2 swac=2 req=1 pend=0
+  E8 dut uev=2 srq=1 sap=2 sup=0 | tb upn=2 swac=2 req=1 pend=0
+  E9 dut uev=3 srq=1 sap=2 sup=1 | tb upn=3 swac=2 req=1 pend=1
+  E10 dut uev=2 srq=0 sap=2 sup=0 | tb upn=2 swac=2 req=0 pend=0
+  C0 P-A=1 P-B=1 P-C=1 STARTS=1 TID=1 WING=1 red=0 exp_red=0
+  C1 P-A=1 P-B=1 P-C=1 STARTS=1 TID=1 WING=1 red=0 exp_red=0
+  C2 P-A=1 P-B=1 P-C=1 STARTS=1 TID=1 WING=1 red=0 exp_red=0
+  C3 P-A=1 P-B=1 P-C=1 STARTS=1 TID=1 WING=1 red=0 exp_red=0
+  C4 P-A=1 P-B=1 P-C=1 STARTS=1 TID=1 WING=1 red=0 exp_red=0
+  C5 P-A=1 P-B=1 P-C=1 STARTS=1 TID=1 WING=1 red=0 exp_red=0
+  C6 P-A=1 P-B=1 P-C=1 STARTS=1 TID=1 WING=1 red=0 exp_red=0
+  C7 P-A=1 P-B=1 P-C=1 STARTS=1 TID=1 WING=1 red=0 exp_red=0
+  C8 P-A=1 P-B=1 P-C=1 STARTS=1 TID=1 WING=1 red=0 exp_red=0
+  C9 P-A=1 P-B=1 P-C=1 STARTS=1 TID=1 WING=1 red=0 exp_red=0
+  C10 P-A=1 P-B=1 P-C=1 STARTS=1 TID=1 WING=1 red=0 exp_red=0
+  [ ok ] ARM0 red=0 exp_red=0
+  [ ok ] ARM1 red=0 exp_red=0
+  [ ok ] ARM2 red=0 exp_red=0
+  [ ok ] ARM3 red=0 exp_red=0
+  [ ok ] ARM4 red=0 exp_red=0
+  [ ok ] ARM5 red=0 exp_red=0
+  [ ok ] ARM6 red=0 exp_red=0
+  [ ok ] ARM7 red=0 exp_red=0
+  [ ok ] ARM8 red=0 exp_red=0
+  [ ok ] ARM9 red=0 exp_red=0
+  [ ok ] ARM10 red=0 exp_red=0
+  [ ok ] W2 arm0 no frm_wait-state close word accepted (nclwf==0)
+  [ ok ] W2 arm1 no frm_wait-state close word accepted (nclwf==0)
+  [ ok ] W2 arm2 no frm_wait-state close word accepted (nclwf==0)
+  [ ok ] W2 arm3 no frm_wait-state close word accepted (nclwf==0)
+  [ ok ] W2 arm4 no frm_wait-state close word accepted (nclwf==0)
+  [ ok ] W2 arm5 no frm_wait-state close word accepted (nclwf==0)
+  [ ok ] W2 arm6 no frm_wait-state close word accepted (nclwf==0)
+  [ ok ] W2 arm7 no frm_wait-state close word accepted (nclwf==0)
+  [ ok ] W2 arm8 no frm_wait-state close word accepted (nclwf==0)
+  [ ok ] W2 arm9 no frm_wait-state close word accepted (nclwf==0)
+  [ ok ] W2 arm10 no frm_wait-state close word accepted (nclwf==0)
+  [ ok ] W1 arm0 dominance sw_apply => !active (no violation)
+  [ ok ] W1 arm1 dominance sw_apply => !active (no violation)
+  [ ok ] W1 arm2 dominance sw_apply => !active (no violation)
+  [ ok ] W1 arm3 dominance sw_apply => !active (no violation)
+  [ ok ] W1 arm4 dominance sw_apply => !active (no violation)
+  [ ok ] W1 arm5 dominance sw_apply => !active (no violation)
+  [ ok ] W1 arm6 dominance sw_apply => !active (no violation)
+  [ ok ] W1 arm7 dominance sw_apply => !active (no violation)
+  [ ok ] W1 arm8 dominance sw_apply => !active (no violation)
+  [ ok ] W1 arm9 dominance sw_apply => !active (no violation)
+  [ ok ] W1 arm10 dominance sw_apply => !active (no violation)
+  [ ok ] W3 arm0 stat_up_ev == TB ev_up count (dut=2 tb=2)
+  [ ok ] W4 arm0 stat_sw_apply == TB sw_apply count (dut=2 tb=2)
+  [ ok ] W5 arm0 req/pend class (dut srq=1/sup=0 tb req=1/pend=0)
+  [ ok ] W3 arm1 stat_up_ev == TB ev_up count (dut=2 tb=2)
+  [ ok ] W4 arm1 stat_sw_apply == TB sw_apply count (dut=2 tb=2)
+  [ ok ] W5 arm1 req/pend class (dut srq=1/sup=0 tb req=1/pend=0)
+  [ ok ] W3 arm2 stat_up_ev == TB ev_up count (dut=2 tb=2)
+  [ ok ] W4 arm2 stat_sw_apply == TB sw_apply count (dut=2 tb=2)
+  [ ok ] W5 arm2 req/pend class (dut srq=1/sup=0 tb req=1/pend=0)
+  [ ok ] W3 arm3 stat_up_ev == TB ev_up count (dut=2 tb=2)
+  [ ok ] W4 arm3 stat_sw_apply == TB sw_apply count (dut=2 tb=2)
+  [ ok ] W5 arm3 req/pend class (dut srq=1/sup=0 tb req=1/pend=0)
+  [ ok ] W3 arm4 stat_up_ev == TB ev_up count (dut=2 tb=2)
+  [ ok ] W4 arm4 stat_sw_apply == TB sw_apply count (dut=2 tb=2)
+  [ ok ] W5 arm4 req/pend class (dut srq=1/sup=0 tb req=1/pend=0)
+  [ ok ] W3 arm5 stat_up_ev == TB ev_up count (dut=2 tb=2)
+  [ ok ] W4 arm5 stat_sw_apply == TB sw_apply count (dut=2 tb=2)
+  [ ok ] W5 arm5 req/pend class (dut srq=0/sup=0 tb req=0/pend=0)
+  [ ok ] W3 arm6 stat_up_ev == TB ev_up count (dut=2 tb=2)
+  [ ok ] W4 arm6 stat_sw_apply == TB sw_apply count (dut=2 tb=2)
+  [ ok ] W5 arm6 req/pend class (dut srq=1/sup=0 tb req=1/pend=0)
+  [ ok ] W3 arm7 stat_up_ev == TB ev_up count (dut=2 tb=2)
+  [ ok ] W4 arm7 stat_sw_apply == TB sw_apply count (dut=2 tb=2)
+  [ ok ] W5 arm7 req/pend class (dut srq=1/sup=0 tb req=1/pend=0)
+  [ ok ] W3 arm8 stat_up_ev == TB ev_up count (dut=2 tb=2)
+  [ ok ] W4 arm8 stat_sw_apply == TB sw_apply count (dut=2 tb=2)
+  [ ok ] W5 arm8 req/pend class (dut srq=1/sup=0 tb req=1/pend=0)
+  [ ok ] W3 arm9 stat_up_ev == TB ev_up count (dut=3 tb=3)
+  [ ok ] W4 arm9 stat_sw_apply == TB sw_apply count (dut=2 tb=2)
+  [ ok ] W5 arm9 req/pend class (dut srq=1/sup=1 tb req=1/pend=1)
+  [ ok ] W3 arm10 stat_up_ev == TB ev_up count (dut=2 tb=2)
+  [ ok ] W4 arm10 stat_sw_apply == TB sw_apply count (dut=2 tb=2)
+  [ ok ] W5 arm10 req/pend class (dut srq=0/sup=0 tb req=0/pend=0)
+  [ ok ] W6 E12 non-vacuous (sum srq=9>=1, sum sup=1>=1, TB ev_up=23>=1)
+TB_P9_SWC_SUM errs=0
+TB_P9_SWC: OK
+TB_P9_SWC DONE
+$finish called at time : 51324900 ps : File "D:/repo/XCKU5PMini/udp_hls_10g/sim/p9_swc_gate/tb_p9_swc.v" Line 995
+exit
+INFO: [Common 17-206] Exiting xsim at Thu Oct 15 23:11:33 2026...

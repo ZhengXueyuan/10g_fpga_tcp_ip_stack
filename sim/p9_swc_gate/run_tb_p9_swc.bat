@@ -114,6 +114,11 @@ if not "%RCM7%"=="0"   set /a FAILS+=1
 
 echo   ---- criteria table (F run) ----
 findstr /C:"CFG=" /C:"C0 " /C:"C1 " /C:"C2 " /C:"C3 " /C:"C4 " /C:"C5 " /C:"C6 " /C:"C7 " /C:"C8 " /C:"C9 " /C:"C10 " "%ARMBASE%\runF\xs.log"
+echo   ---- E12 counter readings + check rows (F run; P9 E12 2026-10-15) ----
+findstr /C:"E0 " /C:"E1 " /C:"E2 " /C:"E3 " /C:"E4 " /C:"E5 " /C:"E6 " /C:"E7 " /C:"E8 " /C:"E9 " /C:"E10 " "%ARMBASE%\runF\xs.log"
+findstr /C:"W3 " /C:"W4 " /C:"W5 " /C:"W6 " "%ARMBASE%\runF\xs.log"
+echo   ---- E12 OFF-mode fold witness (expect W6o zero + W6p positive control) ----
+findstr /C:"W6o" /C:"W6p" "%ARMBASE%\runOFF\xs.log"
 echo   ---- OFF run arm reds (expect ARM0/1/2/9/10 red) ----
 findstr /C:"ARM" "%ARMBASE%\runOFF\xs.log"
 echo   ---- mutant red sets ----

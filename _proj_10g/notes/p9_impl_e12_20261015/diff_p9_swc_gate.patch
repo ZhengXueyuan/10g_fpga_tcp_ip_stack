@@ -1,0 +1,540 @@
+diff --git a/sim/p9_swc_gate/mut/m6_v1_eq.v b/sim/p9_swc_gate/mut/m6_v1_eq.v
+index 8dbe868..d770444 100644
+--- a/sim/p9_swc_gate/mut/m6_v1_eq.v
++++ b/sim/p9_swc_gate/mut/m6_v1_eq.v
+@@ -94,7 +94,15 @@ module app_pattern #(
+     //   ⚠️ 未连接时 (既有 TB/镜像件不接这两个口) 功能 zero-cost: 综合会保留寄存器
+     //      (它们要出现在板级快照里), 但**不改变任何数据通路**。
+     output reg  [31:0] stat_frmwait_cyc,   // `frm_wait && active` 拍数 = 窗口/信用停顿
+-    output reg  [31:0] stat_bp_cyc         // `pw_valid && !m_tready && !closing` 拍数 = 帧器背压
++    output reg  [31:0] stat_bp_cyc,        // `pw_valid && !m_tready && !closing` 拍数 = 帧器背压
++    // ---- ⭐ P9 E12 (2026-10-15): 换流门的 4 个**纯观测**计数器 ------------------
++    //   语义逐字定义 = 下面 (ev_other_act 之后的) 计数块; 板级出口 = 快照 W71..W74
++    //   (wrapper 拼装; 几何 71→75 字)。零回归: SWC_OK=0 ⇒ 计数块整条折叠
++    //   (寄存器只被复位写 0 ⇒ 综合删除) ⇒ 默认构建逐位不变 (设计件 §2.4 同款论证)。
++    output reg  [31:0] stat_up_ev,       // app **实收** ev_up 脉冲数 (与 app_ctrl.stat_ev_up 0x90 互核)
++    output reg  [31:0] stat_sw_req,      // 收尾请求数 (同槽存活事件 = E7 新行的条件)
++    output reg  [31:0] stat_sw_apply,    // 换流应用数 (sw_apply 拍数)
++    output reg  [31:0] stat_up_pend      // A3 登记数 (SWC 面 ev_other_act ⇒ up_pend_r 置位)
+ );
+     // ---------------- LFSR (xorshift64) ----------------
+     function [63:0] xs_next;
+@@ -546,6 +554,45 @@ module app_pattern #(
+     // 事件分类 (到达态 × 槽关系; 模块级线, 是下面登记块的输入)
+     wire        ev_same_act  = ev_up && same_slot && !idle_now;   // 同槽 + 存活 (含 closing)
+     wire        ev_other_act = ev_up && !same_slot && !idle_now;  // 别的槽 + 存活
++    // =====================================================================
++    // ⭐ P9 E12 (2026-10-15): 四个**纯观测**计数器 (设计件 §2.3-E12 / v2 §4.4)
++    // =====================================================================
++    // 目的 (设计件 §4.3 逐字): "一次板级读数即可把 (P-1)/(P-2)/(P-3) 判死"
++    //   —— 把"事件送达 → 收尾请求 → 换流应用 → A3 登记"这条链的每一格变成读数。
++    // 口径 (逐条 = 各计数事件的定义; 三条事件线都是 1 拍脉冲 ⇒ 计数 = 事件数):
++    //   ① stat_up_ev    = app **实收** ev_up 脉冲数 (raw 输入口)。
++    //      互核 = `app_ctrl.stat_ev_up` (寄存器 0x90, 到板上的同一根线) ⇒ 两数逐步
++    //      一致即"事件确实送到了 app" (一方丢脉冲会立刻在差值上现形)。
++    //   ② stat_sw_req   = **收尾请求数** = 同槽存活事件数 (`ev_same_act`) ——
++    //      它与 E7 新行 `if (SWC_OK && ev_same_act) closing <= 1'b1;` 同源
++    //      ("换流请求走了同一条 W3 收尾")。
++    //   ③ stat_sw_apply = **换流应用数** (`sw_apply` 拍数) = 换流块真的应用了换流
++    //      (含"当拍应用"与"登记完成后的应用"两种来源)。
++    //   ④ stat_up_pend  = **A3 登记数** (SWC 面 = `ev_other_act`: 异槽存活事件
++    //      进了 `up_pend_r`; 见下面的登记块)。
++    // 恒等式 (SWC_OK=1 下逐拍成立; 门里有判据 W3/W4/W5):
++    //   每个 ev_up 脉冲**恰**落进 {当拍应用 (idle_now ⇒ sw_apply), 收尾请求
++    //   (ev_same_act), A3 登记 (ev_other_act)} 之一 (三态互斥) ⇒
++    //     Δstat_up_ev == Δ(ev_up ∧ sw_apply) + Δstat_sw_req + Δstat_up_pend
++    //   —— I2 ("受理 = 应用 ∨ 登记, 无第三态") 的反例 (事件凭空消失) 在板级
++    //   一次读数里即可见。
++    // ⚠️ 纯观测: 不驱动任何控制 (只吃上面那几条事件线)。
++    // ⚠️ 32 位自然回卷 (156.25 MHz 下 27.487 s) ⇒ 判据必须 mod 2^32 且记原始值。
++    // ⚠️ `SWC_OK=0` (默认关) ⇒ 整个 else 支折叠: 四个寄存器只被复位写 0 ⇒ 综合
++    //   删除 (与 E3 的 sw_pend/sw_slot 同款) ⇒ 默认构建逐位不变。
++    always @(posedge clk or negedge rst_n) begin
++        if (!rst_n) begin
++            stat_up_ev    <= 32'd0;
++            stat_sw_req   <= 32'd0;
++            stat_sw_apply <= 32'd0;
++            stat_up_pend  <= 32'd0;
++        end else if (SWC_OK) begin
++            if (ev_up)         stat_up_ev    <= stat_up_ev    + 32'd1;
++            if (ev_same_act)   stat_sw_req   <= stat_sw_req   + 32'd1;
++            if (sw_apply)      stat_sw_apply <= stat_sw_apply + 32'd1;
++            if (ev_other_act)  stat_up_pend  <= stat_up_pend  + 32'd1;
++        end
++    end
+     // ev_restart = "本拍**真的**发生换流" (旧式 = `ev_up && 判据`): 用它做
+     // ①W3 块让位 (closing && !ev_restart) ②rst_close 的撞车帧计数 ③a2_hold 的
+     // 预取抑制。改成 up_do 后这三处的语义不变 —— 补做拍上 closing 恒 0
+diff --git a/sim/p9_swc_gate/mut/m6b_closing_drop.v b/sim/p9_swc_gate/mut/m6b_closing_drop.v
+index 89817a1..608aa3c 100644
+--- a/sim/p9_swc_gate/mut/m6b_closing_drop.v
++++ b/sim/p9_swc_gate/mut/m6b_closing_drop.v
+@@ -94,7 +94,15 @@ module app_pattern #(
+     //   ⚠️ 未连接时 (既有 TB/镜像件不接这两个口) 功能 zero-cost: 综合会保留寄存器
+     //      (它们要出现在板级快照里), 但**不改变任何数据通路**。
+     output reg  [31:0] stat_frmwait_cyc,   // `frm_wait && active` 拍数 = 窗口/信用停顿
+-    output reg  [31:0] stat_bp_cyc         // `pw_valid && !m_tready && !closing` 拍数 = 帧器背压
++    output reg  [31:0] stat_bp_cyc,        // `pw_valid && !m_tready && !closing` 拍数 = 帧器背压
++    // ---- ⭐ P9 E12 (2026-10-15): 换流门的 4 个**纯观测**计数器 ------------------
++    //   语义逐字定义 = 下面 (ev_other_act 之后的) 计数块; 板级出口 = 快照 W71..W74
++    //   (wrapper 拼装; 几何 71→75 字)。零回归: SWC_OK=0 ⇒ 计数块整条折叠
++    //   (寄存器只被复位写 0 ⇒ 综合删除) ⇒ 默认构建逐位不变 (设计件 §2.4 同款论证)。
++    output reg  [31:0] stat_up_ev,       // app **实收** ev_up 脉冲数 (与 app_ctrl.stat_ev_up 0x90 互核)
++    output reg  [31:0] stat_sw_req,      // 收尾请求数 (同槽存活事件 = E7 新行的条件)
++    output reg  [31:0] stat_sw_apply,    // 换流应用数 (sw_apply 拍数)
++    output reg  [31:0] stat_up_pend      // A3 登记数 (SWC 面 ev_other_act ⇒ up_pend_r 置位)
+ );
+     // ---------------- LFSR (xorshift64) ----------------
+     function [63:0] xs_next;
+@@ -544,6 +552,45 @@ module app_pattern #(
+     // 事件分类 (到达态 × 槽关系; 模块级线, 是下面登记块的输入)
+     wire        ev_same_act  = ev_up && same_slot && !idle_now && !closing;  // M6B: closing 态丢弃
+     wire        ev_other_act = ev_up && !same_slot && !idle_now;  // 别的槽 + 存活
++    // =====================================================================
++    // ⭐ P9 E12 (2026-10-15): 四个**纯观测**计数器 (设计件 §2.3-E12 / v2 §4.4)
++    // =====================================================================
++    // 目的 (设计件 §4.3 逐字): "一次板级读数即可把 (P-1)/(P-2)/(P-3) 判死"
++    //   —— 把"事件送达 → 收尾请求 → 换流应用 → A3 登记"这条链的每一格变成读数。
++    // 口径 (逐条 = 各计数事件的定义; 三条事件线都是 1 拍脉冲 ⇒ 计数 = 事件数):
++    //   ① stat_up_ev    = app **实收** ev_up 脉冲数 (raw 输入口)。
++    //      互核 = `app_ctrl.stat_ev_up` (寄存器 0x90, 到板上的同一根线) ⇒ 两数逐步
++    //      一致即"事件确实送到了 app" (一方丢脉冲会立刻在差值上现形)。
++    //   ② stat_sw_req   = **收尾请求数** = 同槽存活事件数 (`ev_same_act`) ——
++    //      它与 E7 新行 `if (SWC_OK && ev_same_act) closing <= 1'b1;` 同源
++    //      ("换流请求走了同一条 W3 收尾")。
++    //   ③ stat_sw_apply = **换流应用数** (`sw_apply` 拍数) = 换流块真的应用了换流
++    //      (含"当拍应用"与"登记完成后的应用"两种来源)。
++    //   ④ stat_up_pend  = **A3 登记数** (SWC 面 = `ev_other_act`: 异槽存活事件
++    //      进了 `up_pend_r`; 见下面的登记块)。
++    // 恒等式 (SWC_OK=1 下逐拍成立; 门里有判据 W3/W4/W5):
++    //   每个 ev_up 脉冲**恰**落进 {当拍应用 (idle_now ⇒ sw_apply), 收尾请求
++    //   (ev_same_act), A3 登记 (ev_other_act)} 之一 (三态互斥) ⇒
++    //     Δstat_up_ev == Δ(ev_up ∧ sw_apply) + Δstat_sw_req + Δstat_up_pend
++    //   —— I2 ("受理 = 应用 ∨ 登记, 无第三态") 的反例 (事件凭空消失) 在板级
++    //   一次读数里即可见。
++    // ⚠️ 纯观测: 不驱动任何控制 (只吃上面那几条事件线)。
++    // ⚠️ 32 位自然回卷 (156.25 MHz 下 27.487 s) ⇒ 判据必须 mod 2^32 且记原始值。
++    // ⚠️ `SWC_OK=0` (默认关) ⇒ 整个 else 支折叠: 四个寄存器只被复位写 0 ⇒ 综合
++    //   删除 (与 E3 的 sw_pend/sw_slot 同款) ⇒ 默认构建逐位不变。
++    always @(posedge clk or negedge rst_n) begin
++        if (!rst_n) begin
++            stat_up_ev    <= 32'd0;
++            stat_sw_req   <= 32'd0;
++            stat_sw_apply <= 32'd0;
++            stat_up_pend  <= 32'd0;
++        end else if (SWC_OK) begin
++            if (ev_up)         stat_up_ev    <= stat_up_ev    + 32'd1;
++            if (ev_same_act)   stat_sw_req   <= stat_sw_req   + 32'd1;
++            if (sw_apply)      stat_sw_apply <= stat_sw_apply + 32'd1;
++            if (ev_other_act)  stat_up_pend  <= stat_up_pend  + 32'd1;
++        end
++    end
+     // ev_restart = "本拍**真的**发生换流" (旧式 = `ev_up && 判据`): 用它做
+     // ①W3 块让位 (closing && !ev_restart) ②rst_close 的撞车帧计数 ③a2_hold 的
+     // 预取抑制。改成 up_do 后这三处的语义不变 —— 补做拍上 closing 恒 0
+diff --git a/sim/p9_swc_gate/mut/m7_guard_swpend.v b/sim/p9_swc_gate/mut/m7_guard_swpend.v
+index 558eefa..2b9f87e 100644
+--- a/sim/p9_swc_gate/mut/m7_guard_swpend.v
++++ b/sim/p9_swc_gate/mut/m7_guard_swpend.v
+@@ -94,7 +94,15 @@ module app_pattern #(
+     //   ⚠️ 未连接时 (既有 TB/镜像件不接这两个口) 功能 zero-cost: 综合会保留寄存器
+     //      (它们要出现在板级快照里), 但**不改变任何数据通路**。
+     output reg  [31:0] stat_frmwait_cyc,   // `frm_wait && active` 拍数 = 窗口/信用停顿
+-    output reg  [31:0] stat_bp_cyc         // `pw_valid && !m_tready && !closing` 拍数 = 帧器背压
++    output reg  [31:0] stat_bp_cyc,        // `pw_valid && !m_tready && !closing` 拍数 = 帧器背压
++    // ---- ⭐ P9 E12 (2026-10-15): 换流门的 4 个**纯观测**计数器 ------------------
++    //   语义逐字定义 = 下面 (ev_other_act 之后的) 计数块; 板级出口 = 快照 W71..W74
++    //   (wrapper 拼装; 几何 71→75 字)。零回归: SWC_OK=0 ⇒ 计数块整条折叠
++    //   (寄存器只被复位写 0 ⇒ 综合删除) ⇒ 默认构建逐位不变 (设计件 §2.4 同款论证)。
++    output reg  [31:0] stat_up_ev,       // app **实收** ev_up 脉冲数 (与 app_ctrl.stat_ev_up 0x90 互核)
++    output reg  [31:0] stat_sw_req,      // 收尾请求数 (同槽存活事件 = E7 新行的条件)
++    output reg  [31:0] stat_sw_apply,    // 换流应用数 (sw_apply 拍数)
++    output reg  [31:0] stat_up_pend      // A3 登记数 (SWC 面 ev_other_act ⇒ up_pend_r 置位)
+ );
+     // ---------------- LFSR (xorshift64) ----------------
+     function [63:0] xs_next;
+@@ -544,6 +552,45 @@ module app_pattern #(
+     // 事件分类 (到达态 × 槽关系; 模块级线, 是下面登记块的输入)
+     wire        ev_same_act  = ev_up && same_slot && !idle_now;   // 同槽 + 存活 (含 closing)
+     wire        ev_other_act = ev_up && !same_slot && !idle_now;  // 别的槽 + 存活
++    // =====================================================================
++    // ⭐ P9 E12 (2026-10-15): 四个**纯观测**计数器 (设计件 §2.3-E12 / v2 §4.4)
++    // =====================================================================
++    // 目的 (设计件 §4.3 逐字): "一次板级读数即可把 (P-1)/(P-2)/(P-3) 判死"
++    //   —— 把"事件送达 → 收尾请求 → 换流应用 → A3 登记"这条链的每一格变成读数。
++    // 口径 (逐条 = 各计数事件的定义; 三条事件线都是 1 拍脉冲 ⇒ 计数 = 事件数):
++    //   ① stat_up_ev    = app **实收** ev_up 脉冲数 (raw 输入口)。
++    //      互核 = `app_ctrl.stat_ev_up` (寄存器 0x90, 到板上的同一根线) ⇒ 两数逐步
++    //      一致即"事件确实送到了 app" (一方丢脉冲会立刻在差值上现形)。
++    //   ② stat_sw_req   = **收尾请求数** = 同槽存活事件数 (`ev_same_act`) ——
++    //      它与 E7 新行 `if (SWC_OK && ev_same_act) closing <= 1'b1;` 同源
++    //      ("换流请求走了同一条 W3 收尾")。
++    //   ③ stat_sw_apply = **换流应用数** (`sw_apply` 拍数) = 换流块真的应用了换流
++    //      (含"当拍应用"与"登记完成后的应用"两种来源)。
++    //   ④ stat_up_pend  = **A3 登记数** (SWC 面 = `ev_other_act`: 异槽存活事件
++    //      进了 `up_pend_r`; 见下面的登记块)。
++    // 恒等式 (SWC_OK=1 下逐拍成立; 门里有判据 W3/W4/W5):
++    //   每个 ev_up 脉冲**恰**落进 {当拍应用 (idle_now ⇒ sw_apply), 收尾请求
++    //   (ev_same_act), A3 登记 (ev_other_act)} 之一 (三态互斥) ⇒
++    //     Δstat_up_ev == Δ(ev_up ∧ sw_apply) + Δstat_sw_req + Δstat_up_pend
++    //   —— I2 ("受理 = 应用 ∨ 登记, 无第三态") 的反例 (事件凭空消失) 在板级
++    //   一次读数里即可见。
++    // ⚠️ 纯观测: 不驱动任何控制 (只吃上面那几条事件线)。
++    // ⚠️ 32 位自然回卷 (156.25 MHz 下 27.487 s) ⇒ 判据必须 mod 2^32 且记原始值。
++    // ⚠️ `SWC_OK=0` (默认关) ⇒ 整个 else 支折叠: 四个寄存器只被复位写 0 ⇒ 综合
++    //   删除 (与 E3 的 sw_pend/sw_slot 同款) ⇒ 默认构建逐位不变。
++    always @(posedge clk or negedge rst_n) begin
++        if (!rst_n) begin
++            stat_up_ev    <= 32'd0;
++            stat_sw_req   <= 32'd0;
++            stat_sw_apply <= 32'd0;
++            stat_up_pend  <= 32'd0;
++        end else if (SWC_OK) begin
++            if (ev_up)         stat_up_ev    <= stat_up_ev    + 32'd1;
++            if (ev_same_act)   stat_sw_req   <= stat_sw_req   + 32'd1;
++            if (sw_apply)      stat_sw_apply <= stat_sw_apply + 32'd1;
++            if (ev_other_act)  stat_up_pend  <= stat_up_pend  + 32'd1;
++        end
++    end
+     // ev_restart = "本拍**真的**发生换流" (旧式 = `ev_up && 判据`): 用它做
+     // ①W3 块让位 (closing && !ev_restart) ②rst_close 的撞车帧计数 ③a2_hold 的
+     // 预取抑制。改成 up_do 后这三处的语义不变 —— 补做拍上 closing 恒 0
+diff --git a/sim/p9_swc_gate/run_tb_p9_swc.bat b/sim/p9_swc_gate/run_tb_p9_swc.bat
+index c6ea113..1d1a9c7 100644
+--- a/sim/p9_swc_gate/run_tb_p9_swc.bat
++++ b/sim/p9_swc_gate/run_tb_p9_swc.bat
+@@ -114,6 +114,11 @@ if not "%RCM7%"=="0"   set /a FAILS+=1
+ 
+ echo   ---- criteria table (F run) ----
+ findstr /C:"CFG=" /C:"C0 " /C:"C1 " /C:"C2 " /C:"C3 " /C:"C4 " /C:"C5 " /C:"C6 " /C:"C7 " /C:"C8 " /C:"C9 " /C:"C10 " "%ARMBASE%\runF\xs.log"
++echo   ---- E12 counter readings + check rows (F run; P9 E12 2026-10-15) ----
++findstr /C:"E0 " /C:"E1 " /C:"E2 " /C:"E3 " /C:"E4 " /C:"E5 " /C:"E6 " /C:"E7 " /C:"E8 " /C:"E9 " /C:"E10 " "%ARMBASE%\runF\xs.log"
++findstr /C:"W3 " /C:"W4 " /C:"W5 " /C:"W6 " "%ARMBASE%\runF\xs.log"
++echo   ---- E12 OFF-mode fold witness (expect W6o zero + W6p positive control) ----
++findstr /C:"W6o" /C:"W6p" "%ARMBASE%\runOFF\xs.log"
+ echo   ---- OFF run arm reds (expect ARM0/1/2/9/10 red) ----
+ findstr /C:"ARM" "%ARMBASE%\runOFF\xs.log"
+ echo   ---- mutant red sets ----
+diff --git a/sim/p9_swc_gate/tb_p9_swc.v b/sim/p9_swc_gate/tb_p9_swc.v
+index ea3050e..65ce1c0 100644
+--- a/sim/p9_swc_gate/tb_p9_swc.v
++++ b/sim/p9_swc_gate/tb_p9_swc.v
+@@ -13,6 +13,16 @@
+ //   STARTS: 事件后新起帧数 (opener beat 数) >= 1
+ //   TID : (仅 u_swc5h / R3-1 序列) 首个被接受的 opener 必须携带 m_tid == 目标槽 (4'd1)
+ //   以上五条按臂的组合 = "该臂是否红"; 运行级判据 = **实测红集 == 期望红集** (见下)。
++//   ⭐ P9 E12 (2026-10-15) 新增 (只判 F/F10 = 活 RTL + SWC=1; 见收口段的注释):
++//   W3 : 每臂 DUT `stat_up_ev`     == TB 数的 ev_up 脉冲数        (输入面接线见证)
++//   W4 : 每臂 DUT `stat_sw_apply`  == TB 数的 sw_apply 拍数       (DUT 网名接线见证)
++//   W5 : 每臂 DUT `stat_sw_req`/`stat_up_pend` == TB 按 DUT 自己的 act_id 与
++//        DUT 收到的 ev_slot 分类出的 req/pend 拍数 (分类式 = "ev_up ∧ ¬sw_apply ∧
++//        (act_id==slot)" / "... != slot"; ⛔ 不预设设计算法, 只要求两数同源)
++//   W6 : 非空性 (三个和 ≥1 ⇒ 上面三条不是 0==0 的空判据)
++//   W6o/W6p : (仅 OFF = 常量门) DUT 四计数器恒 0 (= SWC_OK=0 折叠见证) + TB 侧
++//        数出的事件数 >0 (正控 ⇒ W6o 不是"没激励"造成的空真)
++//   H/H10 (冻结件): 无这些端口 ⇒ 打 [ n/a ] 行 (不判)。
+ //
+ // 编译方式 (由 run_tb_p9_swc.bat 传 -d; 必须恰好一个 RTL 面 + 一个期望面):
+ //   -d P9_SWC_ARM   : 活 rtl/app_pattern.v + .TX_SWCLOSE(1'b1)  (主臂)
+@@ -25,7 +35,9 @@
+ //   -d P9_EXP_M7    : 期望红 = {swc5h}
+ //   可选 -d P7B_10G : A2 整字路构型 (与逐字节构型各跑一遍)
+ //
+-// 臂表 (NALL=10, idx = 生成块下标):
++// 臂表 (NALL=11, idx = 生成块下标) —— ⚠️ R5 报告 §0-3 曾登记本行"NALL=10"为陈旧字样
++//   (登记不修的理由 = 保 TB-sha ↔ stdout 绑定); 本轮 (E12) 因新增判据必须动 TB ⇒
++//   绑定本来就要重铸 ⇒ 顺手订正为 11 (同一行的"两处陈旧字样"之一)。
+ //   0 u_swc0  : 同槽 ev_up 打在"帧首字装载拍" = opener 被消费后第 1 个 m_tvalid==0 拍
+ //               (**第 2 帧**; 见下面 §偏差登记: 第 1 帧那个拍对 P-3 是空判据)
+ //   1 u_swc1  : 同槽 ev_up 打在本帧第 4 个 payload beat (帧中段)
+@@ -79,6 +91,16 @@
+   `define P9_SWC_BIND
+ `endif
+ 
++// ⭐ P9 E12 (2026-10-15): 4 个观测计数器的端口连接块 (每实例展开一次; i = 臂下标)。
++//   只有**活 RTL 的 SWC 模式** (P9_SWC_ARM / P9_SWC_OFF) 有这些端口 —— 冻结件 (H/H10)
++//   结构性没有 ⇒ 该模式下展开为空 (整行只留 `.stat_bp_cyc()`)。
++//   ⚠️ 单行定义 (无续行反斜杠): 本文件是 CRLF, 续行反斜杠 + CRLF 是踩过的坑。
++`ifdef P9_HAS_SWC
++  `define P9_E12_PORTS(i) , .stat_up_ev(w_uev[i]), .stat_sw_req(w_srq[i]), .stat_sw_apply(w_sap[i]), .stat_up_pend(w_sup[i])
++`else
++  `define P9_E12_PORTS(i)
++`endif
++
+ `ifdef P9_EXP_FIXED
+   `define P9_EXP_TAG "EXP_FIXED"
+ `elsif P9_EXP_HEAD
+@@ -124,6 +146,17 @@ module tb_p9_swc;
+     wire        w_act [0:NALL-1], w_done [0:NALL-1];
+     wire        w_fw  [0:NALL-1];   // DUT 的 frm_wait (见证: 收尾字分类)
+     wire        w_swa [0:NALL-1];   // DUT 的 sw_apply (见证: 支配关系)
++    // ---- ⭐ P9 E12 (2026-10-15): 4 个观测计数器的读写面 ----
++    //   `w_aid` = DUT 的 act_id 输出口 (既有端口; 本轮接出 = E12 事件分类要用) ——
++    //   **与 DUT 内部 `same_slot` 用的是同一个寄存器** ⇒ 分类口径与 RTL 逐拍同源。
++    wire [3:0]  w_aid [0:NALL-1];   // DUT act_id (全模式可接: 冻结件也有该端口)
++`ifdef P9_HAS_SWC
++    //   仅 SWC 模式 (活 RTL: ARM/OFF) 有这 4 个端口; H/H10 (冻结件) 结构性没有。
++    wire [31:0] w_uev [0:NALL-1];   // DUT stat_up_ev
++    wire [31:0] w_srq [0:NALL-1];   // DUT stat_sw_req
++    wire [31:0] w_sap [0:NALL-1];   // DUT stat_sw_apply
++    wire [31:0] w_sup [0:NALL-1];   // DUT stat_up_pend
++`endif
+ 
+     // ================= 每臂激励状态机 =================
+     // m_tready: **组合**驱动 (仅由本 TB 的状态寄存器导出, 无 DUT 反馈 ⇒ 无竞争/无环)。
+@@ -352,6 +385,15 @@ module tb_p9_swc;
+     wire [3:0] ev_slot9 = u8_up2 ? 4'd1 : 4'd0;
+     wire [3:0] ev_slot0 = 4'd0;
+     wire [3:0] ev_slotw = 4'd0;   // 闲置翼臂 = 槽 0
++    // ⭐ P9 E12: 逐臂槽号数组 (= 各实例实际接的同一根线, **单一来源** —— E12 事件
++    //   分类判据必须与 DUT 收到的 ev_slot 逐拍一致, 否则 W5 会因 TB 自己抄错而假红)。
++    wire [3:0] evs_v [0:NALL-1];
++    assign evs_v[0]  = ev_slot0;  assign evs_v[1]  = ev_slot0;
++    assign evs_v[2]  = ev_slot0;  assign evs_v[3]  = ev_slot0;
++    assign evs_v[4]  = ev_slot0;  assign evs_v[5]  = ev_slot0;
++    assign evs_v[6]  = ev_slot0;  assign evs_v[7]  = ev_slot0;
++    assign evs_v[8]  = ev_slot0;  assign evs_v[9]  = ev_slot9;
++    assign evs_v[10] = ev_slotw;
+ 
+     // ---- 模型重置点 = 全局起点 + 各臂第一个事件 (u_swc5h 的异槽拍不重置) ----
+     wire [NALL-1:0] ev_own;   // 本臂自有事件 (不含全局起点) = P-B/TID 的捕获窗口起点
+@@ -390,8 +432,8 @@ module tb_p9_swc;
+         .rx_tlast(1'b0), .rx_tid(4'd0), .i_bad_frame(16'd0),
+         .stat_tx_bytes(w_txb[0]), .stat_tx_frames(w_txf[0]), .stat_bad_frames(),
+         .stat_rx_bytes(), .stat_mismatch(),
+-        .active(w_act[0]), .act_id(), .done(w_done[0]), .dbg_lfsr(), .led(),
+-        .stat_frmwait_cyc(), .stat_bp_cyc()
++        .active(w_act[0]), .act_id(w_aid[0]), .done(w_done[0]), .dbg_lfsr(), .led(),
++        .stat_frmwait_cyc(), .stat_bp_cyc()`P9_E12_PORTS(0)
+     );
+     app_pattern #(`P9_SWC_BIND .TX_BYTES(32'd3000), .TX_SEGSZ(12'd1460),
+                   .AUTO_CLOSE(1'b0), .TX_CONTINUOUS(1'b1)) u1 (
+@@ -403,8 +445,8 @@ module tb_p9_swc;
+         .rx_tlast(1'b0), .rx_tid(4'd0), .i_bad_frame(16'd0),
+         .stat_tx_bytes(w_txb[1]), .stat_tx_frames(w_txf[1]), .stat_bad_frames(),
+         .stat_rx_bytes(), .stat_mismatch(),
+-        .active(w_act[1]), .act_id(), .done(w_done[1]), .dbg_lfsr(), .led(),
+-        .stat_frmwait_cyc(), .stat_bp_cyc()
++        .active(w_act[1]), .act_id(w_aid[1]), .done(w_done[1]), .dbg_lfsr(), .led(),
++        .stat_frmwait_cyc(), .stat_bp_cyc()`P9_E12_PORTS(1)
+     );
+     app_pattern #(`P9_SWC_BIND .TX_BYTES(32'd3000), .TX_SEGSZ(12'd1460),
+                   .AUTO_CLOSE(1'b0), .TX_CONTINUOUS(1'b1)) u2 (
+@@ -416,8 +458,8 @@ module tb_p9_swc;
+         .rx_tlast(1'b0), .rx_tid(4'd0), .i_bad_frame(16'd0),
+         .stat_tx_bytes(w_txb[2]), .stat_tx_frames(w_txf[2]), .stat_bad_frames(),
+         .stat_rx_bytes(), .stat_mismatch(),
+-        .active(w_act[2]), .act_id(), .done(w_done[2]), .dbg_lfsr(), .led(),
+-        .stat_frmwait_cyc(), .stat_bp_cyc()
++        .active(w_act[2]), .act_id(w_aid[2]), .done(w_done[2]), .dbg_lfsr(), .led(),
++        .stat_frmwait_cyc(), .stat_bp_cyc()`P9_E12_PORTS(2)
+     );
+     app_pattern #(`P9_SWC_BIND .TX_BYTES(32'd3000), .TX_SEGSZ(12'd1460),
+                   .AUTO_CLOSE(1'b0), .TX_CONTINUOUS(1'b1)) u3 (
+@@ -429,8 +471,8 @@ module tb_p9_swc;
+         .rx_tlast(1'b0), .rx_tid(4'd0), .i_bad_frame(16'd0),
+         .stat_tx_bytes(w_txb[3]), .stat_tx_frames(w_txf[3]), .stat_bad_frames(),
+         .stat_rx_bytes(), .stat_mismatch(),
+-        .active(w_act[3]), .act_id(), .done(w_done[3]), .dbg_lfsr(), .led(),
+-        .stat_frmwait_cyc(), .stat_bp_cyc()
++        .active(w_act[3]), .act_id(w_aid[3]), .done(w_done[3]), .dbg_lfsr(), .led(),
++        .stat_frmwait_cyc(), .stat_bp_cyc()`P9_E12_PORTS(3)
+     );
+     app_pattern #(`P9_SWC_BIND .TX_BYTES(32'd3000), .TX_SEGSZ(12'd1460),
+                   .AUTO_CLOSE(1'b0), .TX_CONTINUOUS(1'b1)) u3b (
+@@ -442,8 +484,8 @@ module tb_p9_swc;
+         .rx_tlast(1'b0), .rx_tid(4'd0), .i_bad_frame(16'd0),
+         .stat_tx_bytes(w_txb[4]), .stat_tx_frames(w_txf[4]), .stat_bad_frames(),
+         .stat_rx_bytes(), .stat_mismatch(),
+-        .active(w_act[4]), .act_id(), .done(w_done[4]), .dbg_lfsr(), .led(),
+-        .stat_frmwait_cyc(), .stat_bp_cyc()
++        .active(w_act[4]), .act_id(w_aid[4]), .done(w_done[4]), .dbg_lfsr(), .led(),
++        .stat_frmwait_cyc(), .stat_bp_cyc()`P9_E12_PORTS(4)
+     );
+     app_pattern #(`P9_SWC_BIND .TX_BYTES(32'd3000), .TX_SEGSZ(12'd1460),
+                   .AUTO_CLOSE(1'b0), .TX_CONTINUOUS(1'b1)) u4 (
+@@ -455,8 +497,8 @@ module tb_p9_swc;
+         .rx_tlast(1'b0), .rx_tid(4'd0), .i_bad_frame(16'd0),
+         .stat_tx_bytes(w_txb[5]), .stat_tx_frames(w_txf[5]), .stat_bad_frames(),
+         .stat_rx_bytes(), .stat_mismatch(),
+-        .active(w_act[5]), .act_id(), .done(w_done[5]), .dbg_lfsr(), .led(),
+-        .stat_frmwait_cyc(), .stat_bp_cyc()
++        .active(w_act[5]), .act_id(w_aid[5]), .done(w_done[5]), .dbg_lfsr(), .led(),
++        .stat_frmwait_cyc(), .stat_bp_cyc()`P9_E12_PORTS(5)
+     );
+     app_pattern #(`P9_SWC_BIND .TX_BYTES(32'd3000), .TX_SEGSZ(12'd1460),
+                   .AUTO_CLOSE(1'b0), .TX_CONTINUOUS(1'b1)) u5a (
+@@ -468,8 +510,8 @@ module tb_p9_swc;
+         .rx_tlast(1'b0), .rx_tid(4'd0), .i_bad_frame(16'd0),
+         .stat_tx_bytes(w_txb[6]), .stat_tx_frames(w_txf[6]), .stat_bad_frames(),
+         .stat_rx_bytes(), .stat_mismatch(),
+-        .active(w_act[6]), .act_id(), .done(w_done[6]), .dbg_lfsr(), .led(),
+-        .stat_frmwait_cyc(), .stat_bp_cyc()
++        .active(w_act[6]), .act_id(w_aid[6]), .done(w_done[6]), .dbg_lfsr(), .led(),
++        .stat_frmwait_cyc(), .stat_bp_cyc()`P9_E12_PORTS(6)
+     );
+     app_pattern #(`P9_SWC_BIND .TX_BYTES(32'd3000), .TX_SEGSZ(12'd1460),
+                   .AUTO_CLOSE(1'b0), .TX_CONTINUOUS(1'b1)) u5b (
+@@ -481,8 +523,8 @@ module tb_p9_swc;
+         .rx_tlast(1'b0), .rx_tid(4'd0), .i_bad_frame(16'd0),
+         .stat_tx_bytes(w_txb[7]), .stat_tx_frames(w_txf[7]), .stat_bad_frames(),
+         .stat_rx_bytes(), .stat_mismatch(),
+-        .active(w_act[7]), .act_id(), .done(w_done[7]), .dbg_lfsr(), .led(),
+-        .stat_frmwait_cyc(), .stat_bp_cyc()
++        .active(w_act[7]), .act_id(w_aid[7]), .done(w_done[7]), .dbg_lfsr(), .led(),
++        .stat_frmwait_cyc(), .stat_bp_cyc()`P9_E12_PORTS(7)
+     );
+     app_pattern #(`P9_SWC_BIND .TX_BYTES(32'd3000), .TX_SEGSZ(12'd1460),
+                   .AUTO_CLOSE(1'b0), .TX_CONTINUOUS(1'b1)) u5c (
+@@ -494,8 +536,8 @@ module tb_p9_swc;
+         .rx_tlast(1'b0), .rx_tid(4'd0), .i_bad_frame(16'd0),
+         .stat_tx_bytes(w_txb[8]), .stat_tx_frames(w_txf[8]), .stat_bad_frames(),
+         .stat_rx_bytes(), .stat_mismatch(),
+-        .active(w_act[8]), .act_id(), .done(w_done[8]), .dbg_lfsr(), .led(),
+-        .stat_frmwait_cyc(), .stat_bp_cyc()
++        .active(w_act[8]), .act_id(w_aid[8]), .done(w_done[8]), .dbg_lfsr(), .led(),
++        .stat_frmwait_cyc(), .stat_bp_cyc()`P9_E12_PORTS(8)
+     );
+     app_pattern #(`P9_SWC_BIND .TX_BYTES(32'd3000), .TX_SEGSZ(12'd1460),
+                   .AUTO_CLOSE(1'b0), .TX_CONTINUOUS(1'b1)) u5h (
+@@ -507,8 +549,8 @@ module tb_p9_swc;
+         .rx_tlast(1'b0), .rx_tid(4'd0), .i_bad_frame(16'd0),
+         .stat_tx_bytes(w_txb[9]), .stat_tx_frames(w_txf[9]), .stat_bad_frames(),
+         .stat_rx_bytes(), .stat_mismatch(),
+-        .active(w_act[9]), .act_id(), .done(w_done[9]), .dbg_lfsr(), .led(),
+-        .stat_frmwait_cyc(), .stat_bp_cyc()
++        .active(w_act[9]), .act_id(w_aid[9]), .done(w_done[9]), .dbg_lfsr(), .led(),
++        .stat_frmwait_cyc(), .stat_bp_cyc()`P9_E12_PORTS(9)
+     );
+     app_pattern #(`P9_SWC_BIND .TX_BYTES(32'd3000), .TX_SEGSZ(12'd1460),
+                   .AUTO_CLOSE(1'b0), .TX_CONTINUOUS(1'b1)) u10 (
+@@ -520,8 +562,8 @@ module tb_p9_swc;
+         .rx_tlast(1'b0), .rx_tid(4'd0), .i_bad_frame(16'd0),
+         .stat_tx_bytes(w_txb[10]), .stat_tx_frames(w_txf[10]), .stat_bad_frames(),
+         .stat_rx_bytes(), .stat_mismatch(),
+-        .active(w_act[10]), .act_id(), .done(w_done[10]), .dbg_lfsr(), .led(),
+-        .stat_frmwait_cyc(), .stat_bp_cyc()
++        .active(w_act[10]), .act_id(w_aid[10]), .done(w_done[10]), .dbg_lfsr(), .led(),
++        .stat_frmwait_cyc(), .stat_bp_cyc()`P9_E12_PORTS(10)
+     );
+ 
+     // ---- 见证引线: frm_wait (收尾字分类) + sw_apply (支配关系监视) ----
+@@ -586,6 +628,20 @@ module tb_p9_swc;
+     reg        M_tidv[0:NALL-1];      // TID: 首个 opener 的 tid 已捕获
+     reg [3:0]  M_tid [0:NALL-1];
+     reg        ev_seen[0:NALL-1];     // 事件已发生 (sticky)
++    // ---- ⭐ P9 E12 (2026-10-15): 4 个观测计数器的 **TB 侧独立复算** --------------
++    //   口径 = 与 DUT 计数块**逐拍同源** (同一条 clk 沿、同几个信号), 但由 TB 自己数:
++    //     M_upn  : ev_u 脉冲数 (TB 驱动的输入 ⇒ 与 DUT `stat_up_ev` 必须相等)
++    //     M_swac : `w_swa` (DUT sw_apply) 拍数 (⇒ 与 DUT `stat_sw_apply` 必须相等)
++    //     M_req  : ev_up ∧ !sw_apply ∧ (DUT act_id == 本臂槽) 拍数 ⇒ 与 `stat_sw_req` 相等
++    //     M_pend : ev_up ∧ !sw_apply ∧ (DUT act_id != 本臂槽) 拍数 ⇒ 与 `stat_up_pend` 相等
++    //   ⚠️ 后两条的**分类**用的是 DUT 自己的 `act_id` 输出口与 DUT 自己收到的 ev_slot
++    //      (evs_v) ⇒ 分类不依赖 TB 对设计语义的推导 (判据不预设算法, 只预设"两数同源")。
++    //   ⚠️ H/H10 (冻结件) 没有 DUT 计数器可比 ⇒ 这两组只在 P9_HAS_SWC 下有值
++    //      (声明无条件, 但 E 行打印与判据都在 ifdef 里)。
++    reg [31:0] M_upn [0:NALL-1];
++    reg [31:0] M_swac[0:NALL-1];
++    reg [31:0] M_req [0:NALL-1];
++    reg [31:0] M_pend[0:NALL-1];
+ 
+     genvar gi;
+     generate
+@@ -597,7 +653,18 @@ module tb_p9_swc;
+                 M_wbad[gi] <= 0; M_domv[gi] <= 0; wing_win[gi] <= 0;
+                 M_bb0v[gi] <= 0; M_bb0[gi] <= 0;
+                 M_tidv[gi] <= 0; M_tid[gi] <= 0; ev_seen[gi] <= 0;
++                M_upn[gi] <= 0; M_swac[gi] <= 0; M_req[gi] <= 0; M_pend[gi] <= 0;
+             end else begin
++                // ---- ⭐ P9 E12: TB 侧 4 个复算计数器 (口径见上面声明处) ----
++                //   ⚠️ 放在本块**最前**, 与 DUT 计数块同沿同信号 ⇒ 逐拍口径一致。
++                //      `w_swa` 在 H 模式被钉 0 (冻结件无该网名) ⇒ 那两种运行里 M_* 只是
++                //      "TB 视角的形状", 不参与任何判据 (判据在 ifdef 里)。
++                if (ev_u[gi]) M_upn[gi] = M_upn[gi] + 32'd1;
++                if (w_swa[gi]) M_swac[gi] = M_swac[gi] + 32'd1;
++                if (ev_u[gi] && !w_swa[gi]) begin
++                    if (w_aid[gi] == evs_v[gi]) M_req[gi]  = M_req[gi]  + 32'd1;
++                    else                        M_pend[gi] = M_pend[gi] + 32'd1;
++                end
+                 // ---- P-C 窗口: 事件拍开窗; 关窗条件 = "窗口内先见到 active==0,
+                 //      之后再见 active==1" (= active 的**回升**) ----
+                 //   ⚠️ 只按"采到 active==1 就关"是**哑判据**: 换流收尾期间 active 恒 1,
+@@ -816,6 +883,17 @@ module tb_p9_swc;
+                      M_tidv[ii], M_tid[ii], w_act[ii], w_done[ii]);
+             $display("  %0s", lbl);
+         end
++        // ---- ⭐ P9 E12: 逐臂计数器读数 (DUT 4 个 vs TB 复算 4 个; SWC 模式才有 DUT 面) ----
++`ifdef P9_HAS_SWC
++        for (ii = 0; ii < NALL; ii = ii + 1) begin
++            $sformat(lbl, "E%0d dut uev=%0d srq=%0d sap=%0d sup=%0d | tb upn=%0d swac=%0d req=%0d pend=%0d",
++                     ii, w_uev[ii], w_srq[ii], w_sap[ii], w_sup[ii],
++                     M_upn[ii], M_swac[ii], M_req[ii], M_pend[ii]);
++            $display("  %0s", lbl);
++        end
++`else
++        $display("  [ n/a ] E12 counter rows skipped (frozen head has no E12 ports)");
++`endif
+         // ---- 逐臂判据表 ----
+         for (ii = 0; ii < NALL; ii = ii + 1) begin
+             $sformat(lbl, "C%0d P-A=%0d P-B=%0d P-C=%0d STARTS=%0d TID=%0d WING=%0d red=%0d exp_red=%0d",
+@@ -856,6 +934,60 @@ module tb_p9_swc;
+         $display("  [ n/a ] W1 dominance check skipped (SWC_OK=0: sw_apply == up_do can be true while active)");
+ `endif
+ 
++        // ---- ⭐ P9 E12 (2026-10-15): 四个观测计数器 —— 接线/分类判据 + 非空性 --------
++        //   判据面 (只在 F/F10 = 活 RTL + SWC=1 上判):
++        //     W3: DUT `stat_up_ev` == TB 数的 ev_up 脉冲数 (输入面接线见证)
++        //     W4: DUT `stat_sw_apply` == TB 数的 `sw_apply` 拍数 (DUT 网名接线见证)
++        //     W5: DUT `stat_sw_req`/`stat_up_pend` == TB 按 **DUT 自己的 act_id** 与
++        //         DUT 收到的 ev_slot 分类出的 req/pend 拍数 (分类式 = "ev_up ∧ ¬sw_apply
++        //         ∧ (act_id==slot)" ⇒ 不预设设计算法, 只要求两数同源)
++        //     W6: 非空性 —— 三个和里每个 ≥1 (否则以上判据可能是 0==0 的空判据)
++        //   ⛔ 为什么不判其它模式: H/H10 无这些端口 (结构性); OFF 是常量门 (折叠 ⇒ DUT
++        //      恒 0, 换成 W6o 折叠见证 + 正控, 见下); M6/M6B/M7 的红集由既有判据承担
++        //      (突变下事件语义本就不同, 拿 W3..W5 去判会把"突变的预期行为"误报成 errs)。
++`ifdef P9_SWC_ARM
++  `ifdef P9_EXP_FIXED
++        begin : e12_checks
++            integer sum_req, sum_pend, sum_upn;
++            sum_req = 0; sum_pend = 0; sum_upn = 0;
++            for (ii = 0; ii < NALL; ii = ii + 1) begin
++                sum_req  = sum_req  + w_srq[ii];
++                sum_pend = sum_pend + w_sup[ii];
++                sum_upn  = sum_upn  + M_upn[ii];
++                $sformat(lbl, "W3 arm%0d stat_up_ev == TB ev_up count (dut=%0d tb=%0d)", ii, w_uev[ii], M_upn[ii]);
++                chk(w_uev[ii] === M_upn[ii], lbl);
++                $sformat(lbl, "W4 arm%0d stat_sw_apply == TB sw_apply count (dut=%0d tb=%0d)", ii, w_sap[ii], M_swac[ii]);
++                chk(w_sap[ii] === M_swac[ii], lbl);
++                $sformat(lbl, "W5 arm%0d req/pend class (dut srq=%0d/sup=%0d tb req=%0d/pend=%0d)",
++                         ii, w_srq[ii], w_sup[ii], M_req[ii], M_pend[ii]);
++                chk((w_srq[ii] === M_req[ii]) && (w_sup[ii] === M_pend[ii]), lbl);
++            end
++            $sformat(lbl, "W6 E12 non-vacuous (sum srq=%0d>=1, sum sup=%0d>=1, TB ev_up=%0d>=1)",
++                     sum_req, sum_pend, sum_upn);
++            chk((sum_req >= 1) && (sum_pend >= 1) && (sum_upn >= 1), lbl);
++        end
++  `endif
++`endif
++`ifdef P9_SWC_OFF
++        // 常量门负对照的正控读数: DUT 四计数器必须**全 0** (SWC_OK=0 折叠),
++        //   而同一条激励在 TB 侧数出的事件数 > 0 ⇒ 这个 0 不是"没激励"造成的空真。
++        begin : e12_fold
++            integer sum_dut, sum_upn_off;
++            sum_dut = 0; sum_upn_off = 0;
++            for (ii = 0; ii < NALL; ii = ii + 1) begin
++                sum_dut     = sum_dut     + w_uev[ii] + w_srq[ii] + w_sap[ii] + w_sup[ii];
++                sum_upn_off = sum_upn_off + M_upn[ii];
++            end
++            $sformat(lbl, "W6o OFF-mode E12 counters structurally folded (SWC_OK=0): sum=%0d", sum_dut);
++            chk(sum_dut === 0, lbl);
++            $sformat(lbl, "W6p OFF-mode positive control: TB-observed ev_up = %0d (>0 => W6o is not vacuous)", sum_upn_off);
++            chk(sum_upn_off > 0, lbl);
++        end
++`endif
++`ifdef P9_HEAD_RTL
++        $display("  [ n/a ] W3..W6 E12 counter checks skipped (frozen head: no E12 ports)");
++`endif
++
+         $display("TB_P9_SWC_SUM errs=%0d", errs);
+         if (errs == 0) $display("TB_P9_SWC: OK");
+         else           $display("TB_P9_SWC: FAIL errs=%0d", errs);
