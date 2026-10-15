@@ -1,0 +1,26 @@
+== case A: 干净流 @phase 37960 (N=200000) ==
+  orig : 37960 {'verified_prefix': 200000, 'n': 200000, 'breaks': 0}
+  fixed: 37960 {'verified_prefix': 200000, 'n': 200000, 'breaks': 0}
+== case B: 残差前缀 r=1440 (旧相位 M=2000000) + pattern[0..] ==
+  orig : 2000000 {'verified_prefix': 0, 'n': 201440, 'breaks': 1} ['newK=None new_pos=None']
+  fixed: 2000000 {'verified_prefix': 201440, 'n': 201440, 'breaks': 1} ['newK=0 new_pos=1440 how=abs']
+== case C: 残差前缀 r=1440 (旧相位 M=2000000) + pattern[1000000..] ==
+  orig : 2000000 {'verified_prefix': 0, 'n': 201440, 'breaks': 1} ['newK=None new_pos=None']
+  fixed: 2000000 {'verified_prefix': 201440, 'n': 201440, 'breaks': 1} ['newK=1000000 new_pos=1440 how=abs']
+== case D: 随机流（负对照: 判据不是恒真/恒假） ==
+  orig : -1   fixed: -1
+== case E: 相位变更 +10000 @1440（原版候选**可达**） ==
+  orig : 50000 {'verified_prefix': 1440, 'n': 101440, 'breaks': 3} ['newK=60000 new_pos=1440', 'newK=60000 new_pos=1440', 'newK=60000 new_pos=1440']
+  fixed: 50000 {'verified_prefix': 101440, 'n': 101440, 'breaks': 1} ['newK=60000 new_pos=1440 how=abs']
+== 期望表 ==
+  [ ok ] A_orig : K0=37960 / breaks=0 / 全流验完（= 旧 pcap S0C 门在合成件上的等价复算）
+  [ ok ] A_fixed: 同上（修复不回归干净流路径）
+  [ ok ] B_orig : 断点后寻不到（UNALIGNED_REST; c=0 在相对候选范围外）
+  [ ok ] B_fixed: newK=0 (abs) / breaks=1 / 全流验完（绝对锚+基址 = 能落到相位 0 并继续）
+  [ ok ] C_orig : 非 0 绝对相位同样寻不到
+  [ ok ] C_fixed: newK=1000000 (abs) / breaks=1 / 全流验完
+  [ ok ] D: 随机流两工具都 K0=-1（判据不是恒真）
+  [ ok ] E_orig : 候选 newK=60000 找到过（±65536 内）但验证停在 1440、breaks=3 ⇒ 原版基址更新缺陷
+  [ ok ] E_fixed: 同激励下 breaks=1 / 全流验完 ⇒ 修复面（相对候选也可以，本件走 abs 分支）
+SELFTEST_ALIGN_FAILS=0
+SELFTEST_ALIGN_PASS

@@ -1,0 +1,32 @@
+== 复算 0: TX 记录总数 = 71
+== 复算 1: ['STATUS_WIDTH=22  (want 22)']
+== 复算 2 (J-A): A_r2 记录 32 条 / A_r3 记录 32 条; 地址集(2) = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]
+   r2 非 FFFF 的地址 = [0, 1]
+   addr0: r2=001C r3=C915 ; addr1: r2=001C r3=C915
+   addr2..31 任一非 FFFF 的 = 无(30 个地址全 [FFFF,FFFF])
+   J-A 事务 done!=1 的行号 = 无 (共 64 事务)
+== 复算 3 (J-B): 记录 0 条 -> rd 序列 = []
+   件内 ARM_J_B_RD 行 = [join $jb_rd { }]"
+== 复算 4 (J-D): ssl!=0 条数=0 pbad!=0 条数=0
+   ARM_J_A_SSL_SUM=0
+   ARM_J_A_PBAD_SUM=0
+   ARM_J_A_ANSWERED 0,1
+   ARM_J_A_NO_RESPONSE 
+== 复算 5: 全部 ARM_ 行 ==
+   ARM_J_A_BEGIN
+   ARM_J_A_ANSWERED 0,1
+   ARM_J_A_NO_RESPONSE 
+   ARM_J_A_SSL_SUM=0
+   ARM_J_A_PBAD_SUM=0
+   ARM_J_A_END
+   ARM_J_B_BEGIN
+   ARM_J_B_RD 001C FFFF 001C FFFF 001C 001C FFFF
+   ARM_J_B_END
+   ARM_J_D_BEGIN
+   ARM_J_D_NOTE every TX line above carries ssl= and pbad=; production arm expects 0
+   ARM_J_D_END
+   [WRITE_CHECK] WRITE_CHECK phyad set to 5, reads back <05>
+   [IDLE_STATUS] IDLE_STATUS rd=0000 done=0 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+   [VIO] INFO: [Labtools 27-2302] Device xcku5p (JTAG device index = 0) is programmed with a design that has 1 VIO core(s).
+   [VIO] INFO: [Labtools 27-1889] Uploading output probe values for VIO core [hw_vio_1]
+   [VIO] VIO hw_vio_1

@@ -1,0 +1,119 @@
+== case A (wire 层洞(中段缺 1 整段, 内容连续)) | fixed ==
+ALIGN2 segs=136 n=200000
+K0=0
+PAT_GEN done len=4525440
+BREAK @51093 (verified 51093 bytes before)
+  newK=52560 new_pos=52560 how=abs
+ALIGN2_DONE verified_prefix=200000 n=200000 breaks=1
+   [RC=0]
+== case A (wire 层洞(中段缺 1 整段, 内容连续)) | orig ==
+ALIGN2 segs=136 n=200000
+K0=0
+PAT_GEN done len=200000
+BREAK @51093 (verified 51093 bytes before)
+  newK=None new_pos=None
+ALIGN2_DONE verified_prefix=0 n=200000 breaks=1
+   [RC=0]
+== case B (内容丢字 8B (真断点)) | fixed ==
+ALIGN2 segs=137 n=200000
+K0=0
+PAT_GEN done len=4525440
+BREAK @72993 (verified 72993 bytes before)
+  newK=73008 new_pos=73000 how=abs
+ALIGN2_DONE verified_prefix=200000 n=200000 breaks=1
+   [RC=0]
+== case B (内容丢字 8B (真断点)) | orig ==
+ALIGN2 segs=137 n=200000
+K0=0
+PAT_GEN done len=200000
+BREAK @72993 (verified 72993 bytes before)
+  newK=73008 new_pos=73000
+BREAK @73000 (verified 73000 bytes before)
+  newK=None new_pos=None
+ALIGN2_DONE verified_prefix=73000 n=200000 breaks=2
+   [RC=0]
+== case C (真相位跳 @100000 (+23456)) | fixed ==
+ALIGN2 segs=137 n=200000
+K0=0
+PAT_GEN done len=4525440
+BREAK @99993 (verified 99993 bytes before)
+  newK=123456 new_pos=100000 how=abs
+ALIGN2_DONE verified_prefix=200000 n=200000 breaks=1
+   [RC=0]
+== case C (真相位跳 @100000 (+23456)) | orig ==
+ALIGN2 segs=137 n=200000
+K0=0
+PAT_GEN done len=200000
+BREAK @99993 (verified 99993 bytes before)
+  newK=123456 new_pos=100000
+BREAK @100000 (verified 100000 bytes before)
+  newK=None new_pos=None
+ALIGN2_DONE verified_prefix=100000 n=200000 breaks=2
+   [RC=0]
+== case D (相位跳 +5MB, abs 面外) | fixed, timeout 600 ==
+ALIGN2 segs=110 n=160000
+K0=0
+PAT_GEN done len=4485440
+BREAK @99993 (verified 99993 bytes before)
+   [RC=0 (124=timeout 被杀)]
+== caseE_misshead | fixed ==
+E_fixed Traceback (most recent call last):
+E_fixed   File "D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_board_0x27_k0_20261015\_tools\align_check2_fixed.py", line 175, in <module>
+E_fixed     main()
+E_fixed     ~~~~^^
+E_fixed   File "D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_board_0x27_k0_20261015\_tools\align_check2_fixed.py", line 96, in main
+E_fixed     for data in read_pcap(p):
+E_fixed                 ~~~~~~~~~^^^
+E_fixed   File "D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_board_0x27_k0_20261015\_tools\align_check2_fixed.py", line 40, in read_pcap
+E_fixed     with open(path, "rb") as f:
+E_fixed          ~~~~^^^^^^^^^^^^
+E_fixed FileNotFoundError: [Errno 2] No such file or directory: 'rv2_align_synth/caseE_misshead.pcap'
+E_FIXED_RC=0
+Traceback (most recent call last):
+  File "D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_board_0x27_k0_20261015\_tools\align_check2_fixed.py", line 175, in <module>
+    main()
+    ~~~~^^
+  File "D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_board_0x27_k0_20261015\_tools\align_check2_fixed.py", line 96, in main
+    for data in read_pcap(p):
+                ~~~~~~~~~^^^
+  File "D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_board_0x27_k0_20261015\_tools\align_check2_fixed.py", line 40, in read_pcap
+    with open(path, "rb") as f:
+         ~~~~^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'rv2_align_synth/caseE_misshead.pcap'
+   [RC=0]
+== caseF_shorttail | fixed ==
+F_fixed Traceback (most recent call last):
+F_fixed   File "D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_board_0x27_k0_20261015\_tools\align_check2_fixed.py", line 175, in <module>
+F_fixed     main()
+F_fixed     ~~~~^^
+F_fixed   File "D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_board_0x27_k0_20261015\_tools\align_check2_fixed.py", line 96, in main
+F_fixed     for data in read_pcap(p):
+F_fixed                 ~~~~~~~~~^^^
+F_fixed   File "D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_board_0x27_k0_20261015\_tools\align_check2_fixed.py", line 40, in read_pcap
+F_fixed     with open(path, "rb") as f:
+F_fixed          ~~~~^^^^^^^^^^^^
+F_fixed FileNotFoundError: [Errno 2] No such file or directory: 'rv2_align_synth/caseF_shorttail.pcap'
+F_FIXED_RC=0
+ALL_DONE
+Traceback (most recent call last):
+  File "D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_board_0x27_k0_20261015\_tools\align_check2_fixed.py", line 175, in <module>
+    main()
+    ~~~~^^
+  File "D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_board_0x27_k0_20261015\_tools\align_check2_fixed.py", line 96, in main
+    for data in read_pcap(p):
+                ~~~~~~~~~^^^
+  File "D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_board_0x27_k0_20261015\_tools\align_check2_fixed.py", line 40, in read_pcap
+    with open(path, "rb") as f:
+         ~~~~^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'rv2_align_synth/caseF_shorttail.pcap'
+   [RC=0]
+== caseE_misshead | fixed ==
+ALIGN2 segs=68 n=98540
+K0=1460
+PAT_GEN done len=4423980
+ALIGN2_DONE verified_prefix=98540 n=98540 breaks=0
+== caseF_shorttail | fixed ==
+ALIGN2 segs=68 n=98540
+K0=0
+PAT_GEN done len=4423980
+ALIGN2_DONE verified_prefix=98540 n=98540 breaks=0

@@ -1,0 +1,63 @@
+== P27/inject_1.txt ==
+   T1_recipe2_d2p31_boundary      seq=0xB3ABF454 rcv=0x33ABF454 重算 D=+2147483648 d_mod=0x80000000 old=0 new=1 分歧=True 等价域=False | 与日志一致=True
+   T2_recipe2_d2p31_1MiB          seq=0xB3BBF454 rcv=0x33ABF454 重算 D=+2148532224 d_mod=0x80100000 old=0 new=1 分歧=True 等价域=False | 与日志一致=True
+   T3_recipe1_sub0x40000000       seq=0xF3ABF454 rcv=0x33ABF454 重算 D=+3221225472 d_mod=0xC0000000 old=0 new=1 分歧=True 等价域=False | 与日志一致=True
+   [csum] dup                            IP: 帧内=0x4B56 重算=0x4B56 OK | TCP: 帧内=0x9F00 重算=0x9F00 OK
+   [csum] T1_recipe2_d2p31_boundary      IP: 帧内=0x4AE4 重算=0x4AE4 OK | TCP: 帧内=0x1FC2 重算=0x1FC2 OK
+   [csum] T2_recipe2_d2p31_1MiB          IP: 帧内=0x4AE3 重算=0x4AE3 OK | TCP: 帧内=0x1FB2 重算=0x1FB2 OK
+   [csum] T3_recipe1_sub0x40000000       注入帧不在 pcap (跳)
+
+== P27R/inject_4.txt ==
+   T1_recipe2_d2p31_boundary      seq=0x89F73BB8 rcv=0x09F73BB8 重算 D=+2147483648 d_mod=0x80000000 old=0 new=1 分歧=True 等价域=False | 与日志一致=True
+   T2_recipe2_d2p31_1MiB          seq=0x8A073BB8 rcv=0x09F73BB8 重算 D=+2148532224 d_mod=0x80100000 old=0 new=1 分歧=True 等价域=False | 与日志一致=True
+   T3_recipe1_sub0x40000000       seq=0xC9F73BB8 rcv=0x09F73BB8 重算 D=+3221225472 d_mod=0xC0000000 old=0 new=1 分歧=True 等价域=False | 与日志一致=True
+   [csum] dup                            IP: 帧内=0x4B56 重算=0x4B56 OK | TCP: 帧内=0xB384 重算=0xB384 OK
+   [csum] T1_recipe2_d2p31_boundary      IP: 帧内=0x4AE4 重算=0x4AE4 OK | TCP: 帧内=0x3446 重算=0x3446 OK
+   [csum] T2_recipe2_d2p31_1MiB          IP: 帧内=0x4AE3 重算=0x4AE3 OK | TCP: 帧内=0x3436 重算=0x3436 OK
+   [csum] T3_recipe1_sub0x40000000       IP: 帧内=0x4AE2 重算=0x4AE2 OK | TCP: 帧内=0xF445 重算=0xF445 OK
+
+== N25/inject_2.txt ==
+   T1_recipe2_d2p31_boundary      seq=0xF869D697 rcv=0x7869D697 重算 D=+2147483648 d_mod=0x80000000 old=0 new=1 分歧=True 等价域=False | 与日志一致=True
+   T2_recipe2_d2p31_1MiB          seq=0xF879D697 rcv=0x7869D697 重算 D=+2148532224 d_mod=0x80100000 old=0 new=1 分歧=True 等价域=False | 与日志一致=True
+   T3_alt_recipe2_d2p31_2MiB      seq=0xF889D697 rcv=0x7869D697 重算 D=+2149580800 d_mod=0x80200000 old=0 new=1 分歧=True 等价域=False | 与日志一致=True
+   [csum] dup                            IP: 帧内=0x4B56 重算=0x4B56 OK | TCP: 帧内=0x943E 重算=0x943E OK
+   [csum] T1_recipe2_d2p31_boundary      IP: 帧内=0x4AE4 重算=0x4AE4 OK | TCP: 帧内=0x1500 重算=0x1500 OK
+   [csum] T2_recipe2_d2p31_1MiB          IP: 帧内=0x4AE3 重算=0x4AE3 OK | TCP: 帧内=0x14F0 重算=0x14F0 OK
+   [csum] T3_alt_recipe2_d2p31_2MiB      IP: 帧内=0x4AE2 重算=0x4AE2 OK | TCP: 帧内=0x14E0 重算=0x14E0 OK
+
+== P26/inject_2.txt ==
+   T1_recipe2_d2p31_boundary      seq=0xABE8270B rcv=0x2BE8270B 重算 D=+2147483648 d_mod=0x80000000 old=0 new=1 分歧=True 等价域=False | 与日志一致=True
+   T2_recipe2_d2p31_1MiB          seq=0xABF8270B rcv=0x2BE8270B 重算 D=+2148532224 d_mod=0x80100000 old=0 new=1 分歧=True 等价域=False | 与日志一致=True
+   T3_recipe1_sub0x40000000       seq=0xEBE8270B rcv=0x2BE8270B 重算 D=+3221225472 d_mod=0xC0000000 old=0 new=1 分歧=True 等价域=False | 与日志一致=True
+   [csum] dup                            IP: 帧内=0x4B56 重算=0x4B56 OK | TCP: 帧内=0xA1F4 重算=0xA1F4 OK
+   [csum] T1_recipe2_d2p31_boundary      IP: 帧内=0x4AE4 重算=0x4AE4 OK | TCP: 帧内=0x22B6 重算=0x22B6 OK
+   [csum] T2_recipe2_d2p31_1MiB          IP: 帧内=0x4AE3 重算=0x4AE3 OK | TCP: 帧内=0x22A6 重算=0x22A6 OK
+   [csum] T3_recipe1_sub0x40000000       IP: 帧内=0x4AE2 重算=0x4AE2 OK | TCP: 帧内=0xE2B5 重算=0xE2B5 OK
+
+== P26b/inject_1.txt ==
+   T1_recipe2_d2p31_boundary      seq=0xC9D272EB rcv=0x49D272EB 重算 D=+2147483648 d_mod=0x80000000 old=0 new=1 分歧=True 等价域=False | 与日志一致=True
+   T2_recipe2_d2p31_1MiB          seq=0xC9E272EB rcv=0x49D272EB 重算 D=+2148532224 d_mod=0x80100000 old=0 new=1 分歧=True 等价域=False | 与日志一致=True
+   T3_alt_recipe2_d2p31_2MiB      seq=0xC9F272EB rcv=0x49D272EB 重算 D=+2149580800 d_mod=0x80200000 old=0 new=1 分歧=True 等价域=False | 与日志一致=True
+   [csum] dup                            IP: 帧内=0x4B56 重算=0x4B56 OK | TCP: 帧内=0xA459 重算=0xA459 OK
+   [csum] T1_recipe2_d2p31_boundary      IP: 帧内=0x4AE4 重算=0x4AE4 OK | TCP: 帧内=0x251B 重算=0x251B OK
+   [csum] T2_recipe2_d2p31_1MiB          IP: 帧内=0x4AE3 重算=0x4AE3 OK | TCP: 帧内=0x250B 重算=0x250B OK
+   [csum] T3_alt_recipe2_d2p31_2MiB      IP: 帧内=0x4AE2 重算=0x4AE2 OK | TCP: 帧内=0x24FB 重算=0x24FB OK
+
+== N25b/inject_1.txt ==
+   T1_recipe2_d2p31_boundary      seq=0xFA62F007 rcv=0x7A62F007 重算 D=+2147483648 d_mod=0x80000000 old=0 new=1 分歧=True 等价域=False | 与日志一致=True
+   T2_recipe2_d2p31_1MiB          seq=0xFA72F007 rcv=0x7A62F007 重算 D=+2148532224 d_mod=0x80100000 old=0 new=1 分歧=True 等价域=False | 与日志一致=True
+   T3_alt_recipe2_d2p31_2MiB      seq=0xFA82F007 rcv=0x7A62F007 重算 D=+2149580800 d_mod=0x80200000 old=0 new=1 分歧=True 等价域=False | 与日志一致=True
+   [csum] dup                            IP: 帧内=0x4B56 重算=0x4B56 OK | TCP: 帧内=0x26BA 重算=0x26BA OK
+   [csum] T1_recipe2_d2p31_boundary      IP: 帧内=0x4AE4 重算=0x4AE4 OK | TCP: 帧内=0xA77B 重算=0xA77B OK
+   [csum] T2_recipe2_d2p31_1MiB          IP: 帧内=0x4AE3 重算=0x4AE3 OK | TCP: 帧内=0xA76B 重算=0xA76B OK
+   [csum] T3_alt_recipe2_d2p31_2MiB      IP: 帧内=0x4AE2 重算=0x4AE2 OK | TCP: 帧内=0xA75B 重算=0xA75B OK
+
+== P27F/inject_2.txt ==
+   T1_recipe2_d2p31_boundary      seq=0xD1DB7CFF rcv=0x51DB7CFF 重算 D=+2147483648 d_mod=0x80000000 old=0 new=1 分歧=True 等价域=False | 与日志一致=True
+   T2_recipe2_d2p31_1MiB          seq=0xD1EB7CFF rcv=0x51DB7CFF 重算 D=+2148532224 d_mod=0x80100000 old=0 new=1 分歧=True 等价域=False | 与日志一致=True
+   T3_alt_recipe2_d2p31_2MiB      seq=0xD1FB7CFF rcv=0x51DB7CFF 重算 D=+2149580800 d_mod=0x80200000 old=0 new=1 分歧=True 等价域=False | 与日志一致=True
+   [csum] dup                            IP: 帧内=0x4B56 重算=0x4B56 OK | TCP: 帧内=0x9BA3 重算=0x9BA3 OK
+   [csum] T1_recipe2_d2p31_boundary      IP: 帧内=0x4AE4 重算=0x4AE4 OK | TCP: 帧内=0x1C65 重算=0x1C65 OK
+   [csum] T2_recipe2_d2p31_1MiB          IP: 帧内=0x4AE3 重算=0x4AE3 OK | TCP: 帧内=0x1C55 重算=0x1C55 OK
+   [csum] T3_alt_recipe2_d2p31_2MiB      注入帧不在 pcap (跳)
+

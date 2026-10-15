@@ -1,0 +1,261 @@
+=== runs_N25 | main_1.pcap: 140050 帧, 窗[1792040025.288744,1792040025.784631] | 0 条 INJECT ===
+  全窗板侧 len==1 帧: 0
+  全窗 peer->board FIN/RST 帧: 0
+
+=== runs_N25 | main_2.pcap: 109433 帧, 窗[1792040030.520654,1792040034.498515] | 4 条 INJECT ===
+  INJECT dup                            t=1792040032.094100 seq=0x7869D696 len=1 ack=0x7869D697 | 注入帧在 pcap:1 帧 ident=0xA5C1
+    [0-2ms] board_frames=1
+       t=1792040032.094433(rel +0.333 ms) seq=1356971322 ack=2020202135 win=49152 len=0 flags=A
+    [0-100ms] board_frames=1
+       t=1792040032.094433(rel +0.333 ms) seq=1356971322 ack=2020202135 win=49152 len=0 flags=A
+    [0-600ms] board_frames=1
+       t=1792040032.094433(rel +0.333 ms) seq=1356971322 ack=2020202135 win=49152 len=0 flags=A
+    [pre 0.85s] board_frames=0
+  INJECT T1_recipe2_d2p31_boundary      t=1792040032.896014 seq=0xF869D697 len=100 ack=0x7869D697 | 注入帧在 pcap:1 帧 ident=0xA5D0
+    [0-2ms] board_frames=0
+    [0-100ms] board_frames=0
+    [0-600ms] board_frames=0
+    [pre 0.85s] board_frames=1
+  INJECT T2_recipe2_d2p31_1MiB          t=1792040033.697131 seq=0xF879D697 len=100 ack=0x7869D697 | 注入帧在 pcap:1 帧 ident=0xA5D1
+    [0-2ms] board_frames=0
+    [0-100ms] board_frames=0
+    [0-600ms] board_frames=0
+    [pre 0.85s] board_frames=0
+  INJECT T3_alt_recipe2_d2p31_2MiB      t=1792040034.498343 seq=0xF889D697 len=100 ack=0x7869D697 | 注入帧在 pcap:1 帧 ident=0xA5D2
+    [0-2ms] board_frames=0
+    [0-100ms] board_frames=0
+    [0-600ms] board_frames=0
+    [pre 0.85s] board_frames=0
+  全窗板侧 len==1 帧: 1
+     t=1792040030.994726 seq=1356969862 ack=2020202135 win=49152 flags=AP
+  全窗 peer->board FIN/RST 帧: 0
+
+=== runs_N25b | main_1.pcap: 114047 帧, 窗[1792040409.192604,1792040413.179171] | 4 条 INJECT ===
+  INJECT dup                            t=1792040410.773903 seq=0x7A62F006 len=1 ack=0x7A62F007 | 注入帧在 pcap:1 帧 ident=0xA5C1
+    [0-2ms] board_frames=1
+       t=1792040410.774208(rel +0.305 ms) seq=1360234422 ack=2053304327 win=49152 len=0 flags=A
+    [0-100ms] board_frames=1
+       t=1792040410.774208(rel +0.305 ms) seq=1360234422 ack=2053304327 win=49152 len=0 flags=A
+    [0-600ms] board_frames=1
+       t=1792040410.774208(rel +0.305 ms) seq=1360234422 ack=2053304327 win=49152 len=0 flags=A
+    [pre 0.85s] board_frames=0
+  INJECT T1_recipe2_d2p31_boundary      t=1792040411.575889 seq=0xFA62F007 len=100 ack=0x7A62F007 | 注入帧在 pcap:1 帧 ident=0xA5D0
+    [0-2ms] board_frames=0
+    [0-100ms] board_frames=0
+    [0-600ms] board_frames=0
+    [pre 0.85s] board_frames=1
+  INJECT T2_recipe2_d2p31_1MiB          t=1792040412.377856 seq=0xFA72F007 len=100 ack=0x7A62F007 | 注入帧在 pcap:1 帧 ident=0xA5D1
+    [0-2ms] board_frames=0
+    [0-100ms] board_frames=0
+    [0-600ms] board_frames=0
+    [pre 0.85s] board_frames=0
+  INJECT T3_alt_recipe2_d2p31_2MiB      t=1792040413.178956 seq=0xFA82F007 len=100 ack=0x7A62F007 | 注入帧在 pcap:1 帧 ident=0xA5D2
+    [0-2ms] board_frames=0
+    [0-100ms] board_frames=0
+    [0-600ms] board_frames=0
+    [pre 0.85s] board_frames=0
+  全窗板侧 len==1 帧: 1
+     t=1792040409.676983 seq=1360232962 ack=2053304327 win=49152 flags=AP
+  全窗 peer->board FIN/RST 帧: 0
+
+=== runs_P26 | main_1.pcap: 122176 帧, 窗[1792040208.993943,1792040209.460179] | 0 条 INJECT ===
+  全窗板侧 len==1 帧: 1
+     t=1792040209.460173 seq=1503742057 ack=3404986078 win=49152 flags=AP
+  全窗 peer->board FIN/RST 帧: 0
+
+=== runs_P26 | main_2.pcap: 112205 帧, 窗[1792040214.186757,1792040218.167284] | 4 条 INJECT ===
+  INJECT dup                            t=1792040215.764445 seq=0x2BE8270A len=1 ack=0x2BE8270B | 注入帧在 pcap:1 帧 ident=0xA5C1
+    [0-2ms] board_frames=1
+       t=1792040215.764680(rel +0.235 ms) seq=1357092502 ack=736634635 win=49152 len=0 flags=A
+    [0-100ms] board_frames=1
+       t=1792040215.764680(rel +0.235 ms) seq=1357092502 ack=736634635 win=49152 len=0 flags=A
+    [0-600ms] board_frames=1
+       t=1792040215.764680(rel +0.235 ms) seq=1357092502 ack=736634635 win=49152 len=0 flags=A
+    [pre 0.85s] board_frames=0
+  INJECT T1_recipe2_d2p31_boundary      t=1792040216.566056 seq=0xABE8270B len=100 ack=0x2BE8270B | 注入帧在 pcap:1 帧 ident=0xA5D0
+    [0-2ms] board_frames=1
+       t=1792040216.566308(rel +0.252 ms) seq=1357092502 ack=736634635 win=49152 len=0 flags=A
+    [0-100ms] board_frames=1
+       t=1792040216.566308(rel +0.252 ms) seq=1357092502 ack=736634635 win=49152 len=0 flags=A
+    [0-600ms] board_frames=1
+       t=1792040216.566308(rel +0.252 ms) seq=1357092502 ack=736634635 win=49152 len=0 flags=A
+    [pre 0.85s] board_frames=1
+  INJECT T2_recipe2_d2p31_1MiB          t=1792040217.366874 seq=0xABF8270B len=100 ack=0x2BE8270B | 注入帧在 pcap:1 帧 ident=0xA5D1
+    [0-2ms] board_frames=1
+       t=1792040217.366936(rel +0.062 ms) seq=1357092502 ack=736634635 win=49152 len=0 flags=A
+    [0-100ms] board_frames=1
+       t=1792040217.366936(rel +0.062 ms) seq=1357092502 ack=736634635 win=49152 len=0 flags=A
+    [0-600ms] board_frames=1
+       t=1792040217.366936(rel +0.062 ms) seq=1357092502 ack=736634635 win=49152 len=0 flags=A
+    [pre 0.85s] board_frames=1
+  INJECT T3_recipe1_sub0x40000000       t=1792040218.167223 seq=0xEBE8270B len=100 ack=0x2BE8270B | 注入帧在 pcap:1 帧 ident=0xA5D2
+    [0-2ms] board_frames=1
+       t=1792040218.167284(rel +0.061 ms) seq=1357092502 ack=736634635 win=49152 len=0 flags=A
+    [0-100ms] board_frames=1
+       t=1792040218.167284(rel +0.061 ms) seq=1357092502 ack=736634635 win=49152 len=0 flags=A
+    [0-600ms] board_frames=1
+       t=1792040218.167284(rel +0.061 ms) seq=1357092502 ack=736634635 win=49152 len=0 flags=A
+    [pre 0.85s] board_frames=1
+  全窗板侧 len==1 帧: 0
+  全窗 peer->board FIN/RST 帧: 0
+
+=== runs_P26b | main_1.pcap: 109603 帧, 窗[1792040244.633644,1792040248.611112] | 4 条 INJECT ===
+  INJECT dup                            t=1792040246.206265 seq=0x49D272EA len=1 ack=0x49D272EB | 注入帧在 pcap:1 帧 ident=0xA5C1
+    [0-2ms] board_frames=1
+       t=1792040246.206457(rel +0.192 ms) seq=1356342062 ack=1238528747 win=49152 len=0 flags=A
+    [0-100ms] board_frames=1
+       t=1792040246.206457(rel +0.192 ms) seq=1356342062 ack=1238528747 win=49152 len=0 flags=A
+    [0-600ms] board_frames=1
+       t=1792040246.206457(rel +0.192 ms) seq=1356342062 ack=1238528747 win=49152 len=0 flags=A
+    [pre 0.85s] board_frames=0
+  INJECT T1_recipe2_d2p31_boundary      t=1792040247.007800 seq=0xC9D272EB len=100 ack=0x49D272EB | 注入帧在 pcap:1 帧 ident=0xA5D0
+    [0-2ms] board_frames=1
+       t=1792040247.008168(rel +0.368 ms) seq=1356342062 ack=1238528747 win=49152 len=0 flags=A
+    [0-100ms] board_frames=1
+       t=1792040247.008168(rel +0.368 ms) seq=1356342062 ack=1238528747 win=49152 len=0 flags=A
+    [0-600ms] board_frames=1
+       t=1792040247.008168(rel +0.368 ms) seq=1356342062 ack=1238528747 win=49152 len=0 flags=A
+    [pre 0.85s] board_frames=1
+  INJECT T2_recipe2_d2p31_1MiB          t=1792040247.809489 seq=0xC9E272EB len=100 ack=0x49D272EB | 注入帧在 pcap:1 帧 ident=0xA5D1
+    [0-2ms] board_frames=1
+       t=1792040247.809727(rel +0.238 ms) seq=1356342062 ack=1238528747 win=49152 len=0 flags=A
+    [0-100ms] board_frames=1
+       t=1792040247.809727(rel +0.238 ms) seq=1356342062 ack=1238528747 win=49152 len=0 flags=A
+    [0-600ms] board_frames=1
+       t=1792040247.809727(rel +0.238 ms) seq=1356342062 ack=1238528747 win=49152 len=0 flags=A
+    [pre 0.85s] board_frames=1
+  INJECT T3_alt_recipe2_d2p31_2MiB      t=1792040248.610833 seq=0xC9F272EB len=100 ack=0x49D272EB | 注入帧在 pcap:1 帧 ident=0xA5D2
+    [0-2ms] board_frames=1
+       t=1792040248.611086(rel +0.253 ms) seq=1356342062 ack=1238528747 win=49152 len=0 flags=A
+    [0-100ms] board_frames=1
+       t=1792040248.611086(rel +0.253 ms) seq=1356342062 ack=1238528747 win=49152 len=0 flags=A
+    [0-600ms] board_frames=1
+       t=1792040248.611086(rel +0.253 ms) seq=1356342062 ack=1238528747 win=49152 len=0 flags=A
+    [pre 0.85s] board_frames=1
+  全窗板侧 len==1 帧: 1
+     t=1792040245.102263 seq=1356340602 ack=1238528747 win=49152 flags=AP
+  全窗 peer->board FIN/RST 帧: 0
+
+=== runs_P27 | main_1.pcap: 134884 帧, 窗[1792039640.874515,1792039644.066225] | 4 条 INJECT ===
+  INJECT dup                            t=1792039642.463632 seq=0x33ABF453 len=1 ack=0x33ABF454 | 注入帧在 pcap:1 帧 ident=0xA5C1
+    [0-2ms] board_frames=1
+       t=1792039642.463959(rel +0.327 ms) seq=1509383497 ack=866907220 win=49152 len=0 flags=A
+    [0-100ms] board_frames=1
+       t=1792039642.463959(rel +0.327 ms) seq=1509383497 ack=866907220 win=49152 len=0 flags=A
+    [0-600ms] board_frames=1
+       t=1792039642.463959(rel +0.327 ms) seq=1509383497 ack=866907220 win=49152 len=0 flags=A
+    [pre 0.85s] board_frames=0
+  INJECT T1_recipe2_d2p31_boundary      t=1792039643.264947 seq=0xB3ABF454 len=100 ack=0x33ABF454 | 注入帧在 pcap:1 帧 ident=0xA5D0
+    [0-2ms] board_frames=1
+       t=1792039643.265189(rel +0.242 ms) seq=1509383497 ack=866907220 win=49152 len=0 flags=A
+    [0-100ms] board_frames=1
+       t=1792039643.265189(rel +0.242 ms) seq=1509383497 ack=866907220 win=49152 len=0 flags=A
+    [0-600ms] board_frames=1
+       t=1792039643.265189(rel +0.242 ms) seq=1509383497 ack=866907220 win=49152 len=0 flags=A
+    [pre 0.85s] board_frames=1
+  INJECT T2_recipe2_d2p31_1MiB          t=1792039644.065938 seq=0xB3BBF454 len=100 ack=0x33ABF454 | 注入帧在 pcap:1 帧 ident=0xA5D1
+    [0-2ms] board_frames=1
+       t=1792039644.066193(rel +0.255 ms) seq=1509383497 ack=866907220 win=49152 len=0 flags=A
+    [0-100ms] board_frames=1
+       t=1792039644.066193(rel +0.255 ms) seq=1509383497 ack=866907220 win=49152 len=0 flags=A
+    [0-600ms] board_frames=1
+       t=1792039644.066193(rel +0.255 ms) seq=1509383497 ack=866907220 win=49152 len=0 flags=A
+    [pre 0.85s] board_frames=1
+  INJECT T3_recipe1_sub0x40000000       t=1792039644.867685 seq=0xF3ABF454 len=100 ack=0x33ABF454 | 注入帧在 pcap:0 帧 ident=
+    [0-2ms] board_frames=0
+    [0-100ms] board_frames=0
+    [0-600ms] board_frames=0
+    [pre 0.85s] board_frames=1
+  全窗板侧 len==1 帧: 1
+     t=1792039641.419095 seq=1509382037 ack=866907220 win=49152 flags=AP
+  全窗 peer->board FIN/RST 帧: 0
+
+=== runs_P27R | main_1.pcap: 114642 帧, 窗[1792039790.604667,1792039791.076891] | 0 条 INJECT ===
+  全窗板侧 len==1 帧: 0
+  全窗 peer->board FIN/RST 帧: 0
+
+=== runs_P27R | main_2.pcap: 131766 帧, 窗[1792039795.816894,1792039796.350528] | 0 条 INJECT ===
+  全窗板侧 len==1 帧: 1
+     t=1792039796.350519 seq=1462462017 ack=3351122057 win=49152 flags=AP
+  全窗 peer->board FIN/RST 帧: 0
+
+=== runs_P27R | main_3.pcap: 123272 帧, 窗[1792039801.039687,1792039801.515093] | 0 条 INJECT ===
+  全窗板侧 len==1 帧: 0
+  全窗 peer->board FIN/RST 帧: 0
+
+=== runs_P27R | main_4.pcap: 128975 帧, 窗[1792039806.237616,1792039810.221086] | 4 条 INJECT ===
+  INJECT dup                            t=1792039807.815782 seq=0x09F73BB7 len=1 ack=0x09F73BB8 | 注入帧在 pcap:1 帧 ident=0xA5C1
+    [0-2ms] board_frames=1
+       t=1792039807.815997(rel +0.215 ms) seq=1514271577 ack=167197624 win=49152 len=0 flags=A
+    [0-100ms] board_frames=1
+       t=1792039807.815997(rel +0.215 ms) seq=1514271577 ack=167197624 win=49152 len=0 flags=A
+    [0-600ms] board_frames=1
+       t=1792039807.815997(rel +0.215 ms) seq=1514271577 ack=167197624 win=49152 len=0 flags=A
+    [pre 0.85s] board_frames=0
+  INJECT T1_recipe2_d2p31_boundary      t=1792039808.617972 seq=0x89F73BB8 len=100 ack=0x09F73BB8 | 注入帧在 pcap:1 帧 ident=0xA5D0
+    [0-2ms] board_frames=1
+       t=1792039808.618338(rel +0.366 ms) seq=1514271577 ack=167197624 win=49152 len=0 flags=A
+    [0-100ms] board_frames=1
+       t=1792039808.618338(rel +0.366 ms) seq=1514271577 ack=167197624 win=49152 len=0 flags=A
+    [0-600ms] board_frames=1
+       t=1792039808.618338(rel +0.366 ms) seq=1514271577 ack=167197624 win=49152 len=0 flags=A
+    [pre 0.85s] board_frames=1
+  INJECT T2_recipe2_d2p31_1MiB          t=1792039809.418923 seq=0x8A073BB8 len=100 ack=0x09F73BB8 | 注入帧在 pcap:1 帧 ident=0xA5D1
+    [0-2ms] board_frames=1
+       t=1792039809.419263(rel +0.340 ms) seq=1514271577 ack=167197624 win=49152 len=0 flags=A
+    [0-100ms] board_frames=1
+       t=1792039809.419263(rel +0.340 ms) seq=1514271577 ack=167197624 win=49152 len=0 flags=A
+    [0-600ms] board_frames=1
+       t=1792039809.419263(rel +0.340 ms) seq=1514271577 ack=167197624 win=49152 len=0 flags=A
+    [pre 0.85s] board_frames=1
+  INJECT T3_recipe1_sub0x40000000       t=1792039810.220735 seq=0xC9F73BB8 len=100 ack=0x09F73BB8 | 注入帧在 pcap:1 帧 ident=0xA5D2
+    [0-2ms] board_frames=1
+       t=1792039810.221059(rel +0.324 ms) seq=1514271577 ack=167197624 win=49152 len=0 flags=A
+    [0-100ms] board_frames=1
+       t=1792039810.221059(rel +0.324 ms) seq=1514271577 ack=167197624 win=49152 len=0 flags=A
+    [0-600ms] board_frames=1
+       t=1792039810.221059(rel +0.324 ms) seq=1514271577 ack=167197624 win=49152 len=0 flags=A
+    [pre 0.85s] board_frames=1
+  全窗板侧 len==1 帧: 1
+     t=1792039806.750942 seq=1514270117 ack=167197624 win=49152 flags=AP
+  全窗 peer->board FIN/RST 帧: 0
+
+=== runs_P27F | main_1.pcap: 133730 帧, 窗[1792040573.451804,1792040573.982813] | 0 条 INJECT ===
+  全窗板侧 len==1 帧: 1
+     t=1792040573.982804 seq=1459698237 ack=3272995336 win=49152 flags=AP
+  全窗 peer->board FIN/RST 帧: 0
+
+=== runs_P27F | main_2.pcap: 134728 帧, 窗[1792040578.664792,1792040581.862160] | 4 条 INJECT ===
+  INJECT dup                            t=1792040580.258350 seq=0x51DB7CFE len=1 ack=0x51DB7CFF | 注入帧在 pcap:1 帧 ident=0xA5C1
+    [0-2ms] board_frames=1
+       t=1792040580.258613(rel +0.263 ms) seq=1507708877 ack=1373338879 win=49152 len=0 flags=A
+    [0-100ms] board_frames=1
+       t=1792040580.258613(rel +0.263 ms) seq=1507708877 ack=1373338879 win=49152 len=0 flags=A
+    [0-600ms] board_frames=1
+       t=1792040580.258613(rel +0.263 ms) seq=1507708877 ack=1373338879 win=49152 len=0 flags=A
+    [pre 0.85s] board_frames=0
+  INJECT T1_recipe2_d2p31_boundary      t=1792040581.060237 seq=0xD1DB7CFF len=100 ack=0x51DB7CFF | 注入帧在 pcap:1 帧 ident=0xA5D0
+    [0-2ms] board_frames=1
+       t=1792040581.060463(rel +0.226 ms) seq=1507708877 ack=1373338879 win=49152 len=0 flags=A
+    [0-100ms] board_frames=1
+       t=1792040581.060463(rel +0.226 ms) seq=1507708877 ack=1373338879 win=49152 len=0 flags=A
+    [0-600ms] board_frames=1
+       t=1792040581.060463(rel +0.226 ms) seq=1507708877 ack=1373338879 win=49152 len=0 flags=A
+    [pre 0.85s] board_frames=1
+  INJECT T2_recipe2_d2p31_1MiB          t=1792040581.861863 seq=0xD1EB7CFF len=100 ack=0x51DB7CFF | 注入帧在 pcap:1 帧 ident=0xA5D1
+    [0-2ms] board_frames=1
+       t=1792040581.862129(rel +0.266 ms) seq=1507708877 ack=1373338879 win=49152 len=0 flags=A
+    [0-100ms] board_frames=1
+       t=1792040581.862129(rel +0.266 ms) seq=1507708877 ack=1373338879 win=49152 len=0 flags=A
+    [0-600ms] board_frames=1
+       t=1792040581.862129(rel +0.266 ms) seq=1507708877 ack=1373338879 win=49152 len=0 flags=A
+    [pre 0.85s] board_frames=1
+  INJECT T3_alt_recipe2_d2p31_2MiB      t=1792040582.663411 seq=0xD1FB7CFF len=100 ack=0x51DB7CFF | 注入帧在 pcap:0 帧 ident=
+    [0-2ms] board_frames=0
+    [0-100ms] board_frames=0
+    [0-600ms] board_frames=0
+    [pre 0.85s] board_frames=1
+  全窗板侧 len==1 帧: 1
+     t=1792040579.189294 seq=1507707417 ack=1373338879 win=49152 flags=AP
+  全窗 peer->board FIN/RST 帧: 0
+
