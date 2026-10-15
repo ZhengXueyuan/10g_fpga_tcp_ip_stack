@@ -1,0 +1,10 @@
+# arm=B4P_S2 files=5 total_pkts=821943 conns=6 (2.3s)
+# lane starts done L=262144 chunk=763 (0.9s)
+# pattern generated (3.4s) total=200015872
+# generator self-check vs sequential first 1MiB: OK; Nmax=200002480
+== CONN dport=55086 segs=136989 base=305419897 n=200002480 holes=0 dup_bytes=1460 dup_conflict=0 seg_mismatches=0 buf_first_mismatch=-1 first_mism=(pos,got,want)=None first_conflict_pos=None VERDICT=K0=0&breaks=0&prefix=n flags={18: 1, 24: 136989}
+== CONN dport=55088 segs=136989 base=305419897 n=200002480 holes=0 dup_bytes=1460 dup_conflict=0 seg_mismatches=0 buf_first_mismatch=-1 first_mism=(pos,got,want)=None first_conflict_pos=None VERDICT=K0=0&breaks=0&prefix=n flags={18: 1, 24: 136989}
+== CONN dport=55098 segs=136989 base=305419897 n=200002480 holes=0 dup_bytes=1460 dup_conflict=0 seg_mismatches=0 buf_first_mismatch=-1 first_mism=(pos,got,want)=None first_conflict_pos=None VERDICT=K0=0&breaks=0&prefix=n flags={24: 136990, 18: 1}
+== CONN dport=56334 segs=136989 base=305419897 n=200002480 holes=0 dup_bytes=1460 dup_conflict=0 seg_mismatches=0 buf_first_mismatch=-1 first_mism=(pos,got,want)=None first_conflict_pos=None VERDICT=K0=0&breaks=0&prefix=n flags={18: 1, 24: 136989}
+== CONN dport=56350 segs=136989 base=305419897 n=200002480 holes=0 dup_bytes=1460 dup_conflict=0 seg_mismatches=0 buf_first_mismatch=-1 first_mism=(pos,got,want)=None first_conflict_pos=None VERDICT=K0=0&breaks=0&prefix=n flags={24: 136990, 18: 1}
+== CONN dport=56364 segs=136989 base=305419897 n=200002480 holes=0 dup_bytes=1460 dup_conflict=0 seg_mismatches=0 buf_first_mismatch=-1 first_mism=(pos,got,want)=None first_conflict_pos=None VERDICT=K0=0&breaks=0&prefix=n flags={24: 136990, 18: 1}

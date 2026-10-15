@@ -1,0 +1,57 @@
+===== B4H2 : 1619 samples, 1 aborts, 1 GEN_FAIL =====
+  first sample t=0 gen=62 W71..74=[8, 0, 8, 0]
+  last  sample dt=353.9s gen=1680 W71..74=[19, 10, 18, 1]
+  in-ring gen gaps: none
+  chg t=    0.46s dEv=+1 dReq=+0 dApply=+0 dPend=+1 cum=(9,0,8,1) W51=0x6172892f W20=0x111838
+  chg t=   15.37s dEv=+1 dReq=+1 dApply=+1 dPend=+0 cum=(10,1,9,1) W51=0x6187634f W20=0x112084
+  chg t=   30.51s dEv=+1 dReq=+1 dApply=+1 dPend=+0 cum=(11,2,10,1) W51=0x619ad06f W20=0x11286d
+  chg t=   45.44s dEv=+1 dReq=+1 dApply=+1 dPend=+0 cum=(12,3,11,1) W51=0x61b66a9b W20=0x11302b
+  chg t=   60.36s dEv=+1 dReq=+1 dApply=+1 dPend=+0 cum=(13,4,12,1) W51=0x61d204c7 W20=0x1137e8
+  chg t=   75.50s dEv=+1 dReq=+1 dApply=+1 dPend=+0 cum=(14,5,13,1) W51=0x61ee0b4f W20=0x113fc7
+  chg t=   90.43s dEv=+1 dReq=+1 dApply=+1 dPend=+0 cum=(15,6,14,1) W51=0x620988f7 W20=0x11477d
+  chg t=  105.36s dEv=+1 dReq=+1 dApply=+1 dPend=+0 cum=(16,7,15,1) W51=0x622550c3 W20=0x114f43
+  chg t=  120.50s dEv=+1 dReq=+1 dApply=+1 dPend=+0 cum=(17,8,16,1) W51=0x624162b3 W20=0x11571f
+  chg t=  135.43s dEv=+1 dReq=+1 dApply=+1 dPend=+0 cum=(18,9,17,1) W51=0x625d96db W20=0x115efd
+  chg t=  150.35s dEv=+1 dReq=+1 dApply=+1 dPend=+0 cum=(19,10,18,1) W51=0x6279645b W20=0x1166c3
+  ring counter-change events: 11
+  ring total: dEv=11 dReq=10 dApply=10 dPend=1 | dEv-(dReq+dPend)=0 | dApply-(dReq+(0))=0
+===== B4H3 : 1990 samples, 2 aborts, 2 GEN_FAIL =====
+  first sample t=0 gen=1684 W71..74=[20, 10, 19, 1]
+  last  sample dt=432.2s gen=3673 W71..74=[31, 20, 29, 2]
+  in-ring gen gaps: none
+  chg t=    0.43s dEv=+1 dReq=+0 dApply=+0 dPend=+1 cum=(21,10,19,2) W51=0x63f7419f W20=0x11d17f
+  chg t=    3.45s dEv=+1 dReq=+1 dApply=+1 dPend=+0 cum=(22,11,20,2) W51=0x63fcd91b W20=0x11d310
+  chg t=    6.47s dEv=+1 dReq=+1 dApply=+1 dPend=+0 cum=(23,12,21,2) W51=0x64029883 W20=0x11d4a8
+  chg t=    9.35s dEv=+1 dReq=+1 dApply=+1 dPend=+0 cum=(24,13,22,2) W51=0x6407fcab W20=0x11d629
+  chg t=   12.43s dEv=+1 dReq=+1 dApply=+1 dPend=+0 cum=(25,14,23,2) W51=0x640d6c3b W20=0x11d7ae
+  chg t=   15.28s dEv=+1 dReq=+1 dApply=+1 dPend=+0 cum=(26,15,24,2) W51=0x6412d063 W20=0x11d92e
+  chg t=   18.35s dEv=+1 dReq=+1 dApply=+1 dPend=+0 cum=(27,16,25,2) W51=0x6418a69b W20=0x11dacd
+  chg t=   21.41s dEv=+1 dReq=+1 dApply=+1 dPend=+0 cum=(28,17,26,2) W51=0x641e8287 W20=0x11dc6e
+  chg t=   24.26s dEv=+1 dReq=+1 dApply=+1 dPend=+0 cum=(29,18,27,2) W51=0x6423cfdf W20=0x11ddea
+  chg t=   27.32s dEv=+1 dReq=+1 dApply=+1 dPend=+0 cum=(30,19,28,2) W51=0x64297877 W20=0x11df80
+  chg t=   30.39s dEv=+1 dReq=+1 dApply=+1 dPend=+0 cum=(31,20,29,2) W51=0x642f4347 W20=0x11e11d
+  ring counter-change events: 11
+  ring total: dEv=11 dReq=10 dApply=10 dPend=1 | dEv-(dReq+dPend)=0 | dApply-(dReq+(0))=0
+===== B4P_S2 : 48 samples, 1 aborts, 1 GEN_FAIL =====
+  first sample t=0 gen=4 W71..74=[1, 0, 1, 0]
+  last  sample dt=10.6s gen=51 W71..74=[6, 0, 6, 0]
+  in-ring gen gaps: none
+  chg t=    1.81s dEv=+1 dReq=+0 dApply=+1 dPend=+0 cum=(2,0,2,0) W51=0xcc7cfc0 W20=0x23dc3
+  chg t=    3.39s dEv=+1 dReq=+0 dApply=+1 dPend=+0 cum=(3,0,3,0) W51=0x17d7a87c W20=0x42e50
+  chg t=    5.20s dEv=+1 dReq=+0 dApply=+1 dPend=+0 cum=(4,0,4,0) W51=0x244119cc W20=0x65b77
+  chg t=    7.23s dEv=+1 dReq=+0 dApply=+1 dPend=+0 cum=(5,0,5,0) W51=0x30f84550 W20=0x8963f
+  chg t=    9.03s dEv=+1 dReq=+0 dApply=+1 dPend=+0 cum=(6,0,6,0) W51=0x3c5caf1c W20=0xa95a1
+  ring counter-change events: 5
+  ring total: dEv=5 dReq=0 dApply=5 dPend=0 | dEv-(dReq+dPend)=5 | dApply-(dReq+(5))=0
+===== B4P_S3 : 4 samples, 1 aborts, 1 GEN_FAIL =====
+  first sample t=0 gen=55 W71..74=[7, 0, 7, 0]
+  last  sample dt=0.7s gen=59 W71..74=[7, 0, 7, 0]
+  in-ring gen gaps: [(57, 59)]
+  ring counter-change events: 0
+  ring total: dEv=0 dReq=0 dApply=0 dPend=0 | dEv-(dReq+dPend)=0 | dApply-(dReq+(0))=0
+===== N4H3 : 2283 samples, 1 aborts, 1 GEN_FAIL =====
+  first sample t=0 gen=3 W71..74=[None, None, None, None]
+  last  sample dt=455.8s gen=2285 W71..74=[None, None, None, None]
+  in-ring gen gaps: none
+  ring counter-change events: 0
+  ring total: dEv=0 dReq=0 dApply=0 dPend=0 | dEv-(dReq+dPend)=0 | dApply-(dReq+(0))=0
