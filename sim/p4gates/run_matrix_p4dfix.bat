@@ -222,6 +222,23 @@ REM   Registered the p5_wrapper way (#19): private cwd (P4_WORKDIR) + declared
 REM   manifest sim\p4gates\f3resync_src.f (8 files; each DUT variant appears as
 REM   exactly one literal in the gate .bat).
 call :gate f3_resync  sim\f3_resync\run_tb_f3_resync.bat   f3resync_src.f -                            -
+REM ---- swc (registered 2026-10-15; switch-door R5 gate / ledger #21) --------
+REM   P9 switch-door (TX_SWCLOSE / close-out-then-switch) gate: rtl\app_pattern.v
+REM   (live) vs the frozen pre-edit copy sim\p9_swc_gate\head_app_pattern.v, plus
+REM   three mutant DUTs.  Eight runs, each RC=0 WITH the run-level criterion
+REM   ("measured red set == expected red set") checked INSIDE the TB -- a
+REM   mutant's "must be red" is never decided by a nonzero exit code:
+REM     F/F10 = live RTL + P9_SWC_ARM (P7B_10G on F10) -> all green
+REM     H/H10 = frozen pre-edit RTL  -> EXP_HEAD red set (XFAIL shape)
+REM     OFF   = live RTL + constant-level SWC=0 -> red set same as HEAD
+REM     M6    = mutant v1-equations  -> all arms red
+REM     M6B   = mutant closing-drop  -> arms {3,4} red
+REM     M7    = mutant v2r2-guard    -> arm {10} red (R5: bite migrated)
+REM   Arm identity travels via -d defines (NOT testplusarg -- xsim splits on '=').
+REM   Registered the p5_wrapper way (#19): private cwd (P4_WORKDIR) + declared
+REM   manifest sim\p4gates\swcg_src.f (6 files; each DUT variant appears as
+REM   exactly one literal xvlog row in the gate .bat).
+call :gate swc         sim\p9_swc_gate\run_tb_p9_swc.bat   swcg_src.f  -                            -
 
 call :log "--- revision fingerprint (after) ---"
 "%PY%" "%P4GATE_PY%" fingerprint --root "%REPO_ROOT%" --out "%FP_AFTER%" --label after >>"%MATRIX_LOG%" 2>&1

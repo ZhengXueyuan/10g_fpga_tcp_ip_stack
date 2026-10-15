@@ -1,0 +1,17 @@
+BASE ../../../sim/p4sim/P4_MATRIX_FINGERPRINT_20261015_040121_after.txt: 264 files
+NEW  ../../../sim/p4sim/P4_MATRIX_FINGERPRINT_20261015_083428_after.txt: 272 files
+CONTENT-CHANGED (4):
+  C board/wrapper_p4.v
+  C rtl/app_pattern.v
+  C sim/p4gates/paths.txt
+  C sim/p4gates/run_matrix_p4dfix.bat
+ADDED (8):
+  + sim/p4gates/swcg_src.f
+  + sim/p9_swc_gate/head_app_pattern.v
+  + sim/p9_swc_gate/mk_mut_swc.py
+  + sim/p9_swc_gate/mut/m6_v1_eq.v
+  + sim/p9_swc_gate/mut/m6b_closing_drop.v
+  + sim/p9_swc_gate/mut/m7_guard_swpend.v
+  + sim/p9_swc_gate/run_tb_p9_swc.bat
+  + sim/p9_swc_gate/tb_p9_swc.v
+GONE (0):

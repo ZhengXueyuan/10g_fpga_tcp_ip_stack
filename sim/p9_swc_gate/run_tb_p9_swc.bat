@@ -2,7 +2,7 @@
 setlocal
 REM =====================================================================
 REM run_tb_p9_swc.bat -- P9 switch-door (TX_SWCLOSE / close-out-then-switch) gate
-REM   (self-locating; shape follows sim\p7b_longsend\run_cont_gate.bat)
+REM   (self-locating; shape follows sim\f3_resync\run_tb_f3_resync.bat)
 REM
 REM   8 runs, each in its own work dir (xsim.dir file-lock pitfall):
 REM     F   : live rtl/app_pattern.v + P9_SWC_ARM  + EXP_FIXED  (expect all green)
@@ -20,23 +20,46 @@ REM   red" is checked by the TB itself, never by "nonzero RC == good" (no dumb g
 REM   neither "FAIL printed but exit 0" nor "red is good").
 REM   Witnesses: run<X>\srcpath.log records which RTL source was compiled (anti
 REM   vacuum-gate); the frozen head file has a hard sha256 assertion.
+REM
+REM   ---- matrix registration (2026-10-15, ledger #21) -------------------------
+REM   REPO_ROOT now comes from sim\p4gates\p4env.bat (the single source of truth
+REM   for every matrix gate) + a p4gate.py selfcheck tripwire.  The older bespoke
+REM   root derivation (%~dp0..\..) made p4gate.py manifestcheck read every xvlog
+REM   token as UNRESOLVED ("bat carries 0 files") => the gate could not be
+REM   registered with a non-empty compile manifest (same defect the p5_wrapper /
+REM   f3_resync registrations hit).
+REM   The compile step is split so each of the five mutually-exclusive DUT
+REM   variants appears exactly ONCE as a literal xvlog row (declared list =
+REM   sim\p4gates\swcg_src.f, 6 files).
+REM   P4_WORKDIR (exported by the matrix runner) is honoured for the per-run
+REM   work dirs, so the gate's xsim.dir locks never cross-contaminate between
+REM   gates; standalone runs keep the historical behaviour (dirs under the gate
+REM   directory itself).
+REM   NOTE FOR EDITORS: keep %-tilde patterns out of comments (cmd expands
+REM   percent-substitutions in REM lines too; an invalid one is FATAL).
 REM =====================================================================
+call "%~dp0..\p4gates\p4env.bat" || exit /b 1
+
 set "HERE=%~dp0"
 if "%HERE:~-1%"=="\" set "HERE=%HERE:~0,-1%"
-set "ROOT=%HERE%\..\.."
-for %%I in ("%ROOT%") do set "ROOT=%%~fI"
-if not exist "%ROOT%\CLAUDE.md" (
-  echo [PATHGUARD FAIL] cannot locate repo root from %~f0
-  echo   derived ROOT = %ROOT%
-  exit /b 1
-)
+set "ROOT=%REPO_ROOT%"
+"%PY%" "%P4GATE_PY%" selfcheck --root "%REPO_ROOT%" --bat "%~f0" --quiet || exit /b 1
+
+REM ---- matrix hook (2026-10-15 #21): private cwd + declared manifest --------
+set "ARMBASE=%HERE%"
+if not "%P4_WORKDIR%"=="" set "ARMBASE=%P4_WORKDIR%"
+cd /d "%HERE%"
+"%PY%" "%P4GATE_PY%" checkpaths --root "%REPO_ROOT%" --manifest "%GATES%\swcg_src.f" --path "%CD%" --path "%ARMBASE%" --quiet || exit /b 1
+
 set "XV=C:\AMDDesignTools\2025.2\Vivado\bin"
 set "PY=C:\Users\zhxue\anaconda3\python.exe"
-set "RTL=%ROOT%\rtl\app_pattern.v"
-set "HEADF=%HERE%\head_app_pattern.v"
-set "TB=%HERE%\tb_p9_swc.v"
+set "GATEDIR=%REPO_ROOT%\sim\p9_swc_gate"
+set "RTL=%REPO_ROOT%\rtl\app_pattern.v"
+set "HEADF=%GATEDIR%\head_app_pattern.v"
+set "TB=%GATEDIR%\tb_p9_swc.v"
+set "MUTDIR=%GATEDIR%\mut"
+set "MUTGEN=%GATEDIR%\mk_mut_swc.py"
 set "HEAD_SHA=811a84e4bd0e8b20ba8ac007cbb16a8f310091b141f7a6d59964dd8288f317bc"
-cd /d "%HERE%"
 
 if not exist "%PY%" (echo [FAIL] python not found: %PY% & exit /b 1)
 if not exist "%RTL%" (echo [FAIL] live RTL missing & exit /b 1)
@@ -48,25 +71,25 @@ REM ---- frozen head sha256 hard assertion ----
 if errorlevel 1 (echo [FAIL] head_app_pattern.v sha256 mismatch & exit /b 1)
 
 REM ---- mutant generation (all-or-nothing; anchor hit count mismatch = hard fail) ----
-"%PY%" "%HERE%\mk_mut_swc.py" > mutgen.log 2>&1 || (type mutgen.log & echo MUTGEN-FAIL & exit /b 1)
+"%PY%" "%MUTGEN%" > mutgen.log 2>&1 || (type mutgen.log & echo MUTGEN-FAIL & exit /b 1)
 findstr /C:"MUTGEN OK" mutgen.log > NUL || (type mutgen.log & echo MUTGEN-NOTOK & exit /b 1)
 type mutgen.log
 
-call :run F   "%RTL%"   "-d P9_SWC_ARM -d P9_EXP_FIXED"
+call :run F   "-d P9_SWC_ARM -d P9_EXP_FIXED"
 set "RCF=%errorlevel%"
-call :run F10 "%RTL%"   "-d P9_SWC_ARM -d P9_EXP_FIXED -d P7B_10G"
+call :run F10 "-d P9_SWC_ARM -d P9_EXP_FIXED -d P7B_10G"
 set "RCF10=%errorlevel%"
-call :run H   "%HEADF%" "-d P9_HEAD_RTL -d P9_EXP_HEAD"
+call :run H   "-d P9_HEAD_RTL -d P9_EXP_HEAD"
 set "RCH=%errorlevel%"
-call :run H10 "%HEADF%" "-d P9_HEAD_RTL -d P9_EXP_HEAD -d P7B_10G"
+call :run H10 "-d P9_HEAD_RTL -d P9_EXP_HEAD -d P7B_10G"
 set "RCH10=%errorlevel%"
-call :run OFF "%RTL%"   "-d P9_SWC_OFF -d P9_EXP_HEAD"
+call :run OFF "-d P9_SWC_OFF -d P9_EXP_HEAD"
 set "RCOFF=%errorlevel%"
-call :run M6  "%HERE%\mut\m6_v1_eq.v"         "-d P9_SWC_ARM -d P9_EXP_M6"
+call :run M6  "-d P9_SWC_ARM -d P9_EXP_M6"
 set "RCM6=%errorlevel%"
-call :run M6B "%HERE%\mut\m6b_closing_drop.v" "-d P9_SWC_ARM -d P9_EXP_M6B"
+call :run M6B "-d P9_SWC_ARM -d P9_EXP_M6B"
 set "RCM6B=%errorlevel%"
-call :run M7  "%HERE%\mut\m7_guard_swpend.v"  "-d P9_SWC_ARM -d P9_EXP_M7"
+call :run M7  "-d P9_SWC_ARM -d P9_EXP_M7"
 set "RCM7=%errorlevel%"
 
 echo ==================== SUMMARY ====================
@@ -90,18 +113,18 @@ if not "%RCM6B%"=="0"  set /a FAILS+=1
 if not "%RCM7%"=="0"   set /a FAILS+=1
 
 echo   ---- criteria table (F run) ----
-findstr /C:"CFG=" /C:"C0 " /C:"C1 " /C:"C2 " /C:"C3 " /C:"C4 " /C:"C5 " /C:"C6 " /C:"C7 " /C:"C8 " /C:"C9 " /C:"C10 " "runF\xs.log"
+findstr /C:"CFG=" /C:"C0 " /C:"C1 " /C:"C2 " /C:"C3 " /C:"C4 " /C:"C5 " /C:"C6 " /C:"C7 " /C:"C8 " /C:"C9 " /C:"C10 " "%ARMBASE%\runF\xs.log"
 echo   ---- OFF run arm reds (expect ARM0/1/2/9/10 red) ----
-findstr /C:"ARM" "runOFF\xs.log"
+findstr /C:"ARM" "%ARMBASE%\runOFF\xs.log"
 echo   ---- mutant red sets ----
-echo   [M6 reds]  (expect all 10 arms red)
-findstr /C:"ARM" "runM6\xs.log"
+echo   [M6 reds]  (expect all arms red)
+findstr /C:"ARM" "%ARMBASE%\runM6\xs.log"
 echo   [M6B reds] (expect ARM3/ARM4 red)
-findstr /C:"ARM" "runM6B\xs.log"
+findstr /C:"ARM" "%ARMBASE%\runM6B\xs.log"
 echo   [M7 reds]  (expect ARM10 red; R5: bite migrated to the idle-wing arm)
-findstr /C:"ARM" "runM7\xs.log"
+findstr /C:"ARM" "%ARMBASE%\runM7\xs.log"
 echo   ---- compile-source witness ----
-for %%A in (F F10 H H10 OFF M6 M6B M7) do findstr /C:"RSRC=" "run%%A\srcpath.log"
+for %%A in (F F10 H H10 OFF M6 M6B M7) do findstr /C:"RSRC=" "%ARMBASE%\run%%A\srcpath.log"
 
 if "%FAILS%"=="0" (echo P9-SWC-GATE: PASS & exit /b 0)
 echo P9-SWC-GATE: FAIL count=%FAILS%
@@ -109,14 +132,42 @@ exit /b 1
 
 REM =====================================================================
 :run
+REM %1=armname %2=defs
 set "NAME=%~1"
-set "RSRC=%~2"
-set "DEFS=%~3"
-if not exist "run%NAME%" mkdir "run%NAME%"
-pushd "run%NAME%"
+set "DEFS=%~2"
+set "WD=run%NAME%"
+REM compiled source (per arm): five mutually-exclusive DUT variants, 1:1 with
+REM the five literal xvlog rows below (declared in sim\p4gates\swcg_src.f).
+set "SRC=%RTL%"
+if /i "%NAME%"=="H"   set "SRC=%HEADF%"
+if /i "%NAME%"=="H10" set "SRC=%HEADF%"
+if /i "%NAME%"=="M6"  set "SRC=%MUTDIR%\m6_v1_eq.v"
+if /i "%NAME%"=="M6B" set "SRC=%MUTDIR%\m6b_closing_drop.v"
+if /i "%NAME%"=="M7"  set "SRC=%MUTDIR%\m7_guard_swpend.v"
+set "USERLIVE=1"
+if /i "%NAME%"=="H"   set "USERLIVE="
+if /i "%NAME%"=="H10" set "USERLIVE="
+if /i "%NAME%"=="M6"  set "USERLIVE="
+if /i "%NAME%"=="M6B" set "USERLIVE="
+if /i "%NAME%"=="M7"  set "USERLIVE="
+set "USEHEAD="
+if /i "%NAME%"=="H"   set "USEHEAD=1"
+if /i "%NAME%"=="H10" set "USEHEAD=1"
+if not exist "%ARMBASE%\%WD%" mkdir "%ARMBASE%\%WD%"
+pushd "%ARMBASE%\%WD%"
 if exist xsim.dir rmdir /s /q xsim.dir
-echo RSRC=%RSRC% DEFS=%DEFS% > srcpath.log
-call "%XV%\xvlog.bat" -work xil_defaultlib %DEFS% "%RSRC%" "..\tb_p9_swc.v" > xv_out.log 2>&1 || (type xv_out.log & popd & exit /b 1)
+echo RSRC=%SRC% DEFS=%DEFS% > srcpath.log
+"%PY%" -c "import hashlib,sys;p=sys.argv[1];print('SRC-SHA256', p, hashlib.sha256(open(p,'rb').read()).hexdigest()[:16])" "%SRC%" >> srcpath.log 2>&1
+REM ---- compile: exactly one literal DUT row executes per arm (F/F10/OFF share
+REM      the live RTL row, H/H10 share the frozen-head row); TB once ----
+if defined USERLIVE call "%XV%\xvlog.bat" -work xil_defaultlib %DEFS% "%RTL%" > xv_out.log 2>&1
+if defined USEHEAD  call "%XV%\xvlog.bat" -work xil_defaultlib %DEFS% "%HEADF%" >> xv_out.log 2>&1
+if /i "%NAME%"=="M6"  call "%XV%\xvlog.bat" -work xil_defaultlib %DEFS% "%MUTDIR%\m6_v1_eq.v" >> xv_out.log 2>&1
+if /i "%NAME%"=="M6B" call "%XV%\xvlog.bat" -work xil_defaultlib %DEFS% "%MUTDIR%\m6b_closing_drop.v" >> xv_out.log 2>&1
+if /i "%NAME%"=="M7"  call "%XV%\xvlog.bat" -work xil_defaultlib %DEFS% "%MUTDIR%\m7_guard_swpend.v" >> xv_out.log 2>&1
+if errorlevel 1 (type xv_out.log & popd & exit /b 1)
+call "%XV%\xvlog.bat" -work xil_defaultlib %DEFS% "%TB%" >> xv_out.log 2>&1
+if errorlevel 1 (type xv_out.log & popd & exit /b 1)
 findstr /I /C:"Synth 8-11241" /C:"undeclared symbol" /C:"VRFC 10-3091] actual bit length 1 differs from formal bit length" /C:"VRFC 10-2989" /C:"implicitly declared" xv_out.log > NUL
 if not errorlevel 1 (echo IMPLICIT-WIRE [%NAME%]: & findstr /I /C:"Synth 8-11241" /C:"undeclared symbol" /C:"VRFC 10-3091] actual bit length 1 differs from formal bit length" /C:"VRFC 10-2989" /C:"implicitly declared" xv_out.log & popd & exit /b 1)
 findstr /I /C:"ERROR" xv_out.log > NUL

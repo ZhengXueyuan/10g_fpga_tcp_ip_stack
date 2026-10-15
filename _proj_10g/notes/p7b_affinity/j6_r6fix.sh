@@ -73,12 +73,13 @@ cd /tmp/p7b_biz || exit 9
 #      是 "要求 NW=63 + EXPECT_BID=0x0000000A" (与实际默认 0x11 自相矛盾 —— 一句话两处过时)。
 #      现在: 档表是唯一来源, 失败提示与档位元数据都由它派生。
 NW=${NW:-71}
-EXPECT_BID=${EXPECT_BID:-0x00000026}   # 2026-10-15 RFC seq 修复 (71 字; 原 0x00000025 = F-3 修复 / 0x24 = P9 URAM 板内缓冲 / 0x23 = P9 D4 clr 口径修正)
+EXPECT_BID=${EXPECT_BID:-0x00000027}   # 2026-10-15 换流门 R5 (71 字; 原 0x00000026 = RFC seq 修复 / 0x25 = F-3 修复 / 0x24 = P9 URAM 板内缓冲)
 export NW EXPECT_BID        # ⚠️ 必须 export: 取数器 p7b_snap.sh 读的是**它自己的环境**
 # 十六进制**大小写归一** (只用于比较, 打印仍用原样; 判据语义零改动 —— 先例 = 下面 geom_gate 块)
 norm(){ printf "%s" "$1" | tr "A-F" "a-f"; }
 # 档表格式: "NW|BID|WEXTRA|说明"  (WEXTRA 空 = t0/t1 字表退回 5 53 54)
 GEOM_TIERS=(
+  "71|0x00000027|61 62|换流门 R5 (2026-10-15) 71 字 / BID 0x27 (换流门 R5 修复: `rtl/app_pattern.v` 裁决 A = `:1012` E13 守卫改形 `!(SWC_OK && (closing || !active))` + 裁决 B = `:516` `close_send` 追加 `!(SWC_OK && frm_wait)`; 几何/未实现地址 0x14C 不变)"
   "71|0x00000026|61 62|RFC seq 修复 (2026-10-15) 71 字 / BID 0x26 (RFC seq 修复: `rtl/tcp_rx.v` 的 `seq_lt = seq_diff[31]` 真差口径 (RFC 793 SEQ_LT); 几何/未实现地址 0x14C 不变)"
   "71|0x00000025|61 62|F-3 修复 (2026-10-15) 71 字 / BID 0x25 (F-3: `rtl/vlan_strip.v` RESYNC_EN 重同步门 + `board/wrapper_p4.v` `VLAN_STRIP_RESYNC` 双域开/单域关; 几何/未实现地址 0x14C 不变)"
   "71|0x00000024|61 62|P9 URAM 板内缓冲 (2026-10-13) 71 字 / BID 0x24 (URAM288 4096x64 = 32 KB 板内缓冲 `u_mir_buf` + F2/F3 修正; 几何/未实现地址 0x14C 不变)"

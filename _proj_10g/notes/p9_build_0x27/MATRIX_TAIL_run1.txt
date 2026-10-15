@@ -1,0 +1,30 @@
+[P4GUARD OK] checkpaths: 8 paths inside d:\repo\xcku5pmini\udp_hls_10g
+[P4GUARD OK] manifestcheck run_tb_p9_swc.bat: 6 files == manifest D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\swcg_src.f
+[P4GUARD OK] scanlog: 1 files, 11 path tokens, 0 outside the repo
+EXIT=0
+--- last 6 lines of _gate_console.log
+| RSRC=D:\repo\XCKU5PMini\udp_hls_10g\sim\p9_swc_gate\head_app_pattern.v DEFS=-d P9_HEAD_RTL -d P9_EXP_HEAD -d P7B_10G 
+| RSRC=D:\repo\XCKU5PMini\udp_hls_10g\rtl\app_pattern.v DEFS=-d P9_SWC_OFF -d P9_EXP_HEAD 
+| RSRC=D:\repo\XCKU5PMini\udp_hls_10g\sim\p9_swc_gate\mut\m6_v1_eq.v DEFS=-d P9_SWC_ARM -d P9_EXP_M6 
+| RSRC=D:\repo\XCKU5PMini\udp_hls_10g\sim\p9_swc_gate\mut\m6b_closing_drop.v DEFS=-d P9_SWC_ARM -d P9_EXP_M6B 
+| RSRC=D:\repo\XCKU5PMini\udp_hls_10g\sim\p9_swc_gate\mut\m7_guard_swpend.v DEFS=-d P9_SWC_ARM -d P9_EXP_M7 
+| P9-SWC-GATE: PASS 
+---
+--- revision fingerprint (after) ---
+[P4GATE] fingerprint written: D:\repo\XCKU5PMini\udp_hls_10g\sim\p4sim\P4_MATRIX_FINGERPRINT_20261015_083428_after.txt
+DIGEST_COMPILE = e5376d3e3ace8acd87517b968ad07ef6f4572aa27940f4213be822fb597226bb
+FILES_COMPILE  = 221
+DIGEST_ALL     = 3240a9639f32276046d39ecd6e6cf077871e563c66d6c7e6c67769178cb634fd
+FILES_ALL      = 272
+GIT_HEAD       = dd9c9f0
+--- freeze check ---
+BEFORE  DIGEST_COMPILE=e5376d3e3ace8acd87517b968ad07ef6f4572aa27940f4213be822fb597226bb  FILES=221  DIGEST_ALL=3240a9639f32276046d39ecd6e6cf077871e563c66d6c7e6c67769178cb634fd  HEAD=dd9c9f0
+AFTER   DIGEST_COMPILE=e5376d3e3ace8acd87517b968ad07ef6f4572aa27940f4213be822fb597226bb  FILES=221  DIGEST_ALL=3240a9639f32276046d39ecd6e6cf077871e563c66d6c7e6c67769178cb634fd  HEAD=dd9c9f0
+VERDICT: FROZEN -- all 272 hashed files byte-identical across the run; this log is bound to revision DIGEST_ALL(content)=a3a24f9970f4a515624ae936dd53d3f1738a4f84863aac85c9e48df891848654
+NOTE: the stored DIGEST_ALL in these files was produced by the pre-content-v1 scheme (it included size/mtime): before=3240a9639f32276046d39ecd6e6cf077871e563c66d6c7e6c67769178cb634fd after=3240a9639f32276046d39ecd6e6cf077871e563c66d6c7e6c67769178cb634fd
+NOTE: the verdict is content identity only -- file mtimes are recorded as metadata but are not part of it.
+--- summary ---
+gate filter : (none -- all 19)
+gates run   : 19 / 19
+gates failed: 0
+MATRIX DONE 2026/10/15 ÷‹Àƒ  9:00:56.79

@@ -1,0 +1,31 @@
+== x26 (前代) DP top-10 (sp | ep) ==
+DP #1 slack=0.019 lvl=19 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]_replica/C ep=u_app/pw_data_reg[41]/D
+DP #2 slack=0.022 lvl=19 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]_replica/C ep=u_app/stg_reg[45]/D
+DP #3 slack=0.023 lvl=19 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]_replica/C ep=u_app/stg_reg[51]/D
+DP #4 slack=0.023 lvl=17 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]_replica/C ep=u_tcb/snd_wnd_r_reg[1][3]/CE
+DP #5 slack=0.023 lvl=17 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]_replica/C ep=u_tcb/snd_wnd_r_reg[1][6]/CE
+DP #6 slack=0.024 lvl=16 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]_replica/C ep=u_tcb/snd_nxt_r_reg[13][6]/CE
+DP #7 slack=0.024 lvl=17 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]_replica/C ep=u_tcb/rcv_wnd_r_reg[4][12]/CE
+DP #8 slack=0.024 lvl=17 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]_replica/C ep=u_tcb/rcv_wnd_r_reg[4][15]/CE
+DP #9 slack=0.024 lvl=17 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]_replica/C ep=u_tcb/rcv_wnd_r_reg[4][2]/CE
+DP #10 slack=0.024 lvl=17 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]_replica/C ep=u_tcb/rcv_wnd_r_reg[4][6]/CE
+
+== x27 (本件) DP top-10 (sp | ep) ==
+DP #1 slack=0.069 lvl=14 sp=u_tcp_tx/u_ackq/wptr_reg[1]/C ep=u_tcb/snd_nxt_r_reg[8][25]/CE
+DP #2 slack=0.078 lvl=17 sp=u_tcp_tx/u_ackq/wptr_reg[1]/C ep=u_tcb/rcv_nxt_r_reg[11][12]/CE
+DP #3 slack=0.078 lvl=17 sp=u_tcp_tx/u_ackq/wptr_reg[1]/C ep=u_tcb/rcv_nxt_r_reg[11][14]/CE
+DP #4 slack=0.084 lvl=17 sp=u_tcp_tx/u_ackq/wptr_reg[1]/C ep=u_tcb/rcv_nxt_r_reg[11][6]/CE
+DP #5 slack=0.085 lvl=17 sp=u_tcp_tx/u_ackq/wptr_reg[1]/C ep=u_tcb/snd_wnd_r_reg[14][10]/CE
+DP #6 slack=0.085 lvl=17 sp=u_tcp_tx/u_ackq/wptr_reg[1]/C ep=u_tcb/snd_wnd_r_reg[14][13]/CE
+DP #7 slack=0.085 lvl=17 sp=u_tcp_tx/u_ackq/wptr_reg[1]/C ep=u_tcb/snd_wnd_r_reg[14][14]/CE
+DP #8 slack=0.085 lvl=17 sp=u_tcp_tx/u_ackq/wptr_reg[1]/C ep=u_tcb/snd_wnd_r_reg[14][3]/CE
+DP #9 slack=0.092 lvl=14 sp=u_tcp_tx/u_ackq/wptr_reg[1]/C ep=u_tcb/snd_nxt_r_reg[5][21]/CE
+DP #10 slack=0.092 lvl=15 sp=u_tcp_tx/u_ackq/wptr_reg[1]/C ep=u_tcp_tx/u_retx/ra_e_r_reg[8]_rep__20/D
+
+== grep u_app/ in dp_top10/dp_top50 ==
+x26 top10 u_app/ = 72
+x26 top50 u_app/ = 316
+x26 top50 u_app_udp = 0
+x27 top10 u_app/ = 0
+x27 top50 u_app/ = 0
+x27 top50 u_app_udp = 20

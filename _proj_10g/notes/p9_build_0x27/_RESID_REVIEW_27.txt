@@ -1,0 +1,21 @@
+[1] E12('_proj_10g/notes/p7b_affinity/j6_r6fix.sh',
+      |   "71|0x00000026|61 62|RFC seq 修复 (2026-10-15) 71 字 / BID 0x26 (RFC seq 修复: `rtl/tcp_rx.v` 的 `seq_lt = seq_diff[31]` 真差口径 (RFC 793 SEQ_LT); 几何/未实现地址 0x14C 不变)"
+[4] E12('_proj_pcie/p7b_gate4_selftest.sh',
+      |   '  #    而"正例必须 0 FAIL"是本脚本的断言⑤)。现役 = **0x27** (换流门 R5 71 字 —— ⛔ 2026-10-15 同步轮: 原 0x26 = RFC seq 修复 /
+[5] E12('_proj_pcie/p7b_gate4_negctrl.sh',
+      | #       (原句: "71 字 (W0..W70) —— RFC seq 修复 (2026-10-15, BID=0x26 / 未实现 0x14C)" = 历史代, 逐字保留于下)
+[6] E12('_proj_pcie/p7b_gate4_livefake.sh',
+      |   '    #   ⛔ 2026-10-15 (RFC seq 修复 → 换流门 R5): 71 字槽的身份 0x26 → **0x27** (字长没动 ⇒ 槽号仍 71);
+      |     #      兜底值同改 0x27 (现役代)。⚠️ 本字典**按 NW 索引** ⇒ 读 0x1F/0x20/0x21/0x22/0x23/0x24/0x25/0x26 归档位流时须配套回改。
+      |     #   ⛔ 2026-10-15 (F-3 修复 → RFC seq 修复): 71 字槽的身份 0x25 → **0x26** (字长没动 ⇒ 槽号仍 71);
+      |     #      兜底值同改 0x26 (当时的现役代)。⚠️ 本字典**按 NW 索引** ⇒ 读 0x1F/0x20/0x21/0x22/0x23/0x24/0x25 归档位流时须配套回改。
+[7] E12('_proj_pcie/p6e_snap_selftest_fix2.sh',
+      |   '  0X04) V=\\${FAKE_BID:-0x00000027};;   # 换流门 R5 = 0x27 (⛔ 原 0x26 = RFC seq 修复 / 0x25 = F-3 修复 / 0x0A = Stage C);', 1)
+[8] E12('_proj_10g/notes/p7b_gate4_criteria/gen_inputs.py',
+      |   '         ⚠️ 几何 = **71 字 / BID 0x27** (换流门 R5, 2026-10-15 同步轮从 71 字/BID 0x26 同步)
+      |             ⛔ 2026-10-15 换流门-R5 同步: 上一行原写 "几何 = 71 字 / BID 0x26 (RFC seq 修复)";
+[9] E12('_proj_10g/notes/p7b_gate4_criteria/gen_inputs.py',
+      |   '# 66 字/0x18 (构建 D) → 67 字/0x19 (构建 E) → 70 字/0x1A (构建 F) → 70 字/0x1C (缺陷刀) → 70 字/0x1D (persist 刀) → 70 字/0x1E (snd_wnd 守卫) → 71 字/0x1F (M1 镜像窗) → 71 字/0x20 
+[10] E12('sim/p6e_pcie/tb_p6e_pcie_counters.v',
+      |   'u_dut.u_pcie_xdma.axil_read(32\'h04, v); chk("0b BUILD_ID (换流门 R5 71-word = 0x27; 原 71-word=0x26(RFC seq 修复) / 0x25(F-3 修复) / 63-word=9)", v, 32\'h00000027);
+done entries=12

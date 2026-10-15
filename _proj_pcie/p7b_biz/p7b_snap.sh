@@ -1,6 +1,9 @@
 #!/bin/bash
-# p7b_snap.sh -- 板侧快照窗口取数器 (**现役 = 71 字 / BID 0x26**; 标题原文 = "板侧 **63** 字
+# p7b_snap.sh -- 板侧快照窗口取数器 (**现役 = 71 字 / BID 0x27**; 标题原文 = "板侧 **63** 字
 #   快照窗口的取数器 (P7b Stage C: BID=10 / SNAP_NW=63)" —— 那一代已过时, 见下逐代订正)
+#   ⭐ 换流门 R5 (2026-10-15): 身份 0x26 → **0x27** (**字长/未实现地址不变** = 71 字 / 0x14C;
+#      `rtl/app_pattern.v` 两处: 裁决 A (`:1012` E13 守卫改形 `!(SWC_OK && (closing || !active))`)
+#      + 裁决 B (`:516` `close_send` 追加 `!(SWC_OK && frm_wait)`))。
 #   ⭐ RFC seq 修复 (2026-10-15): 身份 0x25 → **0x26** (**字长/未实现地址不变** = 71 字 / 0x14C;
 #      `rtl/tcp_rx.v` 的 `seq_lt = seq_diff[31]` 真差口径 (RFC 793 SEQ_LT), 唯一功能改点 1 行)。
 #   ⭐ F-3 修复 (2026-10-15): 身份 0x24 → **0x25** (**字长/未实现地址不变** = 71 字 / 0x14C;
@@ -68,7 +71,7 @@ D=/dev/xdma0_user
 #      (0x200 在 7 位译码下回绕到 word 0 = MAGIC ⇒ 假 FAIL)。
 NW=${NW:-71}
 UNIMPL_ADDR=${UNIMPL_ADDR:-$(printf '0x%X' $(( 0x20 + 4*NW + 16 )))}   # 71 ⇒ 0x14C (M1 期B 起; 70 字及更早 = 0x138/0x12C/0x124/0x11C/0x114/0xEC —— 读旧位流须显式覆盖)
-EXPECT_BID=${EXPECT_BID:-0x00000026}
+EXPECT_BID=${EXPECT_BID:-0x00000027}
 # ⛔ 2026-10-07 Stage C: 原默认值 = 0x00000009 (P7B-WU 二轮 = 9)。
 # ⛔ 2026-10-10 (构建 C 门同步轮): 再上一代的默认 = **0x0000000A** (Stage C 63 字) ——
 #    现役 = **0x00000017** (65 字; 源码 `board/wrapper_p4.v` 的 `BUILD_ID_V = 32'h00000017`)。

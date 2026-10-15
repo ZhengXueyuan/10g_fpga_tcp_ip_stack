@@ -4326,8 +4326,21 @@ module wrapper_p4 (
 
     axi_regs #(
         .MAGIC_V    (32'h50360001),
-        .BUILD_ID_V (32'h00000026),     // ⚠️ 每次改动自增 (前置闸读这一项认位流; RFC seq 修复 = 0x26)
-                                        //   ⭐ 本轮构建 (2026-10-15): **0x25 → 0x26** = RFC seq 修复
+        .BUILD_ID_V (32'h00000027),     // ⚠️ 每次改动自增 (前置闸读这一项认位流; 换流门 R5 = 0x27)
+                                        //   ⭐ 本轮构建 (2026-10-15): **0x26 → 0x27** = 换流门 R5
+                                        //      (`rtl/app_pattern.v` 两处: **裁决 A** = `:1012` E13 守卫
+                                        //      改形 `!(SWC_OK && (closing || !active))` (**替换式**,
+                                        //      非三析取追加; `sw_apply ⇒ !active` 支配关系 ⇒ 覆盖
+                                        //      post-close 闲置翼 `frm_wait ∧ !active`); **裁决 B** =
+                                        //      `:516` `close_send` 追加 `!(SWC_OK && frm_wait)`
+                                        //      (frm_wait 冻结态收尾字不再被 S_IDLE 接受门当帧启动收下
+                                        //      ⇒ 消 54 B 空数据帧); 设计件 = `_proj_10g/notes/
+                                        //      p9_fix_upok_design_20261014/DESIGN_v2r4.md`
+                                        //      (两裁决勘定) + 收尾报告 = `_proj_10g/notes/
+                                        //      p9_impl_upok_20261015/fix_r5/REPORT_FIX_R5.md`)。
+                                        //      几何**不变** (71 字 / 0x14C) ⇒ 读侧只需 `EXPECT_BID`
+                                        //      **0x26 → 0x27** (构建轮同批落盘: 阶段 ⑫ = 24 处 / 14 文件)。
+                                        //   ⭐ 上一轮 (2026-10-15): **0x25 → 0x26** = RFC seq 修复
                                         //      (`rtl/tcp_rx.v` 的 `seq_lt = seq_diff[31]` 真差口径
                                         //      (RFC 793 SEQ_LT); **唯一功能改点 = 1 行表达式** +
                                         //      注释; 设计件 = `_proj_10g/notes/

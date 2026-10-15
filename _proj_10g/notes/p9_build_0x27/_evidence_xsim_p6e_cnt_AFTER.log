@@ -1,0 +1,86 @@
+#-----------------------------------------------------------
+# xsim v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Thu Oct 15 08:28:48 2026
+# Process ID         : 20256
+# Current directory  : D:/repo/XCKU5PMini/udp_hls_10g/sim/p6e_pcie
+# Command line       : xsim.exe -log xsim_p6e_cnt.log -mode tcl -source {xsim.dir/tb_p6e_pcie_counters/xsim_script.tcl}
+# Log file           : D:/repo/XCKU5PMini/udp_hls_10g/sim/p6e_pcie/xsim_p6e_cnt.log
+# Journal file       : D:/repo/XCKU5PMini/udp_hls_10g/sim/p6e_pcie\xsim.jou
+# Running On         : xyz-intel
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26300
+# Processor Detail   : Intel(R) Core(TM) Ultra 7 265K
+# CPU Frequency      : 3878 MHz
+# CPU Physical cores : 20
+# CPU Logical cores  : 20
+# Host memory        : 68053 MB
+# Swap memory        : 4294 MB
+# Total Virtual      : 72348 MB
+# Available Virtual  : 44849 MB
+#-----------------------------------------------------------
+source xsim.dir/tb_p6e_pcie_counters/xsim_script.tcl
+# xsim {tb_p6e_pcie_counters} -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+WARNING: File ./udp_echo_mac_tx_process_preamble_ROM_AUTO_1R.dat referenced on D:/repo/XCKU5PMini/udp_hls_10g/board/wrapper_p4.v at line 2132 cannot be opened for reading. Please ensure that this file is available in the current working directory or parent directory of xsim.dir location specified via -xsimdir switch.
+WARNING: File ./udp_echo_mac_tx_process_src_mac_ROM_AUTO_1R.dat referenced on D:/repo/XCKU5PMini/udp_hls_10g/board/wrapper_p4.v at line 2132 cannot be opened for reading. Please ensure that this file is available in the current working directory or parent directory of xsim.dir location specified via -xsimdir switch.
+WARNING: File ./udp_echo_arp_dump_Pipeline_VITIS_LOOP_219_1_p_const_ZZL8arp_dumpRN3hls6streamI11gmii_bcud.dat referenced on D:/repo/XCKU5PMini/udp_hls_10g/board/wrapper_p4.v at line 2132 cannot be opened for reading. Please ensure that this file is available in the current working directory or parent directory of xsim.dir location specified via -xsimdir switch.
+=== tb_p6e_pcie_counters: W16/W17 增量逻辑 (正证据 + 负对照) ===
+  --- 判据 0: 前置 (读数通路 + 被 force 的线必须有驱动源) ---
+  [PASS] 0a MAGIC (read path self-check) = 1345716225
+  [PASS]  / 0x25(F-3 ������) / 63-word=9) = 39
+  [PASS] 0c hls_rx_tready 有确定电平 (= 1) ⇒ 这根线确有驱动源 (非 X/Z)
+  --- 判据 A: 基线 (无任何注入) ---
+  [INFO] A baseline: W16=0 (Δ0) W17=0 (Δ0) W5=158 W0=0 W19=0
+  --- 判据 B: 正证据 (tvalid&&tready 同时为高 200 拍) ---
+  [PASS] B0 producer force 传到 wrapper 线 (hls_rx_tvalid = 1)
+  [INFO] B after handshake: W16=200 (Δ200) W17=0 (Δ0) W5=342 W0=0 W19=0
+  [PASS] _RX (1 count per handshake beat) = 200
+  [PASS]  delta == 0 (watchdog untouched) = 0
+  [PASS] 0 delta == 0 (no frame injected) = 0
+  [PASS] W19 delta == 0 (no slow_rx drop) = 0
+  [PASS] B5 gmii 域在跑 (W5 158 -> 342): 上面的 +200 不是停摆时钟上的假数
+  --- 判据 C1: 只 tvalid (tready=0) 100 拍 ⇒ 不许计数 ---
+  [INFO] C1 after tvalid-only: W16=200 (Δ0) W17=0 (Δ0) W5=447 W0=0 W19=0
+  [PASS] ta == 0 (no count when tready=0) = 0
+  --- 判据 C2: 只 tready (tvalid=0) 100 拍 ⇒ 不许计数 ---
+  [INFO] C2 after tready-only: W16=200 (Δ0) W17=0 (Δ0) W5=551 W0=0 W19=0
+  [PASS] ta == 0 (no count when tvalid=0) = 0
+  --- 判据 D: 正证据 (hls_rst_n 低 150 拍) ---
+  [PASS] D0 producer force 传到 wrapper 线 (hls_rst_n = 0)
+  [INFO] D after watchdog-low: W16=200 (Δ0) W17=150 (Δ150) W5=696 W0=0 W19=0
+  [PASS]  == N_HR (1 count per low cycle) = 150
+  [PASS]  0 (rx fifo empty, no handshake) = 0
+  --- 判据 E: hls_rst_n 回到高 ⇒ W17 停涨 ---
+  [INFO] E after release: W16=200 (Δ0) W17=150 (Δ0) W5=799 W0=0 W19=0
+  [PASS] delta == 0 (no count while high) = 0
+  --- 判据 F: 全过程总账 (相对基线快照) ---
+  [INFO] F 总账: W16 0 -> 200 (Δ200, 期望 200); W17 0 -> 150 (Δ150, 期望 150)
+  [PASS] F1 W16 total delta == N_RX = 200
+  [PASS] F2 W17 total delta == N_HR = 150
+  --- 判据 G: 从 DP 侧灌 400 拍 ⇒ u_txcdc 必满 ⇒ W28 恰好 = DEPTH ---
+  [PASS] G0 txsrc_tvalid 有确定电平且跟着 force 走 (= 1) ⇒ 线有驱动源
+  [INFO] G 读数: W28=256 W29=90
+  [PASS] �������������������������������) = 256
+  [PASS] G2 W29 = 90 (>0 且 <= 灌字拍数 400) ⇒ DP 确实被线速压住
+  --- 判据 H: 从 FE 侧灌 400 拍 + 钉住 DP 消费者 ⇒ u_rxcdc 必满 ---
+  [PASS] H0 rxsrc_tvalid/vs_tready/rxsrc_tuser 有确定电平且跟着 force 走
+  [INFO] H 读数(灌满后): W26=69 W27=256
+  [PASS] �������������������������������) = 256
+  [PASS] H2 W26 = 69 (>0: FIFO 满过, 满拍数被记下来)
+Error: [Unisim RAMB36E2-11] Memory Collision at time 12483.201 ns.
+A simultaneous WRITE on port B (0040) and READ on port A (0000) occured.
+The WRITE was successful but the READ may be corrupted. Instance: tb_p6e_pcie_counters.u_dut.u_slow_rx.u_ff.gen_mem[0].u_main
+  [INFO] H 读数(排空后): W30=257 W31=2056 W0=0
+  [PASS] H3 W30 = 257 >= DEPTH ⇒ 读侧 TLAST 计数与灌满一致
+  [PASS] ��������������, ��7.�����������) = 2056
+  [PASS] ac_r���������������������������) = 0
+PASS_ALL  tb_p6e_pcie_counters: W16/W17 + W26/W27/W28/W29/W30/W31 增量逻辑全过
+=== done ===
+$finish called at time : 38194 ns : File "D:/repo/XCKU5PMini/udp_hls_10g/sim/p6e_pcie/tb_p6e_pcie_counters.v" Line 437
+exit
+INFO: xsimkernel Simulation Memory Usage: 114640 KB (Peak: 114640 KB), Simulation CPU Usage: 1733 ms
+INFO: [Common 17-206] Exiting xsim at Thu Oct 15 08:28:52 2026...

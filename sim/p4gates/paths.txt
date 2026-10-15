@@ -53,7 +53,13 @@ REQUIRED_DIRS=hls\slowstack_prj\solution1\syn\verilog;rtl;tb
 #     ARE compiled => its content decides the compiled bytes).  The gate's TB
 #     and DUT sources are in the compile set via f3resync_src.f, and
 #     sim\p4gates\*.f already covers that manifest itself.
-FINGERPRINT_GLOBS=tools\gen_stim_p4_chain.py;tools\gen_stim_tcp_chain.py;tools\gen_stim_p5_app.py;sim\p4gates\*.py;sim\p4gates\*.bat;sim\p4gates\*.txt;sim\p4gates\*.f;sim\p4sim\run_tb_*.bat;sim\p4sim\run_matrix_p4dfix.sh;sim\p5sim\run_tb_*.bat;sim\retxsim\run_*.bat;sim\retxsim2\run_*.bat;sim\vlansim\run_*.bat;sim\tbgate\run_*.bat;sim\f3_resync\run_*.bat;sim\f3_resync\mut\mk_mut_f3.py
+#     2026-10-15 (#21): + sim\p9_swc_gate\run_*.bat (the swc gate's verdicts:
+#     run_tb_p9_swc.bat + the witness bat) and sim\p9_swc_gate\mk_mut_swc.py
+#     (it generates the three mutant DUTs that ARE compiled => its content
+#     decides the compiled bytes).  The gate's TB / frozen pre-edit DUT /
+#     mutant sources are in the compile set via swcg_src.f; swcg_src.f itself
+#     is covered by sim\p4gates\*.f.
+FINGERPRINT_GLOBS=tools\gen_stim_p4_chain.py;tools\gen_stim_tcp_chain.py;tools\gen_stim_p5_app.py;sim\p4gates\*.py;sim\p4gates\*.bat;sim\p4gates\*.txt;sim\p4gates\*.f;sim\p4sim\run_tb_*.bat;sim\p4sim\run_matrix_p4dfix.sh;sim\p5sim\run_tb_*.bat;sim\retxsim\run_*.bat;sim\retxsim2\run_*.bat;sim\vlansim\run_*.bat;sim\tbgate\run_*.bat;sim\f3_resync\run_*.bat;sim\f3_resync\mut\mk_mut_f3.py;sim\p9_swc_gate\run_*.bat;sim\p9_swc_gate\mk_mut_swc.py
 
 # --- toolchain locations (NOT repository paths; one place for all of them) ---
 PY=C:\Users\zhxue\anaconda3\python.exe
