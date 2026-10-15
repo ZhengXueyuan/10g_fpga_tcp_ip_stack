@@ -1247,3 +1247,12 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - **动作**：**fold-5 已派**（纯文本：F-3/mdio/upok 三件 `DESIGN_v2r5.md` + fold-4 REPORT 追加 ERRATA 块〔只追加不改正文〕；均标"待送审"）。
 - ⭐ **模式有效性记录**：自对抗审查**首战即产出实质** —— F1 直接命中一条**被 kimi R4 原链 + 我方 §10-66 接收**双重背书的错误证据链（"一致 ≠ 正确"的又一实例）⇒ 自审模式首个正样本。
 - **在飞**：E12 实施（`ac12aec7…`）· sim 补测（`a253dc5b…`）· RV2 板级三轮自审（`adbb06d6…`）· fold-5（`a5961ad7…`）。
+
+## §10-76 2026-10-15 24:1x：**E12 实施轮收口（提交 `41d1ab3`）—— 4 观测计数器落地；门四轮全绿 + 96/96 dump 全同；0x28 构建轮挂起等在飞三件**
+- **改动**（8 tracked + 轮目录）：`rtl/app_pattern.v` **`c932c3ab…`**（+48/−1：4 端口 + E12 计数块〔`else if (SWC_OK)` 常量门〕）· `board/wrapper_p4.v` **`bbf6e3cb…`**（+63/−12：4 线/例化/`biz_w71..74`/槽 31..34/`SNAP_P7BDP_NW 31→35`/**`SNAP_NW_P6E 71→75`**/MSB +4 项；⛔ **BID 现读 `:4377` 未动**）· `sim/p6e_pcie/tb_p6e_pcie_wrapper.v`（+114/−79：**73 处 MIR 地址常量下移**〔连带面比派单宽——只改判据会假红/假绿〕+ **新增 W71..W74 映射断言**〔`71717171…74747474` 互异 force 回读〕）· `sim/p9_swc_gate/` TB/bat/三突变件（**+34 条 E12 判据** + OFF 折叠正控 `W6o/W6p`）。
+- **几何**：未实现地址 **0x15C** —— **三源双核**（axi_regs 索引推导 / 读侧工具公式 / 设计件 L-1 逐字）+ **机器核**（本代 `check_window_e12.py` **PASS=96/0**；`need=2368 < 4096` 不回绕）。
+- **门读数**：SWC 门 **8 运行全 RC=0**（红集与 R 行读数**逐字同 R5**；新增 E 行：每臂 `uev=2 sap=2`、**E5 idle 到达 `srq=0`**、**E9 交接 `sup=1`**；`W6` 非空真）+ **p6e 全链 148/0 PASS_ALL** + counters 26/0 + **锚门 `CONT-GATE: PASS` + 96/96 dump 与 R5 归档逐字节全同**。
+- **⭐ E12 语义（事件式，实现选择登记）**：`stat_up_ev`（raw 脉冲）/ `stat_sw_req`（`ev_same_act` = E7 同条件）/ `stat_sw_apply`（`sw_apply` 拍数）/ `stat_up_pend`（`ev_other_act` = A3 登记）；**三态恒等式** `Δup_ev == Δ(up_ev∧sw_apply) + Δsw_req + Δup_pend` ⇒ **板级一次读数即可见两类反例**（`Δup_ev=1` 而余三项全 0 = 事件凭空消失【I2】；`Δsw_apply=1` 而相位仍错 = 复位被覆盖【P-3 类】）；32 位回卷 27.487 s ⇒ 读数 `mod 2³²`。
+- **登记（不修）**：设计件计数器原为"名字级"⇒ 本轮落事件式（若裁定改读法 = 改两行）；`check_window.py`/`tb_biz_win.v` 本代常量（副本出证据）；**`tb_p7b_chain.v:1521` 负控地址语义漂移**（`0x14C` 现在是真寄存器 ⇒ 需抬 ≥0x15C，否则假绿）；`rtl/axis_c2h_stream.v:140` 注释 stale；`rtl/axi_regs.v` 头注释 stale（归构建/文档轮）；R5 时代 swc run 日志已被本轮覆盖（本代已归档 `gate_swc_e12_runs/`）。
+- **下一步 = 0x28 构建轮**（BID bump + 读侧阶段 `0x28`〔nw=75/0x15C/WLABEL 补 W71..W74〕+ **19 门矩阵** + 构建 + 归档 + 定向 STA）—— ⏸ **挂起等 sim-fill / RV2 / fold-5 三件完成**（构建窗口须零仓库写入）。
+- **在飞**：sim 补测 · RV2 板级自审 · fold-5。
