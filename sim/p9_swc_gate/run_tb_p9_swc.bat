@@ -90,15 +90,15 @@ if not "%RCM6B%"=="0"  set /a FAILS+=1
 if not "%RCM7%"=="0"   set /a FAILS+=1
 
 echo   ---- criteria table (F run) ----
-findstr /C:"CFG=" /C:"C0 " /C:"C1 " /C:"C2 " /C:"C3 " /C:"C4 " /C:"C5 " /C:"C6 " /C:"C7 " /C:"C8 " /C:"C9 " "runF\xs.log"
-echo   ---- OFF run arm reds (expect ARM0/1/2/9 red) ----
+findstr /C:"CFG=" /C:"C0 " /C:"C1 " /C:"C2 " /C:"C3 " /C:"C4 " /C:"C5 " /C:"C6 " /C:"C7 " /C:"C8 " /C:"C9 " /C:"C10 " "runF\xs.log"
+echo   ---- OFF run arm reds (expect ARM0/1/2/9/10 red) ----
 findstr /C:"ARM" "runOFF\xs.log"
 echo   ---- mutant red sets ----
 echo   [M6 reds]  (expect all 10 arms red)
 findstr /C:"ARM" "runM6\xs.log"
 echo   [M6B reds] (expect ARM3/ARM4 red)
 findstr /C:"ARM" "runM6B\xs.log"
-echo   [M7 reds]  (expect ARM9 red)
+echo   [M7 reds]  (expect ARM10 red; R5: bite migrated to the idle-wing arm)
 findstr /C:"ARM" "runM7\xs.log"
 echo   ---- compile-source witness ----
 for %%A in (F F10 H H10 OFF M6 M6B M7) do findstr /C:"RSRC=" "run%%A\srcpath.log"

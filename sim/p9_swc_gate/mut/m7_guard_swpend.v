@@ -507,7 +507,14 @@ module app_pattern #(
     //   (该字从未计数, 新会话从图案起点重发); 只对换流挂起期生效 ⇒ SWC_OK=0 折叠。
     wire        drop_pw    = closing && pw_valid &&
                              ((seg_sent == 12'd0) || (SWC_OK && sw_pend));
+    // ⭐ P9 R5 (裁决 B): `frm_wait` 态禁发收尾字 —— 该态下本帧**已整帧交付**
+    //   (帧器已回 S_IDLE), 收尾字纯冗余, 且 S_IDLE 的接受门没有 tlast 条件
+    //   (rtl/tcp_tx_frame.v:1814/:1880 一带) ⇒ 它会被当**帧启动**收下、以 plen=0
+    //   落一个零长数据帧。此时 W3 的 `else` 支 (= 直接回 idle 的清理) 就是正确动作。
+    //   ⚠️ 同一项对 HEAD 的 `ev_down`-in-frm_wait 路径**不生效** (SWC_OK=0 折叠)
+    //   —— 那条既存形态**不修**, 已登记。
     wire        close_send = closing && !op_beat &&
+                             !(SWC_OK && frm_wait) &&
                              (drop_pw || (!pw_valid &&
                                           (op_sent || (seg_sent != 12'd0))));
     // ---- P5e: 会话换流 (ev_up) 与 W3 收尾同拍撞车 ----
@@ -990,6 +997,17 @@ module app_pattern #(
             //   ⚠️ 守卫用 `closing` 而不是 `sw_pend` (v2r2 版): E6 的"最新优先"允许收尾
             //   在飞时把请求交接给 up_pend_r (那一拍 sw_pend<=0) —— 交接后收尾仍在飞,
             //   只有 closing 覆盖"任意持有者" (设计件 v2r3 §1.2; R3-1 反例序列)。
+            //   ⚠️ P9 R5 (裁决 A): 第三项从 `sw_apply` 改成 **`!active`**。两点依据:
+            //   (i) **覆盖 post-close 闲置翼** (设计件 v2r3 §5-1): `frm_wait ∧ !active`
+            //       ≡ "W3 收尾完、app 已 idle 但 frm_wait 残留 1" —— 该态下 `:922`
+            //       **没有任何合法职能** (本帧早已交付、新帧应由下一次受理/应用点火),
+            //       旧形态 (`closing || sw_apply`) 在这一格两项全假 ⇒ 会抢置 op_pend
+            //       ⇒ 以 active=0 呈现一个"流浪 opener" (并带陈旧 seg_len)。
+            //   (ii) **`sw_apply ⇒ !active` 是支配关系** (门中逐拍见证 = dominance 监视器,
+            //       跨全部 SWC_OK=1 运行, 违例即硬失败): SWC_OK=1 时
+            //       `sw_apply = idle_now && up_ev = !active && up_ev` ⇒ `sw_apply ⇒ !active`
+            //       ⇒ 新的 `!active` 项**严格覆盖**旧的 `sw_apply` 项 (不多拦一拍、不漏一拍);
+            //       SWC_OK=0 时整个门恒真 ⇒ 两项都不参与。
             //   ⚠️ SWC_OK=0 ⇒ 门恒真 ⇒ 默认构建逐位不变 (legacy 同款竞争不修, §1.4)。
             if (frm_wait && tx_ok && !(SWC_OK && (sw_pend || sw_apply))) begin   // M7: v2r2 版守卫
                 frm_wait <= 1'b0;

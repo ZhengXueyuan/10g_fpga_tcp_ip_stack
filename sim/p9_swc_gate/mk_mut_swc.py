@@ -101,9 +101,10 @@ add("m6b_closing_drop", [(
 
 # ---- M7: E13 守卫回退成 v2r2 的 sw_pend 版 ----
 add("m7_guard_swpend", [(
-    "            if (frm_wait && tx_ok && !(SWC_OK && (closing || sw_apply))) begin",
+    # ⚠️ R5 裁决 A: 现役守卫文本 = `closing || !active` (锚点随改; 逐条见报告 §R5 锚点表)
+    "            if (frm_wait && tx_ok && !(SWC_OK && (closing || !active))) begin",
     "            if (frm_wait && tx_ok && !(SWC_OK && (sw_pend || sw_apply))) begin   // M7: v2r2 版守卫",
-    1)], "M7 E13 守卫 -> sw_pend 版 (期望红 = {u_swc5h}; R3-1 交接序列必红)")
+    1)], "M7 E13 守卫 -> sw_pend 版 (R5 后咬点 = u_swcwing 闲置翼臂; 见报告 §R5 变更表)")
 
 
 def norm(s):

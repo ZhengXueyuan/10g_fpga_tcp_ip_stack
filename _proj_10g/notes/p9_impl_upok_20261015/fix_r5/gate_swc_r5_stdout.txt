@@ -1,0 +1,119 @@
+HEADSHA 811a84e4bd0e8b20ba8ac007cbb16a8f310091b141f7a6d59964dd8288f317bc
+SRC D:\repo\XCKU5PMini\udp_hls_10g\rtl\app_pattern.v  90524 B  sha256 be0b5f9c642dcd97bec2c3ffb3beec73d57df22e9e39d3be75a5f46c16d8aa6c
+WROTE m6_v1_eq               M6 E4/E5/E6 -> v1 字面方程 (H-1 两个静默丢弃洞; 期望红 = 全部臂)
+WROTE m6b_closing_drop       M6B closing 态事件被丢 (期望红 = {u_swc3, u_swc3b})
+WROTE m7_guard_swpend        M7 E13 守卫 -> sw_pend 版 (R5 后咬点 = u_swcwing 闲置翼臂; 见报告 §R5 变更表)
+ANCHORS: all 3 mutants matched (5 subs, each hits==expect)
+MUTGEN OK (3 mutants)
+TB_P9_SWC CFG=SWC_ARM EXP=EXP_FIXED P7B_10G=0
+TB_P9_SWC_SUM errs=0
+TB_P9_SWC: OK
+TB_P9_SWC CFG=SWC_ARM EXP=EXP_FIXED P7B_10G=1
+TB_P9_SWC_SUM errs=0
+TB_P9_SWC: OK
+TB_P9_SWC CFG=HEAD_RTL EXP=EXP_HEAD P7B_10G=0
+TB_P9_SWC_SUM errs=0
+TB_P9_SWC: OK
+TB_P9_SWC CFG=HEAD_RTL EXP=EXP_HEAD P7B_10G=1
+TB_P9_SWC_SUM errs=0
+TB_P9_SWC: OK
+TB_P9_SWC CFG=SWC_OFF EXP=EXP_HEAD P7B_10G=0
+TB_P9_SWC_SUM errs=0
+TB_P9_SWC: OK
+TB_P9_SWC CFG=SWC_ARM EXP=EXP_M6 P7B_10G=0
+TB_P9_SWC_SUM errs=0
+TB_P9_SWC: OK
+TB_P9_SWC CFG=SWC_ARM EXP=EXP_M6B P7B_10G=0
+TB_P9_SWC_SUM errs=0
+TB_P9_SWC: OK
+TB_P9_SWC CFG=SWC_ARM EXP=EXP_M7 P7B_10G=0
+TB_P9_SWC_SUM errs=0
+TB_P9_SWC: OK
+==================== SUMMARY ====================
+  F   live RTL + SWC=1            RC=0    (expect 0; EXP_FIXED)
+  F10 live RTL + SWC=1 + P7B_10G  RC=0    (expect 0; EXP_FIXED)
+  H   frozen pre-edit RTL         RC=0    (expect 0; EXP_HEAD)
+  H10 frozen pre-edit + P7B_10G   RC=0    (expect 0; EXP_HEAD)
+  OFF live RTL + SWC=0            RC=0    (expect 0; EXP_HEAD)
+  M6  mutant v1-equations         RC=0    (expect 0; EXP_M6)
+  M6B mutant closing-drop         RC=0    (expect 0; EXP_M6B)
+  M7  mutant v2r2-guard           RC=0    (expect 0; EXP_M7)
+  ---- criteria table (F run) ----
+TB_P9_SWC CFG=SWC_ARM EXP=EXP_FIXED P7B_10G=0
+  C0 P-A=1 P-B=1 P-C=1 STARTS=1 TID=1 WING=1 red=0 exp_red=0
+  C1 P-A=1 P-B=1 P-C=1 STARTS=1 TID=1 WING=1 red=0 exp_red=0
+  C2 P-A=1 P-B=1 P-C=1 STARTS=1 TID=1 WING=1 red=0 exp_red=0
+  C3 P-A=1 P-B=1 P-C=1 STARTS=1 TID=1 WING=1 red=0 exp_red=0
+  C4 P-A=1 P-B=1 P-C=1 STARTS=1 TID=1 WING=1 red=0 exp_red=0
+  C5 P-A=1 P-B=1 P-C=1 STARTS=1 TID=1 WING=1 red=0 exp_red=0
+  C6 P-A=1 P-B=1 P-C=1 STARTS=1 TID=1 WING=1 red=0 exp_red=0
+  C7 P-A=1 P-B=1 P-C=1 STARTS=1 TID=1 WING=1 red=0 exp_red=0
+  C8 P-A=1 P-B=1 P-C=1 STARTS=1 TID=1 WING=1 red=0 exp_red=0
+  C9 P-A=1 P-B=1 P-C=1 STARTS=1 TID=1 WING=1 red=0 exp_red=0
+  C10 P-A=1 P-B=1 P-C=1 STARTS=1 TID=1 WING=1 red=0 exp_red=0
+  ---- OFF run arm reds (expect ARM0/1/2/9/10 red) ----
+TB_P9_SWC ARMNAMES 0=swc0 1=swc1 2=swc2 3=swc3 4=swc3b 5=swc4 6=swc5a 7=swc5b 8=swc5c 9=swc5h 10=swcwing
+  [ ok ] ARM0 red=1 exp_red=1
+  [ ok ] ARM1 red=1 exp_red=1
+  [ ok ] ARM2 red=1 exp_red=1
+  [ ok ] ARM3 red=0 exp_red=0
+  [ ok ] ARM4 red=0 exp_red=0
+  [ ok ] ARM5 red=0 exp_red=0
+  [ ok ] ARM6 red=0 exp_red=0
+  [ ok ] ARM7 red=0 exp_red=0
+  [ ok ] ARM8 red=0 exp_red=0
+  [ ok ] ARM9 red=1 exp_red=1
+  [ ok ] ARM10 red=1 exp_red=1
+  ---- mutant red sets ----
+  [M6 reds]  (expect all 10 arms red)
+TB_P9_SWC CFG=SWC_ARM EXP=EXP_M6 P7B_10G=0
+TB_P9_SWC ARMNAMES 0=swc0 1=swc1 2=swc2 3=swc3 4=swc3b 5=swc4 6=swc5a 7=swc5b 8=swc5c 9=swc5h 10=swcwing
+  [ ok ] ARM0 red=1 exp_red=1
+  [ ok ] ARM1 red=1 exp_red=1
+  [ ok ] ARM2 red=1 exp_red=1
+  [ ok ] ARM3 red=1 exp_red=1
+  [ ok ] ARM4 red=1 exp_red=1
+  [ ok ] ARM5 red=1 exp_red=1
+  [ ok ] ARM6 red=1 exp_red=1
+  [ ok ] ARM7 red=1 exp_red=1
+  [ ok ] ARM8 red=1 exp_red=1
+  [ ok ] ARM9 red=1 exp_red=1
+  [ ok ] ARM10 red=1 exp_red=1
+  [M6B reds] (expect ARM3/ARM4 red)
+TB_P9_SWC CFG=SWC_ARM EXP=EXP_M6B P7B_10G=0
+TB_P9_SWC ARMNAMES 0=swc0 1=swc1 2=swc2 3=swc3 4=swc3b 5=swc4 6=swc5a 7=swc5b 8=swc5c 9=swc5h 10=swcwing
+  [ ok ] ARM0 red=0 exp_red=0
+  [ ok ] ARM1 red=0 exp_red=0
+  [ ok ] ARM2 red=0 exp_red=0
+  [ ok ] ARM3 red=1 exp_red=1
+  [ ok ] ARM4 red=1 exp_red=1
+  [ ok ] ARM5 red=0 exp_red=0
+  [ ok ] ARM6 red=0 exp_red=0
+  [ ok ] ARM7 red=0 exp_red=0
+  [ ok ] ARM8 red=0 exp_red=0
+  [ ok ] ARM9 red=0 exp_red=0
+  [ ok ] ARM10 red=0 exp_red=0
+  [M7 reds]  (expect ARM10 red; R5: bite migrated to the idle-wing arm)
+TB_P9_SWC CFG=SWC_ARM EXP=EXP_M7 P7B_10G=0
+TB_P9_SWC ARMNAMES 0=swc0 1=swc1 2=swc2 3=swc3 4=swc3b 5=swc4 6=swc5a 7=swc5b 8=swc5c 9=swc5h 10=swcwing
+  [ ok ] ARM0 red=0 exp_red=0
+  [ ok ] ARM1 red=0 exp_red=0
+  [ ok ] ARM2 red=0 exp_red=0
+  [ ok ] ARM3 red=0 exp_red=0
+  [ ok ] ARM4 red=0 exp_red=0
+  [ ok ] ARM5 red=0 exp_red=0
+  [ ok ] ARM6 red=0 exp_red=0
+  [ ok ] ARM7 red=0 exp_red=0
+  [ ok ] ARM8 red=0 exp_red=0
+  [ ok ] ARM9 red=0 exp_red=0
+  [ ok ] ARM10 red=1 exp_red=1
+  ---- compile-source witness ----
+RSRC=D:\repo\XCKU5PMini\udp_hls_10g\rtl\app_pattern.v DEFS=-d P9_SWC_ARM -d P9_EXP_FIXED 
+RSRC=D:\repo\XCKU5PMini\udp_hls_10g\rtl\app_pattern.v DEFS=-d P9_SWC_ARM -d P9_EXP_FIXED -d P7B_10G 
+RSRC=D:\repo\XCKU5PMini\udp_hls_10g\sim\p9_swc_gate\head_app_pattern.v DEFS=-d P9_HEAD_RTL -d P9_EXP_HEAD 
+RSRC=D:\repo\XCKU5PMini\udp_hls_10g\sim\p9_swc_gate\head_app_pattern.v DEFS=-d P9_HEAD_RTL -d P9_EXP_HEAD -d P7B_10G 
+RSRC=D:\repo\XCKU5PMini\udp_hls_10g\rtl\app_pattern.v DEFS=-d P9_SWC_OFF -d P9_EXP_HEAD 
+RSRC=D:\repo\XCKU5PMini\udp_hls_10g\sim\p9_swc_gate\mut\m6_v1_eq.v DEFS=-d P9_SWC_ARM -d P9_EXP_M6 
+RSRC=D:\repo\XCKU5PMini\udp_hls_10g\sim\p9_swc_gate\mut\m6b_closing_drop.v DEFS=-d P9_SWC_ARM -d P9_EXP_M6B 
+RSRC=D:\repo\XCKU5PMini\udp_hls_10g\sim\p9_swc_gate\mut\m7_guard_swpend.v DEFS=-d P9_SWC_ARM -d P9_EXP_M7 
+P9-SWC-GATE: PASS 

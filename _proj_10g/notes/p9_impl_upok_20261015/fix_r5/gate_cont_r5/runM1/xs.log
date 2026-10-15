@@ -1,0 +1,152 @@
+#-----------------------------------------------------------
+# xsim v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Thu Oct 15 08:10:45 2026
+# Process ID         : 7620
+# Current directory  : D:/repo/XCKU5PMini/udp_hls_10g/sim/p7b_longsend/runM1
+# Command line       : xsim.exe -log xs.log -mode tcl -source {xsim.dir/tbcont/xsim_script.tcl}
+# Log file           : D:/repo/XCKU5PMini/udp_hls_10g/sim/p7b_longsend/runM1/xs.log
+# Journal file       : D:/repo/XCKU5PMini/udp_hls_10g/sim/p7b_longsend/runM1\xsim.jou
+# Running On         : xyz-intel
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26300
+# Processor Detail   : Intel(R) Core(TM) Ultra 7 265K
+# CPU Frequency      : 3878 MHz
+# CPU Physical cores : 20
+# CPU Logical cores  : 20
+# Host memory        : 68053 MB
+# Swap memory        : 4294 MB
+# Total Virtual      : 72348 MB
+# Available Virtual  : 44581 MB
+#-----------------------------------------------------------
+source xsim.dir/tbcont/xsim_script.tcl
+# xsim {tbcont} -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+  I0: frames=1 bytes=1000 done=1 active=0 cr=1 | tb_frames=1 tb_bytes=1000 orc=0 ax=0 ferr=0
+  I1: frames=1 bytes=1000 done=1 active=0 cr=1 | tb_frames=1 tb_bytes=1000 orc=0 ax=0 ferr=0
+  I2: frames=3 bytes=3000 done=1 active=0 cr=1 | tb_frames=3 tb_bytes=3000 orc=0 ax=0 ferr=0
+  I3: frames=1 bytes=1 done=1 active=0 cr=1 | tb_frames=1 tb_bytes=1 orc=0 ax=0 ferr=0
+  I4: frames=0 bytes=0 done=0 active=1 cr=0 | tb_frames=0 tb_bytes=0 orc=0 ax=0 ferr=0
+  I5: frames=0 bytes=0 done=0 active=1 cr=0 | tb_frames=0 tb_bytes=0 orc=0 ax=0 ferr=0
+  I6: frames=1 bytes=1000 done=1 active=0 cr=0 | tb_frames=1 tb_bytes=1000 orc=0 ax=0 ferr=0
+  I7: frames=2 bytes=1168 done=1 active=0 cr=1 | tb_frames=2 tb_bytes=1168 orc=0 ax=0 ferr=0
+  I8: frames=2 bytes=1168 done=1 active=0 cr=1 | tb_frames=2 tb_bytes=1168 orc=0 ax=0 ferr=0
+  I9: frames=2 bytes=1168 done=1 active=0 cr=1 | tb_frames=2 tb_bytes=1168 orc=0 ax=0 ferr=0
+  REC: u_rec1(k=40,tw=300) frames=2 starts_after_up=1 active=0 => RESUMED
+  REC: u_rec2(k=240,tw=300) frames=2 starts_after_up=1 active=0 => RESUMED
+  REC: u_rec3(k=240,tw=6) frames=2 starts_after_up=1 active=0 => RESUMED
+  RATE: tl1_base=1252 tl1_cont=1252 | cont d12=0 d23=0 d34=0
+  TOK: frames=1 bytes=1000 done=1 cr=0 | tok_dropped=1
+  [ ok ] A6 oracle: payload byte stream == TB xorshift64 model
+  [ ok ] A7 AXIS hold contract: stable while tvalid && !tready
+  [ ok ] A7b stat_tx_frames == TB tlast count
+  [ ok ] A5b stat_tx_bytes == TB delivered byte count
+  [ ok ] A4 frame length sequence == arithmetic model
+  [ ok ] no bad frames injected in this gate
+  [ ok ] A6 oracle: payload byte stream == TB xorshift64 model
+  [ ok ] A7 AXIS hold contract: stable while tvalid && !tready
+  [ ok ] A7b stat_tx_frames == TB tlast count
+  [ ok ] A5b stat_tx_bytes == TB delivered byte count
+  [ ok ] A4 frame length sequence == arithmetic model
+  [ ok ] no bad frames injected in this gate
+  [ ok ] A6 oracle: payload byte stream == TB xorshift64 model
+  [ ok ] A7 AXIS hold contract: stable while tvalid && !tready
+  [ ok ] A7b stat_tx_frames == TB tlast count
+  [ ok ] A5b stat_tx_bytes == TB delivered byte count
+  [ ok ] A4 frame length sequence == arithmetic model
+  [ ok ] no bad frames injected in this gate
+  [ ok ] A6 oracle: payload byte stream == TB xorshift64 model
+  [ ok ] A7 AXIS hold contract: stable while tvalid && !tready
+  [ ok ] A7b stat_tx_frames == TB tlast count
+  [ ok ] A5b stat_tx_bytes == TB delivered byte count
+  [ ok ] A4 frame length sequence == arithmetic model
+  [ ok ] no bad frames injected in this gate
+  [ ok ] A6 oracle: payload byte stream == TB xorshift64 model
+  [ ok ] A7 AXIS hold contract: stable while tvalid && !tready
+  [ ok ] A7b stat_tx_frames == TB tlast count
+  [ ok ] A5b stat_tx_bytes == TB delivered byte count
+  [ ok ] A4 frame length sequence == arithmetic model
+  [ ok ] no bad frames injected in this gate
+  [ ok ] A6 oracle: payload byte stream == TB xorshift64 model
+  [ ok ] A7 AXIS hold contract: stable while tvalid && !tready
+  [ ok ] A7b stat_tx_frames == TB tlast count
+  [ ok ] A5b stat_tx_bytes == TB delivered byte count
+  [ ok ] A4 frame length sequence == arithmetic model
+  [ ok ] no bad frames injected in this gate
+  [ ok ] A6 oracle: payload byte stream == TB xorshift64 model
+  [ ok ] A7 AXIS hold contract: stable while tvalid && !tready
+  [ ok ] A7b stat_tx_frames == TB tlast count
+  [ ok ] A5b stat_tx_bytes == TB delivered byte count
+  [ ok ] A4 frame length sequence == arithmetic model
+  [ ok ] no bad frames injected in this gate
+  [ ok ] A6 oracle: payload byte stream == TB xorshift64 model
+  [ ok ] A7 AXIS hold contract: stable while tvalid && !tready
+  [ ok ] A7b stat_tx_frames == TB tlast count
+  [ ok ] A5b stat_tx_bytes == TB delivered byte count
+  [ ok ] A4 frame length sequence == arithmetic model
+  [ ok ] no bad frames injected in this gate
+  [ ok ] A6 oracle: payload byte stream == TB xorshift64 model
+  [ ok ] A7 AXIS hold contract: stable while tvalid && !tready
+  [ ok ] A7b stat_tx_frames == TB tlast count
+  [ ok ] A5b stat_tx_bytes == TB delivered byte count
+  [ ok ] A4 frame length sequence == arithmetic model
+  [ ok ] no bad frames injected in this gate
+  [ ok ] A6 oracle: payload byte stream == TB xorshift64 model
+  [ ok ] A7 AXIS hold contract: stable while tvalid && !tready
+  [ ok ] A7b stat_tx_frames == TB tlast count
+  [ ok ] A5b stat_tx_bytes == TB delivered byte count
+  [ ok ] A4 frame length sequence == arithmetic model
+  [ ok ] no bad frames injected in this gate
+  [ ok ] A8 u_base 1 frame (1000B quantum)
+  [ ok ] A8 u_base 1000 bytes
+  [ ok ] A8 u_base done=1
+  [ ok ] A8 u_base active falls to 0
+  [ ok ] A8 u_base close_req fired (>=1)
+  [ ok ] A10 zero-arm frames equal
+  [ ok ] A10 zero-arm bytes equal
+  [ ok ] A10 zero-arm close_req count equal
+  [ ok ] A10 zero-arm done equal
+  [ ok ] A10 zero-arm active equal
+  [ ok ] A10 zero-arm: zero frames (silent stallÿÿÿ§5.1)
+  [ ok ] A10 zero-arm: zero bytes
+  [ ok ] A10 zero-arm: done stays 0
+  [ ok ] A10 zero-arm: active stays 1
+  [ ok ] A12a first tlast cycle: u_base == u_cont
+  [ ok ] A12a u_cont really produced a frame
+  [ ok ] A13a u_rec1 resumed after same-slot reconnect (k=40, tready low 300)
+  [ ok ] A13b u_rec2 resumed after same-slot reconnect (k=240, tready low 300)
+  [ ok ] A13c u_rec3 resumed after same-slot reconnect (k=240, tready low 6ÿÿÿ¯ÿÿÿ§ÿÿ‚)
+  [ ok ] A11b u_txok really dropped app_tx_ready
+  [FAIL] A1 continuous: close_req == 0
+  [FAIL] A2 continuous: done == 0
+  [FAIL] A1 continuous: close_req == 0
+  [FAIL] A2 continuous: done == 0
+  [FAIL] A1 continuous: close_req == 0
+  [FAIL] A2 continuous: done == 0
+  [ ok ] A1 continuous: close_req == 0 (u_txok)
+  [FAIL] A1 continuous: close_req == 0 (rec)
+  [FAIL] A2 continuous: done == 0 (rec)
+  [FAIL] A1 continuous: close_req == 0 (rec)
+  [FAIL] A2 continuous: done == 0 (rec)
+  [FAIL] A1 continuous: close_req == 0 (rec)
+  [FAIL] A2 continuous: done == 0 (rec)
+  [FAIL] A3 u_cont frames >= 4 (4 quanta)
+  [FAIL] A3 u_cont_big frames >= 9 (3 quanta x 3 frames)
+  [FAIL] A3 u_cont_one frames >= 4
+  [FAIL] A5 u_cont bytes >= 3xTX_BYTES
+  [FAIL] A5 u_cont_big bytes >= 3xTX_BYTES
+  [FAIL] A5 u_cont_one bytes >= 3xTX_BYTES
+  [ ok ] A4b u_cont: all completed frames = 1000 B (in-flight prefix bounded)
+  [FAIL] A4b u_cont_big >= 9 frames (3 quanta x 3 frames)
+  [FAIL] A12b u_cont tlast-to-tlast interval constant across reload boundary
+  [FAIL] A11 u_txok resumed after tx_ok drop (>=3 frames)
+  [FAIL] A11 u_txok bytes >= 3xTX_BYTES
+TB_APP_CONT_SUM errs=22
+TB_APP_CONT: FAIL errs=22
+TB_APP_CONT DONE
+$finish called at time : 256125800 ps : File "D:/repo/XCKU5PMini/udp_hls_10g/tb/tb_app_cont.v" Line 641
+exit
+INFO: [Common 17-206] Exiting xsim at Thu Oct 15 08:10:47 2026...
