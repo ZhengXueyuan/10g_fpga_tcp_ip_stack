@@ -36,7 +36,11 @@ rm -rf "$W"; mkdir -p "$BIN"
 #      "扩窗弄坏了工具"而不是"判据没跟上" (同族教训见 P7B_GATE4_CRITERIA_CLOSEOUT.md)。
 SW=${SNAP_WORDS:-75}
 LAST_A=$(printf '0X%X' $(( 0x20 + 4*(SW-1) )))   # 末字地址  (65 ⇒ 0X120)
-UNIMPL_A=$(printf '0X%X' $(( 0x20 + 4*SW )))      # 未实现地址 (65 ⇒ 0X124)
+if [ "$SW" -ge 71 ]; then                          # M1 起: 快照末字与未实现地址之间插了 4 个 MIR 字 (+16)
+  UNIMPL_A=$(printf '0X%X' $(( 0x20 + 4*SW + 16 )))   # 未实现地址 (75 ⇒ 0X15C / 71 ⇒ 0X14C)
+else
+  UNIMPL_A=$(printf '0X%X' $(( 0x20 + 4*SW )))        # 未实现地址 (70 ⇒ 0X138 / 65 ⇒ 0X124 / 63 ⇒ 0X11C)
+fi
 N_OK=0; N_BAD=0
 ck(){ if [ "$2" = "$3" ]; then N_OK=$((N_OK+1)); printf "  [OK  ] %-28s %s\n" "$1" "$2"
       else N_BAD=$((N_BAD+1)); printf "  [BAD ] %-28s got='%s' want='%s'\n" "$1" "$2" "$3"; fi; }
@@ -87,7 +91,6 @@ if [ "$SW" -ge 75 ]; then
   0X148) V=0;;     # W74 app_pattern.stat_up_pend (P9 E12)
   0X15C) V=${FAKE_UNIMPL:-0xffffffff};;   # 未实现地址 (75 字; = 0x20+4*SW+16)'
 elif [ "$SW" -ge 71 ]; then
-if [ "$SW" -ge 71 ]; then
   FAKE_TAIL='  0X114) V=1234;;  # W61 app_ctrl.stat_wu (次数; 非 0 才像真板)
   0X118) V=0;;     # W62 app_ctrl.rx_occ_bytes (17 位 ⇒ 高位恒 0)
   0X11C) V=0;;     # W63 app_pattern.stat_frmwait_cyc (停滞拍数; 0 = 无停顿)

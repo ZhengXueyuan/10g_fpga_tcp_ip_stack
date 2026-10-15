@@ -11,12 +11,12 @@ V=0xffffffff
 case "$A" in
   0X00) V=0x50360001;;
   # ⚠️ 假板子的 BID 必须与 p6e_snap_check.sh 的 EXPECT_BID **同代** (否则正例的判据 1.2 假 FAIL,
-  #    而"正例必须 0 FAIL"是本脚本的断言⑤)。现役 = **0x1A** (构建 F 70 字 —— ⛔ 2026-10-10 同步轮: 原 0x19 = 构建 E 67 字 /
-  #    原句 = 现役 17 (构建 C 65 字) / 10 (P7b Stage C) / 更早 9 (P7B-WU 二轮)); 跑旧口径时 FAKE_BID=0x00000017 /
-  #    0x0000000A / 0x00000009 / 0x00000008 (与 SNAP_WORDS=65/63 一起用)。
+  #    而"正例必须 0 FAIL"是本脚本的断言⑤)。现役 = **0x28** (P9 E12 观测计数器 75 字 —— ⛔ 2026-10-15 同步轮: 原 0x27 = 换流门 R5 /
+  #    0x26 = RFC seq 修复 / 0x25 = F-3 修复 / 原句 = 现役 17 (构建 C 65 字) / 10 (P7b Stage C)); 跑旧口径时
+  #    FAKE_BID=0x00000027 (换流门 R5; SNAP_WORDS=71) / 0x00000026 (RFC seq 修复; 71) / 0x00000017 / 0x00000008。
   #    ⚠️ 注释里**不许出现反引号/** —— 这是**无引号 heredoc**, 它们会被当场求值
   #       (实测: 反引号里的 EXPECT_BID 被当命令执行, 报 "command not found")。
-  0X04) V=${FAKE_BID:-0x0000001A};;
+  0X04) V=${FAKE_BID:-0x00000028};;
   0X08) V=0x00000000;;
   0X0C) V=$(awk -v t="$T" 'BEGIN{printf "0x%08x", int(t*250000000)%4294967296}');;
   0X10) V=0x00000018;;
@@ -61,7 +61,12 @@ case "$A" in
   0X12C) V=0;;     # W67 tcp_tx_frame.stat_winstall_cap (板帽侧等窗拍数, 建 F 新增)
   0X130) V=0;;     # W68 tcp_rx.stat_ack_adv (推进 snd_una 的 ACK 次数, 建 F 新增)
   0X134) V=0;;     # W69 tcp_tx_frame.o_win_at_winstall (等窗拍操作点锁存, 建 F 新增)
-  0X138) V=${FAKE_UNIMPL:-0xffffffff};;   # 未实现地址 (70 字)
+  0X138) V=0;;     # W70 app_rx_mirror.drop_bytes (载荷镜像拒收字节数, M1 新增; 真字)
+  0X13C) V=0;;     # W71 app_pattern.stat_up_ev (换流门观测; P9 E12)
+  0X140) V=0;;     # W72 app_pattern.stat_sw_req (P9 E12)
+  0X144) V=0;;     # W73 app_pattern.stat_sw_apply (P9 E12)
+  0X148) V=0;;     # W74 app_pattern.stat_up_pend (P9 E12)
+  0X15C) V=${FAKE_UNIMPL:-0xffffffff};;   # 未实现地址 (75 字; = 0x20+4*SW+16)
   *)    V=0xffffffff;;
 esac
 echo "Read 32-bit from address $A : $V"
