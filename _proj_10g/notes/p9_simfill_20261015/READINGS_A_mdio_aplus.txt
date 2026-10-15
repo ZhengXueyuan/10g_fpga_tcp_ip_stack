@@ -1,0 +1,46 @@
+READINGS -- A: mdio A+ variant arm (E7), xsim, round p9_simfill_20261015
+=======================================================================
+gate    = sim/mdio_aplus/run_mdio_aplus_gate.bat            (RC=0 on 2026-10-15 23:28)
+TB      = sim/mdio_aplus/tb_mdio_aplus.v
+DUT     = sim/mdio_aplus/mdio_vio_top.v  sha256 4416710a230ff582af999f3b4348812c007638b8497fcbec3ee52b462e9864df
+          (E7 copy of _proj_mdio/rtl/mdio_vio_top.v 79c360f8... with DIV parameterised; default 25)
+stub    = sim/mdio_aplus/vio_0_sim_stub.v (22-bit probe_in0, poke-able probe_out*)
+
+Arm table (expected -> measured)
+------------------------------------------------------------------------------
+field                PROD (DIV default 25)      VAR (#(.DIV(65537)))
+------------------------------------------------------------------------------
+pbad_t0  (bit 20)    0  exp / 0  got  OK         1  exp / 1  got  OK   <- minimal positive
+ssl_t0   (bit 21)    0  exp / 0  got  OK         0  exp / 0  got  OK   <- no-stimulus = 0
+ssl_mid   (bit 21)   0  exp / 0  got  OK         0  exp / 0  got  OK   <- before any drop
+ssl_drop  (bit 21)   1  exp / 1  got  OK         1  exp / 1  got  OK   <- minimal positive
+sticky_end(bit 16)   1  exp / 1  got  OK         1  exp / 1  got  OK   <- done_sticky
+ssl_clean (bit 21)   0  exp / 0  got  OK         0  exp / 0  got  OK   <- accepted start clears
+sticky_clr(bit 16)   0  exp / 0  got  OK         0  exp / 0  got  OK
+frame_cyc            3200 exp / 3200 got          8388608 exp / 8388608 got
+                     (128*25 = 32 us)             (128*65536 = 83.886 ms; clamp to SLOW end)
+mdc1_cyc             25 exp / 25 got              65536 exp / 65536 got  (first MDC rise after accept)
+mdct_cyc             50 exp / 50 got              131072 exp / 131072 got (rise-to-rise = 2*DIV_SAFE)
+------------------------------------------------------------------------------
+APL VERDICT PROD=PASS   APL VERDICT VAR=PASS   APL VERDICT ALL=PASS
+gate stdout: A_mdio_aplus/gate_stdout.txt -> MDIO-APLUS-GATE: PASS (base RC=0 / zero RC=0 / swap RC=0)
+
+Negative controls (mutation teeth; each = one anchored edit of the E7 copy)
+------------------------------------------------------------------------------
+arm zero  (mut_zero.v 5184c719..., concat {1'b0, 1'b0, mdio_i, ...} -- the "bit present but
+           constant 0" shape the design names in S4.2-J-D):
+  APL VERDICT ALL=FAIL ; PROD mism=1 / VAR mism=2
+  APL MISMATCH PROD ssl_drop exp=1 got=0
+  APL MISMATCH VAR  pbad_t0  exp=1 got=0
+  APL MISMATCH VAR  ssl_drop exp=1 got=0
+  PROD summary shape: pbad_t0=0 ssl_t0=0 ssl_mid=0 ssl_drop=0 ... frame_cyc=3200 (only the drop flips)
+
+arm swap  (mut_swap.v d0b2ce49..., concat {param_bad, stat_start_lost, mdio_i, ...}):
+  APL VERDICT ALL=FAIL ; PROD mism=1 / VAR mism=4
+  APL MISMATCH PROD ssl_drop exp=1 got=0
+  APL MISMATCH VAR  pbad_t0  exp=1 got=0
+  APL MISMATCH VAR  ssl_t0   exp=0 got=1     <- distinctive of the packing-order mutant
+  APL MISMATCH VAR  ssl_mid  exp=0 got=1
+  APL MISMATCH VAR  ssl_clean exp=0 got=1
+
+Per-arm raw logs: logs/xs_base.log (base) / xs_zero.log / xs_swap.log

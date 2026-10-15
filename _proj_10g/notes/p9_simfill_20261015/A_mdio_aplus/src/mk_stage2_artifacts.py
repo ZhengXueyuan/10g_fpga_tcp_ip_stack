@@ -1,0 +1,169 @@
+#!/usr/bin/env python
+# mk_stage2_artifacts.py -- produce the E7/E8 "stage-2" artifacts for the NEXT round
+# (variant BITSTREAM build + board run of the A+ arm), WITHOUT touching _proj_mdio.
+#
+# Round: _proj_10g/notes/p9_simfill_20261015.  This round is forbidden from opening
+# Vivado, so the board half of the A+ arm (DESIGN_v2r4 == v2r2+v2r3+v2r4, S2.2 E7/E8
+# + S4.3) is shipped as ready-to-apply files + steps, nothing more.
+#
+# Outputs (into the round directory, stage2_apply/):
+#   mdio_vio_top.v          -- the E7 working copy (DIV parameterised, default 25)
+#   build_mdio_divbad.tcl   -- E8: copy of _proj_mdio/build_mdio.tcl with the two
+#                              mandated changes (project dir pj_mdio_divbad + the
+#                              synth generic DIV=65537)
+#   APPLY_STEPS.txt         -- exact apply/build/burn/board steps for the next round
+#   SHA256SUMS.txt          -- self-check
+#
+# Anchored + counted replacements, same discipline as mk_e7_top.py.
+
+import hashlib
+import io
+import os
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROUND = os.path.abspath(os.path.join(HERE, "..", "..", "_proj_10g", "notes",
+                                     "p9_simfill_20261015", "stage2_apply"))
+
+
+def sha256(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(65536), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def replace_once(text, old, new, tag):
+    n = text.count(old)
+    if n != 1:
+        raise SystemExit("ANCHOR-FAIL %s: found %d occurrences (need exactly 1)" % (tag, n))
+    return text.replace(old, new, 1)
+
+
+APPLY_STEPS = """\
+p9_simfill_20261015 / stage2_apply -- A+ variant arm, REMAINING BOARD HALF
+=======================================================================
+Status: NOT APPLIED, NOT BUILT, NOT BURNED (the sim round that produced this
+directory was forbidden from opening Vivado; the sim-level arm lives in
+sim/mdio_aplus/ and its readings are in ../REPORT.md section A).
+
+Design authority: _proj_10g/notes/p9_fix_mdio_design_20261014/DESIGN_v2r4.md
+(= v2r2+v2r3+v2r4 read in that order), S2.2 (E7/E8) and S4.3 (A+ arm P1/P2/P3).
+
+Step 0 - archive first (global lesson #54: create_project -force destroys the
+         PREVIOUS build's evidence).  _proj_mdio is in no git repo.
+           _proj_mdio/pj_mdio/mdio_prj.runs/impl_1/mdio_vio_top.bit  (sha256)
+           _proj_mdio/pj_mdio/mdio_prj.runs/impl_1/*.rpt              (the 11)
+         (An archive of the older 20-bit build already lives in
+          notes/p9_fix_mdio_impl_20261015/archive_20260928/.)
+
+Step 1 - apply E7 in place (this is the ONLY edit to a production file):
+           copy /Y stage2_apply\\mdio_vio_top.v  <_proj_mdio>\\rtl\\mdio_vio_top.v
+         Expected sha256 after copy: see SHA256SUMS.txt.
+         Sanity: grep "parameter integer DIV = 25" and ".DIV (DIV)".
+         NOTE: build_mdio.tcl needs NO change for the production build - the
+         default DIV=25 keeps production elaboration bit-for-bit identical.
+
+Step 2 - add E8 (a NEW file; production file untouched):
+           copy /Y stage2_apply\\build_mdio_divbad.tcl  <_proj_mdio>\\
+         It differs from build_mdio.tcl in exactly two places:
+           (a) project dir  pj_mdio -> pj_mdio_divbad   (so -force cannot
+               destroy pj_mdio)
+           (b) after update_compile_order: synth generic DIV=65537
+
+Step 3 - build both (NEVER build and burn at the same time; do not co-run
+         Vivado with any xsim/xelab):
+           cd /d <_proj_mdio>
+           vivado -mode batch -source build_mdio.tcl         -nojournal -nolog
+           vivado -mode batch -source build_mdio_divbad.tcl  -nojournal -nolog
+         Expected variant stdout (S3.2 shape): === SYNTH === / === IMPL === /
+         TIMING_WNS .. / BITSTREAM <pj_mdio_divbad path> / === BUILD DONE ===.
+         Register BIT_SHA / BIT_BYTES / BIT_MTIME / LTX_BYTES / WNS / WHS /
+         failing-endpoint counts for BOTH builds.  R9: variant bit sha MUST
+         differ from the production bit sha, else the build did not take.
+
+Step 4 - burn the PRODUCTION bit first (S4.1), run arms J-A/J-B/J-D, then the
+         VARIANT bit, and run the A+ arm (S4.3) with the VARIANT .ltx:
+           P1  read probe_in0[20] (pbad) -> expect 1
+               (production arm reads 0 -> cross-build contrast: a clamped or
+               miswired bit cannot flip with the build)
+           P2  one transaction ~= 83.9 ms (128 * 65536 * 10 ns); MDC = 762.9 Hz
+               (legal slow end, clause 22 has no lower bound)
+           P3  commit start=1, then start=0, then start=1 inside the busy window
+               -> probe_in0[21] (ssl) = 1; wait done, then a clean start -> 0
+               (retry up to 5 if a commit lands outside the window; record
+               "not triggered" honestly - it is not a defect)
+         The sim arm in sim/mdio_aplus/ already measured all three at chip level
+         (frame 8388608 clk = 83.886 ms, mdc1 65536, mdct 131072, pbad 1/0,
+         ssl 0->1->0) - the board run is what turns "simulated" into "observed
+         on silicon"; it is still NOT the same evidence.
+
+Step 5 - restore the production state: burn back the production bit (or the
+         0x27/P8 bitstream per the ledger's current stance) and restore the
+         controlled-flow-off state if that is the standing configuration.
+
+Do NOT do (this round's boundaries):
+  - no git writes from this directory's owner (no commits);
+  - do not edit _proj_mdio/rtl/mdio_master.v (mdio_master is frozen; its two new
+    outputs already exist there);
+  - do not re-touch gate_elab_22/ (sealed by round B3).
+"""
+
+
+def main():
+    # HERE = <repo>/sim/mdio_aplus ; _proj_mdio sits next to <repo>
+    mode = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(HERE))), "_proj_mdio")
+    tcl_src = os.path.join(mode, "build_mdio.tcl")
+    if not os.path.isfile(tcl_src):
+        raise SystemExit("MISSING-SOURCE " + tcl_src)
+    if not os.path.isdir(ROUND):
+        os.makedirs(ROUND)
+
+    # --- 1. the E7 top (already generated next to this script) ---
+    top_src = os.path.join(HERE, "mdio_vio_top.v")
+    with open(top_src, "rb") as fi, open(os.path.join(ROUND, "mdio_vio_top.v"), "wb") as fo:
+        fo.write(fi.read())
+
+    # --- 2. E8: the variant build script ---
+    with io.open(tcl_src, "r", encoding="utf-8", newline="") as f:
+        tcl = f.read()
+    tcl = replace_once(tcl,
+                       "set proj [file join $here pj_mdio]",
+                       "set proj [file join $here pj_mdio_divbad]",
+                       "E8a-projdir")
+    tcl = replace_once(tcl,
+                       "update_compile_order -fileset sources_1",
+                       "update_compile_order -fileset sources_1\n"
+                       "set_property -name {STEPS.SYNTH_DESIGN.ARGS.GENERIC} -value {DIV=65537} -objects [get_runs synth_1]",
+                       "E8b-generic")
+    tcl = tcl.replace("build_mdio.tcl -- build the VIO-driven MDIO probe",
+                      "build_mdio_divbad.tcl -- E8 VARIANT build (A+ arm): identical to build_mdio.tcl\n"
+                      "# except (a) project dir pj_mdio_divbad and (b) synth generic DIV=65537\n"
+                      "# (DIV > 65536 is clamped to 65536 and param_bad rises; see DESIGN_v2r4 S2.2/S4.3).\n"
+                      "# Original header: build_mdio.tcl -- build the VIO-driven MDIO probe", 1)
+    tcl_bad = os.path.join(ROUND, "build_mdio_divbad.tcl")
+    with io.open(tcl_bad, "w", encoding="utf-8", newline="") as f:
+        f.write(tcl)
+
+    # --- 3. steps + sums ---
+    with io.open(os.path.join(ROUND, "APPLY_STEPS.txt"), "w", encoding="utf-8", newline="\r\n") as f:
+        f.write(APPLY_STEPS)
+
+    lines = []
+    for name in ("mdio_vio_top.v", "build_mdio_divbad.tcl"):
+        p = os.path.join(ROUND, name)
+        lines.append("%s *%s\n" % (sha256(p), name))
+    with io.open(os.path.join(ROUND, "SHA256SUMS.txt"), "w", encoding="utf-8", newline="") as f:
+        f.writelines(lines)
+
+    print("STAGE2-DIR    %s" % ROUND)
+    for name in ("mdio_vio_top.v", "build_mdio_divbad.tcl"):
+        p = os.path.join(ROUND, name)
+        print("STAGE2-OUT    %s  %s" % (sha256(p), p))
+    print("TCL-SRC-SHA256 %s" % sha256(tcl_src))
+    print("MK-STAGE2: OK")
+
+
+if __name__ == "__main__":
+    main()

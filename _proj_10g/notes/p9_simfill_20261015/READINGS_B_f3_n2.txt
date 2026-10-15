@@ -1,0 +1,44 @@
+READINGS -- B: F-3 N-2 (I5' default-OFF arm), xsim, zero build, round p9_simfill_20261015
+=========================================================================================
+runner = sim/f3_resync/n2_arm/run_n2_arm.bat all        (RC=0, 2026-10-15 23:27, wall 1m17s)
+TB     = frozen/tb_p6e_pcie_counters.FROZEN.v  sha256 ab54d5e05f193d199242ae346cf4cc6cec97f58b476e435791c0efce8a62c927
+         (== sim/p6e_pcie/tb_p6e_pcie_counters.v at run time: FROZEN-TB-MATCH)
+stub   = frozen/xdma_0_sim_stub.FROZEN.v       sha256 65fc292de109d1d0a986c34a1b67d45a94e1b0c501fe3c34bda114b181f317fe
+         (== sim/p6e_pcie/xdma_0_sim_stub.v at run time: FROZEN-STUB-MATCH)
+
+Arm matrix (2x2: VLAN_STRIP_RESYNC x stimulus shape)
+--------------------------------------------------------------------------------------------
+arm        wrapper (sha256)                        TB (stimulus)      readings                              verdict
+off        3d53d7c9...resync0.v (RESYNC=1'b0)      FROZEN (SOP)       W26=69 W27=256 / W30=257 W31=2056     PASS_ALL  <- baseline
+on         bbf6e3cb... (tree wrapper, RESYNC=1'b1) FROZEN (SOP)       W26=69 W27=256 / W30=257 W31=2056     PASS_ALL  <- same-session control
+off_nosop  3d53d7c9...resync0.v (RESYNC=1'b0)      NOSOP (SOP-less)   W26=69 W27=256 / W30=257 W31=2056     PASS_ALL  <- *** the I5' arm ***
+on_nosop   bbf6e3cb... (tree wrapper, RESYNC=1'b1) NOSOP (SOP-less)   W26=3  W27=5   / W30=320 W31=2560     FAIL 1 项失败 (H1 red)
+--------------------------------------------------------------------------------------------
+Baseline of record (pre-F-3, 5 archived on-disk backups incl. the two SALVAGED_preF3 files):
+  W26=69  W27=256  W30=257  W31=2056  + PASS_ALL          <- off / off_nosop reproduce it verbatim
+Pre-fix failure of record (xsim_p6e_cnt_PREFIX_011001.log, SOP-less x RESYNC=1):
+  W26=3   W27=5    W30=320  W31=2560  + FAIL              <- on_nosop reproduces it verbatim
+
+Same-session identity / single-variable evidence
+--------------------------------------------------------------------------------------------
+git HEAD (all four arms): 730c99e153bf4593a307c015a98e4f2cae964ecb
+files.f entries per arm  : 218 ; FP-AGG: off bb59a053... / on f578b0bb... / off_nosop f4ff0ef3... / on_nosop 857270d0...
+fingerprint diff off vs on: EXACTLY ONE file differs -- the wrapper copy (line 213/220 rows only)
+wrapper diff off vs tree : EXACTLY ONE line -- :720 localparam VLAN_STRIP_RESYNC = 1'b1;
+                                                     -> 1'b0; // N-2 arm FROZEN-OFF (p9_simfill_20261015)
+TB diff FROZEN vs NOSOP  : EXACTLY TWO lines -- the H-section opening tuser force (387) and the H0
+                           witness condition (390); streams/counts/criteria untouched
+arm-identity pre-checks  : OFF copies carry "FROZEN-OFF" and zero "VLAN_STRIP_RESYNC = 1'b1";
+                           ON copies carry exactly one "1'b1"; NOSOP TBs carry the NOSOP marker
+
+Reading-level vs structural-proof comparison (I5': "OFF => bit-equivalent to pre-F-3")
+--------------------------------------------------------------------------------------------
+CONSISTENT   : the OFF arm reproduces the pre-F-3 functional baseline verbatim in BOTH stimulus
+               shapes (SOP and SOP-less) and passes all 26 gate criteria (PASS_ALL), on the same
+               tree revision as its ON control -> I5' is NOT falsified; I1's conclusion holds at
+               the gate-reading level.
+DIFFERENCE   : the measurement is the gate's readings + verdict, NOT a cycle-by-cycle stream
+               comparison -- "bit-equivalence" itself remains the structural proof (I1).
+               Also note the wrapper used (bbf6e3cb) is a LATER revision than the one the 5
+               archived pre-F-3 logs were taken with, so "verbatim" is measured against those
+               archived readings, not against a re-run of pre-F-3 RTL.

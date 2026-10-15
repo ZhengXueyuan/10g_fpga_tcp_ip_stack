@@ -1,0 +1,102 @@
+ROOT=D:\repo\XCKU5PMini\udp_hls_10g
+WRAPPER-SRC    D:\repo\XCKU5PMini\udp_hls_10g\board\wrapper_p4.v
+WRAPPER-SRC-SHA256 bbf6e3cb953f9c8ce071be26f601d017ab84e764ab00b3a8f50047a63525ae47
+ANCHOR-1B1-COUNT 1
+ANCHOR-1B0-COUNT 1
+WR-OFF         D:\repo\XCKU5PMini\udp_hls_10g\sim\f3_resync\n2_arm\wr_off\wrapper_p4_resync0.v
+WR-OFF-SHA256  3d53d7c97dcc9cbc76d3522a3b50db2178436ad6fa2c5fbd7d138ba36763adf5
+WR-ON          D:\repo\XCKU5PMini\udp_hls_10g\sim\f3_resync\n2_arm\wr_on\wrapper_p4.v
+WR-ON-SHA256   bbf6e3cb953f9c8ce071be26f601d017ab84e764ab00b3a8f50047a63525ae47
+MK-WR-N2: OK
+NOSOP-SRC      D:\repo\XCKU5PMini\udp_hls_10g\sim\f3_resync\n2_arm\frozen\tb_p6e_pcie_counters.FROZEN.v
+NOSOP-SRC-SHA256 ab54d5e05f193d199242ae346cf4cc6cec97f58b476e435791c0efce8a62c927
+NOSOP-OUT      D:\repo\XCKU5PMini\udp_hls_10g\sim\f3_resync\n2_arm\frozen\tb_p6e_pcie_counters.NOSOP.v
+NOSOP-OUT-SHA256 fda3ea56c4bf491007892557accfee7fe857048c981519592ae44c8eb5b663be
+MK-TB-NOSOP: OK
+FROZEN-TB-SHA256  ab54d5e05f193d199242ae346cf4cc6cec97f58b476e435791c0efce8a62c927
+LIVE-TB-SHA256    ab54d5e05f193d199242ae346cf4cc6cec97f58b476e435791c0efce8a62c927
+FROZEN-TB-MATCH
+FROZEN-STUB-SHA256 65fc292de109d1d0a986c34a1b67d45a94e1b0c501fe3c34bda114b181f317fe
+LIVE-STUB-SHA256   65fc292de109d1d0a986c34a1b67d45a94e1b0c501fe3c34bda114b181f317fe
+FROZEN-STUB-MATCH
+ARMTAG=off 
+WRP=D:\repo\XCKU5PMini\udp_hls_10g\sim\f3_resync\n2_arm\wr_off\wrapper_p4_resync0.v 
+TBF=D:\repo\XCKU5PMini\udp_hls_10g\sim\f3_resync\n2_arm\frozen\tb_p6e_pcie_counters.FROZEN.v 
+WRP-SHA256 3d53d7c97dcc9cbc76d3522a3b50db2178436ad6fa2c5fbd7d138ba36763adf5
+TB-SHA256  ab54d5e05f193d199242ae346cf4cc6cec97f58b476e435791c0efce8a62c927
+---- files.f line count ----
+FILES_F_LINES 218
+730c99e153bf4593a307c015a98e4f2cae964ecb
+---- fingerprint ----
+FP-NFILES 218
+FP-AGG bb59a053748529c6791fea66b1ceaa57d44c6b937014ec5c6333738f9fe174cc
+---- arm off readings ----
+  [INFO] H 读数(灌满后): W26=69 W27=256
+  [INFO] H 读数(排空后): W30=257 W31=2056 W0=0
+  [INFO] H 读数(灌满后): W26=69 W27=256
+  [INFO] H 读数(排空后): W30=257 W31=2056 W0=0
+PASS_ALL  tb_p6e_pcie_counters: W16/W17 + W26/W27/W28/W29/W30/W31 增量逻辑全过
+  [PASS] arm off
+ARMTAG=on 
+WRP=D:\repo\XCKU5PMini\udp_hls_10g\sim\f3_resync\n2_arm\wr_on\wrapper_p4.v 
+TBF=D:\repo\XCKU5PMini\udp_hls_10g\sim\f3_resync\n2_arm\frozen\tb_p6e_pcie_counters.FROZEN.v 
+WRP-SHA256 bbf6e3cb953f9c8ce071be26f601d017ab84e764ab00b3a8f50047a63525ae47
+TB-SHA256  ab54d5e05f193d199242ae346cf4cc6cec97f58b476e435791c0efce8a62c927
+---- files.f line count ----
+FILES_F_LINES 218
+730c99e153bf4593a307c015a98e4f2cae964ecb
+---- fingerprint ----
+FP-NFILES 218
+FP-AGG f578b0bb3b24515b30568e96d2bfd654bf2f735bd5469068c8116b31826d7163
+---- arm on readings ----
+  [INFO] H 读数(灌满后): W26=69 W27=256
+  [INFO] H 读数(排空后): W30=257 W31=2056 W0=0
+  [INFO] H 读数(灌满后): W26=69 W27=256
+  [INFO] H 读数(排空后): W30=257 W31=2056 W0=0
+PASS_ALL  tb_p6e_pcie_counters: W16/W17 + W26/W27/W28/W29/W30/W31 增量逻辑全过
+  [PASS] arm on
+ARMTAG=off_nosop 
+WRP=D:\repo\XCKU5PMini\udp_hls_10g\sim\f3_resync\n2_arm\wr_off\wrapper_p4_resync0.v 
+TBF=D:\repo\XCKU5PMini\udp_hls_10g\sim\f3_resync\n2_arm\frozen\tb_p6e_pcie_counters.NOSOP.v 
+WRP-SHA256 3d53d7c97dcc9cbc76d3522a3b50db2178436ad6fa2c5fbd7d138ba36763adf5
+TB-SHA256  fda3ea56c4bf491007892557accfee7fe857048c981519592ae44c8eb5b663be
+---- files.f line count ----
+FILES_F_LINES 218
+730c99e153bf4593a307c015a98e4f2cae964ecb
+---- fingerprint ----
+FP-NFILES 218
+FP-AGG f4ff0ef360dffa8a05a9e8c97327599b87d76ab8f65fb311bbb71c9bc1e3386f
+---- arm off_nosop readings ----
+  [INFO] H 读数(灌满后): W26=69 W27=256
+  [INFO] H 读数(排空后): W30=257 W31=2056 W0=0
+  [INFO] H 读数(灌满后): W26=69 W27=256
+  [INFO] H 读数(排空后): W30=257 W31=2056 W0=0
+PASS_ALL  tb_p6e_pcie_counters: W16/W17 + W26/W27/W28/W29/W30/W31 增量逻辑全过
+  [PASS] arm off_nosop
+ARMTAG=on_nosop 
+WRP=D:\repo\XCKU5PMini\udp_hls_10g\sim\f3_resync\n2_arm\wr_on\wrapper_p4.v 
+TBF=D:\repo\XCKU5PMini\udp_hls_10g\sim\f3_resync\n2_arm\frozen\tb_p6e_pcie_counters.NOSOP.v 
+WRP-SHA256 bbf6e3cb953f9c8ce071be26f601d017ab84e764ab00b3a8f50047a63525ae47
+TB-SHA256  fda3ea56c4bf491007892557accfee7fe857048c981519592ae44c8eb5b663be
+---- files.f line count ----
+FILES_F_LINES 218
+730c99e153bf4593a307c015a98e4f2cae964ecb
+---- fingerprint ----
+FP-NFILES 218
+FP-AGG 857270d0f197ff9352b85af53d0d6b2e0e929e3b42030fccb2d87031bc1e57ff
+expected-fail arm: gate must red on the SOP-less stimulus
+---- arm on_nosop readings ----
+  [INFO] H 读数(灌满后): W26=3 W27=5
+  [INFO] H 读数(排空后): W30=320 W31=2560 W0=0
+  [INFO] H 读数(灌满后): W26=3 W27=5
+  [INFO] H 读数(排空后): W30=320 W31=2560 W0=0
+  [FAIL] �������������������������������) = 5 (期望 256)
+FAIL      tb_p6e_pcie_counters: 1 项失败
+  [PASS] arm on_nosop
+==================== SUMMARY ====================
+  arm=all RC=0
+  off RC=0       expect 0: PASS_ALL + W26=69 W27=256 + W30=257 W31=2056
+  on RC=0        expect 0: same readings, same session
+  off_nosop RC=0 expect 0: historical SOP-less stimulus also reproduces baseline
+  on_nosop RC=0  expect 0: SOP-less stimulus trips the gate with the gate ON
+N2-ARM-GATE: PASS 

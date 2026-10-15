@@ -1,0 +1,52 @@
+#-----------------------------------------------------------
+# xsim v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Thu Oct 15 23:28:22 2026
+# Process ID         : 12756
+# Current directory  : D:/repo/XCKU5PMini/udp_hls_10g/sim/mdio_aplus/runbase
+# Command line       : xsim.exe -log xs.log -mode tcl -source {xsim.dir/tb_mdio_aplus/xsim_script.tcl}
+# Log file           : D:/repo/XCKU5PMini/udp_hls_10g/sim/mdio_aplus/runbase/xs.log
+# Journal file       : D:/repo/XCKU5PMini/udp_hls_10g/sim/mdio_aplus/runbase\xsim.jou
+# Running On         : xyz-intel
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26300
+# Processor Detail   : Intel(R) Core(TM) Ultra 7 265K
+# CPU Frequency      : 3878 MHz
+# CPU Physical cores : 20
+# CPU Logical cores  : 20
+# Host memory        : 68053 MB
+# Swap memory        : 4294 MB
+# Total Virtual      : 72348 MB
+# Available Virtual  : 47511 MB
+#-----------------------------------------------------------
+source xsim.dir/tb_mdio_aplus/xsim_script.tcl
+# xsim {tb_mdio_aplus} -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+APL ARM=PROD DIV=25 E7-default-no-override
+APL OK PROD pbad_t0 = 0
+APL OK PROD ssl_t0 = 0
+APL OK PROD ssl_mid = 0
+APL OK PROD ssl_drop = 1
+APL OK PROD sticky_end = 1
+APL OK PROD ssl_clean = 0
+APL OK PROD sticky_clr = 0
+APL SUMMARY PROD pbad_t0=0 ssl_t0=0 ssl_mid=0 ssl_drop=1 ssl_clean=0 sticky_end=1 sticky_clr=0 frame_cyc=3200 mdc1_cyc=25 mdct_cyc=50
+APL VERDICT PROD=PASS
+APL ARM=VAR DIV=65537 clamped-65536
+APL OK VAR pbad_t0 = 1
+APL OK VAR ssl_t0 = 0
+APL OK VAR ssl_mid = 0
+APL OK VAR ssl_drop = 1
+APL OK VAR sticky_end = 1
+APL OK VAR ssl_clean = 0
+APL OK VAR sticky_clr = 0
+APL SUMMARY VAR pbad_t0=1 ssl_t0=0 ssl_mid=0 ssl_drop=1 ssl_clean=0 sticky_end=1 sticky_clr=0 frame_cyc=8388608 mdc1_cyc=65536 mdct_cyc=131072
+APL VERDICT VAR=PASS
+APL VERDICT ALL=PASS
+=== done ===
+$finish called at time : 84573735 ns : File "D:/repo/XCKU5PMini/udp_hls_10g/sim/mdio_aplus/tb_mdio_aplus.v" Line 237
+exit
+INFO: [Common 17-206] Exiting xsim at Thu Oct 15 23:28:29 2026...

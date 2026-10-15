@@ -1,0 +1,44 @@
+ROOT=D:\repo\XCKU5PMini\udp_hls_10g
+VSRC=D:\repo\XCKU5PMini\udp_hls_10g\sim\mdio_aplus\mdio_vio_top.v ARM=base 
+DUT-SHA256 4416710a230ff582af999f3b4348812c007638b8497fcbec3ee52b462e9864df
+---- arm base evidence ----
+DUT-SHA256 4416710a230ff582af999f3b4348812c007638b8497fcbec3ee52b462e9864df
+APL SUMMARY PROD pbad_t0=0 ssl_t0=0 ssl_mid=0 ssl_drop=1 ssl_clean=0 sticky_end=1 sticky_clr=0 frame_cyc=3200 mdc1_cyc=25 mdct_cyc=50
+APL SUMMARY VAR pbad_t0=1 ssl_t0=0 ssl_mid=0 ssl_drop=1 ssl_clean=0 sticky_end=1 sticky_clr=0 frame_cyc=8388608 mdc1_cyc=65536 mdct_cyc=131072
+APL VERDICT PROD=PASS
+APL VERDICT VAR=PASS
+APL VERDICT ALL=PASS
+  [PASS] base: ALL=PASS + PROD/VAR summaries verbatim
+VSRC=D:\repo\XCKU5PMini\udp_hls_10g\sim\mdio_aplus\mut\mut_zero.v ARM=zero 
+DUT-SHA256 5184c719e06cdb5306b49e98e90af5718f7e860a8797be46fc0596b48e37039a
+---- arm zero evidence ----
+DUT-SHA256 5184c719e06cdb5306b49e98e90af5718f7e860a8797be46fc0596b48e37039a
+APL SUMMARY PROD pbad_t0=0 ssl_t0=0 ssl_mid=0 ssl_drop=0 ssl_clean=0 sticky_end=1 sticky_clr=0 frame_cyc=3200 mdc1_cyc=25 mdct_cyc=50
+APL SUMMARY VAR pbad_t0=0 ssl_t0=0 ssl_mid=0 ssl_drop=0 ssl_clean=0 sticky_end=1 sticky_clr=0 frame_cyc=8388608 mdc1_cyc=65536 mdct_cyc=131072
+APL VERDICT PROD=FAIL mism=1
+APL VERDICT VAR=FAIL mism=2
+APL VERDICT ALL=FAIL
+APL MISMATCH PROD ssl_drop exp=1 got=0
+APL MISMATCH VAR pbad_t0 exp=1 got=0
+APL MISMATCH VAR ssl_drop exp=1 got=0
+  [PASS] zero: ALL=FAIL with exactly the designed holes
+VSRC=D:\repo\XCKU5PMini\udp_hls_10g\sim\mdio_aplus\mut\mut_swap.v ARM=swap 
+DUT-SHA256 d0b2ce49add978d3b2ec432e81a34fa7668f897cb1fb79221842c7a4909e2487
+---- arm swap evidence ----
+DUT-SHA256 d0b2ce49add978d3b2ec432e81a34fa7668f897cb1fb79221842c7a4909e2487
+APL SUMMARY PROD pbad_t0=0 ssl_t0=0 ssl_mid=0 ssl_drop=0 ssl_clean=0 sticky_end=1 sticky_clr=0 frame_cyc=3200 mdc1_cyc=25 mdct_cyc=50
+APL SUMMARY VAR pbad_t0=0 ssl_t0=1 ssl_mid=1 ssl_drop=1 ssl_clean=1 sticky_end=1 sticky_clr=0 frame_cyc=8388608 mdc1_cyc=65536 mdct_cyc=131072
+APL VERDICT PROD=FAIL mism=1
+APL VERDICT VAR=FAIL mism=4
+APL VERDICT ALL=FAIL
+APL MISMATCH PROD ssl_drop exp=1 got=0
+APL MISMATCH VAR pbad_t0 exp=1 got=0
+APL MISMATCH VAR ssl_t0 exp=0 got=1
+APL MISMATCH VAR ssl_mid exp=0 got=1
+APL MISMATCH VAR ssl_clean exp=0 got=1
+  [PASS] swap: ALL=FAIL with the packing-order holes
+==================== SUMMARY ====================
+  base runbase RC=0   expect 0: VERDICT ALL=PASS + PROD/VAR summaries verbatim
+  zero runzero RC=0   expect 0: ALL=FAIL + holes exactly PROD ssl_drop / VAR pbad_t0
+  swap runswap RC=0   expect 0: ALL=FAIL + holes include VAR pbad_t0 / VAR ssl_t0
+MDIO-APLUS-GATE: PASS 
