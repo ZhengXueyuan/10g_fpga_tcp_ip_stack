@@ -1,0 +1,23 @@
+
+****** Vivado v2025.2 (64-bit)
+  **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+  **** Start of session at: Fri Oct 16 02:15:07 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source build_mdio_divbad.tcl
+# set here [file normalize [file dirname [info script]]]
+# set proj [file join $here pj_mdio_divbad]
+# create_project -force mdio_prj $proj -part xcku5p-ffvb676-1-e
+# set_property target_language Verilog [current_project]
+# add_files -norecurse [list \
+#     [file join $here rtl mdio_master.v] \
+#     [file join $here rtl mdio_vio_top.v] ]
+# add_files -fileset constrs_1 -norecurse [file join $here xdc ku5p_mdio.xdc]
+# set_property top mdio_vio_top [current_fileset]
+# update_compile_order -fileset sources_1
+# set_property -name {STEPS.SYNTH_DESIGN.ARGS.GENERIC} -value {DIV=65537} -objects [get_runs synth_1]
+ERROR: [Common 17-54] The object 'run' does not have a property 'STEPS.SYNTH_DESIGN.ARGS.GENERIC'.
+INFO: [Common 17-206] Exiting Vivado at Fri Oct 16 02:15:13 2026...

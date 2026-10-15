@@ -1,0 +1,103 @@
+p9_mdio_aplus_board_20261016 -- board-phase readings (raw line excerpts; full logs in board/ and burn/)
+======================================================================================================
+Sequence: (1) burn PROD mdio bit -> J-A/J-B/J-D  (2) burn VARIANT mdio bit -> A+ P1/P2/P3 (+ raw-bit
+diagnostic + P2b timing)  (3) restore 0x28 + PCIe + identity + 0x08=0 -> FINAL_STATE.
+All JTAG volatile; QSPI never written.  Each burn = sha256 gate + five criteria (HIGH/DONE/path/
+freshness/noABORT).
+
+--- BURN 1: production mdio bit (sha 0549c1af...) ---
+PRE witness : PRE_0x04=0x00000028  PRE_0x08=0x00000000  PRE_CARRIER=1
+Five criteria: BURN_OK (log burn/BURN_mdio_vio_top_prod_20261016_022150.txt)
+Board-side identity: VIO present; STATUS_WIDTH=22; WRITE_CHECK phyad ok.
+
+--- ARM J-A (full scan, production build) -- board/PROBE_PROD_STDOUT.txt ---
+STATUS_WIDTH=22 ; WRITE_CHECK phyad set to 5, reads back <05>
+IDLE_STATUS rd=0000 done=0 busy=0 rstn=1 mdio=1 ssl=0 pbad=0
+PHYID  0 -- PHYID1=001C PHYID2=C915  (id = 001CC915) ; PHYID 1 -- same 001CC915
+PHYID 2..31 -- all silent (0xFFFF)
+ARM_J_A_ANSWERED 0,1 ; ARM_J_A_NO_RESPONSE (empty) ; 71 TX records, every one done=1
+ARM_J_A_SSL_SUM=0 ; ARM_J_A_PBAD_SUM=0   (both new bits read 0 in all 71 records; label-independent)
+
+--- ARM J-B (interleaved freshness) ---
+ARM_J_B_RD 001C FFFF 001C FFFF 001C 001C FFFF      (matches the expected sequence verbatim)
+
+--- ARM J-D (new-bit reading on production) ---
+PROD_PBAD_READ rd=FFFF done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=0   (production end of the P1 contrast)
+
+--- BURN 2: variant mdio bit (sha 1d7bfdb7...) ---
+PRE witness : PRE_0x04=0xffffffff  PRE_0x08=0xffffffff  PRE_CARRIER=0   (mdio state: PCIe endpoint gone)
+Five criteria: BURN_OK (log burn/BURN_mdio_vio_top_divbad_20261016_022452.txt)
+
+--- A+ P1 (variant): param_bad ---
+APLUS_P1_IDLE rd=001C done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=1 raw=1d001c
+   (bit20=1 -> param_bad=1 on the variant; production read 0 -> cross-build contrast HOLDS)
+
+--- A+ P3 (variant): stat_start_lost trigger (attempt 1 of max 5 SUCCEEDED) ---
+APLUS_P3_PRE k=1 ... ssl=0 pbad=1 raw=1d001c
+APLUS_P3_COMMIT_MS k=1 d_c2c1=19 d_c3c2=20 d_c4c3=26 span_c1_c4=65   (3 commits span 65 ms < 83.9 window)
+APLUS_P3_AFTER k=1 rd=001C done=1 busy=0 rstn=1 mdio=1 ssl=1 pbad=1 raw=3d001c   (bit21 set -> dropped)
+APLUS_P3_TRIGGERED k=1 ; APLUS_P3_ATTEMPTS 1
+APLUS_P3_CLEAN_READ rd=0000 done=0 busy=1 rstn=1 mdio=1 ssl=0 pbad=1 raw=1e0000  (accepted start clears)
+APLUS_P3_SSL_CLEARED ssl_bit21=0
+APLUS_P3_FINAL rd=001C done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=1 raw=1d001c
+Raw deltas: 1d001c -> 3d001c = exactly bit21 added (set); 3d001c -> 1e0000 = bit21 cleared+done cleared+
+busy set (the accept); 1e0000 -> 1d001c = frame done, fresh rd=001C.
+
+--- Raw-bit diagnostic (board/PROBE_APLUS_DIAG_STDOUT.txt; settles the bit map BY MEASUREMENT) ---
+VERBATIM diag lines (the diag script printed the raw hex only for A; the rest are the printed
+bit-by-bit lines, quoted as-is):
+A_IDLE          raw=1d001c  b21=0 b20=1 b19=1 b18=1 b17=0 b16=1 rd=001C
+C_AFTER_START   b21=0 b20=1 b19=1 b18=1 b17=1 b16=0 rd=0000      (mid-frame: busy=1, done=0)
+C_DONE          b21=0 b20=1 b19=1 b18=1 b17=0 b16=1 rd=001C  C_ELAPSED done_at=+105 ms from start commit
+D_PRE           b21=0 b20=1 b19=1 b18=1 b17=0 b16=1 rd=001C
+D_AFTER_TRIGGER b21=1 b20=1 b19=0 b18=1 b17=1 b16=0 rd=0000      (drop recorded while busy)
+D_AFTER_PLUS30  b21=1 b20=1 b19=1 b18=1 b17=0 b16=1 rd=001C      (sticky after the frame ended)
+E_CLEAN_START   b21=0 b20=1 b19=0 b18=1 b17=1 b16=0 rd=0000      (accepted start clears bit21;
+                                                                 new frame running: busy=1, done=0)
+E_DONE          b21=0 b20=1 b19=1 b18=1 b17=0 b16=1 rd=001C
+=> bit20 = param_bad (constant 1 across every state on the variant; frame timing proves DIV=65536),
+   bit21 = stat_start_lost (0->1 on drop, 1->0 on accepted start), bits [19:16] = mdio/rstn/busy/done.
+   The run2 probe script prints its own raw words (they are vget readbacks, e.g. 1d001c / 3d001c /
+   1e0000); the diag section above prints bits only (raw hex only for A_IDLE) -- quoted verbatim.
+   Cross-check with the sim arm: the sim's swap-mutant (concat order swapped) would show bit21=1 at
+   idle; the board reads bit21=0 at idle => the board packing is the BASE one, not the swap mutant.
+   (Note: diag section B wrote 2 to the wrong probe -- force_rst is a separate 1-bit probe
+   'vio_force_rst' in this build; 'u_vio_n_2' is the other half of probe_out1. b18 was therefore NOT
+   toggled; it reads constant 1, consistent with eth_rstn high after POR, but was not exercised.)
+
+--- A+ P2 / P2b (variant): one transaction ~= 83.9 ms ---
+run2 P2 (probe_mdio_aplus.tcl): APLUS_P2_DONE_AT_MS shows elapsed=58 ms with BUSY_SEEN=0 -> INVALID as a
+   frame measurement: the first done-poll read the PREVIOUS transaction's done_sticky before this
+   start had propagated (JTAG->fabric update latency jitter; see P2b). Reported honestly, not used.
+run1 P2: elapsed 127 ms with busy_seen=1 (valid busy observation; full line in
+   board/PROBE_APLUS_STDOUT_run1_loopbug.txt)
+diag C: busy=1 read 14 ms after the start commit; done read at +105 ms; fresh rd=001C.
+P2b (board/PROBE_APLUS_P2B_STDOUT.txt; busy-first idiom, 3 measured rounds):
+   commit_to_busy = 34/32/31 ms ; busy_to_done = 72/76/72 ms ; commit_to_done = 106/108/103 ms
+   pre-state cycles: start-commit -> done-read at 89/85/88 ms.
+   => frame duration is "tens of ms" (JTAG read cadence ~20-70 ms limits resolution); every sample is
+   consistent with the constructed 128*65536*10ns = 83.886 ms and inconsistent with production 32 us.
+   MDC = 762.9 Hz is by construction (64 MDC periods/frame); no scope -> not directly measured.
+
+--- run1 (probe_mdio_aplus.tcl first execution) FAILED in its own P3 loop ---
+   wrong # args: should be "for start test next command"   (my Tcl arity bug: for-loop missing {incr k})
+   run1's P1/P2 records are preserved (PROBE_APLUS_STDOUT_run1_loopbug.txt); P3 never ran in run1.
+   run1's decode labels were also swapped (bit20 printed as "ssl"); fixed in run2 + diag.
+
+--- BURN 3: restore 0x28 (sha 79c9cf43... == task anchor) ---
+PRE witness : PRE_0x04=0xffffffff (mdio state)
+Five criteria: BURN_OK (log burn/BURN_0x28_RESTORE_20261016_023141.txt)
+PCIe recovery: RP_PORT=0000:00:1c.0 ; first line read = "LnkSta: Speed 5GT/s (downgraded), Width x4"
+   => device-level remove+rescan SUFFICED (no root-port escalation needed)
+   lspci: Region 0 1M / Region 1 64K (2 BARs) ; /dev/xdma0_{user,control,c2h_0,h2c_0} all present
+   dmesg: xdma:identify_bars: 2 BARs: config 1, user 0
+Identity gate: MAGIC 0x50360001 / BID 0x00000028 / MARKER 0xdeadbeef / UNIMPL 0x15C=0xffffffff /
+   SCRATCH 0x08=0x00000000 ... ID_RC=0 ; WINDOW_SCAN_NFF=0 (75 words)
+Hard criteria grep (this log): C1_ID_RC=PASS_LINE_PRESENT / C2_LNKSTA_X4=PRESENT /
+   C3_BID_0x28=PRESENT / C4_0x08_ZERO=PRESENT
+0x08 restore: before=0x00000000 after=0x00000000 ; CARRIER=1 ; Speed 10000Mb/s ; Link detected: yes
+
+--- FINAL_STATE (board/FINAL_STATE_APP_FINAL.txt) ---
+BID 0x00000028 / SCRATCH 0x08=0 / ID_RC=0 / LnkSta x4 / four /dev nodes / SNAP nff=0
+NIC: 192.168.100.100/32 on enp1s0f1np1, CARRIER=1, unmanaged, Adaptive RX off, rx-usecs 0, 10000Mb/s
+Leftovers: NO_P7B_PROCS / NO_TCPDUMP / NO_K0 ; p7b_snap.sh md5 a257af82... (unchanged since B4)

@@ -1,0 +1,184 @@
+# p9_mdio_aplus_board_20261016 —— mdio A+ 变体位流构建 + 板级实测轮（p9_simfill 的 A+ 臂"板上那一半"）
+
+> 轮 = 2026-10-16 02:05–02:36 CST · 依据 = `p9_simfill_20261015/stage2_apply/APPLY_STEPS.txt`（Step 0–5）
+> + `p9_fix_mdio_design_20261014/DESIGN_v2r4.md`（v2r2+v2r3+v2r4；E7/E8 = v2r2 §2.2；A+ 臂 P1/P2/P3 = v2r2 §4.3）
+> · 收尾口径 = 任务书订正：**0x28 + `0x08=0`**（非 APPLY_STEPS 原文的 0x27）。
+> ⛔ 本件 = 读数与形态；**一切 PASS/FAIL 裁定权在判据所有者**。全程只走 **JTAG 易失**，**QSPI 一字未写**。
+> **状态一行话**：E7/E8 已应用（E8 有一处**必要的一行修正**，见 §3）；两构建收口（**R9 ✓**）；
+> 板级三次烧录五判据全过；**J-A/J-B/J-D 全中**；**A+ 臂 P1=1 / P2=数十 ms / P3 第 1 次尝试即触发 + 净启动清位**（原始位级记录在案）；
+> 收尾已回 **0x28 + `0x08=0` + 身份门全中**。
+
+---
+
+## §1 环境与前置（全部现取）
+
+| 项 | 值 |
+|---|---|
+| 对端 192.168.0.38 | 在线；`hw_server` = **active** |
+| 板现态（烧 mdio 前） | **`0x04=0x00000028`** · `0x08=0x00000000` · `0x15C=0xffffffff` · `LnkSta Width x4` · `CARRIER=1`（= B4 收尾态，逐字相符） |
+| 对端工具基线 | `/tmp/p7b_biz/` 在位；`p7b_snap.sh` md5 **`a257af8299904789c6a6dd9ed5ca030f`**（== B4 FINAL_STATE 值 ⇒ 自 B4 起未动） |
+| `_proj_mdio` git 状态 | **不在任何 git 仓库内**（已核；`D:\repo\XCKU5PMini` 非仓）⇒ 归档 = 唯一回退来源（全局 #54） |
+| 密码纪律 | `PEER_PW` 只作命令前缀；**未落盘**（轮内文本件 grep = 0 命中；`tcpreg_program_stdout.txt` grep = 0） |
+
+## §2 Step 0 —— 归档（先做，防 `create_project -force` 摧毁取证）
+
+- 源 = `_proj_mdio/pj_mdio/mdio_prj.runs/impl_1/`（= B3 构建，mtime 2026-10-15 13:15）。
+- 归档到 `archive_impl1/`：**bit + 11 份 `*.rpt` = 12 件**，`SHA256SUMS.txt` 自核 **12/12 OK**。
+- 其中旧 bit sha256 = **`4c74c219bf6cceb668b882cfa4d4a356ae128dfd8137578709453cf980e7132a`**（15,431,263 B）。
+- 额外：`pre_edit_b3/` 存两份生产文件"改前"逐字节副本（`mdio_vio_top.v` = `79c360f8…` / `build_mdio.tcl` = `b7ff3c45…`）。
+
+## §3 Step 1/2 —— E7/E8 应用（唯一生产面编辑 = E7 一处；E8 = 新增文件）
+
+**E7**（拷入）：`stage2_apply/mdio_vio_top.v` → `_proj_mdio/rtl/mdio_vio_top.v`
+- 拷后 sha256 = **`4416710a230ff582af999f3b4348812c007638b8497fcbec3ee52b462e9864df`** == `stage2_apply/SHA256SUMS.txt` ✓
+- 锚点核对：`parameter integer DIV = 25`（:32）· `.DIV (DIV)`（:130）✓；与 B3 件 diff = **恰 2 处**（module 头 + `.DIV`）。
+
+**E8**（新增文件）：`stage2_apply/build_mdio_divbad.tcl` → `_proj_mdio/build_mdio_divbad.tcl`
+- 原样拷入 sha = `bcb497df083ee67a5b45bc2790d9e2379cc64d50a9c8089b52f9f774b9849b25`（== SHA256SUMS ✓）。
+
+⛔ **偏离 E8-1（必要修正，如实登记）**：**原样的 E8 文件在本机 Vivado 2025.2 下直接报错、构建无法启动**：
+```
+ERROR: [Common 17-54] The object 'run' does not have a property 'STEPS.SYNTH_DESIGN.ARGS.GENERIC'.
+```
+- **根因（查询所得，非推测）**：`report_property -all [get_runs synth_1]` 在本机 2025.2 里**没有任何 `*GENERIC*` 属性**；承载"附加 synth_design 参数"的官方属性 = **`STEPS.SYNTH_DESIGN.ARGS.MORE OPTIONS`**（string，默认空；取证 = `build_divbad/query_*.tcl` 的 dump，属性行见 §10 复算）。
+- **最小修正（一行）**：
+  `set_property -name {STEPS.SYNTH_DESIGN.ARGS.GENERIC} -value {DIV=65537} …`
+  → `set_property -name {STEPS.SYNTH_DESIGN.ARGS.MORE OPTIONS} -value {-generic DIV=65537} …`
+- 修正后 sha = **`1d5a5c9aec6294be69d1175af0b0a6d7586a5ff04f6c51c29f3fec24e96ad676`**；两版都归档（`build_divbad/build_mdio_divbad.tcl.{shipped,fixed}`）。
+- **生效证据（逐字）**：`pj_mdio_divbad/…/synth_1/runme.log` = `Command: synth_design -top mdio_vio_top -part xcku5p-ffvb676-1-e -generic DIV=65537`。
+- ⚠️ 第二次偏离登记：**E8 原文件与 build_mdio.tcl 的 diff 是 3 处**（APPLY_STEPS 写"exactly two"）—— 第 3 处是**注释头**替换（语义零影响），已登记。
+
+## §4 Step 3 —— 两构建读数（串行；不并跑；无 xsim 并跑）
+
+| | **生产**（E7 默认 DIV=25） | **变体**（MORE OPTIONS 修正后 run2） |
+|---|---|---|
+| BIT_SHA | **`0549c1af4e5eb98849c4741f58899bd2c18651f4d4cd783bd187155b4a5b27ba`** | **`1d7bfdb7c77488ecbda0fb3cb853dfb7ed214163ff63ab4cd5eb0b65df145452`** |
+| BIT_BYTES | 15,431,263 | 15,431,263 |
+| BIT_MTIME | 2026-10-16 02:14:34 (+0800) | 2026-10-16 02:20:30 (+0800) |
+| LTX_SHA / BYTES | `46f53c81…` / 14,756 | `46f53c81…`（同生产）/ 14,756 |
+| WNS / WHS | **+7.328 / +0.029** | **+7.391 / +0.029** |
+| 失败端点 | **0 / 0 / 0**（WNS/THS/TPWS） | **0 / 0 / 0**；`Slack (VIOLATED)` grep = 0 |
+| 尾句 | `All user specified timing constraints are met.` | 同左 |
+| R9 | —— | **变体 sha ≠ 生产 sha ✓（构建吃进去了）** |
+
+- ⭐ **生产构建 vs B3 归档件的位级对照（副产品）**：`cmp -l` = **6 字节**，**全落 `.bit` ASCII 头**（113..125 = 日期时间数字 `2026/10/15 13:15:19` → `2026/10/16 02:14:31`）；`SW_CRC` 两边同为 `907d005a`；**头 200 B 之后的体 md5 逐字相同**（`96dee90a…`）⇒ **E7-带默认-DIV 在生产路径上位级惰性**（可编程镜像逐字节相同）。
+- ⚠️ **工具面发现（登记，属"哑门"家族）**：**Vivado 报 `ERROR` 时 bat 进程退出码仍 0**（run1 失败那次与 prod 成功那次退出码都是 0）⇒ 判"构建收口"**只能**看 stdout（`=== BUILD DONE ===` + `BITSTREAM` + 无 `ERROR:`），**不能看退出码**。
+- ⚠️ run1（原样 E8）**构建未启动**（错在 tcl 第 24 行），无位流产物；stdout 存 `build_divbad/BUILD_STDOUT_run1_FAILED.txt`。
+
+## §5 Step 4 —— 板级（三次烧录 + 各臂）
+
+三次烧录全部走审计过的 tcpreg launcher（**1MHz + 五判据**：HIGH / DONE / 路径匹配 / stdout 新鲜度 / 无 ABORT），**全过**。烧前 sha256 门逐次命中。
+
+### 5.1 烧录①（生产位流）→ **J-A / J-B / J-D**（臂定义出处 = DESIGN_v2r2 **§4.2**；APPLY_STEPS 写的 "S4.1" 实指 §4.2，见偏离 D-4）
+
+- 板侧身份：`STATUS_WIDTH=22` ✓（位宽同步在构建产物里生效）· `WRITE_CHECK phyad set to 5, reads back <05>` ✓
+- **J-A（全扫 32 地址 × {r2,r3}）**：`ARM_J_A_ANSWERED 0,1`；0/1 均为 `001CC915`；**2–31 全静默 `FFFF`**；`ARM_J_A_NO_RESPONSE` **空**（71 条 TX 记录全部 `done=1`）⇒ **逐条命中**（与 B3 同形）。
+- **J-B（交错新鲜性）**：`ARM_J_B_RD 001C FFFF 001C FFFF 001C 001C FFFF` ⇒ **逐字与期望一致**。
+- **J-D（生产臂新位读数）**：71 条记录**全部 `ssl=0 pbad=0`**（两个新位均为 0；因两列都是 0，本行**与标签约定无关**）；`ARM_J_A_SSL_SUM=0` / `PBAD_SUM=0`；显式行 `PROD_PBAD_READ … ssl=0 pbad=0` ⇒ **生产臂端 P1 对照 = 0** ✓。
+- ⛔ 口径（照 DESIGN §7/R-b）：**恒 0 与"未接线"读数上不可区分** ⇒ 此行**不**声称"新两位已在板上验过"（生产臂语）。
+
+### 5.2 烧录②（变体位流 `1d7bfdb7…`）→ **A+ 臂 P1/P2/P3**（用变体 `.ltx`；`STATUS_WIDTH=22` ✓）
+
+- **P1**：`APLUS_P1_IDLE rd=001C done=1 busy=0 rstn=1 mdio=1 ssl=0 pbad=1 raw=1d001c` ⇒ **pbad(bit20)=1**，与生产臂的 0 构成**跨构建对照（钳死/接错的位不可能随构建翻转）** ✓。
+- **P2（一次事务 ≈ 83.9 ms）**：见下"分层证据"——run2 的 done 轮询**被上一事务的 done_sticky 抢跑**（JTAG→fabric 更新延迟抖动）⇒ 该数字**不作为帧时长**；干净的测量见 P2b。
+- **P3（busy 窗内二次 start ⇒ ssl）**：**第 1 次尝试即触发**（无需重试）：
+  - `APLUS_P3_PRE k=1 … ssl=0 pbad=1 raw=1d001c`
+  - `APLUS_P3_COMMIT_MS k=1 d_c2c1=19 d_c3c2=20 d_c4c3=26 span_c1_c4=65`（三次 commit 总跨 65 ms < 83.9 ms 窗）
+  - `APLUS_P3_AFTER k=1 … ssl=1 pbad=1 raw=3d001c` ⇒ **bit21 置位（start 被丢）**；`APLUS_P3_TRIGGERED k=1`；`APLUS_P3_ATTEMPTS 1`
+  - 净启动清位：`APLUS_P3_CLEAN_READ … ssl=0 pbad=1 busy=1 raw=1e0000` ⇒ **被接受的 start 清位**；`APLUS_P3_SSL_CLEARED ssl_bit21=0` ✓
+  - 原始位级差分：`1d001c → 3d001c`（恰 +bit21）→ `1e0000`（bit21 清 + done 清 + busy 起）→ `1d001c`（帧完、`rd=001C` 新值）。
+
+### 5.3 原始位级诊断（run2 后补跑；**位映射由测量钉死**，不是按约定）
+
+`board/PROBE_APLUS_DIAG_STDOUT.txt`（**逐字原行**；该诊断脚本只对 A 行打印了 raw 十六进制，其余为按位行）：
+```
+A_IDLE          raw=1d001c  b21=0 b20=1 b19=1 b18=1 b17=0 b16=1 rd=001C
+C_AFTER_START   b21=0 b20=1 b19=1 b18=1 b17=1 b16=0 rd=0000   (帧中：busy=1、done=0)
+C_DONE          b21=0 b20=1 b19=1 b18=1 b17=0 b16=1 rd=001C   C_ELAPSED done_at=+105 ms
+D_AFTER_TRIGGER b21=1 b20=1 b19=0 b18=1 b17=1 b16=0 rd=0000   (帧中被丢 start ⇒ bit21 置位)
+D_AFTER_PLUS30  b21=1 …（sticky，帧已结束）
+E_CLEAN_START   b21=0 b20=1 b19=0 b18=1 b17=1 b16=0 rd=0000   (被接受 ⇒ bit21 清位，新帧在跑)
+E_DONE          b21=0 b20=1 b19=1 b18=1 b17=0 b16=1 rd=001C
+（raw 十六进制原文只在 run2 探针脚本与 P2b 的输出里逐行打印，如 1d001c / 3d001c / 1e0000）
+```
+⇒ **[20]=param_bad（全状态恒 1；帧时长证明 DIV=65536）；[21]=stat_start_lost（丢则置、净启动则清）；[19:16]=mdio/rstn/busy/done（busy/done/mdio 均被实测翻转验证）**。
+- ⭐ 与 **sim 臂互证**（`p9_simfill_20261015/READINGS_A_mdio_aplus.txt`）：sim 的 **swap 变异件**（拼接序交换）在变体上会读 `ssl_t0=1`；**板级 idle 读 b21=0** ⇒ **板上的打包 = BASE（正确序），不是 swap 件** ✓。
+- ⚠️ 同件登记：诊断段 B 本想用 force_rst 翻转 bit18，但本构建里 `force_rst` 是**独立的 1-bit 探针 `vio_force_rst`**，`u_vio_n_2` 是 probe_out1 的另一半 ⇒ 写错了探针、b18 未被激励（恒 1，与 POR 后 rstn=1 相符）⇒ **bit18 的翻转验证未做**（如实列未观测）。
+
+### 5.4 P2 的干净测量（P2b，busy-first 惯用法；3 轮重复）
+
+`board/PROBE_APLUS_P2B_STDOUT.txt`：
+```
+commit_to_busy = 34/32/31 ms ; busy_to_done = 72/76/72 ms ; commit_to_done = 106/108/103 ms
+（准备循环 start→done 读数 = 89/85/88 ms）
+```
+⇒ **帧时长 = "数十 ms" 级**（JTAG 单次读数 ~20–70 ms 限制分辨率），三个样本**一致于构造值 `128×65536×10 ns = 83.886 ms`**，**与生产 32 µs 结构性不同**。MDC = 762.9 Hz 为**构造值**（64 MDC 周期/帧），**板上无示波器未直测**。
+- ⭐ 顺带观测量（登记）：**JTAG commit → 元件生效延迟抖动**：diag C 里 ≤14 ms；run2-P2 里 ≥58 ms；P2b 三轮 31–34 ms ⇒ "commit 后立即轮询"的惯用法**天然有竞态**（这也是 run1-P2 未触发的形态，与设计 §4.3 的"commit 抖动 ⇒ 如实记未触发"预案相符）。
+- ⚠️ run1（本脚本第一版）**死在自己的 P3 循环**：`wrong # args: should be "for start test next command"`（我的 Tcl 拙误：for 缺 `{incr k}`）⇒ run1 的 P3 **没跑**；且 run1 的解码标签把 bit20 印成 "ssl"（错序）⇒ run2 已修（并按 diag 钉死后打印 **raw 原文**）。run1 原始 stdout 保档（`PROBE_APLUS_STDOUT_run1_loopbug.txt`）。
+
+### 5.5 烧录③（收尾恢复）→ **0x28 + PCIe 恢复 + 身份门 + `0x08=0`**
+
+- sha256 门：`79c9cf434eb66723b97f654cbece9ea061632e2297c0a8ab0ea0dc198c43bec8` == 任务书锚 ✓（impl_1 原件交叉核对同 sha）；五判据 `BURN_OK`。
+- **PCIe 恢复 = 设备级一次成功**（`RP_PORT=0000:00:1c.0`；首读行 `LnkSta: Speed 5GT/s (downgraded), Width x4` ⇒ **无需升根端口级**）；`Region 0` 1M / `Region 1` 64K；四个 `/dev/xdma0_*` 全现；`dmesg: identify_bars: 2 BARs: config 1, user 0`。
+  - ⚠️ 本脚本按 **E-0 修正**取 `LnkSta` **行**（不用原脚本"首个 `Width x[0-9]*` = 能力位宽"的死触发条件）⇒ 该升级触发条件本行**被现测到有效形态但未升级**（因为本来就 x4）。
+- **身份门**：`MAGIC 0x50360001 / BID 0x00000028 / MARKER 0xdeadbeef / UNIMPL 0x15C=0xffffffff / SCRATCH 0x08=0`；`ID_RC=0`；`WINDOW_SCAN_NFF=0`（75 字）✓
+- 三条硬判据（对 burn 日志 grep）：`C1_ID_RC=PASS_LINE_PRESENT` / `C2_LNKSTA_X4=PRESENT` / `C3_BID_0x28=PRESENT`（+ C4 `0x08=0`）✓
+- `0x08` 写 0（前后读均 0）；`CARRIER=1` / `Speed 10000Mb/s` / `Link detected: yes`。
+
+## §6 收尾态（FINAL_STATE，不关机）
+
+- **板 = `0x28` + `0x08=0` + `CARRIER=1`**（= ledger 现役态 / B4 收尾态；逐字相符）。
+- NIC：`192.168.100.100/32` · unmanaged · adaptive-rx off / `rx-usecs 0` · `10000Mb/s`。
+- 残留进程：`NO_P7B_PROCS / NO_TCPDUMP / NO_K0`；`p7b_snap.sh` md5 未变；本机无残留 vivado/xsim（另有一枚 `ssh.exe a@192.168.0.38` **非本轮所起**，未处置）。
+
+## §7 偏离清单（逐条，如实）
+
+| # | 偏离 | 性质/处置 |
+|---|---|---|
+| D-1 | **E8 原样文件在 2025.2 不可用**（`STEPS.SYNTH_DESIGN.ARGS.GENERIC` 不存在）⇒ 一行最小修正为 `ARGS.MORE OPTIONS = {-generic DIV=65537}` | 必要修正；两版 + diff + 属性 dump 全归档；生效有 runme.log 逐字证据 |
+| D-2 | E8 与 build_mdio.tcl 实为 **3 处** diff（APPLY_STEPS 写"exactly two"）——第 3 处 = 注释头 | 登记（语义零影响） |
+| D-3 | 收尾目标 = **0x28 + `0x08=0`**（APPLY_STEPS §Step5 原写 "0x27/P8"） | 任务书**预先授权**的订正；硬判据 3 期望值随之写 `0x28` |
+| D-4 | APPLY_STEPS Step4 的 "S4.1" 实指 **v2r2 §4.2**（臂定义处） | 出处纠正，已按 §4.2 执行 |
+| D-5 | run1 A+ 脚本两处自伤：P3 for 循环缺 `{incr k}`（脚本死）；bit20/21 标签错序（沿用 B3 脚本的历史标签）| 已修（run2 + diag）；run1 原始件保档；run2 起打印 **raw 十六进制** |
+| D-6 | E8 修正脚本的构建 bat **借自本轮自写**（B4 自伤教训：bat 只 ASCII + CRLF，已 `cat -A` 核） | 无（正常） |
+| D-7 | 板级三烧的 mdio 阶段 **PCIe 端点消失**（预期副作用） | 按设计件 §4.1 口径**不**在 mdio 段恢复；统一在 §5.5 恢复 |
+
+## §8 未观测 / 不可判（"未观测到" ≠ "不存在"）
+
+1. **bit18（eth_rstn）未被翻转激励**（诊断写错探针；恒 1 与 POR 后状态相符）⇒ 该位位置**未做动态验证**（b16/b17/b19 已做）。**force_rst 通路未测**。
+2. **MDC = 762.9 Hz 未直测**（板上无示波器；为构造值 + 帧时长间接吻合）。
+3. **P2 的"一次事务 83.9 ms 精确值"未达**（JTAG 读数节奏 ~20–70 ms ⇒ 只有"数十 ms 级 + 三样本一致于构造值"）。
+4. **VIO 网段（`vio_phyad` 等 VIO-out → 端口）无覆盖**（承 R-a）——本轮**不**声称"排除了地址字段伪影"；J-A 只给"确认 + 2–31 静默"。
+5. **生产臂两个新信号 = "出现且恒 0"**（R-b；与未接线不可区分）——**不**声称"新信号已在生产臂板上验过"。
+6. **P3 的"丢帧瞬间 busy 必为 1"无逐拍见证**（行为证据 = bit21 置位 + 净启动清位；RTL 级 = 设计件/xsim 侧）。
+7. **`keep`/综合上"param_bad 未被优化掉"无网表级点名**（证据 = 板上 bit20 恒 1 的**行为读数**）。
+8. **xsim（sim 臂）与板级（本件）不是同一份证据**：sim 侧读数见 `p9_simfill_20261015/READINGS_A_mdio_aplus.txt`（帧 8388608 拍 / mdc1 65536 / pct 131072 / pbad 1/0 / ssl 0→1→0 + 两个变异件的负对照）；本件 = **硅上见过**，两者分开读。
+9. **本轮的 E8 修正未过任何审查**（一行、有 runme.log 与位级差异佐证；设计件原文的"两处 diff"描述已被实测改写）。
+
+## §9 交付/证据地图（全在 `_proj_10g/notes/p9_mdio_aplus_board_20261016/`）
+
+| 路径 | 内容 |
+|---|---|
+| `APPLY_LOG.txt` | Step 0/1/2 + E8 修正 + 工具面发现（退出码 0 哑门）逐条 |
+| `archive_impl1/`（12 件 + SHA256SUMS 自核 12/12）· `pre_edit_b3/` | 构建前归档 / 改前副本 |
+| `build_prod/` | 生产构建 stdout + bit/ltx + timing/utilization/drc rpt + run bat |
+| `build_divbad/` | 变体构建 run1（失败）与 run2（成功）stdout + bit/ltx + rpt + **两版 tcl** + 属性查询 tcl |
+| `BUILD_READINGS.txt` | 两构建读数 + R9 + 位级对照 |
+| `board/PROBE_PROD_STDOUT.txt` | 生产臂 J-A/J-B/J-D 全程原始 stdout（71 TX 记录）|
+| `board/PROBE_APLUS_STDOUT.txt`（run2）· `…_run1_loopbug.txt` | A+ 臂 P1/P2/P3 原始 stdout（run2 含 raw 列）|
+| `board/PROBE_APLUS_DIAG_STDOUT.txt` | 原始位级诊断（钉死位映射）|
+| `board/PROBE_APLUS_P2B_STDOUT.txt` | P2b 帧时长 3 轮样本 |
+| `board/PRE_WITNESS.txt` · `board/FINAL_STATE_APP_FINAL.txt` | 轮前/轮末见证 |
+| `burn/` | 三烧的 BURN 日志 + stdout 副本 + 0x28 副本 + `burn_bit.sh` / `restore_0x28.sh` / `read_final_state.sh` |
+| `BOARD_READINGS.txt` | 板级读数逐条汇编 |
+
+## §10 复算命令（零成本，逐条可跑）
+
+- 归档自核：`cd archive_impl1 && sha256sum -c SHA256SUMS.txt`
+- E7 sha：`sha256sum D:/repo/XCKU5PMini/_proj_mdio/rtl/mdio_vio_top.v`（= `4416710a…`）
+- E8 属性证据：`grep -n "MORE OPTIONS" build_divbad/query_all_props.tcl` + `grep -n "generic DIV=65537" --include=runme.log -r D:/repo/XCKU5PMini/_proj_mdio/pj_mdio_divbad/`
+- R9：`sha256sum build_prod/mdio_vio_top.bit build_divbad/mdio_vio_top.bit`
+- 生产位级惰性：`cmp -l archive_impl1/mdio_vio_top.bit build_prod/mdio_vio_top.bit | wc -l`（=6，全在头）
+- 密码未落盘：`grep -rl <口令串> _proj_10g/notes/p9_mdio_aplus_board_20261016/ --include="*.txt" --include="*.tcl" --include="*.sh" --include="*.bat"`（= 0）
+
+（全文完 —— 报告全文随 agent 回传；本文件 = 盘上 raw 版。）

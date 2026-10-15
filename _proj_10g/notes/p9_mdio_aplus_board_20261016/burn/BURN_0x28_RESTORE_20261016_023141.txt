@@ -1,0 +1,72 @@
+=== RESTORE_BEGIN 1792089101.043367600 Fri Oct 16 02:31:41     2026
+--- 1) sha256 gate (archive + impl_1 cross-check) ---
+79c9cf434eb66723b97f654cbece9ea061632e2297c0a8ab0ea0dc198c43bec8 */d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_build_0x28/wrapper_p4.bit
+SHA_WANT=79c9cf434eb66723b97f654cbece9ea061632e2297c0a8ab0ea0dc198c43bec8
+IMPL1_ORIG_SHA=79c9cf434eb66723b97f654cbece9ea061632e2297c0a8ab0ea0dc198c43bec8
+SHA_OK
+79c9cf434eb66723b97f654cbece9ea061632e2297c0a8ab0ea0dc198c43bec8 */d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_mdio_aplus_board_20261016/burn/wrapper_p4_0x28.bit
+LOCAL_BIT /d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_mdio_aplus_board_20261016/burn/wrapper_p4_0x28.bit size=15431261 mtime=2026-10-16 02:31:41.219558700 +0800
+--- 2) PRE witness (mdio state: PCIe reads will fail, expected) ---
+active
+PRE_0x04=Read 32-bit value at address 0x4 (0x7454b7ac7004): 0xffffffff
+--- 3) burn via tcpreg launcher (JTAG 1MHz) 1792089102 ---
+BURN_STDOUT=/d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p7b_biz_tcpreg/tcpreg_program_stdout.txt mtime=1792089234 T0=1792089102 age=132s
+# puts "TCPREG_BIT = $bit"
+TCPREG_BIT = D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_mdio_aplus_board_20261016\burn\wrapper_p4_0x28.bit
+# puts "TCPREG_BIT_EXISTS = [file exists $bit]"
+TCPREG_BIT_EXISTS = 1
+# puts "TCPREG_BIT_MTIME = [file mtime $bit]"
+TCPREG_BIT_MTIME = 1792089101
+# puts "TCPREG_PROG device=$dev freq=1MHz"
+TCPREG_PROG device=xcku5p_0 freq=1MHz
+# if {![file exists $bit]} { puts "TCPREG-ABORT: bitstream missing"; exit 1 }
+# if {[catch {program_hw_devices $dev} em]} { puts "TCPREG-ABORT PROGRAM FAILED: $em"; exit 1 }
+INFO: [Labtools 27-3164] End of startup status: HIGH
+# puts "TCPREG_PROG_DONE (检查上�? 'End of startup status: HIGH')"
+TCPREG_PROG_DONE (检查上�? 'End of startup status: HIGH')
+BURN_OK (five criteria)
+--- 4) PCIe recovery: device-level remove+rescan, escalate on the LnkSta LINE 1792089234 ---
+RP_PORT=0000:00:1c.0
+FIRST_RESCAN_LNKSTA_LINE=		LnkSta:	Speed 5GT/s (downgraded), Width x4
+device-level rescan got x4
+--- lspci ---
+02:00.0 Serial controller: Xilinx Corporation Device 9034
+	Region 0: Memory at df200000 (32-bit, non-prefetchable) [size=1M]
+	Region 1: Memory at df300000 (32-bit, non-prefetchable) [size=64K]
+		LnkSta:	Speed 5GT/s (downgraded), Width x4
+--- dev ---
+crw------- 1 root root 235, 36 Oct 16 02:33 /dev/xdma0_c2h_0
+crw------- 1 root root 235,  1 Oct 16 02:33 /dev/xdma0_control
+crw------- 1 root root 235, 32 Oct 16 02:33 /dev/xdma0_h2c_0
+crw------- 1 root root 235,  0 Oct 16 02:33 /dev/xdma0_user
+--- dmesg (identify_bars expect 2 BARs: config 1, user 0) ---
+[10531.810300] xdma:identify_bars: 2 BARs: config 1, user 0, bypass -1.
+[11456.983194] xdma:identify_bars: 2 BARs: config 1, user 0, bypass -1.
+[13311.961165] xdma:identify_bars: 2 BARs: config 1, user 0, bypass -1.
+--- 5) identity gate 1792089242 ---
+MAGIC_0x00=Read 32-bit value at address 0x0 (0x76e5af233000): 0x50360001
+BID_0x04=Read 32-bit value at address 0x4 (0x7100daee3004): 0x00000028
+MARKER_0x14=Read 32-bit value at address 0x14 (0x743d5ef01014): 0xdeadbeef
+UNIMPL_0x15C=Read 32-bit value at address 0x15c (0x7841bfe3d15c): 0xffffffff
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x73bd58759008): 0x00000000
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x00000028   (want 0x00000028 = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1792089245.761128288
+ID_RC=0
+--- 6) 75-word window scan (expect NFF=0) ---
+WINDOW_SCAN_NFF=0
+--- 7) restore 0x08=0 (ledger-active state) + carrier witness 1792089247 ---
+SCRATCH_0x08(before)=Read 32-bit value at address 0x8 (0x737cb7ba8008): 0x00000000
+SCRATCH_0x08(after) =Read 32-bit value at address 0x8 (0x7e830744a008): 0x00000000
+CARRIER=1
+
+	Speed: 10000Mb/s
+	Link detected: yes
+--- 8) hard criteria (grep -q on THIS log's transcript is done by the caller too) ---
+C1_ID_RC=PASS_LINE_PRESENT
+C2_LNKSTA_X4=PRESENT
+C3_BID_0x28=PRESENT
+C4_0x08_ZERO=PRESENT
+=== RESTORE_END 1792089252.325400600

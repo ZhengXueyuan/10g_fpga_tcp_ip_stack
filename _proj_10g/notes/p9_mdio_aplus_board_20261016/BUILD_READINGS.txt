@@ -1,0 +1,51 @@
+p9_mdio_aplus_board_20261016 -- build readings (BOTH builds; R9 check)
+=====================================================================
+Timestamps: production build ran 02:10:19-02:14:51 CST; variant build ran 02:15:xx-<end> CST.
+All readings below are read from the build stdout copies (build_prod/BUILD_STDOUT.txt,
+build_divbad/BUILD_STDOUT.txt) and from the impl_1 run directories.
+
+--- PRODUCTION build (build_mdio.tcl; E7 applied, default DIV=25) ---
+BIT_SHA        = 0549c1af4e5eb98849c4741f58899bd2c18651f4d4cd783bd187155b4a5b27ba
+BIT_BYTES      = 15,431,263
+BIT_MTIME      = 2026-10-16 02:14:34 (+0800)
+LTX_SHA        = 46f53c81b305fdf1f4260fd18f6c4c7c011c2f6d3ef2cc967c1972a3bb4f75fc
+LTX_BYTES      = 14,756
+WNS / WHS      = +7.328 ns / +0.029 ns
+TNS / THS / TPWS = 0.000 / 0.000 / 0.000
+Failing endpoints = WNS 0 / THS 0 / TPWS 0  (Design Timing Summary row: 0 / 0 / 0)
+"All user specified timing constraints are met."
+VIO probe width = 22 (build_mdio.tcl CONFIG.C_PROBE_IN0_WIDTH {22}; ltx 22 bits)
+X-check vs B3 build (archive_impl1/, sha 4c74c219...): cmp -l = 6 bytes, ALL in the
+.bit ASCII header (offsets 113..125 = the date/time digits "2026/10/15 13:15:19" ->
+"2026/10/16 02:14:31"); SW_CRC identical (907d005a); body after byte 200 md5-identical
+(96dee90a8368f423c5fac789d2831d0a).  => production bitstream is byte-identical to the
+B3 build except the header timestamp => E7-with-default-DIV is bit-level inert.
+
+--- VARIANT build (build_mdio_divbad.tcl; pj_mdio_divbad + synth generic DIV=65537) ---
+BIT_SHA        = SUPERSEDED (see "VARIANT build run2" block below)
+BIT_BYTES      =
+BIT_MTIME      =
+LTX_SHA        =
+LTX_BYTES      =
+WNS / WHS      =
+Failing endpoints =
+
+--- R9: variant bit sha MUST differ from production bit sha ---
+(checked after the variant build)
+
+--- VARIANT build run2 (build_mdio_divbad.tcl with the one-line MORE OPTIONS fix) ---
+BIT_SHA        = 1d7bfdb7c77488ecbda0fb3cb853dfb7ed214163ff63ab4cd5eb0b65df145452
+BIT_BYTES      = 15,431,263
+BIT_MTIME      = 2026-10-16 02:20:30 (+0800)
+LTX_SHA        = 46f53c81b305fdf1f4260fd18f6c4c7c011c2f6d3ef2cc967c1972a3bb4f75fc   (== production ltx sha)
+LTX_BYTES      = 14,756
+WNS / WHS      = +7.391 ns / +0.029 ns
+TNS / THS / TPWS = 0.000 / 0.000 / 0.000
+Failing endpoints = WNS 0 / THS 0 / TPWS 0 ; "Slack (VIOLATED)" grep count = 0
+"All user specified timing constraints are met."
+Generic evidence  : pj_mdio_divbad/.../synth_1/runme.log 逐字:
+  Command: synth_design -top mdio_vio_top -part xcku5p-ffvb676-1-e -generic DIV=65537
+R9                : PROD 0549c1af... vs VAR 1d7bfdb7... -> DIFFER => R9_OK (the build took).
+Bit body (after 200-byte header): md5 prod 96dee90a... / variant 807a00af... ; cmp -l = 14,546
+bytes differ; SW_CRC header field differs (907d005a vs 1c167609) => the generic changed the
+implemented netlist (DIV_SAFE constant 25 -> 65536 in the frame tick comparator), as designed.

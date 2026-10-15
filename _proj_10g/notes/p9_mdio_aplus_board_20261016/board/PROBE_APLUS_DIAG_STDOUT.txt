@@ -1,0 +1,201 @@
+
+****** Vivado v2025.2 (64-bit)
+  **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+  **** Start of session at: Fri Oct 16 02:29:14 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source diag_aplus2.tcl
+# set here [file normalize [file dirname [info script]]]
+# set bit  [lindex $argv 0]
+# if {$bit eq ""} { error "usage: diag_aplus2.tcl <bit path>" }
+# if {![file exists $bit]} { error "bitstream not found: $bit" }
+# set ltx [file rootname $bit].ltx
+# puts "BIT $bit"
+BIT D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_mdio_aplus_board_20261016\burn\mdio_vio_top_divbad.bit
+# puts "LTX $ltx"
+LTX D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_mdio_aplus_board_20261016\burn\mdio_vio_top_divbad.ltx
+# open_hw_manager
+# connect_hw_server -url 192.168.0.38:3121
+INFO: [Labtools 27-2285] Connecting to hw_server url TCP:192.168.0.38:3121
+INFO: [Labtools 27-3415] Connecting to cs_server url TCP:localhost:0
+INFO: [Labtools 27-3417] Launching cs_server...
+INFO: [Labtools 27-2221] Launch Output:
+
+
+******** Xilinx cs_server v2025.2.0
+  ****** Build date   : Nov 14 2025-07:16:52
+    **** Build number : 2025.2.1763075812
+      ** Copyright 2017-2022 Xilinx, Inc. All Rights Reserved.
+      ** Copyright 2022-2026 Advanced Micro Devices, Inc. All Rights Reserved.
+
+
+
+# current_hw_target [lindex [get_hw_targets] 0]
+# open_hw_target
+INFO: [Labtoolstcl 44-466] Opening hw_target 192.168.0.38:3121/xilinx_tcf/Digilent/210251391367
+# set dev [lindex [get_hw_devices] 0]
+# current_hw_device $dev
+# puts "DEVICE $dev"
+DEVICE xcku5p_0
+# set_property PROBES.FILE $ltx $dev
+# set_property FULL_PROBES.FILE $ltx $dev
+# refresh_hw_device $dev
+INFO: [Labtools 27-2302] Device xcku5p (JTAG device index = 0) is programmed with a design that has 1 VIO core(s).
+INFO: [Labtools 27-1889] Uploading output probe values for VIO core [hw_vio_1]
+# set vio [lindex [get_hw_vios -of_objects $dev] 0]
+# puts "VIO $vio"
+VIO hw_vio_1
+# proc findprobe {vio names} {
+#     set all [get_hw_probes -of_objects $vio]
+#     foreach n $names {
+#         foreach p $all { if {$p eq $n} { return $p } }
+#     }
+#     return ""
+# }
+# set P_START  [findprobe $vio {vio_start  probe_out0}]
+# set P_OUT1   [findprobe $vio {u_vio_n_2 probe_out1}]
+# set P_PHYAD  [findprobe $vio {vio_phyad  probe_out2}]
+# set P_REGAD  [findprobe $vio {vio_regad  probe_out3}]
+# set P_WRDATA [findprobe $vio {vio_wr_data probe_out4}]
+# set P_STATUS [findprobe $vio {vio_probe_in probe_in0}]
+# puts "PROBES start=$P_START out1=$P_OUT1 phyad=$P_PHYAD regad=$P_REGAD wr=$P_WRDATA status=$P_STATUS"
+PROBES start=vio_start out1=u_vio_n_2 phyad=vio_phyad regad=vio_regad wr=vio_wr_data status=vio_probe_in
+# foreach p [get_hw_probes -of_objects $vio] {
+#     puts "PROBEDETAIL $p width=[get_property WIDTH $p]"
+# }
+PROBEDETAIL vio_probe_in width=22
+PROBEDETAIL u_vio_n_2 width=1
+PROBEDETAIL vio_force_rst width=1
+PROBEDETAIL vio_phyad width=5
+PROBEDETAIL vio_regad width=5
+PROBEDETAIL vio_start width=1
+PROBEDETAIL vio_wr_data width=16
+# set WIDTH_CHECK [get_property WIDTH $P_STATUS]
+# puts "STATUS_WIDTH=$WIDTH_CHECK  (want 22)"
+STATUS_WIDTH=22  (want 22)
+# proc vset {vio p val} {
+#     set w 1
+#     catch {set w [get_property WIDTH $p]}
+#     set n [expr {int(ceil($w / 4.0))}]
+#     set s [format "%0${n}X" [expr {$val & ((1 << $w) - 1)}]]
+#     set_property OUTPUT_VALUE $s $p
+#     commit_hw_vio $vio
+# }
+# proc vraw {vio p} {
+#     refresh_hw_vio $vio
+#     return [get_property INPUT_VALUE $p]
+# }
+# proc vnum {vio p} {
+#     return [expr "0x[vraw $vio $p]"]
+# }
+# proc bits {v} {
+#     set s ""
+#     for {set i 21} {$i >= 16} {incr i -1} {
+#         append s "b$i=[expr {($v >> $i) & 1}] "
+#     }
+#     append s [format "rd=%04X" [expr {$v & 0xFFFF}]]
+#     return $s
+# }
+# proc stamp {tag v} {
+#     puts [format "DIAG %-26s %s  %s" $tag [clock milliseconds] [bits $v]]
+# }
+# set v [vnum $vio $P_STATUS]
+# stamp "A_IDLE" $v
+DIAG A_IDLE                     1792088962011  b21=0 b20=1 b19=1 b18=1 b17=0 b16=1 rd=001C
+# puts "A_RAW [vraw $vio $P_STATUS]"
+A_RAW 1d001c
+# vset $vio $P_OUT1 2
+# after 20
+# set v [vnum $vio $P_STATUS]
+# stamp "B_FORCE_RST_1" $v
+DIAG B_FORCE_RST_1              1792088962089  b21=0 b20=1 b19=1 b18=1 b17=0 b16=1 rd=001C
+# vset $vio $P_OUT1 0
+# after 20
+# set v [vnum $vio $P_STATUS]
+# stamp "B_FORCE_RST_0" $v
+DIAG B_FORCE_RST_0              1792088962167  b21=0 b20=1 b19=1 b18=1 b17=0 b16=1 rd=001C
+# vset $vio $P_START 0
+# after 20
+# set v [vnum $vio $P_STATUS]
+# stamp "C_PRE" $v
+DIAG C_PRE                      1792088962232  b21=0 b20=1 b19=1 b18=1 b17=0 b16=1 rd=001C
+# set t0 [clock milliseconds]
+# vset $vio $P_START 1
+# set t1 [clock milliseconds]
+# set v [vnum $vio $P_STATUS]
+# stamp "C_AFTER_START" $v
+DIAG C_AFTER_START              1792088962268  b21=0 b20=1 b19=1 b18=1 b17=1 b16=0 rd=0000
+# set t2 [clock milliseconds]
+# puts "C_TIMES t0=$t0 t1=$t1 t2=$t2 d_commit=[expr {$t1-$t0}] d_read=[expr {$t2-$t1}]"
+C_TIMES t0=1792088962232 t1=1792088962255 t2=1792088962269 d_commit=23 d_read=14
+# set tdone ""
+# for {set i 0} {$i < 400} {incr i} {
+#     set v [vnum $vio $P_STATUS]
+#     if {($v >> 16) & 1} { set tdone [clock milliseconds]; break }
+#     after 10
+# }
+# if {$tdone ne ""} {
+#     stamp "C_DONE" $v
+#     puts "C_ELAPSED done_at=$tdone elapsed_from_start=[expr {$tdone-$t0}]"
+# } else {
+#     puts "C_DONE TIMEOUT"
+# }
+DIAG C_DONE                     1792088962338  b21=0 b20=1 b19=1 b18=1 b17=0 b16=1 rd=001C
+C_ELAPSED done_at=1792088962337 elapsed_from_start=105
+# for {set i 0} {$i < 400} {incr i} {
+#     set v [vnum $vio $P_STATUS]
+#     if {!(($v >> 17) & 1)} { break }
+#     after 10
+# }
+# vset $vio $P_START 0
+# after 20
+# set v [vnum $vio $P_STATUS]
+# stamp "D_PRE" $v
+DIAG D_PRE                      1792088962422  b21=0 b20=1 b19=1 b18=1 b17=0 b16=1 rd=001C
+# set d1 [clock milliseconds]
+# vset $vio $P_START 1
+# set d2 [clock milliseconds]
+# vset $vio $P_START 0
+# set d3 [clock milliseconds]
+# vset $vio $P_START 1
+# set d4 [clock milliseconds]
+# puts "D_COMMITS d1=$d1 d2=$d2 d3=$d3 d4=$d4 d_c2c1=[expr {$d2-$d1}] d_c3c2=[expr {$d3-$d2}] d_c4c3=[expr {$d4-$d3}] span=[expr {$d4-$d1}]"
+D_COMMITS d1=1792088962422 d2=1792088962447 d3=1792088962469 d4=1792088962494 d_c2c1=25 d_c3c2=22 d_c4c3=25 span=72
+# set v [vnum $vio $P_STATUS]
+# stamp "D_AFTER_TRIGGER" $v
+DIAG D_AFTER_TRIGGER            1792088962505  b21=1 b20=1 b19=0 b18=1 b17=1 b16=0 rd=0000
+# after 30
+# set v [vnum $vio $P_STATUS]
+# stamp "D_AFTER_PLUS30" $v
+DIAG D_AFTER_PLUS30             1792088962560  b21=1 b20=1 b19=1 b18=1 b17=0 b16=1 rd=001C
+# for {set i 0} {$i < 400} {incr i} {
+#     set v [vnum $vio $P_STATUS]
+#     if {($v >> 16) & 1} { break }
+#     after 10
+# }
+# stamp "D_AFTER_DONE" $v
+DIAG D_AFTER_DONE               1792088962571  b21=1 b20=1 b19=1 b18=1 b17=0 b16=1 rd=001C
+# vset $vio $P_START 0
+# set e1 [clock milliseconds]
+# vset $vio $P_START 1
+# set e2 [clock milliseconds]
+# after 20
+# set v [vnum $vio $P_STATUS]
+# stamp "E_CLEAN_START" $v
+DIAG E_CLEAN_START              1792088962668  b21=0 b20=1 b19=0 b18=1 b17=1 b16=0 rd=0000
+# puts "E_TIMES e1=$e1 e2=$e2 d=[expr {$e2-$e1}]"
+E_TIMES e1=1792088962595 e2=1792088962617 d=22
+# for {set i 0} {$i < 400} {incr i} {
+#     set v [vnum $vio $P_STATUS]
+#     if {($v >> 16) & 1} { break }
+#     after 10
+# }
+# stamp "E_DONE" $v
+DIAG E_DONE                     1792088962716  b21=0 b20=1 b19=1 b18=1 b17=0 b16=1 rd=001C
+# puts "DIAG_DONE"
+DIAG_DONE
+# disconnect_hw_server
+INFO: [Common 17-206] Exiting Vivado at Fri Oct 16 02:29:22 2026...

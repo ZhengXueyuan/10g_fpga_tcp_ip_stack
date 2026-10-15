@@ -1,0 +1,72 @@
+p9_mdio_aplus_board_20261016 -- A+ arm board half: APPLY LOG (raw evidence record)
+===============================================================================
+Round date  : 2026-10-16 (started ~02:05 CST)
+Authority   : _proj_10g/notes/p9_simfill_20261015/stage2_apply/APPLY_STEPS.txt
+              (Step 0-5) + DESIGN_v2r4.md chain (v2r2 S4.2 arms J-A/J-B/J-D;
+              S4.3 A+ arm P1/P2/P3; E7/E8 per v2r2 S2.2).
+_Proj_mdio   : D:\repo\XCKU5PMini\_proj_mdio  (verified NOT inside any git repo;
+              checked before touching).
+
+STEP 0 -- archive of the PREVIOUS build (global lesson #54)
+  Source : _proj_mdio/pj_mdio/mdio_prj.runs/impl_1/
+  Files  : mdio_vio_top.bit + the 11 *.rpt  ->  archive_impl1/ (12 files)
+  impl_1 bit sha256 = 4c74c219bf6cceb668b882cfa4d4a356ae128dfd8137578709453cf980e7132a
+                      (15,431,263 B; mtime 2026-10-15 13:15:21; = B3 production build)
+  archive self-check: SHA256SUMS.txt, sha256sum -c => 12/12 OK
+  (older 20-bit archive remains at notes/p9_fix_mdio_impl_20261015/archive_20260928/)
+  pre_edit_b3/ additionally holds byte copies of the two production files as they
+  were BEFORE this round's E7/E8 application:
+    mdio_vio_top.v.b3  = 79c360f83aff1789eb1144ef1045a3a5fd1cebed27d2f3cb76484d056b6956e6
+    build_mdio.tcl.b3  = b7ff3c45ea89399b789308e0ac31340e3c6de1e490813855a446ad623846aecd
+
+STEP 1 -- E7 applied (the ONLY production-file edit of this round)
+  copy stage2_apply/mdio_vio_top.v -> _proj_mdio/rtl/mdio_vio_top.v
+  stage2_apply source sha256 (== SHA256SUMS.txt) = 4416710a230ff582af999f3b4348812c007638b8497fcbec3ee52b462e9864df
+  post-copy sha256                               = 4416710a230ff582af999f3b4348812c007638b8497fcbec3ee52b462e9864df  MATCH
+  sanity greps : "parameter integer DIV = 25"  at :32 ; ".DIV (DIV)" at :130
+  diff vs B3 file = exactly 2 hunks (module header -> parameter + .DIV(25) -> .DIV(DIV))
+
+STEP 2 -- E8 added (new file; production tcl untouched)
+  copy stage2_apply/build_mdio_divbad.tcl -> _proj_mdio/build_mdio_divbad.tcl
+  stage2_apply source sha256 (== SHA256SUMS.txt) = bcb497df083ee67a5b45bc2790d9e2379cc64d50a9c8089b52f9f774b9849b25
+  post-copy sha256                               = bcb497df083ee67a5b45bc2790d9e2379cc64d50a9c8089b52f9f774b9849b25  MATCH
+  diff vs build_mdio.tcl = 3 hunks: (comment header) + (a) pj_mdio -> pj_mdio_divbad (:12)
+                          + (b) STEPS.SYNTH_DESIGN.ARGS.GENERIC {DIV=65537} after
+                          update_compile_order (:24).  APPLY_STEPS says "exactly two
+                          places"; the third hunk is a comment-only header change - logged.
+  production build_mdio.tcl sha256 (untouched) = b7ff3c45ea89399b789308e0ac31340e3c6de1e490813855a446ad623846aecd
+
+NOTE on the "S4.1" label in APPLY_STEPS step 4: the arm definitions J-A/J-B/J-D live in
+DESIGN_v2r2 sec 4.2 (VIO probing), not sec 4.1 (burning). Recorded as a cross-reference
+deviation, resolved by reading the arm definitions from sec 4.2.
+
+STEP 3 RUN1 (variant build) -- FAILED FAST; E8 as-shipped line is invalid in Vivado 2025.2
+  build_mdio_divbad.tcl as shipped (sha bcb497df...) aborted at its own line 24:
+    ERROR: [Common 17-54] The object 'run' does not have a property
+           'STEPS.SYNTH_DESIGN.ARGS.GENERIC'.
+  (stdout: build_divbad/BUILD_STDOUT_run1_FAILED.txt; nothing was built; the project
+   dir pj_mdio_divbad/ was created by create_project but produced no bitstream.)
+  ROOT CAUSE (queried, not assumed): report_property -all [get_runs synth_1] in this
+  2025.2 install lists NO *GENERIC* property.  The documented run-property carrier for
+  extra synth_design args is "STEPS.SYNTH_DESIGN.ARGS.MORE OPTIONS" (string, default
+  empty) -- it appears in the dump (query_all_props.tcl / query_generic_prop.tcl,
+  transcripts in build_divbad/query_*.stdout.txt).
+  DEVIATION (logged): one-line minimal fix applied to _proj_mdio/build_mdio_divbad.tcl:
+    - set_property -name {STEPS.SYNTH_DESIGN.ARGS.GENERIC} -value {DIV=65537} -objects [get_runs synth_1]
+    + set_property -name {STEPS.SYNTH_DESIGN.ARGS.MORE OPTIONS} -value {-generic DIV=65537} -objects [get_runs synth_1]
+  fixed file sha256 = 1d5a5c9aec6294be69d1175af0b0a6d7586a5ff04f6c51c29f3fec24e96ad676
+  both versions archived: build_divbad/build_mdio_divbad.tcl.{shipped,fixed}
+
+  ALSO REGISTERED (tool-face finding, "silent gate" family): the Vivado ERROR above did
+  NOT propagate to a nonzero process exit code -- the bat wrapper returned 0 (both the
+  successful production run and the failed variant run exited 0).  Judgement rule for
+  this round: a build is "done" only if the stdout contains '=== BUILD DONE ===' plus a
+  BITSTREAM line and no 'ERROR:' lines; exit codes are not a usable signal here.
+
+OWNERSHIP / WRITE-SURFACE (final check, 2026-10-16 ~02:4x)
+  _proj_mdio files newer than round start: rtl/mdio_vio_top.v (E7: 4416710a...) ·
+  build_mdio_divbad.tcl (E8 fixed: 1d5a5c9a...) · pj_mdio/ (rebuilt) · pj_mdio_divbad/ (new) ·
+  dfx_runtime.txt (vivado scratch, not an edit).  build_mdio.tcl UNTOUCHED (b7ff3c45..., mtime
+  2026-10-15 00:39).  Repo write surface = this round dir (new) + tcpreg_program_stdout.txt
+  (the pre-existing tracking file the audited launcher overwrites each burn, same as B1-B4).
+  NO git writes.  No QSPI writes.  No xsim run.  No license change.

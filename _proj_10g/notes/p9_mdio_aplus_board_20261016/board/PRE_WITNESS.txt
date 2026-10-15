@@ -1,0 +1,9 @@
+=== ROUND PRE WITNESS p9_mdio_aplus_board_20261016 (captured 2026-10-16 ~02:2x, before any burn) ===
+PRE_BID_0x04    = 0x00000028        (board = 0x28, as the task statement says)
+PRE_SCRATCH_0x08= 0x00000000        (not flow-controlled; B4 finish state)
+PRE_UNIMPL_0x15C= 0xffffffff
+hw_server       = active
+LnkSta          = Speed 5GT/s (downgraded), Width x4
+p7b_snap.sh md5 = a257af8299904789c6a6dd9ed5ca030f   (== B4 FINAL_STATE value -> deployment unchanged since B4)
+PRE_CARRIER     = 1
+NIC / route witness is captured again at the end (read_final_state.sh FINAL).

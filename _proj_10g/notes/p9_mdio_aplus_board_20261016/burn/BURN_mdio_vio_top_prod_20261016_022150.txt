@@ -1,0 +1,32 @@
+=== BURN_BEGIN tag=mdio_vio_top_prod 1792088510.214721000 Fri Oct 16 02:21:50     2026
+--- 1) sha256 + size gate on the source bit + its ltx ---
+SRC D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_mdio_aplus_board_20261016/build_prod/mdio_vio_top.bit size=15431263 mtime=2026-10-16 02:14:58.180801500 +0800
+SHA_WANT=0549c1af4e5eb98849c4741f58899bd2c18651f4d4cd783bd187155b4a5b27ba
+SHA_GOT =0549c1af4e5eb98849c4741f58899bd2c18651f4d4cd783bd187155b4a5b27ba
+LTX copied: D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_mdio_aplus_board_20261016/build_prod/mdio_vio_top.ltx -> /d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_mdio_aplus_board_20261016/burn/mdio_vio_top_prod.ltx  (14756 B)
+0549c1af4e5eb98849c4741f58899bd2c18651f4d4cd783bd187155b4a5b27ba */d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_mdio_aplus_board_20261016/burn/mdio_vio_top_prod.bit
+46f53c81b305fdf1f4260fd18f6c4c7c011c2f6d3ef2cc967c1972a3bb4f75fc */d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_mdio_aplus_board_20261016/burn/mdio_vio_top_prod.ltx
+COPY /d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_mdio_aplus_board_20261016/burn/mdio_vio_top_prod.bit size=15431263 mtime=2026-10-16 02:21:50.356158100 +0800
+SHA_OK (source == expected; copy made)
+--- 2) PRE witness (board state BEFORE this burn; mdio state -> reads fail, that is expected) ---
+PRE_0x04=Read 32-bit value at address 0x4 (0x70042d157004): 0x00000028
+PRE_0x08=Read 32-bit value at address 0x8 (0x7f957c433008): 0x00000000
+PRE_CARRIER=1
+--- 3) burn via tcpreg launcher (JTAG 192.168.0.38:3121, 1MHz) 1792088511 ---
+BURN_STDOUT=/d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p7b_biz_tcpreg/tcpreg_program_stdout.txt mtime=1792088643 T0=1792088511 age=132s
+--- burn stdout key lines (verbatim) ---
+# puts "TCPREG_BIT = $bit"
+TCPREG_BIT = D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_mdio_aplus_board_20261016\burn\mdio_vio_top_prod.bit
+# puts "TCPREG_BIT_EXISTS = [file exists $bit]"
+TCPREG_BIT_EXISTS = 1
+# puts "TCPREG_BIT_MTIME = [file mtime $bit]"
+TCPREG_BIT_MTIME = 1792088510
+# puts "TCPREG_PROG device=$dev freq=1MHz"
+TCPREG_PROG device=xcku5p_0 freq=1MHz
+# if {![file exists $bit]} { puts "TCPREG-ABORT: bitstream missing"; exit 1 }
+# if {[catch {program_hw_devices $dev} em]} { puts "TCPREG-ABORT PROGRAM FAILED: $em"; exit 1 }
+INFO: [Labtools 27-3164] End of startup status: HIGH
+# puts "TCPREG_PROG_DONE (检查上�? 'End of startup status: HIGH')"
+TCPREG_PROG_DONE (检查上�? 'End of startup status: HIGH')
+BURN_OK (HIGH+DONE+path+freshness+noABORT five criteria)
+=== BURN_END tag=mdio_vio_top_prod 1792088643.732011300
