@@ -1315,3 +1315,16 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - **归档**：`raw/pcap/`（1.9 GB）**留盘不入库**（`.gitignore` 加一条针对性规则 + 已核 0 个 `.pcap*` 入 staged）；`raw/` 根复算件 + `.err` 入库 ⇒ **B4 轮全量大 pcap 的本地唯一归档**（B4 轮目录只有 ctl 小件之缺口由此补）。
 - **新坑登记**：**`peer_ssh.py --get /tmp/…` 的远端参数会被 MSYS 改写**（首取失败；`MSYS_NO_PATHCONV=1` 后全成）——与全局 #72 同族，落台账。
 - **在飞**：mdio A+ 变体位流构建 + 板测轮（已授 `PEER_PW` 命令前缀；构建段并行开工）。之后 = OPEN_ITEMS 收尾文档轮。
+
+## §10-84 2026-10-16 03:3x：**mdio A+ 轮收口（提交 `e5fc9f7`，62 件）—— 双构建 R9 ✓ + 板级 P1=1 / P3 首试即触发（位级记录）；⚠️ E8 配方外一行修正（Vivado 2025.2 属性名）登记待自审**
+- **Step 0 归档**：旧 B3 位流 `4c74c219…`（15,431,263 B）+ 11 rpt → `archive_impl1/`（12/12 自核）；`pre_edit_b3/` 存改前两件。
+- **E7**：拷入 sha `4416710a…` == `stage2_apply/SHA256SUMS.txt` ✓（与 B3 件 diff 恰 2 处）。
+- ⚠️ **E8 配方外一行修正（D-1，本轮最重要偏离）**：原样件在 **Vivado 2025.2** 下直接 `ERROR: [Common 17-54] … 'STEPS.SYNTH_DESIGN.ARGS.GENERIC'`（该属性**不存在**；属性 dump 无任何 `*GENERIC*`）⇒ 改为官方承载属性 **`STEPS.SYNTH_DESIGN.ARGS.MORE OPTIONS = {-generic DIV=65537}`**（修正后 sha `1d5a5c9a…`；两版+属性 dump+runme.log 全归档）。**生效亲证**（TL 读活件）= `Command: synth_design -top mdio_vio_top … -generic DIV=65537`。
+- **双构建（串行；R9 ✓）**：生产 `0549c1af…` / 变体 `1d7bfdb7…`（WNS `+7.328`/`+7.391`，WHS `+0.029`，三类失败端点全 `0/0/0`）；生产 vs B3 归档位级对照 = **6 字节 `.bit` 头差、`SW_CRC=907d005a` 同、头 200 B 后 md5 逐字相同** ⇒ **E7-默认-DIV 在生产路径上位级惰性**。
+- ⚠️ **新工具坑登记**：**Vivado 报 ERROR 时 bat 退出码仍 0**（run1 失败与 prod 成功同退 0）⇒ **构建判据只看 stdout、不看退出码**。
+- **板级（三烧全过五判据；JTAG 易失零 QSPI）**：`STATUS_WIDTH=22`；**J-A**（0/1 应答 `001CC915`、2–31 全 `FFFF`、71 条 TX 全 done）/ **J-B**（`001C FFFF 001C FFFF 001C 001C FFFF` 逐字）/ **J-D**（71 条全 `ssl=0 pbad=0`）全中 ⇒ 生产臂 P1=0；**变体位流 A+ 臂：P1=1**（`pbad` bit20；`raw=1d001c`，与生产 0 构成跨构建对照）· **P3 第 1 次尝试即触发**（`ssl` bit21：`1d001c→3d001c`，净启动即清回 `1e0000`，`SSL_CLEARED`）· **P2b 三样本** `commit_to_done = 106/108/103 ms`（与生产 32 µs 结构性不同）；**P2 精确 83.9 ms 未达**（JTAG 读数节奏 ~20–70 ms 限分辨率，done_sticky 抢跑如实登记）。
+- **位映射由测量钉死**：`[20]=param_bad / [21]=stat_start_lost / [19:16]=mdio/rstn/busy/done`；与 sim **swap 变异件**互证（板上 idle `b21=0` ⇒ 打包 = BASE 正确序）。
+- **收尾**：0x28（sha 门 `79c9cf43…` 三处同）+ 五判据 BURN_OK + **PCIe 设备级一次成功** + 身份门全中（BID `0x28` / `0x15C` / `0x08=0` / 75 字 NFF=0 / `ID_RC=0`）⇒ 板 = **`0x28` + `0x08=0` + carrier=1**（不关机）。
+- **未观测 9 条（照录要点）**：b18(eth_rstn)/force_rst 通路未动态激励 · MDC 762.9 Hz 未直测 · P2 精确值未达 · VIO 网段无覆盖（R-a）· 生产臂新两位"出现且恒 0"（R-b）· P3"丢瞬间 busy=1"无逐拍见证 · param_bad 未被优化掉无网表级点名 · sim 与板级非同一份证据 · **E8 修正未过审查**。
+- **TL 抽核**：轮目录 72 件 `sha256sum -c` OK · PW 零泄漏 · E8 fixed 行 + 活件 runme.log `-generic` 亲读命中 · P1/P3 raw 行逐字 · 收尾身份门亲读。
+- **下一棒**：**mdio 轮自审（已派；重点攻击 E8 一行修正 + 位映射链 + "生产位级惰性"论证）** → 之后 = **OPEN_ITEMS 收尾文档轮**（最后一格，含 §10-53→§10-84 全部战果与新开项）。
