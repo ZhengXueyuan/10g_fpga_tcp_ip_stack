@@ -87,3 +87,20 @@ D-1 **E8 原样文件在 2025.2 不可用** ⇒ 一行最小修正（`MORE OPTIO
 - **板级位级读数亲读**（`board/PROBE_APLUS_STDOUT.txt`）：`APLUS_P1_IDLE … pbad=1 raw=1d001c` ✓ · `APLUS_P3_AFTER k=1 … ssl=1 raw=3d001c` + `APLUS_P3_TRIGGERED k=1` ✓。
 - **收尾态亲读**（`board/FINAL_STATE_APP_FINAL.txt`）：`ID_BID 0x00000028` ✓ / `ID_UNIMPL 0xffffffff` ✓ / `SCRATCH_0x08 = 0x00000000` ✓ / `ID_RC=0` ✓。
 - **TL 裁定**：读数与 agent 报告一致；**D-1（E8 一行修正）**为本轮唯一配方外改动 —— 证据链（属性查询 tcl + 修正前后两版 tcl + runme.log 生效命令行 + 行为面 P1=1/帧时长）完整，**采纳并登记**；其"未过审查"状态按自审模式转 **mdio 轮自审（已派）**。板 = **`0x28` + `0x08=0` + carrier=1**（与 B4 收尾态相同）✓。
+
+---
+
+## TL ERRATA 追加（2026-10-16 03:5x；依据 = 独立对抗审查 `p9_review_mdio_aplus_20261016/FINDINGS.md`）
+
+> 审查结论一句话：**主结论零证伪**；核心读数全部独立复算一致（双构建 sha/R9 · 位级惰性**更强形式** · E8 根因**多条独立路径**成立 · 位映射三方闭合 · 板级三臂三烧 · 纪律面全清）。下列订正均不触主结论；E-1 已就地补档。
+
+- **E-1（中低，已补档）**：**E8 根因链的"幽灵引用"** —— `APPLY_LOG.txt:52-53` 与 `REPORT.txt:179`（§10 复算命令）援引的 `build_divbad/query_*.stdout.txt` transcripts **全盘不存在**（TL 亲证：`find` 只命中两个 `.tcl`；§10 的 `grep MORE OPTIONS query_all_props.tcl` rc=1 = 结构性无牙）。**补档已执行**：`build_divbad/E8_ROOTCAUSE_EVIDENCE.txt`（活树逐字副本 = `runme.log:16/:28/:36` + `gen_run.xml:56` + 生产 `MoreOptsStr` 命中数 0）⇒ 根因审计缺口闭合；**今后 §10 该条复算命令指向本补档件**（补档件在 `SHA256SUMS.txt` 之后生成 ⇒ 不在其 70 件清单内，惯例同 `REPORT.md`）。
+- **E-2（低）**：§5.3 标题"（run2 后补跑）"与实测时序矛盾 —— 三份 stdout 会话时间 = run1 02:27 → **diag 02:29 → run2 02:30**（diag 在 run2 **之前**）；内容逐字相符，仅次序标签错（同件 117 行的说法才是对的）。
+- **E-3（低，未证登记）**："Vivado 报 ERROR 时 bat 退出码仍 0" **无归档 RC 见证** ⇒ 降为**无法判定**；该断言不承重（"看 stdout"规则在件上有牙：run1 = 1×ERROR + 0×DONE）。
+- **E-4（低）**：`BIT_MTIME` 列 = **impl_1 源件**建完时刻（02:14:34/02:20:30），与归档副件 mtime（02:14:58/02:21:37）是两套口径、表头未注（下游拿 mtime 做新鲜度会撞车）。
+- **E-5（低，计数口径）**：件数三口径并存 —— 盘上 **73** / git-tracked **61** / 报告与 commit 写的"72 件"（= 73−1 旧口径）；"72 件入库"与 git 实况（61）不符（ignored-on-disk 12 件 = .bit×4/.ltx×4/+dfx_runtime×2 等）。
+- **E-6（低-中）**：run2 P2/P3 的"哪一个边沿被丢"在原始件里**不可钉死**（commit→fabric 14–58 ms 抖动；报告 §8.6 已自认）—— **补提**：diag **D 段同一 readout 同时得 busy=1 与 b21=1**（`PROBE_APLUS_DIAG_STDOUT.txt:169`）是"忙窗丢 start"最干净见证（REPORT 未点名）；**脚本清尾建议**：diag 结束态遗留 fabric `start=1`（run2 进入时 start=1/done_sticky=1，run2-P2 的 c1 实为下降沿）——下轮脚本应显式归零。
+- **E-7（微）**："run2-P2 的 ≥58 ms"严格下界应为 **≥37 ms**（从 c2 commit 返回起算）；量级结论不破。
+- **E-8（微）**：`BOARD_READINGS.txt:72-73` 照抄 run1 错序行未就地加注（该行真实 = pbad=1/ssl=0）⇒ 补注义务落引用点。
+- **E-9（微）**："一行最小修正"指**功能行**；shipped→fixed 实际 diff = **6 增 1 删**（1 功能 + 5 注释）；D-2 未覆这对 diff。
+- **E-10（微，正面口径）**：帧长引用建议升级为 **`tdone − t1` = 84/86/82 ms**（更贴构造值 83.886 ms）。

@@ -1,0 +1,18 @@
+# E8 根因见证补档（TL 补，2026-10-16 03:5x；闭合 mdio 自审 FINDINGS A-1 的审计缺口）
+# 缘起：APPLY_LOG.txt:52-53 与 REPORT.txt:179 引用的 `query_*.stdout.txt` transcripts **全盘不存在**
+# （审查 A-1 + TL 复核：find 只命中两个 .tcl、零 stdout；§10 的 `grep MORE OPTIONS query_all_props.tcl` rc=1 = 无牙）
+# 根因结论本身经多条独立路径成立；下列 = 活树原件逐字副本（活树 = D:\repo\XCKU5PMini\_proj_mdio，非 git 仓，重建会摧毁 ⇒ 在此补档）
+
+## ① synth runme.log（pj_mdio_divbad/mdio_prj.runs/synth_1/runme.log）
+$ sed -n "16p;28p;36p" runme.log
+Command: synth_design -top mdio_vio_top -part xcku5p-ffvb676-1-e -generic DIV=65537
+	Parameter DIV bound to: 65537 - type: integer 
+	Parameter DIV bound to: 65537 - type: integer 
+
+## ② synth gen_run.xml（同目录；MoreOptsStr = 附加参数承载属性）
+$ grep -n "MoreOptsStr" gen_run.xml
+56:      <Option Id="MoreOptsStr"><![CDATA[-generic DIV=65537]]></Option>
+对照 生产构建（pj_mdio/…/synth_1/gen_run.xml）: MoreOptsStr 命中数 = 0 （0 = 生产未带附加参数）
+
+## ③ 安装脚本面（审查 A-1/②-10 路径①，由审查 agent 复核）：Vivado 2025.2 安装脚本 rg "ARGS\.MORE OPTIONS" 命中 3 文件；rg "ARGS\.GENERIC" = 0 命中
+（本次 TL 未重扫安装树；该条采信审查复算，指向 = C:/AMDDesignTools/2025.2）
