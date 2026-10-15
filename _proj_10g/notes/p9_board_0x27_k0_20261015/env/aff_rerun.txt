@@ -1,0 +1,28 @@
+echo "### ALLDONE $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+---
+UNPINNED=1] nopin_end=[PIN_GETCPU_END=7]
+--- STDERR
+### ENDCASE P_naive_grep
+### CASE Q_end_mismatch SKIPPED (SKIP_NET=1)
+### F1_CHECKS  --core/PIN_CORE 严格解析 (F1): 6 个反例全 RC=2, 正例 RC=0 且 PIN_CPU=5
+CHECK_F1 --core '4294967296' RC=2 expect=2
+CHECK_F1 --core '2147483648' RC=2 expect=2
+CHECK_F1 --core '+1' RC=2 expect=2
+CHECK_F1 --core '0x5' RC=2 expect=2
+CHECK_F1 --core '5abc' RC=2 expect=2
+CHECK_F1 --core '' RC=2 expect=2
+CHECK_F1 PIN_CORE=4294967296 RC=2 expect=2
+CHECK_F1 --core 5 RC=0 expect=0
+CHECK_F1 --core 999 (不在线) RC=2 expect=2
+### F2_CHECKS  探针退化必须响亮 (F2): PIN_RULE 带后缀 + PIN_DEGRADED 非 none
+CHECK_F2 healthy  PIN_RULE=avoid-nic PIN_DEGRADED=none
+CHECK_F2 nic_deg  PIN_RULE=avoid-nic-degraded PIN_DEGRADED=nic
+CHECK_F2 nopin    PIN_RULE=none PIN_DEGRADED=n
+CHECK_F2 nic_excl_health=PIN_NIC_EXCLUDED=none nic_excl_deg=PIN_NIC_EXCLUDED=n/a
+CHECK_F6 PIN_AVOID 命中数 (期望 0)=0
+### F3_CHECK  own-first: 期望 PIN_TUPLE_ORDER=own_sib_t 且 (本机) PIN_CPU=5
+CHECK_F3 PIN_CPU=5 PIN_CORES_ONLINE=0-7 PIN_NIC_IFACE=enp1s0f0np0,enp1s0f1np1 PIN_NIC_CPUS=0,1,2,3,4,5 PIN_NIC_EXCLUDED=none PIN_CORE_LOAD=12350 PIN_ALLOWED_MASK=20 PIN_GETCPU_START=5 PIN_FREQ_START_KHZ=3735241 PIN_GOV=schedutil PIN_NIC_IRQLINES=12 PIN_NIC_IFACE_SRC=auto PIN_TUPLE_ORDER=own_sib_t
+### F9_CHECK  周期行尾的 CPU_FREQ_KHZ 需要**真跑一次**(--help 出不来周期行)
+### 专用仪器 = /tmp/p7b_afftest/f9_loopback_check.sh (回环口: sink 的 SINK_CONN / src 的 SRC_T / udp_src 的 UDP_T 各打一行, 不碰板子)
+### ALLDONE 2026-10-15T03:12:55Z
+AFF_RC=0

@@ -1,0 +1,29 @@
+=== DEPLOY_BEGIN 1792033291.947553300 Thu Oct 15 11:01:31     2026 ===
+--- 0) 对端现态 ---
+a-MS-7850
+2026-10-14 22:10:08
+ls: cannot access '/tmp/p7b_biz': No such file or directory
+--- 1) mkdir + --put 源/脚本/工具 ---
+PUT_FAIL p7b_affinity.h
+PUT_FAIL p7b_io.h
+PUT_FAIL p7b_spsc.h
+PUT_FAIL p7b_pattern.h
+PUT_FAIL p7b_tcp_sink.cpp
+PUT_FAIL p7b_tcp_src.cpp
+PUT_FAIL p7b_udp_src.cpp
+PUT_FAIL p7b_rate2_bench.cpp
+PUT_FAIL p7b_mir_dump.cpp
+PUT_FAIL p7b_snap.sh
+PUT_FAIL p7b_selftest.sh
+PUT_FAIL p7b_dualthread_selftest.sh
+PUT_FAIL p7b_lane8_selftest.sh
+PUT_FAIL aff_selftest.sh
+PUT_FAIL p7b_tcp_src_fix.cpp
+PUT_FAIL p7b_tcp_src_diag.cpp
+PUT_FAIL tcpreg_j6.sh
+PUT_FAIL p7b_tcp_src_rate.cpp
+PUT_FAIL p7b_tcp_sink_rate.cpp
+PUT_FAIL pcap_off_dryrun.sh
+PUT_FAIL align_check2_fixed.py
+PUT_FAIL split_conn_pcap.py
+PUT_FAIL => 停止

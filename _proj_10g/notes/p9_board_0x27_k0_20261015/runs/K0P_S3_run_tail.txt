@@ -1,0 +1,27 @@
+--- 抓包统计 (tcpdump 自报; 丢包/缺包 = 判据污染的见证) ---
+[ctl]
+1 packet captured
+1 packet received by filter
+0 packets dropped by kernel
+[full]
+274168 packets captured
+274210 packets received by filter
+0 packets dropped by kernel
+-rw-r--r-- 1 tcpdump tcpdump        94 Oct 15 11:39 /tmp/k0_K0P_S3_ctl.pcap
+-rw-r--r-- 1 tcpdump tcpdump 300000901 Oct 15 11:39 /tmp/k0_K0P_S3_full.pcap0
+-rw-r--r-- 1 tcpdump tcpdump 119473134 Oct 15 11:39 /tmp/k0_K0P_S3_full.pcap1
+37ec58791b775906764c1d17388cd08fc887d5869ee6bf7f23dc8504f9a7e0d5  /tmp/k0_K0P_S3_ctl.pcap
+6d659f4cf14f2c8de24327b71d504fc604741767d9b11d81c3e57a2e81edee28  /tmp/k0_K0P_S3_full.pcap0
+1d45fbb145a752f8f3481367a5f6e1bd82d8e0c8c9804b8475411c15f962efab  /tmp/k0_K0P_S3_full.pcap1
+--- sink 摘要 (逐字) ---
+SINK_CHECK check=lane8
+SINK_LIMITS maxbytes=400000000 poll_ms=5000 stall_n=3 rcvbuf=49152 conns=1 secs=120
+SINK_RCVBUF_ORDER RCVBUF_ORDER=before_connect rcvbuf=49152
+SINK_CONN 0 OK bytes=400000435 first_mismatch=-1 mism_bytes=0 conn_ms=0.207 dur_ms=568.153 Mbps=5632.296 reads=63872 poll_tmo=0 CPU_FREQ_KHZ=3699777 THREADED=on q_full_push=63872 q_full_pop=63872 q_free_push=63888 q_free_pop=63872 slot_wait_spins=21644 checked_bytes=400000435
+SINK_SUM conns=1 fail_conns=0 bytes=400000435 clean_conns=1 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=0.568 net_s=0.568 agg_Mbps=5632.296 THREADED=on full_push=63872 full_pop=63872 free_push=63888 free_pop=63872 slot_wait_spins=21644 checked_bytes=400000435 threads=2 check=lane8
+--- 板侧态 (跑后) ---
+BID_0x04=Read 32-bit value at address 0x4 (0x72ed4dc7e004): 0x00000027
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x7e6a6141b008): 0x00000000
+CARRIER=1
+(空=无残留进程)
+### K0_END tag=K0P_S3 1792035579.828605084

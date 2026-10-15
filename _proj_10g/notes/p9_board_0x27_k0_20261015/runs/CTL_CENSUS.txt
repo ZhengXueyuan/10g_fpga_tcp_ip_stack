@@ -1,0 +1,17 @@
+=== 控制帧普查 (ctl pcap: tcp port 8080 and FIN|RST) ===
+ctl_K0N_S2.pcap        n=5
+    192.168.100.100 sport=42118 dport=8080 flags=RST seq=0xc66ff105
+    192.168.100.100 sport=36986 dport=8080 flags=RST seq=0xe7630d65
+    192.168.100.100 sport=37000 dport=8080 flags=RST seq=0x008d771a
+    192.168.100.100 sport=37012 dport=8080 flags=RST seq=0x4692248f
+    192.168.100.100 sport=37026 dport=8080 flags=RST seq=0xcedb31e0
+ctl_K0N_S3.pcap        n=1
+    192.168.100.100 sport=53218 dport=8080 flags=RST seq=0x1a0f643c
+ctl_K0P_S2.pcap        n=5
+    192.168.100.100 sport=33952 dport=8080 flags=RST seq=0xe9f897e5
+    192.168.100.100 sport=33958 dport=8080 flags=RST seq=0xb830374b
+    192.168.100.100 sport=33974 dport=8080 flags=RST seq=0x664e013b
+    192.168.100.100 sport=33984 dport=8080 flags=RST seq=0x21ea6c6d
+    192.168.100.100 sport=33994 dport=8080 flags=RST seq=0xc596f451
+ctl_K0P_S3.pcap        n=1
+    192.168.100.100 sport=35364 dport=8080 flags=RST seq=0xbc7c9860

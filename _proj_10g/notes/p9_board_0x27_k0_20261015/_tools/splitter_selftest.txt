@@ -1,0 +1,9 @@
+wrote /tmp/k0_selftest/multi2.pcap
+SPLIT tag=multi2 files=1 conns=2 sport=8080
+  CONN dport=40001 segs=42       bytes=60000        file=multi2_8080_40001.pcap
+  CONN dport=40002 segs=42       bytes=60000        file=multi2_8080_40002.pcap
+ 
+  tool on multi2_8080_40001.pcap -> K0=37960 done={'verified_prefix': 60000, 'n': 60000, 'breaks': 0}
+  tool on multi2_8080_40002.pcap -> K0=0 done={'verified_prefix': 60000, 'n': 60000, 'breaks': 0}
+EXPECT: multi2_8080_40001 -> K0=37960 ; multi2_8080_40002 -> K0=0
+SPLITTER_SELFTEST PASS

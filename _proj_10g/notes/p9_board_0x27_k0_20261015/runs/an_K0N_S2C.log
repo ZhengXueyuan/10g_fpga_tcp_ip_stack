@@ -1,0 +1,154 @@
+### K0AN_BEGIN tag=K0N_S2C sport=8080 1792037421.195736163
+--- 0) 工具身份 ---
+f14680ad360170e15415e58e3eee49d7  /tmp/p7b_biz/align_check2_fixed.py
+fa4456d63ee5b751ea770e46337f79c4  /tmp/p7b_biz/split_conn_pcap.py
+db77dd3cf4ae34e5761e8ab03772ea119f0dc90c9b7bc9c09a4e85344e3ec38e  /tmp/p7b_biz/align_check2_fixed.py
+b8a95d46d3e4d78148cc5f7005e405b0a1b36dc39cab71feff95248081a51065  /tmp/p7b_biz/split_conn_pcap.py
+--- 1) 拆连接 (按 dport; 只搬数据, 不测量) ---
+SPLIT tag=K0N_S2C files=9 conns=12 sport=8080
+  CONN dport=34894 segs=137069   bytes=200120740    file=K0N_S2C_8080_34894.pcap
+  CONN dport=34900 segs=137084   bytes=200142640    file=K0N_S2C_8080_34900.pcap
+  CONN dport=34916 segs=137127   bytes=200199584    file=K0N_S2C_8080_34916.pcap
+  CONN dport=35804 segs=137507   bytes=200758761    file=K0N_S2C_8080_35804.pcap
+  CONN dport=35818 segs=137146   bytes=200233160    file=K0N_S2C_8080_35818.pcap
+  CONN dport=35834 segs=137153   bytes=200241921    file=K0N_S2C_8080_35834.pcap
+  CONN dport=35844 segs=137181   bytes=200284260    file=K0N_S2C_8080_35844.pcap
+  CONN dport=35856 segs=137222   bytes=200342661    file=K0N_S2C_8080_35856.pcap
+  CONN dport=37298 segs=137120   bytes=200193741    file=K0N_S2C_8080_37298.pcap
+  CONN dport=37302 segs=137121   bytes=200196660    file=K0N_S2C_8080_37302.pcap
+  CONN dport=37306 segs=137526   bytes=200787960    file=K0N_S2C_8080_37306.pcap
+  CONN dport=37316 segs=137193   bytes=200298862    file=K0N_S2C_8080_37316.pcap
+--- 2) 每连接: K0 (绝对) + breaks + verified_prefix (+ 重对齐行) ---
+== CONN K0N_S2C_8080_34894.pcap ==
+ALIGN2 segs=137069 n=200002480
+K0=0
+PAT_GEN done len=204327920
+  ... verified 32768000/200002480
+  ... verified 65536000/200002480
+  ... verified 98304000/200002480
+  ... verified 131072000/200002480
+  ... verified 163840000/200002480
+  ... verified 196608000/200002480
+ALIGN2_DONE verified_prefix=200002480 n=200002480 breaks=0
+== CONN K0N_S2C_8080_34900.pcap ==
+ALIGN2 segs=137084 n=200002480
+K0=0
+PAT_GEN done len=204327920
+  ... verified 32768000/200002480
+  ... verified 65536000/200002480
+  ... verified 98304000/200002480
+  ... verified 131072000/200002480
+  ... verified 163840000/200002480
+  ... verified 196608000/200002480
+ALIGN2_DONE verified_prefix=200002480 n=200002480 breaks=0
+== CONN K0N_S2C_8080_34916.pcap ==
+ALIGN2 segs=137127 n=199811220
+K0=0
+PAT_GEN done len=204136660
+  ... verified 32768000/199811220
+  ... verified 65536000/199811220
+  ... verified 98304000/199811220
+  ... verified 131072000/199811220
+  ... verified 163840000/199811220
+  ... verified 196608000/199811220
+ALIGN2_DONE verified_prefix=199811220 n=199811220 breaks=0
+== CONN K0N_S2C_8080_35804.pcap ==
+ALIGN2 segs=137507 n=200002480
+K0=0
+PAT_GEN done len=204327920
+  ... verified 32768000/200002480
+  ... verified 65536000/200002480
+  ... verified 98304000/200002480
+  ... verified 131072000/200002480
+  ... verified 163840000/200002480
+  ... verified 196608000/200002480
+ALIGN2_DONE verified_prefix=200002480 n=200002480 breaks=0
+== CONN K0N_S2C_8080_35818.pcap ==
+ALIGN2 segs=137146 n=200002480
+K0=0
+PAT_GEN done len=204327920
+  ... verified 32768000/200002480
+  ... verified 65536000/200002480
+  ... verified 98304000/200002480
+  ... verified 131072000/200002480
+  ... verified 163840000/200002480
+  ... verified 196608000/200002480
+ALIGN2_DONE verified_prefix=200002480 n=200002480 breaks=0
+== CONN K0N_S2C_8080_35834.pcap ==
+ALIGN2 segs=137153 n=200002480
+K0=0
+PAT_GEN done len=204327920
+  ... verified 32768000/200002480
+  ... verified 65536000/200002480
+  ... verified 98304000/200002480
+  ... verified 131072000/200002480
+  ... verified 163840000/200002480
+  ... verified 196608000/200002480
+ALIGN2_DONE verified_prefix=200002480 n=200002480 breaks=0
+== CONN K0N_S2C_8080_35844.pcap ==
+ALIGN2 segs=137181 n=200002480
+K0=0
+PAT_GEN done len=204327920
+  ... verified 32768000/200002480
+  ... verified 65536000/200002480
+  ... verified 98304000/200002480
+  ... verified 131072000/200002480
+  ... verified 163840000/200002480
+  ... verified 196608000/200002480
+ALIGN2_DONE verified_prefix=200002480 n=200002480 breaks=0
+== CONN K0N_S2C_8080_35856.pcap ==
+ALIGN2 segs=137222 n=200002480
+K0=0
+PAT_GEN done len=204327920
+  ... verified 32768000/200002480
+  ... verified 65536000/200002480
+  ... verified 98304000/200002480
+  ... verified 131072000/200002480
+  ... verified 163840000/200002480
+  ... verified 196608000/200002480
+ALIGN2_DONE verified_prefix=200002480 n=200002480 breaks=0
+== CONN K0N_S2C_8080_37298.pcap ==
+ALIGN2 segs=137120 n=200002480
+K0=0
+PAT_GEN done len=204327920
+  ... verified 32768000/200002480
+  ... verified 65536000/200002480
+  ... verified 98304000/200002480
+  ... verified 131072000/200002480
+  ... verified 163840000/200002480
+  ... verified 196608000/200002480
+ALIGN2_DONE verified_prefix=200002480 n=200002480 breaks=0
+== CONN K0N_S2C_8080_37302.pcap ==
+ALIGN2 segs=137121 n=200002480
+K0=0
+PAT_GEN done len=204327920
+  ... verified 32768000/200002480
+  ... verified 65536000/200002480
+  ... verified 98304000/200002480
+  ... verified 131072000/200002480
+  ... verified 163840000/200002480
+  ... verified 196608000/200002480
+ALIGN2_DONE verified_prefix=200002480 n=200002480 breaks=0
+== CONN K0N_S2C_8080_37306.pcap ==
+ALIGN2 segs=137526 n=200002480
+K0=0
+PAT_GEN done len=204327920
+  ... verified 32768000/200002480
+  ... verified 65536000/200002480
+  ... verified 98304000/200002480
+  ... verified 131072000/200002480
+  ... verified 163840000/200002480
+  ... verified 196608000/200002480
+ALIGN2_DONE verified_prefix=200002480 n=200002480 breaks=0
+== CONN K0N_S2C_8080_37316.pcap ==
+ALIGN2 segs=137193 n=200002480
+K0=0
+PAT_GEN done len=204327920
+  ... verified 32768000/200002480
+  ... verified 65536000/200002480
+  ... verified 98304000/200002480
+  ... verified 131072000/200002480
+  ... verified 163840000/200002480
+  ... verified 196608000/200002480
+ALIGN2_DONE verified_prefix=200002480 n=200002480 breaks=0
+### K0AN_END tag=K0N_S2C 1792038466.014647362

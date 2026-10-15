@@ -1,0 +1,85 @@
+### K0_BEGIN tag=K0P_SMOKE3 rcvbuf=8192 conns=1 secs=20 maxbytes=4000000 ring=100MBx2 sink_extra='' 1792034674.963139236
+### SNAP_MD5 32b97715c75eaa9163d2736432aef397
+### SINK_MD5 6d9b14f24725fa326ffe5b169f77e30f
+### SNAP_ARGS NW=71 EXPECT_BID=0x00000027 KW='5 20 43 51 52 14 15 55 57 58'
+### TCPDUMP tcpdump version 4.99.4
+--- 板侧身份闸 (跑前) ---
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x00000027   (want 0x00000027 = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1792034674.984338614
+ID_RC=0
+BID_0x04=Read 32-bit value at address 0x4 (0x791a260ba004): 0x00000027
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x727cf20d6008): 0x00000000
+CARRIER=1
+NETADDR=inet 192.168.100.100/32
+ROUTE_GET=192.168.100.2 dev enp1s0f1np1 src 192.168.100.100 uid 0 
+--- 抓包 ①: 控制帧普查 (FIN/RST, 全窗; 音量极小) ---
+TCPDUMP_ARMED /tmp/k0_K0P_SMOKE3_ctl.err (waited ~0s)
+--- 抓包 ②: 环形全帧 (板->对端) ---
+TCPDUMP_ARMED /tmp/k0_K0P_SMOKE3_full.err (waited ~0s)
+FULL_PID=15928 CTL_PID=15923
+--- 板侧快照环 (后台; 每 0.15s 一点) ---
+SNAP_PID=15932
+--- 对端内核计数 (跑前) ---
+TcpInSegs                       73345              0.0
+TcpOutSegs                      69668              0.0
+TcpRetransSegs                  472                0.0
+TcpExtTCPFastRetrans            5                  0.0
+TcpExtTCPOFOQueue               2610               0.0
+TcpExtTCPACKSkippedSeq          1                  0.0
+--- 主跑: sink (现役部署件; --check lane8) ---
+### SINK_RC=0 T0=1792034675.201420807 T1=1792034675.248780581 T1-T0=0.047
+--- 对端内核计数 (跑后) ---
+TcpInSegs                       76093              0.0
+TcpOutSegs                      71869              0.0
+TcpRetransSegs                  472                0.0
+TcpExtTCPFastRetrans            5                  0.0
+TcpExtTCPOFOQueue               2610               0.0
+TcpExtTCPACKSkippedSeq          1                  0.0
+--- 收尾: 停快照环 + 抓包 (SIGINT 优雅停) ---
+full STOPPED_GRACEFULLY (~0s)
+ctl STOPPED_GRACEFULLY (~0s)
+--- 抓包统计 (tcpdump 自报; 丢包/缺包 = 判据污染的见证) ---
+[ctl]
+0 packets captured
+1 packet received by filter
+0 packets dropped by kernel
+[full]
+2610 packets captured
+2746 packets received by filter
+0 packets dropped by kernel
+-rw-r--r-- 1 tcpdump tcpdump      24 Oct 15 11:24 /tmp/k0_K0P_SMOKE3_ctl.pcap
+-rw-r--r-- 1 tcpdump tcpdump 3990416 Oct 15 11:24 /tmp/k0_K0P_SMOKE3_full.pcap0
+704e5e5b3234433c01fcfd1b20a306e77e985038120492dc53965c3edd38a4ea  /tmp/k0_K0P_SMOKE3_ctl.pcap
+fbb177b05ee68d6f5d178bbc5db61bcc5754697301a1f50d1092187518a3ea41  /tmp/k0_K0P_SMOKE3_full.pcap0
+--- sink 摘要 (逐字) ---
+SINK_CHECK check=lane8
+SINK_LIMITS maxbytes=4000000 poll_ms=5000 stall_n=3 rcvbuf=8192 conns=1 secs=20
+SINK_RCVBUF_ORDER RCVBUF_ORDER=before_connect rcvbuf=8192
+SINK_CONN 0 OK bytes=4000400 first_mismatch=-1 mism_bytes=0 conn_ms=0.292 dur_ms=41.889 Mbps=764.000 reads=2189 poll_tmo=0 CPU_FREQ_KHZ=3855535 THREADED=on q_full_push=2189 q_full_pop=2189 q_free_push=2205 q_free_pop=2189 slot_wait_spins=0 checked_bytes=4000400
+SINK_SUM conns=1 fail_conns=0 bytes=4000400 clean_conns=1 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=0.042 net_s=0.042 agg_Mbps=764.000 THREADED=on full_push=2189 full_pop=2189 free_push=2205 free_pop=2189 slot_wait_spins=0 checked_bytes=4000400 threads=2 check=lane8
+--- 板侧态 (跑后) ---
+BID_0x04=Read 32-bit value at address 0x4 (0x79f685702004): 0x00000027
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x7a4ee91ed008): 0x00000000
+CARRIER=1
+(空=无残留进程)
+### K0_END tag=K0P_SMOKE3 1792034675.802465394
+====
+### K0AN_BEGIN tag=K0P_SMOKE3 sport=8080 1792034675.806514009
+--- 0) 工具身份 ---
+f14680ad360170e15415e58e3eee49d7  /tmp/p7b_biz/align_check2_fixed.py
+fa4456d63ee5b751ea770e46337f79c4  /tmp/p7b_biz/split_conn_pcap.py
+db77dd3cf4ae34e5761e8ab03772ea119f0dc90c9b7bc9c09a4e85344e3ec38e  /tmp/p7b_biz/align_check2_fixed.py
+b8a95d46d3e4d78148cc5f7005e405b0a1b36dc39cab71feff95248081a51065  /tmp/p7b_biz/split_conn_pcap.py
+--- 1) 拆连接 (按 dport; 只搬数据, 不测量) ---
+SPLIT tag=K0P_SMOKE3 files=1 conns=1 sport=8080
+  CONN dport=56094 segs=2608     bytes=3807680      file=K0P_SMOKE3_8080_56094.pcap
+--- 2) 每连接: K0 (绝对) + breaks + verified_prefix (+ 重对齐行) ---
+== CONN K0P_SMOKE3_8080_56094.pcap ==
+ALIGN2 segs=2608 n=3804760
+K0=0
+PAT_GEN done len=8130200
+ALIGN2_DONE verified_prefix=3804760 n=3804760 breaks=0
+### K0AN_END tag=K0P_SMOKE3 1792034680.876239485

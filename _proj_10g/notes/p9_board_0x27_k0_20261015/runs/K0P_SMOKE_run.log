@@ -1,0 +1,58 @@
+### K0_BEGIN tag=K0P_SMOKE rcvbuf=8192 conns=1 secs=20 maxbytes=4000000 ring=100MBx2 sink_extra='' 1792034300.965040055
+### SNAP_MD5 32b97715c75eaa9163d2736432aef397
+### SINK_MD5 6d9b14f24725fa326ffe5b169f77e30f
+### SNAP_ARGS NW=71 EXPECT_BID=0x00000027 KW='5 20 43 51 52 14 15 55 57 58'
+### TCPDUMP tcpdump version 4.99.4
+--- 板侧身份闸 (跑前) ---
+PRECHECK_FAIL 非 root: /dev/xdma0_user 打不开 => 所有读都是空串。
+  跑法: PEER_PW=... python tools/peer_ssh.py --sudo 'bash /tmp/p7b_biz/p7b_snap.sh id'
+ID_RC=3
+BID_0x04=character device /dev/xdma0_user opened failed: Permission denied.
+SCRATCH_0x08=character device /dev/xdma0_user opened failed: Permission denied.
+CARRIER=1
+NETADDR=inet 192.168.100.100/32
+ROUTE_GET=192.168.100.2 dev enp1s0f1np1 src 192.168.100.100 uid 1000 
+--- 抓包 ①: 控制帧普查 (FIN/RST, 全窗; 音量极小) ---
+CTL_PID=14863
+--- 抓包 ②: 环形全帧 (板->对端) ---
+FULL_PID=14875
+--- 板侧快照环 (后台; 每 0.15s 一点) ---
+SNAP_PID=14876
+--- 对端内核计数 (跑前) ---
+TcpInSegs                       67454              0.0
+TcpOutSegs                      62053              0.0
+TcpRetransSegs                  470                0.0
+TcpExtTCPFastRetrans            5                  0.0
+TcpExtTCPOFOQueue               2606               0.0
+TcpExtTCPACKSkippedSeq          1                  0.0
+--- 主跑: sink (现役部署件; --check lane8) ---
+### SINK_RC=0 T0=1792034301.991386564 T1=1792034302.031510593
+--- 对端内核计数 (跑后) ---
+TcpInSegs                       70201              0.0
+TcpOutSegs                      64533              0.0
+TcpRetransSegs                  470                0.0
+TcpExtTCPFastRetrans            5                  0.0
+TcpExtTCPOFOQueue               2606               0.0
+TcpExtTCPACKSkippedSeq          1                  0.0
+--- 收尾: 停快照环 + 抓包 ---
+--- 抓包统计 (tcpdump 自报; 丢包 = 判据污染的见证; 必须 0) ---
+[ctl]
+tcpdump: enp1s0f1np1: You don't have permission to perform this capture on that device
+(socket: Operation not permitted)
+[full]
+tcpdump: enp1s0f1np1: You don't have permission to perform this capture on that device
+(socket: Operation not permitted)
+ls: cannot access '/tmp/k0_K0P_SMOKE_*.pcap*': No such file or directory
+sha256sum: '/tmp/k0_K0P_SMOKE_*.pcap*': No such file or directory
+--- sink 摘要 (逐字) ---
+SINK_CHECK check=lane8
+SINK_LIMITS maxbytes=4000000 poll_ms=5000 stall_n=3 rcvbuf=8192 conns=1 secs=20
+SINK_RCVBUF_ORDER RCVBUF_ORDER=before_connect rcvbuf=8192
+SINK_CONN 0 OK bytes=4000400 first_mismatch=-1 mism_bytes=0 conn_ms=0.235 dur_ms=35.305 Mbps=906.487 reads=2469 poll_tmo=0 CPU_FREQ_KHZ=3701473 THREADED=on q_full_push=2469 q_full_pop=2469 q_free_push=2485 q_free_pop=2469 slot_wait_spins=0 checked_bytes=4000400
+SINK_SUM conns=1 fail_conns=0 bytes=4000400 clean_conns=1 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=0.036 net_s=0.035 agg_Mbps=906.487 THREADED=on full_push=2469 full_pop=2469 free_push=2485 free_pop=2469 slot_wait_spins=0 checked_bytes=4000400 threads=2 check=lane8
+--- 板侧态 (跑后) ---
+BID_0x04=character device /dev/xdma0_user opened failed: Permission denied.
+SCRATCH_0x08=character device /dev/xdma0_user opened failed: Permission denied.
+CARRIER=1
+(空=无残留进程)
+### K0_END tag=K0P_SMOKE 1792034304.392171178

@@ -1,0 +1,7 @@
+  [PASS] T8b 注入的 EAGAIN 确实发生 (INJECTED 1 次) = 1
+  [PASS] T8b EAGAIN 之后紧跟 poll(fd, POLLOUT) = yes
+  [PASS] T8b 注入后工具继续工作 (call_errors=0 且 pkts>0) = yes
+
+SELFTEST_SUMMARY PASS=30 FAIL=0
+SELFTEST_OK
+SELFTEST_RC=0

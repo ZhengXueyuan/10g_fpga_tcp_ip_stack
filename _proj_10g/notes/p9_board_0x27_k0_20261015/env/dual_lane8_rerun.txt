@@ -1,0 +1,10 @@
+  BENCH recv-check-split bytes_sent=268435456 bytes_recv=268435456 sec=0.436941 Gbps=4.9148 Mbps=4914.82 checked=268435456 first_mismatch=-1 mism_bytes=0 slot_wait_spins=763640 send_err=0 slots=16 slot_bytes=65536 core_send=4 core_io=2 core_work=3 CPU_FREQ_KHZ=3899779 check=seq
+
+DUAL_SELFTEST_SUMMARY PASS=48 FAIL=0
+DUAL_SELFTEST_OK
+DUAL_RC=0
+  [SKIP] 本机没有 p7baff_faultinject.cpp ⇒ **L15/L16 未跑** (不是通过)
+
+LANE8_SELFTEST_SUMMARY PASS=38 FAIL=0 SKIP=2
+LANE8_SELFTEST_OK
+LANE8_RC=0

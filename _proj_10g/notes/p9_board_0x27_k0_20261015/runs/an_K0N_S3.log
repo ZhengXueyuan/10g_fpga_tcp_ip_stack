@@ -1,0 +1,28 @@
+### K0AN_BEGIN tag=K0N_S3 sport=8080 1792036733.176045578
+--- 0) 工具身份 ---
+f14680ad360170e15415e58e3eee49d7  /tmp/p7b_biz/align_check2_fixed.py
+fa4456d63ee5b751ea770e46337f79c4  /tmp/p7b_biz/split_conn_pcap.py
+db77dd3cf4ae34e5761e8ab03772ea119f0dc90c9b7bc9c09a4e85344e3ec38e  /tmp/p7b_biz/align_check2_fixed.py
+b8a95d46d3e4d78148cc5f7005e405b0a1b36dc39cab71feff95248081a51065  /tmp/p7b_biz/split_conn_pcap.py
+--- 1) 拆连接 (按 dport; 只搬数据, 不测量) ---
+SPLIT tag=K0N_S3 files=2 conns=1 sport=8080
+  CONN dport=53218 segs=274341   bytes=400537715    file=K0N_S3_8080_53218.pcap
+--- 2) 每连接: K0 (绝对) + breaks + verified_prefix (+ 重对齐行) ---
+== CONN K0N_S3_8080_53218.pcap ==
+ALIGN2 segs=274341 n=400034015
+K0=0
+PAT_GEN done len=404359455
+  ... verified 32768000/400034015
+  ... verified 65536000/400034015
+  ... verified 98304000/400034015
+  ... verified 131072000/400034015
+  ... verified 163840000/400034015
+  ... verified 196608000/400034015
+  ... verified 229376000/400034015
+  ... verified 262144000/400034015
+  ... verified 294912000/400034015
+  ... verified 327680000/400034015
+  ... verified 360448000/400034015
+  ... verified 393216000/400034015
+ALIGN2_DONE verified_prefix=400034015 n=400034015 breaks=0
+### K0AN_END tag=K0N_S3 1792036904.587157329

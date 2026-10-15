@@ -1,0 +1,4 @@
+### CASE Q_end_mismatch
+PIN_FAIL END_MISMATCH: PIN_GETCPU_END=2 != PIN_CPU=5 (单核掩码下不可能 => 绑核被外部改过/换过核)
+### ENDCASE Q_end_mismatch
+AFF_FULL_RC=0
