@@ -1,3 +1,5 @@
+> ⛔ **SUPERSEDED（2026-10-16 收尾文档轮；正文一字未动、保留原"被复核基线"性质）**：本件 = v3（805 行），**已被取代 ⇒ 不作为施工依据**；施工唯一依据 = **`P7B_BUILDG_RFC_SEQ_DESIGN_v3r3.md`**（R4 即审 0 发现、四轮收敛 `a57e600`；施工口径自 v3r2 交接至 v3r3）。链 = `../P7B_BUILDG_RFC_SEQ_DESIGN.md`（v1）→ `P7B_BUILDG_RFC_SEQ_DESIGN_v2.md` → **v3 = 本件** → `P7B_BUILDG_RFC_SEQ_DESIGN_v3r2.md` → `P7B_BUILDG_RFC_SEQ_DESIGN_v3r3.md`。
+
 # P7B_BUILDG_RFC_SEQ_DESIGN **v3** —— `tcp_rx` 的 RFC seq 比较修复：设计件 v3（implementation-ready）
 
 > **状态 = 待 kimi 复审（owner 暂停派发期间）。** 本件 = **v2 的修订件**；**v2（`P7B_BUILDG_RFC_SEQ_DESIGN_v2.md`，716 行）保持不动 = 被复核基线**。

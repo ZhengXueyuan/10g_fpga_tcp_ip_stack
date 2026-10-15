@@ -1,3 +1,5 @@
+> ⛔ **SUPERSEDED（2026-10-16 收尾文档轮；正文一字未动）**：本件 = v1（778 行，Build G 设计研究件），**已被取代 ⇒ 不作为施工依据**（审查 `p7b_buildG_review_20261010/FINDINGS.md` 推翻 8 / 降级 8 / 行号勘误 6 后由 v2 逐条回写）；施工唯一依据 = **`p9_fix_rfcseq_design_20261014/P7B_BUILDG_RFC_SEQ_DESIGN_v3r3.md`**（R4 即审 0 发现、四轮收敛 `a57e600`）。链 = **v1 = 本件** → `p9_fix_rfcseq_design_20261014/P7B_BUILDG_RFC_SEQ_DESIGN_v2.md` → `…_v3.md` → `…_v3r2.md` → `…_v3r3.md`。
+
 # P7B_BUILDG_RFC_SEQ_DESIGN —— Build G：`tcp_rx` 两处绝对比较 → RFC 相对比较 + 「让它有牙」的观测量设计
 
 - 轮次：**P7b 设计研究轮（2026-10-10，Build G 派单）**。派单 = 「① 现核 / ② RFC 正确形式 / ③ 计数器设计 /
