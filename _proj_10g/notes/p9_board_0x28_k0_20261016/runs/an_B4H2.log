@@ -1,0 +1,18 @@
+# B4H2 (0x28; 高密度并行 pilot; poll-ms 默认 5000) — 逐连接 align 分析
+# 口径: split_conn_pcap.py 拆连接 (按对端源端口, 落在 /tmp/k0_split_B4H2x) → 逐连接 align_check2_fixed.py
+# ⚠️ 本跑被人工停在一半 (sink1 conn5 未结束) ⇒ 只覆盖 11 条完成连接的流; 计数与判据仍成立
+# 工具身份 (对端现读): align_check2_fixed.py md5 f14680ad360170e15415e58e3eee49d7
+#                       split_conn_pcap.py    md5 fa4456d63ee5b751ea770e46337f79c4
+== CONN B4H2_8080_40654.pcap ==  K0=0  ALIGN2_DONE verified_prefix=1810400  n=1810400  breaks=0
+== CONN B4H2_8080_44854.pcap ==  K0=0  ALIGN2_DONE verified_prefix=36209460 n=36209460 breaks=0
+== CONN B4H2_8080_45956.pcap ==  K0=0  ALIGN2_DONE verified_prefix=24916360 n=24916360 breaks=0
+== CONN B4H2_8080_49308.pcap ==  K0=0  ALIGN2_DONE verified_prefix=1811860  n=1811860  breaks=0
+== CONN B4H2_8080_50212.pcap ==  K0=0  ALIGN2_DONE verified_prefix=1836680  n=1836680  breaks=0
+== CONN B4H2_8080_53356.pcap ==  K0=0  ALIGN2_DONE verified_prefix=1849820  n=1849820  breaks=0
+== CONN B4H2_8080_55248.pcap ==  K0=0  ALIGN2_DONE verified_prefix=1261440  n=1261440  breaks=0
+== CONN B4H2_8080_56002.pcap ==  K0=0  ALIGN2_DONE verified_prefix=1830840  n=1830840  breaks=0
+== CONN B4H2_8080_57704.pcap ==  K0=0  ALIGN2_DONE verified_prefix=1825000  n=1825000  breaks=0
+== CONN B4H2_8080_57926.pcap ==  K0=0  ALIGN2_DONE verified_prefix=1819160  n=1819160  breaks=0
+== CONN B4H2_8080_58044.pcap ==  K0=0  ALIGN2_DONE verified_prefix=1820620  n=1820620  breaks=0
+# 合计: 11/11 连接 K0==0 ∧ breaks==0 ∧ verified_prefix==n
+# (sink 侧独立口径: 12 连接 全部 first_mismatch=-1 / mism_bytes=0; 第 12 条 = sink2 conn0 收 0 字节 ⇒ 无数据帧不入 pcap)

@@ -1,0 +1,37 @@
+### K0M_BEGIN tag=B4H3 nsinks=2 stagger=0.4 rcvbuf=2920 conns=6 secs=300 maxbytes=50000000 ring=300MBx8 1792085849.553119866
+### SNAP_MD5 a257af8299904789c6a6dd9ed5ca030f
+### SINK_MD5 6d9b14f24725fa326ffe5b169f77e30f
+### SNAP_ARGS NW=75 EXPECT_BID=0x00000028 KW='5 20 43 51 52 14 15 55 57 58 71 72 73 74'
+--- 板侧身份闸 (跑前) ---
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x00000028   (want 0x00000028 = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1792085849.571918555
+ID_RC=0
+BID_0x04=Read 32-bit value at address 0x4 (0x7c3720617004): 0x00000028
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x7cf66cd1c008): 0x00000000
+CARRIER=1
+ROUTE_GET=192.168.100.2 dev enp1s0f1np1 src 192.168.100.100 uid 0 
+--- 抓包 ①: 控制帧普查 ---
+TCPDUMP_ARMED /tmp/k0_B4H3_ctl.err (waited ~0s)
+--- 抓包 ②: 环形全帧 ---
+TCPDUMP_ARMED /tmp/k0_B4H3_full.err (waited ~0s)
+FULL_PID=283655 CTL_PID=283650
+--- 板侧快照环 (后台; 每 0.15s 一点) ---
+SNAP_PID=283659
+--- 对端内核计数 (跑前) ---
+--- ⭐ SNAP_PRE 1792085849.786354383 ---
+SNAP_BEGIN B4H3_PRE gen=1683
+W71  0x13C  app_stat_up_ev         0x00000013
+W72  0x140  app_stat_sw_req        0x0000000a
+W73  0x144  app_stat_sw_apply      0x00000012
+W74  0x148  app_stat_up_pend       0x00000001
+W51  0xEC   app_tx_bytes           0x63f62fdf
+W20  0x70   mac_tx_frames          0x0011d132
+W43  0xCC   mtx_stat_tx_words      0x0061daf4
+W5   0x34   gmii_free_FE           0x007a6840
+SNAP_END B4H3_PRE nff=0
+--- 主跑: 2 个 sink 并行 (错开 0.4s) ---
+SINK1_START pid=283788 t=1792085849.827765209
+SINK2_START pid=284118 t=1792085850.229506383

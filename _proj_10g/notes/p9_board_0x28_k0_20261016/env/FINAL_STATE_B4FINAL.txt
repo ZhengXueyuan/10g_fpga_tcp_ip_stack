@@ -1,0 +1,106 @@
+=== FINAL_STATE_BEGIN B4FINAL 1792087455.726521100 Fri Oct 16 02:04:15     2026
+--- 板侧 (板 = 插在对端 PCIe 槽的卡) ---
+MAGIC_0x00=Read 32-bit value at address 0x0 (0x7eb3f32db000): 0x50360001
+BID_0x04=Read 32-bit value at address 0x4 (0x73991d9de004): 0x00000028
+MARKER_0x14=Read 32-bit value at address 0x14 (0x799e9ad34014): 0xdeadbeef
+UNIMPL_0x15C=Read 32-bit value at address 0x15c (0x7dde200ef15c): 0xffffffff
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x7fc88720f008): 0x00000000
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x00000028   (want 0x00000028 = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1792087456.856420326
+ID_RC=0
+--- ⭐ E12 四计数器 (收尾态) ---
+SNAP_BEGIN FINAL gen=1
+W71  0x13C  app_stat_up_ev         0x00000000
+W72  0x140  app_stat_sw_req        0x00000000
+W73  0x144  app_stat_sw_apply      0x00000000
+W74  0x148  app_stat_up_pend       0x00000000
+W51  0xEC   app_tx_bytes           0x00000000
+W20  0x70   mac_tx_frames          0x00000007
+W5   0x34   gmii_free_FE           0xee9499cb
+SNAP_END FINAL nff=0
+SNAP_RC=0
+		LnkSta:	Speed 5GT/s (downgraded), Width x4
+/dev/xdma0_c2h_0
+/dev/xdma0_control
+/dev/xdma0_h2c_0
+/dev/xdma0_user
+--- NIC ---
+netlink error: Operation not permitted
+192.168.100.2 dev enp1s0f1np1 src 192.168.100.100 uid 1000 
+CARRIER=1
+
+    inet 192.168.100.100/32 scope global enp1s0f1np1
+enp1s0f1np1     ethernet  unmanaged               --           
+	Speed: 10000Mb/s
+	Link detected: yes
+Adaptive RX: off  TX: n/a
+rx-usecs:	0
+inactive
+--- 残留进程 ---
+NO_P7B_PROCS
+NO_TCPDUMP
+NO_K0
+--- 对端 /tmp 本轮残留 ---
+3076 k0an_B4H3.log
+3299 k0an_B4P_S2.log
+1294 k0an_B4P_S3.log
+2681 k0an_N4H3.log
+172 k0_B4H2_ctl.err
+6954 k0_B4H2_ctl.pcap
+177 k0_B4H2_full.err
+108743508 k0_B4H2_full.pcap0
+330 k0_B4H2_nstat_post.txt
+330 k0_B4H2_nstat_pre.txt
+423 k0_B4H2_post.txt
+419 k0_B4H2_pre.txt
+2601 k0_B4H2_sink1.txt
+3256 k0_B4H2_sink2.txt
+1159971 k0_B4H2_snap.log
+171 k0_B4H3_ctl.err
+1284 k0_B4H3_ctl.pcap
+177 k0_B4H3_full.err
+88503786 k0_B4H3_full.pcap0
+330 k0_B4H3_nstat_pre.txt
+421 k0_B4H3_pre.txt
+3180 k0_B4H3_sink1.txt
+3215 k0_B4H3_sink2.txt
+1427086 k0_B4H3_snap.log
+169 k0_B4P_S2_ctl.err
+374 k0_B4P_S2_ctl.pcap
+179 k0_B4P_S2_full.err
+300001046 k0_B4P_S2_full.pcap0
+300001046 k0_B4P_S2_full.pcap1
+300001122 k0_B4P_S2_full.pcap2
+300001046 k0_B4P_S2_full.pcap3
+57555564 k0_B4P_S2_full.pcap4
+330 k0_B4P_S2_nstat_post.txt
+330 k0_B4P_S2_nstat_pre.txt
+425 k0_B4P_S2_post.txt
+422 k0_B4P_S2_pre.txt
+2894 k0_B4P_S2_sink.txt
+34628 k0_B4P_S2_snap.log
+168 k0_B4P_S3_ctl.err
+24 k0_B4P_S3_ctl.pcap
+179 k0_B4P_S3_full.err
+300000901 k0_B4P_S3_full.pcap0
+119903064 k0_B4P_S3_full.pcap1
+330 k0_B4P_S3_nstat_post.txt
+330 k0_B4P_S3_nstat_pre.txt
+425 k0_B4P_S3_post.txt
+423 k0_B4P_S3_pre.txt
+1502 k0_B4P_S3_sink.txt
+3000 k0_B4P_S3_snap.log
+171 k0_N4H3_ctl.err
+/dev/sdb3       1.8T  208G  1.5T  12% /
+--- 部署件 md5 (对端现读) ---
+6d9b14f24725fa326ffe5b169f77e30f  p7b_tcp_sink
+a257af8299904789c6a6dd9ed5ca030f  p7b_snap.sh
+f14680ad360170e15415e58e3eee49d7  align_check2_fixed.py
+fa4456d63ee5b751ea770e46337f79c4  split_conn_pcap.py
+689c83577d2eb6a46af16be3e4845c32  k0_arm_b4.sh
+7970742ef5cd8ebfac697f5b9c204e5d  k0_arm_b4_multi.sh
+1aea5b0587bf5556c39c3804a4664349  k0_analyze.sh
+=== FINAL_STATE_END B4FINAL 1792087465.012612700 ===

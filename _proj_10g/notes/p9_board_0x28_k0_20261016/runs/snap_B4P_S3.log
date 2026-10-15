@@ -1,0 +1,71 @@
+SNAP_T 1792084999.913302603
+GEN_FAIL gen 不是恰好 +1 (52 -> 54) => 有并发写者, 本代读数不可归因
+SNAP_ABORT
+SNAP_T 1792085000.077136918
+SNAP_BEGIN B4P_S3 gen=55
+W5   0x34   gmii_free_FE           0x16feb8c0
+W20  0x70   mac_tx_frames          0x000d269b
+W43  0xCC   mtx_stat_tx_words      0x16f97e1c
+W51  0xEC   app_tx_bytes           0x4afe2ab4
+W52  0xF0   app_tx_frames          0x000d2645
+W14  0x58   tx_stat_frames_TCP     0x000d2682
+W15  0x5C   tx_stat_bytes_TCP      0x4aff8698
+W55  0xFC   tx_stat_retx           0x0000000c
+W57  0x104  tx_retx_hi             0x14d2d56d
+W58  0x108  tx_retx_active         0x00000000
+W71  0x13C  app_stat_up_ev         0x00000007
+W72  0x140  app_stat_sw_req        0x00000000
+W73  0x144  app_stat_sw_apply      0x00000007
+W74  0x148  app_stat_up_pend       0x00000000
+SNAP_END B4P_S3 nff=0
+SNAP_T 1792085000.312454928
+SNAP_BEGIN B4P_S3 gen=56
+W5   0x34   gmii_free_FE           0x192eb9fe
+W20  0x70   mac_tx_frames          0x000e62c3
+W43  0xCC   mtx_stat_tx_words      0x19297df7
+W51  0xEC   app_tx_bytes           0x5205d08c
+W52  0xF0   app_tx_frames          0x000e61d3
+W14  0x58   tx_stat_frames_TCP     0x000e62aa
+W15  0x5C   tx_stat_bytes_TCP      0x520a9ab8
+W55  0xFC   tx_stat_retx           0x0000001d
+W57  0x104  tx_retx_hi             0x1c930241
+W58  0x108  tx_retx_active         0x00000000
+W71  0x13C  app_stat_up_ev         0x00000007
+W72  0x140  app_stat_sw_req        0x00000000
+W73  0x144  app_stat_sw_apply      0x00000007
+W74  0x148  app_stat_up_pend       0x00000000
+SNAP_END B4P_S3 nff=0
+SNAP_T 1792085000.552836177
+SNAP_BEGIN B4P_S3 gen=57
+W5   0x34   gmii_free_FE           0x1b740a84
+W20  0x70   mac_tx_frames          0x000fc319
+W43  0xCC   mtx_stat_tx_words      0x1b6ecd0c
+W51  0xEC   app_tx_bytes           0x59dc6bdb
+W52  0xF0   app_tx_frames          0x000fc1ab
+W14  0x58   tx_stat_frames_TCP     0x000fc300
+W15  0x5C   tx_stat_bytes_TCP      0x59e4049f
+W55  0xFC   tx_stat_retx           0x00000029
+W57  0x104  tx_retx_hi             0x23976c94
+W58  0x108  tx_retx_active         0x00000000
+W71  0x13C  app_stat_up_ev         0x00000007
+W72  0x140  app_stat_sw_req        0x00000000
+W73  0x144  app_stat_sw_apply      0x00000007
+W74  0x148  app_stat_up_pend       0x00000000
+SNAP_END B4P_S3 nff=0
+SNAP_T 1792085000.781182747
+SNAP_BEGIN B4P_S3 gen=59
+W5   0x34   gmii_free_FE           0x1d8a8811
+W20  0x70   mac_tx_frames          0x0010bada
+W43  0xCC   mtx_stat_tx_words      0x1d854947
+W51  0xEC   app_tx_bytes           0x5f5eb82f
+W52  0xF0   app_tx_frames          0x0010b8f4
+W14  0x58   tx_stat_frames_TCP     0x0010bac1
+W15  0x5C   tx_stat_bytes_TCP      0x5f68fd53
+W55  0xFC   tx_stat_retx           0x00000033
+W57  0x104  tx_retx_hi             0x29b8e5bc
+W58  0x108  tx_retx_active         0x00000000
+W71  0x13C  app_stat_up_ev         0x00000007
+W72  0x140  app_stat_sw_req        0x00000000
+W73  0x144  app_stat_sw_apply      0x00000007
+W74  0x148  app_stat_up_pend       0x00000000
+SNAP_END B4P_S3 nff=0

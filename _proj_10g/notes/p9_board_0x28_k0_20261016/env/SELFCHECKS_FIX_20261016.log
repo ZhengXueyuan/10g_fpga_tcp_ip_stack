@@ -1,0 +1,24 @@
+  [PASS] T8b 注入后工具继续工作 (call_errors=0 且 pkts>0) = yes
+
+SELFTEST_SUMMARY PASS=30 FAIL=0
+SELFTEST_OK
+SELFTEST_RC=0
+  BENCH recv-check-split bytes_sent=268435456 bytes_recv=268435456 sec=0.433369 Gbps=4.9553 Mbps=4955.32 checked=268435456 first_mismatch=-1 mism_bytes=0 slot_wait_spins=756342 send_err=0 slots=16 slot_bytes=65536 core_send=4 core_io=2 core_work=3 CPU_FREQ_KHZ=3897320 check=seq
+
+DUAL_SELFTEST_SUMMARY PASS=48 FAIL=0
+DUAL_SELFTEST_OK
+DUAL_RC=0
+  [PASS] L16 报告**不是**主线程核的值 (旧语义已消除) = not_idle_core
+
+LANE8_SELFTEST_SUMMARY PASS=42 FAIL=0 SKIP=0
+LANE8_SELFTEST_OK
+LANE8_RC=0
+CHECK_F3 PIN_CPU=3 PIN_CORES_ONLINE=0-7 PIN_NIC_IFACE=enp1s0f0np0,enp1s0f1np1 PIN_NIC_CPUS=0,1,2,3,4,5 PIN_NIC_EXCLUDED=none PIN_CORE_LOAD=5992 PIN_ALLOWED_MASK=8 PIN_GETCPU_START=3 PIN_FREQ_START_KHZ=3758475 PIN_GOV=schedutil PIN_NIC_IRQLINES=12 PIN_NIC_IFACE_SRC=auto PIN_TUPLE_ORDER=own_sib_t
+### F9_CHECK  周期行尾的 CPU_FREQ_KHZ 需要**真跑一次**(--help 出不来周期行)
+### 专用仪器 = /tmp/p7b_afftest/f9_loopback_check.sh (回环口: sink 的 SINK_CONN / src 的 SRC_T / udp_src 的 UDP_T 各打一行, 不碰板子)
+### ALLDONE 2026-10-15T17:21:17Z
+AFF_RC=0
+
+PCAPOFF_SUMMARY PASS=20 FAIL=7   (桩件目录 /tmp/pcapoff.p8F12w)
+PCAPOFF_BAD
+PCDRY_RC=0

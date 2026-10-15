@@ -1,0 +1,104 @@
+=== DEPLOY_BEGIN 1792084581.339688400 Fri Oct 16 01:16:21     2026 ===
+--- 0) 对端现态 ---
+a-MS-7850
+2026-10-15 22:52:04
+ls: cannot access '/tmp/p7b_biz': No such file or directory
+--- 1) mkdir + --put 源/脚本/工具 ---
+PUT_OK  p7b_affinity.h
+PUT_OK  p7b_io.h
+PUT_OK  p7b_spsc.h
+PUT_OK  p7b_pattern.h
+PUT_OK  p7b_tcp_sink.cpp
+PUT_OK  p7b_tcp_src.cpp
+PUT_OK  p7b_udp_src.cpp
+PUT_OK  p7b_rate2_bench.cpp
+PUT_OK  p7b_mir_dump.cpp
+PUT_OK  p7b_snap.sh
+PUT_OK  p7b_selftest.sh
+PUT_OK  p7b_dualthread_selftest.sh
+PUT_OK  p7b_lane8_selftest.sh
+PUT_OK  aff_selftest.sh
+PUT_OK  p7b_tcp_src_fix.cpp
+PUT_OK  p7b_tcp_src_diag.cpp
+PUT_OK  tcpreg_j6.sh
+PUT_OK  p7b_tcp_src_rate.cpp
+PUT_OK  p7b_tcp_sink_rate.cpp
+PUT_OK  pcap_off_dryrun.sh
+PUT_OK  align_check2_fixed.py
+PUT_OK  split_conn_pcap.py
+PUT_OK  k0_arm_b4.sh
+PUT_OK  k0_analyze.sh
+--- 2) 上传件 md5 (对端现读; 与仓内本地逐件比) ---
+b03222792d20443138515ba2804b0d87  p7b_affinity.h
+62b1257d69c40f24bfa9a799593073b7  p7b_io.h
+3132db495c29ab85b7f6a5617803644f  p7b_spsc.h
+b2f2e9627bac53bf3b4ab2b565afe872  p7b_pattern.h
+8d02ef6426d4ef6ad5fd2c514965c1e8  p7b_tcp_sink.cpp
+7a6191fc01818f64eb956da069ed0640  p7b_tcp_src.cpp
+f5ff317288b59b3e3c91988ca07446c9  p7b_udp_src.cpp
+b9c18a7695480a24f60169313034c0fd  p7b_rate2_bench.cpp
+464006d9d7dcc5f365f36880ba8f8fc5  p7b_mir_dump.cpp
+a257af8299904789c6a6dd9ed5ca030f  p7b_snap.sh
+40c3f658b504b874c0df51037fa68f3a  p7b_selftest.sh
+902c01079f9bd7bf32b939f596882be0  p7b_dualthread_selftest.sh
+ac6d56dca7d203fe4b7a281fa0a1bb53  p7b_lane8_selftest.sh
+19cb9f2d9781e8a338246960e3c340ff  aff_selftest.sh
+21ca7fa995fae7dc06675b64ff24dc36  p7b_tcp_src_fix.cpp
+217a0e48191e02f9fc120cf5fa42a49e  p7b_tcp_src_diag.cpp
+a69b56f32fdbd48ccbbb9e10f11e7f9c  tcpreg_j6.sh
+c3b9b01c42dae1ef3e098893d839f986  p7b_tcp_src_rate.cpp
+92ef5b458043179a432e1515546b585a  p7b_tcp_sink_rate.cpp
+3be0e9d757e00286a29efceb151de0a9  pcap_off_dryrun.sh
+f14680ad360170e15415e58e3eee49d7  align_check2_fixed.py
+fa4456d63ee5b751ea770e46337f79c4  split_conn_pcap.py
+689c83577d2eb6a46af16be3e4845c32  k0_arm_b4.sh
+1aea5b0587bf5556c39c3804a4664349  k0_analyze.sh
+--- 3) 编译 9 个产物 (g++ -O3 -pthread) ---
+COMPILE_DONE_RC=0
+--- 4) 产物 md5 + 字节数 (对 B1 §2.1 表逐条自验) ---
+6d9b14f24725fa326ffe5b169f77e30f  p7b_tcp_sink
+79be2a09024206b7c678dc13a3b9051d  p7b_tcp_src
+e0d4da5834cb95d67afb0cc523d1f92f  p7b_udp_src
+d1ca0c288efe6723488e4c1a6960d1b5  p7b_tcp_src_fix
+ca6900fd54036be7fe1d337ca9ef83b8  p7b_tcp_sink_rate
+a76b2b4b1e44d6c9edcaa301d90aabcb  p7b_tcp_src_rate
+430ed36ade4ec64ba6f5cb52e5f4f335  p7b_tcp_src_diag
+1e956072f30a25f3e547e8c42107afb3  p7b_rate2_bench
+48dcbcb26a4db45f576fc9664638a089  p7b_mir_dump
+p7b_tcp_sink 169392
+p7b_tcp_src 127720
+p7b_udp_src 128048
+p7b_tcp_src_fix 119496
+p7b_tcp_sink_rate 127488
+p7b_tcp_src_rate 119496
+p7b_tcp_src_diag 123592
+p7b_rate2_bench 171040
+p7b_mir_dump 108696
+--- 5) 板外自检 5 项 (都不碰板子) ---
+  [PASS] T8b 注入后工具继续工作 (call_errors=0 且 pkts>0) = yes
+
+SELFTEST_SUMMARY PASS=17 FAIL=13
+SELFTEST_BAD
+SELFTEST_RC=0
+
+DUAL_SELFTEST_SUMMARY PASS=26 FAIL=22
+DUAL_SELFTEST_BAD
+DUAL_RC=0
+
+LANE8_SELFTEST_SUMMARY PASS=32 FAIL=6 SKIP=2
+LANE8_SELFTEST_BAD
+LANE8_RC=0
+### F9_CHECK  周期行尾的 CPU_FREQ_KHZ 需要**真跑一次**(--help 出不来周期行)
+### 专用仪器 = /tmp/p7b_afftest/f9_loopback_check.sh (回环口: sink 的 SINK_CONN / src 的 SRC_T / udp_src 的 UDP_T 各打一行, 不碰板子)
+### ALLDONE 2026-10-15T17:18:29Z
+AFF_RC=0
+
+PCAPOFF_SUMMARY PASS=6 FAIL=25   (桩件目录 /tmp/pcapoff.yoUnDL)
+PCAPOFF_BAD
+PCDRY_RC=0
+Traceback (most recent call last):
+  File "/tmp/p7b_biz/align_check2_fixed.py", line 175, in <module>
+ALIGN2_NOARG_RC=0
+K0ARM_B4_SYNTAX_OK
+K0AN_SYNTAX_OK
+=== DEPLOY_END 1792084713.439651300 ===

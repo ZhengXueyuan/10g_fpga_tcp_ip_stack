@@ -1,0 +1,82 @@
+### K0AN_BEGIN tag=B4P_S2 sport=8080 1792085006.167288977
+--- 0) 工具身份 ---
+f14680ad360170e15415e58e3eee49d7  /tmp/p7b_biz/align_check2_fixed.py
+fa4456d63ee5b751ea770e46337f79c4  /tmp/p7b_biz/split_conn_pcap.py
+db77dd3cf4ae34e5761e8ab03772ea119f0dc90c9b7bc9c09a4e85344e3ec38e  /tmp/p7b_biz/align_check2_fixed.py
+b8a95d46d3e4d78148cc5f7005e405b0a1b36dc39cab71feff95248081a51065  /tmp/p7b_biz/split_conn_pcap.py
+--- 1) 拆连接 (按 dport; 只搬数据, 不测量) ---
+SPLIT tag=B4P_S2 files=5 conns=6 sport=8080
+  CONN dport=55086 segs=136989   bytes=200003940    file=B4P_S2_8080_55086.pcap
+  CONN dport=55088 segs=136989   bytes=200003940    file=B4P_S2_8080_55088.pcap
+  CONN dport=55098 segs=136989   bytes=200003940    file=B4P_S2_8080_55098.pcap
+  CONN dport=56334 segs=136989   bytes=200003940    file=B4P_S2_8080_56334.pcap
+  CONN dport=56350 segs=136989   bytes=200003940    file=B4P_S2_8080_56350.pcap
+  CONN dport=56364 segs=136989   bytes=200003940    file=B4P_S2_8080_56364.pcap
+--- 2) 每连接: K0 (绝对) + breaks + verified_prefix (+ 重对齐行) ---
+== CONN B4P_S2_8080_55086.pcap ==
+ALIGN2 segs=136989 n=200002480
+K0=0
+PAT_GEN done len=204327920
+  ... verified 32768000/200002480
+  ... verified 65536000/200002480
+  ... verified 98304000/200002480
+  ... verified 131072000/200002480
+  ... verified 163840000/200002480
+  ... verified 196608000/200002480
+ALIGN2_DONE verified_prefix=200002480 n=200002480 breaks=0
+== CONN B4P_S2_8080_55088.pcap ==
+ALIGN2 segs=136989 n=200002480
+K0=0
+PAT_GEN done len=204327920
+  ... verified 32768000/200002480
+  ... verified 65536000/200002480
+  ... verified 98304000/200002480
+  ... verified 131072000/200002480
+  ... verified 163840000/200002480
+  ... verified 196608000/200002480
+ALIGN2_DONE verified_prefix=200002480 n=200002480 breaks=0
+== CONN B4P_S2_8080_55098.pcap ==
+ALIGN2 segs=136989 n=200002480
+K0=0
+PAT_GEN done len=204327920
+  ... verified 32768000/200002480
+  ... verified 65536000/200002480
+  ... verified 98304000/200002480
+  ... verified 131072000/200002480
+  ... verified 163840000/200002480
+  ... verified 196608000/200002480
+ALIGN2_DONE verified_prefix=200002480 n=200002480 breaks=0
+== CONN B4P_S2_8080_56334.pcap ==
+ALIGN2 segs=136989 n=200002480
+K0=0
+PAT_GEN done len=204327920
+  ... verified 32768000/200002480
+  ... verified 65536000/200002480
+  ... verified 98304000/200002480
+  ... verified 131072000/200002480
+  ... verified 163840000/200002480
+  ... verified 196608000/200002480
+ALIGN2_DONE verified_prefix=200002480 n=200002480 breaks=0
+== CONN B4P_S2_8080_56350.pcap ==
+ALIGN2 segs=136989 n=200002480
+K0=0
+PAT_GEN done len=204327920
+  ... verified 32768000/200002480
+  ... verified 65536000/200002480
+  ... verified 98304000/200002480
+  ... verified 131072000/200002480
+  ... verified 163840000/200002480
+  ... verified 196608000/200002480
+ALIGN2_DONE verified_prefix=200002480 n=200002480 breaks=0
+== CONN B4P_S2_8080_56364.pcap ==
+ALIGN2 segs=136989 n=200002480
+K0=0
+PAT_GEN done len=204327920
+  ... verified 32768000/200002480
+  ... verified 65536000/200002480
+  ... verified 98304000/200002480
+  ... verified 131072000/200002480
+  ... verified 163840000/200002480
+  ... verified 196608000/200002480
+ALIGN2_DONE verified_prefix=200002480 n=200002480 breaks=0
+### K0AN_END tag=B4P_S2 1792085550.335320525

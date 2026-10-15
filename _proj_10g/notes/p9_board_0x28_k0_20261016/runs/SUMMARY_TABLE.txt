@@ -1,0 +1,45 @@
+=== B4 轮逐臂读数表 (从 run_*.log / pre_*.txt / post_*.txt / an_*.log 抽取; 2026-10-16) ===
+
+--- A. E12 四计数器 (仅 0x28 有; 0x24 结构性无此仪器) ---
+arm        BID     PRE(W71,W72,W73,W74)   POST                     dEv  dsw_req  dapply  dup_pend  clean(=dEv-srq-pend)
+B4P_S2     0x28    (0,0,0,0)              (6,0,6,0)                +6   +0       +6      +0        +6
+B4P_S3     0x28    (6,0,6,0)              (7,0,7,0)                +1   +0       +1      +0        +1
+B4H2(pilot)0x28    (7,0,7,0)              (19,10,18,1)[=B4H3 PRE]  +12  +10      +11     +1        +1
+B4H3       0x28    (19,10,18,1)           (31,20,29,2)             +12  +10      +11     +1        +1
+N4H3       0x24    -                      -                        -    -        -       -         -
+  三态恒等式 (每臂逐条成立):
+    S2 : 6  == clean(6) + srq(0) + pend(0);  apply(6) == clean(6) + srq应用(0)
+    S3 : 1  == clean(1) + srq(0) + pend(0);  apply(1) == clean(1) + srq应用(0)
+    H2 : 12 == clean(1) + srq(10) + pend(1); apply(11) == clean(1) + srq应用(10)  [末 pend 未应用 ⇒ 收尾 sup=1 残留]
+    H3 : 同上 (与 H2 逐字相同)
+
+--- B. K0 三列判据 (每连接: K0==0 ∧ breaks==0 ∧ verified_prefix==n) ---
+arm    BID   连接数(pcap 内)  K0!=0 条数  breaks>0 条数  verified<n 条数   sink 独立口径 (first_mismatch/mism_bytes)
+B4P_S2 0x28  6                0            0              0                12? 否: 6 连接全 fm=-1 mism=0
+B4P_S3 0x28  1                0            0              0                1 连接 fm=-1 mism=0
+B4H2   0x28  11 (第12条 0 字节不入 pcap)  0  0            0                12 连接全 fm=-1 mism=0
+B4H3   0x28  11 (同上)        0            0              0                12 连接全 fm=-1 mism=0
+N4H3   0x24  9                0            0              0                11 连接全 fm=-1 mism=0
+
+--- C. 抓包硬门 (arming / 优雅停 / 丢包门) ---
+arm    full captured/received/dropped        ctl captured/received/dropped
+B4P_S2 821943/821943/0                       5/6/0
+B4P_S3 274449/274449/0                       0/0/0 (无 FIN/RST 命中)
+B4H2   71154/71203/0 (pilot 被人工停在一半)  99/101/0
+B4H3   57857/57955/0 (人工停; 尾损 98 包)     18/18/0
+N4H3   88920/88938/0 (脚本自然收尾)           90/93/0
+  ⚠️ received-captured = 停抓瞬间未落盘 (尾损; 与 B1 同族; 全部 dropped=0)
+  ⚠️ arming 门: 五臂全 `TCPDUMP_ARMED` (等 'listening on' 才开跑); 硬门③的"自报 dropped=0"逐臂成立
+
+--- D. 构型参数表 ---
+arm    NSINKS STAGGER RCVBUF CONNS SECS MAXBYTES SINK_EXTRA                 墙钟
+B4P_S2 1      -       2920   6     300  200000000 -                          10.8s (sink 阶段)
+B4P_S3 1      -       49152  1     120  400000000 -                          0.80s
+B4H2   2      0.4     2920   6     300  50000000  - (poll 5000/stall 3 默认)  ~165s/臂 (含 15s×N stall; 尾连接涓流未终)
+B4H3   2      0.4     2920   6     300  50000000  --poll-ms 1000 --stall-n 3  456s (含 408s 涓流连接)
+N4H3   2      0.4     2920   6     300  50000000  --poll-ms 1000 --stall-n 3  456s (含 428s 涓流连接)
+
+--- E. 触发面判定 ---
+B4P_S2 / B4P_S3 (顺序连接; B1 同构型):  dsw_req + dup_pend == 0  ⇒ 触发面**未被激励** (全部事件走"当拍应用")
+B4H2 / B4H3 (2 sink 并行错开):          dsw_req + dup_pend == 11 > 0 ⇒ 触发面**被激励** (10 同槽存活 + 1 异槽存活)
+N4H3 (0x24 同构型):                     E12 仪器不存在 ⇒ 触发面**不能直测** (只能由"同构型 + 同 wiring 行为"外推=推断)

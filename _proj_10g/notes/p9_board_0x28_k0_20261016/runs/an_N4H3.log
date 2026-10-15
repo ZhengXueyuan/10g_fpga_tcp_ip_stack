@@ -1,0 +1,66 @@
+### K0AN_BEGIN tag=N4H3 sport=8080 1792087063.515107776
+--- 0) 工具身份 ---
+f14680ad360170e15415e58e3eee49d7  /tmp/p7b_biz/align_check2_fixed.py
+fa4456d63ee5b751ea770e46337f79c4  /tmp/p7b_biz/split_conn_pcap.py
+db77dd3cf4ae34e5761e8ab03772ea119f0dc90c9b7bc9c09a4e85344e3ec38e  /tmp/p7b_biz/align_check2_fixed.py
+b8a95d46d3e4d78148cc5f7005e405b0a1b36dc39cab71feff95248081a51065  /tmp/p7b_biz/split_conn_pcap.py
+--- 1) 拆连接 (按 dport; 只搬数据, 不测量) ---
+SPLIT tag=N4H3 files=1 conns=9 sport=8080
+  CONN dport=34758 segs=397      bytes=579620       file=N4H3_8080_34758.pcap
+  CONN dport=34760 segs=398      bytes=581080       file=N4H3_8080_34760.pcap
+  CONN dport=34770 segs=414      bytes=604440       file=N4H3_8080_34770.pcap
+  CONN dport=34778 segs=56957    bytes=83125122     file=N4H3_8080_34778.pcap
+  CONN dport=49746 segs=399      bytes=582540       file=N4H3_8080_49746.pcap
+  CONN dport=49756 segs=801      bytes=1169460      file=N4H3_8080_49756.pcap
+  CONN dport=59720 segs=28735    bytes=41953100     file=N4H3_8080_59720.pcap
+  CONN dport=59744 segs=407      bytes=594220       file=N4H3_8080_59744.pcap
+  CONN dport=59748 segs=401      bytes=585460       file=N4H3_8080_59748.pcap
+--- 2) 每连接: K0 (绝对) + breaks + verified_prefix (+ 重对齐行) ---
+== CONN N4H3_8080_34758.pcap ==
+ALIGN2 segs=397 n=363540
+K0=0
+PAT_GEN done len=4688980
+ALIGN2_DONE verified_prefix=363540 n=363540 breaks=0
+== CONN N4H3_8080_34760.pcap ==
+ALIGN2 segs=398 n=365000
+K0=0
+PAT_GEN done len=4690440
+ALIGN2_DONE verified_prefix=365000 n=365000 breaks=0
+== CONN N4H3_8080_34770.pcap ==
+ALIGN2 segs=414 n=388360
+K0=0
+PAT_GEN done len=4713800
+ALIGN2_DONE verified_prefix=388360 n=388360 breaks=0
+== CONN N4H3_8080_34778.pcap ==
+ALIGN2 segs=56957 n=49987480
+K0=0
+PAT_GEN done len=54312920
+  ... verified 32768000/49987480
+ALIGN2_DONE verified_prefix=49987480 n=49987480 breaks=0
+== CONN N4H3_8080_49746.pcap ==
+ALIGN2 segs=399 n=366460
+K0=0
+PAT_GEN done len=4691900
+ALIGN2_DONE verified_prefix=366460 n=366460 breaks=0
+== CONN N4H3_8080_49756.pcap ==
+ALIGN2 segs=801 n=735840
+K0=0
+PAT_GEN done len=5061280
+ALIGN2_DONE verified_prefix=735840 n=735840 breaks=0
+== CONN N4H3_8080_59720.pcap ==
+ALIGN2 segs=28735 n=41735560
+K0=0
+PAT_GEN done len=46061000
+  ... verified 32768000/41735560
+ALIGN2_DONE verified_prefix=41735560 n=41735560 breaks=0
+== CONN N4H3_8080_59744.pcap ==
+ALIGN2 segs=407 n=378140
+K0=0
+PAT_GEN done len=4703580
+ALIGN2_DONE verified_prefix=378140 n=378140 breaks=0
+== CONN N4H3_8080_59748.pcap ==
+ALIGN2 segs=401 n=369380
+K0=0
+PAT_GEN done len=4694820
+ALIGN2_DONE verified_prefix=369380 n=369380 breaks=0
+### K0AN_END tag=N4H3 1792087134.617174208

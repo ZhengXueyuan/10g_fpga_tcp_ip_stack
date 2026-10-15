@@ -1,0 +1,18 @@
+# B4H3 (0x28) 的 POST 读 = **手动补读** (脚本在 sink1 尾连接 408 s 涓流期卡在 wait;
+#   快照环事件时间线已证 t=30.39 s 后再无事件 ⇒ 本读与"跑后立即读"等价)
+SNAP_BEGIN B4H3_POST gen=3675
+W71  0x13C  app_stat_up_ev         0x0000001f
+W72  0x140  app_stat_sw_req        0x00000014
+W73  0x144  app_stat_sw_apply      0x0000001d
+W74  0x148  app_stat_up_pend       0x00000002
+W51  0xEC   app_tx_bytes           0x671f073b
+W20  0x70   mac_tx_frames          0x0012b32c
+W43  0xCC   mtx_stat_tx_words      0xbd66e269
+W5   0x34   gmii_free_FE           0xbd892cc9
+SNAP_END B4H3_POST nff=0
+
+# PRE (run log 内):
+#   W71=0x13 (19) W72=0x0a (10) W73=0x12 (18) W74=0x01 (1) W51=0x63f62fdf W20=0x0011d132
+# Δ (POST-PRE): ΔW71=+12  ΔW72(sw_req)=+10  ΔW73(sw_apply)=+11  ΔW74(up_pend)=+1
+# 三态恒等式: Δup_ev(12) == Δ(当拍应用,=Δsw_apply−sw_pend 应用) + Δsw_req(10) + Δup_pend(1)
+#   ⇒ 当拍应用(clean)=1 ⇒ 12 = 1 + 10 + 1 ✓ ;  Δsw_apply(11) = clean(1) + sw_req 应用(10) ✓

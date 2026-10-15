@@ -1,0 +1,77 @@
+### K0AN_BEGIN tag=B4H3 sport=8080 1792086313.569797815
+--- 0) 工具身份 ---
+f14680ad360170e15415e58e3eee49d7  /tmp/p7b_biz/align_check2_fixed.py
+fa4456d63ee5b751ea770e46337f79c4  /tmp/p7b_biz/split_conn_pcap.py
+db77dd3cf4ae34e5761e8ab03772ea119f0dc90c9b7bc9c09a4e85344e3ec38e  /tmp/p7b_biz/align_check2_fixed.py
+b8a95d46d3e4d78148cc5f7005e405b0a1b36dc39cab71feff95248081a51065  /tmp/p7b_biz/split_conn_pcap.py
+--- 1) 拆连接 (按 dport; 只搬数据, 不测量) ---
+SPLIT tag=B4H3 files=1 conns=11 sport=8080
+  CONN dport=33444 segs=451      bytes=658460       file=B4H3_8080_33444.pcap
+  CONN dport=33464 segs=404      bytes=589840       file=B4H3_8080_33464.pcap
+  CONN dport=33478 segs=400      bytes=584000       file=B4H3_8080_33478.pcap
+  CONN dport=35050 segs=404      bytes=589840       file=B4H3_8080_35050.pcap
+  CONN dport=35064 segs=397      bytes=579620       file=B4H3_8080_35064.pcap
+  CONN dport=35080 segs=398      bytes=581080       file=B4H3_8080_35080.pcap
+  CONN dport=35096 segs=401      bytes=585460       file=B4H3_8080_35096.pcap
+  CONN dport=55352 segs=53807    bytes=78558220     file=B4H3_8080_55352.pcap
+  CONN dport=58278 segs=375      bytes=547500       file=B4H3_8080_58278.pcap
+  CONN dport=58294 segs=404      bytes=589840       file=B4H3_8080_58294.pcap
+  CONN dport=58298 segs=404      bytes=589840       file=B4H3_8080_58298.pcap
+--- 2) 每连接: K0 (绝对) + breaks + verified_prefix (+ 重对齐行) ---
+== CONN B4H3_8080_33444.pcap ==
+ALIGN2 segs=451 n=413180
+K0=0
+PAT_GEN done len=4738620
+ALIGN2_DONE verified_prefix=413180 n=413180 breaks=0
+== CONN B4H3_8080_33464.pcap ==
+ALIGN2 segs=404 n=373760
+K0=0
+PAT_GEN done len=4699200
+ALIGN2_DONE verified_prefix=373760 n=373760 breaks=0
+== CONN B4H3_8080_33478.pcap ==
+ALIGN2 segs=400 n=367920
+K0=0
+PAT_GEN done len=4693360
+ALIGN2_DONE verified_prefix=367920 n=367920 breaks=0
+== CONN B4H3_8080_35050.pcap ==
+ALIGN2 segs=404 n=373760
+K0=0
+PAT_GEN done len=4699200
+ALIGN2_DONE verified_prefix=373760 n=373760 breaks=0
+== CONN B4H3_8080_35064.pcap ==
+ALIGN2 segs=397 n=363540
+K0=0
+PAT_GEN done len=4688980
+ALIGN2_DONE verified_prefix=363540 n=363540 breaks=0
+== CONN B4H3_8080_35080.pcap ==
+ALIGN2 segs=398 n=365000
+K0=0
+PAT_GEN done len=4690440
+ALIGN2_DONE verified_prefix=365000 n=365000 breaks=0
+== CONN B4H3_8080_35096.pcap ==
+ALIGN2 segs=401 n=369380
+K0=0
+PAT_GEN done len=4694820
+ALIGN2_DONE verified_prefix=369380 n=369380 breaks=0
+== CONN B4H3_8080_55352.pcap ==
+ALIGN2 segs=53807 n=49327560
+K0=0
+PAT_GEN done len=53653000
+  ... verified 32768000/49327560
+ALIGN2_DONE verified_prefix=49327560 n=49327560 breaks=0
+== CONN B4H3_8080_58278.pcap ==
+ALIGN2 segs=375 n=344560
+K0=0
+PAT_GEN done len=4670000
+ALIGN2_DONE verified_prefix=344560 n=344560 breaks=0
+== CONN B4H3_8080_58294.pcap ==
+ALIGN2 segs=404 n=372300
+K0=0
+PAT_GEN done len=4697740
+ALIGN2_DONE verified_prefix=372300 n=372300 breaks=0
+== CONN B4H3_8080_58298.pcap ==
+ALIGN2 segs=404 n=373760
+K0=0
+PAT_GEN done len=4699200
+ALIGN2_DONE verified_prefix=373760 n=373760 breaks=0
+### K0AN_END tag=B4H3 1792086373.666404439
