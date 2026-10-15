@@ -1,0 +1,30 @@
+[P4GUARD OK] checkpaths: 8 paths inside d:\repo\xcku5pmini\udp_hls_10g^M
+[P4GUARD OK] manifestcheck run_tb_p9_swc.bat: 6 files == manifest D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\swcg_src.f^M
+[P4GUARD OK] scanlog: 1 files, 11 path tokens, 0 outside the repo^M
+EXIT=0^M
+--- last 6 lines of _gate_console.log^M
+| RSRC=D:\repo\XCKU5PMini\udp_hls_10g\sim\p9_swc_gate\head_app_pattern.v DEFS=-d P9_HEAD_RTL -d P9_EXP_HEAD -d P7B_10G ^M
+| RSRC=D:\repo\XCKU5PMini\udp_hls_10g\rtl\app_pattern.v DEFS=-d P9_SWC_OFF -d P9_EXP_HEAD ^M
+| RSRC=D:\repo\XCKU5PMini\udp_hls_10g\sim\p9_swc_gate\mut\m6_v1_eq.v DEFS=-d P9_SWC_ARM -d P9_EXP_M6 ^M
+| RSRC=D:\repo\XCKU5PMini\udp_hls_10g\sim\p9_swc_gate\mut\m6b_closing_drop.v DEFS=-d P9_SWC_ARM -d P9_EXP_M6B ^M
+| RSRC=D:\repo\XCKU5PMini\udp_hls_10g\sim\p9_swc_gate\mut\m7_guard_swpend.v DEFS=-d P9_SWC_ARM -d P9_EXP_M7 ^M
+| P9-SWC-GATE: PASS ^M
+---^M
+--- revision fingerprint (after) ---^M
+[P4GATE] fingerprint written: D:\repo\XCKU5PMini\udp_hls_10g\sim\p4sim\P4_MATRIX_FINGERPRINT_20261015_234333_after.txt^M
+DIGEST_COMPILE = cf79c89853a5bae98094c03961178ccb2aa71c0aaf0be601ef1f2831a279bec3^M
+FILES_COMPILE  = 221^M
+DIGEST_ALL     = 92510c517db9f98e2750d7e5f482ea2841fce57ee95afece3a5a7dcd8d8663df^M
+FILES_ALL      = 272^M
+GIT_HEAD       = 4b22d1a^M
+--- freeze check ---^M
+BEFORE  DIGEST_COMPILE=cf79c89853a5bae98094c03961178ccb2aa71c0aaf0be601ef1f2831a279bec3  FILES=221  DIGEST_ALL=92510c517db9f98e2750d7e5f482ea2841fce57ee95afece3a5a7dcd8d8663df  HEAD=4b22d1a^M
+AFTER   DIGEST_COMPILE=cf79c89853a5bae98094c03961178ccb2aa71c0aaf0be601ef1f2831a279bec3  FILES=221  DIGEST_ALL=92510c517db9f98e2750d7e5f482ea2841fce57ee95afece3a5a7dcd8d8663df  HEAD=4b22d1a^M
+VERDICT: FROZEN -- all 272 hashed files byte-identical across the run; this log is bound to revision DIGEST_ALL(content)=af08f8eef8866a510152d5f1205bae6c62a7a49ccc3e8e15a30bb6a97838eb34^M
+NOTE: the stored DIGEST_ALL in these files was produced by the pre-content-v1 scheme (it included size/mtime): before=92510c517db9f98e2750d7e5f482ea2841fce57ee95afece3a5a7dcd8d8663df after=92510c517db9f98e2750d7e5f482ea2841fce57ee95afece3a5a7dcd8d8663df^M
+NOTE: the verdict is content identity only -- file mtimes are recorded as metadata but are not part of it.^M
+--- summary ---^M
+gate filter : (none -- all 19)^M
+gates run   : 19 / 19^M
+gates failed: 0^M
+MATRIX DONE 2026/10/16 M-VM-\M-NM-e  0:12:54.52^M

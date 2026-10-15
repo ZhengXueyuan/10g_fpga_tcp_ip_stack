@@ -13,7 +13,8 @@
      ⑨ `0x24`（**P9 URAM 板内缓冲 (修正收口)** / **BID-only**, 几何同 ④⑤⑥⑦⑧）/
      ⑩ `0x25`（**F-3 修复** / **BID-only**, 几何同 ④⑤⑥⑦⑧⑨）/
      ⑪ `0x26`（**RFC seq 修复** / **BID-only**, 几何同 ④⑤⑥⑦⑧⑨⑩）/
-     ⑫ `0x27`（**换流门 R5 修复** / **BID-only**, 几何同 ④⑤⑥⑦⑧⑨⑩⑪）——
+     ⑫ `0x27`（**换流门 R5 修复** / **BID-only**, 几何同 ④⑤⑥⑦⑧⑨⑩⑪）/
+     ⑬ `0x28`（**P9 E12 观测计数器** / **BID + 几何**: 71→75 字 / 0x14C→0x15C）——
      **权威阶段表 = 文件中部 `STAGES = [...]`**
      （每个阶段各自的说明块在 `EDITS_xx` 定义处）。
 
@@ -71,6 +72,7 @@ EDITS_24 = []          # 阶段 ⑨: 0x23 树 -> 0x24 树 (P9 URAM 板内缓冲 
 EDITS_25 = []          # 阶段 ⑩: 0x24 树 -> 0x25 树 (F-3 修复; **BID-only**: 几何不变 71/0x14C)
 EDITS_26 = []          # 阶段 ⑪: 0x25 树 -> 0x26 树 (RFC seq 修复; **BID-only**: 几何不变 71/0x14C)
 EDITS_27 = []          # 阶段 ⑫: 0x26 树 -> 0x27 树 (换流门 R5 修复; **BID-only**: 几何不变 71/0x14C)
+EDITS_28 = []          # 阶段 ⑬: 0x27 树 -> 0x28 树 (P9 E12 观测计数器; **BID + 几何**: 71->75 字 / 0x14C->0x15C)
 
 
 def E3(rel, old, new, n=1):
@@ -113,6 +115,10 @@ def E12(rel, old, new, n=1):
     EDITS_27.append((rel, old, new, n))
 
 
+def E13(rel, old, new, n=1):
+    EDITS_28.append((rel, old, new, n))
+
+
 # 目标 BID ⇒ 阶段链 (链上每阶段的 old 侧 = 上一阶段的 new 侧)。
 # ⚠️ 列表对象身份共享 ⇒ 这里的引用能看见后面的 append (定义顺序无关)。
 STAGES = [("0x0000001C", EDITS_1C, "缺陷刀 (2026-10-11)", 70, 0x138),
@@ -126,7 +132,8 @@ STAGES = [("0x0000001C", EDITS_1C, "缺陷刀 (2026-10-11)", 70, 0x138),
           ("0x00000024", EDITS_24, "P9 URAM 板内缓冲 (2026-10-13)", 71, 0x14C),
           ("0x00000025", EDITS_25, "F-3 修复 (2026-10-15)", 71, 0x14C),
           ("0x00000026", EDITS_26, "RFC seq 修复 (2026-10-15)", 71, 0x14C),
-          ("0x00000027", EDITS_27, "换流门 R5 修复 (2026-10-15)", 71, 0x14C)]
+          ("0x00000027", EDITS_27, "换流门 R5 修复 (2026-10-15)", 71, 0x14C),
+          ("0x00000028", EDITS_28, "P9 E12 观测计数器 (2026-10-15)", 75, 0x15C)]
 #   ⚠️ 每个阶段带**自己的**几何 (nw, unimpl): 0x1F 起 M1 把快照扩到 71 字并在快照末字后插 4 个
 #      MIR 字 (0x13C/0x140/0x144/0x148) ⇒ 未实现地址 = **0x20 + 4*NW + 16** = 0x14C (不再等于 0x20+4*NW)。
 #      ⇒ 断言按**目标代**的几何比, 不按现读 wrapper (它可能已在更后的代上)。
@@ -1553,6 +1560,223 @@ E12('_proj_10g/notes/p7b_a3_negctl_20261010/step0_selfcheck.sh',
   'echo "### C-a) 默认档 (NW=71 / 0x14C / BID 0x27) —— 对 D 位流: 期望 ID_FAIL 且失败点=身份不符 (BID 0x18 != 0x27)"', 1)
 
 # ===========================================================================
+# ⑲ 阶段 ⑬ (0x27 → 0x28, **P9 E12 观测计数器**; **BID + 几何**)
+#
+#   内容 = **换流门四只观测计数器** (`rtl/app_pattern.v` `stat_up_ev` / `stat_sw_req` /
+#   `stat_sw_apply` / `stat_up_pend`) 接进快照 **W71..W74** (装配 **MSB 端 +4 项**;
+#   `SNAP_P7BDP_NW` 31 → 35)。**纯观测** (4×32 FF + 常量门), 用途 = "触发条件本身"研究的
+#   关键仪器 + K0 判据"负对照未现形"的破题件。
+#   依据 = `_proj_10g/notes/p9_impl_e12_20261015/REPORT.md` (SWC 门 8 运行全 RC=0 /
+#   p6e 全链 148/0 / counters 26/0 / 本代窗口静态核对 PASS=96 / 96/96 dump 逐字节退化重申)。
+#   ⛔ **几何变** (M1 以来首例): 快照 **71 → 75 字** / 未实现地址 **0x14C → 0x15C**
+#      (公式 `0x20+4*NW+16` 不变 —— 快照末字后仍是 MIR 四字) ⇒ 本阶段 = **BID + 几何**:
+#      · **BID 面 24 处 / 14 文件** = 阶段 ⑫ 的清单逐条 +1 代 (生成器
+#        `p9_build_0x28/gen_edits28.py` 的 f0..f23; old 侧自检 24/24 逐字命中盘上现状);
+#      · **几何面 39 处 / 12 文件** = NW 默认值 (75) + 未实现地址 (0x15C) + 标签表 (W71..W74):
+#        `j6_r6fix.sh`/`tcpreg_j6.sh` (NW= / 几何门注) · `p7b_snap.sh` (NW= / UNIMPL 注 /
+#        `NAME[] += [71..74]`) · `p6e_snap_check.sh` (SNAP_WORDS= / UNIMPL 注 /
+#        `WLABEL += W71..W74`) · `p7b_gate4_accept.sh` (SNAP_WORDS= / UNIMPL) ·
+#        `p7b_gate4_selftest.sh` (SW= / 注 / **新 FAKE_TAIL 分支** `-ge 75`) ·
+#        `p7b_gate4_negctrl.sh` (`V=` +8 项 / 循环界 75 / `awk -v NW=75`) ·
+#        `p7b_gate4_livefake.sh` (`[0]*20 → [0]*24`) · `p6e_snap_selftest_fix2.sh` (假板地址表) ·
+#        `final_state.sh` (UNIMPL 读址 0x15c / W71..W74 读数行) · `gen_inputs.py` (NW_FIX / 快照行) ·
+#        `_proj_10g/p7b_chain/sim/tb_p7b_chain.v` (0x15C 界) ·
+#        三个指纹 bat (`SNAP_NW_P6E = 75`) · `tb_biz_win.v` (NW=75) ·
+#        `check_window.py` (nnew_top 5→9)。
+# ===========================================================================
+E13('_proj_10g/notes/p7b_affinity/j6_r6fix.sh',
+  'EXPECT_BID=${EXPECT_BID:-0x00000027}   # 2026-10-15 换流门 R5 (71 字; 原 0x00000026 = RFC seq 修复 / 0x25 = F-3 修复 / 0x24 = P9 URAM 板内缓冲)',
+  'EXPECT_BID=${EXPECT_BID:-0x00000028}   # 2026-10-15 P9 E12 观测计数器 (75 字; 原 0x00000027 = 换流门 R5 / 0x26 = RFC seq 修复 / 0x25 = F-3 修复)', 1)
+E13('_proj_10g/notes/p7b_biz_tcpreg/tcpreg_j6.sh',
+  'EXPECT_BID=${EXPECT_BID:-0x00000027}   # 2026-10-15 换流门 R5 (71 字; 原 0x00000026 = RFC seq 修复 / 0x25 = F-3 修复 / 0x24 = P9 URAM 板内缓冲)',
+  'EXPECT_BID=${EXPECT_BID:-0x00000028}   # 2026-10-15 P9 E12 观测计数器 (75 字; 原 0x00000027 = 换流门 R5 / 0x26 = RFC seq 修复 / 0x25 = F-3 修复)', 1)
+E13('_proj_10g/notes/p7b_affinity/j6_r6fix.sh',
+  '  "71|0x00000027|61 62|换流门 R5 (2026-10-15) 71 字 / BID 0x27 (换流门 R5 修复: `rtl/app_pattern.v` 裁决 A = `:1012` E13 守卫改形 `!(SWC_OK && (closing || !active))` + 裁决 B = `:516` `close_send` 追加 `!(SWC_OK && frm_wait)`; 几何/未实现地址 0x14C 不变)"\n  "71|0x00000026|61 62|RFC seq 修复 (2026-10-15) 71 字 / BID 0x26 (RFC seq 修复: `rtl/tcp_rx.v` 的 `seq_lt = seq_diff[31]` 真差口径 (RFC 793 SEQ_LT); 几何/未实现地址 0x14C 不变)"\n  "71|0x00000025|61 62|F-3 修复 (2026-10-15) 71 字 / BID 0x25 (F-3: `rtl/vlan_strip.v` RESYNC_EN 重同步门 + `board/wrapper_p4.v` `VLAN_STRIP_RESYNC` 双域开/单域关; 几何/未实现地址 0x14C 不变)"\n  "71|0x00000024|61 62|P9 URAM 板内缓冲 (2026-10-13) 71 字 / BID 0x24 (URAM288 4096x64 = 32 KB 板内缓冲 `u_mir_buf` + F2/F3 修正; 几何/未实现地址 0x14C 不变)"\n  "71|0x00000023|61 62|P9 D4 clr 口径修正 (2026-10-12) 71 字 / BID 0x23 (C2H 引擎 clr 口径修正: clr 丢弃残拍不发拍 + 非 clr 停流排空后只发一拍短尾; 几何/未实现地址 0x14C 不变)"\n  "71|0x00000022|61 62|P9 XDMA MM→AXIS (2026-10-11) 71 字 / BID 0x22 (XDMA 用户接口 MM→AXIS: 新件 `axis_c2h_stream` + 端口表 75→50; 几何/未实现地址 0x14C 不变)"\n  "71|0x00000021|61 62|P8-STG 16 B 弹性暂存 (2026-10-11) 71 字 / BID 0x21 (采集侧 8 B 单槽 → 16 B 字节粒度弹性暂存, 相位鲁棒; 几何/未实现地址 0x14C 不变)"\n  "71|0x00000020|61 62|P8 镜像 8 B/拍 (2026-10-11) 71 字 / BID 0x20 (采集侧写口 4 → 8 B/拍修复; 几何/未实现地址 0x14C 不变)"',
+  '  "75|0x00000028|61 62|P9 E12 观测计数器 (2026-10-15) 75 字 / BID 0x28 (E12 四观测计数器: `rtl/app_pattern.v` 的 `stat_up_ev`/`stat_sw_req`/`stat_sw_apply`/`stat_up_pend` 接快照 W71..W74; **几何变**: 71 → 75 字, 未实现地址 0x14C → 0x15C)"\n  "71|0x00000027|61 62|换流门 R5 (2026-10-15) 71 字 / BID 0x27 (换流门 R5 修复: `rtl/app_pattern.v` 裁决 A = `:1012` E13 守卫改形 `!(SWC_OK && (closing || !active))` + 裁决 B = `:516` `close_send` 追加 `!(SWC_OK && frm_wait)`; 几何/未实现地址 0x14C 不变)"\n  "71|0x00000026|61 62|RFC seq 修复 (2026-10-15) 71 字 / BID 0x26 (RFC seq 修复: `rtl/tcp_rx.v` 的 `seq_lt = seq_diff[31]` 真差口径 (RFC 793 SEQ_LT); 几何/未实现地址 0x14C 不变)"\n  "71|0x00000025|61 62|F-3 修复 (2026-10-15) 71 字 / BID 0x25 (F-3: `rtl/vlan_strip.v` RESYNC_EN 重同步门 + `board/wrapper_p4.v` `VLAN_STRIP_RESYNC` 双域开/单域关; 几何/未实现地址 0x14C 不变)"\n  "71|0x00000024|61 62|P9 URAM 板内缓冲 (2026-10-13) 71 字 / BID 0x24 (URAM288 4096x64 = 32 KB 板内缓冲 `u_mir_buf` + F2/F3 修正; 几何/未实现地址 0x14C 不变)"\n  "71|0x00000023|61 62|P9 D4 clr 口径修正 (2026-10-12) 71 字 / BID 0x23 (C2H 引擎 clr 口径修正: clr 丢弃残拍不发拍 + 非 clr 停流排空后只发一拍短尾; 几何/未实现地址 0x14C 不变)"\n  "71|0x00000022|61 62|P9 XDMA MM→AXIS (2026-10-11) 71 字 / BID 0x22 (XDMA 用户接口 MM→AXIS: 新件 `axis_c2h_stream` + 端口表 75→50; 几何/未实现地址 0x14C 不变)"\n  "71|0x00000021|61 62|P8-STG 16 B 弹性暂存 (2026-10-11) 71 字 / BID 0x21 (采集侧 8 B 单槽 → 16 B 字节粒度弹性暂存, 相位鲁棒; 几何/未实现地址 0x14C 不变)"\n  "71|0x00000020|61 62|P8 镜像 8 B/拍 (2026-10-11) 71 字 / BID 0x20 (采集侧写口 4 → 8 B/拍修复; 几何/未实现地址 0x14C 不变)"', 1)
+E13('_proj_10g/notes/p7b_biz_tcpreg/tcpreg_j6.sh',
+  '  "71|0x00000027|61 62|换流门 R5 (2026-10-15) 71 字 / BID 0x27 (换流门 R5 修复: `rtl/app_pattern.v` 裁决 A = `:1012` E13 守卫改形 `!(SWC_OK && (closing || !active))` + 裁决 B = `:516` `close_send` 追加 `!(SWC_OK && frm_wait)`; 几何/未实现地址 0x14C 不变)"\n  "71|0x00000026|61 62|RFC seq 修复 (2026-10-15) 71 字 / BID 0x26 (RFC seq 修复: `rtl/tcp_rx.v` 的 `seq_lt = seq_diff[31]` 真差口径 (RFC 793 SEQ_LT); 几何/未实现地址 0x14C 不变)"\n  "71|0x00000025|61 62|F-3 修复 (2026-10-15) 71 字 / BID 0x25 (F-3: `rtl/vlan_strip.v` RESYNC_EN 重同步门 + `board/wrapper_p4.v` `VLAN_STRIP_RESYNC` 双域开/单域关; 几何/未实现地址 0x14C 不变)"\n  "71|0x00000024|61 62|P9 URAM 板内缓冲 (2026-10-13) 71 字 / BID 0x24 (URAM288 4096x64 = 32 KB 板内缓冲 `u_mir_buf` + F2/F3 修正; 几何/未实现地址 0x14C 不变)"\n  "71|0x00000023|61 62|P9 D4 clr 口径修正 (2026-10-12) 71 字 / BID 0x23 (C2H 引擎 clr 口径修正: clr 丢弃残拍不发拍 + 非 clr 停流排空后只发一拍短尾; 几何/未实现地址 0x14C 不变)"\n  "71|0x00000022|61 62|P9 XDMA MM→AXIS (2026-10-11) 71 字 / BID 0x22 (XDMA 用户接口 MM→AXIS: 新件 `axis_c2h_stream` + 端口表 75→50; 几何/未实现地址 0x14C 不变)"\n  "71|0x00000021|61 62|P8-STG 16 B 弹性暂存 (2026-10-11) 71 字 / BID 0x21 (采集侧 8 B 单槽 → 16 B 字节粒度弹性暂存, 相位鲁棒; 几何/未实现地址 0x14C 不变)"\n  "71|0x00000020|61 62|P8 镜像 8 B/拍 (2026-10-11) 71 字 / BID 0x20 (采集侧写口 4 → 8 B/拍修复; 几何/未实现地址 0x14C 不变)"',
+  '  "75|0x00000028|61 62|P9 E12 观测计数器 (2026-10-15) 75 字 / BID 0x28 (E12 四观测计数器: `rtl/app_pattern.v` 的 `stat_up_ev`/`stat_sw_req`/`stat_sw_apply`/`stat_up_pend` 接快照 W71..W74; **几何变**: 71 → 75 字, 未实现地址 0x14C → 0x15C)"\n  "71|0x00000027|61 62|换流门 R5 (2026-10-15) 71 字 / BID 0x27 (换流门 R5 修复: `rtl/app_pattern.v` 裁决 A = `:1012` E13 守卫改形 `!(SWC_OK && (closing || !active))` + 裁决 B = `:516` `close_send` 追加 `!(SWC_OK && frm_wait)`; 几何/未实现地址 0x14C 不变)"\n  "71|0x00000026|61 62|RFC seq 修复 (2026-10-15) 71 字 / BID 0x26 (RFC seq 修复: `rtl/tcp_rx.v` 的 `seq_lt = seq_diff[31]` 真差口径 (RFC 793 SEQ_LT); 几何/未实现地址 0x14C 不变)"\n  "71|0x00000025|61 62|F-3 修复 (2026-10-15) 71 字 / BID 0x25 (F-3: `rtl/vlan_strip.v` RESYNC_EN 重同步门 + `board/wrapper_p4.v` `VLAN_STRIP_RESYNC` 双域开/单域关; 几何/未实现地址 0x14C 不变)"\n  "71|0x00000024|61 62|P9 URAM 板内缓冲 (2026-10-13) 71 字 / BID 0x24 (URAM288 4096x64 = 32 KB 板内缓冲 `u_mir_buf` + F2/F3 修正; 几何/未实现地址 0x14C 不变)"\n  "71|0x00000023|61 62|P9 D4 clr 口径修正 (2026-10-12) 71 字 / BID 0x23 (C2H 引擎 clr 口径修正: clr 丢弃残拍不发拍 + 非 clr 停流排空后只发一拍短尾; 几何/未实现地址 0x14C 不变)"\n  "71|0x00000022|61 62|P9 XDMA MM→AXIS (2026-10-11) 71 字 / BID 0x22 (XDMA 用户接口 MM→AXIS: 新件 `axis_c2h_stream` + 端口表 75→50; 几何/未实现地址 0x14C 不变)"\n  "71|0x00000021|61 62|P8-STG 16 B 弹性暂存 (2026-10-11) 71 字 / BID 0x21 (采集侧 8 B 单槽 → 16 B 字节粒度弹性暂存, 相位鲁棒; 几何/未实现地址 0x14C 不变)"\n  "71|0x00000020|61 62|P8 镜像 8 B/拍 (2026-10-11) 71 字 / BID 0x20 (采集侧写口 4 → 8 B/拍修复; 几何/未实现地址 0x14C 不变)"', 1)
+E13('_proj_pcie/p7b_biz/p7b_snap.sh',
+  'EXPECT_BID=${EXPECT_BID:-0x00000027}',
+  'EXPECT_BID=${EXPECT_BID:-0x00000028}', 1)
+E13('_proj_pcie/p7b_biz/p7b_snap.sh',
+  '# p7b_snap.sh -- 板侧快照窗口取数器 (**现役 = 71 字 / BID 0x27**; 标题原文 = "板侧 **63** 字\n#   快照窗口的取数器 (P7b Stage C: BID=10 / SNAP_NW=63)" —— 那一代已过时, 见下逐代订正)\n#   ⭐ 换流门 R5 (2026-10-15): 身份 0x26 → **0x27** (**字长/未实现地址不变** = 71 字 / 0x14C;\n#      `rtl/app_pattern.v` 两处: 裁决 A (`:1012` E13 守卫改形 `!(SWC_OK && (closing || !active))`)\n#      + 裁决 B (`:516` `close_send` 追加 `!(SWC_OK && frm_wait)`))。\n#   ⭐ RFC seq 修复 (2026-10-15): 身份 0x25 → **0x26** (**字长/未实现地址不变** = 71 字 / 0x14C;\n#      `rtl/tcp_rx.v` 的 `seq_lt = seq_diff[31]` 真差口径 (RFC 793 SEQ_LT), 唯一功能改点 1 行)。\n#   ⭐ F-3 修复 (2026-10-15): 身份 0x24 → **0x25** (**字长/未实现地址不变** = 71 字 / 0x14C;\n#      `rtl/vlan_strip.v` 的 RESYNC_EN 重同步门 + `board/wrapper_p4.v` 的 `VLAN_STRIP_RESYNC`)。\n#   ⭐ P9 URAM 板内缓冲 (2026-10-13): 身份 0x23 → **0x24** (**字长/未实现地址不变** = 71 字 / 0x14C;\n#      新件 `rtl/mir_uram_fifo.v` = `u_mir_buf` (URAM288 4096×64 = 32 KB 板内缓冲 + F2/F3 修正))。\n#   ⭐ P9 D4 clr 口径修正 (2026-10-12): 身份 0x22 → **0x23** (**字长/未实现地址不变** = 71 字 / 0x14C;\n#      C2H 引擎 clr 口径修正: clr 丢弃残拍不发拍 + 非 clr 停流排空后只发一拍短尾)。\n#   ⭐ P9 XDMA MM→AXIS (2026-10-11): 身份 0x21 → **0x22** (**字长/未实现地址不变** = 71 字 / 0x14C;\n#      XDMA 用户接口 MM→AXIS: 新件 `axis_c2h_stream` + 端口表 75→50)。\n#   ⭐ P8-STG 16 B 弹性暂存 (2026-10-11): 身份 0x20 → **0x21** (**字长/未实现地址不变** = 71 字 / 0x14C;\n#      采集侧 `app_rx_mirror` 8 B 单槽 → 16 B 字节粒度弹性暂存, 任意相位可续接)。\n#   ⭐ P8 镜像 8 B/拍 (2026-10-11): 身份 0x1F → **0x20** (**字长/未实现地址不变** = 71 字 / 0x14C;\n#      采集侧 `app_rx_mirror` 写口 4 → 8 B/拍修复)。\n',
+  '# p7b_snap.sh -- 板侧快照窗口取数器 (**现役 = 75 字 / BID 0x28**; 标题原文 = "板侧 **63** 字\n#   快照窗口的取数器 (P7b Stage C: BID=10 / SNAP_NW=63)" —— 那一代已过时, 见下逐代订正)\n#   ⭐ P9 E12 观测计数器 (2026-10-15): **字长 71 → 75** (W71..W74 = 四观测计数器\n#      `stat_up_ev`/`stat_sw_req`/`stat_sw_apply`/`stat_up_pend`) + 身份 0x27 → **0x28**;\n#      未实现地址 **0x14C → 0x15C** (快照末字后仍是 MIR 四字; 公式 `0x20+4*NW+16` 不变)。\n#   ⭐ 换流门 R5 (2026-10-15): 身份 0x26 → **0x27** (**字长/未实现地址不变** = 71 字 / 0x14C;\n#      `rtl/app_pattern.v` 两处: 裁决 A (`:1012` E13 守卫改形 `!(SWC_OK && (closing || !active))`)\n#      + 裁决 B (`:516` `close_send` 追加 `!(SWC_OK && frm_wait)`))。\n#   ⭐ RFC seq 修复 (2026-10-15): 身份 0x25 → **0x26** (**字长/未实现地址不变** = 71 字 / 0x14C;\n#      `rtl/tcp_rx.v` 的 `seq_lt = seq_diff[31]` 真差口径 (RFC 793 SEQ_LT), 唯一功能改点 1 行)。\n#   ⭐ F-3 修复 (2026-10-15): 身份 0x24 → **0x25** (**字长/未实现地址不变** = 71 字 / 0x14C;\n#      `rtl/vlan_strip.v` 的 RESYNC_EN 重同步门 + `board/wrapper_p4.v` 的 `VLAN_STRIP_RESYNC`)。\n#   ⭐ P9 URAM 板内缓冲 (2026-10-13): 身份 0x23 → **0x24** (**字长/未实现地址不变** = 71 字 / 0x14C;\n#      新件 `rtl/mir_uram_fifo.v` = `u_mir_buf` (URAM288 4096×64 = 32 KB 板内缓冲 + F2/F3 修正))。\n#   ⭐ P9 D4 clr 口径修正 (2026-10-12): 身份 0x22 → **0x23** (**字长/未实现地址不变** = 71 字 / 0x14C;\n#      C2H 引擎 clr 口径修正: clr 丢弃残拍不发拍 + 非 clr 停流排空后只发一拍短尾)。\n#   ⭐ P9 XDMA MM→AXIS (2026-10-11): 身份 0x21 → **0x22** (**字长/未实现地址不变** = 71 字 / 0x14C;\n#      XDMA 用户接口 MM→AXIS: 新件 `axis_c2h_stream` + 端口表 75→50)。\n#   ⭐ P8-STG 16 B 弹性暂存 (2026-10-11): 身份 0x20 → **0x21** (**字长/未实现地址不变** = 71 字 / 0x14C;\n#      采集侧 `app_rx_mirror` 8 B 单槽 → 16 B 字节粒度弹性暂存, 任意相位可续接)。\n#   ⭐ P8 镜像 8 B/拍 (2026-10-11): 身份 0x1F → **0x20** (**字长/未实现地址不变** = 71 字 / 0x14C;\n#      采集侧 `app_rx_mirror` 写口 4 → 8 B/拍修复)。\n', 1)
+E13('_proj_pcie/p6e_snap_check.sh',
+  'EXPECT_BID=${EXPECT_BID:-0x00000027}       # ⛔ 2026-10-15 换流门 R5: 原默认 0x00000026 (RFC seq 修复) / 0x25 (F-3 修复) / 0x0A (Stage C)',
+  'EXPECT_BID=${EXPECT_BID:-0x00000028}       # ⛔ 2026-10-15 P9 E12 观测计数器: 原默认 0x00000027 (换流门 R5) / 0x26 (RFC seq 修复) / 0x0A (Stage C)', 1)
+E13('_proj_pcie/p7b_gate4_accept.sh',
+  'EXPECT_BID=${EXPECT_BID:-0x00000027}      # 换流门 R5 = 0x27 (源码 board/wrapper_p4.v 的 BUILD_ID_V; 原 0x26 = RFC seq 修复 / 0x25 = F-3 修复)',
+  'EXPECT_BID=${EXPECT_BID:-0x00000028}      # P9 E12 观测计数器 = 0x28 (源码 board/wrapper_p4.v 的 BUILD_ID_V; 原 0x27 = 换流门 R5 / 0x26 = RFC seq 修复)', 1)
+E13('_proj_pcie/p7b_gate4_selftest.sh',
+  '  #    而"正例必须 0 FAIL"是本脚本的断言⑤)。现役 = **0x27** (换流门 R5 71 字 —— ⛔ 2026-10-15 同步轮: 原 0x26 = RFC seq 修复 /\n  #    0x25 = F-3 修复 / 0x24 = P9 URAM 板内缓冲 / 原句 = 现役 17 (构建 C 65 字) / 10 (P7b Stage C)); 跑旧口径时\n  #    FAKE_BID=0x00000026 (RFC seq 修复; SNAP_WORDS=71) / 0x00000025 (F-3 修复; 71) / 0x00000017 / 0x00000008。\n',
+  '  #    而"正例必须 0 FAIL"是本脚本的断言⑤)。现役 = **0x28** (P9 E12 观测计数器 75 字 —— ⛔ 2026-10-15 同步轮: 原 0x27 = 换流门 R5 /\n  #    0x26 = RFC seq 修复 / 0x25 = F-3 修复 / 原句 = 现役 17 (构建 C 65 字) / 10 (P7b Stage C)); 跑旧口径时\n  #    FAKE_BID=0x00000027 (换流门 R5; SNAP_WORDS=71) / 0x00000026 (RFC seq 修复; 71) / 0x00000017 / 0x00000008。\n', 1)
+E13('_proj_pcie/p7b_gate4_selftest.sh',
+  '  0X04) V=\\${FAKE_BID:-0x00000027};;\n',
+  '  0X04) V=\\${FAKE_BID:-0x00000028};;\n', 1)
+E13('_proj_pcie/p7b_gate4_negctrl.sh',
+  '# 几何: **71 字 (W0..W70)** —— 换流门 R5 (2026-10-15, BID=0x27 / 未实现 0x14C);\n#       (原句: "71 字 (W0..W70) —— RFC seq 修复 (2026-10-15, BID=0x26 / 未实现 0x14C)" = 历史代, 逐字保留于下)\n#       (原句: "71 字 (W0..W70) —— F-3 修复 (2026-10-15, BID=0x25 / 未实现 0x14C)" = 历史代, 逐字保留于下)\n#       (原句: "71 字 (W0..W70) —— P9 URAM 板内缓冲 (2026-10-13, BID=0x24 / 未实现 0x14C)" = 历史代, 逐字保留于下)\n#       (原句: "71 字 (W0..W70) —— P9 D4 clr 口径修正 (2026-10-12, BID=0x23 / 未实现 0x14C)" = 历史代, 逐字保留于下)\n#       (原句: "71 字 (W0..W70) —— P9 XDMA MM→AXIS (2026-10-11, BID=0x22 / 未实现 0x14C)" = 历史代, 逐字保留于下)\n#       (原句: "71 字 (W0..W70) —— P8-STG 16 B 弹性暂存 (2026-10-11, BID=0x21 / 未实现 0x14C)" = 历史代, 逐字保留于下)\n#       (原句: "71 字 (W0..W70) —— P8 镜像 8 B/拍 (2026-10-11, BID=0x20 / 未实现 0x14C)" = 历史代, 逐字保留于下)\n#       (原句: "71 字 (W0..W70) —— M1 镜像窗 (2026-10-11, BID=0x1F / 未实现 0x14C)" = 历史代, 逐字保留于下)\n#       (原句: "70 字 (W0..W69) —— snd_wnd 守卫 (2026-10-11, BID=0x1E / 未实现 0x138)" = 历史代, 逐字保留于下)\n',
+  '# 几何: **75 字 (W0..W74)** —— P9 E12 观测计数器 (2026-10-15, BID=0x28 / 未实现 0x15C);\n#       (原句: "71 字 (W0..W70) —— 换流门 R5 (2026-10-15, BID=0x27 / 未实现 0x14C)" = 历史代, 逐字保留于下)\n#       (原句: "71 字 (W0..W70) —— RFC seq 修复 (2026-10-15, BID=0x26 / 未实现 0x14C)" = 历史代, 逐字保留于下)\n#       (原句: "71 字 (W0..W70) —— F-3 修复 (2026-10-15, BID=0x25 / 未实现 0x14C)" = 历史代, 逐字保留于下)\n#       (原句: "71 字 (W0..W70) —— P9 URAM 板内缓冲 (2026-10-13, BID=0x24 / 未实现 0x14C)" = 历史代, 逐字保留于下)\n#       (原句: "71 字 (W0..W70) —— P9 D4 clr 口径修正 (2026-10-12, BID=0x23 / 未实现 0x14C)" = 历史代, 逐字保留于下)\n#       (原句: "71 字 (W0..W70) —— P9 XDMA MM→AXIS (2026-10-11, BID=0x22 / 未实现 0x14C)" = 历史代, 逐字保留于下)\n#       (原句: "71 字 (W0..W70) —— P8-STG 16 B 弹性暂存 (2026-10-11, BID=0x21 / 未实现 0x14C)" = 历史代, 逐字保留于下)\n#       (原句: "71 字 (W0..W70) —— P8 镜像 8 B/拍 (2026-10-11, BID=0x20 / 未实现 0x14C)" = 历史代, 逐字保留于下)\n#       (原句: "71 字 (W0..W70) —— M1 镜像窗 (2026-10-11, BID=0x1F / 未实现 0x14C)" = 历史代, 逐字保留于下)\n#       (原句: "70 字 (W0..W69) —— snd_wnd 守卫 (2026-10-11, BID=0x1E / 未实现 0x138)" = 历史代, 逐字保留于下)\n', 1)
+E13('_proj_pcie/p7b_gate4_negctrl.sh',
+  '    echo "MAGIC 0x50360001"; echo "BID 0x00000027"; echo "MARKER 0xdeadbeef"   # 换流门 R5: 原 0x26 = RFC seq 修复 / 0x25 = F-3 修复 / 0x24 = P9 URAM 板内缓冲',
+  '    echo "MAGIC 0x50360001"; echo "BID 0x00000028"; echo "MARKER 0xdeadbeef"   # P9 E12 观测计数器: 原 0x27 = 换流门 R5 / 0x26 = RFC seq 修复 / 0x25 = F-3 修复', 1)
+E13('_proj_pcie/p7b_gate4_livefake.sh',
+  '    #   ⛔ 2026-10-15 (RFC seq 修复 → 换流门 R5): 71 字槽的身份 0x26 → **0x27** (字长没动 ⇒ 槽号仍 71);\n    #      兜底值同改 0x27 (现役代)。⚠️ 本字典**按 NW 索引** ⇒ 读 0x1F/0x20/0x21/0x22/0x23/0x24/0x25/0x26 归档位流时须配套回改。\n    #   ⛔ 2026-10-15 (F-3 修复 → RFC seq 修复): 71 字槽的身份 0x25 → **0x26** (字长没动 ⇒ 槽号仍 71);\n    #      兜底值同改 0x26 (当时的现役代)。⚠️ 本字典**按 NW 索引** ⇒ 读 0x1F/0x20/0x21/0x22/0x23/0x24/0x25 归档位流时须配套回改。\n    #   ⛔ 2026-10-15 (P9 URAM 板内缓冲 → F-3 修复): 71 字槽的身份 0x24 → **0x25** (字长没动 ⇒ 槽号仍 71);\n    #      兜底值同改 0x25 (当时的现役代)。⚠️ 本字典**按 NW 索引** ⇒ 读 0x1F/0x20/0x21/0x22/0x23/0x24 归档位流时须配套回改。\n    #   ⛔ 2026-10-13 (P9 D4 clr 口径修正 → P9 URAM 板内缓冲): 71 字槽的身份 0x23 → **0x24** (字长没动 ⇒ 槽号仍 71);\n    #      兜底值同改 0x24 (当时的现役代)。⚠️ 本字典**按 NW 索引** ⇒ 读 0x1F/0x20/0x21/0x22/0x23 归档位流时须配套回改。\n    #   ⛔ 2026-10-12 (P9 XDMA MM→AXIS → P9 D4 clr 口径修正): 71 字槽的身份 0x22 → **0x23** (字长没动 ⇒ 槽号仍 71);\n    #      兜底值同改 0x23 (当时的现役代)。⚠️ 本字典**按 NW 索引** ⇒ 读 0x1F/0x20/0x21/0x22 归档位流时须配套回改。\n    #   ⛔ 2026-10-11 (P8-STG 16 B 弹性暂存 → P9 XDMA MM→AXIS): 71 字槽的身份 0x21 → **0x22** (字长没动 ⇒ 槽号仍 71);\n    #      兜底值同改 0x22 (当时的现役代)。⚠️ 本字典**按 NW 索引** ⇒ 读 0x1F/0x20/0x21 归档位流时须配套回改。\n    #   ⛔ 2026-10-11 (P8 镜像 8 B/拍 → P8-STG 16 B 弹性暂存): 71 字槽的身份 0x20 → **0x21** (字长没动 ⇒ 槽号仍 71);\n    #      兜底值同改 0x21 (当时的现役代)。⚠️ 本字典**按 NW 索引** ⇒ 读 0x1F/0x20 归档位流时须配套回改。\n    #   ⛔ 2026-10-11 (M1 镜像窗 → P8 镜像 8 B/拍): 71 字槽的身份 0x1F → **0x20** (字长没动 ⇒ 槽号仍 71);\n    #      兜底值同改 0x20 (当时的现役代)。⚠️ 本字典**按 NW 索引** ⇒ 读 0x1F 归档位流时须配套回改。\n',
+  '    #   ⛔ 2026-10-15 (换流门 R5 → P9 E12 观测计数器): **几何变** —— 75 字槽 = **0x28**\n    #      (71 字槽的身份停在上代 0x27); 兜底值同改 0x28 (现役代)。\n    #      ⚠️ 本字典**按 NW 索引** ⇒ 读 71 字及更早归档位流时须配套回改。\n    #   ⛔ 2026-10-15 (RFC seq 修复 → 换流门 R5): 71 字槽的身份 0x26 → **0x27** (字长没动 ⇒ 槽号仍 71);\n    #      兜底值同改 0x27 (当时的现役代)。⚠️ 本字典**按 NW 索引** ⇒ 读 0x1F/0x20/0x21/0x22/0x23/0x24/0x25/0x26 归档位流时须配套回改。\n    #   ⛔ 2026-10-15 (F-3 修复 → RFC seq 修复): 71 字槽的身份 0x25 → **0x26** (字长没动 ⇒ 槽号仍 71);\n    #      兜底值同改 0x26 (当时的现役代)。⚠️ 本字典**按 NW 索引** ⇒ 读 0x1F/0x20/0x21/0x22/0x23/0x24/0x25 归档位流时须配套回改。\n    #   ⛔ 2026-10-15 (P9 URAM 板内缓冲 → F-3 修复): 71 字槽的身份 0x24 → **0x25** (字长没动 ⇒ 槽号仍 71);\n    #      兜底值同改 0x25 (当时的现役代)。⚠️ 本字典**按 NW 索引** ⇒ 读 0x1F/0x20/0x21/0x22/0x23/0x24 归档位流时须配套回改。\n    #   ⛔ 2026-10-13 (P9 D4 clr 口径修正 → P9 URAM 板内缓冲): 71 字槽的身份 0x23 → **0x24** (字长没动 ⇒ 槽号仍 71);\n    #      兜底值同改 0x24 (当时的现役代)。⚠️ 本字典**按 NW 索引** ⇒ 读 0x1F/0x20/0x21/0x22/0x23 归档位流时须配套回改。\n    #   ⛔ 2026-10-12 (P9 XDMA MM→AXIS → P9 D4 clr 口径修正): 71 字槽的身份 0x22 → **0x23** (字长没动 ⇒ 槽号仍 71);\n    #      兜底值同改 0x23 (当时的现役代)。⚠️ 本字典**按 NW 索引** ⇒ 读 0x1F/0x20/0x21/0x22 归档位流时须配套回改。\n    #   ⛔ 2026-10-11 (P8-STG 16 B 弹性暂存 → P9 XDMA MM→AXIS): 71 字槽的身份 0x21 → **0x22** (字长没动 ⇒ 槽号仍 71);\n    #      兜底值同改 0x22 (当时的现役代)。⚠️ 本字典**按 NW 索引** ⇒ 读 0x1F/0x20/0x21 归档位流时须配套回改。\n    #   ⛔ 2026-10-11 (P8 镜像 8 B/拍 → P8-STG 16 B 弹性暂存): 71 字槽的身份 0x20 → **0x21** (字长没动 ⇒ 槽号仍 71);\n    #      兜底值同改 0x21 (当时的现役代)。⚠️ 本字典**按 NW 索引** ⇒ 读 0x1F/0x20 归档位流时须配套回改。\n    #   ⛔ 2026-10-11 (M1 镜像窗 → P8 镜像 8 B/拍): 71 字槽的身份 0x1F → **0x20** (字长没动 ⇒ 槽号仍 71);\n    #      兜底值同改 0x20 (当时的现役代)。⚠️ 本字典**按 NW 索引** ⇒ 读 0x1F 归档位流时须配套回改。\n', 1)
+E13('_proj_pcie/p7b_gate4_livefake.sh',
+  '    bid = {71: "0x00000027", 70: "0x0000001E", 67: "0x00000019", 66: "0x00000018", 65: "0x00000017", 63: "0x0000000A", 61: "0x00000008", 51: "0x00000007"}.get(nw, "0x00000027")',
+  '    bid = {75: "0x00000028", 71: "0x00000027", 70: "0x0000001E", 67: "0x00000019", 66: "0x00000018", 65: "0x00000017", 63: "0x0000000A", 61: "0x00000008", 51: "0x00000007"}.get(nw, "0x00000028")', 1)
+E13('_proj_pcie/p6e_snap_selftest_fix2.sh',
+  '  0X04) V=\\${FAKE_BID:-0x00000027};;   # 换流门 R5 = 0x27 (⛔ 原 0x26 = RFC seq 修复 / 0x25 = F-3 修复 / 0x0A = Stage C);',
+  '  0X04) V=\\${FAKE_BID:-0x00000028};;   # P9 E12 观测计数器 = 0x28 (⛔ 原 0x27 = 换流门 R5 / 0x26 = RFC seq 修复 / 0x0A = Stage C);', 1)
+E13('_proj_10g/notes/p7b_gate4_3/final_state.sh',
+  'EXPECT_BID=${EXPECT_BID:-0x00000027}   # ⛔ 2026-10-15 换流门 R5 (71 字); 原 0x26 = RFC seq 修复',
+  'EXPECT_BID=${EXPECT_BID:-0x00000028}   # ⛔ 2026-10-15 P9 E12 观测计数器 (75 字); 原 0x27 = 换流门 R5', 1)
+E13('_proj_10g/notes/p7b_gate4_criteria/gen_inputs.py',
+  '         ⚠️ 几何 = **71 字 / BID 0x27** (换流门 R5, 2026-10-15 同步轮从 71 字/BID 0x26 同步)\n            ⛔ 2026-10-15 换流门-R5 同步: 上一行原写 "几何 = 71 字 / BID 0x26 (RFC seq 修复)";\n            ⛔ 2026-10-15 RFC-seq 同步: 那一行的上一行原写 "几何 = 71 字 / BID 0x25 (F-3 修复)";\n            ⛔ 2026-10-15 F-3 同步: 那一行的上一行原写 "几何 = 71 字 / BID 0x24 (P9 URAM 板内缓冲)";\n            ⛔ 2026-10-13 P9-URAM 同步: 那一行的上一行原写 "几何 = 71 字 / BID 0x23 (P9 D4 clr 口径修正)";\n            ⛔ 2026-10-12 P9-D4 同步: 那一行的上一行原写 "几何 = 71 字 / BID 0x22 (P9 XDMA MM→AXIS)";\n            ⛔ 2026-10-11 P9-AXIS 同步: 那一行的上一行原写 "几何 = 71 字 / BID 0x21 (P8-STG 16 B 弹性暂存)";\n            ⛔ 2026-10-11 P8-STG 同步: 那一行的上一行原写 "几何 = 71 字 / BID 0x20 (P8 镜像 8 B/拍)";\n            ⛔ 2026-10-11 P8 同步: 那一行的上一行原写 "几何 = 71 字 / BID 0x1F (P7b M1 镜像窗)";\n',
+  '         ⚠️ 几何 = **75 字 / BID 0x28** (P9 E12 观测计数器, 2026-10-15 同步轮从 71 字/BID 0x27 同步)\n            ⛔ 2026-10-15 E12 同步: 上一行原写 "几何 = 71 字 / BID 0x27 (换流门 R5)";\n            ⛔ 2026-10-15 换流门-R5 同步: 那一行的上一行原写 "几何 = 71 字 / BID 0x26 (RFC seq 修复)";\n            ⛔ 2026-10-15 RFC-seq 同步: 那一行的上一行原写 "几何 = 71 字 / BID 0x25 (F-3 修复)";\n            ⛔ 2026-10-15 F-3 同步: 那一行的上一行原写 "几何 = 71 字 / BID 0x24 (P9 URAM 板内缓冲)";\n            ⛔ 2026-10-13 P9-URAM 同步: 那一行的上一行原写 "几何 = 71 字 / BID 0x23 (P9 D4 clr 口径修正)";\n            ⛔ 2026-10-12 P9-D4 同步: 那一行的上一行原写 "几何 = 71 字 / BID 0x22 (P9 XDMA MM→AXIS)";\n            ⛔ 2026-10-11 P9-AXIS 同步: 那一行的上一行原写 "几何 = 71 字 / BID 0x21 (P8-STG 16 B 弹性暂存)";\n            ⛔ 2026-10-11 P8-STG 同步: 那一行的上一行原写 "几何 = 71 字 / BID 0x20 (P8 镜像 8 B/拍)";\n            ⛔ 2026-10-11 P8 同步: 那一行的上一行原写 "几何 = 71 字 / BID 0x1F (P7b M1 镜像窗)";\n', 1)
+E13('_proj_10g/notes/p7b_gate4_criteria/gen_inputs.py',
+  '# 现应读作 "不同代 ⇒ 假红": 本夹具现 = **71 字 / BID 0x27**, accept 默认也已是 71 字 / BID 0x27\n',
+  '# 现应读作 "不同代 ⇒ 假红": 本夹具现 = **75 字 / BID 0x28**, accept 默认也已是 75 字 / BID 0x28\n', 1)
+E13('_proj_10g/notes/p7b_gate4_criteria/gen_inputs.py',
+  '# 66 字/0x18 (构建 D) → 67 字/0x19 (构建 E) → 70 字/0x1A (构建 F) → 70 字/0x1C (缺陷刀) → 70 字/0x1D (persist 刀) → 70 字/0x1E (snd_wnd 守卫) → 71 字/0x1F (M1 镜像窗) → 71 字/0x20 (P8 镜像 8 B/拍) → 71 字/0x21 (P8-STG 16 B 弹性暂存) → 71 字/0x22 (P9 XDMA MM→AXIS) → 71 字/0x23 (P9 D4 clr 口径修正) → 71 字/0x24 (P9 URAM 板内缓冲) → 71 字/0x25 (F-3 修复) → 71 字/0x26 (RFC seq 修复) → **71 字/0x27 (换流门 R5, 未实现地址 0x14C 不变)**。\n',
+  '# 66 字/0x18 (构建 D) → 67 字/0x19 (构建 E) → 70 字/0x1A (构建 F) → 70 字/0x1C (缺陷刀) → 70 字/0x1D (persist 刀) → 70 字/0x1E (snd_wnd 守卫) → 71 字/0x1F (M1 镜像窗) → 71 字/0x20 (P8 镜像 8 B/拍) → 71 字/0x21 (P8-STG 16 B 弹性暂存) → 71 字/0x22 (P9 XDMA MM→AXIS) → 71 字/0x23 (P9 D4 clr 口径修正) → 71 字/0x24 (P9 URAM 板内缓冲) → 71 字/0x25 (F-3 修复) → 71 字/0x26 (RFC seq 修复) → 71 字/0x27 (换流门 R5) → **75 字/0x28 (P9 E12 观测计数器, 未实现地址 0x14C → 0x15C)**。\n', 1)
+E13('_proj_10g/notes/p7b_gate4_criteria/gen_inputs.py',
+  'BID_FIX = 0x00000027       # 位流身份 (换流门 R5) —— ⛔ 2026-10-15: 原值 0x00000026 (RFC seq 修复)',
+  'BID_FIX = 0x00000028       # 位流身份 (P9 E12 观测计数器) —— ⛔ 2026-10-15: 原值 0x00000027 (换流门 R5)', 1)
+E13('sim/p6e_pcie/tb_p6e_pcie_counters.v',
+  'u_dut.u_pcie_xdma.axil_read(32\'h04, v); chk("0b BUILD_ID (换流门 R5 71-word = 0x27; 原 71-word=0x26(RFC seq 修复) / 0x25(F-3 修复) / 63-word=9)", v, 32\'h00000027);',
+  'u_dut.u_pcie_xdma.axil_read(32\'h04, v); chk("0b BUILD_ID (P9 E12 观测计数器 75-word = 0x28; 原 71-word=0x27(换流门 R5) / 0x26(RFC seq 修复) / 63-word=9)", v, 32\'h00000028);', 1)
+E13('sim/p6e_pcie/tb_p6e_pcie_wrapper.v',
+  'u_dut.u_pcie_xdma.axil_read(32\'h04, v); chk("2  BUILD_ID (换流门 R5 构建 = 0x27)", v, 32\'h00000027);',
+  'u_dut.u_pcie_xdma.axil_read(32\'h04, v); chk("2  BUILD_ID (P9 E12 观测计数器构建 = 0x28)", v, 32\'h00000028);', 1)
+E13('_proj_10g/notes/p7b_a3_negctl_20261010/step0_selfcheck.sh',
+  '#     (i)  缺省档 (NW=71 / 0x14C / BID 0x27) 对 D **响亮失败** (且失败点只在 BID = 档位错, 不是板错);',
+  '#     (i)  缺省档 (NW=75 / 0x15C / BID 0x28) 对 D **响亮失败** (且失败点只在 BID = 档位错, 不是板错);', 1)
+E13('_proj_10g/notes/p7b_a3_negctl_20261010/step0_selfcheck.sh',
+  'echo "### C-a) 默认档 (NW=71 / 0x14C / BID 0x27) —— 对 D 位流: 期望 ID_FAIL 且失败点=身份不符 (BID 0x18 != 0x27)"',
+  'echo "### C-a) 默认档 (NW=75 / 0x15C / BID 0x28) —— 对 D 位流: 期望 ID_FAIL 且失败点=身份不符 (BID 0x18 != 0x28)"', 1)
+
+# ---- 几何面 (本轮新增; 71 -> 75 / 0x14C -> 0x15C / 标签表补 W71..W74) ----
+E13('_proj_10g/notes/p7b_affinity/j6_r6fix.sh',
+  '#     ⑦ **几何门 (硬断言)**: ① `NW=${NW:-71}` (M1 镜像窗; 更早构建 F=70 / E=67 / P7B-A7=66 / P7B-GAP9-TX=65 / 原 63) 且 **export**',
+  '#     ⑦ **几何门 (硬断言)**: ① `NW=${NW:-75}` (P9 E12 观测计数器; 更早 M1 镜像窗=71 / 构建 F=70 / E=67 / P7B-A7=66 / 原 63) 且 **export**', 1)
+E13('_proj_10g/notes/p7b_affinity/j6_r6fix.sh',
+  '\nNW=${NW:-71}\n',
+  '\nNW=${NW:-75}\n', 1)
+E13('_proj_10g/notes/p7b_biz_tcpreg/tcpreg_j6.sh',
+  '#     ⑦ **几何门 (硬断言)**: ① `NW=${NW:-71}` (M1 镜像窗; 更早构建 F=70 / E=67 / P7B-A7=66 / P7B-GAP9-TX=65 / 原 63) 且 **export**',
+  '#     ⑦ **几何门 (硬断言)**: ① `NW=${NW:-75}` (P9 E12 观测计数器; 更早 M1 镜像窗=71 / 构建 F=70 / E=67 / P7B-A7=66 / 原 63) 且 **export**', 1)
+E13('_proj_10g/notes/p7b_biz_tcpreg/tcpreg_j6.sh',
+  '\nNW=${NW:-71}\n',
+  '\nNW=${NW:-75}\n', 1)
+E13('_proj_pcie/p7b_biz/p7b_snap.sh',
+  '\nNW=${NW:-71}\n',
+  '\nNW=${NW:-75}\n', 1)
+E13('_proj_pcie/p7b_biz/p7b_snap.sh',
+  'UNIMPL_ADDR=${UNIMPL_ADDR:-$(printf \'0x%X\' $(( 0x20 + 4*NW + 16 )))}   # 71 ⇒ 0x14C (M1 期B 起; 70 字及更早 = 0x138/0x12C/0x124/0x11C/0x114/0xEC —— 读旧位流须显式覆盖)',
+  'UNIMPL_ADDR=${UNIMPL_ADDR:-$(printf \'0x%X\' $(( 0x20 + 4*NW + 16 )))}   # 75 ⇒ 0x15C (P9 E12 起; 71 ⇒ 0x14C (M1 期B); 70 字及更早 = 0x138/0x12C/0x124/0x11C/0x114/0xEC —— 读旧位流须显式覆盖)', 1)
+E13('_proj_pcie/p7b_biz/p7b_snap.sh',
+  '# ⭐ M1 (2026-10-11): W70 —— 载荷镜像的拒收字节数 (真值源 = wrapper 装配段 `p7bdp_dout[30*32 +: 32]`):\n[70]=mir_drop_bytes\n)',
+  '# ⭐ M1 (2026-10-11): W70 —— 载荷镜像的拒收字节数 (真值源 = wrapper 装配段 `p7bdp_dout[30*32 +: 32]`):\n[70]=mir_drop_bytes\n# ⭐ P9 E12 (2026-10-15): W71..W74 —— 换流门四观测计数器 (真值源 = wrapper 装配段\n#    `p7bdp_dout[31..34*32 +: 32]` / 槽 31..34):\n[71]=app_stat_up_ev      [72]=app_stat_sw_req     [73]=app_stat_sw_apply\n[74]=app_stat_up_pend\n)', 1)
+E13('_proj_pcie/p7b_biz/p7b_snap.sh',
+  '#    地址由 NW 派生: UNIMPL_ADDR = 0x20+4*63 = **0x11C** (⛔ 2026-10-10: 现役 NW=65 ⇒ **0x124**)。',
+  '#    地址由 NW 派生: UNIMPL_ADDR = 0x20+4*63 = **0x11C** (⛔ 2026-10-10: 现役 NW=65 ⇒ **0x124**;\n#    ⭐ P9 E12: 现役 NW=75 / MIR 四字在中间 ⇒ **0x15C** = 0x20+4*75+16)。', 1)
+E13('_proj_pcie/p6e_snap_check.sh',
+  'SNAP_WORDS=${SNAP_WORDS:-71}',
+  'SNAP_WORDS=${SNAP_WORDS:-75}', 1)
+E13('_proj_pcie/p6e_snap_check.sh',
+  'UNIMPL_ADDR=${UNIMPL_ADDR:-$(printf \'0x%X\' $(( 0x20 + 4*SNAP_WORDS + 16 )))}   # 71 ⇒ 0x14C (M1 期B 起; 70 字及更早 = 0x138/0x12C/0x124/0x11C/0xEC —— 读旧位流须显式覆盖)',
+  'UNIMPL_ADDR=${UNIMPL_ADDR:-$(printf \'0x%X\' $(( 0x20 + 4*SNAP_WORDS + 16 )))}   # 75 ⇒ 0x15C (P9 E12 起; 71 ⇒ 0x14C (M1 期B); 70 字及更早 = 0x138/0x12C/0x124/0x11C/0xEC —— 读旧位流须显式覆盖)', 1)
+E13('_proj_pcie/p6e_snap_check.sh',
+  ' #       真值源 = `board/wrapper_p4.v` 的装配段注释。表长必须 == SNAP_WORDS (71),\n #       否则循环把它们打成 `<无标签>` (2026-10-10 加固轮: 本表原只到 W64; M1 再补 W70)。',
+  ' #       真值源 = `board/wrapper_p4.v` 的装配段注释。表长必须 == SNAP_WORDS (75),\n #       否则循环把它们打成 `<无标签>` (2026-10-10 加固轮: 本表原只到 W64; M1 再补 W70;\n #       P9 E12 再补 W71..W74 —— 四个换流门观测计数器)。', 1)
+E13('_proj_pcie/p6e_snap_check.sh',
+  ' "mir_drop_bytes     (app_rx_mirror.drop_bytes: 载荷镜像拒收字节数; M1)" )',
+  ' "mir_drop_bytes     (app_rx_mirror.drop_bytes: 载荷镜像拒收字节数; M1)"\n # ---- P9 E12 (2026-10-15) 新增 4 字 (71 → 75 字窗口; 换流门四观测计数器) ----\n "app_stat_up_ev     (app_pattern.stat_up_ev: app 实收 ev_up 事件数; P9 E12)"\n "app_stat_sw_req    (app_pattern.stat_sw_req: 换流收尾请求数 (ev_same_act); P9 E12)"\n "app_stat_sw_apply  (app_pattern.stat_sw_apply: 换流应用数 (sw_apply); P9 E12)"\n "app_stat_up_pend   (app_pattern.stat_up_pend: A3 异槽登记数 (ev_other_act); P9 E12)" )', 1)
+E13('_proj_pcie/p7b_gate4_accept.sh',
+  'SNAP_WORDS=${SNAP_WORDS:-71}',
+  'SNAP_WORDS=${SNAP_WORDS:-75}', 1)
+E13('_proj_pcie/p7b_gate4_accept.sh',
+  'UNIMPL_ADDR=${UNIMPL_ADDR:-$(printf \'0x%X\' $(( 0x20 + 4*SNAP_WORDS + 16 )))}   # 71 ⇒ 0x14C (M1 期B 起; 70 字及更早 = 0x138/0x12C/0x128/0x124/0x11C/0x114/0xEC —— 读旧位流须显式覆盖)',
+  'UNIMPL_ADDR=${UNIMPL_ADDR:-$(printf \'0x%X\' $(( 0x20 + 4*SNAP_WORDS + 16 )))}   # 75 ⇒ 0x15C (P9 E12 起; 71 ⇒ 0x14C (M1 期B); 70 字及更早 = 0x138/0x12C/0x128/0x124/0x11C/0x114/0xEC —— 读旧位流须显式覆盖)', 1)
+E13('_proj_pcie/p7b_gate4_accept.sh',
+  '#    ⇒ 71 字 = **0x14C**。⚠️ 读旧位流 (≤70 字) 必须显式 `UNIMPL_ADDR=` 覆盖, 否则默认值会指到真字。',
+  '#    ⇒ 71 字 = **0x14C** (M1 期B); ⭐ P9 E12 起 75 字 = **0x15C**。\n#    ⚠️ 读旧位流 (≤71 字) 必须显式 `UNIMPL_ADDR=` 覆盖, 否则默认值会指到真字。', 1)
+E13('_proj_pcie/p7b_gate4_selftest.sh',
+  'SW=${SNAP_WORDS:-71}',
+  'SW=${SNAP_WORDS:-75}', 1)
+E13('_proj_pcie/p7b_gate4_selftest.sh',
+  '#   SW ≥ 71 (2026-10-11 M1 起) ⇒ 0x138 也是**窗口内的真字** (W70), 且未实现地址 = 0x14C\n#     (M1 起公式 `0x20+4*SW+16`) ⇒ `FAKE_UNIMPL` 挪到 **0x14C**;\n',
+  '#   SW ≥ 75 (2026-10-15 P9 E12 起) ⇒ 0x13C/0x140/0x144/0x148 也是**窗口内的真字**\n#     (W71..W74 = 换流门四观测计数器), 且未实现地址 = 0x15C ⇒ `FAKE_UNIMPL` 挪到 **0x15C**;\n#   SW ≥ 71 (2026-10-11 M1 起) ⇒ 0x138 也是**窗口内的真字** (W70), 且未实现地址 = 0x14C\n#     (M1 起公式 `0x20+4*SW+16`) ⇒ `FAKE_UNIMPL` 在 **0x14C**;\n', 1)
+E13('_proj_pcie/p7b_gate4_selftest.sh',
+  'if [ "$SW" -ge 71 ]; then\n  FAKE_TAIL=\'  0X114) V=1234;;  # W61 app_ctrl.stat_wu (次数; 非 0 才像真板)\n  0X118) V=0;;     # W62 app_ctrl.rx_occ_bytes (17 位 ⇒ 高位恒 0)\n  0X11C) V=0;;     # W63 app_pattern.stat_frmwait_cyc (停滞拍数; 0 = 无停顿)\n  0X120) V=0;;     # W64 app_pattern.stat_bp_cyc (背压拍数)\n  0X124) V=0;;     # W65 mac_tx_10g.stat_tx_idle (S_IDLE 拍数; 0 = 空载, 建 D 新增)\n  0X128) V=0;;     # W66 tcp_tx_frame.stat_winstall (窗口门停顿拍数, 建 E 新增)\n  0X12C) V=0;;     # W67 tcp_tx_frame.stat_winstall_cap (板帽侧等窗拍数, 建 F 新增)\n  0X130) V=0;;     # W68 tcp_rx.stat_ack_adv (推进 snd_una 的 ACK 次数, 建 F 新增)\n  0X134) V=0;;     # W69 tcp_tx_frame.o_win_at_winstall (等窗拍操作点锁存, 建 F 新增)\n  0X138) V=0;;     # W70 app_rx_mirror.drop_bytes (载荷镜像拒收字节数, M1 新增; 真字)\n  0X14C) V=${FAKE_UNIMPL:-0xffffffff};;   # 未实现地址 (71 字; M1 起 = 0x20+4*SW+16)\'\n',
+  'if [ "$SW" -ge 75 ]; then\n  FAKE_TAIL=\'  0X114) V=1234;;  # W61 app_ctrl.stat_wu (次数; 非 0 才像真板)\n  0X118) V=0;;     # W62 app_ctrl.rx_occ_bytes (17 位 ⇒ 高位恒 0)\n  0X11C) V=0;;     # W63 app_pattern.stat_frmwait_cyc (停滞拍数; 0 = 无停顿)\n  0X120) V=0;;     # W64 app_pattern.stat_bp_cyc (背压拍数)\n  0X124) V=0;;     # W65 mac_tx_10g.stat_tx_idle (S_IDLE 拍数; 0 = 空载, 建 D 新增)\n  0X128) V=0;;     # W66 tcp_tx_frame.stat_winstall (窗口门停顿拍数, 建 E 新增)\n  0X12C) V=0;;     # W67 tcp_tx_frame.stat_winstall_cap (板帽侧等窗拍数, 建 F 新增)\n  0X130) V=0;;     # W68 tcp_rx.stat_ack_adv (推进 snd_una 的 ACK 次数, 建 F 新增)\n  0X134) V=0;;     # W69 tcp_tx_frame.o_win_at_winstall (等窗拍操作点锁存, 建 F 新增)\n  0X138) V=0;;     # W70 app_rx_mirror.drop_bytes (载荷镜像拒收字节数, M1 新增; 真字)\n  0X13C) V=0;;     # W71 app_pattern.stat_up_ev (换流门观测; P9 E12)\n  0X140) V=0;;     # W72 app_pattern.stat_sw_req (P9 E12)\n  0X144) V=0;;     # W73 app_pattern.stat_sw_apply (P9 E12)\n  0X148) V=0;;     # W74 app_pattern.stat_up_pend (P9 E12)\n  0X15C) V=${FAKE_UNIMPL:-0xffffffff};;   # 未实现地址 (75 字; = 0x20+4*SW+16)\'\nelif [ "$SW" -ge 71 ]; then\nif [ "$SW" -ge 71 ]; then\n  FAKE_TAIL=\'  0X114) V=1234;;  # W61 app_ctrl.stat_wu (次数; 非 0 才像真板)\n  0X118) V=0;;     # W62 app_ctrl.rx_occ_bytes (17 位 ⇒ 高位恒 0)\n  0X11C) V=0;;     # W63 app_pattern.stat_frmwait_cyc (停滞拍数; 0 = 无停顿)\n  0X120) V=0;;     # W64 app_pattern.stat_bp_cyc (背压拍数)\n  0X124) V=0;;     # W65 mac_tx_10g.stat_tx_idle (S_IDLE 拍数; 0 = 空载, 建 D 新增)\n  0X128) V=0;;     # W66 tcp_tx_frame.stat_winstall (窗口门停顿拍数, 建 E 新增)\n  0X12C) V=0;;     # W67 tcp_tx_frame.stat_winstall_cap (板帽侧等窗拍数, 建 F 新增)\n  0X130) V=0;;     # W68 tcp_rx.stat_ack_adv (推进 snd_una 的 ACK 次数, 建 F 新增)\n  0X134) V=0;;     # W69 tcp_tx_frame.o_win_at_winstall (等窗拍操作点锁存, 建 F 新增)\n  0X138) V=0;;     # W70 app_rx_mirror.drop_bytes (载荷镜像拒收字节数, M1 新增; 真字)\n  0X14C) V=${FAKE_UNIMPL:-0xffffffff};;   # 未实现地址 (71 字; M1 起 = 0x20+4*SW+16)\'\n', 1)
+E13('_proj_pcie/p7b_gate4_negctrl.sh',
+  '                0 0 0 0)   # W51..W70 (M1: W70 = app_rx_mirror.drop_bytes)\n',
+  '                0 0 0 0 0 0 0 0)   # W51..W74 (M1: W70 = app_rx_mirror.drop_bytes; E12: W71..W74 = 换流门四观测计数器)\n', 1)
+E13('_proj_pcie/p7b_gate4_negctrl.sh',
+  '    local i; for (( i = 0; i < 71; i++ )); do printf \'W%d 0x%X\\n\' "$i" "${V[$i]}"; done\n',
+  '    local i; for (( i = 0; i < 75; i++ )); do printf \'W%d 0x%X\\n\' "$i" "${V[$i]}"; done\n', 1)
+E13('_proj_pcie/p7b_gate4_negctrl.sh',
+  'shift1(){ awk -v NW=71 ',
+  'shift1(){ awk -v NW=75 ', 1)
+E13('_proj_pcie/p7b_gate4_livefake.sh',
+  '        + [0] * 20          # W51..W70 = P7B-BIZ/WU/C/D/E/F + M1 新增字 (accept 只要求窗口齐全 + 无 0xffffffff)',
+  '        + [0] * 24          # W51..W74 = P7B-BIZ/WU/C/D/E/F + M1 + P9 E12 新增字 (accept 只要求窗口齐全 + 无 0xffffffff)', 1)
+E13('_proj_pcie/p6e_snap_selftest_fix2.sh',
+  '# ⚠️ 假板子的**几何必须与现役 RTL 同代** (= **71 字 / 未实现 0x14C**; 2026-10-11 M1 镜像窗;\n',
+  '# ⚠️ 假板子的**几何必须与现役 RTL 同代** (= **75 字 / 未实现 0x15C**; 2026-10-15 P9 E12 观测计数器;\n#    原句 = 71 字 / 0x14C (M1 镜像窗);\n', 1)
+E13('_proj_pcie/p6e_snap_selftest_fix2.sh',
+  '  0X14C) V=0xffffffff;;                                       # 未实现地址 (71 字; M1 起 = 0x20+4*SW+16)\n',
+  '  0X13C) V=0x00000000;;                                       # W71 app_pattern.stat_up_ev (75 字起; P9 E12)\n  0X140) V=0x00000000;;                                       # W72 app_pattern.stat_sw_req (P9 E12)\n  0X144) V=0x00000000;;                                       # W73 app_pattern.stat_sw_apply (P9 E12)\n  0X148) V=0x00000000;;                                       # W74 app_pattern.stat_up_pend (P9 E12)\n  0X15C) V=0xffffffff;;                                       # 未实现地址 (75 字; = 0x20+4*SW+16)\n', 1)
+E13('_proj_10g/notes/p7b_gate4_3/final_state.sh',
+  'echo "MAGIC=$(rd 0x00) BID=$BID MARKER=$(rd 0x14) UNIMPL=$(rd 0x14c) gen=$(( (s >> 16) & 0xffff ))"',
+  'echo "MAGIC=$(rd 0x00) BID=$BID MARKER=$(rd 0x14) UNIMPL=$(rd 0x15c) gen=$(( (s >> 16) & 0xffff ))"', 1)
+E13('_proj_10g/notes/p7b_gate4_3/final_state.sh',
+  '# ⚠️ UNIMPL 地址跟窗口宽度走: **71 字 (M1, 2026-10-11 起) ⇒ 0x14C** (word 83; 快照末字后接 MIR 四字\n#     ⇒ 公式 = 0x20+4*NW+16); 70 字 (构建 F 起) = 0x138 (word 78);\n',
+  '# ⚠️ UNIMPL 地址跟窗口宽度走: **75 字 (P9 E12, 2026-10-15 起) ⇒ 0x15C** (word 87; 快照末字后接\n#     MIR 四字 ⇒ 公式 = 0x20+4*NW+16); 71 字 (M1, 2026-10-11 起) = 0x14C (word 83);\n#     70 字 (构建 F 起) = 0x138 (word 78);\n', 1)
+E13('_proj_10g/notes/p7b_gate4_3/final_state.sh',
+  'echo "W70=$(rd 0x138)  # M1: app_rx_mirror.drop_bytes (载荷镜像拒收字节数)"\n',
+  'echo "W70=$(rd 0x138)  # M1: app_rx_mirror.drop_bytes (载荷镜像拒收字节数)"\necho "W71=$(rd 0x13c) W72=$(rd 0x140) W73=$(rd 0x144) W74=$(rd 0x148)  # P9 E12: 换流门四观测计数器 (up_ev / sw_req / sw_apply / up_pend)"\n', 1)
+E13('_proj_10g/notes/p7b_gate4_criteria/gen_inputs.py',
+  'NW_FIX = 71                # 快照字数 (W0..W70; M1 起 —— 原 70)',
+  'NW_FIX = 75                # 快照字数 (W0..W74; P9 E12 起 —— 原 71 (M1) / 70)', 1)
+E13('_proj_10g/notes/p7b_gate4_criteria/gen_inputs.py',
+  '  快照 : SNAP_BEGIN / TLATCH / GEN / MAGIC / BID / MARKER / W0..W70 / UNIMPL / SNAP_END',
+  '  快照 : SNAP_BEGIN / TLATCH / GEN / MAGIC / BID / MARKER / W0..W74 / UNIMPL / SNAP_END', 1)
+E13('_proj_10g/notes/p7b_gate4_criteria/gen_inputs.py',
+  '    """**71 字 (W0..W70)**; lat = 该块锁存的时刻 (秒) ⇒ 三个域自由计数由它算出。',
+  '    """**75 字 (W0..W74)**; lat = 该块锁存的时刻 (秒) ⇒ 三个域自由计数由它算出。', 1)
+E13('_proj_10g/notes/p7b_gate4_criteria/gen_inputs.py',
+  '            ⛔ M1 起未实现地址不再 = 0x20+4*NW (快照末字后接 MIR 四字) ⇒ = 0x20+4*NW+16 = **0x14C**;',
+  '            ⛔ M1 起未实现地址不再 = 0x20+4*NW (快照末字后接 MIR 四字) ⇒ = 0x20+4*NW+16 = 0x14C (M1) / **0x15C** (P9 E12 起);', 1)
+E13('_proj_10g/p7b_chain/sim/tb_p7b_chain.v',
+  '        u_dut.u_pcie_xdma.axil_read(32\'h14C, v);\n        chk("7b 0x14C reads 0 no wrap",\n            (v === 32\'h00000000) && (u_dut.u_pcie_xdma.last_rresp === 2\'d2),\n            "axi_regs decode; 71-word bound (M1: 0x14C = 0x20+4*71+16; 原 70 字/0x138, 67 字/0x12C, 63 字/0x11C; 2026-10-11 M1 订正)");',
+  '        u_dut.u_pcie_xdma.axil_read(32\'h15C, v);\n        chk("7b 0x15C reads 0 no wrap",\n            (v === 32\'h00000000) && (u_dut.u_pcie_xdma.last_rresp === 2\'d2),\n            "axi_regs decode; 75-word bound (P9 E12: 0x15C = 0x20+4*75+16; 原 71 字/0x14C, 70 字/0x138, 63 字/0x11C; 2026-10-15 E12 订正)");', 1)
+E13('_proj_10g/notes/p7b_biz_win/run_xvlog_wrapper.bat',
+  'findstr /C:"SNAP_NW_P6E = 71" "%SRCFILE%" >NUL || ( echo [FINGERPRINT FAIL] source is not the 71-word version & exit /b 92 )',
+  'findstr /C:"SNAP_NW_P6E = 75" "%SRCFILE%" >NUL || ( echo [FINGERPRINT FAIL] source is not the 75-word version & exit /b 92 )', 1)
+E13('_proj_10g/notes/p7b_biz_win/run_tb_biz_win.bat',
+  'findstr /C:"SNAP_NW_P6E = 71" "%ROOT%\\board\\wrapper_p4.v" >NUL || ( echo [FINGERPRINT FAIL] wrapper is not 71-word & exit /b 92 )',
+  'findstr /C:"SNAP_NW_P6E = 75" "%ROOT%\\board\\wrapper_p4.v" >NUL || ( echo [FINGERPRINT FAIL] wrapper is not 75-word & exit /b 92 )', 1)
+E13('sim/p5wu_p1p2/run_xvlog_wrapper63.bat',
+  'findstr /C:"SNAP_NW_P6E = 71" "%SRCFILE%" >NUL || ( echo [FINGERPRINT FAIL] source is not the 71-word version & exit /b 92 )',
+  'findstr /C:"SNAP_NW_P6E = 75" "%SRCFILE%" >NUL || ( echo [FINGERPRINT FAIL] source is not the 75-word version & exit /b 92 )', 1)
+E13('_proj_10g/notes/p7b_biz_win/tb_biz_win.v',
+  '    localparam integer NW = 71;  // = wrapper 的 SNAP_NW_P6E (M1; 原 70 = 构建 F / 61/63/65/66/67)',
+  '    localparam integer NW = 75;  // = wrapper 的 SNAP_NW_P6E (P9 E12; 原 71 = M1 / 70 = 构建 F / 61/63/65/66/67)', 1)
+E13('_proj_10g/notes/p7b_biz_win/check_window.py',
+  '    nnew_top = 5                              # ⭐ M1: W70/W69/W68/W67/W66 (p7bdp 槽 30/29/28/27/26)\n                                              #   —— 上一代 (构建 F) 是 4 (W69..W66); 新字 W70 落\n                                              #   在最上面 ⇒ 顶端段 +1 (本条**每代都要按该代接线核**)',
+  '    nnew_top = 9                              # ⭐ P9 E12: W74/W73/W72/W71 (槽 34/33/32/31)\n                                              #   + W70/W69/W68/W67/W66 (槽 30/29/28/27/26)\n                                              #   —— 上一代 (M1) 是 5 (W70..W66); E12 四个字全落\n                                              #   在最上面 ⇒ 顶端段 +4 (本条**每代都要按该代接线核**)', 1)
+E13('_proj_10g/notes/p7b_biz_win/check_window.py',
+  '    ntx = 1                                   # 其后的 tx 束项数 (W65) —— 现在排第 6 项',
+  '    ntx = 1                                   # 其后的 tx 束项数 (W65) —— 现在排第 10 项', 1)
+E13('_proj_10g/notes/p7b_biz_win/check_window.py',
+  '       "5a 最上面 %d 项 = W%d/W%d/W%d/W%d (p7bdp 束槽 %d/%d/%d/%d; 构建 F)"\n       % (nnew_top, NW - 1, NW - 2, NW - 3, NW - 4, pdp - 1, pdp - 2, pdp - 3, pdp - 4),',
+  '       "5a 最上面 %d 项 = %s (p7bdp 束槽 %s; P9 E12)"\n       % (nnew_top, "/".join("W%d" % (NW - 1 - i) for i in range(nnew_top)),\n          "/".join("%d" % (pdp - 1 - i) for i in range(nnew_top))),', 1)
+
+# ===========================================================================
 # ⑧ 【读侧加固】三条结构性断言 (照搬 F 轮; 判据必须**走到退出码**)
 #
 #   动机 (F 轮同源): "同步"以前只靠一份**手写清单** + "锚点命中数" ⇒ 连翻三轮车
@@ -1874,6 +2098,33 @@ ALLOW = [
      "旧位流读法: kimi 组板级 0x24 复核轮现场 (2026-10-13; `kx_stats.py` 的 "
      "`EXPECTED_ARGS` 逐字为 `--bid 0x00000024 …` 与 `ab_recheck/kx_ab_burn.py` 的 "
      "`chain_ok` 里 `0x00000024`(= 首轮烧前板遗留身份) 都是**那一代的真值**, 由被复核的位流钉死)"),
+    (r"^_proj_10g/notes/p9_board_0x27_k0_20261015/",
+     "旧位流读法: K0 换流门板级轮现场 (2026-10-15; 负臂烧 **0x24** 归档位流 `WANT=e3b07957…f1db`、"
+     "K0 臂烧 **0x27** 归档位流 `WANT=5c17b14f…3385` ⇒ `burn/*.sh` 的 `EXPBID`/`NW=71` 与 "
+     "`k0_arm.sh`/`env/read_final_state.sh` 的 `EXPECT_BID=0x00000027` 都是**那一代的真值**, "
+     "由 WANT sha 钉死; 改它反而毁掉该轮取证 —— 登记为 2026-10-15 阶段 ⑬ (0x28) 的新命中)"),
+    (r"^_proj_10g/notes/p9_board_rfcseq_20261015/",
+     "旧位流读法: RFC seq 注入 A/B 板级轮现场 (2026-10-15; 三臂 P27/N25/P26 = **0x27/0x25/0x26** "
+     "归档位流, `EXPECT_BID` 逐臂由环境变量注入 ⇒ `rfcseq_arm.sh`/`burn_arm.sh`/`read_final_state.sh` "
+     "里的 `0x00000025/26/27` 与 `NW=71` 都是**那三代的真值**, 由被烧的归档位流钉死)"),
+    (r"^_proj_10g/notes/p9_mdio_board_20261015/",
+     "旧位流读法: mdio 板级轮现场 (2026-10-15; 烧 **0x27** + mdio 位流 `4c74c219…` ⇒ "
+     "`burn/burn_arm.sh` 与 `board/read_final_state.sh` 的 `EXPBID=0x00000027`/`NW=71` = "
+     "**那一代的真值**, 由 WANT sha 钉死)"),
+    (r"^_proj_10g/notes/p9_simfill_20261015/",
+     "快照副本: sim 补测轮 (2026-10-15) 的 B_f3_n2 臂 —— `B_f3_n2/src/{wrapper_p4_resync0.v,"
+     "tb_p6e_pcie_counters.FROZEN.v,tb_p6e_pcie_counters.NOSOP.v}` 由 `mk_wr_n2.py`/`mk_tb_nosop.py` "
+     "**从 0x27 代现读生成**的冻结对照件 (其 `0x00000027`/`0x14C`/NW=71 = 生成时刻的真值); "
+     "⛔ 改它 = 伪造那次对照 ⇒ 只登记不动"),
+    (r"^sim/f3_resync/",
+     "快照副本: F-3 N-2 臂的工作副本 (frozen/wr_on/wr_off 三目录; `wrapper_p4*.v` 与 TB 副本 = "
+     "N2 臂生成/冻结件, 其身份/几何 = 生成时刻那一代; ⛔ 本仓纪律: `sim/f3_resync/**` 禁碰 ⇒ "
+     "只登记不动) —— 登记为 2026-10-15 阶段 ⑬ (0x28) 的新命中"),
+    (r"^_proj_10g/notes/p9_build_0x28/",
+     "现役: 本轮 (阶段 ⑬ = 0x28) 构建轮目录 (读数/归档/生成器; 含各代 BID 字符串与各代断言输出)"),
+    (r"^_proj_10g/notes/p9_impl_e12_20261015/",
+     "现役: E12 实施轮目录 (4 只观测计数器的落地取证; 含 `check_window_e12.py` = 本代副本 "
+     "(nnew_top=9) 与各代断言输出 —— 与 0x28 同步后的原件同值, 属该轮取证, 只登记不动)"),
     (r"^_proj_10g/notes/p9_build_0x27/",
      "现役: 本轮 (阶段 ⑫ = 0x27) 构建轮目录 (读数/归档/生成器; 含各代 BID 字符串与各代断言输出)"),
     (r"^_proj_10g/notes/p9_build_0x26/",
@@ -1902,7 +2153,8 @@ ALLOW = [
     (r"^_proj_10g/notes/p7b_m1[a-z0-9_]*_(synth|impl)_2026\d+/",
      "M1 综合/实现轮产物 (读数/日志; 非读侧)"),
     (r"^_proj_10g/notes/p7b_biz_win/(check_window\.py|tb_biz_win\.v|run_tb_biz_win\.bat|run_xvlog_wrapper\.bat)$",
-     "现役: 窗口几何守卫 (几何本轮不动; 其 nnew_top 由 ⑧-C 派生式断言)"),
+     "现役: 窗口几何守卫 (⚠️ P9 E12 起几何**动**了: 71→75 ⇒ 本件已成 EDITS 目标; "
+     "其 nnew_top 由 ⑧-C 派生式断言)"),
     # —— 旧位流读法 (可留: 值刻意绑某代已归档位流, 改它反而毁掉那一代的取证) ——
     (r"^_proj_10g/notes/p7b_buildF/", "旧位流读法: 上一代 apply_* (old/new 两侧都是那代的值 = 补丁左值)"),
     (r"^_proj_10g/notes/p7b_buildF_board2?_20261010/",

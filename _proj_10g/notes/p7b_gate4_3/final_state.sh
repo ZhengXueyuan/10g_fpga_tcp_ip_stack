@@ -8,9 +8,10 @@ echo "=== 1. 板侧最终读数 (PCIe 观测窗口**仍然活着**) ==="
 $T/reg_rw $D 0x18 w 0x1 >/dev/null 2>&1
 for i in $(seq 1 400); do s=$(rd 0x1c); [ -n "$s" ] && [ $(( s & 2 )) -ne 0 ] && break; sleep 0.002; done
 BID=$(rd 0x04)
-echo "MAGIC=$(rd 0x00) BID=$BID MARKER=$(rd 0x14) UNIMPL=$(rd 0x14c) gen=$(( (s >> 16) & 0xffff ))"
-# ⚠️ UNIMPL 地址跟窗口宽度走: **71 字 (M1, 2026-10-11 起) ⇒ 0x14C** (word 83; 快照末字后接 MIR 四字
-#     ⇒ 公式 = 0x20+4*NW+16); 70 字 (构建 F 起) = 0x138 (word 78);
+echo "MAGIC=$(rd 0x00) BID=$BID MARKER=$(rd 0x14) UNIMPL=$(rd 0x15c) gen=$(( (s >> 16) & 0xffff ))"
+# ⚠️ UNIMPL 地址跟窗口宽度走: **75 字 (P9 E12, 2026-10-15 起) ⇒ 0x15C** (word 87; 快照末字后接
+#     MIR 四字 ⇒ 公式 = 0x20+4*NW+16); 71 字 (M1, 2026-10-11 起) = 0x14C (word 83);
+#     70 字 (构建 F 起) = 0x138 (word 78);
 #    67 字 (构建 E) = 0x12C (word 75); 66 字 (构建 D) = 0x128 (word 74); 65 字 = 0x124 (word 73);
 #    63 字 (P7B-WU 二轮) = 0x11C (word 71);
 #    61 字 (P7B-BIZ) ⇒ 0x114; 51 字 (RATE) ⇒ 0xEC。
@@ -27,7 +28,7 @@ BID_N=$(printf '%s' "$BID" | tr 'A-F' 'a-f')
 #    现默认 = **0x17** (构建 C 65 字; 源码 `board/wrapper_p4.v` 的 `BUILD_ID_V = 32'h00000017`);
 #    读旧位流: `EXPECT_BID=0x0000000a bash final_state.sh` (Stage C 63 字) / `0x00000009` (Build 2)。
 #    判据语义不变 (仍是"读回值必须 == 期望值"), 只是期望值可注入。
-EXPECT_BID=${EXPECT_BID:-0x00000027}   # ⛔ 2026-10-15 换流门 R5 (71 字); 原 0x26 = RFC seq 修复
+EXPECT_BID=${EXPECT_BID:-0x00000028}   # ⛔ 2026-10-15 P9 E12 观测计数器 (75 字); 原 0x27 = 换流门 R5
 EXPECT_BID_N=$(printf '%s' "$EXPECT_BID" | tr 'A-F' 'a-f')
 if [ "$BID_N" != "$EXPECT_BID_N" ]; then
   echo "  [ABORT] BID=$BID != $EXPECT_BID (大小写归一后 $BID_N) ⇒ **板上不是本脚本期望的位流** (构建 C = 0x17 / 65 字); 下面 W61/W62 若为 0xffffffff 是 SLVERR(读失败) 不是数据"
@@ -42,6 +43,7 @@ echo "W63=$(rd 0x11c) W64=$(rd 0x120) W65=$(rd 0x124)  # 构建 C: app 停滞计
 echo "W66=$(rd 0x128)  # 构建 E: W66 = tcp_tx_frame.stat_winstall (帧器侧窗口门停顿拍数)"
 echo "W67=$(rd 0x12c) W68=$(rd 0x130) W69=$(rd 0x134)  # 构建 F: 板帽侧等窗拍数 / 推进 ACK 次数 / 等窗拍操作点锁存"
 echo "W70=$(rd 0x138)  # M1: app_rx_mirror.drop_bytes (载荷镜像拒收字节数)"
+echo "W71=$(rd 0x13c) W72=$(rd 0x140) W73=$(rd 0x144) W74=$(rd 0x148)  # P9 E12: 换流门四观测计数器 (up_ev / sw_req / sw_apply / up_pend)"
 echo "=== 2. 对端机 /tmp 里本轮产物清单 (取回后删) ==="
 ls -la /tmp/*.pcap /tmp/*.py /tmp/*.sh 2>/dev/null
 echo "=== 3. 网络配置复原 ==="

@@ -13,7 +13,8 @@
 # 假板子的关键 (与上一轮 selftest 的假板子**不同**): 这里的字是**真锁存语义** ——
 #   字值 = f(最后一次触发的时刻), **不是**"读的时候现算"。这正是真板的行为, 也是伪影的
 #   必要条件; 上一轮的假板子每次读都现算 ⇒ 它结构性看不见这个缺陷。
-# ⚠️ 假板子的**几何必须与现役 RTL 同代** (= **71 字 / 未实现 0x14C**; 2026-10-11 M1 镜像窗;
+# ⚠️ 假板子的**几何必须与现役 RTL 同代** (= **75 字 / 未实现 0x15C**; 2026-10-15 P9 E12 观测计数器;
+#    原句 = 71 字 / 0x14C (M1 镜像窗);
 #    原句 = 70 字 / 0x138 (构建 F);
 #    原句 = 67 字 / 0x12C (构建 E) / 66 字 / 0x128 (P7B-A7 构建 D);
 #    原句 "= 65 字 / 未实现 0x124" = 构建 C 那一代, 逐字保留在下)
@@ -75,7 +76,7 @@ LT=\$(cat "$W/latch")
 freecnt(){ awk -v t="\$1" -v f="\$2" 'BEGIN{ n=int((t-1700000000)*f)%4294967296; if(n<0) n+=4294967296; printf "0x%08x", n }'; }
 case "\$A" in
   0X00) V=0x50360001;;
-  0X04) V=\${FAKE_BID:-0x00000027};;   # 换流门 R5 = 0x27 (⛔ 原 0x26 = RFC seq 修复 / 0x25 = F-3 修复 / 0x0A = Stage C);
+  0X04) V=\${FAKE_BID:-0x00000028};;   # P9 E12 观测计数器 = 0x28 (⛔ 原 0x27 = 换流门 R5 / 0x26 = RFC seq 修复 / 0x0A = Stage C);
                                        # 必须与被验的 p6e_snap_check.sh 默认 EXPECT_BID **同代**
                                        # (否则 case ① 正对照因判据 1.2 身份不符**假红**); 可覆盖。
   0X08) V=0x00000000;;
@@ -99,7 +100,11 @@ case "\$A" in
   0X130) V=0x00000000;;                                       # W68 tcp_rx.stat_ack_adv (70 字起; 构建 F)
   0X134) V=0x00000000;;                                       # W69 tcp_tx_frame.o_win_at_winstall (70 字起; 构建 F)
   0X138) V=0x00000000;;                                       # W70 app_rx_mirror.drop_bytes (71 字起; M1)
-  0X14C) V=0xffffffff;;                                       # 未实现地址 (71 字; M1 起 = 0x20+4*SW+16)
+  0X13C) V=0x00000000;;                                       # W71 app_pattern.stat_up_ev (75 字起; P9 E12)
+  0X140) V=0x00000000;;                                       # W72 app_pattern.stat_sw_req (P9 E12)
+  0X144) V=0x00000000;;                                       # W73 app_pattern.stat_sw_apply (P9 E12)
+  0X148) V=0x00000000;;                                       # W74 app_pattern.stat_up_pend (P9 E12)
+  0X15C) V=0xffffffff;;                                       # 未实现地址 (75 字; = 0x20+4*SW+16)
   *)    V=0x00000000;;
 esac
 echo "Read 32-bit from address \$A : \$V"

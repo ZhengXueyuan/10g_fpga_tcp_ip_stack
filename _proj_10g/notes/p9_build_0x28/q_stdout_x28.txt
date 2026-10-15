@@ -1,0 +1,975 @@
+
+****** Vivado v2025.2 (64-bit)
+  **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+  **** Start of session at: Fri Oct 16 01:03:11 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source {D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_build_0x28\q_0x28.tcl}
+# set dcp [lindex $argv 0]
+# set out [lindex $argv 1]
+# file mkdir $out
+# open_checkpoint $dcp
+Command: open_checkpoint {D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_build_0x28\wrapper_p4_routed.dcp}
+
+Starting open_checkpoint Task
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.026 . Memory (MB): peak = 327.418 ; gain = 5.258
+INFO: [Device 21-403] Loading part xcku5p-ffvb676-1-e
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.789 . Memory (MB): peak = 1679.797 ; gain = 0.000
+INFO: [Netlist 29-17] Analyzing 7892 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 2 CPU seconds
+INFO: [Project 1-479] Netlist was created with Vivado 2025.2
+INFO: [Project 1-570] Preparing netlist for logic optimization
+Read ShapeDB Complete: Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.212 . Memory (MB): peak = 1897.449 ; gain = 39.551
+INFO: [Timing 38-478] Restoring timing data from binary archive.
+INFO: [Timing 38-479] Binary timing data restore complete.
+INFO: [Project 1-856] Restoring constraints from binary archive.
+INFO: [Constraints 18-5170] The checkpoint was created with non-default parameter values which do not match the current Vivado settings.  Mismatching parameters are:
+  general.maxThreads
+INFO: [Project 1-853] Binary constraint restore complete.
+INFO: [Designutils 20-5722] Start Reading Physical Databases.
+Reading placement.
+Read Netlist Cache: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.105 . Memory (MB): peak = 4139.750 ; gain = 0.000
+Reading placer database...
+Read Device Cache: Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.030 . Memory (MB): peak = 4139.750 ; gain = 0.000
+Read PlaceDB: Time (s): cpu = 00:00:03 ; elapsed = 00:00:03 . Memory (MB): peak = 4139.750 ; gain = 0.000
+Read PulsedLatchDB: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 4139.750 ; gain = 0.000
+Reading routing.
+Read RouteStorage: Time (s): cpu = 00:00:02 ; elapsed = 00:00:01 . Memory (MB): peak = 4139.750 ; gain = 0.000
+Read Physdb Files: Time (s): cpu = 00:00:06 ; elapsed = 00:00:05 . Memory (MB): peak = 4139.750 ; gain = 0.000
+Restored from archive | CPU: 6.000000 secs | Memory: 0.000000 MB |
+Finished XDEF File Restore: Time (s): cpu = 00:00:06 ; elapsed = 00:00:05 . Memory (MB): peak = 4139.750 ; gain = 0.000
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.045 . Memory (MB): peak = 4139.750 ; gain = 0.000
+INFO: [Project 1-111] Unisim Transformation Summary:
+  A total of 1407 instances were transformed.
+  DSP48E2 => DSP48E2 (DSP_ALU, DSP_A_B_DATA, DSP_C_DATA, DSP_MULTIPLIER, DSP_M_DATA, DSP_OUTPUT, DSP_PREADD, DSP_PREADD_DATA): 4 instances
+  IBUF => IBUF (IBUFCTRL, INBUF): 1 instance 
+  IBUFDS => IBUFDS (DIFFINBUF, IBUFCTRL): 1 instance 
+  RAM16X1D => RAM32X1D (RAMD32(x2)): 35 instances
+  RAM16X1S => RAM32X1S (RAMS32): 224 instances
+  RAM256X1S => RAM256X1S (MUXF7(x2), MUXF8, RAMS64E(x4)): 8 instances
+  RAM32M => RAM32M (RAMD32(x6), RAMS32(x2)): 41 instances
+  RAM32M16 => RAM32M16 (RAMD32(x14), RAMS32(x2)): 153 instances
+  RAM32X1D => RAM32X1D (RAMD32(x2)): 13 instances
+  RAM64M => RAM64M (RAMD64E(x4)): 241 instances
+  RAM64M8 => RAM64M8 (RAMD64E(x8)): 554 instances
+  RAM64X1D => RAM64X1D (RAMD64E(x2)): 132 instances
+
+INFO: [Project 1-604] Checkpoint was created with Vivado v2025.2 (64-bit) build 6299465
+WARNING: [Vivado 12-23575] Critical violations of the methodology design rules detected. Critical violations may contribute to timing failures or cause functional issues in hardware. Run report_methodology for more information.
+open_checkpoint: Time (s): cpu = 00:01:02 ; elapsed = 00:00:53 . Memory (MB): peak = 4139.750 ; gain = 3827.598
+# catch {report_timing -delay_type max -max_paths 5 -sort_by slack -file $out/global_top5.rpt}
+INFO: [Timing 38-91] UpdateTimingParams: Speed grade: -1, Temperature grade: E, Delay Type: max.
+INFO: [Timing 38-191] Multithreading enabled for timing update using a maximum of 2 CPUs
+INFO: [Timing 38-78] ReportTimingParams: -max_paths 5 -nworst 1 -delay_type max -sort_by slack.
+report_timing: Time (s): cpu = 00:00:48 ; elapsed = 00:00:26 . Memory (MB): peak = 4190.559 ; gain = 50.809
+# set gp [get_timing_paths -delay_type max -max_paths 5 -sort_by slack -quiet]
+# set i 0
+# foreach p $gp {
+#   incr i
+#   puts "G #$i slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+# }
+G #1 slack=0.065 lvl=0 sp=u_pcie_xdma/inst/pcie4_ip_i/inst/user_reset_reg/C ep=u_pcie_regs/snap_words_r_reg[2224]/CLR
+G #2 slack=0.065 lvl=0 sp=u_pcie_xdma/inst/pcie4_ip_i/inst/user_reset_reg/C ep=u_pcie_regs/snap_words_r_reg[2066]/CLR
+G #3 slack=0.065 lvl=0 sp=u_pcie_xdma/inst/pcie4_ip_i/inst/user_reset_reg/C ep=u_pcie_regs/snap_words_r_reg[2277]/CLR
+G #4 slack=0.067 lvl=0 sp=u_pcie_xdma/inst/pcie4_ip_i/inst/user_reset_reg/C ep=u_snap_p7bdp/dout_a_reg[961]/CLR
+G #5 slack=0.068 lvl=11 sp=u_tcp_tx/u_retx/g_byte[1].mem_e_reg_2_bram_8/CLKBWRCLK ep=u_tcp_tx/ring_d_r_reg[61]/D
+# puts "G_DONE n=[llength $gp]"
+G_DONE n=5
+# catch {report_timing -group g_hw.clk_out0 -delay_type max -max_paths 10 -sort_by slack -file $out/dp_top10.rpt}
+INFO: [Timing 38-78] ReportTimingParams: -max_paths 10 -nworst 1 -delay_type max -sort_by slack.
+# catch {report_timing -group g_hw.clk_out0 -delay_type max -max_paths 50 -sort_by slack -file $out/dp_top50.rpt}
+INFO: [Timing 38-78] ReportTimingParams: -max_paths 50 -nworst 1 -delay_type max -sort_by slack.
+# set dp [get_timing_paths -group g_hw.clk_out0 -delay_type max -max_paths 10 -sort_by slack -quiet]
+# set i 0
+# foreach p $dp {
+#   incr i
+#   puts "DP #$i slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+# }
+DP #1 slack=0.068 lvl=11 sp=u_tcp_tx/u_retx/g_byte[1].mem_e_reg_2_bram_8/CLKBWRCLK ep=u_tcp_tx/ring_d_r_reg[61]/D
+DP #2 slack=0.125 lvl=11 sp=u_tcp_tx/u_retx/g_byte[1].mem_e_reg_2_bram_8/CLKBWRCLK ep=u_tcp_tx/ps_stage_byte_reg[5]/D
+DP #3 slack=0.138 lvl=11 sp=u_tcp_tx/u_retx/g_byte[1].mem_e_reg_0_bram_8/CLKBWRCLK ep=u_tcp_tx/ring_d_r_reg[1]/D
+DP #4 slack=0.164 lvl=17 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]/C ep=u_tcb/snd_nxt_r_reg[10][12]/CE
+DP #5 slack=0.164 lvl=17 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]/C ep=u_tcb/snd_nxt_r_reg[10][29]/CE
+DP #6 slack=0.165 lvl=17 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]/C ep=u_tcb/snd_nxt_r_reg[10][10]/CE
+DP #7 slack=0.165 lvl=17 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]/C ep=u_tcb/snd_nxt_r_reg[10][19]/CE
+DP #8 slack=0.165 lvl=17 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]/C ep=u_tcb/snd_nxt_r_reg[10][2]/CE
+DP #9 slack=0.181 lvl=17 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]/C ep=u_tcb/snd_una_r_reg[4][11]/CE
+DP #10 slack=0.181 lvl=17 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]/C ep=u_tcb/snd_una_r_reg[4][24]/CE
+# puts "DP_DONE n=[llength $dp]"
+DP_DONE n=10
+# set dw [get_timing_paths -group g_hw.clk_out0 -delay_type max -max_paths 1 -sort_by slack -quiet]
+# if {[llength $dw] > 0} {
+#   set p [lindex $dw 0]
+#   puts "DPWNS slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+# } else { puts "DPWNS NOPATH" }
+DPWNS slack=0.068 lvl=11 sp=u_tcp_tx/u_retx/g_byte[1].mem_e_reg_2_bram_8/CLKBWRCLK ep=u_tcp_tx/ring_d_r_reg[61]/D
+# proc fam {tag pat} {
+#   set cells [get_cells -hier -quiet -filter "NAME =~ $pat"]
+#   puts "F $tag ncell=[llength $cells]"
+#   if {[llength $cells] == 0} { puts "F $tag NOCELL"; return }
+#   set pf [get_timing_paths -delay_type max -max_paths 1 -sort_by slack -quiet -from $cells]
+#   if {[llength $pf] > 0} {
+#     set p [lindex $pf 0]
+#     puts "F $tag from_worst slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+#   } else { puts "F $tag from_NOPATH" }
+#   set pt [get_timing_paths -delay_type max -max_paths 1 -sort_by slack -quiet -to $cells]
+#   if {[llength $pt] > 0} {
+#     set p [lindex $pt 0]
+#     puts "F $tag to_worst slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+#   } else { puts "F $tag to_NOPATH" }
+#   # �? �?刀核心: 每个族都圡� **DP �?**里单�?查一�? from/to (进前 10 就会�?这里抓住)
+#   set pf2 [get_timing_paths -group g_hw.clk_out0 -delay_type max -max_paths 1 -sort_by slack -quiet -from $cells]
+#   if {[llength $pf2] > 0} {
+#     set p [lindex $pf2 0]
+#     puts "F $tag dp_from slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+#   } else { puts "F $tag dp_from NOPATH" }
+#   set pt2 [get_timing_paths -group g_hw.clk_out0 -delay_type max -max_paths 1 -sort_by slack -quiet -to $cells]
+#   if {[llength $pt2] > 0} {
+#     set p [lindex $pt2 0]
+#     puts "F $tag dp_to slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+#   } else { puts "F $tag dp_to NOPATH" }
+# }
+# fam e12_up_ev    {*u_app/stat_up_ev*}
+F e12_up_ev ncell=37
+F e12_up_ev from_worst slack=5.261 lvl=0 sp=u_app/stat_up_ev_reg[29]/C ep=u_snap_p7bdp/hold_b_reg[1021]/D
+F e12_up_ev to_worst slack=2.166 lvl=1 sp=u_clkgen/rel_sr_reg[3]/C ep=u_app/stat_up_ev_reg[16]/CLR
+F e12_up_ev dp_from slack=5.261 lvl=0 sp=u_app/stat_up_ev_reg[29]/C ep=u_snap_p7bdp/hold_b_reg[1021]/D
+F e12_up_ev dp_to slack=4.098 lvl=0 sp=u_app_ctrl/o_ev_up_reg/C ep=u_app/stat_up_ev_reg[16]/CE
+# fam e12_sw_req   {*u_app/stat_sw_req*}
+F e12_sw_req ncell=37
+F e12_sw_req from_worst slack=5.250 lvl=4 sp=u_app/stat_sw_req_reg[5]/C ep=u_app/stat_sw_req_reg[31]/D
+F e12_sw_req to_worst slack=2.003 lvl=3 sp=u_app_ctrl/o_ev_up_reg/C ep=u_app/stat_sw_req_reg[0]/CE
+F e12_sw_req dp_from slack=5.250 lvl=4 sp=u_app/stat_sw_req_reg[5]/C ep=u_app/stat_sw_req_reg[31]/D
+F e12_sw_req dp_to slack=2.003 lvl=3 sp=u_app_ctrl/o_ev_up_reg/C ep=u_app/stat_sw_req_reg[0]/CE
+# fam e12_sw_apply {*u_app/stat_sw_apply*}
+F e12_sw_apply ncell=37
+F e12_sw_apply from_worst slack=5.352 lvl=3 sp=u_app/stat_sw_apply_reg[8]/C ep=u_app/stat_sw_apply_reg[31]/D
+F e12_sw_apply to_worst slack=2.158 lvl=1 sp=u_clkgen/rel_sr_reg[3]/C ep=u_app/stat_sw_apply_reg[0]/CLR
+F e12_sw_apply dp_from slack=5.352 lvl=3 sp=u_app/stat_sw_apply_reg[8]/C ep=u_app/stat_sw_apply_reg[31]/D
+F e12_sw_apply dp_to slack=3.033 lvl=1 sp=u_app_ctrl/o_ev_up_reg/C ep=u_app/stat_sw_apply_reg[4]/CE
+# fam e12_up_pend  {*u_app/stat_up_pend*}
+F e12_up_pend ncell=37
+F e12_up_pend from_worst slack=5.259 lvl=3 sp=u_app/stat_up_pend_reg[14]/C ep=u_app/stat_up_pend_reg[31]/D
+F e12_up_pend to_worst slack=2.154 lvl=1 sp=u_clkgen/rel_sr_reg[3]/C ep=u_app/stat_up_pend_reg[10]/CLR
+F e12_up_pend dp_from slack=5.259 lvl=3 sp=u_app/stat_up_pend_reg[14]/C ep=u_app/stat_up_pend_reg[31]/D
+F e12_up_pend dp_to slack=2.515 lvl=3 sp=u_app_ctrl/o_ev_up_reg/C ep=u_app/stat_up_pend_reg[4]/CE
+# fam e12_u_app    {*u_app/*}
+F e12_u_app ncell=2496
+F e12_u_app from_worst slack=1.785 lvl=11 sp=u_app/rx_lfsr_reg[3]/C ep=u_app/stat_mismatch_reg[31]/D
+F e12_u_app to_worst slack=0.246 lvl=18 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]/C ep=u_app/bcnt_reg[2]/CE
+F e12_u_app dp_from slack=1.785 lvl=11 sp=u_app/rx_lfsr_reg[3]/C ep=u_app/stat_mismatch_reg[31]/D
+F e12_u_app dp_to slack=0.246 lvl=18 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]/C ep=u_app/bcnt_reg[2]/CE
+# fam ref_tcp_tx   {*u_tcp_tx*}
+F ref_tcp_tx ncell=16143
+F ref_tcp_tx from_worst slack=0.068 lvl=11 sp=u_tcp_tx/u_retx/g_byte[1].mem_e_reg_2_bram_8/CLKBWRCLK ep=u_tcp_tx/ring_d_r_reg[61]/D
+F ref_tcp_tx to_worst slack=0.068 lvl=11 sp=u_tcp_tx/u_retx/g_byte[1].mem_e_reg_2_bram_8/CLKBWRCLK ep=u_tcp_tx/ring_d_r_reg[61]/D
+F ref_tcp_tx dp_from slack=0.068 lvl=11 sp=u_tcp_tx/u_retx/g_byte[1].mem_e_reg_2_bram_8/CLKBWRCLK ep=u_tcp_tx/ring_d_r_reg[61]/D
+F ref_tcp_tx dp_to slack=0.068 lvl=11 sp=u_tcp_tx/u_retx/g_byte[1].mem_e_reg_2_bram_8/CLKBWRCLK ep=u_tcp_tx/ring_d_r_reg[61]/D
+# fam ref_fifo_a   {*u_tcp_tx/u_fifo_a/*}
+F ref_fifo_a ncell=738
+F ref_fifo_a from_worst slack=0.164 lvl=17 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]/C ep=u_tcb/snd_nxt_r_reg[10][12]/CE
+F ref_fifo_a to_worst slack=0.702 lvl=13 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]/C ep=u_tcp_tx/u_fifo_a/mem_reg_128_191_7_13/RAMA/WE
+F ref_fifo_a dp_from slack=0.164 lvl=17 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]/C ep=u_tcb/snd_nxt_r_reg[10][12]/CE
+F ref_fifo_a dp_to slack=0.702 lvl=13 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]/C ep=u_tcp_tx/u_fifo_a/mem_reg_128_191_7_13/RAMA/WE
+# fam ref_tcp_rx   {*u_tcp_rx*}
+F ref_tcp_rx ncell=4409
+F ref_tcp_rx from_worst slack=0.409 lvl=16 sp=u_tcp_rx/retx_req_reg/C ep=u_tcb/rcv_wnd_r_reg[13][14]/CE
+F ref_tcp_rx to_worst slack=0.623 lvl=16 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]/C ep=u_tcp_rx/FSM_onehot_drn_reg[1]/CE
+F ref_tcp_rx dp_from slack=0.409 lvl=16 sp=u_tcp_rx/retx_req_reg/C ep=u_tcb/rcv_wnd_r_reg[13][14]/CE
+F ref_tcp_rx dp_to slack=0.623 lvl=16 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]/C ep=u_tcp_rx/FSM_onehot_drn_reg[1]/CE
+# fam ref_tcbcsum  {*ctrl_tcpcsum_reg*}
+F ref_tcbcsum ncell=35
+F ref_tcbcsum from_worst slack=5.025 lvl=2 sp=u_tcp_tx/ctrl_tcpcsum_reg[9]/C ep=u_tcp_tx/hold48_reg[25]/D
+F ref_tcbcsum to_worst slack=0.304 lvl=15 sp=u_tcp_tx/ctrl_seq_reg[1]/C ep=u_tcp_tx/ctrl_tcpcsum_reg[11]/D
+F ref_tcbcsum dp_from slack=5.025 lvl=2 sp=u_tcp_tx/ctrl_tcpcsum_reg[9]/C ep=u_tcp_tx/hold48_reg[25]/D
+F ref_tcbcsum dp_to slack=0.304 lvl=15 sp=u_tcp_tx/ctrl_seq_reg[1]/C ep=u_tcp_tx/ctrl_tcpcsum_reg[11]/D
+# fam ref_app_udp  {*u_app_udp*}
+F ref_app_udp ncell=2718
+F ref_app_udp from_worst slack=0.202 lvl=20 sp=u_app_udp/u_txf/dout_reg[68]/C ep=u_udp_tx/ip_csum_r_reg[1][14]/D
+F ref_app_udp to_worst slack=1.024 lvl=9 sp=u_udp_tx_cfg/peer_mac_r_reg[16]/C ep=u_app_udp/stat_tx_frames_reg[4]/CE
+F ref_app_udp dp_from slack=0.202 lvl=20 sp=u_app_udp/u_txf/dout_reg[68]/C ep=u_udp_tx/ip_csum_r_reg[1][14]/D
+F ref_app_udp dp_to slack=1.024 lvl=9 sp=u_udp_tx_cfg/peer_mac_r_reg[16]/C ep=u_app_udp/stat_tx_frames_reg[4]/CE
+# fam ref_udp_tx   {*u_udp_tx*}
+F ref_udp_tx ncell=2585
+F ref_udp_tx from_worst slack=0.402 lvl=19 sp=u_udp_tx/recv_first_reg/C ep=u_udp_tx/ip_csum_r_reg[1][14]/D
+F ref_udp_tx to_worst slack=0.202 lvl=20 sp=u_app_udp/u_txf/dout_reg[68]/C ep=u_udp_tx/ip_csum_r_reg[1][14]/D
+F ref_udp_tx dp_from slack=0.402 lvl=19 sp=u_udp_tx/recv_first_reg/C ep=u_udp_tx/ip_csum_r_reg[1][14]/D
+F ref_udp_tx dp_to slack=0.202 lvl=20 sp=u_app_udp/u_txf/dout_reg[68]/C ep=u_udp_tx/ip_csum_r_reg[1][14]/D
+# fam ref_tcb      {*u_tcb*}
+F ref_tcb ncell=5395
+F ref_tcb from_worst slack=0.938 lvl=14 sp=u_tcb/win_open_reg/C ep=u_tcb/rcv_wnd_r_reg[13][14]/CE
+F ref_tcb to_worst slack=0.164 lvl=17 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]/C ep=u_tcb/snd_nxt_r_reg[10][12]/CE
+F ref_tcb dp_from slack=0.938 lvl=14 sp=u_tcb/win_open_reg/C ep=u_tcb/rcv_wnd_r_reg[13][14]/CE
+F ref_tcb dp_to slack=0.164 lvl=17 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]/C ep=u_tcb/snd_nxt_r_reg[10][12]/CE
+# fam ref_fifo_b   {*u_fifo_b/*}
+F ref_fifo_b ncell=1643
+F ref_fifo_b from_worst slack=0.261 lvl=17 sp=u_tcp_tx/u_fifo_b/rptr_reg[2]/C ep=u_tcb/snd_nxt_r_reg[10][12]/CE
+F ref_fifo_b to_worst slack=0.393 lvl=13 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]/C ep=u_tcp_tx/u_fifo_b/mem_reg_128_191_42_48/RAMA/WE
+F ref_fifo_b dp_from slack=0.261 lvl=17 sp=u_tcp_tx/u_fifo_b/rptr_reg[2]/C ep=u_tcb/snd_nxt_r_reg[10][12]/CE
+F ref_fifo_b dp_to slack=0.393 lvl=13 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]/C ep=u_tcp_tx/u_fifo_b/mem_reg_128_191_42_48/RAMA/WE
+# fam ref_mac_rx   {*u_mac_rx*}
+F ref_mac_rx ncell=2573
+F ref_mac_rx from_worst slack=0.890 lvl=12 sp=u_mac_rx/first_lo_reg[2]/C ep=u_mac_rx/stat_crc_err_reg[12]/CE
+F ref_mac_rx to_worst slack=0.309 lvl=14 sp=u_pcs/inst/i_pcs64_top_1/i_pcs64_CORE/i_RX_TOP/i_RX_DESTRIPER/i_CLK_COMP/dataout_reg[54]/C ep=u_mac_rx/stat_crc_err_reg[12]/CE
+F ref_mac_rx dp_from NOPATH
+F ref_mac_rx dp_to NOPATH
+# fam ref_snap_p7bdp {*u_snap_p7bdp*}
+F ref_snap_p7bdp ncell=1776
+F ref_snap_p7bdp from_worst slack=1.190 lvl=1 sp=u_snap_p7bdp/done_r_reg/C ep=u_snap_p7bdp/dout_a_reg[974]/CE
+F ref_snap_p7bdp to_worst slack=0.067 lvl=0 sp=u_pcie_xdma/inst/pcie4_ip_i/inst/user_reset_reg/C ep=u_snap_p7bdp/dout_a_reg[961]/CLR
+F ref_snap_p7bdp dp_from slack=1.455 lvl=1 sp=u_snap_p7bdp/tog_sync_b_reg[2]/C ep=u_snap_p7bdp/hold_b_reg[30]/CE
+F ref_snap_p7bdp dp_to slack=1.455 lvl=1 sp=u_snap_p7bdp/tog_sync_b_reg[2]/C ep=u_snap_p7bdp/hold_b_reg[30]/CE
+# fam ref_snap_dp    {*u_snap_dp*}
+F ref_snap_dp ncell=1313
+F ref_snap_dp from_worst slack=0.281 lvl=2 sp=u_snap_dp/valid_a_reg/C ep=u_snap_seq/dout_reg[939]/CE
+F ref_snap_dp to_worst slack=0.092 lvl=0 sp=u_pcie_xdma/inst/pcie4_ip_i/inst/user_reset_reg/C ep=u_snap_dp/dout_a_reg[479]/CLR
+F ref_snap_dp dp_from slack=2.057 lvl=1 sp=u_snap_dp/tog_sync_b_reg[1]/C ep=u_snap_dp/hold_b_reg[357]/CE
+F ref_snap_dp dp_to slack=2.057 lvl=1 sp=u_snap_dp/tog_sync_b_reg[1]/C ep=u_snap_dp/hold_b_reg[357]/CE
+# foreach nfam {stat_up_ev stat_sw_req stat_sw_apply stat_up_pend app_up_ev app_sw_req app_sw_apply app_up_pend biz_w71 biz_w72 biz_w73 biz_w74 ev_up ev_same_act ev_other_act sw_apply} {
+#   set mnets [get_nets -hier -quiet -filter "NAME =~ *${nfam}*"]
+#   puts "N ${nfam}_nets=[llength $mnets]"
+#   foreach n $mnets { puts "N   net=[get_property NAME $n]" }
+#   if {[llength $mnets] > 0} {
+#     set mpins [get_pins -quiet -of_objects $mnets]
+#     puts "N ${nfam}_pins=[llength $mpins]"
+#     set k 0
+#     foreach pp $mpins { incr k; if {$k <= 8} { puts "N   pin=[get_property NAME $pp] dir=[get_property DIRECTION $pp]" } }
+#     if {[llength $mpins] > 0} {
+#       set pf [get_timing_paths -delay_type max -max_paths 1 -sort_by slack -quiet -from $mpins]
+#       if {[llength $pf] > 0} { set p [lindex $pf 0]
+#         puts "N ${nfam} from_worst slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+#       } else { puts "N ${nfam} from_NOPATH" }
+#       set pt [get_timing_paths -delay_type max -max_paths 1 -sort_by slack -quiet -to $mpins]
+#       if {[llength $pt] > 0} { set p [lindex $pt 0]
+#         puts "N ${nfam} to_worst slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+#       } else { puts "N ${nfam} to_NOPATH" }
+#       # DP 组内 from/to
+#       set pf2 [get_timing_paths -group g_hw.clk_out0 -delay_type max -max_paths 1 -sort_by slack -quiet -from $mpins]
+#       if {[llength $pf2] > 0} { set p [lindex $pf2 0]
+#         puts "N ${nfam} dp_from slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+#       } else { puts "N ${nfam} dp_from NOPATH" }
+#       set pt2 [get_timing_paths -group g_hw.clk_out0 -delay_type max -max_paths 1 -sort_by slack -quiet -to $mpins]
+#       if {[llength $pt2] > 0} { set p [lindex $pt2 0]
+#         puts "N ${nfam} dp_to slack=[get_property SLACK $p] lvl=[get_property LOGIC_LEVELS $p] sp=[get_property STARTPOINT_PIN $p] ep=[get_property ENDPOINT_PIN $p]"
+#       } else { puts "N ${nfam} dp_to NOPATH" }
+#     }
+#   }
+# }
+N stat_up_ev_nets=36
+N   net=u_app/stat_up_ev[0]_i_2_n_53
+N   net=u_app/stat_up_ev_reg[0]_i_1_n_53
+N   net=u_app/stat_up_ev_reg[0]_i_1_n_61
+N   net=u_app/stat_up_ev_reg[0]_i_1_n_62
+N   net=u_app/stat_up_ev_reg[0]_i_1_n_63
+N   net=u_app/stat_up_ev_reg[0]_i_1_n_64
+N   net=u_app/stat_up_ev_reg[0]_i_1_n_65
+N   net=u_app/stat_up_ev_reg[0]_i_1_n_66
+N   net=u_app/stat_up_ev_reg[0]_i_1_n_67
+N   net=u_app/stat_up_ev_reg[0]_i_1_n_68
+N   net=u_app/stat_up_ev_reg[16]_i_1_n_53
+N   net=u_app/stat_up_ev_reg[16]_i_1_n_61
+N   net=u_app/stat_up_ev_reg[16]_i_1_n_62
+N   net=u_app/stat_up_ev_reg[16]_i_1_n_63
+N   net=u_app/stat_up_ev_reg[16]_i_1_n_64
+N   net=u_app/stat_up_ev_reg[16]_i_1_n_65
+N   net=u_app/stat_up_ev_reg[16]_i_1_n_66
+N   net=u_app/stat_up_ev_reg[16]_i_1_n_67
+N   net=u_app/stat_up_ev_reg[16]_i_1_n_68
+N   net=u_app/stat_up_ev_reg[24]_i_1_n_61
+N   net=u_app/stat_up_ev_reg[24]_i_1_n_62
+N   net=u_app/stat_up_ev_reg[24]_i_1_n_63
+N   net=u_app/stat_up_ev_reg[24]_i_1_n_64
+N   net=u_app/stat_up_ev_reg[24]_i_1_n_65
+N   net=u_app/stat_up_ev_reg[24]_i_1_n_66
+N   net=u_app/stat_up_ev_reg[24]_i_1_n_67
+N   net=u_app/stat_up_ev_reg[24]_i_1_n_68
+N   net=u_app/stat_up_ev_reg[8]_i_1_n_53
+N   net=u_app/stat_up_ev_reg[8]_i_1_n_61
+N   net=u_app/stat_up_ev_reg[8]_i_1_n_62
+N   net=u_app/stat_up_ev_reg[8]_i_1_n_63
+N   net=u_app/stat_up_ev_reg[8]_i_1_n_64
+N   net=u_app/stat_up_ev_reg[8]_i_1_n_65
+N   net=u_app/stat_up_ev_reg[8]_i_1_n_66
+N   net=u_app/stat_up_ev_reg[8]_i_1_n_67
+N   net=u_app/stat_up_ev_reg[8]_i_1_n_68
+N stat_up_ev_pins=72
+N   pin=u_app/stat_up_ev[0]_i_2/O dir=OUT
+N   pin=u_app/stat_up_ev_reg[0]_i_1/S[0] dir=IN
+N   pin=u_app/stat_up_ev_reg[8]_i_1/CI dir=IN
+N   pin=u_app/stat_up_ev_reg[0]_i_1/CO[7] dir=OUT
+N   pin=u_app/stat_up_ev_reg[7]/D dir=IN
+N   pin=u_app/stat_up_ev_reg[0]_i_1/O[7] dir=OUT
+N   pin=u_app/stat_up_ev_reg[6]/D dir=IN
+N   pin=u_app/stat_up_ev_reg[0]_i_1/O[6] dir=OUT
+N stat_up_ev from_NOPATH
+N stat_up_ev to_worst slack=5.441 lvl=4 sp=u_app/stat_up_ev_reg[6]/C ep=u_app/stat_up_ev_reg[31]/D
+N stat_up_ev dp_from NOPATH
+N stat_up_ev dp_to slack=5.441 lvl=4 sp=u_app/stat_up_ev_reg[6]/C ep=u_app/stat_up_ev_reg[31]/D
+N stat_sw_req_nets=36
+N   net=u_app/stat_sw_req[0]_i_2_n_53
+N   net=u_app/stat_sw_req_reg[0]_i_1_n_53
+N   net=u_app/stat_sw_req_reg[0]_i_1_n_61
+N   net=u_app/stat_sw_req_reg[0]_i_1_n_62
+N   net=u_app/stat_sw_req_reg[0]_i_1_n_63
+N   net=u_app/stat_sw_req_reg[0]_i_1_n_64
+N   net=u_app/stat_sw_req_reg[0]_i_1_n_65
+N   net=u_app/stat_sw_req_reg[0]_i_1_n_66
+N   net=u_app/stat_sw_req_reg[0]_i_1_n_67
+N   net=u_app/stat_sw_req_reg[0]_i_1_n_68
+N   net=u_app/stat_sw_req_reg[16]_i_1_n_53
+N   net=u_app/stat_sw_req_reg[16]_i_1_n_61
+N   net=u_app/stat_sw_req_reg[16]_i_1_n_62
+N   net=u_app/stat_sw_req_reg[16]_i_1_n_63
+N   net=u_app/stat_sw_req_reg[16]_i_1_n_64
+N   net=u_app/stat_sw_req_reg[16]_i_1_n_65
+N   net=u_app/stat_sw_req_reg[16]_i_1_n_66
+N   net=u_app/stat_sw_req_reg[16]_i_1_n_67
+N   net=u_app/stat_sw_req_reg[16]_i_1_n_68
+N   net=u_app/stat_sw_req_reg[24]_i_1_n_61
+N   net=u_app/stat_sw_req_reg[24]_i_1_n_62
+N   net=u_app/stat_sw_req_reg[24]_i_1_n_63
+N   net=u_app/stat_sw_req_reg[24]_i_1_n_64
+N   net=u_app/stat_sw_req_reg[24]_i_1_n_65
+N   net=u_app/stat_sw_req_reg[24]_i_1_n_66
+N   net=u_app/stat_sw_req_reg[24]_i_1_n_67
+N   net=u_app/stat_sw_req_reg[24]_i_1_n_68
+N   net=u_app/stat_sw_req_reg[8]_i_1_n_53
+N   net=u_app/stat_sw_req_reg[8]_i_1_n_61
+N   net=u_app/stat_sw_req_reg[8]_i_1_n_62
+N   net=u_app/stat_sw_req_reg[8]_i_1_n_63
+N   net=u_app/stat_sw_req_reg[8]_i_1_n_64
+N   net=u_app/stat_sw_req_reg[8]_i_1_n_65
+N   net=u_app/stat_sw_req_reg[8]_i_1_n_66
+N   net=u_app/stat_sw_req_reg[8]_i_1_n_67
+N   net=u_app/stat_sw_req_reg[8]_i_1_n_68
+N stat_sw_req_pins=72
+N   pin=u_app/stat_sw_req[0]_i_2/O dir=OUT
+N   pin=u_app/stat_sw_req_reg[0]_i_1/S[0] dir=IN
+N   pin=u_app/stat_sw_req_reg[8]_i_1/CI dir=IN
+N   pin=u_app/stat_sw_req_reg[0]_i_1/CO[7] dir=OUT
+N   pin=u_app/stat_sw_req_reg[7]/D dir=IN
+N   pin=u_app/stat_sw_req_reg[0]_i_1/O[7] dir=OUT
+N   pin=u_app/stat_sw_req_reg[6]/D dir=IN
+N   pin=u_app/stat_sw_req_reg[0]_i_1/O[6] dir=OUT
+N stat_sw_req from_NOPATH
+N stat_sw_req to_worst slack=5.250 lvl=4 sp=u_app/stat_sw_req_reg[5]/C ep=u_app/stat_sw_req_reg[31]/D
+N stat_sw_req dp_from NOPATH
+N stat_sw_req dp_to slack=5.250 lvl=4 sp=u_app/stat_sw_req_reg[5]/C ep=u_app/stat_sw_req_reg[31]/D
+N stat_sw_apply_nets=36
+N   net=u_app/stat_sw_apply[0]_i_2_n_53
+N   net=u_app/stat_sw_apply_reg[0]_i_1_n_53
+N   net=u_app/stat_sw_apply_reg[0]_i_1_n_61
+N   net=u_app/stat_sw_apply_reg[0]_i_1_n_62
+N   net=u_app/stat_sw_apply_reg[0]_i_1_n_63
+N   net=u_app/stat_sw_apply_reg[0]_i_1_n_64
+N   net=u_app/stat_sw_apply_reg[0]_i_1_n_65
+N   net=u_app/stat_sw_apply_reg[0]_i_1_n_66
+N   net=u_app/stat_sw_apply_reg[0]_i_1_n_67
+N   net=u_app/stat_sw_apply_reg[0]_i_1_n_68
+N   net=u_app/stat_sw_apply_reg[16]_i_1_n_53
+N   net=u_app/stat_sw_apply_reg[16]_i_1_n_61
+N   net=u_app/stat_sw_apply_reg[16]_i_1_n_62
+N   net=u_app/stat_sw_apply_reg[16]_i_1_n_63
+N   net=u_app/stat_sw_apply_reg[16]_i_1_n_64
+N   net=u_app/stat_sw_apply_reg[16]_i_1_n_65
+N   net=u_app/stat_sw_apply_reg[16]_i_1_n_66
+N   net=u_app/stat_sw_apply_reg[16]_i_1_n_67
+N   net=u_app/stat_sw_apply_reg[16]_i_1_n_68
+N   net=u_app/stat_sw_apply_reg[24]_i_1_n_61
+N   net=u_app/stat_sw_apply_reg[24]_i_1_n_62
+N   net=u_app/stat_sw_apply_reg[24]_i_1_n_63
+N   net=u_app/stat_sw_apply_reg[24]_i_1_n_64
+N   net=u_app/stat_sw_apply_reg[24]_i_1_n_65
+N   net=u_app/stat_sw_apply_reg[24]_i_1_n_66
+N   net=u_app/stat_sw_apply_reg[24]_i_1_n_67
+N   net=u_app/stat_sw_apply_reg[24]_i_1_n_68
+N   net=u_app/stat_sw_apply_reg[8]_i_1_n_53
+N   net=u_app/stat_sw_apply_reg[8]_i_1_n_61
+N   net=u_app/stat_sw_apply_reg[8]_i_1_n_62
+N   net=u_app/stat_sw_apply_reg[8]_i_1_n_63
+N   net=u_app/stat_sw_apply_reg[8]_i_1_n_64
+N   net=u_app/stat_sw_apply_reg[8]_i_1_n_65
+N   net=u_app/stat_sw_apply_reg[8]_i_1_n_66
+N   net=u_app/stat_sw_apply_reg[8]_i_1_n_67
+N   net=u_app/stat_sw_apply_reg[8]_i_1_n_68
+N stat_sw_apply_pins=72
+N   pin=u_app/stat_sw_apply[0]_i_2/O dir=OUT
+N   pin=u_app/stat_sw_apply_reg[0]_i_1/S[0] dir=IN
+N   pin=u_app/stat_sw_apply_reg[8]_i_1/CI dir=IN
+N   pin=u_app/stat_sw_apply_reg[0]_i_1/CO[7] dir=OUT
+N   pin=u_app/stat_sw_apply_reg[7]/D dir=IN
+N   pin=u_app/stat_sw_apply_reg[0]_i_1/O[7] dir=OUT
+N   pin=u_app/stat_sw_apply_reg[6]/D dir=IN
+N   pin=u_app/stat_sw_apply_reg[0]_i_1/O[6] dir=OUT
+N stat_sw_apply from_NOPATH
+N stat_sw_apply to_worst slack=5.352 lvl=3 sp=u_app/stat_sw_apply_reg[8]/C ep=u_app/stat_sw_apply_reg[31]/D
+N stat_sw_apply dp_from NOPATH
+N stat_sw_apply dp_to slack=5.352 lvl=3 sp=u_app/stat_sw_apply_reg[8]/C ep=u_app/stat_sw_apply_reg[31]/D
+N stat_up_pend_nets=36
+N   net=u_app/stat_up_pend[0]_i_2_n_53
+N   net=u_app/stat_up_pend_reg[0]_i_1_n_53
+N   net=u_app/stat_up_pend_reg[0]_i_1_n_61
+N   net=u_app/stat_up_pend_reg[0]_i_1_n_62
+N   net=u_app/stat_up_pend_reg[0]_i_1_n_63
+N   net=u_app/stat_up_pend_reg[0]_i_1_n_64
+N   net=u_app/stat_up_pend_reg[0]_i_1_n_65
+N   net=u_app/stat_up_pend_reg[0]_i_1_n_66
+N   net=u_app/stat_up_pend_reg[0]_i_1_n_67
+N   net=u_app/stat_up_pend_reg[0]_i_1_n_68
+N   net=u_app/stat_up_pend_reg[16]_i_1_n_53
+N   net=u_app/stat_up_pend_reg[16]_i_1_n_61
+N   net=u_app/stat_up_pend_reg[16]_i_1_n_62
+N   net=u_app/stat_up_pend_reg[16]_i_1_n_63
+N   net=u_app/stat_up_pend_reg[16]_i_1_n_64
+N   net=u_app/stat_up_pend_reg[16]_i_1_n_65
+N   net=u_app/stat_up_pend_reg[16]_i_1_n_66
+N   net=u_app/stat_up_pend_reg[16]_i_1_n_67
+N   net=u_app/stat_up_pend_reg[16]_i_1_n_68
+N   net=u_app/stat_up_pend_reg[24]_i_1_n_61
+N   net=u_app/stat_up_pend_reg[24]_i_1_n_62
+N   net=u_app/stat_up_pend_reg[24]_i_1_n_63
+N   net=u_app/stat_up_pend_reg[24]_i_1_n_64
+N   net=u_app/stat_up_pend_reg[24]_i_1_n_65
+N   net=u_app/stat_up_pend_reg[24]_i_1_n_66
+N   net=u_app/stat_up_pend_reg[24]_i_1_n_67
+N   net=u_app/stat_up_pend_reg[24]_i_1_n_68
+N   net=u_app/stat_up_pend_reg[8]_i_1_n_53
+N   net=u_app/stat_up_pend_reg[8]_i_1_n_61
+N   net=u_app/stat_up_pend_reg[8]_i_1_n_62
+N   net=u_app/stat_up_pend_reg[8]_i_1_n_63
+N   net=u_app/stat_up_pend_reg[8]_i_1_n_64
+N   net=u_app/stat_up_pend_reg[8]_i_1_n_65
+N   net=u_app/stat_up_pend_reg[8]_i_1_n_66
+N   net=u_app/stat_up_pend_reg[8]_i_1_n_67
+N   net=u_app/stat_up_pend_reg[8]_i_1_n_68
+N stat_up_pend_pins=72
+N   pin=u_app/stat_up_pend[0]_i_2/O dir=OUT
+N   pin=u_app/stat_up_pend_reg[0]_i_1/S[0] dir=IN
+N   pin=u_app/stat_up_pend_reg[8]_i_1/CI dir=IN
+N   pin=u_app/stat_up_pend_reg[0]_i_1/CO[7] dir=OUT
+N   pin=u_app/stat_up_pend_reg[7]/D dir=IN
+N   pin=u_app/stat_up_pend_reg[0]_i_1/O[7] dir=OUT
+N   pin=u_app/stat_up_pend_reg[6]/D dir=IN
+N   pin=u_app/stat_up_pend_reg[0]_i_1/O[6] dir=OUT
+N stat_up_pend from_NOPATH
+N stat_up_pend to_worst slack=5.259 lvl=3 sp=u_app/stat_up_pend_reg[14]/C ep=u_app/stat_up_pend_reg[31]/D
+N stat_up_pend dp_from NOPATH
+N stat_up_pend dp_to slack=5.259 lvl=3 sp=u_app/stat_up_pend_reg[14]/C ep=u_app/stat_up_pend_reg[31]/D
+N app_up_ev_nets=0
+N app_sw_req_nets=0
+N app_sw_apply_nets=0
+N app_up_pend_nets=0
+N biz_w71_nets=32
+N   net=biz_w71[0]
+N   net=biz_w71[10]
+N   net=biz_w71[11]
+N   net=biz_w71[12]
+N   net=biz_w71[13]
+N   net=biz_w71[14]
+N   net=biz_w71[15]
+N   net=biz_w71[16]
+N   net=biz_w71[17]
+N   net=biz_w71[18]
+N   net=biz_w71[19]
+N   net=biz_w71[1]
+N   net=biz_w71[20]
+N   net=biz_w71[21]
+N   net=biz_w71[22]
+N   net=biz_w71[23]
+N   net=biz_w71[24]
+N   net=biz_w71[25]
+N   net=biz_w71[26]
+N   net=biz_w71[27]
+N   net=biz_w71[28]
+N   net=biz_w71[29]
+N   net=biz_w71[2]
+N   net=biz_w71[30]
+N   net=biz_w71[31]
+N   net=biz_w71[3]
+N   net=biz_w71[4]
+N   net=biz_w71[5]
+N   net=biz_w71[6]
+N   net=biz_w71[7]
+N   net=biz_w71[8]
+N   net=biz_w71[9]
+N biz_w71_pins=64
+N   pin=u_app/D[192] dir=OUT
+N   pin=u_snap_p7bdp/D[747] dir=IN
+N   pin=u_app/D[202] dir=OUT
+N   pin=u_snap_p7bdp/D[757] dir=IN
+N   pin=u_app/D[203] dir=OUT
+N   pin=u_snap_p7bdp/D[758] dir=IN
+N   pin=u_app/D[204] dir=OUT
+N   pin=u_snap_p7bdp/D[759] dir=IN
+N biz_w71 from_NOPATH
+N biz_w71 to_NOPATH
+N biz_w71 dp_from NOPATH
+N biz_w71 dp_to NOPATH
+N biz_w72_nets=32
+N   net=biz_w72[0]
+N   net=biz_w72[10]
+N   net=biz_w72[11]
+N   net=biz_w72[12]
+N   net=biz_w72[13]
+N   net=biz_w72[14]
+N   net=biz_w72[15]
+N   net=biz_w72[16]
+N   net=biz_w72[17]
+N   net=biz_w72[18]
+N   net=biz_w72[19]
+N   net=biz_w72[1]
+N   net=biz_w72[20]
+N   net=biz_w72[21]
+N   net=biz_w72[22]
+N   net=biz_w72[23]
+N   net=biz_w72[24]
+N   net=biz_w72[25]
+N   net=biz_w72[26]
+N   net=biz_w72[27]
+N   net=biz_w72[28]
+N   net=biz_w72[29]
+N   net=biz_w72[2]
+N   net=biz_w72[30]
+N   net=biz_w72[31]
+N   net=biz_w72[3]
+N   net=biz_w72[4]
+N   net=biz_w72[5]
+N   net=biz_w72[6]
+N   net=biz_w72[7]
+N   net=biz_w72[8]
+N   net=biz_w72[9]
+N biz_w72_pins=64
+N   pin=u_app/D[224] dir=OUT
+N   pin=u_snap_p7bdp/D[779] dir=IN
+N   pin=u_app/D[234] dir=OUT
+N   pin=u_snap_p7bdp/D[789] dir=IN
+N   pin=u_app/D[235] dir=OUT
+N   pin=u_snap_p7bdp/D[790] dir=IN
+N   pin=u_app/D[236] dir=OUT
+N   pin=u_snap_p7bdp/D[791] dir=IN
+N biz_w72 from_NOPATH
+N biz_w72 to_NOPATH
+N biz_w72 dp_from NOPATH
+N biz_w72 dp_to NOPATH
+N biz_w73_nets=32
+N   net=biz_w73[0]
+N   net=biz_w73[10]
+N   net=biz_w73[11]
+N   net=biz_w73[12]
+N   net=biz_w73[13]
+N   net=biz_w73[14]
+N   net=biz_w73[15]
+N   net=biz_w73[16]
+N   net=biz_w73[17]
+N   net=biz_w73[18]
+N   net=biz_w73[19]
+N   net=biz_w73[1]
+N   net=biz_w73[20]
+N   net=biz_w73[21]
+N   net=biz_w73[22]
+N   net=biz_w73[23]
+N   net=biz_w73[24]
+N   net=biz_w73[25]
+N   net=biz_w73[26]
+N   net=biz_w73[27]
+N   net=biz_w73[28]
+N   net=biz_w73[29]
+N   net=biz_w73[2]
+N   net=biz_w73[30]
+N   net=biz_w73[31]
+N   net=biz_w73[3]
+N   net=biz_w73[4]
+N   net=biz_w73[5]
+N   net=biz_w73[6]
+N   net=biz_w73[7]
+N   net=biz_w73[8]
+N   net=biz_w73[9]
+N biz_w73_pins=64
+N   pin=u_app/D[256] dir=OUT
+N   pin=u_snap_p7bdp/D[811] dir=IN
+N   pin=u_app/D[266] dir=OUT
+N   pin=u_snap_p7bdp/D[821] dir=IN
+N   pin=u_app/D[267] dir=OUT
+N   pin=u_snap_p7bdp/D[822] dir=IN
+N   pin=u_app/D[268] dir=OUT
+N   pin=u_snap_p7bdp/D[823] dir=IN
+N biz_w73 from_NOPATH
+N biz_w73 to_NOPATH
+N biz_w73 dp_from NOPATH
+N biz_w73 dp_to NOPATH
+N biz_w74_nets=32
+N   net=biz_w74[0]
+N   net=biz_w74[10]
+N   net=biz_w74[11]
+N   net=biz_w74[12]
+N   net=biz_w74[13]
+N   net=biz_w74[14]
+N   net=biz_w74[15]
+N   net=biz_w74[16]
+N   net=biz_w74[17]
+N   net=biz_w74[18]
+N   net=biz_w74[19]
+N   net=biz_w74[1]
+N   net=biz_w74[20]
+N   net=biz_w74[21]
+N   net=biz_w74[22]
+N   net=biz_w74[23]
+N   net=biz_w74[24]
+N   net=biz_w74[25]
+N   net=biz_w74[26]
+N   net=biz_w74[27]
+N   net=biz_w74[28]
+N   net=biz_w74[29]
+N   net=biz_w74[2]
+N   net=biz_w74[30]
+N   net=biz_w74[31]
+N   net=biz_w74[3]
+N   net=biz_w74[4]
+N   net=biz_w74[5]
+N   net=biz_w74[6]
+N   net=biz_w74[7]
+N   net=biz_w74[8]
+N   net=biz_w74[9]
+N biz_w74_pins=64
+N   pin=u_app/D[288] dir=OUT
+N   pin=u_snap_p7bdp/D[843] dir=IN
+N   pin=u_app/D[298] dir=OUT
+N   pin=u_snap_p7bdp/D[853] dir=IN
+N   pin=u_app/D[299] dir=OUT
+N   pin=u_snap_p7bdp/D[854] dir=IN
+N   pin=u_app/D[300] dir=OUT
+N   pin=u_snap_p7bdp/D[855] dir=IN
+N biz_w74 from_NOPATH
+N biz_w74 to_NOPATH
+N biz_w74 dp_from NOPATH
+N biz_w74 dp_to NOPATH
+N ev_up_nets=69
+N   net=app_ev_up
+N   net=scfg_ev_up
+N   net=u_app/o_ev_up
+N   net=u_app_ctrl/o_ev_up
+N   net=u_app_ctrl/scfg_ev_up
+N   net=u_app_ctrl/stat_ev_up[0]_i_2_n_53
+N   net=u_app_ctrl/stat_ev_up_reg[0]_i_1_n_53
+N   net=u_app_ctrl/stat_ev_up_reg[0]_i_1_n_61
+N   net=u_app_ctrl/stat_ev_up_reg[0]_i_1_n_62
+N   net=u_app_ctrl/stat_ev_up_reg[0]_i_1_n_63
+N   net=u_app_ctrl/stat_ev_up_reg[0]_i_1_n_64
+N   net=u_app_ctrl/stat_ev_up_reg[0]_i_1_n_65
+N   net=u_app_ctrl/stat_ev_up_reg[0]_i_1_n_66
+N   net=u_app_ctrl/stat_ev_up_reg[0]_i_1_n_67
+N   net=u_app_ctrl/stat_ev_up_reg[0]_i_1_n_68
+N   net=u_app_ctrl/stat_ev_up_reg[14]_0[0]
+N   net=u_app_ctrl/stat_ev_up_reg[14]_0[10]
+N   net=u_app_ctrl/stat_ev_up_reg[14]_0[11]
+N   net=u_app_ctrl/stat_ev_up_reg[14]_0[12]
+N   net=u_app_ctrl/stat_ev_up_reg[14]_0[13]
+N   net=u_app_ctrl/stat_ev_up_reg[14]_0[14]
+N   net=u_app_ctrl/stat_ev_up_reg[14]_0[15]
+N   net=u_app_ctrl/stat_ev_up_reg[14]_0[1]
+N   net=u_app_ctrl/stat_ev_up_reg[14]_0[2]
+N   net=u_app_ctrl/stat_ev_up_reg[14]_0[3]
+N   net=u_app_ctrl/stat_ev_up_reg[14]_0[4]
+N   net=u_app_ctrl/stat_ev_up_reg[14]_0[5]
+N   net=u_app_ctrl/stat_ev_up_reg[14]_0[6]
+N   net=u_app_ctrl/stat_ev_up_reg[14]_0[7]
+N   net=u_app_ctrl/stat_ev_up_reg[14]_0[8]
+N   net=u_app_ctrl/stat_ev_up_reg[14]_0[9]
+N   net=u_app_ctrl/stat_ev_up_reg[8]_i_1_n_61
+N   net=u_app_ctrl/stat_ev_up_reg[8]_i_1_n_62
+N   net=u_app_ctrl/stat_ev_up_reg[8]_i_1_n_63
+N   net=u_app_ctrl/stat_ev_up_reg[8]_i_1_n_64
+N   net=u_app_ctrl/stat_ev_up_reg[8]_i_1_n_65
+N   net=u_app_ctrl/stat_ev_up_reg[8]_i_1_n_66
+N   net=u_app_ctrl/stat_ev_up_reg[8]_i_1_n_67
+N   net=u_app_ctrl/stat_ev_up_reg[8]_i_1_n_68
+N   net=u_app_ctrl/stat_ev_up_reg_n_53_[0]
+N   net=u_app_ctrl/stat_ev_up_reg_n_53_[10]
+N   net=u_app_ctrl/stat_ev_up_reg_n_53_[11]
+N   net=u_app_ctrl/stat_ev_up_reg_n_53_[12]
+N   net=u_app_ctrl/stat_ev_up_reg_n_53_[13]
+N   net=u_app_ctrl/stat_ev_up_reg_n_53_[14]
+N   net=u_app_ctrl/stat_ev_up_reg_n_53_[15]
+N   net=u_app_ctrl/stat_ev_up_reg_n_53_[1]
+N   net=u_app_ctrl/stat_ev_up_reg_n_53_[2]
+N   net=u_app_ctrl/stat_ev_up_reg_n_53_[3]
+N   net=u_app_ctrl/stat_ev_up_reg_n_53_[4]
+N   net=u_app_ctrl/stat_ev_up_reg_n_53_[5]
+N   net=u_app_ctrl/stat_ev_up_reg_n_53_[6]
+N   net=u_app_ctrl/stat_ev_up_reg_n_53_[7]
+N   net=u_app_ctrl/stat_ev_up_reg_n_53_[8]
+N   net=u_app_ctrl/stat_ev_up_reg_n_53_[9]
+N   net=u_eco_pipe/o_ev_up
+N   net=u_eco_pipe/o_ev_up_reg
+N   net=u_eco_pipe/o_ev_up_reg_0
+N   net=u_slow_cfg/ev_up_i_1_n_53
+N   net=u_slow_cfg/ev_up_reg_0
+N   net=u_slow_cfg/ev_up_reg_1
+N   net=u_slow_cfg/ev_up_reg_2
+N   net=u_slow_cfg/ev_up_reg_3
+N   net=u_slow_cfg/ev_up_reg_4
+N   net=u_slow_cfg/ev_up_reg_5
+N   net=u_slow_cfg/ev_up_reg_6
+N   net=u_slow_cfg/ev_up_reg_7
+N   net=u_slow_cfg/ev_up_reg_8
+N   net=u_slow_cfg/scfg_ev_up
+N ev_up_pins=450
+N   pin=u_app/o_ev_up dir=IN
+N   pin=u_app_ctrl/o_ev_up dir=OUT
+N   pin=u_eco_pipe/o_ev_up dir=IN
+N   pin=u_app_ctrl/scfg_ev_up dir=IN
+N   pin=u_slow_cfg/scfg_ev_up dir=OUT
+N   pin=u_app/stat_up_ev_reg[0]/CE dir=IN
+N   pin=u_app/stat_up_ev_reg[10]/CE dir=IN
+N   pin=u_app/stat_up_ev_reg[11]/CE dir=IN
+N ev_up from_worst slack=1.041 lvl=13 sp=u_app_ctrl/o_ev_up_reg/C ep=u_app_ctrl/wu_pend_reg[6]/D
+N ev_up to_worst slack=1.403 lvl=14 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]/C ep=u_slow_cfg/ev_up_reg/D
+N ev_up dp_from slack=1.041 lvl=13 sp=u_app_ctrl/o_ev_up_reg/C ep=u_app_ctrl/wu_pend_reg[6]/D
+N ev_up dp_to slack=1.403 lvl=14 sp=u_tcp_tx/u_fifo_a/wptr_reg[6]/C ep=u_slow_cfg/ev_up_reg/D
+N ev_same_act_nets=0
+N ev_other_act_nets=0
+N sw_apply_nets=36
+N   net=u_app/stat_sw_apply[0]_i_2_n_53
+N   net=u_app/stat_sw_apply_reg[0]_i_1_n_53
+N   net=u_app/stat_sw_apply_reg[0]_i_1_n_61
+N   net=u_app/stat_sw_apply_reg[0]_i_1_n_62
+N   net=u_app/stat_sw_apply_reg[0]_i_1_n_63
+N   net=u_app/stat_sw_apply_reg[0]_i_1_n_64
+N   net=u_app/stat_sw_apply_reg[0]_i_1_n_65
+N   net=u_app/stat_sw_apply_reg[0]_i_1_n_66
+N   net=u_app/stat_sw_apply_reg[0]_i_1_n_67
+N   net=u_app/stat_sw_apply_reg[0]_i_1_n_68
+N   net=u_app/stat_sw_apply_reg[16]_i_1_n_53
+N   net=u_app/stat_sw_apply_reg[16]_i_1_n_61
+N   net=u_app/stat_sw_apply_reg[16]_i_1_n_62
+N   net=u_app/stat_sw_apply_reg[16]_i_1_n_63
+N   net=u_app/stat_sw_apply_reg[16]_i_1_n_64
+N   net=u_app/stat_sw_apply_reg[16]_i_1_n_65
+N   net=u_app/stat_sw_apply_reg[16]_i_1_n_66
+N   net=u_app/stat_sw_apply_reg[16]_i_1_n_67
+N   net=u_app/stat_sw_apply_reg[16]_i_1_n_68
+N   net=u_app/stat_sw_apply_reg[24]_i_1_n_61
+N   net=u_app/stat_sw_apply_reg[24]_i_1_n_62
+N   net=u_app/stat_sw_apply_reg[24]_i_1_n_63
+N   net=u_app/stat_sw_apply_reg[24]_i_1_n_64
+N   net=u_app/stat_sw_apply_reg[24]_i_1_n_65
+N   net=u_app/stat_sw_apply_reg[24]_i_1_n_66
+N   net=u_app/stat_sw_apply_reg[24]_i_1_n_67
+N   net=u_app/stat_sw_apply_reg[24]_i_1_n_68
+N   net=u_app/stat_sw_apply_reg[8]_i_1_n_53
+N   net=u_app/stat_sw_apply_reg[8]_i_1_n_61
+N   net=u_app/stat_sw_apply_reg[8]_i_1_n_62
+N   net=u_app/stat_sw_apply_reg[8]_i_1_n_63
+N   net=u_app/stat_sw_apply_reg[8]_i_1_n_64
+N   net=u_app/stat_sw_apply_reg[8]_i_1_n_65
+N   net=u_app/stat_sw_apply_reg[8]_i_1_n_66
+N   net=u_app/stat_sw_apply_reg[8]_i_1_n_67
+N   net=u_app/stat_sw_apply_reg[8]_i_1_n_68
+N sw_apply_pins=72
+N   pin=u_app/stat_sw_apply[0]_i_2/O dir=OUT
+N   pin=u_app/stat_sw_apply_reg[0]_i_1/S[0] dir=IN
+N   pin=u_app/stat_sw_apply_reg[8]_i_1/CI dir=IN
+N   pin=u_app/stat_sw_apply_reg[0]_i_1/CO[7] dir=OUT
+N   pin=u_app/stat_sw_apply_reg[7]/D dir=IN
+N   pin=u_app/stat_sw_apply_reg[0]_i_1/O[7] dir=OUT
+N   pin=u_app/stat_sw_apply_reg[6]/D dir=IN
+N   pin=u_app/stat_sw_apply_reg[0]_i_1/O[6] dir=OUT
+N sw_apply from_NOPATH
+N sw_apply to_worst slack=5.352 lvl=3 sp=u_app/stat_sw_apply_reg[8]/C ep=u_app/stat_sw_apply_reg[31]/D
+N sw_apply dp_from NOPATH
+N sw_apply dp_to slack=5.352 lvl=3 sp=u_app/stat_sw_apply_reg[8]/C ep=u_app/stat_sw_apply_reg[31]/D
+# foreach f {dp_top10 dp_top50 global_top5} {
+#   if {[file exists $out/${f}.rpt]} {
+#     set fh [open $out/${f}.rpt r]
+#     set txt [read $fh]
+#     close $fh
+#     foreach pat {u_app stat_} {
+#       set hits 0
+#       foreach ln [split $txt "\n"] { if {[string match "*${pat}*" $ln]} { incr hits } }
+#       puts "R ${f} pat=${pat} hits=${hits}"
+#     }
+#   } else { puts "R ${f} MISSING" }
+# }
+R dp_top10 pat=u_app hits=0
+R dp_top10 pat=stat_ hits=7
+R dp_top50 pat=u_app hits=0
+R dp_top50 pat=stat_ hits=63
+R global_top5 pat=u_app hits=0
+R global_top5 pat=stat_ hits=0
+# foreach spec {{*u_app/stat_up_ev* 40} {*u_app/stat_sw_req* 40} {*u_app/stat_sw_apply* 40} {*u_app/stat_up_pend* 40} {*u_app/ev_up* 12} {*u_app/up_pend_r* 12}} {
+#   set pat [lindex $spec 0]
+#   set lim [lindex $spec 1]
+#   set cells [get_cells -hier -quiet -filter "NAME =~ $pat"]
+#   puts "E pat=$pat ncell=[llength $cells]"
+#   set k 0
+#   foreach c $cells {
+#     incr k
+#     if {$k <= $lim} { puts "E   cell=[get_property NAME $c] ref=[get_property REF_NAME $c]" }
+#   }
+# }
+E pat=*u_app/stat_up_ev* ncell=37
+E   cell=u_app/stat_up_ev[0]_i_2 ref=LUT1
+E   cell=u_app/stat_up_ev_reg[0] ref=FDCE
+E   cell=u_app/stat_up_ev_reg[0]_i_1 ref=CARRY8
+E   cell=u_app/stat_up_ev_reg[10] ref=FDCE
+E   cell=u_app/stat_up_ev_reg[11] ref=FDCE
+E   cell=u_app/stat_up_ev_reg[12] ref=FDCE
+E   cell=u_app/stat_up_ev_reg[13] ref=FDCE
+E   cell=u_app/stat_up_ev_reg[14] ref=FDCE
+E   cell=u_app/stat_up_ev_reg[15] ref=FDCE
+E   cell=u_app/stat_up_ev_reg[16] ref=FDCE
+E   cell=u_app/stat_up_ev_reg[16]_i_1 ref=CARRY8
+E   cell=u_app/stat_up_ev_reg[17] ref=FDCE
+E   cell=u_app/stat_up_ev_reg[18] ref=FDCE
+E   cell=u_app/stat_up_ev_reg[19] ref=FDCE
+E   cell=u_app/stat_up_ev_reg[1] ref=FDCE
+E   cell=u_app/stat_up_ev_reg[20] ref=FDCE
+E   cell=u_app/stat_up_ev_reg[21] ref=FDCE
+E   cell=u_app/stat_up_ev_reg[22] ref=FDCE
+E   cell=u_app/stat_up_ev_reg[23] ref=FDCE
+E   cell=u_app/stat_up_ev_reg[24] ref=FDCE
+E   cell=u_app/stat_up_ev_reg[24]_i_1 ref=CARRY8
+E   cell=u_app/stat_up_ev_reg[25] ref=FDCE
+E   cell=u_app/stat_up_ev_reg[26] ref=FDCE
+E   cell=u_app/stat_up_ev_reg[27] ref=FDCE
+E   cell=u_app/stat_up_ev_reg[28] ref=FDCE
+E   cell=u_app/stat_up_ev_reg[29] ref=FDCE
+E   cell=u_app/stat_up_ev_reg[2] ref=FDCE
+E   cell=u_app/stat_up_ev_reg[30] ref=FDCE
+E   cell=u_app/stat_up_ev_reg[31] ref=FDCE
+E   cell=u_app/stat_up_ev_reg[3] ref=FDCE
+E   cell=u_app/stat_up_ev_reg[4] ref=FDCE
+E   cell=u_app/stat_up_ev_reg[5] ref=FDCE
+E   cell=u_app/stat_up_ev_reg[6] ref=FDCE
+E   cell=u_app/stat_up_ev_reg[7] ref=FDCE
+E   cell=u_app/stat_up_ev_reg[8] ref=FDCE
+E   cell=u_app/stat_up_ev_reg[8]_i_1 ref=CARRY8
+E   cell=u_app/stat_up_ev_reg[9] ref=FDCE
+E pat=*u_app/stat_sw_req* ncell=37
+E   cell=u_app/stat_sw_req[0]_i_2 ref=LUT1
+E   cell=u_app/stat_sw_req_reg[0] ref=FDCE
+E   cell=u_app/stat_sw_req_reg[0]_i_1 ref=CARRY8
+E   cell=u_app/stat_sw_req_reg[10] ref=FDCE
+E   cell=u_app/stat_sw_req_reg[11] ref=FDCE
+E   cell=u_app/stat_sw_req_reg[12] ref=FDCE
+E   cell=u_app/stat_sw_req_reg[13] ref=FDCE
+E   cell=u_app/stat_sw_req_reg[14] ref=FDCE
+E   cell=u_app/stat_sw_req_reg[15] ref=FDCE
+E   cell=u_app/stat_sw_req_reg[16] ref=FDCE
+E   cell=u_app/stat_sw_req_reg[16]_i_1 ref=CARRY8
+E   cell=u_app/stat_sw_req_reg[17] ref=FDCE
+E   cell=u_app/stat_sw_req_reg[18] ref=FDCE
+E   cell=u_app/stat_sw_req_reg[19] ref=FDCE
+E   cell=u_app/stat_sw_req_reg[1] ref=FDCE
+E   cell=u_app/stat_sw_req_reg[20] ref=FDCE
+E   cell=u_app/stat_sw_req_reg[21] ref=FDCE
+E   cell=u_app/stat_sw_req_reg[22] ref=FDCE
+E   cell=u_app/stat_sw_req_reg[23] ref=FDCE
+E   cell=u_app/stat_sw_req_reg[24] ref=FDCE
+E   cell=u_app/stat_sw_req_reg[24]_i_1 ref=CARRY8
+E   cell=u_app/stat_sw_req_reg[25] ref=FDCE
+E   cell=u_app/stat_sw_req_reg[26] ref=FDCE
+E   cell=u_app/stat_sw_req_reg[27] ref=FDCE
+E   cell=u_app/stat_sw_req_reg[28] ref=FDCE
+E   cell=u_app/stat_sw_req_reg[29] ref=FDCE
+E   cell=u_app/stat_sw_req_reg[2] ref=FDCE
+E   cell=u_app/stat_sw_req_reg[30] ref=FDCE
+E   cell=u_app/stat_sw_req_reg[31] ref=FDCE
+E   cell=u_app/stat_sw_req_reg[3] ref=FDCE
+E   cell=u_app/stat_sw_req_reg[4] ref=FDCE
+E   cell=u_app/stat_sw_req_reg[5] ref=FDCE
+E   cell=u_app/stat_sw_req_reg[6] ref=FDCE
+E   cell=u_app/stat_sw_req_reg[7] ref=FDCE
+E   cell=u_app/stat_sw_req_reg[8] ref=FDCE
+E   cell=u_app/stat_sw_req_reg[8]_i_1 ref=CARRY8
+E   cell=u_app/stat_sw_req_reg[9] ref=FDCE
+E pat=*u_app/stat_sw_apply* ncell=37
+E   cell=u_app/stat_sw_apply[0]_i_2 ref=LUT1
+E   cell=u_app/stat_sw_apply_reg[0] ref=FDCE
+E   cell=u_app/stat_sw_apply_reg[0]_i_1 ref=CARRY8
+E   cell=u_app/stat_sw_apply_reg[10] ref=FDCE
+E   cell=u_app/stat_sw_apply_reg[11] ref=FDCE
+E   cell=u_app/stat_sw_apply_reg[12] ref=FDCE
+E   cell=u_app/stat_sw_apply_reg[13] ref=FDCE
+E   cell=u_app/stat_sw_apply_reg[14] ref=FDCE
+E   cell=u_app/stat_sw_apply_reg[15] ref=FDCE
+E   cell=u_app/stat_sw_apply_reg[16] ref=FDCE
+E   cell=u_app/stat_sw_apply_reg[16]_i_1 ref=CARRY8
+E   cell=u_app/stat_sw_apply_reg[17] ref=FDCE
+E   cell=u_app/stat_sw_apply_reg[18] ref=FDCE
+E   cell=u_app/stat_sw_apply_reg[19] ref=FDCE
+E   cell=u_app/stat_sw_apply_reg[1] ref=FDCE
+E   cell=u_app/stat_sw_apply_reg[20] ref=FDCE
+E   cell=u_app/stat_sw_apply_reg[21] ref=FDCE
+E   cell=u_app/stat_sw_apply_reg[22] ref=FDCE
+E   cell=u_app/stat_sw_apply_reg[23] ref=FDCE
+E   cell=u_app/stat_sw_apply_reg[24] ref=FDCE
+E   cell=u_app/stat_sw_apply_reg[24]_i_1 ref=CARRY8
+E   cell=u_app/stat_sw_apply_reg[25] ref=FDCE
+E   cell=u_app/stat_sw_apply_reg[26] ref=FDCE
+E   cell=u_app/stat_sw_apply_reg[27] ref=FDCE
+E   cell=u_app/stat_sw_apply_reg[28] ref=FDCE
+E   cell=u_app/stat_sw_apply_reg[29] ref=FDCE
+E   cell=u_app/stat_sw_apply_reg[2] ref=FDCE
+E   cell=u_app/stat_sw_apply_reg[30] ref=FDCE
+E   cell=u_app/stat_sw_apply_reg[31] ref=FDCE
+E   cell=u_app/stat_sw_apply_reg[3] ref=FDCE
+E   cell=u_app/stat_sw_apply_reg[4] ref=FDCE
+E   cell=u_app/stat_sw_apply_reg[5] ref=FDCE
+E   cell=u_app/stat_sw_apply_reg[6] ref=FDCE
+E   cell=u_app/stat_sw_apply_reg[7] ref=FDCE
+E   cell=u_app/stat_sw_apply_reg[8] ref=FDCE
+E   cell=u_app/stat_sw_apply_reg[8]_i_1 ref=CARRY8
+E   cell=u_app/stat_sw_apply_reg[9] ref=FDCE
+E pat=*u_app/stat_up_pend* ncell=37
+E   cell=u_app/stat_up_pend[0]_i_2 ref=LUT1
+E   cell=u_app/stat_up_pend_reg[0] ref=FDCE
+E   cell=u_app/stat_up_pend_reg[0]_i_1 ref=CARRY8
+E   cell=u_app/stat_up_pend_reg[10] ref=FDCE
+E   cell=u_app/stat_up_pend_reg[11] ref=FDCE
+E   cell=u_app/stat_up_pend_reg[12] ref=FDCE
+E   cell=u_app/stat_up_pend_reg[13] ref=FDCE
+E   cell=u_app/stat_up_pend_reg[14] ref=FDCE
+E   cell=u_app/stat_up_pend_reg[15] ref=FDCE
+E   cell=u_app/stat_up_pend_reg[16] ref=FDCE
+E   cell=u_app/stat_up_pend_reg[16]_i_1 ref=CARRY8
+E   cell=u_app/stat_up_pend_reg[17] ref=FDCE
+E   cell=u_app/stat_up_pend_reg[18] ref=FDCE
+E   cell=u_app/stat_up_pend_reg[19] ref=FDCE
+E   cell=u_app/stat_up_pend_reg[1] ref=FDCE
+E   cell=u_app/stat_up_pend_reg[20] ref=FDCE
+E   cell=u_app/stat_up_pend_reg[21] ref=FDCE
+E   cell=u_app/stat_up_pend_reg[22] ref=FDCE
+E   cell=u_app/stat_up_pend_reg[23] ref=FDCE
+E   cell=u_app/stat_up_pend_reg[24] ref=FDCE
+E   cell=u_app/stat_up_pend_reg[24]_i_1 ref=CARRY8
+E   cell=u_app/stat_up_pend_reg[25] ref=FDCE
+E   cell=u_app/stat_up_pend_reg[26] ref=FDCE
+E   cell=u_app/stat_up_pend_reg[27] ref=FDCE
+E   cell=u_app/stat_up_pend_reg[28] ref=FDCE
+E   cell=u_app/stat_up_pend_reg[29] ref=FDCE
+E   cell=u_app/stat_up_pend_reg[2] ref=FDCE
+E   cell=u_app/stat_up_pend_reg[30] ref=FDCE
+E   cell=u_app/stat_up_pend_reg[31] ref=FDCE
+E   cell=u_app/stat_up_pend_reg[3] ref=FDCE
+E   cell=u_app/stat_up_pend_reg[4] ref=FDCE
+E   cell=u_app/stat_up_pend_reg[5] ref=FDCE
+E   cell=u_app/stat_up_pend_reg[6] ref=FDCE
+E   cell=u_app/stat_up_pend_reg[7] ref=FDCE
+E   cell=u_app/stat_up_pend_reg[8] ref=FDCE
+E   cell=u_app/stat_up_pend_reg[8]_i_1 ref=CARRY8
+E   cell=u_app/stat_up_pend_reg[9] ref=FDCE
+E pat=*u_app/ev_up* ncell=0
+E pat=*u_app/up_pend_r* ncell=5
+E   cell=u_app/up_pend_r_i_1 ref=LUT5
+E   cell=u_app/up_pend_r_i_2 ref=LUT6
+E   cell=u_app/up_pend_r_i_4 ref=LUT6
+E   cell=u_app/up_pend_r_i_5 ref=LUT6
+E   cell=u_app/up_pend_r_reg ref=FDCE
+# puts "N_DONE"
+N_DONE
+INFO: [Common 17-206] Exiting Vivado at Fri Oct 16 01:06:20 2026...

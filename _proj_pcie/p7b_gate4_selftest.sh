@@ -34,7 +34,7 @@ rm -rf "$W"; mkdir -p "$BIN"
 #   默认 63 = P7B-WU 二轮 (`board/wrapper_p4.v` 的 `SNAP_NW_P6E`); 跑 61 字旧位流: SNAP_WORDS=61。
 #   ⚠️ 上一版把 51 / 0xE8 / 0xEC **全写死在断言里** ⇒ 扩窗时"判据自己先红", 看着像
 #      "扩窗弄坏了工具"而不是"判据没跟上" (同族教训见 P7B_GATE4_CRITERIA_CLOSEOUT.md)。
-SW=${SNAP_WORDS:-71}
+SW=${SNAP_WORDS:-75}
 LAST_A=$(printf '0X%X' $(( 0x20 + 4*(SW-1) )))   # 末字地址  (65 ⇒ 0X120)
 UNIMPL_A=$(printf '0X%X' $(( 0x20 + 4*SW )))      # 未实现地址 (65 ⇒ 0X124)
 N_OK=0; N_BAD=0
@@ -55,8 +55,10 @@ VCLK=$W/vclk; echo 1000 > "$VCLK"
 GENC=$W/gen; echo 7 > "$GENC"
 
 # ⚠️ 假字表的**尾段随几何走** (W61..W65 与"未实现地址"的坑位):
+#   SW ≥ 75 (2026-10-15 P9 E12 起) ⇒ 0x13C/0x140/0x144/0x148 也是**窗口内的真字**
+#     (W71..W74 = 换流门四观测计数器), 且未实现地址 = 0x15C ⇒ `FAKE_UNIMPL` 挪到 **0x15C**;
 #   SW ≥ 71 (2026-10-11 M1 起) ⇒ 0x138 也是**窗口内的真字** (W70), 且未实现地址 = 0x14C
-#     (M1 起公式 `0x20+4*SW+16`) ⇒ `FAKE_UNIMPL` 挪到 **0x14C**;
+#     (M1 起公式 `0x20+4*SW+16`) ⇒ `FAKE_UNIMPL` 在 **0x14C**;
 #   SW ≥ 70 (构建 F) ⇒ 0x12C/0x130/0x134 是窗口内真字 ⇒ `FAKE_UNIMPL` 在 **0x138**;
 #   SW ≥ 67 (构建 E) ⇒ 0x11C/0x120/0x124/0x128 是窗口内真字 ⇒ `FAKE_UNIMPL` 在 **0x12C**;
 #   SW ≥ 66 (P7B-A7 构建 D) ⇒ `FAKE_UNIMPL` 在 **0x128**;
@@ -68,6 +70,23 @@ GENC=$W/gen; echo 7 > "$GENC"
 #   ⚠️⚠️ **变量内容不参与 heredoc 的转义处理** (实测): 这里**不能**写 `\${...}` —— 那个反斜杠
 #      会原样落进生成的脚本, 假 reg_rw 把字面串当值打印出来 ⇒ 判据 6.1 读到空串报假 FAIL
 #      (看着像"板子不对", 实际是夹具自己坏了)。直接写 `${...}` 即可。
+if [ "$SW" -ge 75 ]; then
+  FAKE_TAIL='  0X114) V=1234;;  # W61 app_ctrl.stat_wu (次数; 非 0 才像真板)
+  0X118) V=0;;     # W62 app_ctrl.rx_occ_bytes (17 位 ⇒ 高位恒 0)
+  0X11C) V=0;;     # W63 app_pattern.stat_frmwait_cyc (停滞拍数; 0 = 无停顿)
+  0X120) V=0;;     # W64 app_pattern.stat_bp_cyc (背压拍数)
+  0X124) V=0;;     # W65 mac_tx_10g.stat_tx_idle (S_IDLE 拍数; 0 = 空载, 建 D 新增)
+  0X128) V=0;;     # W66 tcp_tx_frame.stat_winstall (窗口门停顿拍数, 建 E 新增)
+  0X12C) V=0;;     # W67 tcp_tx_frame.stat_winstall_cap (板帽侧等窗拍数, 建 F 新增)
+  0X130) V=0;;     # W68 tcp_rx.stat_ack_adv (推进 snd_una 的 ACK 次数, 建 F 新增)
+  0X134) V=0;;     # W69 tcp_tx_frame.o_win_at_winstall (等窗拍操作点锁存, 建 F 新增)
+  0X138) V=0;;     # W70 app_rx_mirror.drop_bytes (载荷镜像拒收字节数, M1 新增; 真字)
+  0X13C) V=0;;     # W71 app_pattern.stat_up_ev (换流门观测; P9 E12)
+  0X140) V=0;;     # W72 app_pattern.stat_sw_req (P9 E12)
+  0X144) V=0;;     # W73 app_pattern.stat_sw_apply (P9 E12)
+  0X148) V=0;;     # W74 app_pattern.stat_up_pend (P9 E12)
+  0X15C) V=${FAKE_UNIMPL:-0xffffffff};;   # 未实现地址 (75 字; = 0x20+4*SW+16)'
+elif [ "$SW" -ge 71 ]; then
 if [ "$SW" -ge 71 ]; then
   FAKE_TAIL='  0X114) V=1234;;  # W61 app_ctrl.stat_wu (次数; 非 0 才像真板)
   0X118) V=0;;     # W62 app_ctrl.rx_occ_bytes (17 位 ⇒ 高位恒 0)
@@ -142,12 +161,12 @@ V=0xffffffff
 case "\$A" in
   0X00) V=0x50360001;;
   # ⚠️ 假板子的 BID 必须与 p6e_snap_check.sh 的 EXPECT_BID **同代** (否则正例的判据 1.2 假 FAIL,
-  #    而"正例必须 0 FAIL"是本脚本的断言⑤)。现役 = **0x27** (换流门 R5 71 字 —— ⛔ 2026-10-15 同步轮: 原 0x26 = RFC seq 修复 /
-  #    0x25 = F-3 修复 / 0x24 = P9 URAM 板内缓冲 / 原句 = 现役 17 (构建 C 65 字) / 10 (P7b Stage C)); 跑旧口径时
-  #    FAKE_BID=0x00000026 (RFC seq 修复; SNAP_WORDS=71) / 0x00000025 (F-3 修复; 71) / 0x00000017 / 0x00000008。
+  #    而"正例必须 0 FAIL"是本脚本的断言⑤)。现役 = **0x28** (P9 E12 观测计数器 75 字 —— ⛔ 2026-10-15 同步轮: 原 0x27 = 换流门 R5 /
+  #    0x26 = RFC seq 修复 / 0x25 = F-3 修复 / 原句 = 现役 17 (构建 C 65 字) / 10 (P7b Stage C)); 跑旧口径时
+  #    FAKE_BID=0x00000027 (换流门 R5; SNAP_WORDS=71) / 0x00000026 (RFC seq 修复; 71) / 0x00000017 / 0x00000008。
   #    ⚠️ 注释里**不许出现反引号/$( )** —— 这是**无引号 heredoc**, 它们会被当场求值
   #       (实测: 反引号里的 EXPECT_BID 被当命令执行, 报 "command not found")。
-  0X04) V=\${FAKE_BID:-0x00000027};;
+  0X04) V=\${FAKE_BID:-0x00000028};;
   0X08) V=0x00000000;;
   0X0C) V=\$(awk -v t="\$T" 'BEGIN{printf "0x%08x", int(t*250000000)%4294967296}');;
   0X10) V=0x00000018;;

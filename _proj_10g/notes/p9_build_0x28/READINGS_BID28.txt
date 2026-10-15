@@ -1,0 +1,47 @@
+# 构建 0x28 收口读数 (2026-10-16 01:08:04)
+BAT_RC = 0 (后台任务 br2sdq9sl exit 0)
+ARCHIVE_SHA256_OK
+ARCHIVE_DONE 20261016_001456 files=19 dir=D:\repo\XCKU5PMini\udp_hls_10g\board\..\_proj_10g\notes\p7b_build_archive\20261016_001456
+BUILD_EXIT=0
+P7B_CONVERGED_AT_ROUND = 2
+P7B_IS_LOCKED_POSTGEN = 0
+P7B_WNS = 0.065
+P7B_WHS = 0.010
+P7B_WPWS = 0.010 0.010 0.010 0.011 0.012 0.012 0.014 0.018 0.019 0.049 0.050 0.051 0.052 0.065 0.066 0.068 0.100 0.119 0.154 0.156 0.281 0.309 0.668 2.317 3.164 4.408 4.845 6.428 6.792 6.853 6.932 6.949 8.013 998.978
+P7B_BIT_EXISTS = 1
+--- 归档 --
+5c17b14f0656cf6680b7d16f7f1659faa4ca9225cf0cb0461765be7a91943385 *_proj_10g/notes/p7b_build_archive/20261016_001456/wrapper_p4.bit
+--- 位流 --
+79c9cf434eb66723b97f654cbece9ea061632e2297c0a8ab0ea0dc198c43bec8  wrapper_p4.bit
+size = 15431261
+SW_CRC=5a5cd561 (从 .bit 头逐字读)
+--- 三类失败端点 (routed) --
+--- DRC --
+             Checks found: 69
+--- route --
+       # of nets with routing errors.......... :           0 :
+--- XDMA --
+P7B_XDMA_RC_BASE = 0 ; MSG = <>
+P7B_XDMA_RC_INTF = 0 ; MSG = <AXI_Stream>
+P7B_XDMA_RB_MISMATCH_N = 0
+P7B_XDMA_GEN_BAD_N = 0
+P7B_XDMA_CFGDIFF_ST_N = 1 ; {CONFIG.Component_Name}
+P7B_XDMA_CFGDIFF_MM_N = 2 ; {CONFIG.Component_Name CONFIG.xdma_axi_intf_mm}
+P7B_XDMA_VERDICT = OK (AXI_Stream / 回�?? 13/13 / 生成参数 6/6 / 参照 diff �?�?预期�?)
+--- 资源 (placed / synth) --
+| CLB LUTs                   | 77631 |     0 |          0 |    216960 | 35.78 |
+| CLB Registers              | 75086 |     0 |          0 |    433920 | 17.30 |
+| CLB Registers                              | 75086 |     0 |          0 |    433920 | 17.30 |
+| Block RAM Tile    |  348 |     0 |          0 |       480 | 72.50 |
+| CLB LUTs*                  | 62180 |     0 |          0 |    216960 | 28.66 |
+| CLB Registers              | 53628 |     0 |          0 |    433920 | 12.36 |
+| Block RAM Tile    |  312 |     0 |          0 |       480 | 65.00 |
+| URAM              |    1 |     0 |          0 |        64 |  1.56 |
+--- 构建窗口源集 --
+MODE=build FILES=287
+0
+--- 矩阵 --
+VERDICT: FROZEN -- all 272 hashed files byte-identical across the run; this log is bound to revision DIGEST_ALL(content)=af08f8eef8866a510152d5f1205bae6c62a7a49ccc3e8e15a30bb6a97838eb34
+gates run   : 19 / 19
+gates failed: 0
+TIMING_SUMMARY: 0.065        0.000                      0               261189        0.010        0.000                      0               261189        0.000        0.000                       0                 84774

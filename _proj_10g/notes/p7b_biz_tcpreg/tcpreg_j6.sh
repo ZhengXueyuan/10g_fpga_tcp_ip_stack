@@ -35,7 +35,7 @@
 #        **结构性不读** `W61 app_ctrl.stat_wu` / `W62 app_ctrl.rx_occ_bytes`, ΔW61/ΔW62 只剩
 #        run 前后的两个 full 点 (与传输窗错开) ⇒ "机理落不到传输窗上" (审查 F3 §10.2)。
 #        现在 63 字档的字表 = `5 53 54 61 62`; 61 字旧档 (W61/W62 不存在) 自动退回 `5 53 54`。
-#     ⑦ **几何门 (硬断言)**: ① `NW=${NW:-71}` (M1 镜像窗; 更早构建 F=70 / E=67 / P7B-A7=66 / P7B-GAP9-TX=65 / 原 63) 且 **export** (原先那个 `NW=${NW:-61}` **没 export**,
+#     ⑦ **几何门 (硬断言)**: ① `NW=${NW:-75}` (P9 E12 观测计数器; 更早 M1 镜像窗=71 / 构建 F=70 / E=67 / P7B-A7=66 / 原 63) 且 **export** (原先那个 `NW=${NW:-61}` **没 export**,
 #        只用于打印标签, 取数器仍用自己默认值 ⇒ "文档里的覆盖办法"在本脚本里**是失效的**,
 #        且默认分叉后会**记录错几何而不报错**); ② 开场核 (NW, 板侧 BID) 这一对, 不符 ⇒ exit 3;
 #        ③ 再跑一次 `p7b_snap.sh id` (它自己断言 MAGIC/BID/未实现地址必须 0xffffffff)。
@@ -66,14 +66,15 @@ cd /tmp/p7b_biz || exit 9
 #      加档 ≠ 放闸: 65 字档**不接受** BID 9, 63 字档**不接受** BID 0x17 (配错对 ⇒ 读数不可归因)。
 #   ⛔ 2026-10-10 (构建 C 门同步轮): 本轮之前门里只列了 61/8 与 63/9 两档, 而 `NW` 默认早已随
 #      构建抬到 65 ⇒ **默认跑必然 J6_GEOM_FAIL + exit 3** (新位流测不了)。现在档表是唯一来源。
-NW=${NW:-71}
-EXPECT_BID=${EXPECT_BID:-0x00000027}   # 2026-10-15 换流门 R5 (71 字; 原 0x00000026 = RFC seq 修复 / 0x25 = F-3 修复 / 0x24 = P9 URAM 板内缓冲)
+NW=${NW:-75}
+EXPECT_BID=${EXPECT_BID:-0x00000028}   # 2026-10-15 P9 E12 观测计数器 (75 字; 原 0x00000027 = 换流门 R5 / 0x26 = RFC seq 修复 / 0x25 = F-3 修复)
 export NW EXPECT_BID        # ⚠️ 必须 export: 取数器 p7b_snap.sh 读的是**它自己的环境**
 # 十六进制**大小写归一** (只用于比较, 打印仍用原样; 判据语义零改动 —— 先例 = p7b_snap.sh 的
 #   Stage C 订正 / j6_r6fix.sh 的 geom_gate 块: `reg_rw` 打小写而期望值写大写时字符串比较必假红)
 norm(){ printf "%s" "$1" | tr "A-F" "a-f"; }
 # 档表格式: "NW|BID|WEXTRA|说明"  (WEXTRA 空 = t0/t1 字表退回 5 20 43 53 54)
 GEOM_TIERS=(
+  "75|0x00000028|61 62|P9 E12 观测计数器 (2026-10-15) 75 字 / BID 0x28 (E12 四观测计数器: `rtl/app_pattern.v` 的 `stat_up_ev`/`stat_sw_req`/`stat_sw_apply`/`stat_up_pend` 接快照 W71..W74; **几何变**: 71 → 75 字, 未实现地址 0x14C → 0x15C)"
   "71|0x00000027|61 62|换流门 R5 (2026-10-15) 71 字 / BID 0x27 (换流门 R5 修复: `rtl/app_pattern.v` 裁决 A = `:1012` E13 守卫改形 `!(SWC_OK && (closing || !active))` + 裁决 B = `:516` `close_send` 追加 `!(SWC_OK && frm_wait)`; 几何/未实现地址 0x14C 不变)"
   "71|0x00000026|61 62|RFC seq 修复 (2026-10-15) 71 字 / BID 0x26 (RFC seq 修复: `rtl/tcp_rx.v` 的 `seq_lt = seq_diff[31]` 真差口径 (RFC 793 SEQ_LT); 几何/未实现地址 0x14C 不变)"
   "71|0x00000025|61 62|F-3 修复 (2026-10-15) 71 字 / BID 0x25 (F-3: `rtl/vlan_strip.v` RESYNC_EN 重同步门 + `board/wrapper_p4.v` `VLAN_STRIP_RESYNC` 双域开/单域关; 几何/未实现地址 0x14C 不变)"

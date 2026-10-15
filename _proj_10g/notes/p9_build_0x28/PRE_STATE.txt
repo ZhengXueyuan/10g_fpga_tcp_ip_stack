@@ -1,0 +1,11 @@
+# 0x28 构建轮 前置状态 (2026-10-15 23:35:24)
+## HEAD = 4b22d1a 台账 §10-78/§10-79（sim 补测收口 01ec560：A+ 臂 param_bad 首次正控 + N2 I5′ 未证伪；RV2 收口 3d07eb9：B1/B3 未破、F1 抓获 B2 归因错⇒ERRATA+撤回；0x28 构建轮已启）
+## tracked 改动 = 0 件
+## 被验源 sha256:
+c932c3ab304a321344ab4b8061cd759f1ea3a29000037e6ea1e28f73c8023582 *rtl/app_pattern.v
+bbf6e3cb953f9c8ce071be26f601d017ab84e764ab00b3a8f50047a63525ae47 *board/wrapper_p4.v
+## BID 现读:
+4377:        .BUILD_ID_V (32'h00000027),     // ⚠️ 每次改动自增 (前置闸读这一项认位流; 换流门 R5 = 0x27)
+## SNAP_NW 现读:
+3296:    localparam SNAP_NW_P6E = 75;        // 总字数 W0..W74 (未实现地址 = 0x15C = word 87)
+3317:    localparam SNAP_P7BDP_NW = 35;      // W39/W40, W45..W50 + W51..W60 (BIZ) + W61/W62 (WU)

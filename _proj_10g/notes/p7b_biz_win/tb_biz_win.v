@@ -26,7 +26,7 @@ module tb_biz_win;
     // ⭐ M1 (2026-10-11): 70 -> 71 (= wrapper 的 SNAP_NW_P6E; 新末字 W70 = app_rx_mirror.drop_bytes)。
     //   ⚠️ 本 TB 的 NW 必须**跟住 wrapper 的地图** —— 它是『地址 <-> 字』这一半的单元门
     //   (另一半 = check_window.py 的装配静态核对)。
-    localparam integer NW = 71;  // = wrapper 的 SNAP_NW_P6E (M1; 原 70 = 构建 F / 61/63/65/66/67)
+    localparam integer NW = 75;  // = wrapper 的 SNAP_NW_P6E (P9 E12; 原 71 = M1 / 70 = 构建 F / 61/63/65/66/67)
 
     reg clk = 0, rst_n = 0;
     always #5 clk = ~clk;
