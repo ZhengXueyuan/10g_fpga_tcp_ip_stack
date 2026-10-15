@@ -28,28 +28,30 @@
 | [P6B_REVIEW.md](../agent_docs/P6B_REVIEW.md) | 1G 验收的对抗审查 |
 | [P6B_INTEGRATION_REVIEW.md](../agent_docs/P6B_INTEGRATION_REVIEW.md) | 集成评审与"空门"核实 |
 | [P6B_COMMIT_PLAN.md](../agent_docs/P6B_COMMIT_PLAN.md) | 1G 轮的提交计划（历史） |
-| [P6E_OBS.md](../agent_docs/P6E_OBS.md) | 36 字观测窗表（**历史口径**，现役 71 字以 `P7B_BIZ_WINDOW.md` §1 为准） |
+| [P6E_OBS.md](../agent_docs/P6E_OBS.md) | 36 字观测窗表（**历史口径**；现役 **75 字**，权威源 = `board/wrapper_p4.v` 装配段 / `p9_impl_e12_20261015/REPORT.md`） |
 | [P7A_SPEC.md](../agent_docs/P7A_SPEC.md) | 10G 物理层施工规格（阶段关卡 0） |
 | [P7A_RESULT.md](../agent_docs/P7A_RESULT.md) | 10G 物理层板级验收原件（BER 4.997e-13） |
 | [P7A_COMMIT_PLAN.md](../agent_docs/P7A_COMMIT_PLAN.md) | P7a 提交计划（历史） |
 | [P7B_SPEC.md](../agent_docs/P7B_SPEC.md) | 10G 数据面施工规格（阶段关卡顺序 / 66 条正判据 + 9 条负对照） |
-| [PORT_NOTES.md](../agent_docs/PORT_NOTES.md) | 全仓施工流水账与教训（2026-08 起逐日分节；5177 行） |
+| [PORT_NOTES.md](../agent_docs/PORT_NOTES.md) | 全仓施工流水账与教训（2026-08 起逐日分节；6547 行） |
 | [ISSUE_RX_BYTE_CORRUPTION.md](../agent_docs/ISSUE_RX_BYTE_CORRUPTION.md) | 专题：1G 时代 UDP 接收方向线速字节损坏（机制未证实，历史遗留） |
 
 ## 事实源（_proj_10g/notes/，只读层）
 
 | 想找什么 | 去哪 |
 |---|---|
-| **权威台账 / 最新续接点** | `_proj_10g/notes/P7B_TL_LEDGER_20261010.md`（§10-27 最新） |
-| 未解决项总表 | `_proj_10g/notes/P7B_OPEN_ITEMS.md`（§0 一张表） |
-| 观测窗现役表（71 字） | `_proj_10g/notes/P7B_BIZ_WINDOW.md` §1 |
-| 下一轮开工入口（对端/板卡环境） | `_proj_10g/notes/P7B_LOOP_HANDOFF.md`（§6 含 2026-10-12 恢复清单） |
+| **权威台账 / 最新续接点** | `_proj_10g/notes/P7B_TL_LEDGER_20261010.md`（§10-86 最新；时点 2026-10-16） |
+| 未解决项总表 | `_proj_10g/notes/P7B_OPEN_ITEMS.md`（§0 一张表；2026-10-16 已刷新到终态，§0-42…§0-53 为新开项） |
+| 观测窗现役表（**75 字**，W0..W74） | 权威源 = `board/wrapper_p4.v` 装配段 / `p9_impl_e12_20261015/REPORT.md`（`P7B_BIZ_WINDOW.md` §1 止于 70 字档，读历史用） |
+| 下一轮开工入口（对端/板卡环境） | `_proj_10g/notes/P7B_LOOP_HANDOFF.md` §6（恢复清单，最新自含块 = 2026-10-13）；板级现场交接见 `p9_board_0x28_k0_20261016/REPORT.md` |
 | 里程碑落库件（措辞权威） | `P7B_STAGE{A,B,C}_MILESTONE.md` · `P7B_WU_MILESTONE.md` |
 | 独立验收原件 | `P7B_BOARD_STAGEA_ACCEPT.md` · `P7B_BOARD_STAGEB_ACCEPT.md` · `P7B_WU_ACCEPT.md` · `P7B_GATE4_ACCEPT3.md` · `P7B_LONGSEND_ACCEPT.md` |
 | 资源研究 | `P7B_BRAM_REPORT.md` · `P7B_BRAM_INVENTORY.md` · `P7B_BRAM_URAM_FEASIBILITY.md` · `P7B_BRAM_TIMING_LATENCY.md` |
 | 时延实测 | `P7B_LATENCY.md` |
-| 板级原件目录（按轮次） | `p7b_*board*` / `p8_*` / `p9_*` 各目录（`REPORT.md` + `runs/`） |
-| 构建读数（按位流版本） | `p7b_build*/READINGS.txt` · `p7b_build_0x1C…0x1F/REPORT.md` · `p8_build_0x20/0x21/` · `p9_build_0x22/0x23/` |
+| 板级原件目录（按轮次） | `p7b_*board*` / `p8_*` / `p9_board_*` 各目录（`REPORT.md` + `runs/`） |
+| 构建读数（按位流版本） | `p7b_build*/READINGS.txt` · `p7b_build_0x1C…0x1F/REPORT.md` · `p8_build_0x20/0x21/` · `p9_build_0x22/…/0x28/` |
+| 四条真实缺陷（F-3 / RFC 序号 / 换流时序 / MDIO）的设计与实施件 | `p9_fix_{f3,rfcseq,upok,mdio}_design_20261014/`（设计链）· `p9_impl_{f3,rfc,upok,e12}_20261015/` · `p9_fix_mdio_impl_20261015/`（实施） |
+| 独立审查件（自对抗审查模式，2026-10-15 起） | `p9_review_*/FINDINGS.md`（折叠-4 / 板级三轮 / 0x28 构建 / B4 板级 / MDIO A+ 五份） |
 
 ## 使用建议
 
