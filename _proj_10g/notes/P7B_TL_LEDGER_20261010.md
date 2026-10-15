@@ -1328,3 +1328,10 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - **未观测 9 条（照录要点）**：b18(eth_rstn)/force_rst 通路未动态激励 · MDC 762.9 Hz 未直测 · P2 精确值未达 · VIO 网段无覆盖（R-a）· 生产臂新两位"出现且恒 0"（R-b）· P3"丢瞬间 busy=1"无逐拍见证 · param_bad 未被优化掉无网表级点名 · sim 与板级非同一份证据 · **E8 修正未过审查**。
 - **TL 抽核**：轮目录 72 件 `sha256sum -c` OK · PW 零泄漏 · E8 fixed 行 + 活件 runme.log `-generic` 亲读命中 · P1/P3 raw 行逐字 · 收尾身份门亲读。
 - **下一棒**：**mdio 轮自审（已派；重点攻击 E8 一行修正 + 位映射链 + "生产位级惰性"论证）** → 之后 = **OPEN_ITEMS 收尾文档轮**（最后一格，含 §10-53→§10-84 全部战果与新开项）。
+
+## §10-85 2026-10-16 04:0x：**mdio 自审收口（提交 `063f863`）—— 主结论零证伪（E8 根因多条独立路径/位级惰性更强形式/位映射三方闭合）；A-1 幽灵引用已就地补档；收尾文档轮已派**
+- **审查总貌**：**无一条主结论被证伪**；核心读数全部独立复算一致（双构建 sha/R9 · `cmp -l` 位级惰性 + ⭐**更强形式**：prod vs B3 的 `timing/drc/route/util` 报告**逐字节全同仅 Date 行差** · E8 根因**三条独立路径**（安装脚本 grep 0 命中 ARGS.GENERIC / `gen_run.xml MoreOptsStr` / `runme.log Parameter DIV bound to: 65537`）· 位映射**三方闭合**（RTL 打包 + sim 变异件 + 跨构建对照）· 板级三臂三烧逐字 · 纪律面全清 · 归档自核 70/70）。
+- **A-1（中低，已补档）**：E8 根因链"**幽灵引用**" —— `APPLY_LOG.txt:52-53`/`REPORT.txt:179` 援引的 `query_*.stdout.txt` **全盘不存在**（TL 亲证：find 只两个 .tcl；§10 复算命令 rc=1 无牙）⇒ **补档已执行 = `p9_mdio_aplus_board_20261016/build_divbad/E8_ROOTCAUSE_EVIDENCE.txt`**（活树 `runme.log:16/:28/:36` + `gen_run.xml:56` + 生产 0 命中；安装树路径采信审查）⇒ 审计缺口闭合。
+- **A-2..A-10（低/微）**逐条入 `p9_mdio_aplus_board_20261016/REPORT.md` 的 **TL ERRATA E-1..E-10**（时序标签错 · bat 退出码断言降未证 · BIT_MTIME 两口径 · 件数 73/61/72 三口径 · P2/P3 边沿归属不可钉死〔补提 DIAG D 段:169 最干净见证 + 脚本清尾建议〕· ≥37 ms 下界 · run1 错序行补注 · "一行"diff=6+/1− · 帧长升级 `tdone−t1 = 84/86/82 ms`）。
+- **入库**：`063f863`（3 件 = FINDINGS 代落盘 + REPORT.md ERRATA + E8 补档件）；remote=local 已核。
+- **下一棒（已派）= OPEN_ITEMS 收尾文档轮**（四项 = ① OPEN_ITEMS 刷新至 §10-85 + **`:68/:417` 直改**（F-3 修法真值 = `vlan_strip` RESYNC_EN，二手概括"事件脉冲清"订正）② v3 链 SUPERSEDED 头（施工唯一依据 = v3r3）③ v3r4 errata E-1..E-5 落 v3r3 附录 ④ F-3 N-5 评估件）。其收口后 = 本轮战役全部格子闭合 + 记忆档更新。
