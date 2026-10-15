@@ -1,0 +1,14 @@
+SNAP_BEGIN P27F_pre gen=1
+W1   0x24   rx_stat_bytes          0x000000e4
+W5   0x34   gmii_free_FE           0x9b6cab5b
+W20  0x70   mac_tx_frames          0x00000000
+W22  0x78   rx_stat_pass_TCP       0x00000000
+W23  0x7C   rx_stat_nonmatch_TCP   0x00000000
+W51  0xEC   app_tx_bytes           0x00000000
+W52  0xF0   app_tx_frames          0x00000000
+W53  0xF4   app_rx_bytes           0x00000000
+W54  0xF8   app_mismatch           0x00000000
+W55  0xFC   tx_stat_retx           0x00000000
+W68  0x130  rx_stat_ack_adv        0x00000000
+W70  0x138  mir_drop_bytes         0x00000000
+SNAP_END P27F_pre nff=0

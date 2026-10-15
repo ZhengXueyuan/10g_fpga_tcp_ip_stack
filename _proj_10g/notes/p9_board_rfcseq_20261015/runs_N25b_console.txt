@@ -1,0 +1,121 @@
+/tmp/rfcseq_tools/rfcseq_arm.sh: line 106: 84029 Killed                  nohup $BIN/p7b_tcp_src --host $BOARD --port 8080 --seconds 300 > $ROUND/src_$ATT.txt 2>&1
+### RFCSEQ_ARM_BEGIN tag=N25b expect_bid=0x00000025 1792040405.946437162 Thu Oct 15 01:00:05 PM CST 2026
+--- 前置: 身份闸 + 通道 ---
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x00000025   (want 0x00000025 = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1792040405.962614687
+ID_RC=0
+BID_0x04=Read 32-bit value at address 0x4 (0x730b64569004): 0x00000025
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x7941ab971008): 0x00000000
+CARRIER=1
+
+NETADDR=inet 192.168.100.100/32
+ROUTE_GET=192.168.100.2 dev enp1s0f1np1 src 192.168.100.100 uid 0 
+NEIGH=NO_STALE_PROCS
+### SNAP_MD5 32b97715c75eaa9163d2736432aef397  SRC_MD5 79be2a09024206b7c678dc13a3b9051d
+### INJ_MD5 c5644be727dd3b91f8d05fa629c11fcd
+### TCPDUMP tcpdump version 4.99.4
+--- 对端内核计数 (跑前) ---
+TcpInSegs                       20418174           0.0
+TcpOutSegs                      11182744           0.0
+TcpRetransSegs                  594                0.0
+TcpExtTCPFastRetrans            48                 0.0
+TcpExtTCPOFOQueue               2900               0.0
+TcpExtTCPACKSkippedSeq          2252               0.0
+TcpExtTCPACKSkippedChallenge    17                 0.0
+--- 快照 S_pre ---
+SNAP_BEGIN N25b_pre gen=1
+W1   0x24   rx_stat_bytes          0x000000e4
+W5   0x34   gmii_free_FE           0x9c649a41
+W20  0x70   mac_tx_frames          0x00000000
+W22  0x78   rx_stat_pass_TCP       0x00000000
+W23  0x7C   rx_stat_nonmatch_TCP   0x00000000
+W51  0xEC   app_tx_bytes           0x00000000
+W52  0xF0   app_tx_frames          0x00000000
+W53  0xF4   app_rx_bytes           0x00000000
+W54  0xF8   app_mismatch           0x00000000
+W55  0xFC   tx_stat_retx           0x00000000
+W68  0x130  rx_stat_ack_adv        0x00000000
+W70  0x138  mir_drop_bytes         0x00000000
+SNAP_END N25b_pre nff=0
+=== ATTEMPT 1 1792040406.044602479 ===
+TCPDUMP_ARMED syn_1.err (~0s)
+SRC_PID=84029
+SRC_CONNECTED ok (SRC_CONNECTED 192.168.100.2:8080)
+TCPDUMP_ARMED main_1.err (~0s)
+INJ_START t=1792040409.309664 iface=enp1s0f1np1 stop_pid=84029
+DISCOVER lport=57596 rcv_nxt=2053228299(0x7A61C70B) peer_snd_nxt=2053293587(0x7A62C613) board_frames=25748 peer_frames=3148
+SRC_STOPPED pid=84029 state=T t=1792040409.573284
+SYNC_CHECK peer_snd-rcv_nxt=23112 MISMATCH
+SKIP T3_recipe1: rcv_nxt=0x7A62F007 >= Δ=0x40000000 ⇒ 配方① 前提 (rcv_nxt < Δ) 不成立
+SELFCHECK T1_recipe2_d2p31_boundary      seq=0xFA62F007 rcv=0x7A62F007 D=+2147483648 d_mod=0x80000000 old=0 new=1 分歧=YES 等价域=NO | recipe2 D=2^31 (边界行 d_mod=0x80000000; 与 xsim F5 同形)
+SELFCHECK T2_recipe2_d2p31_1MiB          seq=0xFA72F007 rcv=0x7A62F007 D=+2148532224 d_mod=0x80100000 old=0 new=1 分歧=YES 等价域=NO | recipe2 D=2^31+1MiB (内点)
+SELFCHECK T3_alt_recipe2_d2p31_2MiB      seq=0xFA82F007 rcv=0x7A62F007 D=+2149580800 d_mod=0x80200000 old=0 new=1 分歧=YES 等价域=NO | recipe2 D=2^31+2MiB (替代, 已登记)
+QUIET_ENTER tag=dup gap_s=1.097 waited=0.000
+INJECT kind=dup seq=0x7A62F006 len=1 ack=0x7A62F007 win=49152 ident=0xA5C1 t=1792040410.773903
+POST_INJECT_BOARD_FRAME kind=dup t=1792040410.774354(rel 0.450 ms) seq=1360234422 ack=2053304327 win=49152 len=0 flags=A
+OBS_SUMMARY kind=dup board_frames=1 within_100ms=1
+QUIET_ENTER tag=T1_recipe2_d2p31_boundary gap_s=0.801 waited=0.201
+INJECT kind=T1_recipe2_d2p31_boundary seq=0xFA62F007 len=100 ack=0x7A62F007 win=49152 ident=0xA5D0 t=1792040411.575889
+OBS_SUMMARY kind=T1_recipe2_d2p31_boundary board_frames=0 within_100ms=0
+QUIET_ENTER tag=T2_recipe2_d2p31_1MiB gap_s=1.603 waited=0.000
+INJECT kind=T2_recipe2_d2p31_1MiB seq=0xFA72F007 len=100 ack=0x7A62F007 win=49152 ident=0xA5D1 t=1792040412.377856
+OBS_SUMMARY kind=T2_recipe2_d2p31_1MiB board_frames=0 within_100ms=0
+QUIET_ENTER tag=T3_alt_recipe2_d2p31_2MiB gap_s=2.405 waited=0.000
+INJECT kind=T3_alt_recipe2_d2p31_2MiB seq=0xFA82F007 len=100 ack=0x7A62F007 win=49152 ident=0xA5D2 t=1792040413.178956
+OBS_SUMMARY kind=T3_alt_recipe2_d2p31_2MiB board_frames=0 within_100ms=0
+SUMMARY dup n=1 | T1_recipe2_d2p31_boundary n=0 | T2_recipe2_d2p31_1MiB n=0 | T3_alt_recipe2_d2p31_2MiB n=0
+INJ_DONE t=1792040413.980502 rcv_nxt=0x7A62F007
+### INJECT_RC=0 attempt=1
+main STOPPED_GRACEFULLY (~0s)
+[main pcap 自报]
+114047 packets captured
+114047 packets received by filter
+0 packets dropped by kernel
+SNAP_BEGIN N25b_post_1 gen=2
+W1   0x24   rx_stat_bytes          0x24c69f5a
+W5   0x34   gmii_free_FE           0xe7d6d8ae
+W20  0x70   mac_tx_frames          0x00117028
+W22  0x78   rx_stat_pass_TCP       0x00068e96
+W23  0x7C   rx_stat_nonmatch_TCP   0x00000003
+W51  0xEC   app_tx_bytes           0x3edf313d
+W52  0xF0   app_tx_frames          0x000b062c
+W53  0xF4   app_rx_bytes           0x23490000
+W54  0xF8   app_mismatch           0x00000000
+W55  0xFC   tx_stat_retx           0x00000090
+W68  0x130  rx_stat_ack_adv        0x0000b57e
+W70  0x138  mir_drop_bytes         0x00000000
+SNAP_END N25b_post_1 nff=0
+--- 对端内核计数 (跑后) ---
+TcpInSegs                       21561027           0.0
+TcpOutSegs                      11612515           0.0
+TcpRetransSegs                  594                0.0
+TcpExtTCPFastRetrans            48                 0.0
+TcpExtTCPOFOQueue               2916               0.0
+TcpExtTCPACKSkippedSeq          2473               0.0
+TcpExtTCPACKSkippedChallenge    17                 0.0
+--- 收尾态 ---
+BID_0x04=Read 32-bit value at address 0x4 (0x74da92f59004): 0x00000025
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x78cbe426e008): 0x00000000
+CARRIER=1
+
+NO_STALE_PROCS_END
+total 11956
+drwxr-xr-x  2 root    root        4096 Oct 15 13:00 .
+drwxrwxrwt 44 root    root      901120 Oct 15 13:00 ..
+-rw-r--r--  1 root    root        1953 Oct 15 13:00 inject_1.key.txt
+-rw-r--r--  1 root    root        2165 Oct 15 13:00 inject_1.txt
+-rw-r--r--  1 root    root         175 Oct 15 13:00 main_1.err
+-rw-r--r--  1 tcpdump tcpdump 11291209 Oct 15 13:00 main_1.pcap
+-rw-r--r--  1 root    root         385 Oct 15 13:00 nstat_post.txt
+-rw-r--r--  1 root    root         385 Oct 15 13:00 nstat_pre.txt
+-rw-r--r--  1 root    root         608 Oct 15 13:00 snap_post_1.txt
+-rw-r--r--  1 root    root         602 Oct 15 13:00 snap_pre.txt
+-rw-r--r--  1 root    root         699 Oct 15 13:00 src_1.txt
+-rw-r--r--  1 root    root         163 Oct 15 13:00 syn_1.err
+-rw-r--r--  1 tcpdump tcpdump      114 Oct 15 13:00 syn_1.pcap
+e48ad4245eb09e89f1876188aa5ede5be23f626fe9bf6887d78660f0bec6f5b2  /tmp/rfcseq_N25b/main_1.pcap
+6a6c17917980dcd4db7ef871b331c55e16d3912142df19abf2444842b10a6934  /tmp/rfcseq_N25b/syn_1.pcap
+### RFCSEQ_ARM_END tag=N25b INJ_RC=0 attempts=1 1792040414.494149445

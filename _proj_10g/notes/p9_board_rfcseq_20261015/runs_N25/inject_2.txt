@@ -1,0 +1,23 @@
+INJ_START t=1792040030.637679 iface=enp1s0f1np1 stop_pid=79637
+DISCOVER lport=43594 rcv_nxt=2020148279(0x78690437) peer_snd_nxt=2020248607(0x786A8C1F) board_frames=26850 peer_frames=3207
+SRC_STOPPED pid=79637 state=T t=1792040030.893301
+SYNC_CHECK peer_snd-rcv_nxt=59184 MISMATCH
+SKIP T3_recipe1: rcv_nxt=0x7869D697 >= Δ=0x40000000 ⇒ 配方① 前提 (rcv_nxt < Δ) 不成立
+SELFCHECK T1_recipe2_d2p31_boundary      seq=0xF869D697 rcv=0x7869D697 D=+2147483648 d_mod=0x80000000 old=0 new=1 分歧=YES 等价域=NO | recipe2 D=2^31 (边界行 d_mod=0x80000000; 与 xsim F5 同形)
+SELFCHECK T2_recipe2_d2p31_1MiB          seq=0xF879D697 rcv=0x7869D697 D=+2148532224 d_mod=0x80100000 old=0 new=1 分歧=YES 等价域=NO | recipe2 D=2^31+1MiB (内点)
+SELFCHECK T3_alt_recipe2_d2p31_2MiB      seq=0xF889D697 rcv=0x7869D697 D=+2149580800 d_mod=0x80200000 old=0 new=1 分歧=YES 等价域=NO | recipe2 D=2^31+2MiB (替代, 已登记)
+QUIET_ENTER tag=dup gap_s=1.099 waited=0.000
+INJECT kind=dup seq=0x7869D696 len=1 ack=0x7869D697 win=49152 ident=0xA5C1 t=1792040032.094100
+POST_INJECT_BOARD_FRAME kind=dup t=1792040032.094526(rel 0.426 ms) seq=1356971322 ack=2020202135 win=49152 len=0 flags=A
+OBS_SUMMARY kind=dup board_frames=1 within_100ms=1
+QUIET_ENTER tag=T1_recipe2_d2p31_boundary gap_s=0.801 waited=0.201
+INJECT kind=T1_recipe2_d2p31_boundary seq=0xF869D697 len=100 ack=0x7869D697 win=49152 ident=0xA5D0 t=1792040032.896014
+OBS_SUMMARY kind=T1_recipe2_d2p31_boundary board_frames=0 within_100ms=0
+QUIET_ENTER tag=T2_recipe2_d2p31_1MiB gap_s=1.603 waited=0.000
+INJECT kind=T2_recipe2_d2p31_1MiB seq=0xF879D697 len=100 ack=0x7869D697 win=49152 ident=0xA5D1 t=1792040033.697131
+OBS_SUMMARY kind=T2_recipe2_d2p31_1MiB board_frames=0 within_100ms=0
+QUIET_ENTER tag=T3_alt_recipe2_d2p31_2MiB gap_s=2.404 waited=0.000
+INJECT kind=T3_alt_recipe2_d2p31_2MiB seq=0xF889D697 len=100 ack=0x7869D697 win=49152 ident=0xA5D2 t=1792040034.498343
+OBS_SUMMARY kind=T3_alt_recipe2_d2p31_2MiB board_frames=0 within_100ms=0
+SUMMARY dup n=1 | T1_recipe2_d2p31_boundary n=0 | T2_recipe2_d2p31_1MiB n=0 | T3_alt_recipe2_d2p31_2MiB n=0
+INJ_DONE t=1792040035.299789 rcv_nxt=0x7869D697

@@ -1,0 +1,14 @@
+SNAP_BEGIN P27R_post_4 gen=7
+W1   0x24   rx_stat_bytes          0xfbecd13a
+W5   0x34   gmii_free_FE           0x6d1cc8e4
+W20  0x70   mac_tx_frames          0x007a52a8
+W22  0x78   rx_stat_pass_TCP       0x002cd540
+W23  0x7C   rx_stat_nonmatch_TCP   0x00000001
+W51  0xEC   app_tx_bytes           0xbf547787
+W52  0xF0   app_tx_frames          0x004e6f9f
+W53  0xF4   app_rx_bytes           0xf1bc0000
+W54  0xF8   app_mismatch           0x00000000
+W55  0xFC   tx_stat_retx           0x0000033d
+W68  0x130  rx_stat_ack_adv        0x0004a446
+W70  0x138  mir_drop_bytes         0x00000000
+SNAP_END P27R_post_4 nff=0

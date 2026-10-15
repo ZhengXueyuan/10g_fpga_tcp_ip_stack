@@ -1,0 +1,14 @@
+SNAP_BEGIN N25b_post_1 gen=2
+W1   0x24   rx_stat_bytes          0x24c69f5a
+W5   0x34   gmii_free_FE           0xe7d6d8ae
+W20  0x70   mac_tx_frames          0x00117028
+W22  0x78   rx_stat_pass_TCP       0x00068e96
+W23  0x7C   rx_stat_nonmatch_TCP   0x00000003
+W51  0xEC   app_tx_bytes           0x3edf313d
+W52  0xF0   app_tx_frames          0x000b062c
+W53  0xF4   app_rx_bytes           0x23490000
+W54  0xF8   app_mismatch           0x00000000
+W55  0xFC   tx_stat_retx           0x00000090
+W68  0x130  rx_stat_ack_adv        0x0000b57e
+W70  0x138  mir_drop_bytes         0x00000000
+SNAP_END N25b_post_1 nff=0

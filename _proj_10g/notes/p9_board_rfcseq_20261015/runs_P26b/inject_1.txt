@@ -1,0 +1,26 @@
+INJ_START t=1792040244.751836 iface=enp1s0f1np1 stop_pid=82684
+DISCOVER lport=48822 rcv_nxt=1238474891(0x49D1A08B) peer_snd_nxt=1238577815(0x49D33297) board_frames=27068 peer_frames=3001
+SRC_STOPPED pid=82684 state=T t=1792040245.005241
+SYNC_CHECK peer_snd-rcv_nxt=53448 MISMATCH
+SKIP T3_recipe1: rcv_nxt=0x49D272EB >= Δ=0x40000000 ⇒ 配方① 前提 (rcv_nxt < Δ) 不成立
+SELFCHECK T1_recipe2_d2p31_boundary      seq=0xC9D272EB rcv=0x49D272EB D=+2147483648 d_mod=0x80000000 old=0 new=1 分歧=YES 等价域=NO | recipe2 D=2^31 (边界行 d_mod=0x80000000; 与 xsim F5 同形)
+SELFCHECK T2_recipe2_d2p31_1MiB          seq=0xC9E272EB rcv=0x49D272EB D=+2148532224 d_mod=0x80100000 old=0 new=1 分歧=YES 等价域=NO | recipe2 D=2^31+1MiB (内点)
+SELFCHECK T3_alt_recipe2_d2p31_2MiB      seq=0xC9F272EB rcv=0x49D272EB D=+2149580800 d_mod=0x80200000 old=0 new=1 分歧=YES 等价域=NO | recipe2 D=2^31+2MiB (替代, 已登记)
+QUIET_ENTER tag=dup gap_s=1.104 waited=0.000
+INJECT kind=dup seq=0x49D272EA len=1 ack=0x49D272EB win=49152 ident=0xA5C1 t=1792040246.206265
+POST_INJECT_BOARD_FRAME kind=dup t=1792040246.206513(rel 0.248 ms) seq=1356342062 ack=1238528747 win=49152 len=0 flags=A
+OBS_SUMMARY kind=dup board_frames=1 within_100ms=1
+QUIET_ENTER tag=T1_recipe2_d2p31_boundary gap_s=0.801 waited=0.201
+INJECT kind=T1_recipe2_d2p31_boundary seq=0xC9D272EB len=100 ack=0x49D272EB win=49152 ident=0xA5D0 t=1792040247.007800
+POST_INJECT_BOARD_FRAME kind=T1_recipe2_d2p31_boundary t=1792040247.008320(rel 0.520 ms) seq=1356342062 ack=1238528747 win=49152 len=0 flags=A
+OBS_SUMMARY kind=T1_recipe2_d2p31_boundary board_frames=1 within_100ms=1
+QUIET_ENTER tag=T2_recipe2_d2p31_1MiB gap_s=0.801 waited=0.000
+INJECT kind=T2_recipe2_d2p31_1MiB seq=0xC9E272EB len=100 ack=0x49D272EB win=49152 ident=0xA5D1 t=1792040247.809489
+POST_INJECT_BOARD_FRAME kind=T2_recipe2_d2p31_1MiB t=1792040247.809831(rel 0.342 ms) seq=1356342062 ack=1238528747 win=49152 len=0 flags=A
+OBS_SUMMARY kind=T2_recipe2_d2p31_1MiB board_frames=1 within_100ms=1
+QUIET_ENTER tag=T3_alt_recipe2_d2p31_2MiB gap_s=0.801 waited=0.000
+INJECT kind=T3_alt_recipe2_d2p31_2MiB seq=0xC9F272EB len=100 ack=0x49D272EB win=49152 ident=0xA5D2 t=1792040248.610833
+POST_INJECT_BOARD_FRAME kind=T3_alt_recipe2_d2p31_2MiB t=1792040248.611219(rel 0.386 ms) seq=1356342062 ack=1238528747 win=49152 len=0 flags=A
+OBS_SUMMARY kind=T3_alt_recipe2_d2p31_2MiB board_frames=1 within_100ms=1
+SUMMARY dup n=1 | T1_recipe2_d2p31_boundary n=1 | T2_recipe2_d2p31_1MiB n=1 | T3_alt_recipe2_d2p31_2MiB n=1
+INJ_DONE t=1792040249.412419 rcv_nxt=0x49D272EB
