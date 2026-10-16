@@ -1,0 +1,27 @@
+BASHN=0
+LOOPBACK_RC=0
+=== LOOPBACK_CHECK PASS PASS=62 FAIL=0 2026-10-16T19:02:12Z ===
+--- hold_cap ---
+--- E1: --seconds 3 --hold-s 3（窗口后必须仍活着/仍读干/不新建连接） ---
+CHK PASS E1_rc got=0 want=0
+CHK PASS E1_wall_s got=6.03 range=5.8..8.0
+CHK PASS E1_fd_pre got=254 range=100..400
+CHK PASS E1_fd_in_hold got=303 range=100..400
+CHK PASS E1_churn_t_during_hold got=4.0 range=3.5..6.5
+CHK PASS E1_conns got=300 want=300
+CHK PASS E1_cap_hit got=0 want=0
+CHK PASS E1_rate_per_s got=100.000 range=93..107
+CHK PASS E1_conn_window_s got=3.000 range=2.8..3.2
+CHK PASS E1_window_s got=6.011 range=5.8..8.0
+  [E1 SUM] CHURN_SUM conns=300 estab=300 connecting=0 connfail=0 eof=0 reset=0 err=0 closed_safe=0 bytes=2457600 window_s=6.011 conn_window_s=3.000 rate_per_s=100.000 estab_rate_per_s=100.000 gap_max_ms=10.455 verdict_off0=0 verdict_offk=0 candidates=300 candidates_full=300 candidates_short=0 short_lt32=0 nodata=0 dumps=0 dumps_skipped=0 dump_fail=0 cap_hit=0 safe_close=0 needle_len=32 scan_bytes=4096 CPU_FREQ_KHZ=800000
+
+--- E2: --max-conns 50（撞顶 => CHURN_CAP 行 + 停止新建 + RC=0） ---
+CHK PASS E2_rc got=0 want=0
+CHK PASS E2_cap_line got=1 want=1
+CHK PASS E2_conns got=50 want=50
+CHK PASS E2_cap_hit got=1 want=1
+CHK PASS E2_conn_lines got=50 want=50
+  [E2 CAP] CHURN_CAP max_conns=50 reached at t=0.500 s ⇒ 停止新建连接
+
+=== HOLD_CAP_CHECK PASS PASS=15 FAIL=0 2026-10-16T19:02:22Z ===
+HOLD_CAP_RC=0

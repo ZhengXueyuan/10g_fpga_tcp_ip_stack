@@ -1,0 +1,95 @@
+=== loopback_check 2026-10-16T18:59:03Z ===
+host=a-MS-7850 ulimit_n=1024 bin_md5=4344e3ff3566688b178e814961706460
+
+--- T1: mode=mid interval=10ms seconds=4 (建连率/fd/bytes/候选/落盘) ---
+CHK PASS T1_rc got=0 want=0
+CHK PASS T1_conns got=400 range=380..430
+CHK PASS T1_rate_per_s got=99.995 range=93..107
+CHK PASS T1_nodata got=0 range=0..3
+CHK PASS T1_candidates got=400 range=394..400
+CHK PASS T1_dumps got=400 want=400
+CHK PASS T1_dumps_skipped got=0 want=0
+CHK PASS T1_dump_fail got=0 want=0
+CHK PASS T1_bytes_8192x got=3276800 want=3276800
+CHK PASS T1_conn_lines got=400 want=400
+CHK PASS T1_bytes_values_in_0_or_8192 got=0 want=0
+CHK PASS T1_opts_line got=1 want=1
+CHK PASS T1_ulimit_warn_ok0 got=1 want=1
+CHK PASS T1_ulimit_warn_stderr got=1 want=1
+CHK PASS T1_pin_bound got=1 want=1
+CHK PASS T1_fd_at_1p5s got=154 range=100..200
+CHK PASS T1_fd_final got=379 range=370..408
+CHK PASS T1_estab got=400 range=394..400
+CHK PASS T1_srv_accepted_last got=400 range=340..400
+  [T1 SUM] CHURN_SUM conns=400 estab=400 connecting=0 connfail=0 eof=0 reset=0 err=0 closed_safe=0 bytes=3276800 window_s=4.000 rate_per_s=99.995 estab_rate_per_s=99.995 gap_max_ms=10.591 verdict_off0=0 verdict_offk=0 candidates=400 candidates_full=400 candidates_short=0 short_lt32=0 nodata=0 dumps=400 dumps_skipped=0 dump_fail=0 cap_hit=0 safe_close=0 needle_len=32 scan_bytes=4096 CPU_FREQ_KHZ=2501361
+  [T1 sample conn] CHURN conn=0 bytes=8192 restart@off=-1 idle_ms=4000.021 state=estab why=0 why_str=- closed_by=- reads=1 scan_bytes=4096 prefix_bytes=8192 dur_ms=4000.208 estab_ms=0.059 last_rx_ms=4000.021 CPU_FREQ_KHZ=2501361
+  [T1 sample dump] CHURN_DUMP conn=0 file=/tmp/c1_churn_selftest/dump_mid/churn_conn000000.bin bytes=8192 scan_bytes=4096
+--- T1b: 离线独立复核 (落盘候选内不得含针) ---
+OFFLINE_CHECK needle[0..15]=7F 0B 02 E5 36 A1 4E D6 1A B0 49 B8 56 AD D6 3F (独立重算, 与 p7b_pattern.h 文档向量同)
+OFFLINE_CHECK dir=/tmp/c1_churn_selftest/dump_mid files=400 T1mid
+OFFLINE_CHECK file_count got=400 want=400 PASS
+OFFLINE_CHECK posctrl_synth_off0 got=0 want=0 PASS
+OFFLINE_CHECK no_needle_in_dumps files=400 with_needle=0 bytes_total=3276800 PASS
+OFFLINE_CHECK inj_first_file_off100 got=100 want=100 PASS
+OFFLINE_CHECK PASS fails=0
+CHK PASS T1b_offline_rc got=0 want=0
+
+--- T2: mode=mid interval=50ms seconds=10 (定时器刻度可判) ---
+CHK PASS T2_rc got=0 want=0
+CHK PASS T2_conns got=200 range=185..215
+CHK PASS T2_rate_per_s got=19.999 range=18..22
+CHK PASS T2_gap_max_ms got=50.598 range=45..80
+
+--- T3: mode=from0 interval=20ms seconds=4 (重启形态 off=0) ---
+CHK PASS T3_rc got=0 want=0
+CHK PASS T3_conns got=200 range=185..215
+CHK PASS T3_verdict_off0 got=200 range=195..200
+CHK PASS T3_candidates got=0 want=0
+CHK PASS T3_dumps got=0 want=0
+CHK PASS T3_dump_files got=0 want=0
+  [T3 sample conn] CHURN conn=0 bytes=8192 restart@off=0 idle_ms=3999.815 state=estab why=0 why_str=- closed_by=- reads=1 scan_bytes=4096 prefix_bytes=8192 dur_ms=4000.016 estab_ms=0.052 last_rx_ms=3999.815 CPU_FREQ_KHZ=2502270
+
+--- T4: mode=mid interval=10ms seconds=4 + --safe-close (fd 数被控住) ---
+CHK PASS T4_rc got=0 want=0
+CHK PASS T4_conns got=400 range=380..430
+CHK PASS T4_live_fd_bounded got=4 range=1..120
+CHK PASS T4_closed_safe got=399 range=270..400
+CHK PASS T4_safe_close_witness got=1 want=1
+  [T4 fd samples (1.75s, final)] 4 4  conns=400 closed_safe=399
+
+--- T5: mode=sink interval=10ms seconds=3 (0 字节连接 => restart@off=na) ---
+CHK PASS T5_rc got=0 want=0
+CHK PASS T5_conns got=300 range=280..320
+CHK PASS T5_nodata got=300 want=300
+CHK PASS T5_candidates got=0 want=0
+CHK PASS T5_verdict_na got=na, want=na,
+CHK PASS T5_bytes got=0 want=0
+  [T5 sample conn] CHURN conn=0 bytes=0 restart@off=na idle_ms=3000.496 state=estab why=0 why_str=- closed_by=- reads=0 scan_bytes=0 prefix_bytes=0 dur_ms=3000.561 estab_ms=0.064 last_rx_ms=-1.000 CPU_FREQ_KHZ=2500292
+
+--- T6: 边界响亮 (非法值 => RC=2 + stderr) ---
+CHK PASS bad_interval0 rc=2 stderr_bytes=42 :: --connect-interval-ms 必须 >= 1 (got 0) 
+CHK PASS bad_intervalneg rc=2 stderr_bytes=43 :: --connect-interval-ms 必须 >= 1 (got -5) 
+CHK PASS bad_seconds0 rc=2 stderr_bytes=30 :: --seconds 必须 >= 1 (got 0) 
+CHK PASS bad_rcvbuf_lo rc=2 stderr_bytes=47 :: --rcvbuf 越界: 100 (合法 1024..1073741824) 
+CHK PASS bad_rcvbuf_hi rc=2 stderr_bytes=54 :: --rcvbuf 越界: 2000000000 (合法 1024..1073741824) 
+CHK PASS bad_prefixkb0 rc=2 stderr_bytes=39 :: --prefix-kb 越界: 0 (合法 1..1024) 
+CHK PASS bad_scan31 rc=2 stderr_bytes=62 :: --scan-bytes 越界: 31 (合法 32..65536 = prefix 字节数) 
+CHK PASS bad_scan_toobig rc=2 stderr_bytes=67 :: --scan-bytes 越界: 9999999 (合法 32..65536 = prefix 字节数) 
+CHK PASS bad_port0 rc=2 stderr_bytes=35 :: --port 越界: 0 (合法 1..65535) 
+CHK PASS bad_localport_hi rc=2 stderr_bytes=60 :: --local-port 越界: 70000 (合法 0..65535；0 = 不 bind) 
+CHK PASS bad_dumpmax_neg rc=2 stderr_bytes=28 :: --dump-max 不能为负: -1 
+CHK PASS bad_maxconns0 rc=2 stderr_bytes=41 :: --max-conns 越界: 0 (合法 1..100000) 
+CHK PASS bad_hold_neg rc=2 stderr_bytes=37 :: --hold-s 越界: -1 (合法 0..3600) 
+CHK PASS bad_host_bogus rc=2 stderr_bytes=38 :: --host 不是合法 IPv4: 'not-an-ip' 
+CHK PASS bad_dumpdir_miss rc=2 stderr_bytes=81 :: --dump-prefix-dir 不存在或不是目录: '/nonexistent_c1_xyz' (先 mkdir -p) 
+CHK PASS bad_unknown_arg rc=2 stderr_bytes=28 :: unknown arg --nope (--help) 
+CHK PASS bad_missing_val rc=2 stderr_bytes=18 :: missing --seconds 
+
+--- T7: --help => RC=0 ---
+CHK PASS T7_help_rc got=0 want=0
+CHK PASS T7_help_has_off got=3 range=1..9
+CHK PASS T8_selftest_rc got=0 want=0
+CHK PASS T8_selftest_scan_rc got=0 want=0
+
+=== LOOPBACK_CHECK PASS PASS=62 FAIL=0 2026-10-16T18:59:35Z ===
+DRIVER_RC=0

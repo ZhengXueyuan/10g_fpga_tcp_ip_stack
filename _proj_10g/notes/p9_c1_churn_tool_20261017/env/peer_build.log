@@ -1,0 +1,12 @@
+=== WALL CHECK (g++ -O3 -pthread -Wall -o /tmp/p7b_churn_wall) 2026-10-16T18:55:54Z ===
+In file included from p7b_tcp_churn.cpp:85:
+p7b_affinity.h:851:13: warning: ‘void p7baff_pin_self_thread(const char*, int, bool)’ defined but not used [-Wunused-function]
+  851 | static void p7baff_pin_self_thread(const char *name, int cpu, bool print) {
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+WALL_RC=0
+
+=== DEPLOY BUILD (BUILD.md §2: cd /tmp/p7b_biz && g++ -O3 -pthread -o p7b_tcp_churn p7b_tcp_churn.cpp) ===
+BUILD_RC=0
+4344e3ff3566688b178e814961706460  p7b_tcp_churn
+140576 bytes
+g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0

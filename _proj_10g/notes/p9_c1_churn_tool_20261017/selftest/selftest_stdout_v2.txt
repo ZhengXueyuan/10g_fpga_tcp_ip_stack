@@ -1,0 +1,26 @@
+=== v2 --selftest ===
+SELFTEST p7b_tcp_churn: OK
+  off0..15   got=7F 0B 02 E5 36 A1 4E D6 1A B0 49 B8 56 AD D6 3F 
+             want=7F 0B 02 E5 36 A1 4E D6 1A B0 49 B8 56 AD D6 3F 
+  off1460..7 got=03 00 42 2D 9B 47 CA C0 
+             want=03 00 42 2D 9B 47 CA C0 
+  state@100  got=0xAB5917A81F0FB2AE want=0xAB5917A81F0FB2AE
+RC=0
+
+=== v2 --selftest-scan ===
+SCAN needle len=32 fnv1a32=0xF372FA09
+SCAN needle[0..31]  = 7F 0B 02 E5 36 A1 4E D6 1A B0 49 B8 56 AD D6 3F FC 7D 55 6B C8 6D 9A 9C 82 ED C1 CD 69 69 98 6C 
+SCAN needle[0..15]  = 7F 0B 02 E5 36 A1 4E D6 1A B0 49 B8 56 AD D6 3F 
+SCAN case=needle_vs_doc_vector got=7F 0B 02 E5 36 A1 4E D6 1A B0 49 B8 56 AD D6 3F  want=7F 0B 02 E5 36 A1 4E D6 1A B0 49 B8 56 AD D6 3F  PASS
+SCAN case=match_at_0             got=0        want=0        PASS
+SCAN case=match_at_1234          got=1234     want=1234     PASS
+SCAN case=no_match               got=-1       want=-1       PASS
+SCAN case=window_edge_in_4064    got=4064     want=4064     PASS
+SCAN case=window_edge_out_4065   got=-1       want=-1       PASS
+SCAN case=window_edge_out_full   got=4065     want=4065     PASS
+SCAN case=partial_31_of_32       got=-1       want=-1       PASS
+SCAN case=flip_1bit_no_match     got=-1       want=-1       PASS
+SCAN case=short_window_31        got=-1       want=-1       PASS
+SCAN case=first_of_two_matches   got=0        want=0        PASS
+SCAN_SELFTEST PASS checks=11 fails=0
+RC=0

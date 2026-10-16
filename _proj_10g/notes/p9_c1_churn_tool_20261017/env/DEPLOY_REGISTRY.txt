@@ -1,0 +1,41 @@
+# DEPLOY_REGISTRY -- p9_c1_churn_tool_20261017 (2026-10-17)  【v2 = 最终】
+# 对端 = 192.168.0.38 (a@a-MS-7850) / 部署目录 /tmp/p7b_biz (扁平) / 编译口径 = BUILD.md §2
+#   g++ -O3 -pthread -o <name> <name>.cpp          (g++ 13.3.0)
+# ⚠️ 复现必须保持**原文件名**（BUILD.md §3b 实测：源文件名进 .symtab ⇒ 改名换 md5）
+# ⚠️ v1 -> v2 唯一差别 = CHURN_SUM 的速率分母改按**连接窗口**（`conn_window_s`），
+#    不含 `--hold-s` 段；v1 的 md5 见本文件末（其读数只在 selftest/loopback_run{1,2}.txt 里）
+
+## 新件（最终；两个名字在 /tmp/p7b_biz 里都不重名）
+388cd5d4f4cb488adf8d83313757dfef  p7b_tcp_churn.cpp    (44998 B; 仓内 = _proj_pcie/p7b_biz/p7b_tcp_churn.cpp)
+ac2c89bf074f7dde979404776bfe35b5  p7b_tcp_churn        (140576 B; BUILD_RC=0; 唯一告警 = 共享头自带 unused-function)
+
+## 自测台架（部署在 /tmp/c1_churn_selftest；⛔ 不进 /tmp/p7b_biz；不重编译任何现役件）
+fa933d7ff417574e7a0139b90db3d0d8  loopback_check.sh        （62 判据；仓内 = _proj_10g/notes/p9_c1_churn_tool_20261017/selftest/）
+7f6a472fcb0613120022c2a22fdea777  hold_cap_check.sh        （15 判据：--hold-s / --max-conns 顶 *)
+2b7c258c8b6353b85e9c0721127e4cb2  fake_stream_server.py
+a3bd49b4775a78bff3487260bc8e2d1d  offline_dump_check.py
+(* hold_cap_check.sh 的 v1 版在第一次跑后被改了两处判据 —— 表值 = **部署/实跑的那一版**)
+
+## 现役件"未被触碰"见证（前读 = 开工前 02:5x / 后读 = 收工 19:0x；逐条相同）
+62b1257d69c40f24bfa9a799593073b7  p7b_io.h
+b03222792d20443138515ba2804b0d87  p7b_affinity.h
+b2f2e9627bac53bf3b4ab2b565afe872  p7b_pattern.h
+3132db495c29ab85b7f6a5617803644f  p7b_spsc.h
+dd3adfbe6d42547b412a5c410b9d1cb2  p7b_tcp_sink.cpp
+f62299291fcb9e02afe109c4ea1f90ab  p7b_tcp_sink        == BUILD.md §3 (sink delta 轮锚)
+ca6900fd54036be7fe1d337ca9ef83b8  p7b_tcp_sink_rate   == BUILD.md §3
+1e956072f30a25f3e547e8c42107afb3  p7b_rate2_bench     == BUILD.md §3
+e0d4da5834cb95d67afb0cc523d1f92f  p7b_udp_src         != BUILD.md §3 (a3faafd3…)
+79be2a09024206b7c678dc13a3b9051d  p7b_tcp_src         != BUILD.md §3 (48d066a0…)
+# ↑ 后两条**与本件无关**（本件只写过 p7b_tcp_churn* 两个新名字；无前读 ⇒ 不归因，
+#   只登记"与 BUILD.md §3 表不一致"这一事实，供 TL 与 sink-delta 轮的登记表对账）
+
+## v1 指纹（已被 v2 取代；保留以便对账历史读数）
+7439f35e4665ff4deddfcccd089f3bd5  p7b_tcp_churn.cpp    (v1, 44313 B)
+4344e3ff3566688b178e814961706460  p7b_tcp_churn        (v1, 140576 B)
+
+## 对端环境（现读）
+hostname=a-MS-7850  nproc=8  Mem 23G available 17G  /tmp 1.5T free
+ulimit -n = 1024 (soft)  ⚠️ 远低于 120 s×100/s ≈ 12,000 fd ⇒ 真臂必须先 `ulimit -n 16384`
+/proc/sys/net/core/rmem_max = 4194304 ⇒ rcvbuf=1048576 内核回读 eff=2097152 (x2, 未触顶)
+g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0 ; python3 3.12.3

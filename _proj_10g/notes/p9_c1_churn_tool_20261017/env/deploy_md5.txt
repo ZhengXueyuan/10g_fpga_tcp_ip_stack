@@ -1,0 +1,18 @@
+=== 现役部署件 md5（后读，核对未被本件触碰）2026-10-16T18:59:47Z ===
+62b1257d69c40f24bfa9a799593073b7  p7b_io.h
+b03222792d20443138515ba2804b0d87  p7b_affinity.h
+b2f2e9627bac53bf3b4ab2b565afe872  p7b_pattern.h
+3132db495c29ab85b7f6a5617803644f  p7b_spsc.h
+dd3adfbe6d42547b412a5c410b9d1cb2  p7b_tcp_sink.cpp
+f62299291fcb9e02afe109c4ea1f90ab  p7b_tcp_sink
+ca6900fd54036be7fe1d337ca9ef83b8  p7b_tcp_sink_rate
+e0d4da5834cb95d67afb0cc523d1f92f  p7b_udp_src
+79be2a09024206b7c678dc13a3b9051d  p7b_tcp_src
+1e956072f30a25f3e547e8c42107afb3  p7b_rate2_bench
+--- 新件 ---
+7439f35e4665ff4deddfcccd089f3bd5  p7b_tcp_churn.cpp
+4344e3ff3566688b178e814961706460  p7b_tcp_churn
+-rwxrwxr-x 1 a a 140576 Oct 17 02:56 p7b_tcp_churn
+-rw-rw-r-- 1 a a  44313 Oct 17 02:55 p7b_tcp_churn.cpp
+--- 收尾 ulimit ---
+1024

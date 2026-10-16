@@ -1,0 +1,30 @@
+=== CHURN --selftest (pattern vectors) ===
+PIN_RULE=avoid-nic PIN_DEGRADED=none PIN_CPU=4 PIN_CORES_ONLINE=0-7 PIN_NIC_IFACE=enp1s0f0np0,enp1s0f1np1 PIN_NIC_CPUS=0,1,2,3,4,5 PIN_NIC_EXCLUDED=none PIN_CORE_LOAD=13241501 PIN_ALLOWED_MASK=10 PIN_GETCPU_START=4 PIN_FREQ_START_KHZ=3775426 PIN_GOV=schedutil PIN_NIC_IRQLINES=12 PIN_NIC_IFACE_SRC=auto PIN_TUPLE_ORDER=own_sib_t PIN_PAIR_RULE=n/a PIN_PAIR_DEGRADED=n/a PIN_CPU_IO=n/a PIN_CPU_WORK=n/a PIN_PC_IO=n/a PIN_PC_WORK=n/a PIN_PAIR_EXCL=n/a PIN_PAIR_REQ=n/a
+SELFTEST p7b_tcp_churn: OK
+  off0..15   got=7F 0B 02 E5 36 A1 4E D6 1A B0 49 B8 56 AD D6 3F 
+             want=7F 0B 02 E5 36 A1 4E D6 1A B0 49 B8 56 AD D6 3F 
+  off1460..7 got=03 00 42 2D 9B 47 CA C0 
+             want=03 00 42 2D 9B 47 CA C0 
+  state@100  got=0xAB5917A81F0FB2AE want=0xAB5917A81F0FB2AE
+PIN_GETCPU_END=4 PIN_FREQ_END_KHZ=3775426
+SELFTEST_RC=0
+
+=== CHURN --selftest-scan (restart scanner) ===
+PIN_RULE=avoid-nic PIN_DEGRADED=none PIN_CPU=4 PIN_CORES_ONLINE=0-7 PIN_NIC_IFACE=enp1s0f0np0,enp1s0f1np1 PIN_NIC_CPUS=0,1,2,3,4,5 PIN_NIC_EXCLUDED=none PIN_CORE_LOAD=13241609 PIN_ALLOWED_MASK=10 PIN_GETCPU_START=4 PIN_FREQ_START_KHZ=800000 PIN_GOV=schedutil PIN_NIC_IRQLINES=12 PIN_NIC_IFACE_SRC=auto PIN_TUPLE_ORDER=own_sib_t PIN_PAIR_RULE=n/a PIN_PAIR_DEGRADED=n/a PIN_CPU_IO=n/a PIN_CPU_WORK=n/a PIN_PC_IO=n/a PIN_PC_WORK=n/a PIN_PAIR_EXCL=n/a PIN_PAIR_REQ=n/a
+SCAN needle len=32 fnv1a32=0xF372FA09
+SCAN needle[0..31]  = 7F 0B 02 E5 36 A1 4E D6 1A B0 49 B8 56 AD D6 3F FC 7D 55 6B C8 6D 9A 9C 82 ED C1 CD 69 69 98 6C 
+SCAN needle[0..15]  = 7F 0B 02 E5 36 A1 4E D6 1A B0 49 B8 56 AD D6 3F 
+SCAN case=needle_vs_doc_vector got=7F 0B 02 E5 36 A1 4E D6 1A B0 49 B8 56 AD D6 3F  want=7F 0B 02 E5 36 A1 4E D6 1A B0 49 B8 56 AD D6 3F  PASS
+SCAN case=match_at_0             got=0        want=0        PASS
+SCAN case=match_at_1234          got=1234     want=1234     PASS
+SCAN case=no_match               got=-1       want=-1       PASS
+SCAN case=window_edge_in_4064    got=4064     want=4064     PASS
+SCAN case=window_edge_out_4065   got=-1       want=-1       PASS
+SCAN case=window_edge_out_full   got=4065     want=4065     PASS
+SCAN case=partial_31_of_32       got=-1       want=-1       PASS
+SCAN case=flip_1bit_no_match     got=-1       want=-1       PASS
+SCAN case=short_window_31        got=-1       want=-1       PASS
+SCAN case=first_of_two_matches   got=0        want=0        PASS
+SCAN_SELFTEST PASS checks=11 fails=0
+PIN_GETCPU_END=4 PIN_FREQ_END_KHZ=800000
+SCAN_RC=0
