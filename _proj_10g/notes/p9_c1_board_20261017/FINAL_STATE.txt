@@ -1,0 +1,37 @@
+FINAL_STATE -- p9_c1_board_20261017 (C1 静默释放槽位偷取环, 板级两代臂)
+=================================================================
+ROUND: C1 configuration board arms.  3 runs / 3 burns (all JTAG volatile; QSPI NEVER written).
+
+ARM TABLE (all peer-side; run as root via peer_ssh --sudo)
+  arm   board build        churn cfg                                     verdict-read
+  C1a   0x28 (burn 03:07)  120 s / int 10 ms / rcvbuf 1 MiB / mc 16000   16 candidates; dW71=144 dW72=47 dW73=47 dW74=96
+  C1b   0x24 (burn 03:22)  120 s / same                                    12 candidates
+  C1b2  0x24 (no burn)     300 s / same + ULIMIT 65536 + mc 33000          28 candidates
+  (C1a2 300 s on 0x28 / C1c --safe-close: NOT run -- see README sec.6 D1)
+
+BURN RECORD (3 burns; JTAG volatile; QSPI NEVER written)
+  1) 03:07:04 -> 03:09:40  0x28 sha 79c9cf434eb66723b97f654cbece9ea061632e2297c0a8ab0ea0dc198c43bec8
+     gates: SHA_OK (double anchor) / BURN_OK (HIGH+DONE+path+freshness+no-ABORT) /
+     identity BID=0x28 NW=75 NFF=0 0x15C=ffffffff 0x08=0 CARRIER=1 / device-level remove+rescan / LnkSta x4 / 2 BARs
+  2) 03:22:16 -> 03:23:04  0x24 sha e3b07957aea0326a168b9db0238ef9dd933dc7a21884c92e50a7c3b0abadf1db
+     gates: same set OK (identity BID=0x24 NW=71 0x14C=ffffffff)
+  3) 03:35:26 -> 03:36:17  0x28 (restore) sha 79c9cf43...  gates: same set OK
+  NOTE (pre-existing burn-script quirk, registered): BIT_WIN is hardcoded to the p3win round dir
+       (basename only) -- the actually-programmed file was cross-checked by sha256 = expected value.
+
+FINAL BOARD STATE (live read 2026-10-17 03:38, epoch 1792179483)
+  ID_MAGIC 0x50360001 OK / ID_BID 0x00000028 OK / ID_MARKER 0xdeadbeef OK / ID_UNIMPL 0xffffffff OK / ID_RC=0
+  reg 0x04 = 0x28 / reg 0x08 = 0 / CARRIER = 1
+  ROUTE = 192.168.100.2 dev enp1s0f1np1 src 192.168.100.100/32
+  NIC: unmanaged / Adaptive RX off / rx-usecs 0
+  peer leftovers: NONE (pgrep p7b_tcp_churn / p7b_tcp_sink / tcpdump all empty); SS_ALL_8080 = 8 (settled)
+  RUN-TIME STATE: no controlled stop (0x08=0), carrier up. Slow-basin state: NOT probed at exit
+       (last full-churn run ended 03:36 burn -- the 03:36 burn also clears any basin residue).
+
+PEER-SIDE ARTIFACTS (left in /tmp on 192.168.0.38, persistent until reboot)
+  /tmp/c1_C1{A,B,B2}_{snap.log,churn.txt,churn.err,nstat_pre,nstat_post,pre,post,ctl.pcap0..3,ctl.err}
+  /tmp/c1_dump_C1{A,B,B2}/  (56 x 64 KB candidate dumps)  /tmp/c1_dump_C1*B*.tgz
+  /tmp/c1_arm.sh  /tmp/c1_align.cpp  /tmp/c1_align
+  local copies: raw/ + runs/ + burn/ under this round dir (see SHA256SUMS.txt)
+
+PW: PEER_PW never written to any file in this round (env prefix only).

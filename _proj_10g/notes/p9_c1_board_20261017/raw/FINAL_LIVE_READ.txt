@@ -1,0 +1,17 @@
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x00000028   (want 0x00000028 = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1792179483.178054615
+ID_RC=0
+BID_0x04=Read 32-bit value at address 0x4 (0x7899d527b004): 0x00000028
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x7d8737a8c008): 0x00000000
+CARRIER=1
+ROUTE=192.168.100.2 dev enp1s0f1np1 src 192.168.100.100 uid 0 
+--- leftovers ---
+(empty=clean)
+SS_ALL_8080=8
+GENERAL.STATE:                          10 (unmanaged)
+IP4.ADDRESS[1]:                         192.168.100.100/32
+Adaptive RX: off  TX: n/a
+rx-usecs:	0

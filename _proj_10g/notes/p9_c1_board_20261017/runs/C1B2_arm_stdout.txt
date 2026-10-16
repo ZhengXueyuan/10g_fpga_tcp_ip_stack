@@ -1,0 +1,153 @@
+### C1M_BEGIN tag=C1B2 gen=0x24 secs=300 run_timeout=390 churn_extra='' 1792178881.057285450
+### CHURN_MD5 ac2c89bf074f7dde979404776bfe35b5
+### CHURN_SIZE 140576
+### SNAP_MD5 a257af8299904789c6a6dd9ed5ca030f
+### SNAP_ARGS NW=71 EXPECT_BID=0x00000024 UNIMPL=0x14C KW='5 20 43 51 52 55 63 64'
+--- fd limit (must cover ~300x100 open fds) ---
+ULIMIT_BEFORE soft=1024 hard=1048576 want=65536
+ULIMIT_SET_RC=0
+ULIMIT_AFTER soft=65536 hard=65536
+--- leftover precheck (must be empty) ---
+LEFTOVER_CLEAN
+--- board identity gate (before run) ---
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x00000024   (want 0x00000024 = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1792178881.118696517
+ID_RC=0
+BID_0x04=Read 32-bit value at address 0x4 (0x7a6685957004): 0x00000024
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x79679a74e008): 0x00000000
+CARRIER=1
+ROUTE_GET=192.168.100.2 dev enp1s0f1np1 src 192.168.100.100 uid 0 
+--- pcap (single, 'ctl'): full 'tcp port 8080', snaplen 128, 256MBx4 ring ---
+TCPDUMP_ARMED /tmp/c1_C1B2_ctl.err (waited ~0s)
+CTL_PID=2176366
+--- board snapshot ring (background; one point per ~0.15 s) ---
+SNAP_PID=2176370
+--- peer kernel counters (before) ---
+TcpInSegs                       186185199          0.0
+TcpOutSegs                      75234207           0.0
+TcpRetransSegs                  218278             0.0
+TcpExtDelayedACKs               7113               0.0
+TcpExtDelayedACKLocked          67                 0.0
+TcpExtDelayedACKLost            62723              0.0
+TcpExtTCPPureAcks               32973              0.0
+TcpExtTCPHPAcks                 27983              0.0
+TcpExtTCPFastRetrans            1864               0.0
+TcpExtTCPOFOQueue               69807              0.0
+TcpExtTCPACKSkippedSeq          5                  0.0
+--- SNAP_PRE (explicit) 1792178881.230111115 ---
+SNAP_BEGIN C1B2_PRE gen=635
+W5   0x34   gmii_free_FE           0x6ae5a824
+W20  0x70   mac_tx_frames          0x01b513fe
+W43  0xCC   mtx_stat_tx_words      0x6adf8689
+W51  0xEC   app_tx_bytes           0x38717c64
+W52  0xF0   app_tx_frames          0x0063ac1c
+W55  0xFC   tx_stat_retx           0x00000299
+W63  0x11C  app_frmwait_cyc        0x38a7d86c
+W64  0x120  app_bp_cyc             0xf22d923f
+SNAP_END C1B2_PRE nff=0
+--- main run: p7b_tcp_churn (timeout 390s; churn window 300s + hold 5s) ---
+CHURN_PID=2176497
+--- SNAP_MID SKIPPED (CHURN_SUM not seen before exit; kill -0 check) 1792179186.383678372 ---
+### CHURN_RC=0 T0=1792178881.270245806 T1=1792179186.385058514 T1-T0=305.115
+--- SNAP_POST (explicit; after exit FIN flood) 1792179186.387150049 ---
+SNAP_BEGIN C1B2_POST gen=2192
+W5   0x34   gmii_free_FE           0x84d90084
+W20  0x70   mac_tx_frames          0x040cc24d
+W43  0xCC   mtx_stat_tx_words      0x84cbce82
+W51  0xEC   app_tx_bytes           0x3b97e547
+W52  0xF0   app_tx_frames          0x00eae341
+W55  0xFC   tx_stat_retx           0x00000dbf
+W63  0x11C  app_frmwait_cyc        0x8c6ebedd
+W64  0x120  app_bp_cyc             0x4cc6e3de
+SNAP_END C1B2_POST nff=0
+--- peer kernel counters (after) ---
+TcpInSegs                       212044407          0.0
+TcpOutSegs                      91973202           0.0
+TcpRetransSegs                  503889             0.0
+TcpExtDelayedACKs               7130               0.0
+TcpExtDelayedACKLocked          67                 0.0
+TcpExtDelayedACKLost            128662             0.0
+TcpExtTCPPureAcks               33011              0.0
+TcpExtTCPHPAcks                 28115              0.0
+TcpExtTCPFastRetrans            1864               0.0
+TcpExtTCPOFOQueue               158413             0.0
+TcpExtTCPACKSkippedSeq          5                  0.0
+--- teardown: stop snapshot ring + pcap ---
+ctl STOPPED_GRACEFULLY (~0s)
+--- pcap stats (tcpdump self-report) ---
+42452964 packets captured
+42453948 packets received by filter
+0 packets dropped by kernel
+-rw-r--r-- 1 tcpdump tcpdump 256000036 Oct 17 03:31 /tmp/c1_C1B2_ctl.pcap0
+-rw-r--r-- 1 tcpdump tcpdump 256000062 Oct 17 03:32 /tmp/c1_C1B2_ctl.pcap1
+-rw-r--r-- 1 tcpdump tcpdump 256000136 Oct 17 03:32 /tmp/c1_C1B2_ctl.pcap2
+-rw-r--r-- 1 tcpdump tcpdump  27535556 Oct 17 03:33 /tmp/c1_C1B2_ctl.pcap3
+f12f567692ff2c2801feeebad037377ee07ac0bca9a6617434ea1a82c2e2c51e  /tmp/c1_C1B2_ctl.pcap0
+006639183add938c920ba0b71d14552adb88094377ed831081a0284e97ea0154  /tmp/c1_C1B2_ctl.pcap1
+57c5435a9d6b3433711c019d95de128f9caf59751ce791b36084404addf23144  /tmp/c1_C1B2_ctl.pcap2
+83dfc11428688f77df174f66e235f27044430b676d01cdde857b46691c08b117  /tmp/c1_C1B2_ctl.pcap3
+--- churn witness lines (verbatim) ---
+CHURN_ULIMIT soft=65536 hard=65536 need=16384 ok=1
+CHURN_OPTS connect_interval_ms=10 rcvbuf=1048576 seconds=300 safe_close=0 restart_scan=1
+CHURN_TARGET host=192.168.100.2 port=8080 local_port=0 max_conns=33000
+CHURN_LIMITS prefix_kb=64 scan_bytes=4096 dump_dir=/tmp/c1_dump_C1B2 dump_max=8192 hold_s=5
+CHURN_NEEDLE len=32 fnv1a32=0xF372FA09 first16=7F 0B 02 E5 36 A1 4E D6 1A B0 49 B8 56 AD D6 3F 
+CHURN_RCVBUF req=1048576 eff_after_set=2097152 (内核通常 x2；clamp=rmem_max)
+--- churn stderr (verbatim; empty=clean) ---
+--- CHURN_SUM (verbatim) ---
+CHURN_SUM conns=30000 estab=299 connecting=12926 connfail=16775 eof=0 reset=0 err=0 closed_safe=0 bytes=13974216435 window_s=305.000 conn_window_s=300.000 rate_per_s=100.000 estab_rate_per_s=0.997 gap_max_ms=17.941 verdict_off0=84 verdict_offk=4 candidates=28 candidates_full=28 candidates_short=0 short_lt32=0 nodata=29884 dumps=28 dumps_skipped=0 dump_fail=0 cap_hit=0 safe_close=0 needle_len=32 scan_bytes=4096 CPU_FREQ_KHZ=3900283
+CHURN_DONE
+--- restart@off distribution ---
+conns_reported=30000
+  29884 restart@off=na
+     84 restart@off=0
+     28 restart@off=-1
+      1 restart@off=748
+      1 restart@off=504
+      1 restart@off=1460
+      1 restart@off=106
+--- restart@off=-1 candidate lines (first 10) ---
+CHURN conn=237 bytes=1772355910 restart@off=-1 idle_ms=300260.162 state=estab why=0 why_str=- closed_by=- reads=78619 scan_bytes=4096 prefix_bytes=65536 dur_ms=302630.303 estab_ms=0.096 last_rx_ms=300260.162 CPU_FREQ_KHZ=3900283
+CHURN conn=1564 bytes=27326820 restart@off=-1 idle_ms=287325.628 state=estab why=0 why_str=- closed_by=- reads=294 scan_bytes=4096 prefix_bytes=65536 dur_ms=289360.288 estab_ms=0.241 last_rx_ms=287325.628 CPU_FREQ_KHZ=3900283
+CHURN conn=2039 bytes=171149960 restart@off=-1 idle_ms=282358.236 state=estab why=0 why_str=- closed_by=- reads=1451 scan_bytes=4096 prefix_bytes=65536 dur_ms=284610.186 estab_ms=0.341 last_rx_ms=282358.236 CPU_FREQ_KHZ=3900283
+CHURN conn=2988 bytes=13045100 restart@off=-1 idle_ms=272763.364 state=estab why=0 why_str=- closed_by=- reads=53 scan_bytes=4096 prefix_bytes=65536 dur_ms=275120.214 estab_ms=0.684 last_rx_ms=272763.364 CPU_FREQ_KHZ=3900283
+CHURN conn=4175 bytes=19055920 restart@off=-1 idle_ms=260976.020 state=estab why=0 why_str=- closed_by=- reads=71 scan_bytes=4096 prefix_bytes=65536 dur_ms=263250.308 estab_ms=1.208 last_rx_ms=260976.020 CPU_FREQ_KHZ=3900283
+CHURN conn=4650 bytes=14702200 restart@off=-1 idle_ms=256151.087 state=estab why=0 why_str=- closed_by=- reads=36 scan_bytes=4096 prefix_bytes=65536 dur_ms=258499.400 estab_ms=1.568 last_rx_ms=256151.087 CPU_FREQ_KHZ=3900283
+CHURN conn=5124 bytes=19971340 restart@off=-1 idle_ms=251410.598 state=estab why=0 why_str=- closed_by=- reads=55 scan_bytes=4096 prefix_bytes=65536 dur_ms=253759.921 estab_ms=1.336 last_rx_ms=251410.598 CPU_FREQ_KHZ=3900283
+CHURN conn=6852 bytes=24183440 restart@off=-1 idle_ms=233855.085 state=estab why=0 why_str=- closed_by=- reads=53 scan_bytes=4096 prefix_bytes=65536 dur_ms=236479.443 estab_ms=2.410 last_rx_ms=233855.085 CPU_FREQ_KHZ=3900283
+CHURN conn=9885 bytes=38776140 restart@off=-1 idle_ms=203518.188 state=estab why=0 why_str=- closed_by=- reads=81 scan_bytes=4096 prefix_bytes=65536 dur_ms=206149.061 estab_ms=3.736 last_rx_ms=203518.188 CPU_FREQ_KHZ=3900283
+CHURN conn=11989 bytes=45662960 restart@off=-1 idle_ms=182472.856 state=estab why=0 why_str=- closed_by=- reads=203 scan_bytes=4096 prefix_bytes=65536 dur_ms=185106.881 estab_ms=4.170 last_rx_ms=182472.856 CPU_FREQ_KHZ=3900283
+--- sample conn lines (first 3 / last 3) ---
+CHURN conn=0 bytes=2208803640 restart@off=0 idle_ms=302630.253 state=estab why=0 why_str=- closed_by=- reads=204890 scan_bytes=4096 prefix_bytes=65536 dur_ms=305000.319 estab_ms=0.108 last_rx_ms=302630.253 CPU_FREQ_KHZ=3900283
+CHURN conn=1 bytes=0 restart@off=na idle_ms=304990.319 state=connfail why=110 why_str=Connection timed out closed_by=connfail reads=0 scan_bytes=0 prefix_bytes=0 dur_ms=304990.319 estab_ms=-1.000 last_rx_ms=-1.000 CPU_FREQ_KHZ=3900283
+CHURN conn=2 bytes=0 restart@off=na idle_ms=304980.319 state=connfail why=110 why_str=Connection timed out closed_by=connfail reads=0 scan_bytes=0 prefix_bytes=0 dur_ms=304980.319 estab_ms=-1.000 last_rx_ms=-1.000 CPU_FREQ_KHZ=3900283
+CHURN conn=29997 bytes=0 restart@off=na idle_ms=5028.032 state=connecting why=0 why_str=- closed_by=- reads=0 scan_bytes=0 prefix_bytes=0 dur_ms=5028.032 estab_ms=-1.000 last_rx_ms=-1.000 CPU_FREQ_KHZ=3900283
+CHURN conn=29998 bytes=0 restart@off=na idle_ms=5017.208 state=connecting why=0 why_str=- closed_by=- reads=0 scan_bytes=0 prefix_bytes=0 dur_ms=5017.208 estab_ms=-1.000 last_rx_ms=-1.000 CPU_FREQ_KHZ=3900283
+CHURN conn=29999 bytes=0 restart@off=na idle_ms=5006.465 state=connecting why=0 why_str=- closed_by=- reads=0 scan_bytes=0 prefix_bytes=0 dur_ms=5006.465 estab_ms=-1.000 last_rx_ms=-1.000 CPU_FREQ_KHZ=3900283
+--- CHURN_T trajectory (first 3 / last 3) ---
+CHURN_TARGET host=192.168.100.2 port=8080 local_port=0 max_conns=33000
+CHURN_T t=1.0 conns=100 estab=1 connecting=99 connfail=0 eof=0 reset=0 err=0 closed_safe=0 bytes=1018410885 rx_MBps=1018.411 CPU_FREQ_KHZ=3841632
+CHURN_T t=2.0 conns=200 estab=1 connecting=199 connfail=0 eof=0 reset=0 err=0 closed_safe=0 bytes=1887844685 rx_MBps=869.434 CPU_FREQ_KHZ=3900288
+CHURN_T t=302.9 conns=30000 estab=296 connecting=12929 connfail=16775 eof=0 reset=0 err=0 closed_safe=0 bytes=13950733795 rx_MBps=11.522 CPU_FREQ_KHZ=3857012
+CHURN_T t=303.9 conns=30000 estab=297 connecting=12928 connfail=16775 eof=0 reset=0 err=0 closed_safe=0 bytes=13962267795 rx_MBps=11.534 CPU_FREQ_KHZ=3895064
+CHURN_T t=304.9 conns=30000 estab=299 connecting=12926 connfail=16775 eof=0 reset=0 err=0 closed_safe=0 bytes=13973381315 rx_MBps=11.114 CPU_FREQ_KHZ=3900283
+--- CHURN_DUMP lines count / dump dir listing ---
+28
+28
+total 2680
+drwxr-xr-x  2 root root   4096 Oct 17 03:33 .
+drwxrwxrwt 31 root root 901120 Oct 17 03:33 ..
+-rw-r--r--  1 root root  65536 Oct 17 03:33 churn_conn000237.bin
+-rw-r--r--  1 root root  65536 Oct 17 03:33 churn_conn001564.bin
+1.8M	/tmp/c1_dump_C1B2
+--- board state (after) ---
+BID_0x04=Read 32-bit value at address 0x4 (0x72473116c004): 0x00000024
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x7351a5d8d008): 0x00000000
+CARRIER=1
+SS_ESTAB_8080=1
+SS_ALL_8080=299
+(empty = no leftover processes)
+### C1M_END tag=C1B2 1792179188.710880598
