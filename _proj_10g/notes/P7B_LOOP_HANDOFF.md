@@ -429,5 +429,6 @@ $PY _proj_10g/notes/p7b_board_stagec/an_runs.py <run_STC_*.log> ...   # 逐跑�
 3. **P-3 窗口命中**（若必须判 ⇒ 新仪器，一次构建；与"快照构建"同批评估）。
 4. **快照阵列异步复位族**（`0x28` 全局 WNS `+0.065` = 周期 1.02%，宿主 = `user_reset_reg → snap_words_r_reg[{2224,2066,2277}]/CLR`）⇒ **任何加快照字的改动先看它**（快照字 ≈ +96 FF/字 三份）。
 5. **kimi 解禁后的复审队列**：v3r3 errata 附录 · SUPERSEDED ×4 · 折叠-4 / fold-5 产出 · 收尾文档轮直改（`:75`/`:480`）。
+6. ⛔ **2026-10-17 订正（双 SFP+ 计划轮现核；同时覆盖本仓旧件 `P7B_A7_HANDOFF.md:223` / `P7B_LONGSEND_*:756/:111` / `P7B_RETXFIX_ACCEPT2.md:212/:232` 与本 `§6` 上方各块里的同款警告）**：旧警告"`vivado_prj/…/imports/board/wrapper_p4.v` 是 **BID 0xA 旧版（0 处 `ack_seen`）** ⇒ GUI 重编踩'永久禁发'陷阱"的**具体前提已不成立** —— 2026-10-17 亲读：该 imports 件与 `board/wrapper_p4.v` **逐字节相同**（双 sha `3b39c85f509c09b0ce5ffb31014034f34d976f36bd1a2954b504c6e323dd68a2`、`ack_seen` **9 处** = `0x28` 代）。⇒ 旧句按"**历史**"读；**纪律不变：构建一律只走 `board/run_build_p7b_ku5p.bat`**（理由改为"`vivado_prj` 工程面可能以别的方式陈旧/漂移"，不再是那条具名旧版文件；**要动 `vivado_prj` 前先核 `ack_seen`/BID/几何与现树是否一致**）。
 
 *本块与上文各 §6 块冲突时以本块为准；**判据层 PASS/FAIL 裁定权在用户/判据所有者**。*
