@@ -2182,7 +2182,7 @@ module wrapper_p4 (
     //   · 0x1C 版此处为 `1'b0` 的"可证惰性"论证 (静态检查零例外 + arm B 逐字同) 见
     //     `_proj_10g/notes/p7b_build_0x1C/REPORT.md` (历史)。
     //   · 回退点 = 这一处改回 `1'b0` (参数默认值 = `1'b0`, 见 `rtl/tcp_tx_frame.v:299`)。
-    tcp_tx_frame #(.RING_CAP(WIN_CAP_5), .PERSIST_EN(1'b1)) u_tcp_tx (
+    tcp_tx_frame #(.RING_CAP(WIN_CAP_5), .PERSIST_EN(1'b0)) u_tcp_tx (
         .clk            (dp_clk),
         .rst_n          (dp_rst_n),
         .s_axis_tdata   (txin_tdata),
@@ -4374,7 +4374,7 @@ module wrapper_p4 (
 
     axi_regs #(
         .MAGIC_V    (32'h50360001),
-        .BUILD_ID_V (32'h00000028),     // ⚠️ 每次改动自增 (前置闸读这一项认位流; E12 观测计数器 = 0x28)
+        .BUILD_ID_V (32'h00000029),     // ⚠️ 每次改动自增 (前置闸读这一项认位流; PERSIST_EN 拆刀（persist＝关；0x28 内容）= 0x29)
                                         //   ⭐ 本轮构建 (2026-10-15): **0x27 → 0x28** = **E12 观测计数器**
                                         //      (换流门四计数器: `stat_up_ev` / `stat_sw_req` /
                                         //       `stat_sw_apply` / `stat_up_pend` —— `rtl/app_pattern.v`

@@ -1,0 +1,10 @@
+diff --git a/board/wrapper_p4.v b/board/wrapper_p4.v
+index 6fca4dbf..2c003d22 100644
+--- a/board/wrapper_p4.v
++++ b/board/wrapper_p4.v
+@@ -2185 +2185 @@ module wrapper_p4 (
+-    tcp_tx_frame #(.RING_CAP(WIN_CAP_5), .PERSIST_EN(1'b1)) u_tcp_tx (
++    tcp_tx_frame #(.RING_CAP(WIN_CAP_5), .PERSIST_EN(1'b0)) u_tcp_tx (
+@@ -4377 +4377 @@ module wrapper_p4 (
+-        .BUILD_ID_V (32'h00000028),     // ⚠️ 每次改动自增 (前置闸读这一项认位流; E12 观测计数器 = 0x28)
++        .BUILD_ID_V (32'h00000029),     // ⚠️ 每次改动自增 (前置闸读这一项认位流; PERSIST_EN 拆刀（persist＝关；0x28 内容）= 0x29)

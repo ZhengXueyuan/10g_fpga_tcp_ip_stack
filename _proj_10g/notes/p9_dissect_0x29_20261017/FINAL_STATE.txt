@@ -1,0 +1,25 @@
+=== FINAL_STATE (RESTORE_0x28) Sat Oct 17 04:26:52     2026
+BID_0x04=Read 32-bit value at address 0x4 (0x78e4f6976004): 0x00000028
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x7e2a955e2008): 0x00000000
+MAGIC_0x00=Read 32-bit value at address 0x0 (0x78f644cc4000): 0x50360001
+UNIMPL_0x15C=Read 32-bit value at address 0x15c (0x7881f7dd315c): 0xffffffff
+CARRIER=1
+ROUTE_GET=192.168.100.2 dev enp1s0f1np1 src 192.168.100.100 uid 0 
+ADAPTIVE_RX=Adaptive RX: off  TX: n/a rx-usecs:	0 
+GENERAL.STATE:                          10 (unmanaged)
+		LnkSta:	Speed 5GT/s (downgraded), Width x4
+--- NIC_FINAL ---
+     port_rx_good_bytes: 376451990763
+     port_rx_packets: 248119869
+     port_rx_bad: 14823
+     rx_eth_crc_err: 14823
+--- board-side snapshot id ---
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x00000028   (want 0x00000028 = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1792182417.261409120
+ID_RC=0
+--- leftover procs ---
+(空=无残留进程)
+=== FINAL_STATE_END Sat Oct 17 04:26:58     2026 ===

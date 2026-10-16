@@ -1,0 +1,67 @@
+# (build 0x29) bit sha256 = 9c9675436b5084a483b50d846d52a2b27ca56992ba90fe1761b3d4d6cd595e7e  size = 15431261
+SW_CRC raw-header candidate = NOT-FOUND
+--- 三类失败端点 (routed timing summary) ---
+  'Slack (VIOLATED)' 行数 = 0
+  'All user specified timing constraints are met.' in file = True
+--- DRC ---
+  Checks found: 69
+  ROUTE: # of nets with routing errors.......... :           0 :
+--- 资源 (placed) ---
+  | CLB LUTs | 75986 | 0 | 0 | 216960 | 35.02 |
+  | CLB Registers | 74469 | 0 | 0 | 433920 | 17.16 |
+  | CLB Registers | 74469 | 0 | 0 | 433920 | 17.16 |
+  | Block RAM Tile | 348 | 0 | 0 | 480 | 72.50 |
+  | URAM | 1 | 0 | 0 | 64 | 1.56 |
+  | DSPs | 4 | 0 | 0 | 1824 | 0.22 |
+  | Bonded IOB | 10 | 10 | 0 | 280 | 3.57 |
+  | GTYE4_CHANNEL | 6 | 6 | 0 | 16 | 37.50 |
+  | GTYE4_CHANNEL | 6 | Advanced |
+  | URAM288 | 1 | BLOCKRAM |
+--- XDMA 断言组 (board stdout) ---
+  # if {$conv < 0} { puts "P7B_VERDICT = IP_NOT_CONVERGED" ; exit 1 }
+  # puts "P7B_XDMA_RC_BASE = $xrc ; MSG = <$xerr>"
+  P7B_XDMA_RC_BASE = 0 ; MSG = <>
+  # puts "P7B_XDMA_RC_INTF = $xrc2 ; MSG = <$xerr2>"
+  P7B_XDMA_RC_INTF = 0 ; MSG = <AXI_Stream>
+  # if {$xrc != 0 || $xrc2 != 0} { set xdma_bad 1 ; puts "P7B_XDMA_CFG_CATCH_FAIL" }
+  #         if {[string first $pat $m] >= 0} { puts "P7B_XDMA_MSG_HIT <$pat> MSG=<$m>" ; set xdma_bad 1 }
+  #         incr xdma_rb_bad ; puts "P7B_XDMA_RB_MISMATCH $k want=<$v> got=<$gv>"
+  # puts "P7B_XDMA_RB_MISMATCH_N = $xdma_rb_bad"
+  P7B_XDMA_RB_MISMATCH_N = 0
+  # puts "P7B_XDMA_GEN_FILE = $xdma_gen_file"
+  P7B_XDMA_GEN_FILE = D:/repo/XCKU5PMini/udp_hls_10g/vivado_prj/p7b_ku5p_prj.gen/sources_1/ip/xdma_0/synth/xdma_0.sv
+  #     set xdma_gen_bad 1 ; puts "P7B_XDMA_GEN_MISSING (无生成产物可解析)"
+  #         if {[string first $t $gtxt] < 0} { incr xdma_gen_bad ; puts "P7B_XDMA_GEN_MISS <$t>" }
+  #     puts "P7B_XDMA_GEN_BAD_N = $xdma_gen_bad"
+  P7B_XDMA_GEN_BAD_N = 0
+  # puts "P7B_XDMA_CFG_DUMP = $xdma_cfg_mine"
+  P7B_XDMA_CFG_DUMP = D:/repo/XCKU5PMini/udp_hls_10g/board/p7b_ku5p_xdma_cfg_post_gen.txt
+  #         incr xdma_diff_bad ; puts "P7B_XDMA_CFGREF_MISSING $tag $ref" ; continue
+  #     puts "P7B_XDMA_CFGDIFF_${tag}_N = [llength $dk] ; {[join $dk { }]}"
+  #     foreach k $dk { if {[lsearch -exact $exp $k] < 0} { incr xdma_diff_bad ; puts "P7B_XDMA_CFGDIFF_UNEXPECTED $tag $k" } }
+  #     foreach k $exp { if {[lsearch -exact $dk $k] < 0} { incr xdma_diff_bad ; puts "P7B_XDMA_CFGDIFF_MISSING $tag $k" } }
+  P7B_XDMA_CFGDIFF_ST_N = 1 ; {CONFIG.Component_Name}
+  P7B_XDMA_CFGDIFF_MM_N = 2 ; {CONFIG.Component_Name CONFIG.xdma_axi_intf_mm}
+  #     puts "P7B_VERDICT = XDMA_ST_CFG_FAIL"
+  # puts "P7B_XDMA_VERDICT = OK (AXI_Stream / 回�?? 13/13 / 生成参数 6/6 / 参照 diff �?�?预期�?)"
+  P7B_XDMA_VERDICT = OK (AXI_Stream / 回�?? 13/13 / 生成参数 6/6 / 参照 diff �?�?预期�?)
+  #     puts "P7B_VERDICT = SYNTH_FAIL"
+--- 构建输入哈希 (MODE=build) -> D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_dissect_0x29_20261017\build\BUILD_INPUT_HASHES_0x29.txt (rc=0) ---
+  vs 0x28 轮清单: 变化件数 = 1
+    board/wrapper_p4.v : 3b39c85f509c09b0 -> dc40acb62c9cac6f
+--- 三类失败端点 (design timing summary, 逐字) ---
+    WNS +0.060 / TNS Failing Endpoints = 0 / TNS Total = 259,495
+    WHS +0.010 / THS Failing Endpoints = 0 / THS Total = 259,495
+    WPWS 0.000 / TPWS Failing Endpoints = 0 / TPWS Total = 84,157
+    'All user specified timing constraints are met.' = True ; 'Slack (VIOLATED)' = 0
+--- 对照 0x28 (BID 0x28) ---
+    WNS +0.065 / WHS +0.010 / 0 / 0 / 0 (261,189 / 261,189 / 84,774)
+    placed = 77,631 LUT / 75,086 FF / 348 BRAM / 1 URAM
+    => 本件 (0x29): placed = 75,986 LUT / 74,469 FF / 348 BRAM / 1 URAM / 4 DSP / 6 GTYE4
+       Δ = -1,645 LUT / -617 FF (单比特刀 (#64): 常量参与综合/实现; 只登记, 不归因)
+--- 构建输入绑定 ---
+    vs 0x28 轮 BUILD_INPUT_HASHES.txt: 变化恰 1 件 = board/wrapper_p4.v (3b39c85f -> dc40acb6)
+    ⇒ 构建消费的源 == 预期改动 (恰两行), 无其它源漂移
+--- 时间线 ---
+    03:48:31 归档块 (pre-build; 捕获 0x28 位流 79c9cf43…) -> 04:17:06 Exiting Vivado (28.5 min)
+    P7B_CONVERGED_AT_ROUND = 2 ; P7B_IS_LOCKED_POSTGEN = 0

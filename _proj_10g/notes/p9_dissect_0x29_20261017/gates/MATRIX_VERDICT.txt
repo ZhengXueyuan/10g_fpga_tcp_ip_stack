@@ -1,0 +1,8 @@
+=== 0x29 矩阵收口 (04:26:52 -> 04:53:37; 26.7 min) ===
+MATRIX_RC = 0
+gates run   : 19 / 19
+gates failed: 0
+VERDICT: FROZEN (272 件 before==after 逐位; DIGEST_ALL=94e3042f... 两边逐字相同; HEAD=e2850f1b)
+DIGEST_COMPILE = 942ff7efd8806e740d47c4204babac6bf362b0b822dfe4b3b0d1ee355715fd95 / FILES=221
+P9-SWC-GATE: PASS
+before/after 指纹文件 1 字节差 = sim/f3_resync/mut/mut_m1.v 的 mtime 字段 (content-v1: mtime 是元数据不入指纹; 该 mutant 由门自己重生成) => 内容冻结成立

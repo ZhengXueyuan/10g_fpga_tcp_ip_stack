@@ -1,0 +1,10 @@
+=== DEPLOY_D29 1792180250.569196900 ===
+6d9b14f24725fa326ffe5b169f77e30f  /tmp/d29_p7b_tcp_sink_6d9b14f2
+-rwxrwxr-x 1 a a 169392 Oct 17 03:50 /tmp/d29_p7b_tcp_sink_6d9b14f2
+PUT OK _proj_10g/notes/p9_dissect_0x29_20261017/board/arm_d29.sh -> /tmp/d29_arm.sh
+-rw-rw-r-- 1 a a 6858 Oct 17 03:50 /tmp/d29_arm.sh
+6ffe8cf1c4bb4b6296a24bafdd45f7f3  /tmp/d29_arm.sh
+#!/bin/bash
+# arm_d29.sh -- 0x29 拆刀轮: S-0 LEGACY 构型执行件 (同锚复跑件)
+#   母本 = p9_s0bisect_board_20261016/_tools/arm_s0.sh (逐字保留其三条抓包硬门 + 身份闸 + NIC 见证)
+SYNTAX_OK

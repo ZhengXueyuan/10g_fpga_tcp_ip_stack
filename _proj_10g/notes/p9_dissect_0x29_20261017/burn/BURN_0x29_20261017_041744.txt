@@ -1,0 +1,81 @@
+=== BURN_BEGIN tag=0x29 NW=75 BID=0x29 UNIMPL=0x15C 1792181864.434190300 Sat Oct 17 04:17:44     2026
+--- 1) sha256 门 (源件) + 复制到本轮 burn/ ---
+9c9675436b5084a483b50d846d52a2b27ca56992ba90fe1761b3d4d6cd595e7e *_proj_10g/notes/p9_dissect_0x29_20261017/build/wrapper_p4.bit
+SHA_WANT=9c9675436b5084a483b50d846d52a2b27ca56992ba90fe1761b3d4d6cd595e7e
+SHA_GOT =9c9675436b5084a483b50d846d52a2b27ca56992ba90fe1761b3d4d6cd595e7e
+SHA_OK (源件 == 期望值)
+9c9675436b5084a483b50d846d52a2b27ca56992ba90fe1761b3d4d6cd595e7e */d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_dissect_0x29_20261017/burn/wrapper_p4_0x29.bit
+LOCAL_BIT /d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_dissect_0x29_20261017/burn/wrapper_p4_0x29.bit size=15431261 mtime=2026-10-17 04:17:44.576616800 +0800
+--- 2) 烧前现态 + hw_server + xdma 驱动 insmod ---
+active
+--- lspci before ---
+	Region 0: Memory at df200000 (32-bit, non-prefetchable) [size=1M]
+	Region 1: Memory at df300000 (32-bit, non-prefetchable) [size=64K]
+		LnkSta:	Speed 5GT/s (downgraded), Width x4
+	Memory behind bridge: df200000-df3fffff [size=2M] [32-bit]
+--- lsmod ---
+xdma                  110592  0
+xdma                  110592  0
+--- /dev ---
+/dev/xdma0_control
+/dev/xdma0_user
+--- 3) 烧录 (JTAG via 192.168.0.38:3121, 1MHz) 1792181870 ---
+BURN_STDOUT=/d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p7b_biz_tcpreg/tcpreg_program_stdout.txt mtime=1792182002 T0=1792181870 age=132s
+--- burn stdout 关键行 (逐字) ---
+# puts "TCPREG_BIT = $bit"
+TCPREG_BIT = D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_dissect_0x29_20261017\burn\wrapper_p4_0x29.bit
+# puts "TCPREG_BIT_EXISTS = [file exists $bit]"
+TCPREG_BIT_EXISTS = 1
+# puts "TCPREG_BIT_MTIME = [file mtime $bit]"
+TCPREG_BIT_MTIME = 1792181864
+# puts "TCPREG_PROG device=$dev freq=1MHz"
+TCPREG_PROG device=xcku5p_0 freq=1MHz
+# if {![file exists $bit]} { puts "TCPREG-ABORT: bitstream missing"; exit 1 }
+# if {[catch {program_hw_devices $dev} em]} { puts "TCPREG-ABORT PROGRAM FAILED: $em"; exit 1 }
+INFO: [Labtools 27-3164] End of startup status: HIGH
+# puts "TCPREG_PROG_DONE (检查上�? 'End of startup status: HIGH')"
+TCPREG_PROG_DONE (检查上�? 'End of startup status: HIGH')
+BURN_OK (HIGH+DONE+路径+新鲜度+无ABORT 五判据)
+--- 4) PCIe 恢复: 场景C => 根端口级 remove+rescan 1792182003 ---
+--- 桥窗 before ---
+	Memory behind bridge: df200000-df3fffff [size=2M] [32-bit]
+--- 桥窗 after ---
+	Memory behind bridge: df200000-df3fffff [size=2M] [32-bit]
+--- lspci 02:00.0 ---
+02:00.0 Serial controller: Xilinx Corporation Device 9034
+	Region 0: Memory at df200000 (32-bit, non-prefetchable) [size=1M]
+	Region 1: Memory at df300000 (32-bit, non-prefetchable) [size=64K]
+		LnkSta:	Speed 5GT/s (downgraded), Width x4
+--- /dev ---
+crw------- 1 root root 235, 36 Oct 17 04:20 /dev/xdma0_c2h_0
+crw------- 1 root root 235,  1 Oct 17 04:20 /dev/xdma0_control
+crw------- 1 root root 235, 32 Oct 17 04:20 /dev/xdma0_h2c_0
+crw------- 1 root root 235,  0 Oct 17 04:20 /dev/xdma0_user
+--- dmesg (identify_bars / probe) ---
+[14581.912977] xdma:identify_bars: 2 BARs: config 1, user 0, bypass -1.
+[14581.913123] xdma:probe_one: 0000:02:00.0 xdma0, pdev 0x00000000a016f4df, xdev 0x00000000f93d8413, 0x00000000c5e6e8b3, usr 16, ch 1,1.
+[15478.661920] xdma:map_bars: config bar 1, pos 1.
+[15478.661923] xdma:identify_bars: 2 BARs: config 1, user 0, bypass -1.
+[15478.662136] xdma:probe_one: 0000:02:00.0 xdma0, pdev 0x00000000a016f4df, xdev 0x00000000f93d8413, 0x00000000c5e6e8b3, usr 16, ch 1,1.
+[18018.024264] xdma:map_bars: config bar 1, pos 1.
+[18018.024265] xdma:identify_bars: 2 BARs: config 1, user 0, bypass -1.
+[18018.024428] xdma:probe_one: 0000:02:00.0 xdma0, pdev 0x00000000a016f4df, xdev 0x00000000f93d8413, 0x00000000c5e6e8b3, usr 16, ch 1,1.
+--- 5) 身份门 (读 + p7b_snap.sh id) ---
+MAGIC_0x00=Read 32-bit value at address 0x0 (0x76f776291000): 0x50360001
+BID_0x04=Read 32-bit value at address 0x4 (0x71cec222a004): 0x00000029
+MARKER_0x14=Read 32-bit value at address 0x14 (0x7339e2a80014): 0xdeadbeef
+UNIMPL_0x15C=Read 32-bit value at address 0x15c (0x7b57d601115c): 0xffffffff
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x71ca5736c008): 0x00000000
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x00000029   (want 0x29 = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_FAIL 身份不符 (烧了别的位流? 期望 BID=0x29, 实测 BID=0x00000029)
+ID_RC=1
+--- 6) 窗口扫描 (0..NW-1; 期望 NFF=0) ---
+WINDOW_SCAN_NFF=0
+--- 7) 解除受控停流 (0x08 写 0) + 链路见证 1792182018 ---
+SCRATCH_0x08(before)=Read 32-bit value at address 0x8 (0x79383ba64008): 0x00000000
+SCRATCH_0x08(after) =Read 32-bit value at address 0x8 (0x78d2ded96008): 0x00000000
+CARRIER=1
+=== BURN_END tag=0x29 1792182020.072822100 ===
