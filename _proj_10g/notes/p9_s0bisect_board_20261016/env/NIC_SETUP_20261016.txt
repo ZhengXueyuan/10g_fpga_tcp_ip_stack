@@ -1,0 +1,15 @@
+=== NIC_SETUP_BEGIN 1792165265.937730500 Fri Oct 16 23:41:05     2026 ===
+SETUP_DONE
+--- 见证 (现取) ---
+netlink error: Operation not permitted
+192.168.100.2 dev enp1s0f1np1 src 192.168.100.100 uid 1000 
+CARRIER=0
+
+    inet 192.168.100.100/32 scope global enp1s0f1np1
+enp1s0f1np1     ethernet  unmanaged               --           
+	Speed: 10000Mb/s
+	Link detected: no
+Adaptive RX: off  TX: n/a
+rx-usecs:	0
+inactive
+=== NIC_SETUP_END 1792165268.028619700 ===

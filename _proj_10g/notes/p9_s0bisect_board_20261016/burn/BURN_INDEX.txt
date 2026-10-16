@@ -1,0 +1,10 @@
+# S-0 bisect round burn index (2026-10-16/17) -- 8 burns total (budget <=8)
+# 1) BURN_0x1A_20261016_234116.txt          0x1A  sha 89e89f31...0f45  NW=70 BID=0x1A  UNIMPL=0x138
+# 2) BURN_0x1F_20261016_234636.txt          0x1F  sha e365c5ca...0133  NW=71 BID=0x1F  UNIMPL=0x14C
+# 3) BURN_0x1D_20261016_235010.txt          0x1D  sha b48dc7ee...0b1f  NW=70 BID=0x1D  UNIMPL=0x138
+# 4) BURN_0x1C_20261016_235305.txt          0x1C  sha 09c280e4...ecbf  NW=70 BID=0x1C  UNIMPL=0x138
+# 5) BURN_0x1D_20261016_235833.txt          0x1D  (2nd burn of same bitstream, run S0_1D_L2)
+# 6) BURN_0x24_20261017_000707.txt          0x24  sha e3b07957...f1db  NW=71 BID=0x24  UNIMPL=0x14C
+# 7) BURN_0x1D_r3_20261017_001006.txt       0x1D  (3rd burn of same bitstream, run S0_1D_L3)
+# 8) BURN_0x28_RESTORE_20261017_001305.txt  0x28  sha 79c9cf43...bec8  NW=75 BID=0x28  UNIMPL=0x15C
+# every burn: sha gate OK + five criteria (HIGH/DONE/path/freshness/no-ABORT) + root-port remove+rescan + id gate + NFF=0

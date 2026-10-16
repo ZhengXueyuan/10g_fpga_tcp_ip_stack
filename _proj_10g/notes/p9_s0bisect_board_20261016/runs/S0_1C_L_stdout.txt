@@ -1,0 +1,107 @@
+### S0_BEGIN tag=S0_1C_L rcvbuf=2920 conns=6 secs=60 maxbytes=200000000 ring=200MBx6 sink_extra='--rcvbuf-after-connect' 1792166146.720014505
+### SNAP_MD5 a257af8299904789c6a6dd9ed5ca030f
+### SINK_MD5 6d9b14f24725fa326ffe5b169f77e30f
+### SNAP_ARGS NW=70 EXPECT_BID=0x0000001C UNIMPL_ADDR=0x138 KW='5 20 43 51 14 15 55 57 58'
+### TCPDUMP tcpdump version 4.99.4
+--- 板侧身份闸 (跑前) ---
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x0000001c   (want 0x0000001C = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1792166146.741130223
+ID_RC=0
+BID_0x04=Read 32-bit value at address 0x4 (0x766e4c941004): 0x0000001c
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x7d43611fb008): 0x00000000
+CARRIER=1
+NETADDR=inet 192.168.100.100/32
+ROUTE_GET=192.168.100.2 dev enp1s0f1np1 src 192.168.100.100 uid 0 
+ADAPTIVE_RX=Adaptive RX: off  TX: n/a rx-usecs:	0 
+NM_MANAGED=GENERAL.STATE:                          10 (unmanaged)
+--- NIC 硬件计数 (跑前) ---
+     port_rx_good_bytes: 3957879408
+     port_rx_packets: 2607375
+     port_rx_bad: 0
+     rx_eth_crc_err: 0
+--- 抓包 ①: 控制帧普查 (FIN/RST, 全窗) ---
+TCPDUMP_ARMED /tmp/k0_S0_1C_L_ctl.err (waited ~0s)
+--- 抓包 ②: 环形全帧 (板->对端) ---
+TCPDUMP_ARMED /tmp/k0_S0_1C_L_full.err (waited ~0s)
+FULL_PID=67956 CTL_PID=67951
+--- 板侧快照环 (后台; 每 0.15s 一点) ---
+SNAP_PID=67960
+--- 对端内核计数 (跑前) ---
+TcpInSegs                       2663989            0.0
+TcpOutSegs                      2660009            0.0
+TcpRetransSegs                  86                 0.0
+TcpExtTCPFastRetrans            7                  0.0
+TcpExtTCPOFOQueue               104                0.0
+TcpExtTCPACKSkippedSeq          2                  0.0
+--- ⭐ SNAP_PRE (显式) 1792166146.973574142 ---
+SNAP_BEGIN S0_1C_L_PRE gen=2
+W43  0xCC   mtx_stat_tx_words      0xba68fd68
+W51  0xEC   app_tx_bytes           0x00000000
+W20  0x70   mac_tx_frames          0x00000000
+W5   0x34   gmii_free_FE           0xba68722d
+W14  0x58   tx_stat_frames_TCP     0x00000000
+W15  0x5C   tx_stat_bytes_TCP      0x00000000
+SNAP_END S0_1C_L_PRE nff=0
+PRE_RC=0
+--- 主跑: sink (S-0 构型; --check lane8) ---
+### SINK_RC=1 T0=1792166147.005944054 T1=1792166207.596457857 T1-T0=60.591
+--- ⭐ SNAP_POST (显式; sink 退出后立即) 1792166207.598989278 ---
+SNAP_BEGIN S0_1C_L_POST gen=312
+W43  0xCC   mtx_stat_tx_words      0xef007a55
+W51  0xEC   app_tx_bytes           0x00039be8
+W20  0x70   mac_tx_frames          0x00000446
+W5   0x34   gmii_free_FE           0xef01336c
+W14  0x58   tx_stat_frames_TCP     0x0000043a
+W15  0x5C   tx_stat_bytes_TCP      0x00181ac8
+SNAP_END S0_1C_L_POST nff=0
+POST_RC=0
+--- 对端内核计数 (跑后) ---
+TcpInSegs                       2665076            0.0
+TcpOutSegs                      2660942            0.0
+TcpRetransSegs                  106                0.0
+TcpExtTCPFastRetrans            7                  0.0
+TcpExtTCPOFOQueue               108                0.0
+TcpExtTCPACKSkippedSeq          2                  0.0
+--- 收尾: 停快照环 + 抓包 (SIGINT 优雅停) ---
+full STOPPED_GRACEFULLY (~0s)
+ctl STOPPED_GRACEFULLY (~0s)
+--- 抓包统计 (tcpdump 自报; 丢包/缺包 = 判据污染的见证) ---
+[ctl]
+24 packets captured
+25 packets received by filter
+0 packets dropped by kernel
+[full]
+1086 packets captured
+1086 packets received by filter
+0 packets dropped by kernel
+-rw-r--r-- 1 tcpdump tcpdump    1704 Oct 16 23:56 /tmp/k0_S0_1C_L_ctl.pcap
+-rw-r--r-- 1 tcpdump tcpdump 1655788 Oct 16 23:56 /tmp/k0_S0_1C_L_full.pcap0
+4d73fd017a1417293b3230f3b05d0d4b14f67389f287f186e91b10a552562736  /tmp/k0_S0_1C_L_ctl.pcap
+f4c9fe46fc4d3bbab43a4c96f2bc96c07836f1830f61a114ff6f5f4701460ef3  /tmp/k0_S0_1C_L_full.pcap0
+--- NIC 硬件计数 (跑后) ---
+     port_rx_good_bytes: 3959523780
+     port_rx_packets: 2608469
+     port_rx_bad: 0
+     rx_eth_crc_err: 0
+--- sink 摘要 (逐字) ---
+SINK_CHECK check=lane8
+SINK_LIMITS maxbytes=200000000 poll_ms=5000 stall_n=3 rcvbuf=2920 conns=6 secs=60
+SINK_RCVBUF_ORDER RCVBUF_ORDER=after_connect_LEGACY rcvbuf=2920
+SINK_CONN 0 POLL_TIMEOUT 3 x 5000 ms 无数据 (got=45260) => 中止本连接
+SINK_CONN 0 STALL bytes=45260 first_mismatch=-1 mism_bytes=0 conn_ms=0.256 dur_ms=15316.800 Mbps=0.024 reads=30 poll_tmo=3 CPU_FREQ_KHZ=3897752 THREADED=on q_full_push=30 q_full_pop=30 q_free_push=46 q_free_pop=30 slot_wait_spins=0 checked_bytes=45260
+SINK_CONN 1 POLL_TIMEOUT 3 x 5000 ms 无数据 (got=23360) => 中止本连接
+SINK_CONN 1 STALL bytes=23360 first_mismatch=0 mism_bytes=23270 conn_ms=0.153 dur_ms=15136.810 Mbps=0.012 reads=14 poll_tmo=3 CPU_FREQ_KHZ=3900297 THREADED=on q_full_push=14 q_full_pop=14 q_free_push=30 q_free_pop=14 slot_wait_spins=0 checked_bytes=23360
+SINK_CONN 2 POLL_TIMEOUT 3 x 5000 ms 无数据 (got=13140) => 中止本连接
+SINK_CONN 2 STALL bytes=13140 first_mismatch=0 mism_bytes=13088 conn_ms=0.159 dur_ms=15076.298 Mbps=0.007 reads=8 poll_tmo=3 CPU_FREQ_KHZ=3900315 THREADED=on q_full_push=8 q_full_pop=8 q_free_push=24 q_free_pop=8 slot_wait_spins=0 checked_bytes=13140
+SINK_CONN 3 POLL_TIMEOUT 3 x 5000 ms 无数据 (got=10220) => 中止本连接
+SINK_CONN 3 STALL bytes=10220 first_mismatch=0 mism_bytes=10181 conn_ms=0.116 dur_ms=15055.556 Mbps=0.005 reads=6 poll_tmo=3 CPU_FREQ_KHZ=3900301 THREADED=on q_full_push=6 q_full_pop=6 q_free_push=22 q_free_pop=6 slot_wait_spins=0 checked_bytes=10220
+SINK_SUM conns=4 fail_conns=0 bytes=91980 clean_conns=0 bad_conns=4 mismatch_bytes=46539 stall_conns=4 err_conns=0 poll_tmo=12 wall_s=60.586 net_s=60.586 agg_Mbps=0.012 THREADED=on full_push=58 full_pop=58 free_push=122 free_pop=58 slot_wait_spins=0 checked_bytes=91980 threads=8 check=lane8
+--- 板侧态 (跑后) ---
+BID_0x04=Read 32-bit value at address 0x4 (0x758f16e7a004): 0x0000001c
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x712126487008): 0x00000000
+CARRIER=1
+(空=无残留进程)
+### S0_END tag=S0_1C_L 1792166208.174987193

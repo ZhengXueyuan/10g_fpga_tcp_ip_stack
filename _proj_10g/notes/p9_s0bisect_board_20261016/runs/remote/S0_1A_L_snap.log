@@ -1,0 +1,3843 @@
+SNAP_T 1792165517.533746835
+GEN_FAIL gen 不是恰好 +1 (58 -> 60) => 有并发写者, 本代读数不可归因
+SNAP_ABORT
+SNAP_T 1792165517.696293189
+SNAP_BEGIN S0_1A_L gen=61
+W5   0x34   gmii_free_FE           0x7844f10c
+W20  0x70   mac_tx_frames          0x000c8b55
+W43  0xCC   mtx_stat_tx_words      0x7843e949
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165517.891792604
+SNAP_BEGIN S0_1A_L gen=62
+W5   0x34   gmii_free_FE           0x7a16c383
+W20  0x70   mac_tx_frames          0x000c8b55
+W43  0xCC   mtx_stat_tx_words      0x7a15baa9
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165518.087059362
+SNAP_BEGIN S0_1A_L gen=63
+W5   0x34   gmii_free_FE           0x7be86d8c
+W20  0x70   mac_tx_frames          0x000c8b55
+W43  0xCC   mtx_stat_tx_words      0x7be7639a
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165518.282546003
+SNAP_BEGIN S0_1A_L gen=64
+W5   0x34   gmii_free_FE           0x7dba44ac
+W20  0x70   mac_tx_frames          0x000c8b55
+W43  0xCC   mtx_stat_tx_words      0x7db939a3
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165518.478061441
+SNAP_BEGIN S0_1A_L gen=65
+W5   0x34   gmii_free_FE           0x7f8c67ba
+W20  0x70   mac_tx_frames          0x000c8b55
+W43  0xCC   mtx_stat_tx_words      0x7f8b5b99
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165518.673988720
+SNAP_BEGIN S0_1A_L gen=66
+W5   0x34   gmii_free_FE           0x815fb132
+W20  0x70   mac_tx_frames          0x000c8b55
+W43  0xCC   mtx_stat_tx_words      0x815ea3f9
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165518.869435020
+SNAP_BEGIN S0_1A_L gen=67
+W5   0x34   gmii_free_FE           0x8331aaed
+W20  0x70   mac_tx_frames          0x000c8b55
+W43  0xCC   mtx_stat_tx_words      0x83309c9c
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165519.065588968
+SNAP_BEGIN S0_1A_L gen=68
+W5   0x34   gmii_free_FE           0x85051cc3
+W20  0x70   mac_tx_frames          0x000c8b55
+W43  0xCC   mtx_stat_tx_words      0x85040d59
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165519.260972845
+SNAP_BEGIN S0_1A_L gen=69
+W5   0x34   gmii_free_FE           0x86d743da
+W20  0x70   mac_tx_frames          0x000c8b55
+W43  0xCC   mtx_stat_tx_words      0x86d63359
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165519.456894491
+SNAP_BEGIN S0_1A_L gen=70
+W5   0x34   gmii_free_FE           0x88aa404b
+W20  0x70   mac_tx_frames          0x000c8b55
+W43  0xCC   mtx_stat_tx_words      0x88a92eb2
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165519.652974770
+SNAP_BEGIN S0_1A_L gen=71
+W5   0x34   gmii_free_FE           0x8a7dd9c8
+W20  0x70   mac_tx_frames          0x000c8b55
+W43  0xCC   mtx_stat_tx_words      0x8a7cc716
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165519.848664610
+SNAP_BEGIN S0_1A_L gen=72
+W5   0x34   gmii_free_FE           0x8c5032db
+W20  0x70   mac_tx_frames          0x000c8b55
+W43  0xCC   mtx_stat_tx_words      0x8c4f1f11
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165520.044166185
+SNAP_BEGIN S0_1A_L gen=73
+W5   0x34   gmii_free_FE           0x8e224224
+W20  0x70   mac_tx_frames          0x000c8b55
+W43  0xCC   mtx_stat_tx_words      0x8e212d42
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165520.239941071
+SNAP_BEGIN S0_1A_L gen=74
+W5   0x34   gmii_free_FE           0x8ff4e256
+W20  0x70   mac_tx_frames          0x000c8b55
+W43  0xCC   mtx_stat_tx_words      0x8ff3cc5c
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165520.435595610
+SNAP_BEGIN S0_1A_L gen=75
+W5   0x34   gmii_free_FE           0x91c7615c
+W20  0x70   mac_tx_frames          0x000c8b55
+W43  0xCC   mtx_stat_tx_words      0x91c64a4a
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165520.631071480
+SNAP_BEGIN S0_1A_L gen=76
+W5   0x34   gmii_free_FE           0x93998826
+W20  0x70   mac_tx_frames          0x000c8b55
+W43  0xCC   mtx_stat_tx_words      0x93986ffb
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165520.826629464
+SNAP_BEGIN S0_1A_L gen=77
+W5   0x34   gmii_free_FE           0x956bb494
+W20  0x70   mac_tx_frames          0x000c8b55
+W43  0xCC   mtx_stat_tx_words      0x956a9b51
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165521.022326778
+SNAP_BEGIN S0_1A_L gen=78
+W5   0x34   gmii_free_FE           0x973df5d0
+W20  0x70   mac_tx_frames          0x000c8b55
+W43  0xCC   mtx_stat_tx_words      0x973cdb75
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165521.217694972
+SNAP_BEGIN S0_1A_L gen=79
+W5   0x34   gmii_free_FE           0x990fdade
+W20  0x70   mac_tx_frames          0x000c8b55
+W43  0xCC   mtx_stat_tx_words      0x990ebf6c
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165521.413350432
+SNAP_BEGIN S0_1A_L gen=80
+W5   0x34   gmii_free_FE           0x9ae24321
+W20  0x70   mac_tx_frames          0x000c8b55
+W43  0xCC   mtx_stat_tx_words      0x9ae12696
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165521.609159537
+SNAP_BEGIN S0_1A_L gen=81
+W5   0x34   gmii_free_FE           0x9cb54d68
+W20  0x70   mac_tx_frames          0x000c8b55
+W43  0xCC   mtx_stat_tx_words      0x9cb42fc4
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165521.804772348
+SNAP_BEGIN S0_1A_L gen=82
+W5   0x34   gmii_free_FE           0x9e87a27f
+W20  0x70   mac_tx_frames          0x000c8b55
+W43  0xCC   mtx_stat_tx_words      0x9e8683c3
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165522.000799789
+SNAP_BEGIN S0_1A_L gen=83
+W5   0x34   gmii_free_FE           0xa05ac9fa
+W20  0x70   mac_tx_frames          0x000c8b55
+W43  0xCC   mtx_stat_tx_words      0xa059aa25
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165522.196075445
+SNAP_BEGIN S0_1A_L gen=84
+W5   0x34   gmii_free_FE           0xa22c9f55
+W20  0x70   mac_tx_frames          0x000c8b55
+W43  0xCC   mtx_stat_tx_words      0xa22b7e68
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165522.391460389
+SNAP_BEGIN S0_1A_L gen=85
+W5   0x34   gmii_free_FE           0xa3fe369c
+W20  0x70   mac_tx_frames          0x000c8b55
+W43  0xCC   mtx_stat_tx_words      0xa3fd1498
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165522.586961124
+SNAP_BEGIN S0_1A_L gen=86
+W5   0x34   gmii_free_FE           0xa5d08519
+W20  0x70   mac_tx_frames          0x000c8b55
+W43  0xCC   mtx_stat_tx_words      0xa5cf61fc
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165522.782621271
+SNAP_BEGIN S0_1A_L gen=87
+W5   0x34   gmii_free_FE           0xa7a301a3
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xa7a1dd6e
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165522.978411901
+SNAP_BEGIN S0_1A_L gen=88
+W5   0x34   gmii_free_FE           0xa975af31
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xa97489e4
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165523.173857828
+SNAP_BEGIN S0_1A_L gen=89
+W5   0x34   gmii_free_FE           0xab47c195
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xab469b2f
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165523.369989771
+SNAP_BEGIN S0_1A_L gen=90
+W5   0x34   gmii_free_FE           0xad1b819a
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xad1a5a1b
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165523.566149114
+SNAP_BEGIN S0_1A_L gen=91
+W5   0x34   gmii_free_FE           0xaeeeeb49
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xaeedc2b0
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165523.762313741
+SNAP_BEGIN S0_1A_L gen=92
+W5   0x34   gmii_free_FE           0xb0c2710e
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xb0c1475c
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165523.957650068
+SNAP_BEGIN S0_1A_L gen=93
+W5   0x34   gmii_free_FE           0xb29436c8
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xb2930bfe
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165524.152957356
+SNAP_BEGIN S0_1A_L gen=94
+W5   0x34   gmii_free_FE           0xb465f259
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xb464c678
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165524.348088414
+SNAP_BEGIN S0_1A_L gen=95
+W5   0x34   gmii_free_FE           0xb6370f2e
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xb635e235
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165524.543311695
+SNAP_BEGIN S0_1A_L gen=96
+W5   0x34   gmii_free_FE           0xb80867ec
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xb80739db
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165524.738853910
+SNAP_BEGIN S0_1A_L gen=97
+W5   0x34   gmii_free_FE           0xb9dac3c9
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xb9d994a0
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165524.934243001
+SNAP_BEGIN S0_1A_L gen=98
+W5   0x34   gmii_free_FE           0xbbac7a6a
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xbbab4a29
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165525.129645912
+SNAP_BEGIN S0_1A_L gen=99
+W5   0x34   gmii_free_FE           0xbd7e5fb3
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xbd7d2e5a
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165525.325546328
+SNAP_BEGIN S0_1A_L gen=100
+W5   0x34   gmii_free_FE           0xbf516aa4
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xbf503832
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165525.521137222
+SNAP_BEGIN S0_1A_L gen=101
+W5   0x34   gmii_free_FE           0xc123de88
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xc122aafd
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165525.716839895
+SNAP_BEGIN S0_1A_L gen=102
+W5   0x34   gmii_free_FE           0xc2f6972d
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xc2f56289
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165525.912428989
+SNAP_BEGIN S0_1A_L gen=103
+W5   0x34   gmii_free_FE           0xc4c8890e
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xc4c75352
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165526.107975143
+SNAP_BEGIN S0_1A_L gen=104
+W5   0x34   gmii_free_FE           0xc69ada5c
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xc699a387
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165526.303473829
+SNAP_BEGIN S0_1A_L gen=105
+W5   0x34   gmii_free_FE           0xc86d0227
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xc86bca3a
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165526.499303171
+SNAP_BEGIN S0_1A_L gen=106
+W5   0x34   gmii_free_FE           0xca3faa4a
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xca3e7144
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165526.694685230
+SNAP_BEGIN S0_1A_L gen=107
+W5   0x34   gmii_free_FE           0xcc11ab16
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xcc1070f8
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165526.890137278
+SNAP_BEGIN S0_1A_L gen=108
+W5   0x34   gmii_free_FE           0xcde38460
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xcde2492a
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165527.085622101
+SNAP_BEGIN S0_1A_L gen=109
+W5   0x34   gmii_free_FE           0xcfb591c4
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xcfb45575
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165527.281048930
+SNAP_BEGIN S0_1A_L gen=110
+W5   0x34   gmii_free_FE           0xd187dd04
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xd1869f9c
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165527.476640344
+SNAP_BEGIN S0_1A_L gen=111
+W5   0x34   gmii_free_FE           0xd359ea1b
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xd358ab9b
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165527.672021208
+SNAP_BEGIN S0_1A_L gen=112
+W5   0x34   gmii_free_FE           0xd52bbcc4
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xd52a7d2b
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165527.867424891
+SNAP_BEGIN S0_1A_L gen=113
+W5   0x34   gmii_free_FE           0xd6fde2dc
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xd6fca22b
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165528.062853052
+SNAP_BEGIN S0_1A_L gen=114
+W5   0x34   gmii_free_FE           0xd8cf681d
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xd8ce2653
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165528.258463338
+SNAP_BEGIN S0_1A_L gen=115
+W5   0x34   gmii_free_FE           0xdaa1dd07
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xdaa09a25
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165528.453825289
+SNAP_BEGIN S0_1A_L gen=116
+W5   0x34   gmii_free_FE           0xdc73e094
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xdc729c99
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165528.649349695
+SNAP_BEGIN S0_1A_L gen=117
+W5   0x34   gmii_free_FE           0xde45b6c5
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xde4471b2
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165528.845030777
+SNAP_BEGIN S0_1A_L gen=118
+W5   0x34   gmii_free_FE           0xe0183423
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xe016edf7
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165529.041088566
+SNAP_BEGIN S0_1A_L gen=119
+W5   0x34   gmii_free_FE           0xe1ebcba9
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xe1ea8463
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165529.237071712
+SNAP_BEGIN S0_1A_L gen=120
+W5   0x34   gmii_free_FE           0xe3bee213
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xe3bd99b4
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165529.432849691
+SNAP_BEGIN S0_1A_L gen=121
+W5   0x34   gmii_free_FE           0xe591e207
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xe590988e
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165529.628602578
+SNAP_BEGIN S0_1A_L gen=122
+W5   0x34   gmii_free_FE           0xe7644480
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xe762f9ee
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165529.824070514
+SNAP_BEGIN S0_1A_L gen=123
+W5   0x34   gmii_free_FE           0xe936901c
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xe9354472
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165530.019936882
+SNAP_BEGIN S0_1A_L gen=124
+W5   0x34   gmii_free_FE           0xeb095733
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xeb080a6f
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165530.215383649
+SNAP_BEGIN S0_1A_L gen=125
+W5   0x34   gmii_free_FE           0xecdb49f8
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xecd9fc1c
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165530.410791012
+SNAP_BEGIN S0_1A_L gen=126
+W5   0x34   gmii_free_FE           0xeead130f
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xeeabc419
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165530.605847290
+SNAP_BEGIN S0_1A_L gen=127
+W5   0x34   gmii_free_FE           0xf07e9b68
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xf07d4b5a
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165530.801597483
+SNAP_BEGIN S0_1A_L gen=128
+W5   0x34   gmii_free_FE           0xf250c8ff
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xf24f77d8
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165530.997399963
+SNAP_BEGIN S0_1A_L gen=129
+W5   0x34   gmii_free_FE           0xf423c15d
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xf4226f1d
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165531.192673914
+SNAP_BEGIN S0_1A_L gen=130
+W5   0x34   gmii_free_FE           0xf5f53c17
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xf5f3e8be
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165531.388009444
+SNAP_BEGIN S0_1A_L gen=131
+W5   0x34   gmii_free_FE           0xf7c70c40
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xf7c5b7cf
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165531.583529524
+SNAP_BEGIN S0_1A_L gen=132
+W5   0x34   gmii_free_FE           0xf998e0cd
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xf9978b43
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165531.779065314
+SNAP_BEGIN S0_1A_L gen=133
+W5   0x34   gmii_free_FE           0xfb6b4829
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xfb69f185
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165531.975313821
+SNAP_BEGIN S0_1A_L gen=134
+W5   0x34   gmii_free_FE           0xfd3ef76b
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xfd3d9fad
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165532.170715833
+SNAP_BEGIN S0_1A_L gen=135
+W5   0x34   gmii_free_FE           0xff10daf3
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0xff0f821c
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165532.366032141
+SNAP_BEGIN S0_1A_L gen=136
+W5   0x34   gmii_free_FE           0x00e2de18
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0x00e18428
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165532.562337253
+SNAP_BEGIN S0_1A_L gen=137
+W5   0x34   gmii_free_FE           0x02b6788e
+W20  0x70   mac_tx_frames          0x000c8b56
+W43  0xCC   mtx_stat_tx_words      0x02b51d84
+W51  0xEC   app_tx_bytes           0x47874f00
+W14  0x58   tx_stat_frames_TCP     0x000c8b46
+W15  0x5C   tx_stat_bytes_TCP      0x478a2900
+W55  0xFC   tx_stat_retx           0x00000012
+W57  0x104  tx_retx_hi             0x1234df59
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165532.757769370
+SNAP_BEGIN S0_1A_L gen=138
+W5   0x34   gmii_free_FE           0x0488b886
+W20  0x70   mac_tx_frames          0x000c8bdb
+W43  0xCC   mtx_stat_tx_words      0x04875c63
+W51  0xEC   app_tx_bytes           0x478849f0
+W14  0x58   tx_stat_frames_TCP     0x000c8bca
+W15  0x5C   tx_stat_bytes_TCP      0x478d19d0
+W55  0xFC   tx_stat_retx           0x00000017
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165532.953850155
+SNAP_BEGIN S0_1A_L gen=139
+W5   0x34   gmii_free_FE           0x065c143c
+W20  0x70   mac_tx_frames          0x000c8d0c
+W43  0xCC   mtx_stat_tx_words      0x065ab6ff
+W51  0xEC   app_tx_bytes           0x478849f0
+W14  0x58   tx_stat_frames_TCP     0x000c8cfb
+W15  0x5C   tx_stat_bytes_TCP      0x4793e544
+W55  0xFC   tx_stat_retx           0x0000002b
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165533.149702123
+SNAP_BEGIN S0_1A_L gen=140
+W5   0x34   gmii_free_FE           0x0831a01e
+W20  0x70   mac_tx_frames          0x000ca073
+W43  0xCC   mtx_stat_tx_words      0x083041c6
+W51  0xEC   app_tx_bytes           0x47f53484
+W14  0x58   tx_stat_frames_TCP     0x000ca062
+W15  0x5C   tx_stat_bytes_TCP      0x48028cb0
+W55  0xFC   tx_stat_retx           0x00000038
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165533.356281694
+SNAP_BEGIN S0_1A_L gen=141
+W5   0x34   gmii_free_FE           0x0a206b2d
+W20  0x70   mac_tx_frames          0x000ce637
+W43  0xCC   mtx_stat_tx_words      0x0a1f0baa
+W51  0xEC   app_tx_bytes           0x498310a0
+W14  0x58   tx_stat_frames_TCP     0x000ce626
+W15  0x5C   tx_stat_bytes_TCP      0x49906e80
+W55  0xFC   tx_stat_retx           0x00000038
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165533.562582060
+SNAP_BEGIN S0_1A_L gen=142
+W5   0x34   gmii_free_FE           0x0c0a0917
+W20  0x70   mac_tx_frames          0x000d2232
+W43  0xCC   mtx_stat_tx_words      0x0c08a86d
+W51  0xEC   app_tx_bytes           0x4ad9241c
+W14  0x58   tx_stat_frames_TCP     0x000d2221
+W15  0x5C   tx_stat_bytes_TCP      0x4ae681fc
+W55  0xFC   tx_stat_retx           0x00000038
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165533.768117568
+SNAP_BEGIN S0_1A_L gen=143
+W5   0x34   gmii_free_FE           0x0df40a59
+W20  0x70   mac_tx_frames          0x000d6329
+W43  0xCC   mtx_stat_tx_words      0x0df2a887
+W51  0xEC   app_tx_bytes           0x4c4ba4c8
+W14  0x58   tx_stat_frames_TCP     0x000d6318
+W15  0x5C   tx_stat_bytes_TCP      0x4c5902a8
+W55  0xFC   tx_stat_retx           0x00000038
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165533.975208084
+SNAP_BEGIN S0_1A_L gen=144
+W5   0x34   gmii_free_FE           0x0fe2a722
+W20  0x70   mac_tx_frames          0x000da48b
+W43  0xCC   mtx_stat_tx_words      0x0fe14426
+W51  0xEC   app_tx_bytes           0x4dc087b0
+W14  0x58   tx_stat_frames_TCP     0x000da47a
+W15  0x5C   tx_stat_bytes_TCP      0x4dcde590
+W55  0xFC   tx_stat_retx           0x00000038
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165534.180916933
+SNAP_BEGIN S0_1A_L gen=145
+W5   0x34   gmii_free_FE           0x11cd3886
+W20  0x70   mac_tx_frames          0x000de3bd
+W43  0xCC   mtx_stat_tx_words      0x11cbd462
+W51  0xEC   app_tx_bytes           0x4f28f0d8
+W14  0x58   tx_stat_frames_TCP     0x000de3ac
+W15  0x5C   tx_stat_bytes_TCP      0x4f364eb8
+W55  0xFC   tx_stat_retx           0x00000038
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165534.386478410
+SNAP_BEGIN S0_1A_L gen=146
+W5   0x34   gmii_free_FE           0x13b709d6
+W20  0x70   mac_tx_frames          0x000e2904
+W43  0xCC   mtx_stat_tx_words      0x13b5a48b
+W51  0xEC   app_tx_bytes           0x50b409c4
+W14  0x58   tx_stat_frames_TCP     0x000e28f3
+W15  0x5C   tx_stat_bytes_TCP      0x50c167a4
+W55  0xFC   tx_stat_retx           0x00000038
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165534.593747300
+SNAP_BEGIN S0_1A_L gen=147
+W5   0x34   gmii_free_FE           0x15a52abf
+W20  0x70   mac_tx_frames          0x000e6fd2
+W43  0xCC   mtx_stat_tx_words      0x15a3c449
+W51  0xEC   app_tx_bytes           0x5247d89c
+W14  0x58   tx_stat_frames_TCP     0x000e6fc1
+W15  0x5C   tx_stat_bytes_TCP      0x5255367c
+W55  0xFC   tx_stat_retx           0x00000038
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165534.800661479
+SNAP_BEGIN S0_1A_L gen=148
+W5   0x34   gmii_free_FE           0x178f4bac
+W20  0x70   mac_tx_frames          0x000ea49c
+W43  0xCC   mtx_stat_tx_words      0x178de40f
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea48a
+W15  0x5C   tx_stat_bytes_TCP      0x53823b1c
+W55  0xFC   tx_stat_retx           0x0000003d
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165534.996466997
+SNAP_BEGIN S0_1A_L gen=149
+W5   0x34   gmii_free_FE           0x1961c023
+W20  0x70   mac_tx_frames          0x000ea4d8
+W43  0xCC   mtx_stat_tx_words      0x1960576c
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165535.191920253
+SNAP_BEGIN S0_1A_L gen=150
+W5   0x34   gmii_free_FE           0x1b33f5f7
+W20  0x70   mac_tx_frames          0x000ea4d8
+W43  0xCC   mtx_stat_tx_words      0x1b328c27
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165535.387148564
+SNAP_BEGIN S0_1A_L gen=151
+W5   0x34   gmii_free_FE           0x1d056080
+W20  0x70   mac_tx_frames          0x000ea4d8
+W43  0xCC   mtx_stat_tx_words      0x1d03f597
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165535.582265667
+SNAP_BEGIN S0_1A_L gen=152
+W5   0x34   gmii_free_FE           0x1ed64c4c
+W20  0x70   mac_tx_frames          0x000ea4d8
+W43  0xCC   mtx_stat_tx_words      0x1ed4e04b
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165535.777490734
+SNAP_BEGIN S0_1A_L gen=153
+W5   0x34   gmii_free_FE           0x20a7e979
+W20  0x70   mac_tx_frames          0x000ea4d8
+W43  0xCC   mtx_stat_tx_words      0x20a67c5f
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165535.973041311
+SNAP_BEGIN S0_1A_L gen=154
+W5   0x34   gmii_free_FE           0x227a42c2
+W20  0x70   mac_tx_frames          0x000ea4d8
+W43  0xCC   mtx_stat_tx_words      0x2278d48d
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165536.168712713
+SNAP_BEGIN S0_1A_L gen=155
+W5   0x34   gmii_free_FE           0x244c5250
+W20  0x70   mac_tx_frames          0x000ea4d8
+W43  0xCC   mtx_stat_tx_words      0x244ae302
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165536.364169673
+SNAP_BEGIN S0_1A_L gen=156
+W5   0x34   gmii_free_FE           0x261e9c04
+W20  0x70   mac_tx_frames          0x000ea4d8
+W43  0xCC   mtx_stat_tx_words      0x261d2b9d
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165536.559728495
+SNAP_BEGIN S0_1A_L gen=157
+W5   0x34   gmii_free_FE           0x27f0e354
+W20  0x70   mac_tx_frames          0x000ea4d8
+W43  0xCC   mtx_stat_tx_words      0x27ef71d3
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165536.755245813
+SNAP_BEGIN S0_1A_L gen=158
+W5   0x34   gmii_free_FE           0x29c2e3ea
+W20  0x70   mac_tx_frames          0x000ea4d8
+W43  0xCC   mtx_stat_tx_words      0x29c17151
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165536.950470074
+SNAP_BEGIN S0_1A_L gen=159
+W5   0x34   gmii_free_FE           0x2b947173
+W20  0x70   mac_tx_frames          0x000ea4d8
+W43  0xCC   mtx_stat_tx_words      0x2b92fdc0
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165537.146006750
+SNAP_BEGIN S0_1A_L gen=160
+W5   0x34   gmii_free_FE           0x2d667b13
+W20  0x70   mac_tx_frames          0x000ea4d8
+W43  0xCC   mtx_stat_tx_words      0x2d650647
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165537.341767651
+SNAP_BEGIN S0_1A_L gen=161
+W5   0x34   gmii_free_FE           0x2f392621
+W20  0x70   mac_tx_frames          0x000ea4d8
+W43  0xCC   mtx_stat_tx_words      0x2f37b03b
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165537.537182851
+SNAP_BEGIN S0_1A_L gen=162
+W5   0x34   gmii_free_FE           0x310b0bd9
+W20  0x70   mac_tx_frames          0x000ea4d8
+W43  0xCC   mtx_stat_tx_words      0x310994da
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165537.733254892
+SNAP_BEGIN S0_1A_L gen=163
+W5   0x34   gmii_free_FE           0x32def893
+W20  0x70   mac_tx_frames          0x000ea4d8
+W43  0xCC   mtx_stat_tx_words      0x32dd807a
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165537.928914743
+SNAP_BEGIN S0_1A_L gen=164
+W5   0x34   gmii_free_FE           0x34b1638b
+W20  0x70   mac_tx_frames          0x000ea4d8
+W43  0xCC   mtx_stat_tx_words      0x34afea58
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165538.124427205
+SNAP_BEGIN S0_1A_L gen=165
+W5   0x34   gmii_free_FE           0x36834ed9
+W20  0x70   mac_tx_frames          0x000ea4d8
+W43  0xCC   mtx_stat_tx_words      0x3681d48d
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165538.320162818
+SNAP_BEGIN S0_1A_L gen=166
+W5   0x34   gmii_free_FE           0x3855f7e1
+W20  0x70   mac_tx_frames          0x000ea4d8
+W43  0xCC   mtx_stat_tx_words      0x38547c7b
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165538.515681077
+SNAP_BEGIN S0_1A_L gen=167
+W5   0x34   gmii_free_FE           0x3a27c35c
+W20  0x70   mac_tx_frames          0x000ea4d8
+W43  0xCC   mtx_stat_tx_words      0x3a2646dd
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165538.711370688
+SNAP_BEGIN S0_1A_L gen=168
+W5   0x34   gmii_free_FE           0x3bfa90f5
+W20  0x70   mac_tx_frames          0x000ea4d8
+W43  0xCC   mtx_stat_tx_words      0x3bf9135c
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165538.907060816
+SNAP_BEGIN S0_1A_L gen=169
+W5   0x34   gmii_free_FE           0x3dcd3451
+W20  0x70   mac_tx_frames          0x000ea4d8
+W43  0xCC   mtx_stat_tx_words      0x3dcbb59e
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165539.102581273
+SNAP_BEGIN S0_1A_L gen=170
+W5   0x34   gmii_free_FE           0x3f9f1651
+W20  0x70   mac_tx_frames          0x000ea4d8
+W43  0xCC   mtx_stat_tx_words      0x3f9d9685
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165539.298115785
+SNAP_BEGIN S0_1A_L gen=171
+W5   0x34   gmii_free_FE           0x4171445a
+W20  0x70   mac_tx_frames          0x000ea4d8
+W43  0xCC   mtx_stat_tx_words      0x416fc375
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165539.493430392
+SNAP_BEGIN S0_1A_L gen=172
+W5   0x34   gmii_free_FE           0x43431b3d
+W20  0x70   mac_tx_frames          0x000ea4d8
+W43  0xCC   mtx_stat_tx_words      0x4341993e
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165539.689477816
+SNAP_BEGIN S0_1A_L gen=173
+W5   0x34   gmii_free_FE           0x451669b8
+W20  0x70   mac_tx_frames          0x000ea4d8
+W43  0xCC   mtx_stat_tx_words      0x4514e69f
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165539.885388841
+SNAP_BEGIN S0_1A_L gen=174
+W5   0x34   gmii_free_FE           0x46e97992
+W20  0x70   mac_tx_frames          0x000ea4d8
+W43  0xCC   mtx_stat_tx_words      0x46e7f55f
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165540.080446213
+SNAP_BEGIN S0_1A_L gen=175
+W5   0x34   gmii_free_FE           0x48ba9ea6
+W20  0x70   mac_tx_frames          0x000ea4d8
+W43  0xCC   mtx_stat_tx_words      0x48b9195a
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165540.276129646
+SNAP_BEGIN S0_1A_L gen=176
+W5   0x34   gmii_free_FE           0x4a8cedec
+W20  0x70   mac_tx_frames          0x000ea4d8
+W43  0xCC   mtx_stat_tx_words      0x4a8b6787
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165540.471056301
+SNAP_BEGIN S0_1A_L gen=177
+W5   0x34   gmii_free_FE           0x4c5dc4ee
+W20  0x70   mac_tx_frames          0x000ea4d8
+W43  0xCC   mtx_stat_tx_words      0x4c5c3d70
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165540.666441556
+SNAP_BEGIN S0_1A_L gen=178
+W5   0x34   gmii_free_FE           0x4e2ff5d1
+W20  0x70   mac_tx_frames          0x000ea4d8
+W43  0xCC   mtx_stat_tx_words      0x4e2e6d39
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165540.862081681
+SNAP_BEGIN S0_1A_L gen=179
+W5   0x34   gmii_free_FE           0x50022e5a
+W20  0x70   mac_tx_frames          0x000ea4d8
+W43  0xCC   mtx_stat_tx_words      0x5000a4a9
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165541.057977038
+SNAP_BEGIN S0_1A_L gen=180
+W5   0x34   gmii_free_FE           0x51d542cb
+W20  0x70   mac_tx_frames          0x000ea4d8
+W43  0xCC   mtx_stat_tx_words      0x51d3b800
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165541.253452193
+SNAP_BEGIN S0_1A_L gen=181
+W5   0x34   gmii_free_FE           0x53a73258
+W20  0x70   mac_tx_frames          0x000ea4d8
+W43  0xCC   mtx_stat_tx_words      0x53a5a672
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165541.449014156
+SNAP_BEGIN S0_1A_L gen=182
+W5   0x34   gmii_free_FE           0x55796b39
+W20  0x70   mac_tx_frames          0x000ea4d8
+W43  0xCC   mtx_stat_tx_words      0x5577de3a
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165541.644369328
+SNAP_BEGIN S0_1A_L gen=183
+W5   0x34   gmii_free_FE           0x574b3c7a
+W20  0x70   mac_tx_frames          0x000ea4d8
+W43  0xCC   mtx_stat_tx_words      0x5749ae62
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165541.840120778
+SNAP_BEGIN S0_1A_L gen=184
+W5   0x34   gmii_free_FE           0x591dc9f6
+W20  0x70   mac_tx_frames          0x000ea4d8
+W43  0xCC   mtx_stat_tx_words      0x591c3ac4
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165542.035757949
+SNAP_BEGIN S0_1A_L gen=185
+W5   0x34   gmii_free_FE           0x5af02f58
+W20  0x70   mac_tx_frames          0x000ea4d8
+W43  0xCC   mtx_stat_tx_words      0x5aee9f0c
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165542.231374908
+SNAP_BEGIN S0_1A_L gen=186
+W5   0x34   gmii_free_FE           0x5cc2ab8e
+W20  0x70   mac_tx_frames          0x000ea4d8
+W43  0xCC   mtx_stat_tx_words      0x5cc11a28
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165542.426934022
+SNAP_BEGIN S0_1A_L gen=187
+W5   0x34   gmii_free_FE           0x5e94e3e9
+W20  0x70   mac_tx_frames          0x000ea4d8
+W43  0xCC   mtx_stat_tx_words      0x5e935169
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165542.622602457
+SNAP_BEGIN S0_1A_L gen=188
+W5   0x34   gmii_free_FE           0x60677c44
+W20  0x70   mac_tx_frames          0x000ea4d8
+W43  0xCC   mtx_stat_tx_words      0x6065e8ab
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165542.818402139
+SNAP_BEGIN S0_1A_L gen=189
+W5   0x34   gmii_free_FE           0x623a79d5
+W20  0x70   mac_tx_frames          0x000ea4d9
+W43  0xCC   mtx_stat_tx_words      0x6238e521
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165543.014415139
+SNAP_BEGIN S0_1A_L gen=190
+W5   0x34   gmii_free_FE           0x640d4cdc
+W20  0x70   mac_tx_frames          0x000ea4d9
+W43  0xCC   mtx_stat_tx_words      0x640bb70e
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165543.209623487
+SNAP_BEGIN S0_1A_L gen=191
+W5   0x34   gmii_free_FE           0x65dea549
+W20  0x70   mac_tx_frames          0x000ea4d9
+W43  0xCC   mtx_stat_tx_words      0x65dd0e62
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165543.404692153
+SNAP_BEGIN S0_1A_L gen=192
+W5   0x34   gmii_free_FE           0x67afb9e7
+W20  0x70   mac_tx_frames          0x000ea4d9
+W43  0xCC   mtx_stat_tx_words      0x67ae21e7
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165543.600353695
+SNAP_BEGIN S0_1A_L gen=193
+W5   0x34   gmii_free_FE           0x69826279
+W20  0x70   mac_tx_frames          0x000ea4d9
+W43  0xCC   mtx_stat_tx_words      0x6980c95f
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165543.795801533
+SNAP_BEGIN S0_1A_L gen=194
+W5   0x34   gmii_free_FE           0x6b54ab66
+W20  0x70   mac_tx_frames          0x000ea4d9
+W43  0xCC   mtx_stat_tx_words      0x6b531132
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165543.991367077
+SNAP_BEGIN S0_1A_L gen=195
+W5   0x34   gmii_free_FE           0x6d2697e9
+W20  0x70   mac_tx_frames          0x000ea4d9
+W43  0xCC   mtx_stat_tx_words      0x6d24fc9b
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165544.186882960
+SNAP_BEGIN S0_1A_L gen=196
+W5   0x34   gmii_free_FE           0x6ef90642
+W20  0x70   mac_tx_frames          0x000ea4da
+W43  0xCC   mtx_stat_tx_words      0x6ef769da
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165544.382391841
+SNAP_BEGIN S0_1A_L gen=197
+W5   0x34   gmii_free_FE           0x70cae821
+W20  0x70   mac_tx_frames          0x000ea4da
+W43  0xCC   mtx_stat_tx_words      0x70c94a9f
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165544.577621001
+SNAP_BEGIN S0_1A_L gen=198
+W5   0x34   gmii_free_FE           0x729c195f
+W20  0x70   mac_tx_frames          0x000ea4da
+W43  0xCC   mtx_stat_tx_words      0x729a7ac4
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165544.773400572
+SNAP_BEGIN S0_1A_L gen=199
+W5   0x34   gmii_free_FE           0x746f100c
+W20  0x70   mac_tx_frames          0x000ea4da
+W43  0xCC   mtx_stat_tx_words      0x746d7056
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165544.968975906
+SNAP_BEGIN S0_1A_L gen=200
+W5   0x34   gmii_free_FE           0x76414da9
+W20  0x70   mac_tx_frames          0x000ea4da
+W43  0xCC   mtx_stat_tx_words      0x763facda
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165545.164431260
+SNAP_BEGIN S0_1A_L gen=201
+W5   0x34   gmii_free_FE           0x78132cdd
+W20  0x70   mac_tx_frames          0x000ea4da
+W43  0xCC   mtx_stat_tx_words      0x78118af4
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165545.359747291
+SNAP_BEGIN S0_1A_L gen=202
+W5   0x34   gmii_free_FE           0x79e4e145
+W20  0x70   mac_tx_frames          0x000ea4da
+W43  0xCC   mtx_stat_tx_words      0x79e33e43
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165545.555040566
+SNAP_BEGIN S0_1A_L gen=203
+W5   0x34   gmii_free_FE           0x7bb6b817
+W20  0x70   mac_tx_frames          0x000ea4da
+W43  0xCC   mtx_stat_tx_words      0x7bb513fb
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165545.751030286
+SNAP_BEGIN S0_1A_L gen=204
+W5   0x34   gmii_free_FE           0x7d8a06c1
+W20  0x70   mac_tx_frames          0x000ea4db
+W43  0xCC   mtx_stat_tx_words      0x7d88618a
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165545.946761792
+SNAP_BEGIN S0_1A_L gen=205
+W5   0x34   gmii_free_FE           0x7f5c4b5d
+W20  0x70   mac_tx_frames          0x000ea4db
+W43  0xCC   mtx_stat_tx_words      0x7f5aa50c
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165546.142073876
+SNAP_BEGIN S0_1A_L gen=206
+W5   0x34   gmii_free_FE           0x812e4238
+W20  0x70   mac_tx_frames          0x000ea4db
+W43  0xCC   mtx_stat_tx_words      0x812c9ace
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165546.337395710
+SNAP_BEGIN S0_1A_L gen=207
+W5   0x34   gmii_free_FE           0x82ffc6e5
+W20  0x70   mac_tx_frames          0x000ea4db
+W43  0xCC   mtx_stat_tx_words      0x82fe1e61
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165546.532887695
+SNAP_BEGIN S0_1A_L gen=208
+W5   0x34   gmii_free_FE           0x84d1fc3c
+W20  0x70   mac_tx_frames          0x000ea4db
+W43  0xCC   mtx_stat_tx_words      0x84d0529e
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165546.728742174
+SNAP_BEGIN S0_1A_L gen=209
+W5   0x34   gmii_free_FE           0x86a4ae40
+W20  0x70   mac_tx_frames          0x000ea4db
+W43  0xCC   mtx_stat_tx_words      0x86a30387
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165546.923960740
+SNAP_BEGIN S0_1A_L gen=210
+W5   0x34   gmii_free_FE           0x88766680
+W20  0x70   mac_tx_frames          0x000ea4db
+W43  0xCC   mtx_stat_tx_words      0x8874baad
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165547.119509184
+SNAP_BEGIN S0_1A_L gen=211
+W5   0x34   gmii_free_FE           0x8a48731e
+W20  0x70   mac_tx_frames          0x000ea4db
+W43  0xCC   mtx_stat_tx_words      0x8a46c632
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165547.315307961
+SNAP_BEGIN S0_1A_L gen=212
+W5   0x34   gmii_free_FE           0x8c1b1a67
+W20  0x70   mac_tx_frames          0x000ea4db
+W43  0xCC   mtx_stat_tx_words      0x8c196c60
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165547.510941810
+SNAP_BEGIN S0_1A_L gen=213
+W5   0x34   gmii_free_FE           0x8dedafad
+W20  0x70   mac_tx_frames          0x000ea4db
+W43  0xCC   mtx_stat_tx_words      0x8dec008c
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165547.706114589
+SNAP_BEGIN S0_1A_L gen=214
+W5   0x34   gmii_free_FE           0x8fbee04c
+W20  0x70   mac_tx_frames          0x000ea4db
+W43  0xCC   mtx_stat_tx_words      0x8fbd3012
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165547.901755987
+SNAP_BEGIN S0_1A_L gen=215
+W5   0x34   gmii_free_FE           0x9191b6dc
+W20  0x70   mac_tx_frames          0x000ea4db
+W43  0xCC   mtx_stat_tx_words      0x91900588
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165548.097290449
+SNAP_BEGIN S0_1A_L gen=216
+W5   0x34   gmii_free_FE           0x93636bb8
+W20  0x70   mac_tx_frames          0x000ea4db
+W43  0xCC   mtx_stat_tx_words      0x9361b949
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165548.292936521
+SNAP_BEGIN S0_1A_L gen=217
+W5   0x34   gmii_free_FE           0x9535f3e5
+W20  0x70   mac_tx_frames          0x000ea4db
+W43  0xCC   mtx_stat_tx_words      0x9534405c
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165548.488462487
+SNAP_BEGIN S0_1A_L gen=218
+W5   0x34   gmii_free_FE           0x9708342e
+W20  0x70   mac_tx_frames          0x000ea4db
+W43  0xCC   mtx_stat_tx_words      0x97067f8c
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165548.684427597
+SNAP_BEGIN S0_1A_L gen=219
+W5   0x34   gmii_free_FE           0x98db34fc
+W20  0x70   mac_tx_frames          0x000ea4db
+W43  0xCC   mtx_stat_tx_words      0x98d97f3f
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165548.879966714
+SNAP_BEGIN S0_1A_L gen=220
+W5   0x34   gmii_free_FE           0x9aad9b8c
+W20  0x70   mac_tx_frames          0x000ea4db
+W43  0xCC   mtx_stat_tx_words      0x9aabe4b4
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165549.075443857
+SNAP_BEGIN S0_1A_L gen=221
+W5   0x34   gmii_free_FE           0x9c7f7bd6
+W20  0x70   mac_tx_frames          0x000ea4db
+W43  0xCC   mtx_stat_tx_words      0x9c7dc3e5
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165549.271055644
+SNAP_BEGIN S0_1A_L gen=222
+W5   0x34   gmii_free_FE           0x9e51d630
+W20  0x70   mac_tx_frames          0x000ea4db
+W43  0xCC   mtx_stat_tx_words      0x9e501d25
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165549.466522975
+SNAP_BEGIN S0_1A_L gen=223
+W5   0x34   gmii_free_FE           0xa023deae
+W20  0x70   mac_tx_frames          0x000ea4db
+W43  0xCC   mtx_stat_tx_words      0xa0222488
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165549.662486860
+SNAP_BEGIN S0_1A_L gen=224
+W5   0x34   gmii_free_FE           0xa1f7c557
+W20  0x70   mac_tx_frames          0x000ea4db
+W43  0xCC   mtx_stat_tx_words      0xa1f60a16
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165549.858292763
+SNAP_BEGIN S0_1A_L gen=225
+W5   0x34   gmii_free_FE           0xa3ca051e
+W20  0x70   mac_tx_frames          0x000ea4db
+W43  0xCC   mtx_stat_tx_words      0xa3c848c2
+W51  0xEC   app_tx_bytes           0x5373aef8
+W14  0x58   tx_stat_frames_TCP     0x000ea4c6
+W15  0x5C   tx_stat_bytes_TCP      0x5383914c
+W55  0xFC   tx_stat_retx           0x00000043
+W57  0x104  tx_retx_hi             0x1234eac1
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165550.055806656
+SNAP_BEGIN S0_1A_L gen=226
+W5   0x34   gmii_free_FE           0xa5a0f1c6
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xa59f344e
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165550.251304069
+SNAP_BEGIN S0_1A_L gen=227
+W5   0x34   gmii_free_FE           0xa772fb04
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xa7713c71
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165550.446879989
+SNAP_BEGIN S0_1A_L gen=228
+W5   0x34   gmii_free_FE           0xa9458310
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xa943c363
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165550.643393063
+SNAP_BEGIN S0_1A_L gen=229
+W5   0x34   gmii_free_FE           0xab19ddf9
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xab181d30
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165550.838883894
+SNAP_BEGIN S0_1A_L gen=230
+W5   0x34   gmii_free_FE           0xacec06d8
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xacea44f5
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165551.034166936
+SNAP_BEGIN S0_1A_L gen=231
+W5   0x34   gmii_free_FE           0xaebd5236
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xaebb8f3a
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165551.229988742
+SNAP_BEGIN S0_1A_L gen=232
+W5   0x34   gmii_free_FE           0xb0903d75
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xb08e795e
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165551.425738158
+SNAP_BEGIN S0_1A_L gen=233
+W5   0x34   gmii_free_FE           0xb262f399
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xb2612e67
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165551.621069462
+SNAP_BEGIN S0_1A_L gen=234
+W5   0x34   gmii_free_FE           0xb4348dfd
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xb432c7b1
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165551.816557799
+SNAP_BEGIN S0_1A_L gen=235
+W5   0x34   gmii_free_FE           0xb6069199
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xb604ca33
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165552.011443379
+SNAP_BEGIN S0_1A_L gen=236
+W5   0x34   gmii_free_FE           0xb7d74fc0
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xb7d58740
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165552.207037188
+SNAP_BEGIN S0_1A_L gen=237
+W5   0x34   gmii_free_FE           0xb9a9b7e5
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xb9a7ee4b
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165552.402598719
+SNAP_BEGIN S0_1A_L gen=238
+W5   0x34   gmii_free_FE           0xbb7bb8ec
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xbb79ee38
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165552.597854936
+SNAP_BEGIN S0_1A_L gen=239
+W5   0x34   gmii_free_FE           0xbd4d8ae5
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xbd4bbf16
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165552.794012322
+SNAP_BEGIN S0_1A_L gen=240
+W5   0x34   gmii_free_FE           0xbf210c5d
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xbf1f3f73
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165552.989907352
+SNAP_BEGIN S0_1A_L gen=241
+W5   0x34   gmii_free_FE           0xc0f45f66
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xc0f29162
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165553.185424116
+SNAP_BEGIN S0_1A_L gen=242
+W5   0x34   gmii_free_FE           0xc2c61102
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xc2c441e3
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165553.380824196
+SNAP_BEGIN S0_1A_L gen=243
+W5   0x34   gmii_free_FE           0xc4980728
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xc49636ef
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165553.576187638
+SNAP_BEGIN S0_1A_L gen=244
+W5   0x34   gmii_free_FE           0xc66a83d5
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xc668b282
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165553.772271334
+SNAP_BEGIN S0_1A_L gen=245
+W5   0x34   gmii_free_FE           0xc83d7923
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xc83ba6b5
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165553.968067540
+SNAP_BEGIN S0_1A_L gen=246
+W5   0x34   gmii_free_FE           0xca1019ab
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xca0e4622
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165554.163610051
+SNAP_BEGIN S0_1A_L gen=247
+W5   0x34   gmii_free_FE           0xcbe25ae3
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xcbe0863f
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165554.359446846
+SNAP_BEGIN S0_1A_L gen=248
+W5   0x34   gmii_free_FE           0xcdb53759
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xcdb3619b
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165554.555429925
+SNAP_BEGIN S0_1A_L gen=249
+W5   0x34   gmii_free_FE           0xcf888289
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xcf86abaf
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165554.751272518
+SNAP_BEGIN S0_1A_L gen=250
+W5   0x34   gmii_free_FE           0xd15b2da9
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xd15955b5
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165554.946661240
+SNAP_BEGIN S0_1A_L gen=251
+W5   0x34   gmii_free_FE           0xd32d07a7
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xd32b2e98
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165555.142102218
+SNAP_BEGIN S0_1A_L gen=252
+W5   0x34   gmii_free_FE           0xd4ff0132
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xd4fd270a
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165555.337121834
+SNAP_BEGIN S0_1A_L gen=253
+W5   0x34   gmii_free_FE           0xd6cfd8bb
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xd6cdfd79
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165555.532801416
+SNAP_BEGIN S0_1A_L gen=254
+W5   0x34   gmii_free_FE           0xd8a26990
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xd8a08d33
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165555.728398361
+SNAP_BEGIN S0_1A_L gen=255
+W5   0x34   gmii_free_FE           0xda74f117
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xda7313a0
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165555.924294112
+SNAP_BEGIN S0_1A_L gen=256
+W5   0x34   gmii_free_FE           0xdc47e838
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xdc4609a6
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165556.119977362
+SNAP_BEGIN S0_1A_L gen=257
+W5   0x34   gmii_free_FE           0xde1a5e2f
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xde187e82
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165556.315646930
+SNAP_BEGIN S0_1A_L gen=258
+W5   0x34   gmii_free_FE           0xdfed0db7
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xdfeb2cf0
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165556.511434794
+SNAP_BEGIN S0_1A_L gen=259
+W5   0x34   gmii_free_FE           0xe1bfb6f6
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xe1bdd514
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165556.707143211
+SNAP_BEGIN S0_1A_L gen=260
+W5   0x34   gmii_free_FE           0xe3925bbb
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xe39078bf
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165556.902444153
+SNAP_BEGIN S0_1A_L gen=261
+W5   0x34   gmii_free_FE           0xe563e82e
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xe5620417
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165557.097806817
+SNAP_BEGIN S0_1A_L gen=262
+W5   0x34   gmii_free_FE           0xe7359408
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xe733aed7
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165557.293438691
+SNAP_BEGIN S0_1A_L gen=263
+W5   0x34   gmii_free_FE           0xe907fde1
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xe9061795
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165557.488820145
+SNAP_BEGIN S0_1A_L gen=264
+W5   0x34   gmii_free_FE           0xeada348a
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xead84d24
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165557.684031116
+SNAP_BEGIN S0_1A_L gen=265
+W5   0x34   gmii_free_FE           0xecab48d9
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xeca9605a
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165557.880027481
+SNAP_BEGIN S0_1A_L gen=266
+W5   0x34   gmii_free_FE           0xee7e9734
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xee7cad99
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165558.075443196
+SNAP_BEGIN S0_1A_L gen=267
+W5   0x34   gmii_free_FE           0xf050ac38
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xf04ec182
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165558.271088555
+SNAP_BEGIN S0_1A_L gen=268
+W5   0x34   gmii_free_FE           0xf222d05c
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xf220e48c
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165558.466405991
+SNAP_BEGIN S0_1A_L gen=269
+W5   0x34   gmii_free_FE           0xf3f48640
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xf3f29956
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165558.661889236
+SNAP_BEGIN S0_1A_L gen=270
+W5   0x34   gmii_free_FE           0xf5c6ad88
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xf5c4bf83
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165558.857364080
+SNAP_BEGIN S0_1A_L gen=271
+W5   0x34   gmii_free_FE           0xf798ab04
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xf796bbe5
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165559.052643171
+SNAP_BEGIN S0_1A_L gen=272
+W5   0x34   gmii_free_FE           0xf96a052e
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xf96814f5
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165559.247966663
+SNAP_BEGIN S0_1A_L gen=273
+W5   0x34   gmii_free_FE           0xfb3beeee
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xfb39fd9b
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165559.443454715
+SNAP_BEGIN S0_1A_L gen=274
+W5   0x34   gmii_free_FE           0xfd0e0da3
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xfd0c1b36
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165559.638798765
+SNAP_BEGIN S0_1A_L gen=275
+W5   0x34   gmii_free_FE           0xfedfb6f7
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0xfeddc36f
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165559.834675737
+SNAP_BEGIN S0_1A_L gen=276
+W5   0x34   gmii_free_FE           0x00b26029
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0x00b06b86
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165560.030082439
+SNAP_BEGIN S0_1A_L gen=277
+W5   0x34   gmii_free_FE           0x0284b9c7
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0x0282c409
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165560.225966420
+SNAP_BEGIN S0_1A_L gen=278
+W5   0x34   gmii_free_FE           0x045794f7
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0x04559e1e
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165560.421268467
+SNAP_BEGIN S0_1A_L gen=279
+W5   0x34   gmii_free_FE           0x06293370
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0x06273b7d
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165560.617055018
+SNAP_BEGIN S0_1A_L gen=280
+W5   0x34   gmii_free_FE           0x07fc16fb
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0x07fa1ded
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165560.812990264
+SNAP_BEGIN S0_1A_L gen=281
+W5   0x34   gmii_free_FE           0x09cf394d
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0x09cd3f23
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165561.008488459
+SNAP_BEGIN S0_1A_L gen=282
+W5   0x34   gmii_free_FE           0x0ba13857
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0x0b9f3d14
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165561.204051410
+SNAP_BEGIN S0_1A_L gen=283
+W5   0x34   gmii_free_FE           0x0d735e34
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0x0d7161d5
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165561.399551233
+SNAP_BEGIN S0_1A_L gen=284
+W5   0x34   gmii_free_FE           0x0f457b80
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0x0f437e07
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165561.595333905
+SNAP_BEGIN S0_1A_L gen=285
+W5   0x34   gmii_free_FE           0x11186a0a
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0x11166b76
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165561.791147858
+SNAP_BEGIN S0_1A_L gen=286
+W5   0x34   gmii_free_FE           0x12eb12e7
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0x12e91338
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165561.986791293
+SNAP_BEGIN S0_1A_L gen=287
+W5   0x34   gmii_free_FE           0x14bdab3c
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0x14bbaa72
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165562.182294234
+SNAP_BEGIN S0_1A_L gen=288
+W5   0x34   gmii_free_FE           0x168f836a
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0x168d8186
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165562.377965330
+SNAP_BEGIN S0_1A_L gen=289
+W5   0x34   gmii_free_FE           0x1862311c
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0x18602e1c
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165562.573441248
+SNAP_BEGIN S0_1A_L gen=290
+W5   0x34   gmii_free_FE           0x1a341999
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0x1a32157f
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165562.769062523
+SNAP_BEGIN S0_1A_L gen=291
+W5   0x34   gmii_free_FE           0x1c068979
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0x1c048444
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165562.964574027
+SNAP_BEGIN S0_1A_L gen=292
+W5   0x34   gmii_free_FE           0x1dd8b202
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0x1dd6abb2
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165563.160394203
+SNAP_BEGIN S0_1A_L gen=293
+W5   0x34   gmii_free_FE           0x1fab931d
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0x1fa98bb2
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165563.356062741
+SNAP_BEGIN S0_1A_L gen=294
+W5   0x34   gmii_free_FE           0x217dffb0
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0x217bf72a
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165563.551458791
+SNAP_BEGIN S0_1A_L gen=295
+W5   0x34   gmii_free_FE           0x234ff554
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0x234debb3
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165563.747076224
+SNAP_BEGIN S0_1A_L gen=296
+W5   0x34   gmii_free_FE           0x252258ab
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0x25204df0
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165563.942915930
+SNAP_BEGIN S0_1A_L gen=297
+W5   0x34   gmii_free_FE           0x26f56f56
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0x26f36380
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165564.138405467
+SNAP_BEGIN S0_1A_L gen=298
+W5   0x34   gmii_free_FE           0x28c7287e
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0x28c51b8d
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165564.334062160
+SNAP_BEGIN S0_1A_L gen=299
+W5   0x34   gmii_free_FE           0x2a9999c8
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0x2a978bbc
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165564.529362544
+SNAP_BEGIN S0_1A_L gen=300
+W5   0x34   gmii_free_FE           0x2c6b7448
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0x2c696521
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165564.724944974
+SNAP_BEGIN S0_1A_L gen=301
+W5   0x34   gmii_free_FE           0x2e3dbdc0
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0x2e3bad7f
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165564.920351436
+SNAP_BEGIN S0_1A_L gen=302
+W5   0x34   gmii_free_FE           0x300f8e54
+W20  0x70   mac_tx_frames          0x000ea5b8
+W43  0xCC   mtx_stat_tx_words      0x300d7cf8
+W51  0xEC   app_tx_bytes           0x5374af9c
+W14  0x58   tx_stat_frames_TCP     0x000ea5a2
+W15  0x5C   tx_stat_bytes_TCP      0x538877fc
+W55  0xFC   tx_stat_retx           0x0000004b
+W57  0x104  tx_retx_hi             0x1235571d
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165565.115940277
+SNAP_BEGIN S0_1A_L gen=303
+W5   0x34   gmii_free_FE           0x31e20b8e
+W20  0x70   mac_tx_frames          0x000ea6f3
+W43  0xCC   mtx_stat_tx_words      0x31dff916
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea6dc
+W15  0x5C   tx_stat_bytes_TCP      0x538f76c4
+W55  0xFC   tx_stat_retx           0x0000005b
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165565.312020483
+SNAP_BEGIN S0_1A_L gen=304
+W5   0x34   gmii_free_FE           0x33b563bf
+W20  0x70   mac_tx_frames          0x000ea793
+W43  0xCC   mtx_stat_tx_words      0x33b3502c
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165565.507569582
+SNAP_BEGIN S0_1A_L gen=305
+W5   0x34   gmii_free_FE           0x358773d3
+W20  0x70   mac_tx_frames          0x000ea793
+W43  0xCC   mtx_stat_tx_words      0x35855f25
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165565.702775690
+SNAP_BEGIN S0_1A_L gen=306
+W5   0x34   gmii_free_FE           0x3758f023
+W20  0x70   mac_tx_frames          0x000ea793
+W43  0xCC   mtx_stat_tx_words      0x3756da5b
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165565.898687262
+SNAP_BEGIN S0_1A_L gen=307
+W5   0x34   gmii_free_FE           0x392c0b2c
+W20  0x70   mac_tx_frames          0x000ea793
+W43  0xCC   mtx_stat_tx_words      0x3929f448
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165566.094313359
+SNAP_BEGIN S0_1A_L gen=308
+W5   0x34   gmii_free_FE           0x3afe5212
+W20  0x70   mac_tx_frames          0x000ea793
+W43  0xCC   mtx_stat_tx_words      0x3afc3a14
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165566.289346041
+SNAP_BEGIN S0_1A_L gen=309
+W5   0x34   gmii_free_FE           0x3ccf73cd
+W20  0x70   mac_tx_frames          0x000ea793
+W43  0xCC   mtx_stat_tx_words      0x3ccd5ab4
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165566.484853228
+SNAP_BEGIN S0_1A_L gen=310
+W5   0x34   gmii_free_FE           0x3ea199fb
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x3e9f7fc7
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165566.680289333
+SNAP_BEGIN S0_1A_L gen=311
+W5   0x34   gmii_free_FE           0x407390f5
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x407175a7
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165566.875805014
+SNAP_BEGIN S0_1A_L gen=312
+W5   0x34   gmii_free_FE           0x42457797
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x42435b2d
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165567.071594800
+SNAP_BEGIN S0_1A_L gen=313
+W5   0x34   gmii_free_FE           0x44187c73
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x44165eee
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165567.267275527
+SNAP_BEGIN S0_1A_L gen=314
+W5   0x34   gmii_free_FE           0x45eace05
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x45e8af65
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165567.462582181
+SNAP_BEGIN S0_1A_L gen=315
+W5   0x34   gmii_free_FE           0x47bc785f
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x47ba58a4
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165567.658347600
+SNAP_BEGIN S0_1A_L gen=316
+W5   0x34   gmii_free_FE           0x498fb84a
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x498d9774
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165567.854320210
+SNAP_BEGIN S0_1A_L gen=317
+W5   0x34   gmii_free_FE           0x4b628cd6
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x4b606ae4
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165568.049649149
+SNAP_BEGIN S0_1A_L gen=318
+W5   0x34   gmii_free_FE           0x4d340b69
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x4d31e85d
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165568.245002914
+SNAP_BEGIN S0_1A_L gen=319
+W5   0x34   gmii_free_FE           0x4f06344d
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x4f041026
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165568.440380694
+SNAP_BEGIN S0_1A_L gen=320
+W5   0x34   gmii_free_FE           0x50d791af
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x50d56c6d
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165568.635958592
+SNAP_BEGIN S0_1A_L gen=321
+W5   0x34   gmii_free_FE           0x52aa2ccd
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x52a80670
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165568.831415554
+SNAP_BEGIN S0_1A_L gen=322
+W5   0x34   gmii_free_FE           0x547bec46
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x5479c4ce
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165569.027028971
+SNAP_BEGIN S0_1A_L gen=323
+W5   0x34   gmii_free_FE           0x564e66f3
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x564c3e60
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165569.222756093
+SNAP_BEGIN S0_1A_L gen=324
+W5   0x34   gmii_free_FE           0x5820eefa
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x581ec54c
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165569.418303994
+SNAP_BEGIN S0_1A_L gen=325
+W5   0x34   gmii_free_FE           0x59f31088
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x59f0e5bf
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165569.613615372
+SNAP_BEGIN S0_1A_L gen=326
+W5   0x34   gmii_free_FE           0x5bc4aae1
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x5bc27efd
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165569.809200707
+SNAP_BEGIN S0_1A_L gen=327
+W5   0x34   gmii_free_FE           0x5d9743bc
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x5d9516bd
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165570.004672724
+SNAP_BEGIN S0_1A_L gen=328
+W5   0x34   gmii_free_FE           0x5f69085b
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x5f66da41
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165570.200461775
+SNAP_BEGIN S0_1A_L gen=329
+W5   0x34   gmii_free_FE           0x613bc17c
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x61399247
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165570.395570968
+SNAP_BEGIN S0_1A_L gen=330
+W5   0x34   gmii_free_FE           0x630cfa71
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x630aca21
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165570.590898560
+SNAP_BEGIN S0_1A_L gen=331
+W5   0x34   gmii_free_FE           0x64dec9f6
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x64dc988b
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165570.786519480
+SNAP_BEGIN S0_1A_L gen=332
+W5   0x34   gmii_free_FE           0x66b14648
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x66af13c2
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165570.982264050
+SNAP_BEGIN S0_1A_L gen=333
+W5   0x34   gmii_free_FE           0x6883cfd8
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x68819c37
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165571.177588822
+SNAP_BEGIN S0_1A_L gen=334
+W5   0x34   gmii_free_FE           0x6a557092
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x6a533bd6
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165571.373436979
+SNAP_BEGIN S0_1A_L gen=335
+W5   0x34   gmii_free_FE           0x6c288532
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x6c264f5a
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165571.569045692
+SNAP_BEGIN S0_1A_L gen=336
+W5   0x34   gmii_free_FE           0x6dfac9e3
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x6df892f0
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165571.764507237
+SNAP_BEGIN S0_1A_L gen=337
+W5   0x34   gmii_free_FE           0x6fccaecf
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x6fca76c1
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165571.959640749
+SNAP_BEGIN S0_1A_L gen=338
+W5   0x34   gmii_free_FE           0x719e06f1
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x719bcdc9
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165572.155064260
+SNAP_BEGIN S0_1A_L gen=339
+W5   0x34   gmii_free_FE           0x737004ef
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x736dcaac
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165572.350774852
+SNAP_BEGIN S0_1A_L gen=340
+W5   0x34   gmii_free_FE           0x7542690d
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x75402daf
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165572.546433725
+SNAP_BEGIN S0_1A_L gen=341
+W5   0x34   gmii_free_FE           0x77151496
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x7712d81c
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165572.742036856
+SNAP_BEGIN S0_1A_L gen=342
+W5   0x34   gmii_free_FE           0x78e776a0
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x78e5390b
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165572.937398820
+SNAP_BEGIN S0_1A_L gen=343
+W5   0x34   gmii_free_FE           0x7ab8fda7
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x7ab6bef7
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165573.132951276
+SNAP_BEGIN S0_1A_L gen=344
+W5   0x34   gmii_free_FE           0x7c8b3cc3
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x7c88fcf8
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165573.328045336
+SNAP_BEGIN S0_1A_L gen=345
+W5   0x34   gmii_free_FE           0x7e5c8fb5
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x7e5a4ed0
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165573.523729813
+SNAP_BEGIN S0_1A_L gen=346
+W5   0x34   gmii_free_FE           0x802f02ff
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x802cc0fe
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165573.719350300
+SNAP_BEGIN S0_1A_L gen=347
+W5   0x34   gmii_free_FE           0x82012286
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x81fedf6a
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165573.914593358
+SNAP_BEGIN S0_1A_L gen=348
+W5   0x34   gmii_free_FE           0x83d2cbd5
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x83d0879e
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165574.110232549
+SNAP_BEGIN S0_1A_L gen=349
+W5   0x34   gmii_free_FE           0x85a53cd8
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x85a2f785
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165574.305428863
+SNAP_BEGIN S0_1A_L gen=350
+W5   0x34   gmii_free_FE           0x877699e9
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x8774537b
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165574.500961872
+SNAP_BEGIN S0_1A_L gen=351
+W5   0x34   gmii_free_FE           0x8948bec8
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x89467740
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165574.696462021
+SNAP_BEGIN S0_1A_L gen=352
+W5   0x34   gmii_free_FE           0x8b1ad059
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x8b1887b6
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165574.891925850
+SNAP_BEGIN S0_1A_L gen=353
+W5   0x34   gmii_free_FE           0x8cecf403
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x8ceaaa45
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165575.087078090
+SNAP_BEGIN S0_1A_L gen=354
+W5   0x34   gmii_free_FE           0x8ebe936a
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x8ebc4891
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165575.282648217
+SNAP_BEGIN S0_1A_L gen=355
+W5   0x34   gmii_free_FE           0x90904787
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x908dfb93
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165575.478068011
+SNAP_BEGIN S0_1A_L gen=356
+W5   0x34   gmii_free_FE           0x92624cda
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x925fffcb
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165575.673401260
+SNAP_BEGIN S0_1A_L gen=357
+W5   0x34   gmii_free_FE           0x94341e85
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x9431d05b
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165575.868972619
+SNAP_BEGIN S0_1A_L gen=358
+W5   0x34   gmii_free_FE           0x96062d77
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x9603de32
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165576.064279020
+SNAP_BEGIN S0_1A_L gen=359
+W5   0x34   gmii_free_FE           0x97d7e955
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x97d598f4
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165576.259570222
+SNAP_BEGIN S0_1A_L gen=360
+W5   0x34   gmii_free_FE           0x99a9647f
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x99a71304
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165576.455491933
+SNAP_BEGIN S0_1A_L gen=361
+W5   0x34   gmii_free_FE           0x9b7c9b3e
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x9b7a48a8
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165576.650693392
+SNAP_BEGIN S0_1A_L gen=362
+W5   0x34   gmii_free_FE           0x9d4dff4b
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x9d4bab99
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165576.846069010
+SNAP_BEGIN S0_1A_L gen=363
+W5   0x34   gmii_free_FE           0x9f1fbe11
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0x9f1d6945
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165577.041938385
+SNAP_BEGIN S0_1A_L gen=364
+W5   0x34   gmii_free_FE           0xa0f2bb68
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0xa0f06581
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165577.237343671
+SNAP_BEGIN S0_1A_L gen=365
+W5   0x34   gmii_free_FE           0xa2c4a54a
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0xa2c24e47
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165577.432827375
+SNAP_BEGIN S0_1A_L gen=366
+W5   0x34   gmii_free_FE           0xa496efe8
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0xa49497ca
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165577.628714160
+SNAP_BEGIN S0_1A_L gen=367
+W5   0x34   gmii_free_FE           0xa669da05
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0xa66780cb
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165577.824174724
+SNAP_BEGIN S0_1A_L gen=368
+W5   0x34   gmii_free_FE           0xa83bc49c
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0xa8396a48
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165578.019792578
+SNAP_BEGIN S0_1A_L gen=369
+W5   0x34   gmii_free_FE           0xaa0de9e4
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0xaa0b8e74
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165578.215399174
+SNAP_BEGIN S0_1A_L gen=370
+W5   0x34   gmii_free_FE           0xabe06aab
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0xabde0e20
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165578.410553122
+SNAP_BEGIN S0_1A_L gen=371
+W5   0x34   gmii_free_FE           0xadb1cd39
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0xadaf6f94
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165578.606146997
+SNAP_BEGIN S0_1A_L gen=372
+W5   0x34   gmii_free_FE           0xaf842674
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0xaf81c7b3
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165578.801483625
+SNAP_BEGIN S0_1A_L gen=373
+W5   0x34   gmii_free_FE           0xb155bc31
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0xb1535c55
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165578.996944395
+SNAP_BEGIN S0_1A_L gen=374
+W5   0x34   gmii_free_FE           0xb327dbe0
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0xb3257ae9
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165579.191979560
+SNAP_BEGIN S0_1A_L gen=375
+W5   0x34   gmii_free_FE           0xb4f8f3cc
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0xb4f691bb
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165579.387664198
+SNAP_BEGIN S0_1A_L gen=376
+W5   0x34   gmii_free_FE           0xb6cb0065
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0xb6c89d39
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165579.583086244
+SNAP_BEGIN S0_1A_L gen=377
+W5   0x34   gmii_free_FE           0xb89d2d1a
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0xb89ac8d2
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165579.779174200
+SNAP_BEGIN S0_1A_L gen=378
+W5   0x34   gmii_free_FE           0xba70f997
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0xba6e9433
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165579.974767625
+SNAP_BEGIN S0_1A_L gen=379
+W5   0x34   gmii_free_FE           0xbc42ed85
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0xbc408706
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
+SNAP_T 1792165580.170452215
+SNAP_BEGIN S0_1A_L gen=380
+W5   0x34   gmii_free_FE           0xbe158fbc
+W20  0x70   mac_tx_frames          0x000ea794
+W43  0xCC   mtx_stat_tx_words      0xbe132821
+W51  0xEC   app_tx_bytes           0x5375aa8c
+W14  0x58   tx_stat_frames_TCP     0x000ea77c
+W15  0x5C   tx_stat_bytes_TCP      0x53930744
+W55  0xFC   tx_stat_retx           0x00000069
+W57  0x104  tx_retx_hi             0x12355169
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END S0_1A_L nff=0
