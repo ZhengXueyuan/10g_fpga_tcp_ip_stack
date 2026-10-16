@@ -1,0 +1,71 @@
+T2 / T3 (trickle control arms) -- READINGS
+===========================================
+Round: p9_p3win_trickle_board_20261017 (2026-10-17).  Board = 0x28 (zero burn, A section).
+All three A-section arms are SAME-BURN CONTINUOUS arms (板态连续; no re-burn between T1/T2/T3/P3A0).
+
+T2 = control arm (1) : single sink, B4H3-verbatim config
+-------------------------------------------------------------------------------
+cmd : bash arm_trickleA.sh T2 0x28 1 0 2920 6 300 50000000
+      => --rcvbuf 2920 --conns 6 --seconds 300 --maxbytes 50000000 --check lane8 --poll-ms 1000 --stall-n 3
+SINK_MD5 f62299291fcb9e02afe109c4ea1f90ab    SNAP_MD5 a257af8299904789c6a6dd9ed5ca030f
+pcap gates: arming ok / both tcpdumps STOPPED_GRACEFULLY / full 0 dropped, ctl 0 dropped
+sink : SINK_SUM conns=1 fail_conns=0 bytes=50000620 clean_conns=1 bad_conns=0
+       mismatch_bytes=0 stall_conns=0 poll_tmo=0 wall_s=392.039 agg_Mbps=1.020
+       SINK_CONN 0 OK bytes=50000620 first_mismatch=-1 mism_bytes=0 dur_ms=392039.014 Mbps=1.020
+>>>  ONE unopposed connection.  It CRAWLED for its whole life (1.020 Mbps).
+>>>  The F-A "fast stream" yardstick (B4P_S2 = 887 Mbps adjacent to B4H3) did NOT reproduce.
+pcap: cli:47576  B2P data=53,733  P2B=53,913  wire bytes=78,450,180  span 391.8 s
+      clusters 19,503 ; sizes {2:7298, 3:10993, 5:1191, 7:9, 9:2, 11:4, 13:6}
+      dup_pkts 19,505 / conflict 0 / new 34,228     (dup ratio by segment 36.3 %)
+      peer win histogram {0: 19690, 1460: 34221, 2920: 2}   <== same clean set
+      peer-ACKs/cluster : 2 (6100) / 3 (12012) / 4 (1369) / >=5 (22)  == 1 ACK per segment
+      first peer ACK after cluster end: min 0.005 / med 0.029 / max 0.979 ms
+      board-side control frames = 0
+board ring (1884 samples, span 391.935 s):
+      W5  156,258,452 /s   W51 127,544.10 B/s   W52 87.359 /s   W55 49.779 /s
+      W66 3,626.90 /s      W67 0 /s             W68 87.336 /s    W69 unchanged (0 delta)
+      W20 137.214 /s
+      DUTY dW66/dW5 = 0.002321 % ; peer-side share = 100.000 %  (dW67 == 0)
+>>>  The crawl needs NO second connection: micro-structure identical to T1's trickle
+     (same 20 ms cluster clock, same win set, same 1-ACK-per-segment, same W55 ~ 49.7/s).
+
+T3 = control arm (2) : 2 sinks, second sink RSTs within ~1 s of connecting
+-------------------------------------------------------------------------------
+cmd : RUN_TIMEOUT=200 SINK_EXTRA='--poll-ms 1000 --stall-n 3'
+      SINK_EXTRA2='--poll-ms 1000 --stall-n 1 --abort-rst --maxbytes 1460'
+      bash arm_trickleA.sh T3 0x28 2 0.4 2920 6 90 8000000
+      (SINK_EXTRA2 is the round-trip patch this round added to arm_trickleA.sh -- see
+       tools/arm_trickleA_peer_patch.diff; peer copy md5 add43725d7d4dd76ba9d5c5d826cd3df)
+pcap gates: arming ok / both tcpdumps STOPPED_GRACEFULLY / full 37,750 captured 0 dropped
+            ctl 18 captured 0 dropped
+sink1: SINK_SUM conns=3 bytes=16295060 clean_conns=2 bad_conns=1 stall_conns=1 wall_s=143.510 agg_Mbps=0.908
+sink2: SINK_SUM conns=6 bytes=8760 clean_conns=3 bad_conns=3 stall_conns=3 wall_s=3.004 agg_Mbps=0.023
+pcap (bidirectional, 37,750 pkts, span 143.53 s):
+      flags P2B {'A':18895, 'S':9, 'RA':7, 'FA':10, 'R':1}   <== 8 RSTs from the peer
+      flags B2P {'PA':18819, 'SA':9}                          <== board-side control frames = 0
+      peer RSTs at t = 1.403 / 2.404 / 3.406 x4 / 78.273 / 143.53 s
+        ports 50834 (t1.403), 50844 (t2.404), 50854 (t3.406) = sink2 conns 0/1/2
+               -> each got 0 bytes and RST'd after exactly ~1.00 s  <== AS DESIGNED
+        ports 50870/50884/50890 (t3.406) = sink2 conns 3-5 (4,380 B each, closed by maxbytes)
+        ports 58552 (t78.273) / 44406 (t143.53) = sink1's later conns (the FIN-close path)
+conn census:
+  cli:50826  data only in [0.000, 3.396] : 462 segs, 673,061 B wire (1.56 Mbps), then SILENT
+             (the relay left it at t=3.406 when sink2's conn 3 was fed)
+  cli:58552  [6.400, 78.273] 9,625 segs 14,016,025 B  per-second bytes/s median 194,180 (1.55 Mbps)
+             first 10 s = [0,0,0,0,0,0,116801,194180,195641,195641]  <== slow from the FIRST second
+  cli:44406  [78.273, 143.530] 8,724 segs 12,735,580 B (1.55 Mbps)
+>>>  After sink2 exited (t=3.0 s) and every competing connection was RST'd, sink1's
+     connections still crawled at ~1.55 Mbps for 72 s and 65 s.  NO connection ever ran fast
+     and none recovered.  => the crawl does NOT require a live competing connection.
+board ring (691 samples, span 143.374 s):
+      W5 156,248,474 /s  W51 113,674.58 B/s  W52 77.859 /s  W55 48.663 /s
+      W66 3,671.03 /s    W67 0 /s            W68 77.797 /s   W20 137.214-ish /s
+      DUTY dW66/dW5 = 0.002349 % ; peer-side = 100.000 %
+      W69: changed every sample in this arm (rate 9.28e8/s of accumulated |delta|) -- i.e. the
+           window state at the wait moment VARIES here, unlike T1/T2 where it was pinned at
+           {1460,1460}.  (Not a pre-registered criterion reading; registered as an observation.)
+E12 (T3): dW71 = 9 == dW73(6) + dW74(3)  CLOSED ;  dW72 = 1
+
+CROSS-ARM CONSTANT (striking): W55 = 49.714 / 49.779 / 48.663 per second in T1 / T2 / T3 --
+the board's RTO/replay clock is ~49.7/s in every trickle arm, matching the forensics'
+2984 clusters/min = 49.7/s exactly.

@@ -1,0 +1,135 @@
+T1 (trickle experiment A, main arm) -- READINGS
+================================================
+Round : p9_p3win_trickle_board_20261017 (2026-10-17)
+Arm   : bash arm_trickleA.sh T1 0x28      (2 sinks, stagger 0.4, rcvbuf 2920, conns 6,
+                                             secs 300, maxbytes 50000000, --poll-ms 1000 --stall-n 3)
+Board : BID 0x28 (zero burn in the A section; same-burn continuous-arm discipline)
+SINK  : SINK_MD5 f62299291fcb9e02afe109c4ea1f90ab  SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+SNAP  : p7b_snap.sh md5 a257af8299904789c6a6dd9ed5ca030f
+KW    : '66 67 68 69 20 43 51 52 55 57 58 5'   KW2 = KW + '71 72 73 74'
+T0    : 1792169534.194360147   arm wall = 437.895 s   (K0M_END 1792169973.004275053)
+
+--- pcap hard gates (three) ---------------------------------------------------
+arming      : ctl TCPDUMP_ARMED ~0s / full TCPDUMP_ARMED ~0s          PASS
+graceful    : full STOPPED_GRACEFULLY / ctl STOPPED_GRACEFULLY        PASS
+loss        : full "179014 packets captured / 179031 received / 0 dropped by kernel"
+              ctl  "54 packets captured / 55 received / 0 dropped by kernel"   PASS
+
+--- sink summary (verbatim tail) ---------------------------------------------
+sink1: SINK_SUM conns=5 fail_conns=0 bytes=97146940 clean_conns=1 bad_conns=4 mismatch_bytes=0
+       stall_conns=4 err_conns=0 poll_tmo=12 wall_s=437.890 agg_Mbps=1.775
+sink2: SINK_SUM conns=6 fail_conns=0 bytes=1508180 clean_conns=0 bad_conns=6 mismatch_bytes=0
+       stall_conns=6 poll_tmo=18 wall_s=29.947 agg_Mbps=0.403
+THE trickle connection = sink1 conn 4:
+  SINK_CONN 4 OK bytes=50000620 first_mismatch=-1 mism_bytes=0 dur_ms=410538.880 Mbps=0.974 reads=34243 poll_tmo=0
+  (reproduces B4H3's 55352 shape: 50,000,620 B / ~410 s / 0.98 Mbps / mism_bytes=0 / poll_tmo=0)
+
+--- board instruments (wrap-aware; ring 2107 samples / 2 aborted / span 437.704 s) ----
+W5  156,247,899 /s   (clock sanity = 156.25 MHz)       [W5 wraps ~16x: MUST use per-sample deltas]
+W51 199,229.78 B/s   (app TX payload; = 1.594 Mbps on the wire, dups included)
+W52 136.460 /s       (app TX frames; W51/W52 = 1460 B/frame exactly)
+W55  49.714 /s       <== the RTO/replay clock  (candidate-1 anchor 49.7/s lives HERE)
+W68 136.432 /s       (ACKs advancing snd_una -- one per data segment, NOT per cluster)
+W66  79,480.59 /s    (frame-side window-gate stall cycles)
+W67   0 /s           (board-cap side: ZERO)
+W20 186.288 /s       (MAC tx frames -- includes replays)
+W57 355,408,837 (delta)  W58 = 0 (retx_active never latched at sample points)
+
+DUTY  dW66/dW5 = 0.000509  (= 0.0509 %)     <== NOT ~100 %
+PEER-SIDE SHARE (dW66 - dW67)/dW66 = 1.000000  (100 % peer-side)
+
+--- W69 decode (RTL tcp_tx_frame.v:1144  o_win_at_winstall <= {win_inflight, win_wnd_eff}) ----
+W69 raw = 95,684,020 = 0x05B405B4
+  high16 win_inflight = 1460
+  low16  win_wnd_eff  = 1460        <== gate closed exactly at inflight == wnd == 1 MSS
+  constant over the whole window (first == last == 0x05B405B4)
+
+--- E12 three-state identity (T1, 0x28 arm; PRE = all-zero) -------------------
+W71 up_ev   = 11
+W72 sw_req  =  8
+W73 sw_apply=  9
+W74 up_pend =  2
+dW71 == dW73 + dW74  ->  11 == 9 + 2   CLOSED
+(dW72+dW74 = 10 alive-arrival events; same order as B4H3's 11)
+
+--- peer-side pcap (BIDIRECTIONAL -- first time in this project) --------------
+dir : B2P=89,350  P2B=89,664
+flags: P2B {'A': 89,599 pure ACKs, 'S': 11 SYN, 'FA': 54 FIN|ACK}
+       B2P {'PA': 89,339 data, 'SA': 11 SYN-ACK}
+BOARD-SIDE CONTROL FRAMES = 0   (no FIN, no RST, no FIN-ACK)  [replicates B4H3]
+FIN|ACK count 54  == ctl pcap "54 packets captured"  (cross-instrument agreement)
+
+--- trickle connection cli:40348 (the relay baton holder) --------------------
+pkts=109,536  B2P data=54,672  P2B=54,864  dataB2P=79,819,660 B  window [27.351, 437.829] = 410.5 s
+clusters=20,428  period min 20.034 / med 20.075 / max 21.982 ms
+cluster sizes {2: 6903, 3: 13382, 5: 142, 9: 1}   dup_pkts=20,427 conflict=0
+=> 1.0035 pure-ACKs per data segment
+=> 2.685 peer-ACKs/cluster  (2: 6761, 3: 13332, 4: 334, 8: 1 clusters)
+=> first peer ACK after each cluster's LAST data pkt: min 0.004 / med 0.018 / max 0.919 ms
+PEER WIN HISTOGRAM (all 54,863 pure ACKs + SYN): {0: 20622, 1460: 34240, 2920: 2}
+   => win in {0, 1460, 2920} EXACTLY (nothing else observed)
+
+--- peer kernel counters (delta over the arm) --------------------------------
+TcpInSegs          +89,484      TcpOutSegs          +89,792
+TcpRetransSegs     +48          TcpExtTCPFastRetrans +0
+TcpExtTCPOFOQueue  +2           TcpExtTCPACKSkippedSeq +0
+=> peer stack sees an in-order stream; NO hole/FastRetrans machinery engaged
+   (contrast Stage C's 627-1198 OFO events)
+
+--- micro-timeline sample (t=200.00..200.11 s; 2 windows, both directions) [pcap verbatim]
+  B2P seq=426377            -> P2B ack=427837 win=1460   (+90 us)
+  B2P seq=427837            -> (ack above)
+  B2P seq=429297            -> P2B ack=429297 win=0      (+21 us)  then win=1460 (+41 us)
+  --- 20 ms silence ---
+  B2P seq=429297 (wire dup) -> P2B ack=430757 win=1460   (+20 us)
+  B2P seq=430757 / 432217   -> P2B ack=432217 win=0      then win=1460
+  --- 20 ms silence --- (cycle repeats; period 20.07 ms = board RTO)
+  Board-side every IP header has win=0 on data segments (per-connection probe semantics,
+  same as the forensics report; irrelevant to the data flow).
+
+--- verdict-relevant framing (NO PASS/FAIL issued here; criteria owner decides) ----
+Pre-registered criteria from FINDINGS sec.7 experiment A, as read:
+  (1) "peer ACK ~1 per cluster, right after the replay, win in {0,1460,2920}"
+      -> win set CONFIRMED exactly; "right after" CONFIRMED (median 18 us);
+         "~1 per cluster" NOT confirmed: measured 2.685/cluster == ONE ACK PER SEGMENT.
+  (2) "dW68 ~ 49.7/s (cand 1) vs thousands/s (cand 3)"
+      -> dW68 = 136.43/s: neither figure.  The 49.7/s anchor is real but lives in
+         dW55 (replay/RTO count) = 49.71/s = 2.687 segments/cluster x 49.7.
+  (3) "dW66 duty ~100 % and (dW66-dW67) mostly peer-side"
+      -> peer-side share CONFIRMED 100.000 % (dW67 == 0);
+         duty NOT confirmed: dW66/dW5 = 0.0509 % of clock cycles (~3.7 us of window
+         wait per app frame).  [W65 (line idle) was NOT in this arm's KW, so the
+         A7-round "share of line-idle" form cannot be formed for this arm.]
+  (4) "W69 = {win_inflight, win_wnd_eff} at the wait moment"
+      -> READ: {1460, 1460}, constant across the whole 437.7 s window.
+
+--- CORRECTION / REFINEMENT BLOCK (added 2026-10-17 01:40, after re-analysis) -------------
+My first cluster slicing had an off-by-one (bounds were taken as "index of the segment AFTER
+the gap" but then re-incremented, so each cluster absorbed the next cluster's first segment).
+tkbi.py has been fixed (two occurrences) and everything below is the corrected reading.
+
+CORRECTED cluster structure (T1 trickle cli:40348; identical shape in T2 cli:47576):
+  clusters = 20,428   sizes {2: 6903, 3: 13382, 5: 142, 9: 1}   mean 2.676 segments/cluster
+  dup position within the cluster = **0 for 20,427 of 20,427 dups**
+  => **every cluster STARTS with the replay** == the forensics model "[1 replay] + [1.687 new]"
+     is CONFIRMED by independent re-measurement (previously my position histogram read the
+     opposite because of the off-by-one).
+  (T2: 19,503 clusters, 19,502/19,505 dups at position 0.)
+
+CORRECTED peer-ACK accounting:
+  peer ACKs per cluster (counted between consecutive cluster starts):
+     T1: {2: 6895, 3: 13204, 4: 189, 5: 139, 9: 1}  mean 54,863/20,428 = 2.685
+     T2: {2: 7294, 3: 10817, 4: 186, 5: 1184, ...}  mean 53,912/19,503 = 2.764
+  => ACKs/cluster == segments/cluster : essentially ONE ACK PER SEGMENT (not 1 per cluster).
+
+@@ DECISIVE MECHANISM MEASUREMENT (T1, new this round) @@
+  For each cluster, compare the HIGHEST ack number carried by peer ACKs inside the cluster
+  window against the cluster's LAST segment (which is the replay):
+      last_seg_UNACKED = 20,428 / 20,428  = 100.00 %
+  => **the peer never ACKs the cluster's final segment inside the cluster window.**  The board's
+     RTO (20.07 ms) fires, replays that segment, and the replay becomes the NEXT cluster's first
+     segment; the peer then ACKs it immediately (median 0.009 ms after the cluster's last data
+     packet; first-ACK delay for the whole trickle is min 0.004 / med 0.018 / max 0.919 ms).
+  => the delayed-ACK half of candidate 1 ("only an RTO replay squeezes out that ACK") is
+     CONFIRMED at packet level, with the refinement that the peer quick-ACKs every OTHER segment
+     (so ACKs/cluster ~ 2.7, not ~1).

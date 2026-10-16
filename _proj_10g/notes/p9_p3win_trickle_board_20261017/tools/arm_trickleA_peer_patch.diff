@@ -1,0 +1,28 @@
+--- arm_trickleA.sh (orig, p9_sink_delta_20261017)
++++ arm_trickleA.sh (peer-patched, this round)
+@@ -46,4 +46,9 @@
+ # trickle-A default (B4H3 verbatim); override via env for the control arms
+ SINK_EXTRA=${SINK_EXTRA-'--poll-ms 1000 --stall-n 3'}
++# --- T3 patch (2026-10-17, board round p9_p3win_trickle): per-sink extras ---
++#   SINK_EXTRA2 = extra args for sinks 2..N (default = SINK_EXTRA => previous behaviour
++#   byte-identical when unset).  Needed because control arm T3 must RST the SECOND sink
++#   within ~1 s of its connect while sink 1 keeps the B4H3 verbatim args.
++SINK_EXTRA2=${SINK_EXTRA2-$SINK_EXTRA}
+ 
+ case "$GEN" in
+@@ -74,5 +79,5 @@
+ }
+ 
+-echo "### K0M_BEGIN tag=$TAG gen=$GEN nsinks=$NSINKS stagger=$STAGGER rcvbuf=$RCVBUF conns=$CONNS secs=$SECS maxbytes=$MAXBYTES ring=${RING_C}MBx${RING_W} sink_extra='$SINK_EXTRA' $(date +%s.%N)"
++echo "### K0M_BEGIN tag=$TAG gen=$GEN nsinks=$NSINKS stagger=$STAGGER rcvbuf=$RCVBUF conns=$CONNS secs=$SECS maxbytes=$MAXBYTES ring=${RING_C}MBx${RING_W} sink_extra='$SINK_EXTRA' sink_extra2='$SINK_EXTRA2' $(date +%s.%N)"
+ echo "### SNAP_MD5 $(md5sum $S | awk '{print $1}')"
+ echo "### SINK_MD5 $(md5sum /tmp/p7b_biz/p7b_tcp_sink | awk '{print $1}')"
+@@ -121,6 +126,7 @@
+ SPIDS=()
+ for i in $(seq 1 $NSINKS); do
++  ex=$SINK_EXTRA; [ "$i" -gt 1 ] && ex=$SINK_EXTRA2   # T3 patch: per-sink extras
+   timeout -k 5 $RUN_TIMEOUT /tmp/p7b_biz/p7b_tcp_sink --host $BOARD --port 8080 \
+-    --rcvbuf $RCVBUF --conns $CONNS --seconds $SECS --maxbytes $MAXBYTES --check lane8 $SINK_EXTRA \
++    --rcvbuf $RCVBUF --conns $CONNS --seconds $SECS --maxbytes $MAXBYTES --check lane8 $ex \
+     > /tmp/k0_${TAG}_sink${i}.txt 2>&1 &
+   SPIDS+=($!)

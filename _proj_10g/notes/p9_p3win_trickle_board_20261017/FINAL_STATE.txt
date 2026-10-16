@@ -1,0 +1,39 @@
+FINAL_STATE -- p9_p3win_trickle_board_20261017  (2026-10-17, ~01:33 CST)
+=======================================================================
+ARM TABLE (6 runs executed; all peer-side scripts at SINK_MD5 f6229929…)
+  T1  trickle-A main arm  0x28  437.9 s  trickle conn 50,000,620 B / 410.5 s / 0.974 Mbps
+  T2  control (1 sink)    0x28  392.0 s  50,000,620 B / 392.0 s / 1.020 Mbps  (also a crawl)
+  T3  control (RST arm)   0x28  143.5 s  peer RST x8 (3 at ~1 s after connect); no recovery
+  P3A0 P-3 cfg A         0x28  120.0 s  36,809 conns clean, agg 5,156.99 Mbps, 0 hits
+  P3A1 P-3 cfg A         0x24  120.0 s  36,569 conns clean, agg 5,123.31 Mbps, 0 hits
+  B1   cfg B (fallback)  0x24   20.3 s  80 conns clean(78)+2 stall, agg ~3.19/3.00 Gbps, 0 hits
+
+BURN RECORD (2 burns this round; the A section required zero)
+  #1  2026-10-17 01:23:00  -> 0x24  sha e3b07957aea0326a168b9db0238ef9dd933dc7a21884c92e50a7c3b0abadf1db
+      BURN_OK (HIGH+DONE+path+freshness+no-ABORT); identity BID=0x24 / 71 words / 0x14C=ffffffff / NFF=0
+      PCIe: device-level remove+rescan only (no root-port escalation needed); LnkSta x4, 2 BARs
+  #2  2026-10-17 01:30:17  -> 0x28  sha 79c9cf434eb66723b97f654cbece9ea061632e2297c0a8ab0ea0dc198c43bec8
+      BURN_OK; identity BID=0x28 / 75 words / 0x15C=ffffffff / NFF=0
+      PCIe: device-level remove+rescan only; LnkSta x4, 2 BARs
+  ⛔ QSPI never written (JTAG volatile only).
+
+FINAL BOARD STATE (live read 2026-10-17 1792172006.98)
+  ID_MAGIC  0x50360001     (want 0x50360001)  OK
+  ID_BID    0x00000028     (want 0x00000028)  OK
+  ID_MARKER 0xdeadbeef     (want 0xdeadbeef)  OK
+  ID_UNIMPL 0xffffffff     (want 0xffffffff)  OK       ID_RC = 0
+  reg 0x04  = 0x00000028    reg 0x08 = 0x00000000    reg 0x15C = 0xffffffff
+  CARRIER = 1               ROUTE = 192.168.100.2 dev enp1s0f1np1 src 192.168.100.100/32
+  LEFTOVER: NO_P7B_PROCS / NO_TCPDUMP / NO_ARM_PROCS
+
+NIC witness (this round's reads): Adaptive RX: off, rx-usecs 0, unmanaged, /32 route present.
+                              net.core.rmem_max = 4,194,304 (>= the cfg-A requirement).
+ENV FIX: peer /tmp/p7b_biz/p7b_tcp_src_rate was a byte-copy of p7b_sink_rate
+         (md5 ca6900fd54036be7fe1d337ca9ef83b8, source absent).  Re-pushed the tree source
+         (_proj_10g/notes/p7b_board_stageb/p7b_tcp_src_rate.cpp, md5 c3b9b01c42dae1ef3e098893d839f986)
+         and rebuilt: md5 a76b2b4b1e44d6c9edcaa301d90aabcb / 119,496 B == BUILD.md sec.3 row 6.
+PEER SCRIPT PATCH (round-trip): arm_trickleA.sh gained SINK_EXTRA2 (per-sink extras for sinks
+         2..N; default = SINK_EXTRA so an unset var is byte-identical to the original).
+         Peer copy md5 add43725d7d4dd76ba9d5c5d826cd3df; local artifact =
+         tools/arm_trickleA_peer_patched.sh + tools/arm_trickleA_peer_patch.diff.
+         The original under p9_sink_delta_20261017/ was NOT modified.

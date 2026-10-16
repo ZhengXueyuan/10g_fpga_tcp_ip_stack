@@ -1,0 +1,29 @@
+=== BOARD IDENTITY (live) ===
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x00000028   (want 0x00000028 = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1792169420.868010583
+ID_RC=0
+BID_0x04=Read 32-bit value at address 0x4 (0x7d27a79a6004): 0x00000028
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x7da1b7ff4008): 0x00000000
+UNIMPL_0x15C=Read 32-bit value at address 0x15c (0x70f619e7415c): 0xffffffff
+CARRIER=1
+=== NIC 4 LINES ===
+ROUTE=192.168.100.2 dev enp1s0f1np1 src 192.168.100.100 uid 0 
+inet 192.168.100.100/32
+enp1s0f1np1:unmanaged:
+ethtool: bad command line argument(s)
+For more information run ethtool -h
+Adaptive RX: off  TX: n/a
+rx-usecs:	0
+=== PROCS ===
+328540 sudo -S -p  bash -lc IF=enp1s0f1np1; D=/dev/xdma0_user; T=/home/a/xdma_test/dma_ip_drivers-patched/XDMA/linux-kernel/tools; echo '=== BOARD IDENTITY (live) ==='; bash /tmp/p7b_biz/p7b_snap.sh id; echo ID_RC=$?; echo -n 'BID_0x04='; $T/reg_rw $D 0x04 w 2>&1 | tail -1; echo -n 'SCRATCH_0x08='; $T/reg_rw $D 0x08 w 2>&1 | tail -1; echo -n 'UNIMPL_0x15C='; $T/reg_rw $D 0x15C w 2>&1 | tail -1; echo -n 'CARRIER='; cat /sys/class/net/$IF/carrier; echo '=== NIC 4 LINES ==='; echo -n 'ROUTE='; ip route get 192.168.100.2 | head -1; ip -4 addr show $IF | grep -o 'inet [0-9./]*'; nmcli -t -f DEVICE,STATE,CONNECTION device status 2>/dev/null | grep enp1s0f1np1; ethtool --show-adaptive-rx $IF 2>&1 | head -3; ethtool -c $IF 2>&1 | grep -E 'rx-usecs:|Adaptive RX'; echo '=== PROCS ==='; pgrep -af '[p]7b_tcp' || echo NO_P7B_PROCS; pgrep -af '[t]cpdump' || echo NO_TCPDUMP; echo '=== SINK MD5 (live) ==='; md5sum /tmp/p7b_biz/p7b_tcp_sink /tmp/p7b_biz/p7b_snap.sh /tmp/p7b_biz/p7b_tcp_src_rate /tmp/p7b_biz/p7b_tcp_sink_rate; ls -la /tmp/p7b_biz/p7b_tcp_src_rate.cpp 2>&1
+328541 bash -lc IF=enp1s0f1np1; D=/dev/xdma0_user; T=/home/a/xdma_test/dma_ip_drivers-patched/XDMA/linux-kernel/tools; echo '=== BOARD IDENTITY (live) ==='; bash /tmp/p7b_biz/p7b_snap.sh id; echo ID_RC=$?; echo -n 'BID_0x04='; $T/reg_rw $D 0x04 w 2>&1 | tail -1; echo -n 'SCRATCH_0x08='; $T/reg_rw $D 0x08 w 2>&1 | tail -1; echo -n 'UNIMPL_0x15C='; $T/reg_rw $D 0x15C w 2>&1 | tail -1; echo -n 'CARRIER='; cat /sys/class/net/$IF/carrier; echo '=== NIC 4 LINES ==='; echo -n 'ROUTE='; ip route get 192.168.100.2 | head -1; ip -4 addr show $IF | grep -o 'inet [0-9./]*'; nmcli -t -f DEVICE,STATE,CONNECTION device status 2>/dev/null | grep enp1s0f1np1; ethtool --show-adaptive-rx $IF 2>&1 | head -3; ethtool -c $IF 2>&1 | grep -E 'rx-usecs:|Adaptive RX'; echo '=== PROCS ==='; pgrep -af '[p]7b_tcp' || echo NO_P7B_PROCS; pgrep -af '[t]cpdump' || echo NO_TCPDUMP; echo '=== SINK MD5 (live) ==='; md5sum /tmp/p7b_biz/p7b_tcp_sink /tmp/p7b_biz/p7b_snap.sh /tmp/p7b_biz/p7b_tcp_src_rate /tmp/p7b_biz/p7b_tcp_sink_rate; ls -la /tmp/p7b_biz/p7b_tcp_src_rate.cpp 2>&1
+NO_TCPDUMP
+=== SINK MD5 (live) ===
+f62299291fcb9e02afe109c4ea1f90ab  /tmp/p7b_biz/p7b_tcp_sink
+a257af8299904789c6a6dd9ed5ca030f  /tmp/p7b_biz/p7b_snap.sh
+ca6900fd54036be7fe1d337ca9ef83b8  /tmp/p7b_biz/p7b_tcp_src_rate
+ca6900fd54036be7fe1d337ca9ef83b8  /tmp/p7b_biz/p7b_tcp_sink_rate
+ls: cannot access '/tmp/p7b_biz/p7b_tcp_src_rate.cpp': No such file or directory

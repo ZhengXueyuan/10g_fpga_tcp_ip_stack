@@ -1,0 +1,85 @@
+P3A0 = P-3 main arm on 0x28 (config A, full-speed stream -> abort -> reconnect) -- READINGS
+=========================================================================================
+Round: p9_p3win_trickle_board_20261017 (2026-10-17).  Board = 0x28 (SAME-BURN CONTINUOUS arm
+with T1/T2/T3 -- no re-burn between them).
+NOTE on TAG/labels: this is DESIGN.md's "A0" (0x28).  The dispatch note called the 0x28 arm
+"A1" and the 0x24 arm "A0"; the upstream design doc's labels are the reverse.  I followed the
+DESIGN doc and use P3A0 = 0x28, P3A1 = 0x24.  See report section 6 (deviations).
+
+cmd (DESIGN sec.2.1 verbatim):
+  bash arm_p3win.sh P3A0 0x28 --host 192.168.100.2 --port 8080 --rcvbuf 1048576 \
+       --conns 100000 --seconds 120 --maxbytes 2097152 --poll-ms 300 --stall-n 2 \
+       --check lane8 --abort-rst
+SINK_MD5 f62299291fcb9e02afe109c4ea1f90ab   SNAP_MD5 a257af8299904789c6a6dd9ed5ca030f
+SINK_LIMITS maxbytes=2097152 poll_ms=300 stall_n=2 rcvbuf=1048576 conns=100000 secs=120
+SINK_OPTS abort_rst=1 local_port=0 reconnect_delay_ms=0
+SINK_RCVBUF_ORDER RCVBUF_ORDER=before_connect rcvbuf=1048576
+identity gate (before run): BID 0x28 / SCRATCH 0x08 = 0 / CARRIER = 1 / 0x15C unimplemented
+board ring: 465 samples / 2 aborted / span 119.759 s
+
+--- pcap hard gates -----------------------------------------------------------
+arming    : ctl TCPDUMP_ARMED ~0s / full TCPDUMP_ARMED ~0s                    PASS
+graceful  : ctl STOPPED_GRACEFULLY / full STOPPED_GRACEFULLY                  PASS
+loss      : ctl  939,927 captured / 940,273 received / 0 dropped by kernel    PASS
+            full 23,740,747 captured / 54,663,739 received / 30,756,536 dropped <<< FAIL
+            => at ~5 Gbps the 2.4 GB ring CANNOT keep up; the full-frame pcap is
+               CONTAMINATED and is not usable as a witness for this arm (nor for the
+               0x24 arm, which runs the same config).  The MAIN criterion (sink
+               per-connection first_mismatch/mism_bytes) is sink-internal and unaffected.
+
+--- sink (MAIN criterion) -----------------------------------------------------
+SINK_SUM conns=36809 fail_conns=0 bytes=77357124228 clean_conns=36809 bad_conns=0
+         mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=120.004 agg_Mbps=5156.991
+connections with first_mismatch >= 0 : 0
+connections with mism_bytes > 0      : 0
+non-OK connections                   : 0
+=> 0x28 arm = CLEAN (every one of 36,809 connections: fm=-1, mism=0), matching the design's
+   clean expectation.  Each connection carried 2,102,400 B in ~2.9 ms (~5.8 Gbps/conn).
+
+--- board instruments ---------------------------------------------------------
+*** 32-BIT WRAP WARNING (global #55; DESIGN sec.1.3/BIZ note): at this rate W51 advances
+    664.7 MB/s => a 32-bit counter wraps every 0.81 s.  PRE->POST mod-2^32 deltas are
+    MEANINGLESS here (they return the wrapped remainder: it read 2,444,385,896 B = 20.4 MB/s).
+    ALL rates below are RING-derived (per-sample deltas, wrap-safe).
+    (The same caveat applies to the 0x24 arm.)
+W5   156,238,379 /s   (clock)
+W51  664,702,996 B/s  = 5.318 Gbps payload   (W51/W52 = 1460 B/frame exactly)
+W52  455,283.94 /s    app TX frames         => frame period 343 cycles
+W20  455,591.60 /s    MAC TX frames         (W20 ~ W52 => app is NOT the bottleneck here)
+W43  156,236,877 /s   tx words
+W55  0.017 /s         stat_retx  (essentially no RTO/replay in this regime)
+W68  101,103 /s       ACKs advancing snd_una
+W66  5,215,825 /s     frame-side window-gate stall cycles  (3.34 % of the clock)
+W67  4,914,283 /s     of which BOARD-CAP side              (3.15 %)
+      => peer-side share = (dW66-dW67)/dW66 = 5.78 % ; BOARD-CAP side = 94.22 %
+      *** OPPOSITE of the trickle arms (100 % peer-side / 0 % board-cap).  This is the
+          cleanest config-to-config discriminator found this round.
+W63  50,936,500 /s    app frm_wait cycles (32.6 % of clock)
+W64   8,601,020 /s    app backpressure cycles (5.5 %)
+W69  changed every sample (accumulated |delta| 1.83e9/s)
+
+--- P-3 PRECONDITION GATES (DESIGN sec.4) -------------------------------------
+G1  d(W72+W74) = 24 + 0 = 24  > 0                                  PASS
+G2  W51 mean rate (RING) = 5.318 Gbps  >= 1 Gbps                   PASS
+      (the naive PRE->POST number 163 Mbps is a WRAP ARTIFACT -- see above)
+G3  dW71 = 36,809 == dW73 + dW74 = 36,809 + 0                      CLOSED
+EXPECTATION GATE: 24 x P  where P = W51_Bps/(1460*156.25e6) = 2.914e-03
+                  => 24 x 2.914e-03 = 0.070   <  3                 NOT MET
+      => per DESIGN sec.4 this arm is logged "NO DISCRIMINATING POWER" for the P-3 question
+         ("若 H1 成立则必现形" threshold unreached), NOT as "P-3 absent".
+
+Event decomposition (E12, PRE = W71..74 = 21/9/16/5):
+  dW71 up_ev        = 36,809   == number of sink connections (one per connection)
+  dW72 sw_req       =     24   (0.065 % of events reached a LIVE app -- "same-slot survival")
+  dW74 up_pend      =      0
+  d(apply clean)    = 36,785   = 99.935 % of events  ==> H2 SHAPE
+  => The abort-rst + immediate-reconnect recipe produces almost exclusively CLEAN APPLIES
+     (app idle/closing when ADD lands).  The design predicted 200-500 events/s; measured
+     24 alive-arrivals in 120 s = 0.2/s.  This is the concrete reason the expectation gate
+     fails.  (H1's "ADD lands while the app is assembling" did NOT materialise.)
+
+--- ctl pcap (H1/H2 direct witness; DESIGN sec.2.4-3) -------------------------
+939,927 pkts, ALL peer->board.  flags: {'RA': 36,799, 'R': 903,128}.
+BOARD-SIDE CONTROL FRAMES = 0  (no FIN, no RST, no FIN-ACK across the whole 120 s)
+  == identical to B4H3's shape.  The ~25 RSTs per connection are the peer stack answering
+     the board's post-abort segments on a dead 4-tuple.

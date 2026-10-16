@@ -1,0 +1,19 @@
+PIN_RULE=avoid-nic PIN_DEGRADED=none PIN_CPU=7 PIN_CORES_ONLINE=0-7 PIN_NIC_IFACE=enp1s0f0np0,enp1s0f1np1 PIN_NIC_CPUS=0,1,2,3,4,5 PIN_NIC_EXCLUDED=none PIN_CORE_LOAD=2396469 PIN_ALLOWED_MASK=80 PIN_GETCPU_START=7 PIN_FREQ_START_KHZ=800000 PIN_GOV=schedutil PIN_NIC_IRQLINES=12 PIN_NIC_IFACE_SRC=auto PIN_TUPLE_ORDER=own_sib_t PIN_PAIR_RULE=load-only PIN_PAIR_DEGRADED=nic0-0 PIN_CPU_IO=4 PIN_CPU_WORK=6 PIN_PC_IO=0 PIN_PC_WORK=2 PIN_PAIR_EXCL=3 PIN_PAIR_REQ=want
+SINK_CHECK check=lane8
+SINK_LIMITS maxbytes=50000000 poll_ms=1000 stall_n=3 rcvbuf=2920 conns=6 secs=300
+SINK_RCVBUF_ORDER RCVBUF_ORDER=before_connect rcvbuf=2920
+SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+PIN_THREAD name=io PIN_TID_IO=329477 PIN_CPU_IO=4 PIN_ALLOWED_MASK_IO=10 PIN_GETCPU_IO=4 CPU_FREQ_IO_KHZ=3701415
+PIN_THREAD name=work PIN_TID_WORK=329478 PIN_CPU_WORK=6 PIN_ALLOWED_MASK_WORK=40 PIN_GETCPU_WORK=6 CPU_FREQ_WORK_KHZ=3704748
+SINK_CONN 0 POLL_TIMEOUT 3 x 1000 ms 无数据 (got=45668800) => 中止本连接
+SINK_CONN 0 STALL bytes=45668800 first_mismatch=-1 mism_bytes=0 conn_ms=0.236 dur_ms=6406.386 Mbps=57.029 reads=31279 poll_tmo=3 CPU_FREQ_KHZ=3900310 THREADED=on q_full_push=31279 q_full_pop=31279 q_free_push=31295 q_free_pop=31279 slot_wait_spins=0 checked_bytes=45668800
+SINK_CONN 1 POLL_TIMEOUT 3 x 1000 ms 无数据 (got=362080) => 中止本连接
+SINK_CONN 1 STALL bytes=362080 first_mismatch=-1 mism_bytes=0 conn_ms=0.111 dur_ms=5984.798 Mbps=0.484 reads=247 poll_tmo=3 CPU_FREQ_KHZ=3900305 THREADED=on q_full_push=247 q_full_pop=247 q_free_push=263 q_free_pop=247 slot_wait_spins=0 checked_bytes=362080
+SINK_CONN 2 POLL_TIMEOUT 3 x 1000 ms 无数据 (got=730000) => 中止本连接
+SINK_CONN 2 STALL bytes=730000 first_mismatch=-1 mism_bytes=0 conn_ms=0.142 dur_ms=8983.880 Mbps=0.650 reads=499 poll_tmo=3 CPU_FREQ_KHZ=3868139 THREADED=on q_full_push=499 q_full_pop=499 q_free_push=515 q_free_pop=499 slot_wait_spins=0 checked_bytes=730000
+SINK_CONN 3 POLL_TIMEOUT 3 x 1000 ms 无数据 (got=385440) => 中止本连接
+SINK_CONN 3 STALL bytes=385440 first_mismatch=-1 mism_bytes=0 conn_ms=0.114 dur_ms=5974.785 Mbps=0.516 reads=263 poll_tmo=3 CPU_FREQ_KHZ=3900286 THREADED=on q_full_push=263 q_full_pop=263 q_free_push=279 q_free_pop=263 slot_wait_spins=0 checked_bytes=385440
+SINK_CONN 4 OK bytes=50000620 first_mismatch=-1 mism_bytes=0 conn_ms=0.153 dur_ms=410538.880 Mbps=0.974 reads=34243 poll_tmo=0 CPU_FREQ_KHZ=3900295 THREADED=on q_full_push=34243 q_full_pop=34243 q_free_push=34259 q_free_pop=34243 slot_wait_spins=0 checked_bytes=50000620
+SINK_SUM conns=5 fail_conns=0 bytes=97146940 clean_conns=1 bad_conns=4 mismatch_bytes=0 stall_conns=4 err_conns=0 poll_tmo=12 wall_s=437.890 net_s=437.889 agg_Mbps=1.775 THREADED=on full_push=66531 full_pop=66531 free_push=66611 free_pop=66531 slot_wait_spins=0 checked_bytes=97146940 threads=10 check=lane8
+SINK_DONE
+PIN_GETCPU_END=7 PIN_FREQ_END_KHZ=800000

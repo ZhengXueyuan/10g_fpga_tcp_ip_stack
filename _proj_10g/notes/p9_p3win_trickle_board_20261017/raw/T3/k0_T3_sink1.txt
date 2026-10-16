@@ -1,0 +1,14 @@
+PIN_RULE=avoid-nic PIN_DEGRADED=none PIN_CPU=7 PIN_CORES_ONLINE=0-7 PIN_NIC_IFACE=enp1s0f0np0,enp1s0f1np1 PIN_NIC_CPUS=0,1,2,3,4,5 PIN_NIC_EXCLUDED=none PIN_CORE_LOAD=2429772 PIN_ALLOWED_MASK=80 PIN_GETCPU_START=7 PIN_FREQ_START_KHZ=3697980 PIN_GOV=schedutil PIN_NIC_IRQLINES=12 PIN_NIC_IFACE_SRC=auto PIN_TUPLE_ORDER=own_sib_t PIN_PAIR_RULE=load-only PIN_PAIR_DEGRADED=nic0-0 PIN_CPU_IO=4 PIN_CPU_WORK=6 PIN_PC_IO=0 PIN_PC_WORK=2 PIN_PAIR_EXCL=3 PIN_PAIR_REQ=want
+SINK_CHECK check=lane8
+SINK_LIMITS maxbytes=8000000 poll_ms=1000 stall_n=3 rcvbuf=2920 conns=6 secs=90
+SINK_RCVBUF_ORDER RCVBUF_ORDER=before_connect rcvbuf=2920
+SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+PIN_THREAD name=io PIN_TID_IO=898963 PIN_CPU_IO=4 PIN_ALLOWED_MASK_IO=10 PIN_GETCPU_IO=4 CPU_FREQ_IO_KHZ=3855296
+PIN_THREAD name=work PIN_TID_WORK=898964 PIN_CPU_WORK=6 PIN_ALLOWED_MASK_WORK=40 PIN_GETCPU_WORK=6 CPU_FREQ_WORK_KHZ=3711598
+SINK_CONN 0 POLL_TIMEOUT 3 x 1000 ms 无数据 (got=293460) => 中止本连接
+SINK_CONN 0 STALL bytes=293460 first_mismatch=-1 mism_bytes=0 conn_ms=0.180 dur_ms=6399.942 Mbps=0.367 reads=200 poll_tmo=3 CPU_FREQ_KHZ=3889646 THREADED=on q_full_push=200 q_full_pop=200 q_free_push=216 q_free_pop=200 slot_wait_spins=0 checked_bytes=293460
+SINK_CONN 1 OK bytes=8000800 first_mismatch=-1 mism_bytes=0 conn_ms=0.108 dur_ms=71872.374 Mbps=0.891 reads=5478 poll_tmo=0 CPU_FREQ_KHZ=3900307 THREADED=on q_full_push=5478 q_full_pop=5478 q_free_push=5494 q_free_pop=5478 slot_wait_spins=0 checked_bytes=8000800
+SINK_CONN 2 OK bytes=8000800 first_mismatch=-1 mism_bytes=0 conn_ms=0.108 dur_ms=65237.069 Mbps=0.981 reads=5477 poll_tmo=0 CPU_FREQ_KHZ=3726100 THREADED=on q_full_push=5477 q_full_pop=5477 q_free_push=5493 q_free_pop=5477 slot_wait_spins=0 checked_bytes=8000800
+SINK_SUM conns=3 fail_conns=0 bytes=16295060 clean_conns=2 bad_conns=1 mismatch_bytes=0 stall_conns=1 err_conns=0 poll_tmo=3 wall_s=143.510 net_s=143.510 agg_Mbps=0.908 THREADED=on full_push=11155 full_pop=11155 free_push=11203 free_pop=11155 slot_wait_spins=0 checked_bytes=16295060 threads=6 check=lane8
+SINK_DONE
+PIN_GETCPU_END=7 PIN_FREQ_END_KHZ=3701382
