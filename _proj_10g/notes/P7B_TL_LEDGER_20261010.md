@@ -1397,3 +1397,13 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - **L1–L8 局限登记（照录）**：**L1** 0x1D"无"= **n=2 有效**（第 3 跑涓流 hang 作废）⇒ 头条按"n=small + 效应量极大"携带；**L2** 消灭者只许"persist 刀"【推断】（无拆刀 +#64）；**L3** 相位错机制【推断】；**L4** LEGACY 前提方向可信、按 n=small 携带（第三解释被两代相反位次排除）；**L5** S0_1A 两格 = 间接证据（烧后 ID_OK + 邻跑；`SRC_RC=0` 为重建值）；**L6** 部署自检无本机产物（不可复算）；**L7** pcap 未随轮归档 + 件数实录 **144**（写 143 差 1）；**L8** 相位错判据**文档 vs 实现不一致**（表头 ≈`bytes−bytes/256` vs `mk_table.py` `250//256`；"≤30 B"全体边界实为 33.98）⇒ **入工具债**（下次动该工具时统一）。
 - **核心裁决不变**：收敛 `(0x1C, 0x1D)` + 消灭者 = persist 刀【推断】+ A3 证伪 + LEGACY 口径订正 —— 全部获逐值复核支持。**入库**：`d9c8052`（FINDINGS 代落盘 + 两枚复算脚本 + 三处订正）；remote=local 已核。
 - **下一棒（按序）**：① **工具 delta**（sink 加 `--abort-rst`/`--local-port`/`--reconnect-delay-ms` ~20 行 + 重跑部署配方/自检 + 快照 KW 增补 `63 64 55 52`）→ ② **P-3 窗口轮 + 涓流实验 A**（同批臂表：两代 A0/A1 + LEGACY 对照 + 双向抓包 + W66..W69 全窗）→ ③ 待定：`0x1C+PERSIST_EN-only` 拆刀（不排期）。
+
+## §10-92 2026-10-17 03:3x：**sink 工具 delta 轮收口（提交 `b880779`，24 件）—— 三开关落地 + 新 md5 + 双跑等价 + 两臂表脚本骨架；既存部署异常登记**
+- **改动**：`p7b_tcp_sink.cpp` **+74/−3 单文件**（`--abort-rst` = SO_LINGER{1,0} / `--local-port N` = connect 前 bind / `--reconnect-delay-ms N` = usleep；边界越界/负值 **响亮 RC=2**）；既有 `SINK_CONN/SINK_SUM` 字段一字未动，新增单行 **`SINK_OPTS`** 见证（无开关也打默认行）；`--help` 已列。
+- **新 md5 = `f62299291fcb9e02afe109c4ea1f90ab`**（173,576 B；登记 = `p9_sink_delta_20261017/SINK_MD5_REGISTRY.txt`）；**旧锚 `6d9b14f2…`（169,392 B）归档对端 `/tmp/p7b_biz_prev/`**= A/B 另一只手。⚠️ **跨轮身份锚变更**：新跑的 `SINK_MD5` 一律对新值；历史臂旧值作历史读。
+- **默认路径行为等价**：回环 OLD×2/NEW×2 交错，关键列**全同**（含 `mismatch_bytes=0/clean=2/bytes` 逐字）——口径 = **4 跑行为见证**（源码已变、逐字节不可得）。四门自检全过（`selftest-equiv` 10/0 · `p7b_selftest` 30/0 · `dualthread` 48/0 · `lane8` 42/0）。
+- **冒烟（板外回环）**：S1 fin / S2 rst / S3 `peer_port=40000` / **S3b FIN×同端口 = `FAIL_CONNECT why=99` 响亮**（特性边界：`--local-port` 需与 `--abort-rst` 配套，已在 help 写明）/ S4 连间 gap **0.8002/0.8003 s** / S4b 负对照 0.00007/0.00005 s（恰差一个变量）。
+- **臂表骨架（本地，未推对端、未上板）**：`arm_p3win.sh`（KW `66 67 68 69 63 64 55 52 43 51 20 5`；0x28 ⇒ KW2 自动 +`71..74`、0x24 ⇒ 自动去 E12；含前件门 G1/G2/G3 注释块 + ctl FIN/RST 判读项）+ `arm_trickleA.sh`（**双向抓包**去 `src host` + KW `'66 67 68 69 …'`）；`bash -n` RC=0、ASCII、dry-run 已验（误用退出 1/3）。
+- ⚠️ **既存异常登记（非本轮引入；下轮前置修）**：对端 `/tmp/p7b_biz/p7b_tcp_src_rate` = **`p7b_sink_rate` 二进制的同名副本**（md5 同 `ca6900fd…`；出处 = bisect 轮 `deploy_peer.sh:64` 把 `p7b_tcp_sink_rate.cpp` 编成 `-o p7b_tcp_src_rate` 且 FILES 缺其源）⇒ **任何把它当发送端用的臂会静默跑成收端**；修复配方 = `ENV_ANOMALY_20261017.txt`（含正确件 md5 `a76b2b4b…`/119,496；本机树内有源）。
+- **顺带订正**：`p7b_affinity/BUILD.md` §3 第 1 行（sink）已更新为新值与历史锚注（其余 7 行配套仍是旧锚适用面）。
+- **下一棒（本刻已派）= 收官板级轮：P-3 窗口 + 涓流实验 A**（同批臂表；预检含上述异常修复 + NIC/板态现取；三烧 = 0x28 臂全跑 → 烧 0x24 → 0x24 臂 → 收尾回 0x28）。**在飞**：该板级轮。
