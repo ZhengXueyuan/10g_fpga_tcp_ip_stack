@@ -1,0 +1,48 @@
+=== DEPLOY INVENTORY (post-round; peer read) ===
+f62299291fcb9e02afe109c4ea1f90ab  p7b_tcp_sink
+dd3adfbe6d42547b412a5c410b9d1cb2  p7b_tcp_sink.cpp
+b2f2e9627bac53bf3b4ab2b565afe872  p7b_pattern.h
+b03222792d20443138515ba2804b0d87  p7b_affinity.h
+62b1257d69c40f24bfa9a799593073b7  p7b_io.h
+3132db495c29ab85b7f6a5617803644f  p7b_spsc.h
+a257af8299904789c6a6dd9ed5ca030f  p7b_snap.sh
+4154925a8cd5a44d12bfc0a1fd7db35d  p7b_fake_board.py
+38d02f589f55fc33797494fa5bf0db68  smoke_server.py
+77e9222a3401dde0d3a011b0162e74b3  smoke_delta.sh
+081dcbfcec3ec63e51950f581acc1c9c  equiv_ab.sh
+40c3f658b504b874c0df51037fa68f3a  p7b_selftest.sh
+902c01079f9bd7bf32b939f596882be0  p7b_dualthread_selftest.sh
+ac6d56dca7d203fe4b7a281fa0a1bb53  p7b_lane8_selftest.sh
+19cb9f2d9781e8a338246960e3c340ff  aff_selftest.sh
+=== sizes ===
+p7b_tcp_sink 173576
+p7b_tcp_sink.cpp 34880
+smoke_server.py 3955
+smoke_delta.sh 2965
+equiv_ab.sh 2057
+=== proc/leftovers ===
+328107 bash -c cd /tmp/p7b_biz && echo '=== DEPLOY INVENTORY (post-round; peer read) ==='; md5sum p7b_tcp_sink p7b_tcp_sink.cpp p7b_pattern.h p7b_affinity.h p7b_io.h p7b_spsc.h p7b_snap.sh p7b_fake_board.py smoke_server.py smoke_delta.sh equiv_ab.sh p7b_selftest.sh p7b_dualthread_selftest.sh p7b_lane8_selftest.sh aff_selftest.sh 2>&1; echo '=== sizes ==='; stat -c '%n %s' p7b_tcp_sink p7b_tcp_sink.cpp smoke_server.py smoke_delta.sh equiv_ab.sh; echo '=== proc/leftovers ==='; pgrep -af '[p]7b_' || echo NO_P7B_PROCS; pgrep -af '[t]cpdump' || echo NO_TCPDUMP; pgrep -af '[s]moke_server' || echo NO_SMOKE_PROCS; echo '=== /tmp/p7b_biz_prev ==='; ls -la /tmp/p7b_biz_prev/ | head
+NO_TCPDUMP
+328107 bash -c cd /tmp/p7b_biz && echo '=== DEPLOY INVENTORY (post-round; peer read) ==='; md5sum p7b_tcp_sink p7b_tcp_sink.cpp p7b_pattern.h p7b_affinity.h p7b_io.h p7b_spsc.h p7b_snap.sh p7b_fake_board.py smoke_server.py smoke_delta.sh equiv_ab.sh p7b_selftest.sh p7b_dualthread_selftest.sh p7b_lane8_selftest.sh aff_selftest.sh 2>&1; echo '=== sizes ==='; stat -c '%n %s' p7b_tcp_sink p7b_tcp_sink.cpp smoke_server.py smoke_delta.sh equiv_ab.sh; echo '=== proc/leftovers ==='; pgrep -af '[p]7b_' || echo NO_P7B_PROCS; pgrep -af '[t]cpdump' || echo NO_TCPDUMP; pgrep -af '[s]moke_server' || echo NO_SMOKE_PROCS; echo '=== /tmp/p7b_biz_prev ==='; ls -la /tmp/p7b_biz_prev/ | head
+=== /tmp/p7b_biz_prev ===
+total 1056
+drwxrwxr-x  2 a    a      4096 Oct 17 00:40 .
+drwxrwxrwt 27 root root 901120 Oct 17 00:44 ..
+-rwxrwxr-x  1 a    a    169392 Oct 17 00:40 p7b_tcp_sink__6d9b14f2_pre_sinkdelta
+md5sum: p7b_mir_dump: No such file or directory
+79be2a09024206b7c678dc13a3b9051d  p7b_tcp_src
+e0d4da5834cb95d67afb0cc523d1f92f  p7b_udp_src
+ca6900fd54036be7fe1d337ca9ef83b8  p7b_tcp_sink_rate
+ca6900fd54036be7fe1d337ca9ef83b8  p7b_tcp_src_rate
+430ed36ade4ec64ba6f5cb52e5f4f335  p7b_tcp_src_diag
+1e956072f30a25f3e547e8c42107afb3  p7b_rate2_bench
+d1ca0c288efe6723488e4c1a6960d1b5  p7b_tcp_src_fix
+p7b_tcp_src 127720 2026-10-17 00:41:27.096486250 +0800
+p7b_udp_src 128048 2026-10-17 00:41:29.983324240 +0800
+p7b_tcp_sink 173576 2026-10-17 00:41:24.335775256 +0800
+p7b_tcp_sink.cpp 34880 2026-10-17 00:40:53.508276812 +0800
+--- recompiled vs deployed ---
+79be2a09024206b7c678dc13a3b9051d  p7b_tcp_src
+e0d4da5834cb95d67afb0cc523d1f92f  p7b_udp_src
+79be2a09024206b7c678dc13a3b9051d  /tmp/p7b_biz/p7b_tcp_src
+e0d4da5834cb95d67afb0cc523d1f92f  /tmp/p7b_biz/p7b_udp_src

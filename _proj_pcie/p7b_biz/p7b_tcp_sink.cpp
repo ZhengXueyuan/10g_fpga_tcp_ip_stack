@@ -22,6 +22,24 @@
 //     (⇒ 退出码非 0), 不静默吞。旧版无超时护栏, 连接停在中途会**永久挂住**(Stage C 实测踩过)。
 //   * ⛔ **本工具不写盘**: 载荷只在内存里收发, 校验 = 按 p7b_pattern.h 规则**增量复算**
 //
+// ⭐⭐ 2026-10-17 (sink delta 轮 · P-3 窗口构型与涓流取证件要的三个对端旋钮; 全部 opt-in,
+//   **默认行为逐字不变** —— 不带开关时 socket 建立/关闭序列与旧二进制同一序列):
+//   * `--abort-rst`        : close 阶段改发 **RST** (而非 FIN)。实现 = close 之前
+//                            `setsockopt(SO_LINGER{1,0})` —— 最简, 且**单连接串行**下与
+//                            "直接构造 RST" 等价 (close() 立即发 RST、丢弃缓冲,
+//                            不进入 FIN_WAIT/TIME_WAIT)。默认 = 现行为 (FIN)。
+//                            ⚠️ 只作用于**已建立**的连接 (主循环那次 close); 建连失败路径
+//                            的 close 没有连接可关, 不需要 RST 语义。
+//   * `--local-port N`     : connect **之前** bind 本地端口 (SO_REUSEADDR + SO_REUSEPORT)
+//                            ⇒ 支撑"同 4-tuple 重连"臂 (与 --abort-rst 配套: RST 关闭无
+//                            TIME_WAIT ⇒ 端口可立即重用)。默认 = 不 bind (现行为)。
+//                            ⚠️ bind 失败 => 该连接记 FAIL_CONNECT (why=errno), 不静默 —
+//                            与全族惯例一致 (fail_conns>5 即停)。
+//   * `--reconnect-delay-ms N`: 每条连接 close 后、下一条 connect 前 `usleep(N*1000)`。
+//                            默认 0 (现行为)。
+//   ⭐ 三开关的**生效值**由见证行 `SINK_OPTS` 打出 (无开关时也打默认行) —— 缺见证按"未测"读。
+//   ⚠️ 输出纪律: 新字段一律**新增行/追加行尾**, 既有 `SINK_CONN`/`SINK_SUM` 字段名与顺序一字未动。
+//
 // ⭐⭐ 2026-10-09 (本轮 · 双线程样板, 用户逐字要求): "将发送/接收放在一个单独的线程中,
 //   另一个线程负责产生或者消费数据, 两个线程之间用无锁队列通信。"
 //   本文件是**样板**, 发送族下一轮按同一模板推。三条结构:
@@ -214,14 +232,15 @@ static void *sink_ck_main(void *arg) {
 //   开关 = 旧臂 (after_connect_LEGACY)。两臂**只差 setsockopt 的位置这一件事**。
 //
 // 本函数 = `p7b_io.h` 的 `p7b_io_connect_to` (p7b_io.h:105-118) 的**近拷贝**
-//   + 一处 SO_RCVBUF 落点参数。两臂的 socket 建立序列逐条相同
+//   + 两处 sink 本地参数 (2026-10-17 起): SO_RCVBUF 落点 + `local_port` 绑定
+//   (local_port == 0 = 不 bind, 与旧序列逐条相同)。两臂的 socket 建立序列逐条相同
 //   (socket -> inet_pton -> O_NONBLOCK -> connect_nb), 便于 A/B 归因;
 //   旧臂的 syscall 次序 = HEAD 原样 (末尾才 setsockopt)。
 //   ⛔ **未改 p7b_io.h** (共享头, 7 个工具在用; 本刀边界只许改本 .cpp) --
 //   是否把它收编成 `p7b_io_connect_to(..., rcvbuf, ...)` 留给 TL 裁定。
 // ===========================================================================
 static int sink_connect_rcvbuf(const char *host, int port, int secs, int rcvbuf,
-                               bool rcvbuf_after_connect, int *why) {
+                               bool rcvbuf_after_connect, int local_port, int *why) {
     int fd = socket(AF_INET, SOCK_STREAM, 0);
     if (fd < 0) { *why = errno; return -1; }
     struct sockaddr_in a{};
@@ -229,6 +248,18 @@ static int sink_connect_rcvbuf(const char *host, int port, int secs, int rcvbuf,
     a.sin_port = htons((uint16_t)port);
     if (inet_pton(AF_INET, host, &a.sin_addr) != 1) { *why = EINVAL; close(fd); return -1; }
     p7b_io_set_nonblock(fd);                 // 与 p7b_io.h 同款: socket() 之后立刻设, 不再切回
+    // ⭐ 2026-10-17 (sink delta): --local-port = connect 之前 bind 本地端口 (同 4-tuple 重连臂)。
+    //   SO_REUSEADDR 必设 (允许复用 TIME_WAIT 端口); SO_REUSEPORT 尽力而为 (失败不致命)。
+    if (local_port > 0) {
+        int one = 1;
+        setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one));
+        setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, &one, sizeof(one));
+        struct sockaddr_in la{};
+        la.sin_family = AF_INET;
+        la.sin_addr.s_addr = htonl(INADDR_ANY);
+        la.sin_port = htons((uint16_t)local_port);
+        if (bind(fd, (struct sockaddr *)&la, sizeof(la)) < 0) { *why = errno; close(fd); return -1; }
+    }
     if (!rcvbuf_after_connect)               // 默认 (修复后): 抢在 SYN 之前落位
         setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &rcvbuf, sizeof(rcvbuf));
     if (p7b_io_connect_nb(fd, (struct sockaddr *)&a, sizeof(a), secs * 1000, why) < 0) {
@@ -255,6 +286,10 @@ int main(int argc, char **argv) {
     //   授权 ⇒ 小接收缓冲被冲掉 (微窗 stall 触发变量); 默认取修复后 = 台架测的才是
     //   "配置的 rcvbuf"。⚠️ 默认值是**台架配置决策**, 待 TL/用户裁定 (改一行即可翻)。
     bool rcvbuf_after_connect = false;   // --rcvbuf-after-connect = 旧行为臂 (正控场景保留)
+    // ⭐ 2026-10-17 (sink delta): 三个 opt-in 旋钮的**默认值 = 现行为** (见文件头)
+    bool abort_rst = false;          // --abort-rst: close 阶段发 RST (默认 FIN)
+    int local_port = 0;              // --local-port N: connect 前 bind 本地端口 (0 = 不 bind)
+    int reconnect_delay_ms = 0;      // --reconnect-delay-ms N: close 后 sleep N ms 再连下一条
     long maxbytes = 4L << 20;        // 每连接读上限 (1MB 图案 + 余量)
     int poll_ms = 5000;              // R1: 每次 poll 的等待上限 (ms)
     int stall_n = 3;                 // R1: 连续 --stall-n 次 poll 超时 = 该连接判 STALL 并中止
@@ -270,6 +305,9 @@ int main(int argc, char **argv) {
         else if (k == "--seconds") secs = atoi(nx());
         else if (k == "--rcvbuf") rcvbuf = atoi(nx());
         else if (k == "--rcvbuf-after-connect") rcvbuf_after_connect = true;  // sinkfix: 旧行为臂
+        else if (k == "--abort-rst") abort_rst = true;                        // sink delta: RST 关闭
+        else if (k == "--local-port") local_port = atoi(nx());                // sink delta: 绑本地端口
+        else if (k == "--reconnect-delay-ms") reconnect_delay_ms = atoi(nx()); // sink delta: 重连延迟
         else if (k == "--maxbytes") maxbytes = atol(nx());
         else if (k == "--poll-ms") poll_ms = atoi(nx());
         else if (k == "--stall-n") stall_n = atoi(nx());
@@ -289,6 +327,7 @@ int main(int argc, char **argv) {
             printf("p7b_tcp_sink --host H --port P [--conns N] [--seconds S] [--rcvbuf B] [--maxbytes B]\n"
                    "             [--poll-ms 5000] [--stall-n 3] [--no-thread] [--slots 16] [--slot-bytes 65536]\n"
                    "             [--rcvbuf-after-connect] [--check seq|lane8]\n"
+                   "             [--abort-rst] [--local-port N] [--reconnect-delay-ms N]\n"
                    "  逐连接: connect(非阻塞+poll) -> 收流(poll LT) -> 逐字节复算图案(偏移0起) -> 报告\n"
                    "  ⛔ 不写盘 (载荷只在内存); 校验 = 按 p7b_pattern.h 规则增量复算\n"
                    "  --poll-ms/--stall-n: 连续 stall-n 次 poll 超时 => 该连接 STALL 并中止 (计入 bad_conns)\n"
@@ -301,6 +340,12 @@ int main(int argc, char **argv) {
                    "     [修复后]; 两臂见证行 = SINK_RCVBUF_ORDER = before_connect|after_connect_LEGACY)\n"
                    "  --check seq|lane8: 图案复算路径 (**默认 seq** = 已上板验过的逐字节版;\n"
                    "     lane8 = M^8 8 字节/步, 逐位等价, 见 p7b_pattern.h 头注释)\n"
+                   "  ⭐ 2026-10-17 (sink delta; 全部 opt-in, 默认 = 现行为):\n"
+                   "  --abort-rst: close 阶段发 **RST** (SO_LINGER{1,0}) 而非 FIN\n"
+                   "  --local-port N: connect **之前** bind 本地端口 N (SO_REUSEADDR/+REUSEPORT)\n"
+                   "     ⇒ 同 4-tuple 重连臂; ⚠️ 与 --abort-rst 配套 (RST 关闭无 TIME_WAIT)\n"
+                   "  --reconnect-delay-ms N: 每条连接 close 后、下一条 connect 前 sleep N ms\n"
+                   "  三开关生效值 = 见证行 SINK_OPTS (无开关时打默认行)\n"
                    "  输出行以 SINK_ 前缀, 便于机器解析; 汇总行 SINK_SUM_*; 新字段一律**追加行尾**\n"
                    "  --selftest: 只跑图案自检向量; --selftest-equiv: 跑 seq/lane8 逐位等价自检\n");
             return 0;
@@ -310,6 +355,15 @@ int main(int argc, char **argv) {
     if (selftest_equiv) return p7b_pattern_equiv_selftest("p7b_tcp_sink");
     if (poll_ms < 1) poll_ms = 1;
     if (stall_n < 1) stall_n = 1;
+    // ⭐ 2026-10-17 (sink delta): 参数越界必须**响亮失败** (静默截断 = 全族最贵的一类静默失效)
+    if (local_port < 0 || local_port > 65535) {
+        fprintf(stderr, "--local-port 越界: %d (合法 0..65535; 0 = 不 bind)\n", local_port);
+        return 2;
+    }
+    if (reconnect_delay_ms < 0) {
+        fprintf(stderr, "--reconnect-delay-ms 不能为负: %d\n", reconnect_delay_ms);
+        return 2;
+    }
     if (nslots < 2) nslots = 2;
     if (slot_bytes < 1) slot_bytes = 1;
     if (!threaded) nslots = 0;                       // 单线程路径不用槽池 (见证里打 -1 = n/a)
@@ -330,6 +384,13 @@ int main(int argc, char **argv) {
     //   after_connect_LEGACY = 旧行为逐字复现 (--rcvbuf-after-connect; 首个窗口通告 = 默认大窗)。
     printf("SINK_RCVBUF_ORDER RCVBUF_ORDER=%s rcvbuf=%d\n",
            rcvbuf_after_connect ? "after_connect_LEGACY" : "before_connect", rcvbuf);
+    fflush(stdout);
+
+    // ⭐ 2026-10-17 (sink delta) 见证行: 三个新开关的**生效值** —— 缺见证按"未测"读是本工程惯例
+    //   (阳性证据: "我传了参数" != "参数生效了")。无开关时**也打默认行** ⇒ 每一跑的臂身份可判。
+    //   新前缀 `SINK_OPTS` ⇒ 既有 `SINK_CONN`/`SINK_SUM` 解析器零影响 (字段名/顺序一字未动)。
+    printf("SINK_OPTS abort_rst=%d local_port=%d reconnect_delay_ms=%d\n",
+           abort_rst ? 1 : 0, local_port, reconnect_delay_ms);
     fflush(stdout);
 
     // 槽池: **跨连接复用** (只分配一次); 队列每连接新建 ⇒ 队列统计天然按连接 (无清零动作)
@@ -356,7 +417,7 @@ int main(int argc, char **argv) {
         int why = 0;
         // ⭐ sinkfix: 建连 + SO_RCVBUF 落点 (默认 connect 之前; --rcvbuf-after-connect = 旧行为)。
         //   (旧 :306 的 `setsockopt(fd, SOL_SOCKET, SO_RCVBUF, ...)` 已移进本函数)
-        int fd = sink_connect_rcvbuf(host, port, 5, rcvbuf, rcvbuf_after_connect, &why);
+        int fd = sink_connect_rcvbuf(host, port, 5, rcvbuf, rcvbuf_after_connect, local_port, &why);
         double t1 = p7b_io_now_s();
         if (fd < 0) {
             fail_conns++;
@@ -434,6 +495,13 @@ int main(int argc, char **argv) {
             }
         }
         double t2 = p7b_io_now_s();
+        // ⭐ 2026-10-17 (sink delta): --abort-rst = close 发 RST 而非 FIN。
+        //   选型 = SO_LINGER{1,0} (最简): close() 立刻发 RST + 丢弃缓冲, 不进 FIN_WAIT/TIME_WAIT。
+        //   单连接串行 ⇒ 与"直接构造 RST"等价; 默认 (不带开关) = 现行为 (FIN, 逐条不变)。
+        if (abort_rst) {
+            struct linger lg{1, 0};
+            setsockopt(fd, SOL_SOCKET, SO_LINGER, &lg, sizeof(lg));
+        }
         close(fd);
         last_conn_end = t2;
         tot_conn++;
@@ -455,6 +523,9 @@ int main(int argc, char **argv) {
                threaded ? "on" : "off",
                q_full_push, q_full_pop, q_free_push, q_free_pop, slot_spins, checked);
         fflush(stdout);
+        // ⭐ 2026-10-17 (sink delta): --reconnect-delay-ms = close 后、下一条 connect 前 sleep
+        //   (逐连接生效; 建连失败路径无 close ⇒ 不在这里, 由 fail_conns>5 熔断兜底)。
+        if (reconnect_delay_ms > 0) usleep((useconds_t)reconnect_delay_ms * 1000);
     }
     double t_end = p7b_io_now_s();
     printf("SINK_SUM conns=%lld fail_conns=%lld bytes=%lld clean_conns=%lld bad_conns=%lld "

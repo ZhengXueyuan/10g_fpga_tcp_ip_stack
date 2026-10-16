@@ -1,0 +1,12 @@
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_tcp_sink.cpp -> /tmp/p7b_biz/p7b_tcp_sink.cpp
+=== NEW SOURCE md5 (remote) ===
+dd3adfbe6d42547b412a5c410b9d1cb2  p7b_tcp_sink.cpp
+=== COMPILE (deploy recipe -O3 -pthread) ===
+COMPILE_RC=0
+=== NEW BINARY ===
+f62299291fcb9e02afe109c4ea1f90ab  p7b_tcp_sink
+p7b_tcp_sink 173576
+REBUILD_RC=0
+f62299291fcb9e02afe109c4ea1f90ab  p7b_tcp_sink
+=== -Wall check (separate output name; warnings only) ===
+WALL_RC=0

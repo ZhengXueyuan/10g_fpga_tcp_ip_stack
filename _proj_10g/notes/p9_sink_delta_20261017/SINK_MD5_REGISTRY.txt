@@ -1,0 +1,36 @@
+SINK_MD5 REGISTRY -- p9_sink_delta_20261017 (2026-10-17)
+========================================================
+
+WHAT CHANGED: _proj_pcie/p7b_biz/p7b_tcp_sink.cpp got three opt-in switches
+  (--abort-rst / --local-port N / --reconnect-delay-ms N) + a SINK_OPTS witness line.
+  Default behavior is unchanged by construction; the behavioral-equivalence witness
+  (old vs new binary, default switches, loopback) is in env/EQUIV_AB_20261017.log.
+
+MD5 LOG (product identity -- size is NOT a criterion):
+  OLD (historical anchor)  p7b_tcp_sink  169392 B  6d9b14f24725fa326ffe5b169f77e30f
+  NEW (this round, deployed) p7b_tcp_sink 173576 B f62299291fcb9e02afe109c4ea1f90ab
+  Source (repo == deployed) p7b_tcp_sink.cpp        dd3adfbe6d42547b412a5c410b9d1cb2
+    (old source = 8d02ef6426d4ef6ad5fd2c514965c1e8; diff = +74/-3 lines, one file)
+
+HOW THE NEW MD5 WAS PRODUCED (BUILD.md sec.2 recipe, verbatim):
+  cd /tmp/p7b_biz && g++ -O3 -pthread -o p7b_tcp_sink p7b_tcp_sink.cpp
+  Reproducibility: an independent rebuild in /tmp/p7b_sinkdelta_refresh/ (same file
+  NAME, per the BUILD.md "source file name is part of the product" pitfall) gave the
+  SAME md5 => same-machine, same-command, cross-session reproducible.
+  A -Wall build produced ZERO warnings (g++ 13.3.0).
+
+WHERE THE NEW MD5 IS EVIDENCED (all runs of this round carry it):
+  env/PUT_NEW_SRC_20261017.log   compile + rebuild md5
+  env/GATE_SELFTEST_20261017.log p7b_selftest.sh (T0 recompiles sink; md5 unchanged)
+  env/SMOKE_20261017.log         smoke_delta.sh banner: SINK_MD5 f6229929... SINK_SIZE 173576
+  env/EQUIV_AB_20261017.log      both arms' md5 printed at the top
+  (after 0x28-bisect round the deployed tree is otherwise unchanged; only the sink
+   binary/source were replaced this round -- see env/DEPLOY_INVENTORY_20261017.txt)
+
+OLD BINARY PRESERVED (the "two hands" discipline):
+  /tmp/p7b_biz_prev/p7b_tcp_sink__6d9b14f2_pre_sinkdelta   (md5 = old anchor, verified)
+
+FOLLOW-UP (not done here; write surface of this round was the round dir + the .cpp):
+  BUILD.md sec.3 product table still lists p7b_tcp_sink = 6d9b14f2.../169,392 as "现树值";
+  that row is now HISTORICAL -- the current tree source compiles to f6229929.../173,576.
+  Any FUTURE run of the sink must be checked against f6229929... (the registry above).

@@ -1,0 +1,13 @@
+===== D8 两个天花板 (现测; 本机回环口径) =====
+--- check-only
+  BENCH check-only bytes=268435456 sec=0.419146 Gbps=5.1235 Mbps=5123.48 first_mismatch=-1 mism_bytes=0 check=seq CPU_FREQ_KHZ=3900276
+--- recv-only
+  BENCH recv-only bytes_sent=268435456 bytes_recv=268435456 sec=0.051090 Gbps=42.0334 Mbps=42033.41 checked=-1 first_mismatch=-1 mism_bytes=0 slot_wait_spins=0 send_err=0 slots=16 slot_bytes=65536 core_send=4 core_io=2 core_work=3 CPU_FREQ_KHZ=3859576 check=seq
+--- recv-check
+  BENCH recv-check bytes_sent=268435456 bytes_recv=268435456 sec=0.450871 Gbps=4.7630 Mbps=4762.97 checked=268435456 first_mismatch=-1 mism_bytes=0 slot_wait_spins=0 send_err=0 slots=16 slot_bytes=65536 core_send=4 core_io=2 core_work=3 CPU_FREQ_KHZ=3900303 check=seq
+--- recv-check-split
+  BENCH recv-check-split bytes_sent=268435456 bytes_recv=268435456 sec=0.434783 Gbps=4.9392 Mbps=4939.20 checked=268435456 first_mismatch=-1 mism_bytes=0 slot_wait_spins=738263 send_err=0 slots=16 slot_bytes=65536 core_send=4 core_io=2 core_work=3 CPU_FREQ_KHZ=3875966 check=seq
+
+DUAL_SELFTEST_SUMMARY PASS=48 FAIL=0
+DUAL_SELFTEST_OK
+DUAL_SH_RC=0

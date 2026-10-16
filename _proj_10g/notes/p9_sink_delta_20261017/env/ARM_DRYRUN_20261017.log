@@ -1,0 +1,33 @@
+=== ARM SCRIPT DRY RUNS (local; fake 'id' => root gate passes; tcpdump absent locally so each run stops at the arming gate) 2026-10-17 ===
+--- arm_p3win.sh A0 0x28 (cfg A verbatim) ---
+### K0_BEGIN tag=A0 gen=0x28 1792169231.381813300
+### SINK_CMD: --host 192.168.100.2 --port 8080 --rcvbuf 1048576 --conns 100000 --seconds 120 --maxbytes 2097152 --poll-ms 300 --stall-n 2 --check lane8 --abort-rst 
+md5sum: /tmp/p7b_biz/p7b_snap.sh: No such file or directory
+### SNAP_MD5 
+md5sum: /tmp/p7b_biz/p7b_tcp_sink: No such file or directory
+### SINK_MD5 
+### SNAP_ARGS NW=75 EXPECT_BID=0x00000028 KW='66 67 68 69 63 64 55 52 43 51 20 5' KW2='66 67 68 69 63 64 55 52 43 51 20 5 71 72 73 74'
+### TCPDUMP 
+--- arm_p3win.sh A1 0x24 (E12 auto-dropped) ---
+### SNAP_ARGS NW=71 EXPECT_BID=0x00000024 KW='66 67 68 69 63 64 55 52 43 51 20 5' KW2='66 67 68 69 63 64 55 52 43 51 20 5'
+--- arm_trickleA.sh defaults (trickle-A verbatim) ---
+### K0M_BEGIN tag=T0 gen=0x28 nsinks=2 stagger=0.4 rcvbuf=2920 conns=6 secs=300 maxbytes=50000000 ring=300MBx8 sink_extra='--poll-ms 1000 --stall-n 3' 1792169251.055198600
+md5sum: /tmp/p7b_biz/p7b_snap.sh: No such file or directory
+### SNAP_MD5 
+md5sum: /tmp/p7b_biz/p7b_tcp_sink: No such file or directory
+### SINK_MD5 
+### SNAP_ARGS NW=75 EXPECT_BID=0x00000028 KW='66 67 68 69 20 43 51 52 55 57 58 5' KW2='66 67 68 69 20 43 51 52 55 57 58 5 71 72 73 74'
+--- board identity gate (before run) ---
+bash: /tmp/p7b_biz/p7b_snap.sh: No such file or directory
+--- arm_trickleA.sh single-sink control (arg dial) ---
+### K0M_BEGIN tag=T0s gen=0x28 nsinks=1 stagger=0 rcvbuf=2920 conns=6 secs=300 maxbytes=50000000 ring=300MBx8 sink_extra='--poll-ms 1000 --stall-n 3' 1792169251.190905500
+### SNAP_ARGS NW=75 EXPECT_BID=0x00000028 KW='66 67 68 69 20 43 51 52 55 57 58 5' KW2='66 67 68 69 20 43 51 52 55 57 58 5 71 72 73 74'
+--- loud failures (real exit codes; no pipe) ---
+noargs_RC=1
+nocmd_RC=3
+badgen_RC=3
+trickle_noargs_RC=1
+trickle_badgen_RC=3
+--- precheck (no fake id) ---
+PRECHECK_FAIL not root => tcpdump/reg_rw blocked (run via peer_ssh.py --sudo)
+precheck_RC=3

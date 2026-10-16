@@ -1,0 +1,14 @@
+=== NIC witness (read-only) ===
+192.168.100.2 dev enp1s0f1np1 src 192.168.100.100 uid 1000 
+CARRIER=1
+    inet 192.168.100.100/32 scope global enp1s0f1np1
+enp1s0f1np1     ethernet  unmanaged               --           
+IRQBALANCE=inactive
+--- ethtool (may need root) ---
+	Speed: 10000Mb/s
+	Link detected: yes
+Adaptive RX: off  TX: n/a
+rx-usecs:	0
+--- p7b procs ---
+NO_P7B_PROCS
+NO_TCPDUMP

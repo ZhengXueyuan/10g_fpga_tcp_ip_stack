@@ -1,0 +1,19 @@
+===== L15/L16 R2: 报告频率必须来自**干活的线程** (LD_PRELOAD 把指定核换成常数) =====
+  BENCH recv-check-split bytes_sent=268435456 bytes_recv=268435456 sec=0.195183 Gbps=11.0024 Mbps=11002.42 checked=268435456 first_mismatch=-1 mism_bytes=0 slot_wait_spins=289517 send_err=0 slots=16 slot_bytes=65536 core_send=4 core_io=2 core_work=3 CPU_FREQ_KHZ=8888000 check=lane8
+  [PASS] L15 注入了 job核 (cpu3) 的假频率 = 1
+  [PASS] L15 报告 CPU_FREQ_KHZ == 工作核的假值 8888000 = 8888000
+  BENCH recv-check-split bytes_sent=268435456 bytes_recv=268435456 sec=0.193980 Gbps=11.0706 Mbps=11070.65 checked=268435456 first_mismatch=-1 mism_bytes=0 slot_wait_spins=287677 send_err=0 slots=16 slot_bytes=65536 core_send=4 core_io=2 core_work=3 CPU_FREQ_KHZ=3900000 check=lane8
+  [PASS] L16 注入确实生效 (主线程 PIN_FREQ_START_KHZ == 8888000) = 8888000
+  [PASS] L16 报告**不是**主线程核的值 (旧语义已消除) = not_idle_core
+
+LANE8_SELFTEST_SUMMARY PASS=42 FAIL=0 SKIP=0
+LANE8_SELFTEST_OK
+LANE8_SH_RC=0
+--- af_selftest (SKIP_NET=1) ---
+CHECK_F6 PIN_AVOID 命中数 (期望 0)=0
+### F3_CHECK  own-first: 期望 PIN_TUPLE_ORDER=own_sib_t 且 (本机) PIN_CPU=5
+CHECK_F3 PIN_CPU=7 PIN_CORES_ONLINE=0-7 PIN_NIC_IFACE=enp1s0f0np0,enp1s0f1np1 PIN_NIC_CPUS=0,1,2,3,4,5 PIN_NIC_EXCLUDED=none PIN_CORE_LOAD=2396128 PIN_ALLOWED_MASK=80 PIN_GETCPU_START=7 PIN_FREQ_START_KHZ=3715396 PIN_GOV=schedutil PIN_NIC_IRQLINES=12 PIN_NIC_IFACE_SRC=auto PIN_TUPLE_ORDER=own_sib_t
+### F9_CHECK  周期行尾的 CPU_FREQ_KHZ 需要**真跑一次**(--help 出不来周期行)
+### 专用仪器 = /tmp/p7b_afftest/f9_loopback_check.sh (回环口: sink 的 SINK_CONN / src 的 SRC_T / udp_src 的 UDP_T 各打一行, 不碰板子)
+### ALLDONE 2026-10-16T16:42:59Z
+AFF_SH_RC=0

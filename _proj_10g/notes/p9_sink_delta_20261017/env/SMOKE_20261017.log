@@ -1,0 +1,99 @@
+### SMOKE_DELTA_BEGIN 1792168987.705408483
+### SINK_MD5 f62299291fcb9e02afe109c4ea1f90ab  SINK_SIZE 173576
+### SRV_MD5 38d02f589f55fc33797494fa5bf0db68
+### HOST a-MS-7850 python3=Python 3.12.3
+===== CASE S1_default server_port=20201 sink_conns=2 extra='' 1792168987.712263171 =====
+SINK_RC=0
+--- sink key lines ---
+SINK_CHECK check=seq
+SINK_LIMITS maxbytes=65536 poll_ms=5000 stall_n=3 rcvbuf=8388608 conns=2 secs=30
+SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+SINK_CONN 0 OK bytes=65536 first_mismatch=-1 mism_bytes=0 conn_ms=0.079 dur_ms=0.403 Mbps=1302.278 reads=1 poll_tmo=0 CPU_FREQ_KHZ=3043384 THREADED=on q_full_push=1 q_full_pop=1 q_free_push=17 q_free_pop=1 slot_wait_spins=0 checked_bytes=65536
+SINK_CONN 1 OK bytes=65536 first_mismatch=-1 mism_bytes=0 conn_ms=0.032 dur_ms=0.334 Mbps=1567.936 reads=1 poll_tmo=0 CPU_FREQ_KHZ=3043384 THREADED=on q_full_push=1 q_full_pop=1 q_free_push=17 q_free_pop=1 slot_wait_spins=0 checked_bytes=65536
+SINK_SUM conns=2 fail_conns=0 bytes=131072 clean_conns=2 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=0.001 net_s=0.001 agg_Mbps=1321.910 THREADED=on full_push=2 full_pop=2 free_push=34 free_pop=2 slot_wait_spins=0 checked_bytes=131072 threads=4 check=seq
+--- server output ---
+SMOKE_LISTEN host=127.0.0.1 port=20201 bytes=65536 conns=2
+SMOKE_CONN i=0 peer_port=60366 t_accept=4998.408088 t_close=4998.408410 gap_since_prev_s= close_kind=fin sent=65536
+SMOKE_CONN i=1 peer_port=60380 t_accept=4998.408498 t_close=4998.408808 gap_since_prev_s=0.000088 close_kind=fin sent=65536
+SMOKE_DONE conns=2
+===== CASE_END S1_default =====
+===== CASE S2_abort_rst server_port=20202 sink_conns=2 extra='--abort-rst' 1792168988.126991441 =====
+SINK_RC=0
+--- sink key lines ---
+SINK_CHECK check=seq
+SINK_LIMITS maxbytes=65536 poll_ms=5000 stall_n=3 rcvbuf=8388608 conns=2 secs=30
+SINK_OPTS abort_rst=1 local_port=0 reconnect_delay_ms=0
+SINK_CONN 0 OK bytes=65536 first_mismatch=-1 mism_bytes=0 conn_ms=0.066 dur_ms=0.354 Mbps=1482.929 reads=1 poll_tmo=0 CPU_FREQ_KHZ=3900000 THREADED=on q_full_push=1 q_full_pop=1 q_free_push=17 q_free_pop=1 slot_wait_spins=0 checked_bytes=65536
+SINK_CONN 1 OK bytes=65536 first_mismatch=-1 mism_bytes=0 conn_ms=0.039 dur_ms=0.290 Mbps=1808.782 reads=1 poll_tmo=0 CPU_FREQ_KHZ=3896896 THREADED=on q_full_push=1 q_full_pop=1 q_free_push=17 q_free_pop=1 slot_wait_spins=0 checked_bytes=65536
+SINK_SUM conns=2 fail_conns=0 bytes=131072 clean_conns=2 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=0.001 net_s=0.001 agg_Mbps=1477.071 THREADED=on full_push=2 full_pop=2 free_push=34 free_pop=2 slot_wait_spins=0 checked_bytes=131072 threads=4 check=seq
+--- server output ---
+SMOKE_LISTEN host=127.0.0.1 port=20202 bytes=65536 conns=2
+SMOKE_CONN i=0 peer_port=53544 t_accept=4998.821656 t_close=4998.821981 gap_since_prev_s= close_kind=rst sent=65536
+SMOKE_CONN i=1 peer_port=53558 t_accept=4998.822055 t_close=4998.822362 gap_since_prev_s=0.000074 close_kind=rst sent=65536
+SMOKE_DONE conns=2
+===== CASE_END S2_abort_rst =====
+===== CASE S3_localport_rst server_port=20203 sink_conns=2 extra='--abort-rst --local-port 40000' 1792168988.538908203 =====
+SINK_RC=0
+--- sink key lines ---
+SINK_CHECK check=seq
+SINK_LIMITS maxbytes=65536 poll_ms=5000 stall_n=3 rcvbuf=8388608 conns=2 secs=30
+SINK_OPTS abort_rst=1 local_port=40000 reconnect_delay_ms=0
+SINK_CONN 0 OK bytes=65536 first_mismatch=-1 mism_bytes=0 conn_ms=0.081 dur_ms=0.569 Mbps=922.081 reads=1 poll_tmo=0 CPU_FREQ_KHZ=3900000 THREADED=on q_full_push=1 q_full_pop=1 q_free_push=17 q_free_pop=1 slot_wait_spins=0 checked_bytes=65536
+SINK_CONN 1 OK bytes=65536 first_mismatch=-1 mism_bytes=0 conn_ms=0.029 dur_ms=0.304 Mbps=1726.375 reads=1 poll_tmo=0 CPU_FREQ_KHZ=3900000 THREADED=on q_full_push=1 q_full_pop=1 q_free_push=17 q_free_pop=1 slot_wait_spins=0 checked_bytes=65536
+SINK_SUM conns=2 fail_conns=0 bytes=131072 clean_conns=2 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=0.001 net_s=0.001 agg_Mbps=1127.889 THREADED=on full_push=2 full_pop=2 free_push=34 free_pop=2 slot_wait_spins=0 checked_bytes=131072 threads=4 check=seq
+--- server output ---
+SMOKE_LISTEN host=127.0.0.1 port=20203 bytes=65536 conns=2
+SMOKE_CONN i=0 peer_port=40000 t_accept=4999.235346 t_close=4999.235879 gap_since_prev_s= close_kind=rst sent=65536
+SMOKE_CONN i=1 peer_port=40000 t_accept=4999.235939 t_close=4999.236258 gap_since_prev_s=0.000060 close_kind=rst sent=65536
+SMOKE_DONE conns=2
+===== CASE_END S3_localport_rst =====
+===== CASE S3b_localport_fin server_port=20204 sink_conns=2 extra='--local-port 40010' 1792168988.952959049 =====
+SINK_RC=1
+--- sink key lines ---
+SINK_CHECK check=seq
+SINK_LIMITS maxbytes=65536 poll_ms=5000 stall_n=3 rcvbuf=8388608 conns=2 secs=30
+SINK_OPTS abort_rst=0 local_port=40010 reconnect_delay_ms=0
+SINK_CONN 0 OK bytes=65536 first_mismatch=-1 mism_bytes=0 conn_ms=0.083 dur_ms=0.395 Mbps=1326.939 reads=1 poll_tmo=0 CPU_FREQ_KHZ=2501556 THREADED=on q_full_push=1 q_full_pop=1 q_free_push=17 q_free_pop=1 slot_wait_spins=0 checked_bytes=65536
+SINK_CONN 1 FAIL_CONNECT why=99 (Cannot assign requested address) (t=0.000535)
+SINK_SUM conns=1 fail_conns=1 bytes=65536 clean_conns=1 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=0.001 net_s=0.000 agg_Mbps=1326.939 THREADED=on full_push=1 full_pop=1 free_push=17 free_pop=1 slot_wait_spins=0 checked_bytes=65536 threads=2 check=seq
+--- server output ---
+SMOKE_LISTEN host=127.0.0.1 port=20204 bytes=65536 conns=2
+SMOKE_CONN i=0 peer_port=40010 t_accept=4999.649198 t_close=4999.649563 gap_since_prev_s= close_kind=fin sent=65536
+SMOKE_ACCEPT_TIMEOUT i=1
+SMOKE_DONE conns=1
+===== CASE_END S3b_localport_fin =====
+===== CASE S4_delay800 server_port=20205 sink_conns=3 extra='--abort-rst --reconnect-delay-ms 800' 1792169049.375367563 =====
+SINK_RC=0
+--- sink key lines ---
+SINK_CHECK check=seq
+SINK_LIMITS maxbytes=65536 poll_ms=5000 stall_n=3 rcvbuf=8388608 conns=3 secs=30
+SINK_OPTS abort_rst=1 local_port=0 reconnect_delay_ms=800
+SINK_CONN 0 OK bytes=65536 first_mismatch=-1 mism_bytes=0 conn_ms=0.064 dur_ms=0.378 Mbps=1386.686 reads=1 poll_tmo=0 CPU_FREQ_KHZ=2603682 THREADED=on q_full_push=1 q_full_pop=1 q_free_push=17 q_free_pop=1 slot_wait_spins=0 checked_bytes=65536
+SINK_CONN 1 OK bytes=65536 first_mismatch=-1 mism_bytes=0 conn_ms=0.045 dur_ms=0.316 Mbps=1660.900 reads=1 poll_tmo=0 CPU_FREQ_KHZ=3100000 THREADED=on q_full_push=1 q_full_pop=1 q_free_push=17 q_free_pop=1 slot_wait_spins=0 checked_bytes=65536
+SINK_CONN 2 OK bytes=65536 first_mismatch=-1 mism_bytes=0 conn_ms=0.077 dur_ms=0.543 Mbps=964.706 reads=1 poll_tmo=0 CPU_FREQ_KHZ=1426426 THREADED=on q_full_push=1 q_full_pop=1 q_free_push=17 q_free_pop=1 slot_wait_spins=0 checked_bytes=65536
+SINK_SUM conns=3 fail_conns=0 bytes=196608 clean_conns=3 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=2.402 net_s=1.602 agg_Mbps=0.982 THREADED=on full_push=3 full_pop=3 free_push=51 free_pop=3 slot_wait_spins=0 checked_bytes=196608 threads=6 check=seq
+--- server output ---
+SMOKE_LISTEN host=127.0.0.1 port=20205 bytes=65536 conns=3
+SMOKE_CONN i=0 peer_port=60848 t_accept=5060.071345 t_close=5060.071691 gap_since_prev_s= close_kind=rst sent=65536
+SMOKE_CONN i=1 peer_port=60858 t_accept=5060.871911 t_close=5060.872211 gap_since_prev_s=0.800220 close_kind=rst sent=65536
+SMOKE_CONN i=2 peer_port=60874 t_accept=5061.672496 t_close=5061.673027 gap_since_prev_s=0.800285 close_kind=rst sent=65536
+SMOKE_DONE conns=3
+===== CASE_END S4_delay800 =====
+===== CASE S4b_delay0 server_port=20206 sink_conns=3 extra='--abort-rst' 1792169052.187504464 =====
+SINK_RC=0
+--- sink key lines ---
+SINK_CHECK check=seq
+SINK_LIMITS maxbytes=65536 poll_ms=5000 stall_n=3 rcvbuf=8388608 conns=3 secs=30
+SINK_OPTS abort_rst=1 local_port=0 reconnect_delay_ms=0
+SINK_CONN 0 OK bytes=65536 first_mismatch=-1 mism_bytes=0 conn_ms=0.078 dur_ms=0.368 Mbps=1425.610 reads=1 poll_tmo=0 CPU_FREQ_KHZ=2503104 THREADED=on q_full_push=1 q_full_pop=1 q_free_push=17 q_free_pop=1 slot_wait_spins=0 checked_bytes=65536
+SINK_CONN 1 OK bytes=65536 first_mismatch=-1 mism_bytes=0 conn_ms=0.027 dur_ms=0.324 Mbps=1616.212 reads=1 poll_tmo=0 CPU_FREQ_KHZ=3520231 THREADED=on q_full_push=1 q_full_pop=1 q_free_push=17 q_free_pop=1 slot_wait_spins=0 checked_bytes=65536
+SINK_CONN 2 OK bytes=65536 first_mismatch=-1 mism_bytes=0 conn_ms=0.029 dur_ms=0.238 Mbps=2206.321 reads=1 poll_tmo=0 CPU_FREQ_KHZ=3765844 THREADED=on q_full_push=1 q_full_pop=1 q_free_push=17 q_free_pop=1 slot_wait_spins=0 checked_bytes=65536
+SINK_SUM conns=3 fail_conns=0 bytes=196608 clean_conns=3 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=0.001 net_s=0.001 agg_Mbps=1511.878 THREADED=on full_push=3 full_pop=3 free_push=51 free_pop=3 slot_wait_spins=0 checked_bytes=196608 threads=6 check=seq
+--- server output ---
+SMOKE_LISTEN host=127.0.0.1 port=20206 bytes=65536 conns=3
+SMOKE_CONN i=0 peer_port=33226 t_accept=5062.885409 t_close=5062.885743 gap_since_prev_s= close_kind=rst sent=65536
+SMOKE_CONN i=1 peer_port=33234 t_accept=5062.885813 t_close=5062.886111 gap_since_prev_s=0.000070 close_kind=rst sent=65536
+SMOKE_CONN i=2 peer_port=33236 t_accept=5062.886157 t_close=5062.886398 gap_since_prev_s=0.000046 close_kind=rst sent=65536
+SMOKE_DONE conns=3
+===== CASE_END S4b_delay0 =====
+### SMOKE_DELTA_END 1792169052.603500676

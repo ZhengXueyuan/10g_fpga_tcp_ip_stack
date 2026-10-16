@@ -1,0 +1,42 @@
+### EQUIV_AB_BEGIN 1792169069.976046555
+### OLD p7b_tcp_sink__6d9b14f2_pre_sinkdelta md5=6d9b14f24725fa326ffe5b169f77e30f size=169392
+### NEW p7b_tcp_sink md5=f62299291fcb9e02afe109c4ea1f90ab size=173576
+===== ARM OLD_r1 rc=0 =====
+SINK_CONN 0 OK bytes=1048576 first_mismatch=-1 mism_bytes=0 conn_ms=0.084 dur_ms=463.531 Mbps=18.097 reads=17 poll_tmo=0 CPU_FREQ_KHZ=3895975 THREADED=on q_full_push=18 q_full_pop=18 q_free_push=34 q_free_pop=18 slot_wait_spins=0 checked_bytes=1048576
+SINK_CONN 1 OK bytes=1048576 first_mismatch=-1 mism_bytes=0 conn_ms=0.064 dur_ms=468.777 Mbps=17.895 reads=17 poll_tmo=0 CPU_FREQ_KHZ=3898067 THREADED=on q_full_push=18 q_full_pop=18 q_free_push=34 q_free_pop=18 slot_wait_spins=53 checked_bytes=1048576
+SINK_SUM conns=2 fail_conns=0 bytes=2097152 clean_conns=2 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=0.933 net_s=0.932 agg_Mbps=17.993 THREADED=on full_push=36 full_pop=36 free_push=68 free_pop=36 slot_wait_spins=53 checked_bytes=2097152 threads=4 check=seq
+--- fake board (tail) ---
+FAKE_BOARD conn 1 from ('127.0.0.1', 38706)
+DOWN_SENT 1048576 bytes (flip_at=None short=None)
+FAKE_BOARD conn 1 closed up_bytes=0 up_first_mismatch=-1
+FAKE_BOARD_DONE
+===== ARM NEW_r1 rc=0 =====
+SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+SINK_CONN 0 OK bytes=1048576 first_mismatch=-1 mism_bytes=0 conn_ms=0.062 dur_ms=441.389 Mbps=19.005 reads=16 poll_tmo=0 CPU_FREQ_KHZ=3895556 THREADED=on q_full_push=17 q_full_pop=17 q_free_push=33 q_free_pop=17 slot_wait_spins=63 checked_bytes=1048576
+SINK_CONN 1 OK bytes=1048576 first_mismatch=-1 mism_bytes=0 conn_ms=0.042 dur_ms=449.916 Mbps=18.645 reads=16 poll_tmo=0 CPU_FREQ_KHZ=3900292 THREADED=on q_full_push=17 q_full_pop=17 q_free_push=33 q_free_pop=17 slot_wait_spins=0 checked_bytes=1048576
+SINK_SUM conns=2 fail_conns=0 bytes=2097152 clean_conns=2 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=0.891 net_s=0.891 agg_Mbps=18.822 THREADED=on full_push=34 full_pop=34 free_push=66 free_pop=34 slot_wait_spins=63 checked_bytes=2097152 threads=4 check=seq
+--- fake board (tail) ---
+FAKE_BOARD conn 1 from ('127.0.0.1', 59690)
+DOWN_SENT 1048576 bytes (flip_at=None short=None)
+FAKE_BOARD conn 1 closed up_bytes=0 up_first_mismatch=-1
+FAKE_BOARD_DONE
+===== ARM OLD_r2 rc=0 =====
+SINK_CONN 0 OK bytes=1048576 first_mismatch=-1 mism_bytes=0 conn_ms=0.076 dur_ms=441.040 Mbps=19.020 reads=16 poll_tmo=0 CPU_FREQ_KHZ=3898469 THREADED=on q_full_push=17 q_full_pop=17 q_free_push=33 q_free_pop=17 slot_wait_spins=63 checked_bytes=1048576
+SINK_CONN 1 OK bytes=1048576 first_mismatch=-1 mism_bytes=0 conn_ms=0.042 dur_ms=451.608 Mbps=18.575 reads=16 poll_tmo=0 CPU_FREQ_KHZ=3897014 THREADED=on q_full_push=17 q_full_pop=17 q_free_push=33 q_free_pop=17 slot_wait_spins=0 checked_bytes=1048576
+SINK_SUM conns=2 fail_conns=0 bytes=2097152 clean_conns=2 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=0.893 net_s=0.893 agg_Mbps=18.793 THREADED=on full_push=34 full_pop=34 free_push=66 free_pop=34 slot_wait_spins=63 checked_bytes=2097152 threads=4 check=seq
+--- fake board (tail) ---
+FAKE_BOARD conn 1 from ('127.0.0.1', 33092)
+DOWN_SENT 1048576 bytes (flip_at=None short=None)
+FAKE_BOARD conn 1 closed up_bytes=0 up_first_mismatch=-1
+FAKE_BOARD_DONE
+===== ARM NEW_r2 rc=0 =====
+SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+SINK_CONN 0 OK bytes=1048576 first_mismatch=-1 mism_bytes=0 conn_ms=0.074 dur_ms=444.402 Mbps=18.876 reads=17 poll_tmo=0 CPU_FREQ_KHZ=3898346 THREADED=on q_full_push=18 q_full_pop=18 q_free_push=34 q_free_pop=18 slot_wait_spins=8 checked_bytes=1048576
+SINK_CONN 1 OK bytes=1048576 first_mismatch=-1 mism_bytes=0 conn_ms=0.062 dur_ms=454.178 Mbps=18.470 reads=17 poll_tmo=0 CPU_FREQ_KHZ=3898104 THREADED=on q_full_push=18 q_full_pop=18 q_free_push=34 q_free_pop=18 slot_wait_spins=19 checked_bytes=1048576
+SINK_SUM conns=2 fail_conns=0 bytes=2097152 clean_conns=2 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=0.899 net_s=0.899 agg_Mbps=18.669 THREADED=on full_push=36 full_pop=36 free_push=68 free_pop=36 slot_wait_spins=27 checked_bytes=2097152 threads=4 check=seq
+--- fake board (tail) ---
+FAKE_BOARD conn 1 from ('127.0.0.1', 55932)
+DOWN_SENT 1048576 bytes (flip_at=None short=None)
+FAKE_BOARD conn 1 closed up_bytes=0 up_first_mismatch=-1
+FAKE_BOARD_DONE
+### EQUIV_AB_END 1792169076.446629116

@@ -1,0 +1,26 @@
+=== --selftest ===
+PIN_RULE=avoid-nic PIN_DEGRADED=none PIN_CPU=7 PIN_CORES_ONLINE=0-7 PIN_NIC_IFACE=enp1s0f0np0,enp1s0f1np1 PIN_NIC_CPUS=0,1,2,3,4,5 PIN_NIC_EXCLUDED=none PIN_CORE_LOAD=2393156 PIN_ALLOWED_MASK=80 PIN_GETCPU_START=7 PIN_FREQ_START_KHZ=3316844 PIN_GOV=schedutil PIN_NIC_IRQLINES=12 PIN_NIC_IFACE_SRC=auto PIN_TUPLE_ORDER=own_sib_t PIN_PAIR_RULE=load-only PIN_PAIR_DEGRADED=nic0-0 PIN_CPU_IO=4 PIN_CPU_WORK=6 PIN_PC_IO=0 PIN_PC_WORK=2 PIN_PAIR_EXCL=3 PIN_PAIR_REQ=want
+SELFTEST p7b_tcp_sink: OK
+  off0..15   got=7F 0B 02 E5 36 A1 4E D6 1A B0 49 B8 56 AD D6 3F 
+             want=7F 0B 02 E5 36 A1 4E D6 1A B0 49 B8 56 AD D6 3F 
+  off1460..7 got=03 00 42 2D 9B 47 CA C0 
+             want=03 00 42 2D 9B 47 CA C0 
+  state@100  got=0xAB5917A81F0FB2AE want=0xAB5917A81F0FB2AE
+PIN_GETCPU_END=7 PIN_FREQ_END_KHZ=3316844
+SELFTEST_RC=0
+=== --selftest-equiv ===
+PIN_RULE=avoid-nic PIN_DEGRADED=none PIN_CPU=7 PIN_CORES_ONLINE=0-7 PIN_NIC_IFACE=enp1s0f0np0,enp1s0f1np1 PIN_NIC_CPUS=0,1,2,3,4,5 PIN_NIC_EXCLUDED=none PIN_CORE_LOAD=2393156 PIN_ALLOWED_MASK=80 PIN_GETCPU_START=7 PIN_FREQ_START_KHZ=3803784 PIN_GOV=schedutil PIN_NIC_IRQLINES=12 PIN_NIC_IFACE_SRC=auto PIN_TUPLE_ORDER=own_sib_t PIN_PAIR_RULE=load-only PIN_PAIR_DEGRADED=nic0-0 PIN_CPU_IO=4 PIN_CPU_WORK=6 PIN_PC_IO=0 PIN_PC_WORK=2 PIN_PAIR_EXCL=3 PIN_PAIR_REQ=want
+EQUIV p7b_tcp_sink: begin (seq vs lane8; 进程默认模式 = seq)
+EQUIV p7b_tcp_sink: table_rebuild bad=0/4096 want=0 MATCH
+EQUIV p7b_tcp_sink: long n=8388613 seq=(-1,0,0x19CFF6A4002170D8) lane8=(-1,0,0x19CFF6A4002170D8) ctor_oracle=0x19CFF6A4002170D8 MATCH
+EQUIV p7b_tcp_sink: inj[0] 首字节 off=0 cnt=1 seq=(0,1) lane8=(0,1) state_eq=1 MATCH
+EQUIV p7b_tcp_sink: inj[1] 非 8 对齐单 bit off=12345 cnt=1 seq=(12345,1) lane8=(12345,1) state_eq=1 MATCH
+EQUIV p7b_tcp_sink: inj[2] 8 对齐块首整字节 off=65536 cnt=1 seq=(65536,1) lane8=(65536,1) state_eq=1 MATCH
+EQUIV p7b_tcp_sink: inj[3] 块尾 (i+7) off=65543 cnt=1 seq=(65543,1) lane8=(65543,1) state_eq=1 MATCH
+EQUIV p7b_tcp_sink: inj[4] 尾段最后一个字节 off=8388612 cnt=1 seq=(8388612,1) lane8=(8388612,1) state_eq=1 MATCH
+EQUIV p7b_tcp_sink: inj[5] 3 个相邻字节 off=100 cnt=3 seq=(100,3) lane8=(100,3) state_eq=1 MATCH
+EQUIV p7b_tcp_sink: xblk L=1048579 blocks=11 states=12/12 seq=(-1,0,0x13C199A4F551A1A4) lane8=(-1,0,0x13C199A4F551A1A4) MATCH
+EQUIV p7b_tcp_sink: dispatch seq=(-1,0) lane8=(-1,0) mode_name=lane8 direct_lane8=-1 MATCH
+EQUIV p7b_tcp_sink: PASS (checks=10 fail=0)
+PIN_GETCPU_END=7 PIN_FREQ_END_KHZ=3900298
+EQUIV_RC=0

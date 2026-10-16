@@ -1,0 +1,29 @@
+ENV ANOMALY FOUND DURING THIS ROUND'S INVENTORY (PRE-EXISTING; NOT caused by this round)
+=======================================================================================
+
+SYMPTOM (peer /tmp/p7b_biz, read 2026-10-17 00:45):
+  p7b_tcp_sink_rate   127488 B  md5 ca6900fd54036be7fe1d337ca9ef83b8
+  p7b_tcp_src_rate    127488 B  md5 ca6900fd54036be7fe1d337ca9ef83b8   <- IDENTICAL md5
+  p7b_tcp_src_rate.cpp          DOES NOT EXIST on the peer
+  p7b_tcp_sink_rate.cpp         exists (md5 92ef5b45... = tree value, stagec source)
+
+=> /tmp/p7b_biz/p7b_tcp_src_rate is NOT a TCP source tool right now: it is a byte copy
+   of the SINK rate tool (built from p7b_tcp_sink_rate.cpp).  Any future arm that runs
+   `/tmp/p7b_biz/p7b_tcp_src_rate` expecting a sender will silently run a receiver.
+
+PROVENANCE (repo evidence, read-only):
+  _proj_10g/notes/p9_s0bisect_board_20261016/env/deploy_peer.sh:64
+      g++ -O3 -pthread -o p7b_tcp_src_rate p7b_tcp_sink_rate.cpp
+  and its FILES list has p7b_tcp_sink_rate.cpp but NO p7b_tcp_src_rate.cpp
+  (the 2026-10-13 bench-restore round 01_deploy.sh and the 10-16 B4 round deploy DID
+   ship p7b_tcp_src_rate.cpp and built a76b2b4b.../119496 B correctly).
+  => the S-0 bisect round (2026-10-16 23:37) replaced the src_rate binary with a
+     sink_rate build and dropped its source.  The compile guard `[ -x $n ]` could not
+     fire (a file of that name existed), so the substitution was silent.
+
+IMPACT ON THIS ROUND: none (this round only touches p7b_tcp_sink; nothing here invokes
+  p7b_tcp_src_rate).
+RECOMMENDED FIX (not done here -- outside this round's declared write surface):
+  re-push _proj_10g/notes/p7b_board_stageb/p7b_tcp_src_rate.cpp (tree md5 c3b9b01c...)
+  and rebuild:  g++ -O3 -pthread -o p7b_tcp_src_rate p7b_tcp_src_rate.cpp
+  then expect md5 a76b2b4b1e44d6c9edcaa301d90aabcb / 119,496 B (BUILD.md sec.3 row 6).

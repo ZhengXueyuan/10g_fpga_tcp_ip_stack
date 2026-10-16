@@ -97,7 +97,7 @@ done
 
 | # | 产物 | 字节数 | md5 |
 |---|---|---|---|
-| 1 | `p7b_tcp_sink` | 169,392 | `6d9b14f24725fa326ffe5b169f77e30f` |
+| 1 | `p7b_tcp_sink` | **173,576** | **`f62299291fcb9e02afe109c4ea1f90ab`** ⭐ **2026-10-17 sink delta 轮**（+`--abort-rst`/`--local-port`/`--reconnect-delay-ms` 三开关，默认行为不变；新见证行 `SINK_OPTS`）。旧锚（= 本表其余各行配套的历史件）`6d9b14f2…`/169,392 已归档对端 `/tmp/p7b_biz_prev/p7b_tcp_sink__6d9b14f2_pre_sinkdelta`；登记表 = `p9_sink_delta_20261017/SINK_MD5_REGISTRY.txt` |
 | 2 | `p7b_tcp_src` | 119,488 | `48d066a04684fbd6b901679120d88c3c` |
 | 3 | `p7b_udp_src` | 128,048 | `a3faafd37ed2e21e0acd3cc925e9c98c` ⚠️ **未变** |
 | 4 | `p7b_tcp_src_fix` | 119,496 | `d1ca0c288efe6723488e4c1a6960d1b5` |
