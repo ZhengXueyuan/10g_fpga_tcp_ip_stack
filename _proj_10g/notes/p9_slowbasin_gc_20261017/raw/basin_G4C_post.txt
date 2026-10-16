@@ -1,0 +1,19 @@
+SNAP_BEGIN G4C_POST gen=2657
+W5   0x34   gmii_free_FE           0x66eed6d1
+W20  0x70   mac_tx_frames          0x009e2d5c
+W43  0xCC   mtx_stat_tx_words      0x66daaeb3
+W51  0xEC   app_tx_bytes           0x8323e5b4
+W52  0xF0   app_tx_frames          0x009da973
+W55  0xFC   tx_stat_retx           0x00006314
+W66  0x128  tx_stat_winstall       0x11b31b9d
+W67  0x12C  tx_winstall_cap        0x055ea5b5
+W68  0x130  rx_stat_ack_adv        0x0023f7af
+W69  0x134  tx_win_at_winstall     0xf53cf000
+W63  0x11C  app_frmwait_cyc        0xc1c2bd4f
+W64  0x120  app_bp_cyc             0x16eec7e4
+W65  0x124  mac_tx_idle            0xefae83c2
+W71  0x13C  app_stat_up_ev         0x00001a70
+W72  0x140  app_stat_sw_req        0x00000011
+W73  0x144  app_stat_sw_apply      0x00001a6f
+W74  0x148  app_stat_up_pend       0x00000001
+SNAP_END G4C_POST nff=0

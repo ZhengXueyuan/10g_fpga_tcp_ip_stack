@@ -1,0 +1,16 @@
+SNAP_T 1792177123.932693476
+GEN_FAIL gen 不是恰好 +1 (2653 -> 2655) => 有并发写者, 本代读数不可归因
+SNAP_ABORT
+SNAP_T 1792177124.096038461
+SNAP_BEGIN G4C gen=2656
+W5   0x34   gmii_free_FE           0x65b027dd
+W20  0x70   mac_tx_frames          0x009ceb71
+W43  0xCC   mtx_stat_tx_words      0x659c008c
+W51  0xEC   app_tx_bytes           0x7bf80b5c
+W52  0xF0   app_tx_frames          0x009c678b
+W55  0xFC   tx_stat_retx           0x00006314
+W66  0x128  tx_stat_winstall       0x11ae4a3e
+W67  0x12C  tx_winstall_cap        0x055a25c5
+W68  0x130  rx_stat_ack_adv        0x0023b594
+W69  0x134  tx_win_at_winstall     0xf53cf000
+SNAP_END G4C nff=0

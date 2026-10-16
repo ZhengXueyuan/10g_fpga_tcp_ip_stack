@@ -1,0 +1,44 @@
+FINAL_STATE -- p9_slowbasin_gc_20261017  (2026-10-17, 02:59 CST)
+=================================================================
+ROUND: zero-build board round; separates the ENTRY event and the CLEAR event of the
+       "slow basin" (session-level latent slow state of the 0x28 build).
+
+ARM TABLE (10 runs, all peer-side, SINK_MD5 f6229929... every arm)
+  arm  peer_T0(epoch)      cfg                                  verdict-read
+  G0   1792175529.2  A' (rcvbuf2920/c3/mb60e6)                    FAST 905.5 Mbps agg (978.2/847.1/901.3)
+  G1   1792175536.1  T1 verbatim except secs=120 (2 sink/st0.4/     SLOW ENTRY (killed 240 s)
+                     rcvbuf2920/c6/mb50e6/poll1000/stall3)
+  G2   1792175807.4  A'                                           SLOW (crawl 1.55 Mbps, killed 240 s)
+  -- BURN 0x28 at 02:41:13 -> 02:43:40 (JTAG volatile; QSPI NEVER written) --
+  G3   1792176274.6  A' (after burn)                              FAST 881.9 Mbps agg (853.4/842.3/959.6)
+  G4a  1792176282.7  T1 verbatim except secs=120                  SLOW RE-ENTRY (killed 240 s)
+  G4b  1792176569.0  A' (RUN_TIMEOUT=90)                          SLOW (killed 90 s)
+  G4w  1792176784.6  idle 120.003 s (1792176664.4-6784.4) then A' SLOW (crawl 89.8 s, 10.9 MB)
+  G4F  1792176900.6  flood (rcvbuf1048576/c20000/mb2MiB/secs20/   FAST 5671.7 Mbps (6747 conns, all clean)
+                     poll300/stall2)
+  G4    1792176923.2 A' (RUN_TIMEOUT=90)                          SLOW (killed 90 s)
+  G4C  1792177124.0  big-rcvbuf single (rcvbuf1048576/c3/mb60e6)  FAST 6782.8 Mbps (5311/6820/9429)
+
+BURN RECORD (1 burn; JTAG volatile; QSPI NEVER written)
+  2026-10-17 02:41:08 -> 02:43:38  0x28 sha 79c9cf434eb66723b97f654cbece9ea061632e2297c0a8ab0ea0dc198c43bec8
+  gates: SHA_OK (double anchor) · BURN_OK (HIGH+DONE+path+freshness+no-ABORT) ·
+  identity BID=0x28 / NW=75 NFF=0 / 0x15C=ffffffff / 0x08=0 / CARRIER=1 ·
+  PCIe device-level remove+rescan; LnkSta x5GT/s x4; 2 BARs
+
+FINAL BOARD STATE (live read 2026-10-17 02:59:21, epoch 1792177161)
+  ID_MAGIC  0x50360001 OK · ID_BID 0x00000028 OK · ID_MARKER 0xdeadbeef OK ·
+  ID_UNIMPL 0xffffffff OK · ID_RC=0
+  reg 0x04 = 0x28 · reg 0x08 = 0 = 0 · CARRIER = 1
+  ROUTE = 192.168.100.2 dev enp1s0f1np1 src 192.168.100.100/32
+  NIC witnessed at exit: Adaptive RX off / rx-usecs 0 / unmanaged
+  ⚠️ RUN-TIME STATE: the board is LEFT IN THE SLOW BASIN (not a control-register
+     state; 0x28/0x08/carrier unaffected). Verified present at the last A' probe
+     (G4, 02:55:23). A fresh JTAG burn of 0x28 clears it (G3 reading); power-off
+     also resets it.
+
+PEER-SIDE ARTIFACTS (left in /tmp on 192.168.0.38, persistent until reboot)
+  /tmp/basin_<TAG>_{sink*.txt,nstat_pre/post,pre,post,snap.log,ss.log,ctl.err,ctl.pcap0}
+  full text + pcap copies fetched to raw/ (G4F ctl pcap = 1 GB ring; local copy is
+  the last ring file only -- 1,968,649 pkts / 3.2 s window)
+
+PW: PEER_PW never written to any file in this round (env prefix only).

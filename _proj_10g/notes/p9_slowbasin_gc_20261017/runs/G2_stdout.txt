@@ -1,0 +1,127 @@
+### RUN G2 2026-10-17 02:36:45
+--- leftover precheck (must be empty) ---
+LEFTOVER_CLEAN
+### K0M_BEGIN tag=G2 nsinks=1 stagger=0 rcvbuf=2920 conns=3 secs=60 maxbytes=60000000 ring=256MBx4 sink_extra='' sink_bin=/tmp/p7b_biz/p7b_tcp_sink 1792175807.436250647
+### SNAP_MD5 a257af8299904789c6a6dd9ed5ca030f
+### SINK_PATH /tmp/p7b_biz/p7b_tcp_sink
+### SINK_MD5 f62299291fcb9e02afe109c4ea1f90ab
+### SINK_SIZE 173576
+### SNAP_ARGS NW=75 EXPECT_BID=0x00000028 KW='5 20 43 51 52 55 66 67 68 69' KW2='5 20 43 51 52 55 66 67 68 69 63 64 65 71 72 73 74' RUN_TIMEOUT=240
+### SS_SAMPLER cmd="ss -tinH state established (dport = :8080)" every 1s -> /tmp/basin_G2_ss.log
+--- board identity gate (before run) ---
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x00000028   (want 0x00000028 = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1792175807.456255310
+ID_RC=0
+BID_0x04=Read 32-bit value at address 0x4 (0x725d596a6004): 0x00000028
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x73566b343008): 0x00000000
+CARRIER=1
+ROUTE_GET=192.168.100.2 dev enp1s0f1np1 src 192.168.100.100 uid 0 
+--- pcap (single, 'ctl'): full 'tcp port 8080', snaplen 128, 256MBx4 ring ---
+TCPDUMP_ARMED /tmp/basin_G2_ctl.err (waited ~0s)
+CTL_PID=1524309
+--- board snapshot ring (background; one point per ~0.15 s) ---
+SNAP_PID=1524313
+--- ss sampler (background; per-second per-socket kernel byte counters) ---
+SS_PID=1524314
+--- peer kernel counters (before) ---
+TcpInSegs                       134521631          0.0
+TcpOutSegs                      43781809           0.0
+TcpRetransSegs                  2249               0.0
+TcpExtDelayedACKs               2088               0.0
+TcpExtDelayedACKLocked          1                  0.0
+TcpExtDelayedACKLost            8823               0.0
+TcpExtTCPPureAcks               12743              0.0
+TcpExtTCPHPAcks                 9908               0.0
+TcpExtTCPFastRetrans            1862               0.0
+TcpExtTCPOFOQueue               373                0.0
+TcpExtTCPACKSkippedSeq          3                  0.0
+--- SNAP_PRE (explicit) 1792175807.567355070 ---
+SNAP_BEGIN G2_PRE gen=1562
+W5   0x34   gmii_free_FE           0x2e765119
+W20  0x70   mac_tx_frames          0x00512c13
+W43  0xCC   mtx_stat_tx_words      0x2e3d5fa6
+W51  0xEC   app_tx_bytes           0xcdddbe94
+W52  0xF0   app_tx_frames          0x0050fc3e
+W55  0xFC   tx_stat_retx           0x00002ec2
+W66  0x128  tx_stat_winstall       0x9f60f8f1
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x0050fbe1
+W69  0x134  tx_win_at_winstall     0x05b405b4
+W63  0x11C  app_frmwait_cyc        0x3f48b3fb
+W64  0x120  app_bp_cyc             0xbbd99828
+W65  0x124  mac_tx_idle            0xf10bd517
+W71  0x13C  app_stat_up_ev         0x00000039
+W72  0x140  app_stat_sw_req        0x0000000e
+W73  0x144  app_stat_sw_apply      0x00000038
+W74  0x148  app_stat_up_pend       0x00000001
+SNAP_END G2_PRE nff=0
+--- main run: 1 sinks in parallel (staggered 0s), timeout 240s ---
+SINK1_START pid=1524537 t=1792175807.642298084
+SINK1_RC=124
+SINK1_TIMEOUT_KILLED (RUN_TIMEOUT=240s)
+### SINK_RC_SUM=124 T0=1792175807.640545201 T1=1792176047.643937099 T1-T0=240.003
+SINK1_SUM_MISSING
+--- SNAP_POST (explicit) 1792176047.647813209 ---
+SNAP_BEGIN G2_POST gen=2760
+W5   0x34   gmii_free_FE           0xea6c742b
+W20  0x70   mac_tx_frames          0x0051a875
+W43  0xCC   mtx_stat_tx_words      0xea2df85b
+W51  0xEC   app_tx_bytes           0xcf994064
+W52  0xF0   app_tx_frames          0x00514a02
+W55  0xFC   tx_stat_retx           0x00005d46
+W66  0x128  tx_stat_winstall       0x9f6e0544
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x005149a3
+W69  0x134  tx_win_at_winstall     0x05b405b4
+W63  0x11C  app_frmwait_cyc        0xfa466068
+W64  0x120  app_bp_cyc             0xbbebf738
+W65  0x124  mac_tx_idle            0xac9eba66
+W71  0x13C  app_stat_up_ev         0x0000003a
+W72  0x140  app_stat_sw_req        0x0000000e
+W73  0x144  app_stat_sw_apply      0x00000039
+W74  0x148  app_stat_up_pend       0x00000001
+SNAP_END G2_POST nff=0
+--- peer kernel counters (after) ---
+TcpInSegs                       134554387          0.0
+TcpOutSegs                      43823452           0.0
+TcpRetransSegs                  2249               0.0
+TcpExtDelayedACKs               2136               0.0
+TcpExtDelayedACKLocked          2                  0.0
+TcpExtDelayedACKLost            8823               0.0
+TcpExtTCPPureAcks               12837              0.0
+TcpExtTCPHPAcks                 10302              0.0
+TcpExtTCPFastRetrans            1862               0.0
+TcpExtTCPOFOQueue               374                0.0
+TcpExtTCPACKSkippedSeq          3                  0.0
+--- teardown: stop ss sampler + snapshot ring + pcap ---
+ctl STOPPED_GRACEFULLY (~0s)
+--- pcap stats (tcpdump self-report) ---
+63632 packets captured
+63682 packets received by filter
+0 packets dropped by kernel
+-rw-r--r-- 1 tcpdump tcpdump 6806898 Oct 17 02:40 /tmp/basin_G2_ctl.pcap0
+3c00561ba7f2f81ef9e6fb173eb3b00217a192c8cc87ce523355fe8d255ee38b  /tmp/basin_G2_ctl.pcap0
+--- ss log tail witness ---
+712 /tmp/basin_G2_ss.log
+	 cubic rto:201 rtt:0.099/0.049 ato:40 mss:1460 pmtu:1500 rcvmss:1460 advmss:1460 cwnd:10 bytes_acked:1 bytes_received:28868580 segs_out:31649 segs_in:31603 data_segs_in:31602 send 1179797980bps lastsnd:238400 lastrcv:16 lastack:16 pacing_rate 2340202016bps delivered:1 app_limited rcv_rtt:0.006 rcv_space:4380 rcv_ssthresh:1665 minrtt:0.099
+SS_T 1792176047.054279784
+0      0      192.168.100.100:39738 192.168.100.2:8080
+	 cubic rto:201 rtt:0.099/0.049 ato:40 mss:1460 pmtu:1500 rcvmss:1460 advmss:1460 cwnd:10 bytes_acked:1 bytes_received:28989760 segs_out:31782 segs_in:31736 data_segs_in:31735 send 1179797980bps lastsnd:239412 lastrcv:20 lastack:20 pacing_rate 2340202016bps delivered:1 app_limited rcv_rtt:0.006 rcv_space:4380 rcv_ssthresh:1665 minrtt:0.099
+--- SINK_OPTS witness (new binary prints it; old binary => MISSING) ---
+### SINK_OPTS_WITNESS sink1 SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+--- sink summary (verbatim) ---
+== SINK 1 ==
+SINK_CHECK check=lane8
+SINK_LIMITS maxbytes=60000000 poll_ms=5000 stall_n=3 rcvbuf=2920 conns=3 secs=60
+SINK_RCVBUF_ORDER RCVBUF_ORDER=before_connect rcvbuf=2920
+SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+--- board state (after) ---
+BID_0x04=Read 32-bit value at address 0x4 (0x7fdbbe6c3004): 0x00000028
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x7aa5eea7a008): 0x00000000
+CARRIER=1
+(empty = no leftover processes)
+### K0M_END tag=G2 1792176048.182010608
+### G2_EXIT=0

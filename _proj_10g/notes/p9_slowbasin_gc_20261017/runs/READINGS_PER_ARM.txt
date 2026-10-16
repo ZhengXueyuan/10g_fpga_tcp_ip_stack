@@ -1,0 +1,178 @@
+======================================================================================================================
+p9_slowbasin_gc_20261017 -- per-arm readings
+======================================================================================================================
+
+####################################################################################################
+### tag=G0 nsinks=1 stagger=0 rcvbuf=2920 conns=3 secs=60 maxbytes=60000000 ring=256MBx4 sink_extra='' sink_bin=/tmp/p7b_biz/p7b_tcp_sink 1792175529.244622173
+    ### SINK_MD5 f62299291fcb9e02afe109c4ea1f90ab
+    ### SINK_SIZE 173576
+    ### SINK_OPTS_WITNESS sink1 SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+    ### SINK_RC_SUM=0 T0=1792175529.448797682 T1=1792175531.044848463 T1-T0=1.596
+    ### K0M_END tag=G0 1792175531.619979808
+    SUM SINK_SUM conns=3 fail_conns=0 bytes=180000480 clean_conns=3 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=1.590 net_s=1.590 agg_Mbps=905.540 THREADED=on full_push=123285 full_pop=1232
+    pcap: captured=246597 received=246597 dropped=0
+    snap ring: n=8 span=1.47s  W5=156059599.852 W20=77948.196 W43=156058074.685 W51=113783289.263 W52=77938.572 W55=0.000 W66=96943437.523 W67=0.000 W68=77928.948
+    W67/W66 = 0.000000 ; (W66-W67)/W5 = 0.621195
+    PRE/POST deltas (mod 2^32): W5=261436134 W20=123299 W43=261433585 W51=180004860 W52=123293 W55=2 W63=58957196 W64=166099771 W65=237637970 W66=155432516 W67=0 W68=123288 W69=0 W71=3 W72=0 W73=3 W74=0
+    E12: dEv=3 dsw_req=0 dapply=3 dup_pend=0  trig_face=0  identity=CLOSED(ev==apply+pend)
+    W69 latch POST raw=0x05b405b4 -> {infl, wnd}={1460,1460}
+    nstat delta: TcpInSegs=+123321 TcpOutSegs=+123343 TcpRetransSegs=+0 TCPOFOQueue=+0 TCPFastRetrans=+0 TCPACKSkippedSeq=+0 DelayedACKs=+0 DelayedACKLocked=+0 DelayedACKLost=+0 TCPPureAcks=+17 TCPHPAcks=+6
+    delayed-ACK trace: DelayedACKs/InSegs=0.000e+00 Locked=0 Lost=0 RetransSegs/InSegs=0.000e+00 PureAcks=17 HPAcks=6
+    board after: BID_0x04=Read 32-bit value at address 0x4 (0x719d81eeb004):  | SCRATCH_0x08=Read 32-bit value at address 0x8 (0x74ee26f4e00 | CARRIER=1
+
+####################################################################################################
+### tag=G1 nsinks=2 stagger=0.4 rcvbuf=2920 conns=6 secs=120 maxbytes=50000000 ring=256MBx4 sink_extra='--poll-ms 1000 --stall-n 3' sink_bin=/tmp/p7b_biz/p7b_tcp_sink 1792175536.073502947
+    ### SINK_MD5 f62299291fcb9e02afe109c4ea1f90ab
+    ### SINK_SIZE 173576
+    ### SINK_OPTS_WITNESS sink1 SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+    ### SINK_RC_SUM=125 T0=1792175536.277928599 T1=1792175776.281137277 T1-T0=240.003
+    ### K0M_END tag=G1 1792175776.839469870
+    SUM SINK_SUM conns=6 fail_conns=0 bytes=1819160 clean_conns=0 bad_conns=6 mismatch_bytes=0 stall_conns=6 err_conns=0 poll_tmo=18 wall_s=32.950 net_s=32.950 agg_Mbps=0.442 THREADED=on full_push=1241 full_pop=1241 fr
+    pcap: captured=118287 received=118335 dropped=0
+    snap ring: n=1198 span=239.94s  W5=156255920.847 W20=134.686 W43=156254411.006 W51=123799.349 W52=84.794 W55=49.914 W66=3286.700 W67=0.000 W68=84.793
+    W67/W66 = 0.000000 ; (W66-W67)/W5 = 0.000021
+    PRE/POST deltas (mod 2^32): W5=3153693182 W20=59098 W43=3153330347 W51=68722200 W52=47071 W55=11928 W63=3093267741 W64=38564959 W65=3145458205 W66=35736488 W67=0 W68=47059 W69=0 W71=12 W72=10 W73=11 W74=1
+    E12: dEv=12 dsw_req=10 dapply=11 dup_pend=1  trig_face=11  identity=CLOSED(ev==apply+pend)
+    W69 latch POST raw=0x05b405b4 -> {infl, wnd}={1460,1460}
+    nstat delta: TcpInSegs=+59139 TcpOutSegs=+59259 TcpRetransSegs=+88 TCPOFOQueue=+0 TCPFastRetrans=+0 TCPACKSkippedSeq=+0 DelayedACKs=+3 DelayedACKLocked=+0 DelayedACKLost=+0 TCPPureAcks=+28 TCPHPAcks=+14
+    delayed-ACK trace: DelayedACKs/InSegs=5.073e-05 Locked=0 Lost=0 RetransSegs/InSegs=1.488e-03 PureAcks=28 HPAcks=14
+    board after: BID_0x04=Read 32-bit value at address 0x4 (0x7a858073f004):  | SCRATCH_0x08=Read 32-bit value at address 0x8 (0x75f563fc700 | CARRIER=1
+
+####################################################################################################
+### tag=G2 nsinks=1 stagger=0 rcvbuf=2920 conns=3 secs=60 maxbytes=60000000 ring=256MBx4 sink_extra='' sink_bin=/tmp/p7b_biz/p7b_tcp_sink 1792175807.436250647
+    ### SINK_MD5 f62299291fcb9e02afe109c4ea1f90ab
+    ### SINK_SIZE 173576
+    ### SINK_OPTS_WITNESS sink1 SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+    ### SINK_RC_SUM=124 T0=1792175807.640545201 T1=1792176047.643937099 T1-T0=240.003
+    ### K0M_END tag=G2 1792176048.182010608
+    pcap: captured=63632 received=63682 dropped=0
+    snap ring: n=1197 span=239.91s  W5=156252187.404 W20=134.487 W43=156250691.837 W51=123613.099 W52=84.667 W55=49.898 W66=3283.556 W67=0.000 W68=84.667
+    W67/W66 = 0.000000 ; (W66-W67)/W5 = 0.000021
+    PRE/POST deltas (mod 2^32): W5=3153470226 W20=31842 W43=3153107125 W51=29065680 W52=19908 W55=11908 W63=3137186925 W64=1203984 W65=3146966351 W66=855123 W67=0 W68=19906 W69=0 W71=1 W72=0 W73=1 W74=0
+    E12: dEv=1 dsw_req=0 dapply=1 dup_pend=0  trig_face=0  identity=CLOSED(ev==apply+pend)
+    W69 latch POST raw=0x05b405b4 -> {infl, wnd}={1460,1460}
+    nstat delta: TcpInSegs=+32756 TcpOutSegs=+41643 TcpRetransSegs=+0 TCPOFOQueue=+1 TCPFastRetrans=+0 TCPACKSkippedSeq=+0 DelayedACKs=+48 DelayedACKLocked=+1 DelayedACKLost=+0 TCPPureAcks=+94 TCPHPAcks=+394
+    delayed-ACK trace: DelayedACKs/InSegs=1.465e-03 Locked=1 Lost=0 RetransSegs/InSegs=0.000e+00 PureAcks=94 HPAcks=394
+    board after: BID_0x04=Read 32-bit value at address 0x4 (0x7fdbbe6c3004):  | SCRATCH_0x08=Read 32-bit value at address 0x8 (0x7aa5eea7a00 | CARRIER=1
+
+####################################################################################################
+### tag=G3 nsinks=1 stagger=0 rcvbuf=2920 conns=3 secs=60 maxbytes=60000000 ring=256MBx4 sink_extra='' sink_bin=/tmp/p7b_biz/p7b_tcp_sink 1792176274.588704057
+    ### SINK_MD5 f62299291fcb9e02afe109c4ea1f90ab
+    ### SINK_SIZE 173576
+    ### SINK_OPTS_WITNESS sink1 SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+    ### SINK_RC_SUM=0 T0=1792176274.793530040 T1=1792176276.432256652 T1-T0=1.639
+    ### K0M_END tag=G3 1792176277.008378434
+    SUM SINK_SUM conns=3 fail_conns=0 bytes=180000480 clean_conns=3 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=1.633 net_s=1.633 agg_Mbps=881.937 THREADED=on full_push=123285 full_pop=1232
+    pcap: captured=246599 received=246599 dropped=0
+    snap ring: n=8 span=1.44s  W5=156157728.130 W20=76435.637 W43=156156266.079 W51=111596030.484 W52=76435.637 W55=0.000 W66=98694081.551 W67=0.000 W68=76435.637
+    W67/W66 = 0.000000 ; (W66-W67)/W5 = 0.632015
+    PRE/POST deltas (mod 2^32): W5=267883348 W20=123300 W43=267880848 W51=180004860 W52=123293 W55=3 W63=60895033 W64=170784125 W65=244085040 W66=159829185 W67=0 W68=123288 W69=95684020 W71=3 W72=1 W73=3 W74=0
+    E12: dEv=3 dsw_req=1 dapply=3 dup_pend=0  trig_face=1  identity=CLOSED(ev==apply+pend)
+    W69 latch POST raw=0x05b405b4 -> {infl, wnd}={1460,1460}
+    nstat delta: TcpInSegs=+123322 TcpOutSegs=+123344 TcpRetransSegs=+0 TCPOFOQueue=+0 TCPFastRetrans=+0 TCPACKSkippedSeq=+0 DelayedACKs=+0 DelayedACKLocked=+0 DelayedACKLost=+0 TCPPureAcks=+18 TCPHPAcks=+6
+    delayed-ACK trace: DelayedACKs/InSegs=0.000e+00 Locked=0 Lost=0 RetransSegs/InSegs=0.000e+00 PureAcks=18 HPAcks=6
+    board after: BID_0x04=Read 32-bit value at address 0x4 (0x70c082e7b004):  | SCRATCH_0x08=Read 32-bit value at address 0x8 (0x70454406e00 | CARRIER=1
+
+####################################################################################################
+### tag=G4a nsinks=2 stagger=0.4 rcvbuf=2920 conns=6 secs=120 maxbytes=50000000 ring=256MBx4 sink_extra='--poll-ms 1000 --stall-n 3' sink_bin=/tmp/p7b_biz/p7b_tcp_sink 1792176282.477981596
+    ### SINK_MD5 f62299291fcb9e02afe109c4ea1f90ab
+    ### SINK_SIZE 173576
+    ### SINK_OPTS_WITNESS sink1 SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+    ### SINK_RC_SUM=125 T0=1792176282.683726108 T1=1792176522.686811461 T1-T0=240.003
+    ### K0M_END tag=G4a 1792176523.239474397
+    SUM SINK_SUM conns=6 fail_conns=0 bytes=1429340 clean_conns=0 bad_conns=6 mismatch_bytes=0 stall_conns=6 err_conns=0 poll_tmo=18 wall_s=32.981 net_s=32.980 agg_Mbps=0.347 THREADED=on full_push=973 full_pop=973 free
+    pcap: captured=129043 received=129091 dropped=0
+    snap ring: n=1196 span=239.86s  W5=156250096.453 W20=134.361 W43=156248607.823 W51=123221.413 W52=84.398 W55=49.873 W66=3284.733 W67=0.000 W68=84.390
+    W67/W66 = 0.000000 ; (W66-W67)/W5 = 0.000021
+    PRE/POST deltas (mod 2^32): W5=3153002595 W20=64447 W43=3152642238 W51=75635300 W52=51805 W55=11936 W63=3088253138 W64=43680310 W65=3140214523 W66=40403989 W67=0 W68=51789 W69=0 W71=12 W72=10 W73=11 W74=1
+    E12: dEv=12 dsw_req=10 dapply=11 dup_pend=1  trig_face=11  identity=CLOSED(ev==apply+pend)
+    W69 latch POST raw=0x05b405b4 -> {infl, wnd}={1460,1460}
+    nstat delta: TcpInSegs=+65591 TcpOutSegs=+83128 TcpRetransSegs=+85 TCPOFOQueue=+2 TCPFastRetrans=+1 TCPACKSkippedSeq=+0 DelayedACKs=+24 DelayedACKLocked=+0 DelayedACKLost=+0 TCPPureAcks=+77 TCPHPAcks=+595
+    delayed-ACK trace: DelayedACKs/InSegs=3.659e-04 Locked=0 Lost=0 RetransSegs/InSegs=1.296e-03 PureAcks=77 HPAcks=595
+    board after: BID_0x04=Read 32-bit value at address 0x4 (0x7691384dd004):  | SCRATCH_0x08=Read 32-bit value at address 0x8 (0x72c4e4a1d00 | CARRIER=1
+
+####################################################################################################
+### tag=G4b nsinks=1 stagger=0 rcvbuf=2920 conns=3 secs=60 maxbytes=60000000 ring=256MBx4 sink_extra='' sink_bin=/tmp/p7b_biz/p7b_tcp_sink 1792176568.996663917
+    ### SINK_MD5 f62299291fcb9e02afe109c4ea1f90ab
+    ### SINK_SIZE 173576
+    ### SINK_OPTS_WITNESS sink1 SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+    ### SINK_RC_SUM=124 T0=1792176569.201375805 T1=1792176659.204688018 T1-T0=90.003
+    ### K0M_END tag=G4b 1792176659.731983226
+    pcap: captured=23837 received=23889 dropped=0
+    snap ring: n=449 span=89.96s  W5=156249339.215 W20=134.041 W43=156247817.118 W51=123190.501 W52=84.377 W55=49.837 W66=3280.528 W67=0.000 W68=84.377
+    W67/W66 = 0.000000 ; (W66-W67)/W5 = 0.000021
+    PRE/POST deltas (mod 2^32): W5=1190024296 W20=11944 W43=1189887610 W51=10901820 W52=7467 W55=4467 W63=1178345441 W64=456599 W65=1193496889 W66=320915 W67=0 W68=7466 W69=0 W71=1 W72=0 W73=1 W74=0
+    E12: dEv=1 dsw_req=0 dapply=1 dup_pend=0  trig_face=0  identity=CLOSED(ev==apply+pend)
+    W69 latch POST raw=0x05b405b4 -> {infl, wnd}={1460,1460}
+    nstat delta: TcpInSegs=+11965 TcpOutSegs=+12003 TcpRetransSegs=+0 TCPOFOQueue=+0 TCPFastRetrans=+0 TCPACKSkippedSeq=+0 DelayedACKs=+0 DelayedACKLocked=+0 DelayedACKLost=+0 TCPPureAcks=+17 TCPHPAcks=+6
+    delayed-ACK trace: DelayedACKs/InSegs=0.000e+00 Locked=0 Lost=0 RetransSegs/InSegs=0.000e+00 PureAcks=17 HPAcks=6
+    board after: BID_0x04=Read 32-bit value at address 0x4 (0x7b9e9f56f004):  | SCRATCH_0x08=Read 32-bit value at address 0x8 (0x712e765b700 | CARRIER=1
+
+####################################################################################################
+### tag=G4w nsinks=1 stagger=0 rcvbuf=2920 conns=3 secs=60 maxbytes=60000000 ring=256MBx4 sink_extra='' sink_bin=/tmp/p7b_biz/p7b_tcp_sink 1792176784.411394422
+    ### SINK_MD5 f62299291fcb9e02afe109c4ea1f90ab
+    ### SINK_SIZE 173576
+    ### SINK_OPTS_WITNESS sink1 SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+    ### SINK_RC_SUM=124 T0=1792176784.616837477 T1=1792176874.620834461 T1-T0=90.004
+    ### K0M_END tag=G4w 1792176875.148442958
+    pcap: captured=23843 received=23887 dropped=0
+    snap ring: n=449 span=89.90s  W5=156248303.245 W20=134.389 W43=156246781.342 W51=123530.077 W52=84.610 W55=49.863 W66=3281.623 W67=0.000 W68=84.610
+    W67/W66 = 0.000000 ; (W66-W67)/W5 = 0.000021
+    PRE/POST deltas (mod 2^32): W5=1190408458 W20=11942 W43=1190271211 W51=10904740 W52=7469 W55=4467 W63=1176838361 W64=457105 W65=1187967497 W66=321129 W67=0 W68=7467 W69=0 W71=1 W72=0 W73=1 W74=0
+    E12: dEv=1 dsw_req=0 dapply=1 dup_pend=0  trig_face=0  identity=CLOSED(ev==apply+pend)
+    W69 latch POST raw=0x05b405b4 -> {infl, wnd}={1460,1460}
+    nstat delta: TcpInSegs=+12012 TcpOutSegs=+12058 TcpRetransSegs=+0 TCPOFOQueue=+0 TCPFastRetrans=+0 TCPACKSkippedSeq=+0 DelayedACKs=+5 DelayedACKLocked=+0 DelayedACKLost=+0 TCPPureAcks=+35 TCPHPAcks=+17
+    delayed-ACK trace: DelayedACKs/InSegs=4.163e-04 Locked=0 Lost=0 RetransSegs/InSegs=0.000e+00 PureAcks=35 HPAcks=17
+    board after: BID_0x04=Read 32-bit value at address 0x4 (0x71318932d004):  | SCRATCH_0x08=Read 32-bit value at address 0x8 (0x7c656107700 | CARRIER=1
+
+####################################################################################################
+### tag=G4F nsinks=1 stagger=0 rcvbuf=1048576 conns=20000 secs=20 maxbytes=2097152 ring=256MBx4 sink_extra='--poll-ms 300 --stall-n 2' sink_bin=/tmp/p7b_biz/p7b_tcp_sink 1792176900.376839839
+    ### SINK_MD5 f62299291fcb9e02afe109c4ea1f90ab
+    ### SINK_SIZE 173576
+    ### SINK_OPTS_WITNESS sink1 SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+    ### SINK_RC_SUM=0 T0=1792176900.580941499 T1=1792176920.588400717 T1-T0=20.007
+    ### K0M_END tag=G4F 1792176922.994126419
+    SUM SINK_SUM conns=6747 fail_conns=0 bytes=14180284712 clean_conns=6747 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=20.002 net_s=20.001 agg_Mbps=5671.740 THREADED=on full_push=2026279 f
+    pcap: captured=12323538 received=12323865 dropped=0
+    snap ring: n=85 span=19.83s  W5=156332369.819 W20=500254.346 W43=156330848.139 W51=729856069.928 W52=499910.325 W55=0.000 W66=4757024.961 W67=4478366.004 W68=107083.826
+    W67/W66 = 0.941422 ; (W66-W67)/W5 = 0.001782
+    PRE/POST deltas (mod 2^32): W5=3138350242 W20=10019050 W43=3138319635 W51=1732636440 W52=10012302 W55=0 W63=855177416 W64=167457517 W65=1205924076 W66=94916629 W67=89322197 W68=2133351 W69=4018727500 W71=6747 W72=6 W73=6747 W74=0
+    E12: dEv=6747 dsw_req=6 dapply=6747 dup_pend=0  trig_face=6  identity=CLOSED(ev==apply+pend)
+    W69 latch POST raw=0xf53cf000 -> {infl, wnd}={62780,61440}
+    nstat delta: TcpInSegs=+10019401 TcpOutSegs=+2307042 TcpRetransSegs=+0 TCPOFOQueue=+1 TCPFastRetrans=+0 TCPACKSkippedSeq=+0 DelayedACKs=+25 DelayedACKLocked=+0 DelayedACKLost=+0 TCPPureAcks=+53 TCPHPAcks=+173
+    delayed-ACK trace: DelayedACKs/InSegs=2.495e-06 Locked=0 Lost=0 RetransSegs/InSegs=0.000e+00 PureAcks=53 HPAcks=173
+    board after: BID_0x04=Read 32-bit value at address 0x4 (0x7ac5a8a11004):  | SCRATCH_0x08=Read 32-bit value at address 0x8 (0x772671db200 | CARRIER=1
+
+####################################################################################################
+### tag=G4 nsinks=1 stagger=0 rcvbuf=2920 conns=3 secs=60 maxbytes=60000000 ring=256MBx4 sink_extra='' sink_bin=/tmp/p7b_biz/p7b_tcp_sink 1792176923.023614578
+    ### SINK_MD5 f62299291fcb9e02afe109c4ea1f90ab
+    ### SINK_SIZE 173576
+    ### SINK_OPTS_WITNESS sink1 SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+    ### SINK_RC_SUM=124 T0=1792176923.228897114 T1=1792177013.232216016 T1-T0=90.003
+    ### K0M_END tag=G4 1792177013.760996882
+    pcap: captured=24224 received=24276 dropped=0
+    snap ring: n=448 span=89.90s  W5=156253015.573 W20=134.150 W43=156251490.792 W51=116600.093 W52=79.863 W55=49.857 W66=3620.810 W67=0.000 W68=79.863
+    W67/W66 = 0.000000 ; (W66-W67)/W5 = 0.000023
+    PRE/POST deltas (mod 2^32): W5=1190337604 W20=12112 W43=1190200794 W51=9875440 W52=6764 W55=4486 W63=1177133010 W64=657677 W65=1187875736 W66=345454 W67=0 W68=6763 W69=276239796 W71=1 W72=0 W73=1 W74=0
+    E12: dEv=1 dsw_req=0 dapply=1 dup_pend=0  trig_face=0  identity=CLOSED(ev==apply+pend)
+    W69 latch POST raw=0x05b405b4 -> {infl, wnd}={1460,1460}
+    nstat delta: TcpInSegs=+12262 TcpOutSegs=+12369 TcpRetransSegs=+0 TCPOFOQueue=+1 TCPFastRetrans=+0 TCPACKSkippedSeq=+0 DelayedACKs=+14 DelayedACKLocked=+0 DelayedACKLost=+0 TCPPureAcks=+53 TCPHPAcks=+39
+    delayed-ACK trace: DelayedACKs/InSegs=1.142e-03 Locked=0 Lost=0 RetransSegs/InSegs=0.000e+00 PureAcks=53 HPAcks=39
+    board after: BID_0x04=Read 32-bit value at address 0x4 (0x70820fb9f004):  | SCRATCH_0x08=Read 32-bit value at address 0x8 (0x7300c10d800 | CARRIER=1
+
+####################################################################################################
+### tag=G4C nsinks=1 stagger=0 rcvbuf=1048576 conns=3 secs=60 maxbytes=60000000 ring=256MBx4 sink_extra='' sink_bin=/tmp/p7b_biz/p7b_tcp_sink 1792177123.804316892
+    ### SINK_MD5 f62299291fcb9e02afe109c4ea1f90ab
+    ### SINK_SIZE 173576
+    ### SINK_OPTS_WITNESS sink1 SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+    ### SINK_RC_SUM=0 T0=1792177124.008023542 T1=1792177124.226523116 T1-T0=0.218
+    ### K0M_END tag=G4C 1792177124.788425355
+    SUM SINK_SUM conns=3 fail_conns=0 bytes=180007780 clean_conns=3 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=0.213 net_s=0.212 agg_Mbps=6782.750 THREADED=on full_push=26980 full_pop=2698
+    pcap: captured=149698 received=150614 dropped=0
+    snap ring: n=1 span=0.00s  W5=- W20=- W43=- W51=- W52=- W55=- W66=- W67=- W68=-
+    PRE/POST deltas (mod 2^32): W5=46016617 W20=123477 W43=46016166 W51=180204880 W52=123428 W55=2 W63=8408544 W64=1254005 W65=22185651 W66=813345 W67=766688 W68=27043 W69=4018727500 W71=3 W72=0 W73=3 W74=0
+    E12: dEv=3 dsw_req=0 dapply=3 dup_pend=0  trig_face=0  identity=CLOSED(ev==apply+pend)
+    W69 latch POST raw=0xf53cf000 -> {infl, wnd}={62780,61440}
+    nstat delta: TcpInSegs=+123499 TcpOutSegs=+27181 TcpRetransSegs=+0 TCPOFOQueue=+0 TCPFastRetrans=+0 TCPACKSkippedSeq=+0 DelayedACKs=+0 DelayedACKLocked=+0 DelayedACKLost=+42 TCPPureAcks=+17 TCPHPAcks=+5
+    delayed-ACK trace: DelayedACKs/InSegs=0.000e+00 Locked=0 Lost=42 RetransSegs/InSegs=0.000e+00 PureAcks=17 HPAcks=5
+    board after: BID_0x04=Read 32-bit value at address 0x4 (0x7cd40cc95004):  | SCRATCH_0x08=Read 32-bit value at address 0x8 (0x735de0e5b00 | CARRIER=1
