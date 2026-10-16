@@ -1,0 +1,105 @@
+HISTORICAL vs MY-ROUND DECAY PROFILES -- p9_t2fast_ab_20261017
+=============================================================
+
+PART 1 (HISTORICAL, re-derived from the trickle round's OWN pcaps; zero new board traffic).
+  Reading: T1 conn0 = fast (815-960 Mbps) for the first ~0.44 s / 45.0 MB, then a HARD COLLAPSE
+  to a 1.52-1.64 Mbps crawl whose 20 ms cluster clock persists for the rest of the connection.
+  T2/T3 = crawl from the FIRST 100 ms bucket (no fast phase at all).
+
+(T1/T2/T3 profiles: see raw/ copies of the analyzer runs below -- reproduced verbatim)
+
+conn 45450: pkts=62872 span=58.934 s
+first 0.5 s: B2P pkts=31043  P2B pkts=31044
+t=  0.0-  0.1 s    11993900 B    959.51 Mbps (cum 11993900)
+t=  0.1-  0.2 s    10198100 B    815.85 Mbps (cum 22192000)
+t=  0.2-  0.3 s    11935500 B    954.84 Mbps (cum 34127500)
+t=  0.3-  0.4 s    10895980 B    871.68 Mbps (cum 45023480)
+t=  0.4-  0.5 s      297840 B     23.83 Mbps (cum 45321320)
+t=  0.5-  0.6 s       18980 B      1.52 Mbps (cum 45340300)
+t=  0.6-  0.7 s       18980 B      1.52 Mbps (cum 45359280)
+t=  0.7-  0.8 s       20440 B      1.64 Mbps (cum 45379720)
+t=  0.8-  0.9 s       18980 B      1.52 Mbps (cum 45398700)
+t=  0.9-  1.0 s       18980 B      1.52 Mbps (cum 45417680)
+...(45.9 MB total, conn lives 58.9 s; sink-side also recorded 6.4 s / 45,668,800 B POLL_TIMEOUT)
+
+conn 47576: pkts=107647 span=391.817 s
+first 0.5 s: B2P pkts=69  P2B pkts=70
+t=  0.0-  0.1 s       18980 B      1.52 Mbps (cum 18980)
+t=  0.1-  0.2 s       21900 B      1.75 Mbps (cum 40880)
+t=  0.2-  0.3 s       18980 B      1.52 Mbps (cum 59860)
+t=  0.3-  0.4 s       20440 B      1.64 Mbps (cum 80300)
+t=  0.4-  0.5 s       18980 B      1.52 Mbps (cum 99280)
+t=  0.5-  0.6 s       18980 B      1.52 Mbps (cum 118260)
+...(T2 conn 47576 crawls 1.5-1.75 Mbps from the first bucket; 392 s / 50,000,620 B)
+
+conn 58552: pkts=19285 span=71.872 s
+first 0.5 s: B2P pkts=68  P2B pkts=69
+t=  0.0-  0.1 s       20440 B      1.64 Mbps (cum 20440)
+t=  0.1-  0.2 s       14601 B      1.17 Mbps (cum 35041)
+t=  0.2-  0.3 s       23360 B      1.87 Mbps (cum 58401)
+t=  0.3-  0.4 s       18980 B      1.52 Mbps (cum 77381)
+t=  0.4-  0.5 s       18980 B      1.52 Mbps (cum 96361)
+t=  0.5-  0.6 s       20440 B      1.64 Mbps (cum 116801)
+...(T3 conn 58552 same crawl-from-birth; 71.9 s span)
+
+PART 2 (MY ROUND, full pcaps analyzed ON THE PEER; outputs fetched to raw/fast_<TAG>_decay.txt).
+  NOTE: the analyzer's 'COLLAPSE' label fires when a connection COMPLETES its maxbytes and
+  closes -- that is NORMAL completion, NOT a decay. The discriminator is whether the
+  bucket stream stays at ~900 Mbps until the last byte (my arms) or drops to ~1.5 Mbps
+  mid-transfer and stays there (historical).
+
+----- F0 -----
+conn 41354: pkts=273981 span=1.619 s
+first 0.5 s: B2P pkts=40705  P2B pkts=40705
+t=  0.0-  0.1 s     9164420 B    733.15 Mbps (cum 9164420)
+t=  0.1-  0.2 s    13262640 B   1061.01 Mbps (cum 22427060)
+t=  0.2-  0.3 s    11788040 B    943.04 Mbps (cum 34215100)
+t=  0.3-  0.4 s    13281620 B   1062.53 Mbps (cum 47496720)
+t=  0.4-  0.5 s    11931120 B    954.49 Mbps (cum 59427840)
+t=  0.5-  0.6 s    13253880 B   1060.31 Mbps (cum 72681720)
+  [tail] t=  1.6-  1.7 s     2540400 B    203.23 Mbps (cum 200003940) COLLAPSE at t=1.7 s (bucket 17: 0 B vs early median 13262640 B) 
+
+----- F3 -----
+conn 53168: pkts=68501 span=0.421 s
+first 0.5 s: B2P pkts=34250  P2B pkts=34251
+t=  0.0-  0.1 s    10092980 B    807.44 Mbps (cum 10092980)
+t=  0.1-  0.2 s    12195380 B    975.63 Mbps (cum 22288360)
+t=  0.2-  0.3 s    13131240 B   1050.50 Mbps (cum 35419600)
+t=  0.3-  0.4 s    11823080 B    945.85 Mbps (cum 47242680)
+t=  0.4-  0.5 s     2760860 B    220.87 Mbps (cum 50003540)
+t=  0.5-  0.6 s           0 B      0.00 Mbps (cum 50003540)
+  [tail] t=  0.9-  1.0 s           0 B      0.00 Mbps (cum 50003540) COLLAPSE at t=0.5 s (bucket 5: 0 B vs early median 12195380 B) 
+
+----- F5 -----
+conn 35782: pkts=273982 span=1.701 s
+first 0.5 s: B2P pkts=39365  P2B pkts=39364
+t=  0.0-  0.1 s     9840400 B    787.23 Mbps (cum 9840400)
+t=  0.1-  0.2 s    11433260 B    914.66 Mbps (cum 21273660)
+t=  0.2-  0.3 s    12372040 B    989.76 Mbps (cum 33645700)
+t=  0.3-  0.4 s    11275580 B    902.05 Mbps (cum 44921280)
+t=  0.4-  0.5 s    12548700 B   1003.90 Mbps (cum 57469980)
+t=  0.5-  0.6 s    11288720 B    903.10 Mbps (cum 68758700)
+  [tail] t=  1.7-  1.8 s       59860 B      4.79 Mbps (cum 200003940) COLLAPSE at t=1.7 s (bucket 17: 59860 B vs early median 11433260 B) 
+
+----- F7e -----
+conn 40348: pkts=273982 span=1.763 s
+first 0.5 s: B2P pkts=39187  P2B pkts=39187
+t=  0.0-  0.1 s     9760100 B    780.81 Mbps (cum 9760100)
+t=  0.1-  0.2 s    11668320 B    933.47 Mbps (cum 21428420)
+t=  0.2-  0.3 s    12912240 B   1032.98 Mbps (cum 34340660)
+t=  0.3-  0.4 s    10985040 B    878.80 Mbps (cum 45325700)
+t=  0.4-  0.5 s    11884400 B    950.75 Mbps (cum 57210100)
+t=  0.5-  0.6 s    10738300 B    859.06 Mbps (cum 67948400)
+  [tail] t=  1.7-  1.8 s     6970040 B    557.60 Mbps (cum 200003940) COLLAPSE at t=1.8 s (bucket 18: 0 B vs early median 11668320 B) 
+
+----- F8 -----
+conn 33978: pkts=68502 span=0.471 s
+first 0.5 s: B2P pkts=34251  P2B pkts=34251
+t=  0.0-  0.1 s     8618380 B    689.47 Mbps (cum 8618380)
+t=  0.1-  0.2 s    10741220 B    859.30 Mbps (cum 19359600)
+t=  0.2-  0.3 s    11636200 B    930.90 Mbps (cum 30995800)
+t=  0.3-  0.4 s    10687200 B    854.98 Mbps (cum 41683000)
+t=  0.4-  0.5 s     8320540 B    665.64 Mbps (cum 50003540)
+t=  0.5-  0.6 s           0 B      0.00 Mbps (cum 50003540)
+  [tail] t=  0.9-  1.0 s           0 B      0.00 Mbps (cum 50003540) COLLAPSE at t=0.5 s (bucket 5: 0 B vs early median 10741220 B) 
+

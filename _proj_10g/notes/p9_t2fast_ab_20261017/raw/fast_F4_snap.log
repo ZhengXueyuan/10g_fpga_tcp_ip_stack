@@ -1,0 +1,55 @@
+SNAP_T 1792173106.887651568
+GEN_FAIL gen 不是恰好 +1 (17 -> 19) => 有并发写者, 本代读数不可归因
+SNAP_ABORT
+SNAP_T 1792173107.050931930
+SNAP_BEGIN F4 gen=20
+W5   0x34   gmii_free_FE           0xb8c8c3a3
+W20  0x70   mac_tx_frames          0x00033ac5
+W43  0xCC   mtx_stat_tx_words      0xb8c8baf5
+W51  0xEC   app_tx_bytes           0x126aae0c
+W52  0xF0   app_tx_frames          0x00033ab3
+W55  0xFC   tx_stat_retx           0x00000007
+W66  0x128  tx_stat_winstall       0x0fa7c16a
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x00033aa8
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F4 nff=0
+SNAP_T 1792173107.261722340
+SNAP_BEGIN F4 gen=21
+W5   0x34   gmii_free_FE           0xbabdb78c
+W20  0x70   mac_tx_frames          0x000378de
+W43  0xCC   mtx_stat_tx_words      0xbabdadb7
+W51  0xEC   app_tx_bytes           0x13ccbdd0
+W52  0xF0   app_tx_frames          0x000378c9
+W55  0xFC   tx_stat_retx           0x00000008
+W66  0x128  tx_stat_winstall       0x10d262b3
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x000378bc
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F4 nff=0
+SNAP_T 1792173107.471466372
+SNAP_BEGIN F4 gen=22
+W5   0x34   gmii_free_FE           0xbcae5c69
+W20  0x70   mac_tx_frames          0x0003a8ee
+W43  0xCC   mtx_stat_tx_words      0xbcae516f
+W51  0xEC   app_tx_bytes           0x14ded35c
+W52  0xF0   app_tx_frames          0x0003a8d8
+W55  0xFC   tx_stat_retx           0x00000009
+W66  0x128  tx_stat_winstall       0x11bc4144
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x0003a8ca
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F4 nff=0
+SNAP_T 1792173107.679576682
+SNAP_BEGIN F4 gen=23
+W5   0x34   gmii_free_FE           0xbe9ebb1c
+W20  0x70   mac_tx_frames          0x0003e617
+W43  0xCC   mtx_stat_tx_words      0xbe9eaefe
+W51  0xEC   app_tx_bytes           0x163b9014
+W52  0xF0   app_tx_frames          0x0003e5ff
+W55  0xFC   tx_stat_retx           0x00000009
+W66  0x128  tx_stat_winstall       0x12fb27bf
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x0003e5ef
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F4 nff=0

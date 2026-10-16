@@ -1,0 +1,692 @@
+SNAP_T 1792172893.716238177
+GEN_FAIL gen 不是恰好 +1 (54 -> 56) => 有并发写者, 本代读数不可归因
+SNAP_ABORT
+SNAP_T 1792172893.879501657
+SNAP_BEGIN F1 gen=57
+W5   0x34   gmii_free_FE           0x51279ff1
+W20  0x70   mac_tx_frames          0x000c9fbc
+W43  0xCC   mtx_stat_tx_words      0x5127d2e3
+W51  0xEC   app_tx_bytes           0x47fe8a20
+W52  0xF0   app_tx_frames          0x000c9fab
+W55  0xFC   tx_stat_retx           0x00000005
+W66  0x128  tx_stat_winstall       0x3ea660d1
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x000c9fa1
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172894.088871743
+SNAP_BEGIN F1 gen=58
+W5   0x34   gmii_free_FE           0x531afafe
+W20  0x70   mac_tx_frames          0x000cdc97
+W43  0xCC   mtx_stat_tx_words      0x531b2ccf
+W51  0xEC   app_tx_bytes           0x49599b1c
+W52  0xF0   app_tx_frames          0x000cdc86
+W55  0xFC   tx_stat_retx           0x00000005
+W66  0x128  tx_stat_winstall       0x3fdf8659
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x000cdc7c
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172894.295658184
+SNAP_BEGIN F1 gen=59
+W5   0x34   gmii_free_FE           0x55074cec
+W20  0x70   mac_tx_frames          0x000d1a62
+W43  0xCC   mtx_stat_tx_words      0x55077da2
+W51  0xEC   app_tx_bytes           0x4aba0a8c
+W52  0xF0   app_tx_frames          0x000d1a52
+W55  0xFC   tx_stat_retx           0x00000005
+W66  0x128  tx_stat_winstall       0x410cb4d0
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x000d1a48
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172894.502388908
+SNAP_BEGIN F1 gen=60
+W5   0x34   gmii_free_FE           0x56f4798c
+W20  0x70   mac_tx_frames          0x000d56f1
+W43  0xCC   mtx_stat_tx_words      0x56f4a924
+W51  0xEC   app_tx_bytes           0x4c136464
+W52  0xF0   app_tx_frames          0x000d56e0
+W55  0xFC   tx_stat_retx           0x00000005
+W66  0x128  tx_stat_winstall       0x4242baa4
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x000d56d6
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172894.710419264
+SNAP_BEGIN F1 gen=61
+W5   0x34   gmii_free_FE           0x58e336c5
+W20  0x70   mac_tx_frames          0x000d956b
+W43  0xCC   mtx_stat_tx_words      0x58e36540
+W51  0xEC   app_tx_bytes           0x4d77b42c
+W52  0xF0   app_tx_frames          0x000d955a
+W55  0xFC   tx_stat_retx           0x00000005
+W66  0x128  tx_stat_winstall       0x4371bd6c
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x000d9550
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172894.918534538
+SNAP_BEGIN F1 gen=62
+W5   0x34   gmii_free_FE           0x5ad5307c
+W20  0x70   mac_tx_frames          0x000dd437
+W43  0xCC   mtx_stat_tx_words      0x5ad55dd7
+W51  0xEC   app_tx_bytes           0x4eddd79c
+W52  0xF0   app_tx_frames          0x000dd426
+W55  0xFC   tx_stat_retx           0x00000005
+W66  0x128  tx_stat_winstall       0x44a47ba9
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x000dd41c
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172895.126466475
+SNAP_BEGIN F1 gen=63
+W5   0x34   gmii_free_FE           0x5cc35190
+W20  0x70   mac_tx_frames          0x000e12b9
+W43  0xCC   mtx_stat_tx_words      0x5cc37dcd
+W51  0xEC   app_tx_bytes           0x50425ab8
+W52  0xF0   app_tx_frames          0x000e12a9
+W55  0xFC   tx_stat_retx           0x00000005
+W66  0x128  tx_stat_winstall       0x45d3ad18
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x000e129f
+W69  0x134  tx_win_at_winstall     0x00000000
+SNAP_END F1 nff=0
+SNAP_T 1792172895.334298795
+SNAP_BEGIN F1 gen=64
+W5   0x34   gmii_free_FE           0x5eb3957c
+W20  0x70   mac_tx_frames          0x000e5120
+W43  0xCC   mtx_stat_tx_words      0x5eb3c099
+W51  0xEC   app_tx_bytes           0x51a63870
+W52  0xF0   app_tx_frames          0x000e510f
+W55  0xFC   tx_stat_retx           0x00000005
+W66  0x128  tx_stat_winstall       0x47029e3a
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x000e5105
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172895.540502631
+SNAP_BEGIN F1 gen=65
+W5   0x34   gmii_free_FE           0x609e4544
+W20  0x70   mac_tx_frames          0x000e8ef0
+W43  0xCC   mtx_stat_tx_words      0x609e6f46
+W51  0xEC   app_tx_bytes           0x5306c464
+W52  0xF0   app_tx_frames          0x000e8ee0
+W55  0xFC   tx_stat_retx           0x00000005
+W66  0x128  tx_stat_winstall       0x482fa49e
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x000e8ed6
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172895.749551937
+SNAP_BEGIN F1 gen=66
+W5   0x34   gmii_free_FE           0x62908a5c
+W20  0x70   mac_tx_frames          0x000ec5a5
+W43  0xCC   mtx_stat_tx_words      0x6290b33d
+W51  0xEC   app_tx_bytes           0x543eb178
+W52  0xF0   app_tx_frames          0x000ec592
+W55  0xFC   tx_stat_retx           0x00000006
+W66  0x128  tx_stat_winstall       0x49586242
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x000ec587
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172895.953829187
+SNAP_BEGIN F1 gen=67
+W5   0x34   gmii_free_FE           0x64777c26
+W20  0x70   mac_tx_frames          0x000efe8a
+W43  0xCC   mtx_stat_tx_words      0x6477a3ed
+W51  0xEC   app_tx_bytes           0x558327dc
+W52  0xF0   app_tx_frames          0x000efe77
+W55  0xFC   tx_stat_retx           0x00000006
+W66  0x128  tx_stat_winstall       0x4aa425ab
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x000efe6b
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172896.157380598
+SNAP_BEGIN F1 gen=68
+W5   0x34   gmii_free_FE           0x665cb1b2
+W20  0x70   mac_tx_frames          0x000f3764
+W43  0xCC   mtx_stat_tx_words      0x665cd85f
+W51  0xEC   app_tx_bytes           0x56c76324
+W52  0xF0   app_tx_frames          0x000f3751
+W55  0xFC   tx_stat_retx           0x00000006
+W66  0x128  tx_stat_winstall       0x4bedcefe
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x000f3745
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172896.361576647
+SNAP_BEGIN F1 gen=69
+W5   0x34   gmii_free_FE           0x68449c19
+W20  0x70   mac_tx_frames          0x000f71f4
+W43  0xCC   mtx_stat_tx_words      0x6844c1ab
+W51  0xEC   app_tx_bytes           0x58156064
+W52  0xF0   app_tx_frames          0x000f71e1
+W55  0xFC   tx_stat_retx           0x00000006
+W66  0x128  tx_stat_winstall       0x4d388fea
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x000f71d5
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172896.566345578
+SNAP_BEGIN F1 gen=70
+W5   0x34   gmii_free_FE           0x6a2c50e5
+W20  0x70   mac_tx_frames          0x000fac7a
+W43  0xCC   mtx_stat_tx_words      0x6a2c755c
+W51  0xEC   app_tx_bytes           0x5963249c
+W52  0xF0   app_tx_frames          0x000fac67
+W55  0xFC   tx_stat_retx           0x00000006
+W66  0x128  tx_stat_winstall       0x4e84513f
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x000fac5b
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172896.769564508
+SNAP_BEGIN F1 gen=71
+W5   0x34   gmii_free_FE           0x6c11349b
+W20  0x70   mac_tx_frames          0x000fe654
+W43  0xCC   mtx_stat_tx_words      0x6c1157f9
+W51  0xEC   app_tx_bytes           0x5aad13e4
+W52  0xF0   app_tx_frames          0x000fe641
+W55  0xFC   tx_stat_retx           0x00000006
+W66  0x128  tx_stat_winstall       0x4fcba9aa
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x000fe635
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172896.973505740
+SNAP_BEGIN F1 gen=72
+W5   0x34   gmii_free_FE           0x6df7a38c
+W20  0x70   mac_tx_frames          0x00102060
+W43  0xCC   mtx_stat_tx_words      0x6df7c5d0
+W51  0xEC   app_tx_bytes           0x5bf82054
+W52  0xF0   app_tx_frames          0x0010204d
+W55  0xFC   tx_stat_retx           0x00000006
+W66  0x128  tx_stat_winstall       0x5114389c
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x00102041
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172897.176994016
+SNAP_BEGIN F1 gen=73
+W5   0x34   gmii_free_FE           0x6fdc89ad
+W20  0x70   mac_tx_frames          0x00105a20
+W43  0xCC   mtx_stat_tx_words      0x6fdcaad7
+W51  0xEC   app_tx_bytes           0x5d417b54
+W52  0xF0   app_tx_frames          0x00105a0d
+W55  0xFC   tx_stat_retx           0x00000006
+W66  0x128  tx_stat_winstall       0x525bd02b
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x00105a01
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172897.383568734
+SNAP_BEGIN F1 gen=74
+W5   0x34   gmii_free_FE           0x71c964ca
+W20  0x70   mac_tx_frames          0x001094d1
+W43  0xCC   mtx_stat_tx_words      0x71c984d6
+W51  0xEC   app_tx_bytes           0x5e9034c8
+W52  0xF0   app_tx_frames          0x001094be
+W55  0xFC   tx_stat_retx           0x00000006
+W66  0x128  tx_stat_winstall       0x53abf0e8
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x001094b2
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172897.588025820
+SNAP_BEGIN F1 gen=75
+W5   0x34   gmii_free_FE           0x73b2b807
+W20  0x70   mac_tx_frames          0x0010cc2d
+W43  0xCC   mtx_stat_tx_words      0x73b2d6f6
+W51  0xEC   app_tx_bytes           0x5fcbe210
+W52  0xF0   app_tx_frames          0x0010cc19
+W55  0xFC   tx_stat_retx           0x00000007
+W66  0x128  tx_stat_winstall       0x54d3ccf4
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x0010cc0b
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172897.797679422
+SNAP_BEGIN F1 gen=76
+W5   0x34   gmii_free_FE           0x75a6ad0e
+W20  0x70   mac_tx_frames          0x001112ac
+W43  0xCC   mtx_stat_tx_words      0x75a6cada
+W51  0xEC   app_tx_bytes           0x615ded48
+W52  0xF0   app_tx_frames          0x00111297
+W55  0xFC   tx_stat_retx           0x00000007
+W66  0x128  tx_stat_winstall       0x56188df9
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x0011128a
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172898.007053697
+SNAP_BEGIN F1 gen=77
+W5   0x34   gmii_free_FE           0x7798a62f
+W20  0x70   mac_tx_frames          0x00115967
+W43  0xCC   mtx_stat_tx_words      0x7798c2da
+W51  0xEC   app_tx_bytes           0x62f150d8
+W52  0xF0   app_tx_frames          0x00115953
+W55  0xFC   tx_stat_retx           0x00000007
+W66  0x128  tx_stat_winstall       0x575c801a
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x00115945
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172898.216427986
+SNAP_BEGIN F1 gen=78
+W5   0x34   gmii_free_FE           0x798c4b88
+W20  0x70   mac_tx_frames          0x0011a0b3
+W43  0xCC   mtx_stat_tx_words      0x798c670f
+W51  0xEC   app_tx_bytes           0x6487e894
+W52  0xF0   app_tx_frames          0x0011a09e
+W55  0xFC   tx_stat_retx           0x00000007
+W66  0x128  tx_stat_winstall       0x58a0758a
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x0011a090
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172898.425131715
+SNAP_BEGIN F1 gen=79
+W5   0x34   gmii_free_FE           0x7b7dee55
+W20  0x70   mac_tx_frames          0x0011e710
+W43  0xCC   mtx_stat_tx_words      0x7b7e08bb
+W51  0xEC   app_tx_bytes           0x661932f8
+W52  0xF0   app_tx_frames          0x0011e6fb
+W55  0xFC   tx_stat_retx           0x00000007
+W66  0x128  tx_stat_winstall       0x59e5de41
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x0011e6ed
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172898.634423925
+SNAP_BEGIN F1 gen=80
+W5   0x34   gmii_free_FE           0x7d720b68
+W20  0x70   mac_tx_frames          0x00122d99
+W43  0xCC   mtx_stat_tx_words      0x7d7224ab
+W51  0xEC   app_tx_bytes           0x67ab784c
+W52  0xF0   app_tx_frames          0x00122d84
+W55  0xFC   tx_stat_retx           0x00000007
+W66  0x128  tx_stat_winstall       0x5b286ede
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x00122d76
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172898.843244460
+SNAP_BEGIN F1 gen=81
+W5   0x34   gmii_free_FE           0x7f631836
+W20  0x70   mac_tx_frames          0x001273f1
+W43  0xCC   mtx_stat_tx_words      0x7f633057
+W51  0xEC   app_tx_bytes           0x693ca62c
+W52  0xF0   app_tx_frames          0x001273dc
+W55  0xFC   tx_stat_retx           0x00000007
+W66  0x128  tx_stat_winstall       0x5c66f2bf
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x001273ce
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172899.052513746
+SNAP_BEGIN F1 gen=82
+W5   0x34   gmii_free_FE           0x8155ce61
+W20  0x70   mac_tx_frames          0x0012ba15
+W43  0xCC   mtx_stat_tx_words      0x8155e560
+W51  0xEC   app_tx_bytes           0x6accac64
+W52  0xF0   app_tx_frames          0x0012ba00
+W55  0xFC   tx_stat_retx           0x00000007
+W66  0x128  tx_stat_winstall       0x5daa6240
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x0012b9f3
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172899.260653006
+SNAP_BEGIN F1 gen=83
+W5   0x34   gmii_free_FE           0x8347029d
+W20  0x70   mac_tx_frames          0x0012f934
+W43  0xCC   mtx_stat_tx_words      0x8347187a
+W51  0xEC   app_tx_bytes           0x6c349a24
+W52  0xF0   app_tx_frames          0x0012f91d
+W55  0xFC   tx_stat_retx           0x00000008
+W66  0x128  tx_stat_winstall       0x5eccd47c
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x0012f90e
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172899.470444637
+SNAP_BEGIN F1 gen=84
+W5   0x34   gmii_free_FE           0x853a92d0
+W20  0x70   mac_tx_frames          0x00133fc3
+W43  0xCC   mtx_stat_tx_words      0x853aa78a
+W51  0xEC   app_tx_bytes           0x6dc6feb8
+W52  0xF0   app_tx_frames          0x00133fac
+W55  0xFC   tx_stat_retx           0x00000008
+W66  0x128  tx_stat_winstall       0x600b17f0
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x00133f9c
+W69  0x134  tx_win_at_winstall     0x00000000
+SNAP_END F1 nff=0
+SNAP_T 1792172899.679627307
+SNAP_BEGIN F1 gen=85
+W5   0x34   gmii_free_FE           0x872e674c
+W20  0x70   mac_tx_frames          0x00138695
+W43  0xCC   mtx_stat_tx_words      0x872e7ae2
+W51  0xEC   app_tx_bytes           0x6f5ae460
+W52  0xF0   app_tx_frames          0x0013867e
+W55  0xFC   tx_stat_retx           0x00000008
+W66  0x128  tx_stat_winstall       0x614c3c70
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x0013866e
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172899.889195867
+SNAP_BEGIN F1 gen=86
+W5   0x34   gmii_free_FE           0x892135fa
+W20  0x70   mac_tx_frames          0x0013cd04
+W43  0xCC   mtx_stat_tx_words      0x8921486e
+W51  0xEC   app_tx_bytes           0x70ec97b4
+W52  0xF0   app_tx_frames          0x0013cced
+W55  0xFC   tx_stat_retx           0x00000008
+W66  0x128  tx_stat_winstall       0x628ab91a
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x0013ccde
+W69  0x134  tx_win_at_winstall     0x00000000
+SNAP_END F1 nff=0
+SNAP_T 1792172900.098035368
+SNAP_BEGIN F1 gen=87
+W5   0x34   gmii_free_FE           0x8b12a60a
+W20  0x70   mac_tx_frames          0x00140dba
+W43  0xCC   mtx_stat_tx_words      0x8b12b75c
+W51  0xEC   app_tx_bytes           0x725da3cc
+W52  0xF0   app_tx_frames          0x00140da3
+W55  0xFC   tx_stat_retx           0x00000008
+W66  0x128  tx_stat_winstall       0x63d31827
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x00140d94
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172900.306504274
+SNAP_BEGIN F1 gen=88
+W5   0x34   gmii_free_FE           0x8d045e63
+W20  0x70   mac_tx_frames          0x00144d74
+W43  0xCC   mtx_stat_tx_words      0x8d046e92
+W51  0xEC   app_tx_bytes           0x73c9142c
+W52  0xF0   app_tx_frames          0x00144d5d
+W55  0xFC   tx_stat_retx           0x00000008
+W66  0x128  tx_stat_winstall       0x651c5d89
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x00144d4d
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172900.516212364
+SNAP_BEGIN F1 gen=89
+W5   0x34   gmii_free_FE           0x8ef6fc92
+W20  0x70   mac_tx_frames          0x00148dfe
+W43  0xCC   mtx_stat_tx_words      0x8ef70b9d
+W51  0xEC   app_tx_bytes           0x75392ce8
+W52  0xF0   app_tx_frames          0x00148de8
+W55  0xFC   tx_stat_retx           0x00000008
+W66  0x128  tx_stat_winstall       0x66628172
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x00148dd8
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172900.725423355
+SNAP_BEGIN F1 gen=90
+W5   0x34   gmii_free_FE           0x90ea7a0e
+W20  0x70   mac_tx_frames          0x0014d086
+W43  0xCC   mtx_stat_tx_words      0x90ea87f6
+W51  0xEC   app_tx_bytes           0x76b496d4
+W52  0xF0   app_tx_frames          0x0014d06f
+W55  0xFC   tx_stat_retx           0x00000008
+W66  0x128  tx_stat_winstall       0x67a3bafe
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x0014d05f
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172900.936136216
+SNAP_BEGIN F1 gen=91
+W5   0x34   gmii_free_FE           0x92dedac6
+W20  0x70   mac_tx_frames          0x001508c6
+W43  0xCC   mtx_stat_tx_words      0x92dee78a
+W51  0xEC   app_tx_bytes           0x77f552b8
+W52  0xF0   app_tx_frames          0x001508ad
+W55  0xFC   tx_stat_retx           0x00000009
+W66  0x128  tx_stat_winstall       0x68d16bb4
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x0015089b
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172901.143789787
+SNAP_BEGIN F1 gen=92
+W5   0x34   gmii_free_FE           0x94cda4a0
+W20  0x70   mac_tx_frames          0x00154223
+W43  0xCC   mtx_stat_tx_words      0x94cdb043
+W51  0xEC   app_tx_bytes           0x793c791c
+W52  0xF0   app_tx_frames          0x0015420a
+W55  0xFC   tx_stat_retx           0x00000009
+W66  0x128  tx_stat_winstall       0x6a22e727
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x001541f8
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172901.348185312
+SNAP_BEGIN F1 gen=93
+W5   0x34   gmii_free_FE           0x96b4851c
+W20  0x70   mac_tx_frames          0x00157a85
+W43  0xCC   mtx_stat_tx_words      0x96b48fa2
+W51  0xEC   app_tx_bytes           0x7a7e0804
+W52  0xF0   app_tx_frames          0x00157a6c
+W55  0xFC   tx_stat_retx           0x00000009
+W66  0x128  tx_stat_winstall       0x6b6cfb79
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x00157a5a
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172901.555284330
+SNAP_BEGIN F1 gen=94
+W5   0x34   gmii_free_FE           0x98a1b7b6
+W20  0x70   mac_tx_frames          0x0015b3bb
+W43  0xCC   mtx_stat_tx_words      0x98a1c11c
+W51  0xEC   app_tx_bytes           0x7bc455b0
+W52  0xF0   app_tx_frames          0x0015b3a3
+W55  0xFC   tx_stat_retx           0x00000009
+W66  0x128  tx_stat_winstall       0x6cbae325
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x0015b391
+W69  0x134  tx_win_at_winstall     0x00000000
+SNAP_END F1 nff=0
+SNAP_T 1792172901.759931584
+SNAP_BEGIN F1 gen=95
+W5   0x34   gmii_free_FE           0x9a8ac2fb
+W20  0x70   mac_tx_frames          0x0015ed46
+W43  0xCC   mtx_stat_tx_words      0x9a8acb43
+W51  0xEC   app_tx_bytes           0x7d0c7cb8
+W52  0xF0   app_tx_frames          0x0015ed2d
+W55  0xFC   tx_stat_retx           0x00000009
+W66  0x128  tx_stat_winstall       0x6e05c48e
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x0015ed1b
+W69  0x134  tx_win_at_winstall     0x00000000
+SNAP_END F1 nff=0
+SNAP_T 1792172901.964943757
+SNAP_BEGIN F1 gen=96
+W5   0x34   gmii_free_FE           0x9c731317
+W20  0x70   mac_tx_frames          0x001625bf
+W43  0xCC   mtx_stat_tx_words      0x9c731a42
+W51  0xEC   app_tx_bytes           0x7e4e8ecc
+W52  0xF0   app_tx_frames          0x001625a6
+W55  0xFC   tx_stat_retx           0x00000009
+W66  0x128  tx_stat_winstall       0x6f4ee252
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x00162594
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172902.174469421
+SNAP_BEGIN F1 gen=97
+W5   0x34   gmii_free_FE           0x9e669b3c
+W20  0x70   mac_tx_frames          0x00166007
+W43  0xCC   mtx_stat_tx_words      0x9e66a142
+W51  0xEC   app_tx_bytes           0x7f9af16c
+W52  0xF0   app_tx_frames          0x00165fee
+W55  0xFC   tx_stat_retx           0x00000009
+W66  0x128  tx_stat_winstall       0x70a449d7
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x00165fdc
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172902.377309235
+SNAP_BEGIN F1 gen=98
+W5   0x34   gmii_free_FE           0xa04a7488
+W20  0x70   mac_tx_frames          0x001699db
+W43  0xCC   mtx_stat_tx_words      0xa04a7973
+W51  0xEC   app_tx_bytes           0x80e4be7c
+W52  0xF0   app_tx_frames          0x001699c2
+W55  0xFC   tx_stat_retx           0x00000009
+W66  0x128  tx_stat_winstall       0x71ed5fb9
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x001699b0
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172902.582527542
+SNAP_BEGIN F1 gen=99
+W5   0x34   gmii_free_FE           0xa2346c90
+W20  0x70   mac_tx_frames          0x0016d41b
+W43  0xCC   mtx_stat_tx_words      0xa234705c
+W51  0xEC   app_tx_bytes           0x8230f37c
+W52  0xF0   app_tx_frames          0x0016d402
+W55  0xFC   tx_stat_retx           0x00000009
+W66  0x128  tx_stat_winstall       0x73389e56
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x0016d3f0
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172902.786408996
+SNAP_BEGIN F1 gen=100
+W5   0x34   gmii_free_FE           0xa41d0746
+W20  0x70   mac_tx_frames          0x001707c8
+W43  0xCC   mtx_stat_tx_words      0xa41d09f5
+W51  0xEC   app_tx_bytes           0x83579eb8
+W52  0xF0   app_tx_frames          0x001707ad
+W55  0xFC   tx_stat_retx           0x0000000a
+W66  0x128  tx_stat_winstall       0x746370cb
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x0017079a
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172902.990479274
+SNAP_BEGIN F1 gen=101
+W5   0x34   gmii_free_FE           0xa6002090
+W20  0x70   mac_tx_frames          0x00173fe2
+W43  0xCC   mtx_stat_tx_words      0xa6002223
+W51  0xEC   app_tx_bytes           0x849798b4
+W52  0xF0   app_tx_frames          0x00173fc8
+W55  0xFC   tx_stat_retx           0x0000000a
+W66  0x128  tx_stat_winstall       0x75ab937a
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x00173fb5
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172903.194089435
+SNAP_BEGIN F1 gen=102
+W5   0x34   gmii_free_FE           0xa7e5f3d0
+W20  0x70   mac_tx_frames          0x00177826
+W43  0xCC   mtx_stat_tx_words      0xa7e5f447
+W51  0xEC   app_tx_bytes           0x85d87a10
+W52  0xF0   app_tx_frames          0x0017780b
+W55  0xFC   tx_stat_retx           0x0000000a
+W66  0x128  tx_stat_winstall       0x76f4aba0
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x001777f9
+W69  0x134  tx_win_at_winstall     0x00000000
+SNAP_END F1 nff=0
+SNAP_T 1792172903.399065436
+SNAP_BEGIN F1 gen=103
+W5   0x34   gmii_free_FE           0xa9cea722
+W20  0x70   mac_tx_frames          0x0017b088
+W43  0xCC   mtx_stat_tx_words      0xa9cea67a
+W51  0xEC   app_tx_bytes           0x871a05b8
+W52  0xF0   app_tx_frames          0x0017b06d
+W55  0xFC   tx_stat_retx           0x0000000a
+W66  0x128  tx_stat_winstall       0x783d9dce
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x0017b05a
+W69  0x134  tx_win_at_winstall     0x00000000
+SNAP_END F1 nff=0
+SNAP_T 1792172903.601636235
+SNAP_BEGIN F1 gen=104
+W5   0x34   gmii_free_FE           0xabb4f0a6
+W20  0x70   mac_tx_frames          0x0017e940
+W43  0xCC   mtx_stat_tx_words      0xabb4eee1
+W51  0xEC   app_tx_bytes           0x885d7f18
+W52  0xF0   app_tx_frames          0x0017e925
+W55  0xFC   tx_stat_retx           0x0000000a
+W66  0x128  tx_stat_winstall       0x7984a8d7
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x0017e912
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172903.807999829
+SNAP_BEGIN F1 gen=105
+W5   0x34   gmii_free_FE           0xad9cda07
+W20  0x70   mac_tx_frames          0x0018220a
+W43  0xCC   mtx_stat_tx_words      0xad9cd724
+W51  0xEC   app_tx_bytes           0x89a15f20
+W52  0xF0   app_tx_frames          0x001821ef
+W55  0xFC   tx_stat_retx           0x0000000a
+W66  0x128  tx_stat_winstall       0x7acd14ba
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x001821dc
+W69  0x134  tx_win_at_winstall     0x00000000
+SNAP_END F1 nff=0
+SNAP_T 1792172904.013191397
+SNAP_BEGIN F1 gen=106
+W5   0x34   gmii_free_FE           0xaf85eda0
+W20  0x70   mac_tx_frames          0x00185ad0
+W43  0xCC   mtx_stat_tx_words      0xaf85e99f
+W51  0xEC   app_tx_bytes           0x8ae52858
+W52  0xF0   app_tx_frames          0x00185ab5
+W55  0xFC   tx_stat_retx           0x0000000a
+W66  0x128  tx_stat_winstall       0x7c15aaf4
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x00185aa2
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172904.218770579
+SNAP_BEGIN F1 gen=107
+W5   0x34   gmii_free_FE           0xb1716bbe
+W20  0x70   mac_tx_frames          0x00189413
+W43  0xCC   mtx_stat_tx_words      0xb171669c
+W51  0xEC   app_tx_bytes           0x8c2bba74
+W52  0xF0   app_tx_frames          0x001893f8
+W55  0xFC   tx_stat_retx           0x0000000a
+W66  0x128  tx_stat_winstall       0x7d60c481
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x001893e5
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172904.421774396
+SNAP_BEGIN F1 gen=108
+W5   0x34   gmii_free_FE           0xb357ea27
+W20  0x70   mac_tx_frames          0x0018cda5
+W43  0xCC   mtx_stat_tx_words      0xb357e3e7
+W51  0xEC   app_tx_bytes           0x8d740f1c
+W52  0xF0   app_tx_frames          0x0018cd8a
+W55  0xFC   tx_stat_retx           0x0000000a
+W66  0x128  tx_stat_winstall       0x7ea5e64a
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x0018cd77
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0
+SNAP_T 1792172904.625149173
+SNAP_BEGIN F1 gen=109
+W5   0x34   gmii_free_FE           0xb5395a15
+W20  0x70   mac_tx_frames          0x001906cf
+W43  0xCC   mtx_stat_tx_words      0xb53952bb
+W51  0xEC   app_tx_bytes           0x8eba12a4
+W52  0xF0   app_tx_frames          0x001906b4
+W55  0xFC   tx_stat_retx           0x0000000a
+W66  0x128  tx_stat_winstall       0x7feacb00
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x001906a1
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END F1 nff=0

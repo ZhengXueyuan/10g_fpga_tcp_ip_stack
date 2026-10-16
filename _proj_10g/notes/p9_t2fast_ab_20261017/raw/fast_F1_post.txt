@@ -1,0 +1,19 @@
+SNAP_BEGIN F1_POST gen=110
+W5   0x34   gmii_free_FE           0xb5dc51af
+W20  0x70   mac_tx_frames          0x00191572
+W43  0xCC   mtx_stat_tx_words      0xb5dc49f5
+W51  0xEC   app_tx_bytes           0x8f0d8c40
+W52  0xF0   app_tx_frames          0x00191557
+W55  0xFC   tx_stat_retx           0x0000000a
+W66  0x128  tx_stat_winstall       0x804a2b89
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x00191544
+W69  0x134  tx_win_at_winstall     0x05b405b4
+W63  0x11C  app_frmwait_cyc        0x2bd9a0e9
+W64  0x120  app_bp_cyc             0x8912adef
+W65  0x124  mac_tx_idle            0xa2f32f87
+W71  0x13C  app_stat_up_ev         0x0000000c
+W72  0x140  app_stat_sw_req        0x00000001
+W73  0x144  app_stat_sw_apply      0x0000000c
+W74  0x148  app_stat_up_pend       0x00000000
+SNAP_END F1_POST nff=0

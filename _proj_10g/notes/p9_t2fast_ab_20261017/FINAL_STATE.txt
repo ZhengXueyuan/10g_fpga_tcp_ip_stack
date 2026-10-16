@@ -1,0 +1,46 @@
+FINAL_STATE -- p9_t2fast_ab_20261017  (2026-10-17, ~02:27 CST)
+=================================================================
+ROUND: zero-build board round; separates the three unseparated candidates of
+       "T2 (trickle round) did not reproduce the B4P_S2 fast stream (887 Mbps)".
+
+ARM TABLE (13 runs; all peer-side at SINK_MD5 f6229929... except F1)
+  arm t0(CST)   cfg                              bin      agg_Mbps  per-conn Mbps (min..max)        verdict
+  F0  01:47:55  A: rcvbuf2920/c6/mb200e6/''      NEW      911.457   840.4 .. 988.2                    FAST
+  F1  01:48:13  A (same)                         OLD      881.270   821.2 .. 992.6                    FAST
+  F2  01:48:29  A (same)                         NEW      881.026   828.3 .. 972.7                    FAST
+  F3  01:51:18  B: T2 verbatim (mb50e6+poll/stall) NEW     884.425   809.4 .. 951.0                    FAST
+  F4  01:51:46  C: preempt 2sink/st0.4/c2/mb20e6  NEW      859.274/825.773 (2 sinks) 790.4 .. 865.1  FAST
+  F5  01:51:53  A (same)                          NEW      914.439   846.3 .. 951.4                    FAST
+  F6  01:55:18  A (same; after burn #3)           NEW      886.561   816.3 .. 981.7                    FAST
+  F7a 02:00:16  A (t+5 min after burn #3)         NEW      909.027   837.8 .. 995.3                    FAST
+  F7b 02:04:17  A (t+9 min)                       NEW      886.662   831.5 .. 989.5                    FAST
+  F7c 02:08:17  A (t+13 min)                      NEW      909.307   873.2 .. 958.1                    FAST
+  F7d 02:13:17  A (t+18 min)                      NEW      887.747   827.6 .. 956.8                    FAST
+  F7e 02:20:16  A (t+25 min)                      NEW      923.481   826.4 .. 971.2                    FAST
+  F8  02:20:32  B (T2 verbatim; t+27 min)         NEW      881.235   804.7 .. 951.6                    FAST
+  => ZERO crawl arms. All 13 arms FAST by the pre-registered rule (>=100 Mbps / maxbytes in 120 s).
+
+BURN RECORD (3 burns, all JTAG volatile; QSPI NEVER written)
+  #1 2026-10-17 01:45:20 -> 01:47:50  0x28 sha 79c9cf434eb66723b97f654cbece9ea061632e2297c0a8ab0ea0dc198c43bec8
+     BURN_OK (HIGH+DONE+path+freshness+no-ABORT); identity BID=0x28 / 75 words NFF=0 / 0x15C=ffffffff / 0x08=0 / CARRIER=1
+     PCIe device-level remove+rescan; LnkSta x4 / 2 BARs
+  #2 2026-10-17 01:48:42 -> 01:51:12  0x28 (same sha)  BURN_OK; identity NFF=0 / ID_RC=0
+  #3 2026-10-17 01:52:44 -> 01:55:14  0x28 (same sha)  BURN_OK; identity NFF=0 / ID_RC=0
+  bit copy: burn/wrapper_p4_0x28.bit (15,431,261 B; double-anchor sha gate passed all 3 times)
+
+FINAL BOARD STATE (live read 2026-10-17 02:26:35, epoch 1792175195.1)
+  ID_MAGIC  0x50360001     (want 0x50360001)  OK
+  ID_BID    0x00000028     (want 0x00000028)  OK
+  ID_MARKER 0xdeadbeef     (want 0xdeadbeef)  OK
+  ID_UNIMPL 0xffffffff     (want 0xffffffff)  OK    ID_RC = 0
+  reg 0x04 = 0x00000028    reg 0x08 = 0x00000000    reg 0x15C = 0xffffffff
+  CARRIER = 1              ROUTE = 192.168.100.2 dev enp1s0f1np1 src 192.168.100.100/32
+  LEFTOVER: NO_TCPDUMP; pgrep hit was the checking command's own sudo line (self-match), not a process
+  (NIC witnessed at round entry: Adaptive RX off / rx-usecs 0 / unmanaged / rmem_max 4,194,304)
+
+PEER-SIDE PERSISTENT ARTIFACTS (left in /tmp on 192.168.0.38, ~1.9 GB of 'ctl' pcaps
++ all per-arm logs; the fetched subset is in raw/):
+  /tmp/fast_<TAG>_{ctl.pcap0,sink*.txt,nstat_*,pre,post,snap.log,faseg.txt,decay.txt}
+  /tmp/p9_t2fast_artifacts.tgz (text+bundle copy, also fetched to raw/)
+
+PW: PEER_PW never written to any file in this round (scan = 0 hits).

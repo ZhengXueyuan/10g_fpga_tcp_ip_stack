@@ -1,0 +1,37 @@
+=== ENV PRECHECK Sat Oct 17 01:45:15     2026 ===
+--- git HEAD ---
+385979e 台账时间戳订正：§10-89→94 标题系统性偏大 1-4h，以 git 提交时间为准（§10-93/94 就地改准 + 整族订正行）；实况 01:4x、窗口余 ~4-5h
+--- peer identity/tools ---
+a-MS-7850
+Sat Oct 17 01:45:17 AM CST 2026
+ 01:45:17 up  2:25,  2 users,  load average: 0.00, 0.07, 0.42
+f62299291fcb9e02afe109c4ea1f90ab  /tmp/p7b_biz/p7b_tcp_sink
+a257af8299904789c6a6dd9ed5ca030f  /tmp/p7b_biz/p7b_snap.sh
+6b9676f2b5bf9cbc261bbe5c939241db  /tmp/p7b_biz/arm_fast_ab.sh
+total 1056
+drwxrwxr-x  2 a    a      4096 Oct 17 00:40 .
+drwxrwxrwt 27 root root 901120 Oct 17 01:30 ..
+-rwxrwxr-x  1 a    a    169392 Oct 17 00:40 p7b_tcp_sink__6d9b14f2_pre_sinkdelta
+1295389 bash -c hostname; date; uptime; md5sum /tmp/p7b_biz/p7b_tcp_sink /tmp/p7b_biz/p7b_snap.sh /tmp/p7b_biz/arm_fast_ab.sh; ls -la /tmp/p7b_biz_prev/; pgrep -af '[p]7b_' || echo NO_P7B_PROCS; pgrep -af '[t]cpdump' || echo NO_TCPDUMP
+NO_TCPDUMP
+--- board state ---
+MAGIC=Read 32-bit value at address 0x0 (0x76c1fdbd2000): 0x50360001
+BID=Read 32-bit value at address 0x4 (0x70954168a004): 0x00000028
+SCRATCH08=Read 32-bit value at address 0x8 (0x7f5a72d60008): 0x00000000
+UNIMPL15C=Read 32-bit value at address 0x15c (0x72c544e5615c): 0xffffffff
+CARRIER=1
+
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x00000028   (want 0x00000028 = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1792172718.794262415
+ID_RC=0
+ROUTE=192.168.100.2 dev enp1s0f1np1 src 192.168.100.100 uid 0 
+Coalesce parameters for enp1s0f1np1:
+Adaptive RX: off  TX: n/a
+stats-block-usecs:	n/a
+enp1s0f1np1     ethernet  unmanaged               --           
+    inet 192.168.100.100/32 scope global enp1s0f1np1
+net.core.rmem_max = 4194304
+xdma                  110592  0

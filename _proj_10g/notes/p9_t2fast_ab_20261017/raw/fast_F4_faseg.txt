@@ -1,0 +1,13 @@
+pkts=109621 span=0.790s t0=1792173106.967731
+
+=== per-connection first-segment timing (times rel t0, ms) ===
+cliport  pkts     t_syn  t_synack  synack->d1    d1->ack1   payB2P     mbps first1s_B first1s_bps  fack_win sa_win
+32834   27406     0.000     0.041       0.016       0.007 20003460   857.49  20003460 857652357      1460  49152
+32840   27406   186.732   186.770       0.015       0.006 20003460   861.79  20003460 861953274      1460  49152
+32854   27405   401.867   401.960       0.030       0.004 20003460   790.40  20003460 790658164      1460  49152
+32856   27404   604.507   604.547       0.026       0.005 20002000   865.10  20002000 865320744      1460  49152
+
+=== medians over 4 conns ===
+synack->d1 med = 0.026 ms
+d1->ack1  med = 0.006 ms
+conn mbps med = 861.79 ; first1s bps med = 861953274
