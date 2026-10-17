@@ -78,6 +78,7 @@
 ## 2026-08-23 P2 开工 (UDP fast path) — 设计决策先行
 
 GitHub 仓库已建: https://github.com/ZhengXueyuan/udp_hls_10g (public, master 已推)。
+  （⛔ 2026-10-17 订正：仓库已更名 **`10g_fpga_tcp_ip_stack`**，新 URL = https://github.com/ZhengXueyuan/10g_fpga_tcp_ip_stack ，旧 URL 自动重定向仍可用。）
 
 **字节布局 (无 VLAN, 左对齐字, 帧首=tdata[63:56])**:
 - w0 = dst_mac[6] + src_mac[0..1]; w1 = src_mac[2..5] + ethertype + ver/ihl + dscp

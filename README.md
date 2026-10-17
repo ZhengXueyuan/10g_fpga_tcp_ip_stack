@@ -1,4 +1,4 @@
-# udp_hls_10g — 纯硬件 TCP/IP 数据面（1G 已验收，10G 已达标，PCIe 通路已打通）
+# 10g_fpga_tcp_ip_stack — 纯硬件 TCP/IP 数据面（1G 已验收，10G 已达标，PCIe 通路已打通）
 
 ## 这是什么
 

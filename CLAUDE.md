@@ -1,4 +1,4 @@
-# udp_hls_10g — 10G-ready 纯硬件 TCP/IP 数据面 (1G 先行施工)
+# 10g_fpga_tcp_ip_stack — 10G-ready 纯硬件 TCP/IP 数据面 (1G 先行施工)
 
 终局目标: 10G 线速纯硬件 TCP/IP (低延时行情 UDP 组播 + 交易 TCP 少量连接), 对上提供 TCP/UDP 调用接口。
 施工策略 (2026-08-23 用户拍板): **1G 先行、10G-ready** — 数据面统一 64bit 宽流水 @125MHz,
