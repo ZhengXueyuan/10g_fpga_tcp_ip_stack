@@ -1558,3 +1558,13 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - ⭐ **F1（设计与 RTL 交互发现）**：孤儿回收写 state=0 后，`app_pattern` 的收尾字**永远进不去** `tcp_tx_frame`（S_IDLE 要求 `wnd_open`，`rtl/tcp_tx_frame.v:674/:1880`；state=0 ⇒ `wnd_open=0`）⇒ `closing` 保持到**下一次 ADD**（**已实测自愈**：新 ADD 后 active=1/closing=0/重新发帧）。**TL 裁定 = 选项①：接受自愈**（核心回收 state/CAM/配额已落地、无线上危害）；板级臂把"下一次 ADD 自愈"列为正式观测项；**选项②（帧器 S_IDLE 对 0 载荷收尾字放宽 `wnd_open`）登记为后续候选**（动核心帧器 + WNS 余量 1.02% ⇒ 不捆绑）。实施 agent **未改判据迁就**（正确处置）。
 - **其它登记（设计件 v4.1）**：F2 实施补 `fc_load_blk`（`app_ctrl.v:774`，事件拍不装载 `fc_v`）· F7 投递门 A/A+1 竞态（若 ev_up 恰落 A+1 ⇒ pool/winq 与 o_ev_down 丢失；核心已落地、配额下次 ADD C18 归还）· 新门入册暂缓（frozen 锚固化后再按 swc 先例）· wrapper 级 ORPHAN_EN=0 逐位臂未做（单元级已做）。
 - **在飞 = 构建轮（`p9_build_0x2A_20261017`）**：构建（硬门 0/0/0；**backstop = 时序 FAIL 则第一刀砍 W75，预授权但必须记录**）+ 矩阵 + **读侧同步**（WLABEL/apply_readside/WINDOW 表/三件与穷举）+ 归档；**不烧板**（板级另轮）。**下一棒**：构建回 → 板级轮（孤儿复现 0x28 负臂 vs 0x2A 正臂 + 回归：快流/慢盆/零窗/偷槽 + "下一次 ADD 自愈"观测）。
+
+## §10-110 2026-10-17 14:4x：**0x2A 构建轮收口（提交 `dff35f4d`，108 件）—— 一次收口 WNS +0.039 / 0/0/0；backstop 未触发（W75 保留）；读侧同步完成；板级验证轮已派**
+- **构建**：`BAT_RC=0/BUILD_EXIT=0/BITSTREAM-OK`（`P7B_CONVERGED_AT_ROUND=2`）；**WNS `+0.039` / WHS `+0.010` / 三类失败端点 `0/0/0`**（setup/hold 各 0/262,227；PW 0/85,060）；`Slack (VIOLATED)=0`；DRC 0 Error/Critical；route 0 错（fully routed 139,173）；XDMA VERDICT OK；12 键硬门 0；位流 **`aa44a0eda1604623eac951afc26b9f27d4798fc414a5eb9c7137ee47f9a2a3b6`**（15,431,261 B，`SW_CRC=279a3872`）。资源 78,248 LUT / 75,360 FF / 348 BRAM / 1 URAM / 4 DSP / 6 GTYE4（只并列）。
+- **全局 WNS 宿主** = `u_tcp_tx/u_fifo_b/rptr_reg[3]/C → u_app/stg_reg[26]/D`（19 级，`g_hw.clk_out0`）——与 0x28 的快照复位族**不同对象 ⇒ 只并列不归因**（#66）。
+- ⭐ **backstop 未触发**：WNS 为正且 0 失败端点 ⇒ **W75 保留、BID/几何 = 完整 0x2A 形态**（WNS 由 0x28 的 +0.065 变为 +0.039 已如实登记、不归因）。
+- **构建输入绑定**：287 件 before==after 零漂移；四常量现读全中（`:2276` PERSIST_EN / `:4479` BID 0x2A / `:3394` NW 76 / `:3415` P7BDP 36）。
+- **矩阵 19/19 EXIT=0 / FROZEN**（272 件；内容漂移 vs 0x28 恰 4 件 = 本刀三文件 + tb_p5_wrapper；vs 实施轮 after 内容变化 0）。
+- **读侧同步**：`apply_readside_bid1c.py` 新增阶段 ⑭ 0x29（24 处）+ ⑮ 0x2A（落盘 **110 处 / 0 fail**）；20 编辑目标 + 工具 + `P7B_BIZ_WINDOW.md`（W70..W75 / 76 字 / UNIMPL 0x160）；p6e TB 73 个 MIR token 降序迁移；自检 A 5/5 · B 4 族 495 命中 0 未登记 · C 全绿 · D 20/20；负控 table/bid/tier 各恰 1 红 + face 3 红；反演彩排恰 1 红落 `final_state.sh[UNIMPL]`；**p6e wrapper 148/0 + counters 26/0 + tb_biz_win 40/40 全 PASS_ALL**。
+- **偏离（如实）**：新增 0x29 阶段（按 0x29 拆刀轮登记）；`EDITS_28[41]` stale（改从盘上现读）；**`tb_biz_win.v` 初版移植 3 处错被门当场抓出**（初跑 11 红 → 修正 40/40——**门有牙的实证**）。
+- **在飞 = 板级验证轮（`p9_board_0x2A_20261017`）**：两代身份门（0x28 75 字/0x15C ffffffff vs 0x2A 76 字/**0x15C=MIR_DMA_CNT 真字**/0x160 ffffffff）· **孤儿负臂（0x28 + iptables 双向 DROP 构造）vs 正臂（0x2A：ΔW75≥1 / ΔW55 停止 / 槽恢复 / "下一次 ADD 自愈"观测）** · 回归四臂（快流/慢盆/零窗 ≥195 s/偷槽，均 `ΔW75=0` 不误杀）· 收尾烧回 0x28 + iptables 清理核验。
