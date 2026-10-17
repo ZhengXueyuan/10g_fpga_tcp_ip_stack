@@ -1581,3 +1581,10 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - **D2 回灌已做（本条目同批）**：`p9_c1_mech_doc_20261017/README_FOR_TL.md` P-c/§3.3/§8-8 三处行内订正 + 新增 **§D2**；设计件 `p9_orphan_fix_design_20261017/README_FOR_TL.md` B1 负臂期望格订正 + 文末 **v4.2 补记**（实施/构建/板级状态 + D2 + F1 + 未决照录）。
 - **提交**：`aa9d6575`（113 件，129,602 行；`5822db66..aa9d6575` 推送，ls-remote 核对）。
 - **下一棒**：用户待裁 **0x2A 现役资格**（板现为 0x28）；排队 = ① P-3 工具 v3 → Q2-A（0x24 300 s 零构建）→ S0 构建；② 慢盆零窗占比夹逼（rcvbuf 7000/8000）或 I1/I2/I3 构建；③ 双 SFP+ P1 设计；④ kimi 复审队列。
+
+## §10-112 2026-10-17 18:28：**仓库 GitHub 名变更（用户要求）：`udp_hls_10g` → `10g_fpga_tcp_ip_stack`** —— GitHub 端已改 + 本地 `origin` 已更新；**本地工作目录暂保留旧名（用户裁定「本地先不动」）**
+- **用户理由**：仓库内容已不止 UDP/HLS（TCP/IP 栈 + 10G 数据面 + PCIe 数据通路），旧名与内容不符。
+- **已完成**：`gh repo rename 10g_fpga_tcp_ip_stack -R ZhengXueyuan/udp_hls_10g --yes` ⇒ 新 URL **`https://github.com/ZhengXueyuan/10g_fpga_tcp_ip_stack`**（GitHub 对旧 URL 自动重定向）；本地 `git remote set-url origin` 已指向新 URL；`git ls-remote origin refs/heads/master` = **`d3762c68`**（与本地 HEAD 一致）。
+- **本地目录 `D:\repo\XCKU5PMini\udp_hls_10g` 未改名**：Windows 下该目录被 Claude Code daemon/会话进程作为 cwd 占用（`MoveFile` 返回 `Device or resource busy`；占用者 = claude daemon 的 `--spawned-by cwd` 字段指向旧目录）⇒ 必须退出所有引用它的 Claude Code 会话后才能 `ren`。用户裁定 **「本地先不动」** ⇒ 仓库内全部脚本/文档的旧路径引用保持原样、继续有效。
+- **影响/注意**：① 后续 `git push/pull` 走新 URL（已核）；② 旧 GitHub URL 重定向可用，但引用应以新名为准；③ 若将来要改本地目录名：退出所有引用该目录的 Claude Code 会话 → `cd /d D:\repo\XCKU5PMini && ren udp_hls_10g 10g_fpga_tcp_ip_stack`；之后可选（a）建旧名 junction 兼容（零脚本改动）或（b）批量替换约 1000 个脚本/文档中的旧路径（未做，按用户 2026-10-17 裁定推迟）；④ 文档/记忆中的 `udp_hls_10g` 路径 = 本地目录（**仍有效**），GitHub 仓库名以新名为准。
+- **未做（明确）**：本地目录改名 / 脚本路径批量替换 / 旧名 junction —— 均按用户裁定"本地先不动"搁置。
