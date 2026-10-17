@@ -1775,3 +1775,55 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - **偏离/待确认**：① S-1 实测 567 s（目标 600 s，采样开销；判据为绝对值 0，40/40 全同）；② **TL 派单笔误**：收尾括注误写 0x28 身份（`79c9cf43…` / 75 字 / `0x15C`）；agent 按实际 0x2A 收尾并纠偏——**TL 认领**；③ 0x2B 单独立锚（burn 副本非独立）；④ p0 `carrier_changes` 在 PCI remove/rescan 后重置（21→1，跨臂不可直接比较）。
 - **结论性陈述（非 PASS/FAIL）**：P1 的 **ch0 RX tap + 计数链【已证】**（S-2 逐字节对账）；观测面在静置/注入下无错误；**超时/LOS 两条安全语义仅 xsim 验证、板级未测**（留待用户在场时物理拔线补测；登记 OPEN_ITEMS）。
 - **下一棒**：**P2-甲设计轮已派**（A-1 出口身份 + ch0 数据面接入 + rx_merge2 + 双板 IP + HLS 两 IP〔1/2 口兼容〕）；之后红队审 → 实施 → 构建 → 板级。
+
+## §10-131 2026-10-18 07:0x：**P2-甲实施级设计收口**（`p11_p2a_design_20261018/README_FOR_TL.md` 545 行；提交同批）—— A-1 映射钉死（ch1=J8=IP_A 端口位 0 / ch0=J7=IP_B 端口位 1）；TX 选口方案②（demux 前移 + 每口 arb，`tx_arb` 零改动）；`rx_merge2` 工作保持 RR；观测 +3 字（NW 86 / `0x188`）；HLS 双 IP（8 文件，1/2 口兼容）；BID 0x2C/0x2D
+- **基线更正【已证·构建】**：派单的 0.61% 是 0x2A（+0.039）；**现树 = 0x2B（WNS +0.048 / WHS +0.010 / 0/0/0；80,024 LUT / 76,888 FF / 348 BRAM）**，设计按 0x2B。
+- **A-1 物理映射**：ch1 = J8 = 现役口 = IP_A（192.168.100.2 不变）→ 端口位 **0**；ch0 = J7 = 新口 = IP_B（建议 .4）→ 端口位 **1**（`port = CAM.dip == IP_B`）。单口（只插 J8）在双口位流里端口位恒 0 ⇒ 全走现役 ch1 链。
+- **端口位来源**：wrapper 16 槽 1 位数组，与 `cam_cfg_wr/addr/dip` mux **同拍并行写**（`wrapper_p4.v:2183-2189`）；`slow_cfg_adp`/`tcb`/`tcp_cam` 源码零改动。
+- **`tcp_tx_frame` 源 IP/校验和**：新增 `cam_rd_dip`/`cam_rd_port`/`o_port` + **`PER_CONN_SRC_IP` 参数（默认 0 = 原行为）**；覆盖 IP 头 / IP 校验 / TCP 伪头种子 × **OVL/默认双体** × 数据/控制/**重放**；5 个锁存点（`:1199-1208`、`:1314-1344`、`:1346-1361`、`:2272-2288`、`:2392-2415`）；校验和加法树加数个数不变（纸面 +0 级）。
+- **TX 选口 = 方案②（推荐）**：demux 前移到三个生产者之后 + 每口一套两级 arb；**`rtl/tx_arb.v` 源码零改动**、既有直接例化 TB（`tb/tb_tx_arb.v:37`、`tb/tb_p4_chain.v`）零改动。方案①（74 位）需改两 TB；方案③（post-arb 源 IP 解析，4 字前瞻）登记待裁。新增 `tx_demux2`；纸面 +~350 LUT/+20 FF。
+- **`rx_merge2`**：76 位、无标签、`dp_clk` 单域、**帧级工作保持 RR**（帧末 1 拍重仲裁，`STRICT` 参数仅供单元门负对照）；两路 76×256 FIFO（ch0 新增/ch1 现役）；256 = 1.35 最大帧，病态 2 帧上界 + 512 深 backstop；per-port 丢帧用既有 MAC `stat_drop`（ch0=W82 / ch1=W4）。
+- **ch0 TX**：第二 `mac_tx_10g` + `tx_mac_rst_n_0` 同步器 + 每口 73×256 FIFO；`ch0` 常量 IDLE 在 dual 支删除；`sfp1_tx_dis`（`0x08` bit0）零改动；W28/W45 双口泛化，W26/W27 保持 ch1 口径。
+- **观测 +3 字**：W83 = TX→ch1 帧数、W84 = TX→ch0 帧数、W85 = `rx_classify` 总帧数；落既有 p7bdp 束、不新增 CDC 束；**NW 83→86 / UNIMPL `0x17C→0x188` / MIR `0x178..0x184`**。
+- **HLS 双 IP**：`eth_types.h` 加 `BOARD_IP_DUAL`（默认 0）+ `board_ip_match/board_src_ip` 助手；逐点 8 文件（`layer_ip/arp/tcp/udp/icmp/igmp/udp_echo` + `eth_types`）；`tcp_conn_t.local_ip` + `tcp_find` local IP 键 + `cfg_write.w2`；广播 IPv4 映射回 IP0；推荐单 canonical HLS 网表（重综合 + 归档旧件）；`MAX_TCP_CONN=3`（每口 1 条够）；双口建议 `WIN_Q_MAX=0x6000`（零 RTL 改动），两连接 BDP 支持 RTT ≤19.7 µs（纸面）。
+- **对端**：两 netns（p1↔J8、p0↔J7）+ **构造性错口负对照**：ARP 预热后从 p1 连 IP_B / 从 p0 连 IP_A 必失败（SYN-ACK 从 IP 的物理口发往对端另一口 MAC ⇒ NIC 丢弃），**不需 mutant 位流**。
+- **改动面**：既有 RTL **6 文件**（wrapper / `tcp_tx_frame` / `udp_tx_cfg` / `udp_rx` / `udp_split` / `slow_tx_adp`）；新件 **2**（`rx_merge2` / `tx_demux2`）；**零改动**：`tx_arb` / `tcp_cam` / `tcb` / `tcp_rx` / `vlan_strip` / `rx_classify` / `udp_tx_frame` / `app_ctrl`（功能体）。HLS **8 文件** + `run_hls.tcl` cflags。构建 1 行（`DUAL_SFP_A=1`）+ BID。接口 ~20 组。读侧新阶段 **0x2C**（~60–100 处 / ~20 文件）。门：5 个新 TB + elab 7→11 + 矩阵 21→22。纸面资源 **≈+3.3k LUT / +1.3k FF / +0 BRAM / +0 URAM（±30%）**。
+- **构建/门/板级计划**：BID **0x2C（甲）/ 0x2D（乙）**；宏 = 既有 8 + `DUAL_SFP_A=1`；先重跑 HLS；一次收口（WNS>0 / 0/0/0 / `12-4739` 0 / 隐式网 5 键 0 / DRC 0 Error）；硬门 `DUAL∧¬P7B` / `DUAL∧B` / `DUAL∧¬DP` / `DUAL∧¬APP` 全 elaboration 失败；backstop **删 W85→85/`0x184` → 删 W83/W84→83/`0x17C` → abort-to-0x2B**；板级 B-0…B-8（身份门 / 单口回归 `W84≡0` / 双口各一条 TCP / 错口负对照 / 慢路径逐口 / UDP 逐口 / merge 公平 / TX_DIS 隔离 / 收尾）。
+- **三大风险**：① 时序（0x2B 余量 0.75% + `cam_rd_dip` 进校验和锥 + 快照 +288 FF）；② **A-1 静默错误**（源 IP 6 条路径 × 2 体，漏一处 = 对端静默丢弃且无握手判据会红）；③ **HLS 重新综合的全局面**（`slowstack_prj` 是共同输入；单口等价必须显式证明；DP 156.25 MHz 新锥风险）。
+- **待裁 12 条**：IP_B/对端 netns · BID 0x2C/0x2D · TX 方案②/①/③ · `WIN_POOL` 分池 · merge FIFO 深度 · HLS 单/双输出 · per-port MAC · 广播语义 · app 事件端口位 · PORT_INV 变异位流 · 观测 3 字核心集 · 排期。
+- **TL 抽核**：545 行；`wrapper_p4.v:2183-2189` cam mux、`tb/tb_tx_arb.v:37` 直接例化、`rtl/tcp_tx_frame.v:1199-1208` ring 锁存、HLS 源文件集、0x2B WNS +0.048 —— 均相符。
+- **下一棒**：红队审设计（已派）→ 修订（如需）→ 实施 → 构建 0x2C → 板级 P2。
+
+## §10-132 2026-10-18 07:3x：**P2-甲设计红队审查收口**（`p11_review_p2a_design_20261018/FINDINGS.md` 代落）—— 阻断 1 / 高 8 / 中 13 / 低 12；TL 抽核 8/8；**B-1（`WIN_Q_MAX=0x6000` vs 单口零回归）需用户裁 ⇒ 设计暂按 (a) 保持 0xC000**；修订轮已派
+- **事实核**：45 项中 39 相符；7 条不一致/需限定（5 处 ±1 行号、1 处章节归属、1 条 IGMP 机制措辞）；**无实质数值/架构错误**。
+- **最重要 3 条**：① **B-1**：D4 `WIN_Q_MAX=0x6000` 与 P2-1 单口零回归结构性冲突（双口位流单连接窗减半；`app_ctrl.v:283-290` 逐字禁止 wrapper 传参；HLS SYN-ACK `0xC000` 与配额 0x6000 不一致）；② **H-3**：`slow_tx_adp` 端口位 side FIFO 深度 16 容量论证错（`frame_fifo` 512 字 ÷ 最小帧 7 字 ≈ **73 帧**，非 ≤16）⇒ 慢路径长阻塞时端口位永久错位；③ **H-2**：P2-3 错口负对照缺静态邻居 ⇒ 可能红在 ARP 而非错口。
+- **高 8**：H-1 新输入端口在直接例化 TB（`tb_app_udp:219/311` 等 5 处）悬空为 Z（`cfg_dual` 应编译期参数）；H-2 静态邻居 + 两段判据；H-3 side FIFO ≥128/门控/塞 frame_fifo；H-4 构建 tcl 显式 import 漏 `rx_merge2`/`tx_demux2`（黑盒静默失效先例）；H-5 `tb_p7b_chain.v:1641-1649` 硬编码 0x2B 几何不在 G9；H-6 G6 若沿用 force `txsrc_*` 则 A-1 TX 全链无行为门；H-7 观测仅 3 字与"开发期全量"偏离（W28/W45 压成 max/sum、ch0 TX 计数不进快照）；H-8 W83/W84 27.487 s 回卷与 pre-FIFO 修正项未进对账。
+- **中 13**：cfg_write 签名/RST 槽 local_ip 语义 · canonical HLS 默认构建接受 IP_B · HLS 指纹盲区 · `elab_files.f`/G7 签名/DUAL 正控 · G2–G5 未入矩阵 · P2-4 守恒律符号/逻辑错 · merge 空泡未预登记 · STRICT 负对照可能无牙 · `cfg_sync` 必须用后 mux 期望值 · `o_port` 生产者侧稳定性 · G6 HLS 口径 · 等。
+- **低 12**：端口位数组复位值 · `dont_touch` 空闲 FF · "行为等价"措辞 · W85 33 位和 · `port_rx_*` 跨系统口径 · P2-6 容差 · netns 下 nmcli 不适用 · ARP SPA 口径 · VLAN TPID 自检 · IGMP 措辞 · STRICT hard-tie · 等。
+- **门判别力**：G5/P2-5/P2-8/P2-10 高；G1/G2/G3/G4/G7/G8/G9/G10 中（H-1/H-5/H-6 是主因）；P2-1/P2-3/P2-4 低（B-1/H-2/M-6）。空判据清单 12 条。
+- **TL 决策（自主，登记待裁）**：D4 暂按 **选项 (a)：`WIN_Q_MAX` 不传参、保持 0xC000**（零 RTL 改动、单口零回归；P2-2 只要求双口**各自能建连/身份正确**，不要求两口同时有数据流；第二连接零窗是既有 P5d 语义）。**若用户要双口同时数据流 ⇒ 改 (b) 0x6000 + P2-1 判据改写（窗上限回归 + 0xC000 对照臂）**；SYN-ACK `0xC000` 与配额一致性登记 P3 前。
+- **修订轮（v2）已派**：按 B-1(a) 记录 + H-1…H-8 + 中/低 + 事实核 ±1/章节/IGMP + plan §0.5 的 A-1 改裁注；产出 `p11_p2a_design_20261018/DESIGN_v2.md`。
+- **下一棒**：修订 → TL 抽查复审 → P2 实施 → 构建 0x2C → 板级 P2。
+
+## §10-133 2026-10-18 08:2x：**P2 设计修订 v2 收口**（`p11_p2a_design_20261018/DESIGN_v2.md` 755 行）—— 阻断 1/1、高 8/8、中 13/13、低 12/12 全部处置；**B-1(a) 落实**（`WIN_Q_MAX` 不传参/`0xC000`；P2-2 逐口顺序 + 对端 `ss -ti snd_wnd>0` 池归还见证；双口同时数据流待用户裁；SYN-ACK `0xC000` 一致性 = P3 前置）；**H-7 扩到 NW 88（W83..W87）**；plan §0.5 A-1 注已加
+- **B-1(a)**：`WIN_Q_MAX` 零 RTL 改动、保持复位默认 `0xC000`；第一条连接可拿满池，第二条可能零窗（既有 P5d 语义）；**P2-2 只要求每口各自建连/身份正确**，数据流逐口顺序；第二条前用对端 `ss -ti` 的 `snd_wnd>0` 作池归还见证（`W62` 只是 RX 占用，不是窗口池直接量）；"双口同时数据流"登记待裁（选项 b = 0x6000 + P2-1 改写 + 0xC000 对照臂）；HLS SYN-ACK `0xC000` 与配额一致性 = P3 前置。
+- **H-7 新字表（NW 88）**：W83 `0x16C` TX port0 帧数 · W84 `0x170` TX port1 · W85 `0x174` `rx_classify` 总帧（33 位和显式截断）· **W86 `0x178` = {sat16(ch0_rxcdc_ovf_dp), sat16(ch0_txcdc_ovf)}** · **W87 `0x17C` = {sat16(ch0_mac_tx_abort_dp), sat16(ch0_mac_tx_frames_dp)}**；MIR `0x180..0x18C`；UNIMPL `0x190`；`SNAP_P7BDP_NW=44`；W86 高半/W87 经 **`maccnt_sync` 4 相握手事件镜像**进 dp（非裸 2FF 多比特同步）。**显式登记：这是对"开发期全量"的偏离**（ch0 `stat_flush_done`/`stat_tx_short`、`slow_tx_adp.side_ovf/play_port`、merge 仲裁计数、ch0 txcdc 占用峰值仍未进）。
+- **5 条反向核对（不迁就 FINDINGS/派单，如实登记）**：① H-3 最小帧 = **8 字**（46 B 最小载荷 + 14 B 头 = 60 B 内容；`512/8=64` 帧），非 7 字/73；深度 16 仍不足（结论不变），v2 选 **≥128**。② **H-5 地址纠正**：新增字只落末端，**W79..W82 地址不变（`0x15C..0x168`）**；新几何 = W83 `0x16C` / W84 `0x170` / W85 `0x174` / W86 `0x178` / W87 `0x17C` / MIR `0x180..0x18C` / UNIMPL `0x190`；FINDINGS 的"W79..W82→`0x16C..0x178`"是错的。③ H-1 直接例化点实为 **9 个**（另有 `tb_udp_split:60`/`tb_udp_tx_guard:180`/`tb_udp_rx:55`/`tb_udp_echo:51`）。④ H-4 `elab_files.f` 是 `dir /b /s rtl\*.v` **运行时生成**；需静态同步 = `p7bchain_src.f`、`run_tb_p7b_chain.bat`、G6 manifest。⑤ M-3 `p4gate.py:498-535` **已含 HLS 网表**（`.v/.dat`）⇒ "FROZEN 不绑定 HLS 字节"不成立；真正缺的是 HLS 源/`run_hls.tcl`（v2 补进 `FINGERPRINT_GLOBS`）。
+- **其它关键落实**：H-1 `cfg_dual` 改编译期 `DUAL_IP`+`IP_B` 参数（`udp_tx_cfg.peer_my_ip` 唯一新输入、参数门控；`cfg_sync` 用后 mux 期望值）· H-2 静态邻居（nsA/nsB `ip neigh add`）+ 两段判据（身份/出口）· H-4 import 两行 + `P7B_MODULE_RESOLVED` 硬门 · H-5 `tb_p7b_chain` 入 G9、G1 改"编辑后回归" · H-6 G6 真实生产者臂 + HLS 握手臂 · H-8 回卷 mod 2³² + pre-FIFO 修正（W45/W21/W86/W87）· M-6 守恒律改写（`ΔW85 − (ΔW79+ΔW0) = 坏帧 + TERM ≥ 0`，不作 oracle）· G7 7→**12** combos（4 DUAL 负控 + 1 DUAL 正控）· M-5 至少注册 G5/G2。
+- **残余待裁/未测**：双口同时数据流（选项 b）· `MAX_TCP_CONN=3` vs P3 每口 ≥2 条（4>3）需 P3 前裁 · W86/W87 4 相握手为**纸面**未实测 · G2–G9 全未跑 · HLS 重综合面积/时序未测 · netns 配方未跑（P2-3 判别力未测）· H-1 的 9 TB 部分不在常驻矩阵 · 乙 0x2D 不在 P2。
+- **剩余三大风险**：① 时序（0x2B 余量 0.75% + `cam_rd_dip` 校验和锥 + 5 字快照 +480 FF 纸面 + 第二 MAC/arb/FIFO + HLS 重综合；backstop **W86/W87 → W85 → W83/W84 → abort-to-0x2B**）；② A-1 静默错误（源 IP 三处 × 数据/控制/重放 × 双体）；③ HLS 重综合全域 + canonical 新语义（默认构建接受 IP_B）。
+- **下一棒**：闭项抽查复审（已派）→ P2 实施 → 构建 0x2C → 板级 P2。
+
+## §10-134 2026-10-18 09:0x：**P2 设计 v2 闭项抽查收口**（`p11_review_p2a_design_v2_20261018/FINDINGS_V2.md` 代落）—— 17 项 = **已闭 12 / 部分闭 5 / 未闭 0**；新发现 **N-1..N-14**（中 6 / 低 8）；反向核对 **5/5 成立**；结论 = **可实施附条件：先修 N-1/N-2/N-4/N-5/N-6/N-10**；TL 抽核 8/8
+- **闭项计数**：阻断/高 9 项（B-1 + H-1..H-8）= 已闭 6 / 部分闭 3（B-1→N-1、H-1→N-2、H-4→N-3/N-4）/ 未闭 0；点名中/低 8 项（M-1/M-2/M-6/M-11/M-12/L-5/L-8/L-12）= 已闭 6 / 部分闭 2（L-8→N-8、L-12→N-9）；其余 M/L 快速复核全闭（附 N-13）。**无未闭项。**
+- **中 6 条（实施前必修）**：
+  - **N-1**：P2-2 的"池归还见证"`ss -ti snd_wnd>0` **结构性看不见 fast-path 配额** —— HLS SYN-ACK 窗口硬编码 `0xC000`（`hls/src/layer_tcp.cpp:281`），在 fast-path 发出第一条带窗 ACK 前 `snd_wnd` 只能来自 SYN-ACK ⇒ **即使池未归还见证仍 >0 = 空判据**。建议改"发生一次 fast-path 数据/ACK 交换后再读"或 1 字节探针，或降级为辅助见证。
+  - **N-2**：`IP_A_5`/`IP_B_5` 定义在 `ifdef DUAL_SFP_A` 内（DESIGN_v2 `:126-127`），`:219` 的 `udp_split`/`udp_tx_cfg` 参数化**无条件引用** `IP_B_5` 且 `DUAL_SFP_A_DEF` 未定义 ⇒ **非 DUAL 构建编译硬错**。
+  - **N-4**：新模块 `maccnt_sync`（§3.4 引入）**未进** `P7B_ADD_DATAPATH` 导入 / `P7B_MODULE_RESOLVED` / 静态清单 ⇒ H-4 同类黑盒风险复发。
+  - **N-5**：G9 "读侧"清单不全 —— `_proj_pcie/p6e_snap_check.sh:60,72`（默认 0x2B/83/0x17C 派生）、`p7b_biz/p7b_snap.sh:85,87`、`p7b_gate4_negctrl.sh:156`（`awk -v NW=83`）仍硬编码旧代 ⇒ 读 0x2C 会假红/错读。
+  - **N-6**：默认体（非 OVL）控制帧 `csum_init_val`（`rtl/tcp_tx_frame.v:2022-2025`）若按设计改用 `lip_r`，会与 `dip_r <= cam_rd_sip`（`:2411`）**同沿取旧值** ⇒ SYN-ACK TCP 伪头源 IP 静默错。必须组合读 `cam_rd_dip` 或推迟到 `start_ack+1`。
+  - **N-10**：非 DUAL 构建下 **W83/W84/W86/W87 的 tie-off 未写**（§2.7 无常量表）⇒ 88 字装配缺 4 源、默认矩阵编译失败。
+- **低 8 条**：N-3（`P7B_MODULE_RESOLVED` cell-count 看不见黑盒，日志 grep 才是硬门）· N-7（P2-2 等式假设窗末已静默）· N-8（`ip -n <ns> exec ethtool` 非法，应为 `ip netns exec`）· N-9（L-12 承诺的 `STRICT` 常量断言未落 G7）· N-11（P1 的"乙=0x2C"未标历史，现为 0x2D）· N-12（W87 低半 `sat16(stat_frames)` 10G 下 ~82 ms 饱和，只能当活动指示）· N-13（G2 `STRICT=1` 负控须同时给高优先口有效帧，否则工作保持仍服务低优先口）· N-14（W79 语义已变"merge 输入 FIFO 接受帧"，`P7B_BIZ_WINDOW.md:77` 标签未同步）。
+- **反向核对 5/5 成立**：① H-3 = **8 字/64 帧**（46 B 最小载荷 + 14 B 头 = 60 B = 7.5 字 ⇒ 8 字；`512/8`），v2 订正正确、FINDINGS 56 B/7 字/73 帧是算术滑；② H-5 地址算术自洽（新字落末端、backstop 三档均自洽），v2 对 FINDINGS 的订正正确；③ H-1 直接例化 **9 点/8 文件**逐点命中；④ `elab_files.f` 运行时生成成立（`run_elab_4combo.bat:27-28`，v2 写 `:21-24` 行号漂移）；⑤ `p4gate.py:498-505/535` 已含 HLS 网表 `.v/.dat` 且进 `DIGEST_ALL` ⇒ "FROZEN 不绑定 HLS"不成立，v2 的"缺 HLS 源/脚本"正确。
+- **TL 抽核 8/8 与报告一致**（N-2 作用域、N-6 同沿取旧值、N-10 缺源、N-1 空见证、N-4 漏导入、N-5 读侧旧默认、N-8 非法命令、N-12 饱和）。
+- **下一棒 = P2 设计 v2.1 修订轮**（修 N-1..N-14，重点 6 条中项；产出 `DESIGN_v2r1.md`）→ TL 亲核 6 条中项 → P2 实施 → 构建 0x2C → 板级 P2。
