@@ -1534,3 +1534,9 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - **中危 7 项**：F5 replay_full 不自持（重放帧自己推进 snd_nxt；retx 支理由改写为覆盖 inflight<cap 周期 RTO 会话）· F6 **真漏两类**（`inflight==0` 空闲死对端 / 零窗死对端——设计要登记或闭）· F7 `Δstat_ev_down` 板上不可观测（改 pcap + app closing）· F8 `ret_slot_q/pool_ret_x` use-point 漏 + `orph_down` 门漏 `!to_pushed_r`（可连续两拍 o_ev_down）+ st_done 文案 · F9 动作顺序（state=0 先于 CAM 清，否则零 CAM TX 窗口出 0 MAC/IP 帧）· F10 判据无牙（M1/M2/M5 缺 retx/窗满见证；M4 无效；M6/M8 门归属）· F11 板级慢盆混淆（臂序 = 快态→进盆→重烧→孤儿；每次烧后核盆不在场）。
 - **文案 7 项**（F12–F18）：矩阵清单、ORPHAN_EN=0 零回归证据（需同激励全输出逐位对比）、B1 非严格单变量（+W75+BID）、+96 FF 三分之二不在宿主网、scfg_busy/wcnt、scan_now 界、M8/U2 标签。
 - **处置**：18 项全采纳；**v2 修订已派**（原设计 agent，12 条必改清单）→ 之后**红队复评**（F1–F4 闭项 + F5–F11 落地检查）→ 实施 → 门 → 构建（前置：还原 `PERSIST_EN(1'b1)` + BID 0x2A）→ 板级。
+
+## §10-106 2026-10-17 11:4x：**孤儿修复 v2 红队复评收口（`FINDINGS_V2.md` 代落）—— 仍需再修（v3）；v3 修订已派**
+- **v2 复评结果（红队全文，N1–N15）**：**F1/F4/F5/F7/F8/F11/F12/F14–F18 闭项属实**；**F2/F3/F10/F13 部分闭**；**F6-b 未闭（阻断）**；F6-a 登记属实（未闭）。**v2 新引入 3 处高/阻断**：**N1** Mode B 阈值 vs persist 60 s 封顶（61.85 s vs 60 s，余 1.85 s；**一次探询/ACK 丢失 ⇒ 120 s 间隔 ⇒ 误杀**；8 位 ZW 计数物理上限 109.5 s < 120 s）· **N2** `ack_obs` 仅 `TCP_TX_OVL` 支置位、else 恒 0（`tcp_rx.v:624-626`；v2 §9-12 不实 ⇒ 非 OVL 门/C2 零窗臂 Mode B 会误杀）· **N3** `fireA/fireB` 无 `!orph_busy` ⇒ 双槽同时达限 ⇒ 第一槽半回收（state=0+CAM 残留+winq 不还+无 orph_down+st_done 阻止重试——**正是本设计要消灭的形态**）。
+- **必修 6 组**（TL 已派 v3）：F6-b（N1/N2/N7）· F9（N4 `state_done` 寄存器 + C3 改判）· N3（fire 加 !orph_busy + U6 双槽臂）· F10（N6 U1/U4/U12 量纲）· F2/F13（fc 门作用域**推荐进 ORPHAN_EN 内** + N12 wrapper 暴露 ORPHAN_EN_5、p5wrapper 传 0 保旧基线）· N5（`orph_down` 钉成寄存器）；文案 N8–N15 随修。
+- **教训登记**：新判据（模式 B）设计时必须先算**最坏重试间隔**（2×persist 封顶 = 120 s）而非典型间隔，并把**计数器位宽的物理上限**（255×429.5 ms = 109.5 s）一并纳入可行性——这是 F6-b 两处阻断的共同根因。
+- **下一步**：v3 → 红队**闭项抽查**（只核必修 6 组 + 新竞态）→ 实施 → 门 → 构建（前置 persist 还原 + BID 0x2A）→ 板级。
