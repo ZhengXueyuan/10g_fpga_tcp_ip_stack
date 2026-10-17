@@ -41,7 +41,7 @@
 | 想找什么 | 去哪 |
 |---|---|
 | **权威台账 / 最新续接点** | `_proj_10g/notes/P7B_TL_LEDGER_20261010.md`（§10-117 最新；时点 2026-10-17） |
-| 未解决项总表 | `_proj_10g/notes/P7B_OPEN_ITEMS.md`（§0 一张表；2026-10-16 刷新到终态、2026-10-17 追加孤儿修复收口〔§0-57/A35〕与 0x2A 转现役；新开项到 §0-57） |
+| 未解决项总表 | `_proj_10g/notes/P7B_OPEN_ITEMS.md`（§0 一张表；2026-10-16 刷新到终态、2026-10-17 追加孤儿会话修复完成〔§0-57/A35〕与 0x2A 转现役；新开项到 §0-57） |
 | 观测窗现役表（**76 字**，W0..W75） | 权威源 = `board/wrapper_p4.v` 装配段 / `p9_build_0x2A_20261017/README_FOR_TL.md`（`P7B_BIZ_WINDOW.md` §1 已同步补到 76 字档〔含 W70..W75 逐代回溯〕，读历史亦可用） |
 | 下一轮开工入口（对端/板卡环境） | `_proj_10g/notes/P7B_LOOP_HANDOFF.md` §6（恢复清单，最新自含块 = 2026-10-13）；板级现场交接见 `p9_board_0x2A_20261017/FINAL_STATE.txt`（现役 0x2A 轮）/ `p9_board_0x28_k0_20261016/REPORT.md`（0x28 轮） |
 | 里程碑落库件（措辞权威） | `P7B_STAGE{A,B,C}_MILESTONE.md` · `P7B_WU_MILESTONE.md` |
