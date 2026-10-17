@@ -1,0 +1,8 @@
+PRE_REGISTRATION LOCK -- p9_basin_zero_win_20261017
+locked_at_local = 2026-10-17 18:36:57
+locked_at_epoch = 1792233417.183076
+file = D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_basin_zero_win_20261017\README_FOR_TL.md
+prefix_bytes = 8875
+prefix_sha256 = 6b81be152e717a89aa3033f5b6c281688a22fda79c252293a4476c5e8aa38189
+marker = <!-- PRE_REG_END
+note = written before data collection; later appends must not alter this prefix. recompute: head -c <prefix_bytes> README_FOR_TL.md | sha256sum

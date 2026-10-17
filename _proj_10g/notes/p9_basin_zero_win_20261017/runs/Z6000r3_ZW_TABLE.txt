@@ -1,0 +1,9 @@
+=== ZW_METRICS label=Z6000r3 pkts=52285 span=89.808 s conns=1 (valid=1) ===
+cliport  acks   win0   zw%%   pure  pwin0  pzw%%  finack  trans  data   payMB  dur_s  Mbps   win_hist
+33756    22318   9383  42.04  22318   9383  42.04      0   9726  29965    43.75 89.808     3.90  2920:11090(49.7%) 0:9383(42.0%) 1460:1843(8.3%) 5840:1(0.0%) 4380:1(0.0%)
+--- aggregate ---
+ZW_AGG label=Z6000r3 acks=22318 win0=9383 zw_pct=42.042 median_conn_zw_pct=42.042 valid_conns=1
+ZW_CONN_LIST 33756:42.04(9383/22318)
+PEER_WIN_TOTAL_HIST(bytes): 2920:11090(49.7%) 0:9383(42.0%) 1460:1843(8.3%) 5840:1(0.0%) 4380:1(0.0%)
+JSON_WRITTEN runs/Z6000r3_zw.json
+ACKS_CSV_WRITTEN raw/zw_Z6000r3_acks.csv rows=22318 (sampled rows carry flag=1)

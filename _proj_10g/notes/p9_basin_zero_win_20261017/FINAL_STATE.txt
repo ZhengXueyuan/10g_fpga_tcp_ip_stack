@@ -1,0 +1,59 @@
+FINAL_STATE -- p9_basin_zero_win_20261017 (slow-basin zero-window bracketing round)
+=====================================================================================
+Round date : 2026-10-17 18:35-19:16 CST (zero-build board round)
+Board      : XCKU5P Mini (KU5P), build 0x28 (BID 0x00000028 / 75 snapshot words / UNIMPL 0x15C)
+Burns      : ONE (1) JTAG volatile burn of 0x28 (basin clear), 19:06:11 -> 19:08:38
+             sha256 79c9cf434eb66723b97f654cbece9ea061632e2297c0a8ab0ea0dc198c43bec8
+             anchors: p9_build_0x28/wrapper_p4.bit == p9_mdio_aplus_board_20261016/burn/wrapper_p4_0x28.bit
+             gates: SHA_OK (double independent) / BURN_OK (HIGH+DONE+path+freshness+no-ABORT)
+                    device-level remove+rescan (LnkSta 5GT/s x4, 2 BARs) / identity OK / NFF=0
+                    / 0x08 <- 0 / CARRIER=1
+QSPI       : NEVER written (JTAG volatile only)
+
+FINAL BOARD STATE (live read 2026-10-17 19:11:55-19:12 CST; env/FINAL_LIVE_READ.txt):
+  MAGIC 0x50360001 / BID 0x00000028 / UNIMPL 0x15C = 0xffffffff
+  reg 0x08 = 0 (not stopped) / CARRIER = 1
+  => BOARD LEFT AT 0x28 + 0x08=0 + carrier=1 (0x2A NOT burned; per coordination message)
+  Note: the session's only burn was 0x28 (already the active build); it was done to CLEAR the
+        slow basin, not to change the build.
+
+PEER (192.168.0.38) FINAL STATE:
+  iptables: 3 default policy lines only, no rules (no iptables rules were ever installed this round)
+  leftover: none (p7b_tcp_sink / tcpdump empty); ss 8080 established = 0
+  NIC: enp1s0f1np1 UP, 192.168.100.100/32, unmanaged, Adaptive RX off / rx-usecs 0
+  tools md5: /tmp/p7b_biz/p7b_tcp_sink f62299291fcb9e02afe109c4ea1f90ab
+             /tmp/p7b_biz/p7b_snap.sh   a257af8299904789c6a6dd9ed5ca030f
+             /tmp/p7b_biz/zw_arm.sh     3706adfd74430b0cca4540392515112d  (deployed this round)
+  /tmp retains zw_<TAG>_* arm artifacts (pcap/snap/ss/sink logs). The authoritative archive is
+  this round directory; /tmp copies are expendable.
+
+EXPERIMENT (all pre-registered criteria locked BEFORE data; env/PRE_REG_LOCK.txt):
+  A0 precheck  : 747/948/817 Mbps, zw 0.003% => basin absent at entry
+  E1 entry     : T1 recipe (2 sinks / stagger 0.4 / 2920 / c6 / poll1000 stall3)
+                 sink1 conn0 47.75 MB fast phase then collapse; sink2 conn0 = 0 B;
+                 10 crawl conns; long conn 119.5 s at 1.55 Mbps wire / 0.81 uniq; W55 49.4/s
+                 => basin present (4th independent reproduction)
+  Z ladder     : rcvbuf {2920,6000,7000,8000,8760,10000,12000}, >=3 runs each (n=3/3/3/3/3/5/4)
+  C controls   : after 0x28 burn: same rcvbuf {2920,7000,8000,12000} x2 runs each
+  All 34 runs : pcap armed + graceful stop + 0 packets dropped by kernel; ID_RC=0
+
+KEY READINGS (median over runs; uniq Mbps from pcap unique-seq rate; zw = zero-window ACK %):
+  INSIDE basin : 2920 0.99 / 37.26% | 6000 18.31 / 18.19% | 7000 3.02 / 38.64%
+                 8000 1480.62 / 0.077% | 8760 1187.67 / 0.065% | 10000 1568.26 / 0.120%
+                 12000 16.74 / 2.587%  (SECOND slow zone; 20 ms IAT cycle, p99 19.96 ms)
+  OUTSIDE      : 2920 897.35 / 0.005% | 7000 1307.95 / 0.030% | 8000 1566.34 / 0.013%
+                 12000 2168.96 / 0.020%
+  => the 7000->8000 boundary is a single-bucket cliff (x490.8 rate, 38.6->0.08% zw), and the
+     zero-window step is on the SAME pair. Outside-basin controls at the same rcvbuf are fast.
+  => pre-registered (a)(b)(c) all SUPPORTED => VERDICT = SUPPORTED (runs/CRITERIA_EVAL.txt)
+  => NEW/unexplained: 12000 is slow inside the basin (16.7 Mbps) with only 2.59% zero-window;
+     outside it is 2.17 Gbps. Zero-window ratio is therefore NOT the only axis (registered).
+
+DEVIATIONS: see README_FOR_TL.md sec.6. Highlights:
+  - conditional 7500 bucket not triggered (bracket was sharp by a wide margin)
+  - extra exploratory arms: Z10000r4/r5, Z12000r4, C12000r1/r2 (criteria unchanged)
+  - slow arms sampled ~89.8 s (RUN_TIMEOUT=90 hard bound; --seconds does not stop running conns)
+  - every snapshot ring's first point GEN_FAIL (gen+2), all later points valid; fast runs ring-sparse
+
+FILES: README_FOR_TL.md (deliverable + locked pre-reg), env/, runs/, raw/, burn/, tools/
+       SHA256SUMS.txt (non-bulk), SHA256SUMS_pcap.txt (pcaps + per-ACK CSVs)

@@ -1,0 +1,22 @@
+=== PROBE_METRICS label=Z6000r3 pkts=52285 span=89.808 s ===
+cliport   pkts  t_syn_ms     data     payMB    dur_s     Mbps   uniqMb   burst%     held% first_seg   peerw   bwin
+33756    52285       0.0    29965     43.75   89.808     3.90     2.62     57.9      47.3         1  2920/0      0
+
+--- per-conn detail ---
+CONN 33756: data=29965 uniq_seq=20149 pay=43747441B uniq=29417540B dur=89.808s rate=3.90Mbps uniq=2.62Mbps dup=0.328
+   burst: pairs=29964 <2us=17344 (57.9%) gap_med=0.0us p10=0.0 p90=20083.0
+   held: covered=20147 never=2 held=9520 held%(of covered)=47.3 held%(of all)=47.2 held%(G-anchor basis: /transmissions)=31.8 delay(first_tx->cover)=20.10ms replay->cover=0.02ms
+   first_seg_count=1 (counted_before_first_covering_ack) t_first_cov_d1=0.005 ms
+   peer_win hist(bytes): 2920:11090(49.7%) 0:9383(42.0%) 1460:1843(8.3%) 5840:1(0.0%) 4380:1(0.0%)  [>=8MSS: 0 (0.0%)]  syn_win=5840 synack_win=49152
+   board_win hist(bytes): 0:29965(100.0%)
+   last: seq=334835977 retx_of_last=0 last_data_t=89.808 last_ack_win=2920 next_syn_gap=none ms
+
+--- aggregate ---
+conns=1 (with data=1) totalB2P=43747441B span=89.808s agg=3.897 Mbps
+rates: 33756=3.90
+VERDICT-READ (conns with data=1): fast(uniq>=100Mbps)=0 crawl(uniq<=5Mbps)=1 mid=0
+held%%: 33756=47.3
+burst%%: 33756=57.9
+first_seg: 33756=1
+peer_win_total_hist(bytes): 2920:11090(49.7%) 0:9383(42.0%) 1460:1843(8.3%) 5840:1(0.0%) 4380:1(0.0%)
+JSON_WRITTEN runs/Z6000r3_metrics.json

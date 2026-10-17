@@ -1,0 +1,37 @@
+=== bucket values (basin) ===
+bucket     nrun  medRate_med  medZW_med     poolRate       poolZW
+2920          3        0.986     37.261        0.986       37.261
+6000          3       18.307     18.192       17.379       18.600
+7000          3        3.017     38.638        3.017       38.638
+8000          3     1480.621      0.077     1480.621        0.090
+8760          3     1187.672      0.065     1213.097        0.065
+10000         5     1568.258      0.120     1524.829        0.120
+12000         4       16.744      2.587       16.812        2.606
+
+=== criterion (a): first rate step vs first zero-window step ===
+pair 2920->6000 : rate 0.986->18.307 (x18.6) condR=False | zw 37.26->18.19 condZW=False
+pair 6000->7000 : rate 18.307->3.017 (x0.2) condR=False | zw 18.19->38.64 condZW=False
+pair 7000->8000 : rate 3.017->1480.621 (x490.8) condR=True | zw 38.64->0.08 condZW=True
+pair 8000->8760 : rate 1480.621->1187.672 (x0.8) condR=False | zw 0.08->0.06 condZW=False
+pair 8760->10000 : rate 1187.672->1568.258 (x1.3) condR=False | zw 0.06->0.12 condZW=False
+pair 10000->12000 : rate 1568.258->16.744 (x0.0) condR=False | zw 0.12->2.59 condZW=False
+RATE_STEP=('7000', '8000') ZW_STEP=('7000', '8000')  (a)=SUPPORTED
+
+=== criterion (b): within-bucket, highest zw run must have lowest rate ===
+2920: zw=['37.35', '37.26', '36.14'] rate=['0.98', '0.99', '1.05'] -> highest-zw run=1 lowest-rate run=1 => OK
+6000: zw=['17.95', '18.19', '42.04'] rate=['18.31', '86.26', '2.62'] -> highest-zw run=3 lowest-rate run=3 => OK
+7000: zw=['14.64', '38.64', '44.88'] rate=['22.72', '3.02', '2.38'] -> highest-zw run=3 lowest-rate run=3 => OK
+8000: excluded (zw range 0.069 pp < 0.5)
+8760: excluded (zw range 0.086 pp < 0.5)
+10000: excluded (zw range 0.076 pp < 0.5)
+12000: zw=['3.43', '0.53', '2.61', '2.57'] rate=['9.50', '21.79', '16.88', '16.61'] -> highest-zw run=1 lowest-rate run=1 => OK
+QUALIFYING=4 OK=4 (b)=SUPPORTED (low power, n=3/run)
+
+=== criterion (c): outside-basin zw <=1%% at 2920/7000/8000 and in-basin >=5%% somewhere ===
+outside 2920: nrun=2 medZW=0.005 medRate=897.35
+outside 7000: nrun=2 medZW=0.030 medRate=1307.95
+outside 8000: nrun=2 medZW=0.013 medRate=1566.34
+outside_all_le1=True in_basin_any_ge5=True  (c)=SUPPORTED
+
+=== overall (pre-registered rule) ===
+VERDICT = SUPPORTED (zero-window ratio is the watershed for the observed step)

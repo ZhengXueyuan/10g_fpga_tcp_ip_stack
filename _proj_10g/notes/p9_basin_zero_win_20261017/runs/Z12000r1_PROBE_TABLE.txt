@@ -1,0 +1,30 @@
+=== PROBE_METRICS label=Z12000r1 pkts=155127 span=83.828 s ===
+cliport   pkts  t_syn_ms     data     payMB    dur_s     Mbps   uniqMb   burst%     held% first_seg   peerw   bwin
+33596    77182       0.0    45715     66.74   43.799    12.19     9.13     56.6      32.4         8 2920/4380      0
+37990    77945   43799.1    45620     66.61   40.029    13.31     9.87     55.3      32.4         1 4380/2920      0
+
+--- per-conn detail ---
+CONN 33596: data=45715 uniq_seq=34253 pay=66743900B uniq=50009380B dur=43.799s rate=12.19Mbps uniq=9.13Mbps dup=0.251
+   burst: pairs=45714 <2us=25852 (56.6%) gap_med=0.0us p10=0.0 p90=52.9
+   held: covered=34250 never=3 held=11097 held%(of covered)=32.4 held%(of all)=32.4 held%(G-anchor basis: /transmissions)=24.3 delay(first_tx->cover)=19.90ms replay->cover=0.01ms
+   first_seg_count=8 (counted_before_first_covering_ack) t_first_cov_d1=0.008 ms
+   peer_win hist(bytes): 2920:15225(48.4%) 4380:15091(48.0%) 0:1056(3.4%) 1460:89(0.3%) 11680:1(0.0%) 10220:1(0.0%) 8760:1(0.0%) 7300:1(0.0%)  [>=8MSS: 1 (0.0%)]  syn_win=11680 synack_win=49152
+   board_win hist(bytes): 0:45715(100.0%)
+   last: seq=355427817 retx_of_last=0 last_data_t=43.799 last_ack_win=2920 next_syn_gap=0.22 ms
+CONN 37990: data=45620 uniq_seq=33829 pay=66605200B uniq=49390340B dur=40.029s rate=13.31Mbps uniq=9.87Mbps dup=0.258
+   burst: pairs=45619 <2us=25235 (55.3%) gap_med=0.0us p10=0.0 p90=44.1
+   held: covered=33826 never=3 held=10974 held%(of covered)=32.4 held%(of all)=32.4 held%(G-anchor basis: /transmissions)=24.1 delay(first_tx->cover)=19.89ms replay->cover=0.01ms
+   first_seg_count=1 (counted_before_first_covering_ack) t_first_cov_d1=0.003 ms
+   peer_win hist(bytes): 4380:16001(49.5%) 2920:15090(46.7%) 0:1133(3.5%) 1460:95(0.3%) 11680:1(0.0%) 10220:1(0.0%) 8760:1(0.0%) 7300:1(0.0%)  [>=8MSS: 1 (0.0%)]  syn_win=11680 synack_win=49152
+   board_win hist(bytes): 0:45620(100.0%)
+   last: seq=354808777 retx_of_last=0 last_data_t=83.828 last_ack_win=2920 next_syn_gap=none ms
+
+--- aggregate ---
+conns=2 (with data=2) totalB2P=133349100B span=83.828s agg=12.726 Mbps
+rates: 33596=12.19 37990=13.31
+VERDICT-READ (conns with data=2): fast(uniq>=100Mbps)=0 crawl(uniq<=5Mbps)=0 mid=2
+held%%: 33596=32.4 37990=32.4
+burst%%: 33596=56.6 37990=55.3
+first_seg: 33596=8 37990=1
+peer_win_total_hist(bytes): 4380:31092(48.7%) 2920:30315(47.5%) 0:2189(3.4%) 1460:184(0.3%) 11680:2(0.0%) 10220:2(0.0%) 8760:2(0.0%) 7300:2(0.0%)
+JSON_WRITTEN runs/Z12000r1_metrics.json

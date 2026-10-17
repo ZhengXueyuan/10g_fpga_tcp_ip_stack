@@ -1,0 +1,48 @@
+{
+ "label": "Z2920r2",
+ "span_s": 89.82915687561035,
+ "n_conns": 1,
+ "n_conns_valid": 1,
+ "total_acks": 12085,
+ "total_win0": 4503,
+ "zw_pct": 37.26106743897393,
+ "conn_zw_pct": [
+  37.26106743897393
+ ],
+ "median_conn_zw_pct": 37.26106743897393,
+ "conns": [
+  {
+   "cliport": 53858,
+   "n_pkts": 24142,
+   "n_data": 12055,
+   "n_acks": 12085,
+   "n_win0": 4503,
+   "zw_pct": 37.26106743897393,
+   "n_pure": 12085,
+   "n_pure_win0": 4503,
+   "zw_pct_pure": 37.26106743897393,
+   "n_finack": 0,
+   "win_transitions": 9006,
+   "syn_win": 2920,
+   "synack_win": 49152,
+   "peer_win_hist": {
+    "2920": 1,
+    "1460": 7581,
+    "0": 4503
+   },
+   "peer_win_pure_hist": {
+    "2920": 1,
+    "1460": 7581,
+    "0": 4503
+   },
+   "board_win_hist": {
+    "0": 12055
+   },
+   "t_first_ack": 8.392333984375e-05,
+   "t_last_ack": 89.82915687561035,
+   "pay_bytes": 17600300,
+   "life_s": 89.8290331363678,
+   "rate_mbps": 1.5674486865092991
+  }
+ ]
+}

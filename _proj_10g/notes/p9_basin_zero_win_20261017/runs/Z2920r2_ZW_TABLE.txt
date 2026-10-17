@@ -1,0 +1,9 @@
+=== ZW_METRICS label=Z2920r2 pkts=24142 span=89.829 s conns=1 (valid=1) ===
+cliport  acks   win0   zw%%   pure  pwin0  pzw%%  finack  trans  data   payMB  dur_s  Mbps   win_hist
+53858    12085   4503  37.26  12085   4503  37.26      0   9006  12055    17.60 89.829     1.57  1460:7581(62.7%) 0:4503(37.3%) 2920:1(0.0%)
+--- aggregate ---
+ZW_AGG label=Z2920r2 acks=12085 win0=4503 zw_pct=37.261 median_conn_zw_pct=37.261 valid_conns=1
+ZW_CONN_LIST 53858:37.26(4503/12085)
+PEER_WIN_TOTAL_HIST(bytes): 1460:7581(62.7%) 0:4503(37.3%) 2920:1(0.0%)
+JSON_WRITTEN runs/Z2920r2_zw.json
+ACKS_CSV_WRITTEN raw/zw_Z2920r2_acks.csv rows=12085 (sampled rows carry flag=1)

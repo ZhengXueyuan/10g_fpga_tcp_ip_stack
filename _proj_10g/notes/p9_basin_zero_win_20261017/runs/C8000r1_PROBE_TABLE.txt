@@ -1,0 +1,38 @@
+=== PROBE_METRICS label=C8000r1 pkts=106725 span=0.483 s ===
+cliport   pkts  t_syn_ms     data     payMB    dur_s     Mbps   uniqMb   burst%     held% first_seg   peerw   bwin
+46050    36982       0.0    20552     30.01    0.157  1530.28  1530.13     13.1       0.0         1  2920/0  49152
+46066    35336     157.1    20552     30.01    0.170  1414.16  1414.03     28.0       0.0         2  2920/0  49152
+46078    34407     327.0    20553     30.01    0.156  1543.10  1542.95      7.4       0.0         3  2920/0  49152
+
+--- per-conn detail ---
+CONN 46050: data=20552 uniq_seq=20550 pay=30005920B uniq=30003000B dur=0.157s rate=1530.28Mbps uniq=1530.13Mbps dup=0.000
+   burst: pairs=20551 <2us=2684 (13.1%) gap_med=6.0us p10=0.0 p90=14.1
+   held: covered=20550 never=0 held=2 held%(of covered)=0.0 held%(of all)=0.0 held%(G-anchor basis: /transmissions)=0.0 delay(first_tx->cover)=20.23ms replay->cover=0.02ms
+   first_seg_count=1 (counted_before_first_covering_ack) t_first_cov_d1=0.004 ms
+   peer_win hist(bytes): 2920:16422(100.0%) 0:2(0.0%) 7300:1(0.0%) 5840:1(0.0%) 4380:1(0.0%)  [>=8MSS: 0 (0.0%)]  syn_win=7300 synack_win=49152
+   board_win hist(bytes): 49152:20552(100.0%)
+   last: seq=335421437 retx_of_last=0 last_data_t=0.157 last_ack_win=2920 next_syn_gap=0.13 ms
+CONN 46066: data=20552 uniq_seq=20550 pay=30005920B uniq=30003000B dur=0.170s rate=1414.16Mbps uniq=1414.03Mbps dup=0.000
+   burst: pairs=20551 <2us=5751 (28.0%) gap_med=6.9us p10=0.0 p90=15.0
+   held: covered=20550 never=0 held=2 held%(of covered)=0.0 held%(of all)=0.0 held%(G-anchor basis: /transmissions)=0.0 delay(first_tx->cover)=20.23ms replay->cover=0.04ms
+   first_seg_count=2 (counted_before_first_covering_ack) t_first_cov_d1=0.004 ms
+   peer_win hist(bytes): 2920:14776(100.0%) 0:2(0.0%) 7300:1(0.0%) 5840:1(0.0%) 4380:1(0.0%)  [>=8MSS: 0 (0.0%)]  syn_win=7300 synack_win=49152
+   board_win hist(bytes): 49152:20552(100.0%)
+   last: seq=335421437 retx_of_last=0 last_data_t=0.327 last_ack_win=2920 next_syn_gap=0.10 ms
+CONN 46078: data=20553 uniq_seq=20551 pay=30007380B uniq=30004460B dur=0.156s rate=1543.10Mbps uniq=1542.95Mbps dup=0.000
+   burst: pairs=20552 <2us=1514 (7.4%) gap_med=6.9us p10=2.9 p90=10.0
+   held: covered=20551 never=0 held=2 held%(of covered)=0.0 held%(of all)=0.0 held%(G-anchor basis: /transmissions)=0.0 delay(first_tx->cover)=20.13ms replay->cover=0.04ms
+   first_seg_count=3 (counted_before_first_covering_ack) t_first_cov_d1=0.004 ms
+   peer_win hist(bytes): 2920:13846(100.0%) 0:2(0.0%) 7300:1(0.0%) 5840:1(0.0%) 4380:1(0.0%)  [>=8MSS: 0 (0.0%)]  syn_win=7300 synack_win=49152
+   board_win hist(bytes): 49152:20553(100.0%)
+   last: seq=335422897 retx_of_last=0 last_data_t=0.483 last_ack_win=2920 next_syn_gap=none ms
+
+--- aggregate ---
+conns=3 (with data=3) totalB2P=90019220B span=0.483s agg=1492.027 Mbps
+rates: 46050=1530.28 46066=1414.16 46078=1543.10
+VERDICT-READ (conns with data=3): fast(uniq>=100Mbps)=3 crawl(uniq<=5Mbps)=0 mid=0
+held%%: 46050=0.0 46066=0.0 46078=0.0
+burst%%: 46050=13.1 46066=28.0 46078=7.4
+first_seg: 46050=1 46066=2 46078=3
+peer_win_total_hist(bytes): 2920:45044(100.0%) 0:6(0.0%) 7300:3(0.0%) 5840:3(0.0%) 4380:3(0.0%)
+JSON_WRITTEN runs/C8000r1_metrics.json

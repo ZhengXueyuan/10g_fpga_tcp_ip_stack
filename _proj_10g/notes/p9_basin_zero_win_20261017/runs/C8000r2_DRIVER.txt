@@ -1,0 +1,127 @@
+=== LOCAL_RUN tag=C8000r2 2026-10-17T19:09:46 timeout=240 ===
+REMOTE_CMD: cd /tmp/p7b_biz && env  RUN_TIMEOUT=60 bash zw_arm.sh C8000r2 1 0 8000 3 30 30000000
+--- leftover precheck (must be empty) ---
+LEFTOVER_CLEAN
+### K0M_BEGIN tag=C8000r2 nsinks=1 stagger=0 rcvbuf=8000 conns=3 secs=30 maxbytes=30000000 ring=256MBx4 sink_extra='' sink_bin=/tmp/p7b_biz/p7b_tcp_sink 1792235388.744497663
+### SNAP_MD5 a257af8299904789c6a6dd9ed5ca030f
+### SINK_PATH /tmp/p7b_biz/p7b_tcp_sink
+### SINK_MD5 f62299291fcb9e02afe109c4ea1f90ab
+### SINK_SIZE 173576
+### SNAP_ARGS NW=75 EXPECT_BID=0x00000028 KW='5 20 43 51 52 55 63 64 65 66 67 68 69' KW2='5 20 43 51 52 55 63 64 65 66 67 68 69 71 72 73 74' RUN_TIMEOUT=60
+### SS_SAMPLER cmd="ss -tinH state established (dport = :8080)" every 1s -> /tmp/zw_C8000r2_ss.log
+--- board identity gate (before run) ---
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x00000028   (want 0x00000028 = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1792235388.764506418
+ID_RC=0
+BID_0x04=Read 32-bit value at address 0x4 (0x6ffc5c045004): 0x00000028
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x75544bc08008): 0x00000000
+CARRIER=1
+ROUTE_GET=192.168.100.2 dev enp1s0f1np1 src 192.168.100.100 uid 0 
+--- pcap (single, 'ctl'): full 'tcp port 8080', snaplen 128, 256MBx4 ring ---
+TCPDUMP_ARMED /tmp/zw_C8000r2_ctl.err (waited ~0s)
+CTL_PID=1263340
+--- board snapshot ring (background; one point per ~0.15 s) ---
+SNAP_PID=1263344
+--- ss sampler (background; per-second per-socket kernel byte counters) ---
+SS_PID=1263345
+--- peer kernel counters (before) ---
+TcpInSegs                       282072663          0.0
+TcpOutSegs                      119153426          0.0
+TcpRetransSegs                  633558             0.0
+TcpExtDelayedACKs               9084               0.0
+TcpExtDelayedACKLocked          68                 0.0
+TcpExtDelayedACKLost            233439             0.0
+TcpExtTCPPureAcks               69077              0.0
+TcpExtTCPHPAcks                 58270              0.0
+TcpExtTCPFastRetrans            8698               0.0
+TcpExtTCPOFOQueue               282001             0.0
+TcpExtTCPACKSkippedSeq          5                  0.0
+--- SNAP_PRE (explicit) 1792235388.876106664 ---
+SNAP_BEGIN C8000r2_PRE gen=35
+W5   0x34   gmii_free_FE           0x0750b49a
+W20  0x70   mac_tx_frames          0x0004b475
+W43  0xCC   mtx_stat_tx_words      0x074fc5eb
+W51  0xEC   app_tx_bytes           0x1ad307c4
+W52  0xF0   app_tx_frames          0x0004b421
+W55  0xFC   tx_stat_retx           0x00000028
+W63  0x11C  app_frmwait_cyc        0x059b981b
+W64  0x120  app_bp_cyc             0x16d28076
+W65  0x124  mac_tx_idle            0x03c3d20c
+W66  0x128  tx_stat_winstall       0x15591222
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x0003eba5
+W69  0x134  tx_win_at_winstall     0x0b680b68
+W71  0x13C  app_stat_up_ev         0x0000000f
+W72  0x140  app_stat_sw_req        0x00000002
+W73  0x144  app_stat_sw_apply      0x0000000f
+W74  0x148  app_stat_up_pend       0x00000000
+SNAP_END C8000r2_PRE nff=0
+--- main run: 1 sinks in parallel (staggered 0s), timeout 60s ---
+SINK1_START pid=1263568 t=1792235388.950997908
+SINK1_RC=0
+### SINK_RC_SUM=0 T0=1792235388.949273289 T1=1792235389.434397123 T1-T0=0.485
+--- SNAP_POST (explicit) 1792235389.437608486 ---
+SNAP_BEGIN C8000r2_POST gen=38
+W5   0x34   gmii_free_FE           0x0c895c68
+W20  0x70   mac_tx_frames          0x0005a555
+W43  0xCC   mtx_stat_tx_words      0x0c886a56
+W51  0xEC   app_tx_bytes           0x203080d4
+W52  0xF0   app_tx_frames          0x0005a4f8
+W55  0xFC   tx_stat_retx           0x0000002b
+W63  0x11C  app_frmwait_cyc        0x06951362
+W64  0x120  app_bp_cyc             0x199cd3f1
+W65  0x124  mac_tx_idle            0x0846e1db
+W66  0x128  tx_stat_winstall       0x17f43098
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x0004a5aa
+W69  0x134  tx_win_at_winstall     0x0b680b68
+W71  0x13C  app_stat_up_ev         0x00000012
+W72  0x140  app_stat_sw_req        0x00000002
+W73  0x144  app_stat_sw_apply      0x00000012
+W74  0x148  app_stat_up_pend       0x00000000
+SNAP_END C8000r2_POST nff=0
+--- peer kernel counters (after) ---
+TcpInSegs                       282134349          0.0
+TcpOutSegs                      119201106          0.0
+TcpRetransSegs                  633558             0.0
+TcpExtDelayedACKs               9084               0.0
+TcpExtDelayedACKLocked          68                 0.0
+TcpExtDelayedACKLost            233439             0.0
+TcpExtTCPPureAcks               69094              0.0
+TcpExtTCPHPAcks                 58275              0.0
+TcpExtTCPFastRetrans            8698               0.0
+TcpExtTCPOFOQueue               282001             0.0
+TcpExtTCPACKSkippedSeq          5                  0.0
+--- teardown: stop ss sampler + snapshot ring + pcap (+ any sink survivor) ---
+ctl STOPPED_GRACEFULLY (~0s)
+--- pcap stats (tcpdump self-report) ---
+109300 packets captured
+109300 packets received by filter
+0 packets dropped by kernel
+-rw-r--r-- 1 tcpdump tcpdump 12213812 Oct 17 19:09 /tmp/zw_C8000r2_ctl.pcap0
+71cfba180d456edbd951dc21bac24f42cefedc5907fc32943891d7a9775162cc  /tmp/zw_C8000r2_ctl.pcap0
+--- ss log tail witness ---
+1 /tmp/zw_C8000r2_ss.log
+SS_T 1792235388.873241312
+--- SINK_OPTS witness ---
+### SINK_OPTS_WITNESS sink1 SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+--- sink summary (verbatim) ---
+== SINK 1 ==
+SINK_CHECK check=lane8
+SINK_LIMITS maxbytes=30000000 poll_ms=5000 stall_n=3 rcvbuf=8000 conns=3 secs=30
+SINK_RCVBUF_ORDER RCVBUF_ORDER=before_connect rcvbuf=8000
+SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+SINK_CONN 0 OK bytes=30001540 first_mismatch=-1 mism_bytes=0 conn_ms=0.149 dur_ms=181.634 Mbps=1321.405 reads=13368 poll_tmo=0 CPU_FREQ_KHZ=3743735 THREADED=on q_full_push=13368 q_full_pop=13368 q_free_push=13384 q_free_pop=13368 slot_wait_spins=0 checked_bytes=30001540
+SINK_CONN 1 OK bytes=30001540 first_mismatch=-1 mism_bytes=0 conn_ms=0.107 dur_ms=147.506 Mbps=1627.132 reads=17307 poll_tmo=0 CPU_FREQ_KHZ=3798225 THREADED=on q_full_push=17307 q_full_pop=17307 q_free_push=17323 q_free_pop=17307 slot_wait_spins=0 checked_bytes=30001540
+SINK_CONN 2 OK bytes=30000080 first_mismatch=-1 mism_bytes=0 conn_ms=0.086 dur_ms=149.807 Mbps=1602.066 reads=16937 poll_tmo=0 CPU_FREQ_KHZ=3709019 THREADED=on q_full_push=16937 q_full_pop=16937 q_free_push=16953 q_free_pop=16937 slot_wait_spins=0 checked_bytes=30000080
+SINK_SUM conns=3 fail_conns=0 bytes=90003160 clean_conns=3 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=0.479 net_s=0.479 agg_Mbps=1502.467 THREADED=on full_push=47612 full_pop=47612 free_push=47660 free_pop=47612 slot_wait_spins=0 checked_bytes=90003160 threads=6 check=lane8
+--- board state (after) ---
+BID_0x04=Read 32-bit value at address 0x4 (0x7a4eee416004): 0x00000028
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x789b21d49008): 0x00000000
+CARRIER=1
+(empty = no leftover processes)
+### K0M_END tag=C8000r2 1792235389.999763514
+=== LOCAL_RUN_DONE tag=C8000r2 rc=0 19:09:48 ===

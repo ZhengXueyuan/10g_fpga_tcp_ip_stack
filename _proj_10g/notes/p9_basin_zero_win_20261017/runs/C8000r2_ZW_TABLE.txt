@@ -1,0 +1,11 @@
+=== ZW_METRICS label=C8000r2 pkts=109300 span=0.479 s conns=3 (valid=3) ===
+cliport  acks   win0   zw%%   pure  pwin0  pzw%%  finack  trans  data   payMB  dur_s  Mbps   win_hist
+44430    13375      2   0.01  13374      2   0.01      0      2  20553    30.01  0.182  1322.22  2920:13370(100.0%) 0:2(0.0%) 7300:1(0.0%) 5840:1(0.0%) 4380:1(0.0%)
+44436    17314      2   0.01  17313      2   0.01      0      2  20553    30.01  0.147  1629.52  2920:17309(100.0%) 0:2(0.0%) 7300:1(0.0%) 5840:1(0.0%) 4380:1(0.0%)
+44452    16944      2   0.01  16943      2   0.01      0      2  20552    30.01  0.150  1602.71  2920:16939(100.0%) 0:2(0.0%) 7300:1(0.0%) 5840:1(0.0%) 4380:1(0.0%)
+--- aggregate ---
+ZW_AGG label=C8000r2 acks=47633 win0=6 zw_pct=0.013 median_conn_zw_pct=0.012 valid_conns=3
+ZW_CONN_LIST 44430:0.01(2/13375) 44436:0.01(2/17314) 44452:0.01(2/16944)
+PEER_WIN_TOTAL_HIST(bytes): 2920:47618(100.0%) 0:6(0.0%) 7300:3(0.0%) 5840:3(0.0%) 4380:3(0.0%)
+JSON_WRITTEN runs/C8000r2_zw.json
+ACKS_CSV_WRITTEN raw/zw_C8000r2_acks.csv rows=47633 (sampled rows carry flag=1)

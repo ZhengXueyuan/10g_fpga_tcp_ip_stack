@@ -1,0 +1,114 @@
+{
+ "label": "A0",
+ "span_s": 0.8677170276641846,
+ "n_conns": 3,
+ "n_conns_valid": 3,
+ "total_acks": 61591,
+ "total_win0": 2,
+ "zw_pct": 0.003247227679368739,
+ "conn_zw_pct": [
+  0.004865943263101552,
+  0.0,
+  0.004880429477794046
+ ],
+ "median_conn_zw_pct": 0.004865943263101552,
+ "conns": [
+  {
+   "cliport": 34012,
+   "n_pkts": 41104,
+   "n_data": 20550,
+   "n_acks": 20551,
+   "n_win0": 1,
+   "zw_pct": 0.004865943263101552,
+   "n_pure": 20550,
+   "n_pure_win0": 1,
+   "zw_pct_pure": 0.004866180048661801,
+   "n_finack": 0,
+   "win_transitions": 2,
+   "syn_win": 2920,
+   "synack_win": 49152,
+   "peer_win_hist": {
+    "2920": 1,
+    "1460": 20549,
+    "0": 1
+   },
+   "peer_win_pure_hist": {
+    "2920": 1,
+    "1460": 20548,
+    "0": 1
+   },
+   "board_win_hist": {
+    "49152": 20550
+   },
+   "t_first_ack": 0.000102996826171875,
+   "t_last_ack": 0.3213350772857666,
+   "pay_bytes": 30003000,
+   "life_s": 0.32117605209350586,
+   "rate_mbps": 747.328446300599
+  },
+  {
+   "cliport": 34016,
+   "n_pkts": 41102,
+   "n_data": 20549,
+   "n_acks": 20550,
+   "n_win0": 0,
+   "zw_pct": 0.0,
+   "n_pure": 20549,
+   "n_pure_win0": 0,
+   "zw_pct_pure": 0.0,
+   "n_finack": 0,
+   "win_transitions": 0,
+   "syn_win": 2920,
+   "synack_win": 49152,
+   "peer_win_hist": {
+    "2920": 1,
+    "1460": 20549
+   },
+   "peer_win_pure_hist": {
+    "2920": 1,
+    "1460": 20548
+   },
+   "board_win_hist": {
+    "49152": 20549
+   },
+   "t_first_ack": 0.3214399814605713,
+   "t_last_ack": 0.5745961666107178,
+   "pay_bytes": 30001540,
+   "life_s": 0.25310707092285156,
+   "rate_mbps": 948.2639861655903
+  },
+  {
+   "cliport": 34020,
+   "n_pkts": 40983,
+   "n_data": 20490,
+   "n_acks": 20490,
+   "n_win0": 1,
+   "zw_pct": 0.004880429477794046,
+   "n_pure": 20490,
+   "n_pure_win0": 1,
+   "zw_pct_pure": 0.004880429477794046,
+   "n_finack": 0,
+   "win_transitions": 2,
+   "syn_win": 2920,
+   "synack_win": 49152,
+   "peer_win_hist": {
+    "2920": 1,
+    "1460": 20488,
+    "0": 1
+   },
+   "peer_win_pure_hist": {
+    "2920": 1,
+    "1460": 20488,
+    "0": 1
+   },
+   "board_win_hist": {
+    "49152": 20490
+   },
+   "t_first_ack": 0.574700117111206,
+   "t_last_ack": 0.8677101135253906,
+   "pay_bytes": 29915400,
+   "life_s": 0.29300904273986816,
+   "rate_mbps": 816.777522502846
+  }
+ ]
+}

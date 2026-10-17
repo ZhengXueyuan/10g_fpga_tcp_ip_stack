@@ -1,0 +1,11 @@
+=== ZW_METRICS label=C7000r1 pkts=107594 span=0.541 s conns=3 (valid=3) ===
+cliport  acks   win0   zw%%   pure  pwin0  pzw%%  finack  trans  data   payMB  dur_s  Mbps   win_hist
+48202    11265      4   0.04  11264      4   0.04      0      4  20553    30.01  0.189  1271.78  2920:11169(99.1%) 1460:90(0.8%) 0:4(0.0%) 5840:1(0.0%) 4380:1(0.0%)
+48206    19906      6   0.03  19905      6   0.03      0      6  20555    30.01  0.155  1548.45  2920:19101(96.0%) 1460:797(4.0%) 0:6(0.0%) 5840:1(0.0%) 4380:1(0.0%)
+48212    14753      4   0.03  14752      4   0.03      0      6  20554    30.01  0.196  1222.44  2920:12077(81.9%) 1460:2670(18.1%) 0:4(0.0%) 5840:1(0.0%) 4380:1(0.0%)
+--- aggregate ---
+ZW_AGG label=C7000r1 acks=45924 win0=14 zw_pct=0.030 median_conn_zw_pct=0.030 valid_conns=3
+ZW_CONN_LIST 48202:0.04(4/11265) 48206:0.03(6/19906) 48212:0.03(4/14753)
+PEER_WIN_TOTAL_HIST(bytes): 2920:42347(92.2%) 1460:3557(7.7%) 0:14(0.0%) 5840:3(0.0%) 4380:3(0.0%)
+JSON_WRITTEN runs/C7000r1_zw.json
+ACKS_CSV_WRITTEN raw/zw_C7000r1_acks.csv rows=45924 (sampled rows carry flag=1)

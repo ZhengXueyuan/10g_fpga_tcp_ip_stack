@@ -1,0 +1,62 @@
+{
+ "label": "Z2920r1",
+ "span": 89.82936596870422,
+ "conns": [
+  {
+   "cliport": 40602,
+   "n_pkts": 23982,
+   "has_syn": true,
+   "t_syn": 1792233650.209765,
+   "syn_win": 2920,
+   "synack_win": 49152,
+   "n_data": 11984,
+   "n_ack": 11996,
+   "pay_bytes": 17496640,
+   "uniq_bytes": 10974820,
+   "life_s": 89.82923913002014,
+   "dup_ratio": 0.37274699599465955,
+   "rate_mbps": 1.5582133540884262,
+   "uniq_mbps": 0.9773940072332026,
+   "first1s_mbps": 1.6229822593441288,
+   "n_gaps": 11983,
+   "n_gap_lt2us": 4377,
+   "burst_pct": 36.52674622381707,
+   "gap_med_us": 51.975250244140625,
+   "gap_p10_us": 0.0,
+   "gap_p90_us": 20061.016082763672,
+   "first_seg_count": 2,
+   "first_seg_note": "counted_before_first_covering_ack",
+   "t_first_cov_d1_ms": 0.0030994415283203125,
+   "n_uniq_seq": 7517,
+   "n_covered": 7516,
+   "n_never_covered": 1,
+   "n_held": 4467,
+   "held_pct": 59.433209153805215,
+   "held_pct_tx": 37.274699599465954,
+   "held_pct_all": 59.425302647332714,
+   "held_delay_med_ms": 20.081043243408203,
+   "replay_cover_med_ms": 0.030040740966796875,
+   "peer_win_hist": {
+    "2920": 1,
+    "1460": 7515,
+    "0": 4480
+   },
+   "board_win_hist": {
+    "0": 11984
+   },
+   "peer_win_mss_hist": {
+    "2920": 1,
+    "1460": 7515,
+    "0": 4480
+   },
+   "peer_win_ge8mss_accepted": 0,
+   "peer_win_ge8mss_pct": 0.0,
+   "last_data_t": 1792233740.039091,
+   "last_seq": 316393257,
+   "last_seq_retx": 0,
+   "last_ack_win": 1460,
+   "last_ack_t": 1792233740.019077,
+   "has_next_syn": false
+  }
+ ]
+}

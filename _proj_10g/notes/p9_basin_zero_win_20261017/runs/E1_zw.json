@@ -1,0 +1,415 @@
+{
+ "label": "E1",
+ "span_s": 149.82363104820251,
+ "n_conns": 12,
+ "n_conns_valid": 11,
+ "total_acks": 52588,
+ "total_win0": 9626,
+ "zw_pct": 18.30455617251084,
+ "conn_zw_pct": [
+  0.7101238164603059,
+  34.52914798206278,
+  36.16504854368932,
+  38.13953488372093,
+  36.60933660933661,
+  54.390243902439025,
+  54.79115479115479,
+  54.52322738386308,
+  55.13784461152882,
+  55.55555555555556,
+  48.151175952710354
+ ],
+ "median_conn_zw_pct": 48.151175952710354,
+ "conns": [
+  {
+   "cliport": 34510,
+   "n_pkts": 65896,
+   "n_data": 32941,
+   "n_acks": 32952,
+   "n_win0": 234,
+   "zw_pct": 0.7101238164603059,
+   "n_pure": 32943,
+   "n_pure_win0": 234,
+   "zw_pct_pure": 0.7103178216920135,
+   "n_finack": 9,
+   "win_transitions": 300,
+   "syn_win": 2920,
+   "synack_win": 49152,
+   "peer_win_hist": {
+    "2920": 1,
+    "1460": 32717,
+    "0": 234
+   },
+   "peer_win_pure_hist": {
+    "2920": 1,
+    "1460": 32708,
+    "0": 234
+   },
+   "board_win_hist": {
+    "49152": 32941
+   },
+   "t_first_ack": 0.00010204315185546875,
+   "t_last_ack": 58.8107271194458,
+   "pay_bytes": 48085106,
+   "life_s": 3.397617816925049,
+   "rate_mbps": 113.22075310640686
+  },
+  {
+   "cliport": 34520,
+   "n_pkts": 12,
+   "n_data": 0,
+   "n_acks": 10,
+   "n_win0": 0,
+   "zw_pct": 0.0,
+   "n_pure": 1,
+   "n_pure_win0": 0,
+   "zw_pct_pure": 0.0,
+   "n_finack": 9,
+   "win_transitions": 0,
+   "syn_win": 2920,
+   "synack_win": 49152,
+   "peer_win_hist": {
+    "2920": 10
+   },
+   "peer_win_pure_hist": {
+    "2920": 1
+   },
+   "board_win_hist": {},
+   "t_first_ack": 0.402101993560791,
+   "t_last_ack": 55.73872900009155,
+   "pay_bytes": 0,
+   "life_s": 0.0,
+   "rate_mbps": 0.0
+  },
+  {
+   "cliport": 34532,
+   "n_pkts": 880,
+   "n_data": 432,
+   "n_acks": 446,
+   "n_win0": 154,
+   "zw_pct": 34.52914798206278,
+   "n_pure": 437,
+   "n_pure_win0": 154,
+   "zw_pct_pure": 35.24027459954233,
+   "n_finack": 9,
+   "win_transitions": 304,
+   "syn_win": 2920,
+   "synack_win": 49152,
+   "peer_win_hist": {
+    "2920": 1,
+    "1460": 291,
+    "0": 154
+   },
+   "peer_win_pure_hist": {
+    "2920": 1,
+    "1460": 282,
+    "0": 154
+   },
+   "board_win_hist": {
+    "49152": 432
+   },
+   "t_first_ack": 3.405035972595215,
+   "t_last_ack": 61.882745027542114,
+   "pay_bytes": 630720,
+   "life_s": 2.9933130741119385,
+   "rate_mbps": 1.6856773331326143
+  },
+  {
+   "cliport": 41762,
+   "n_pkts": 816,
+   "n_data": 402,
+   "n_acks": 412,
+   "n_win0": 149,
+   "zw_pct": 36.16504854368932,
+   "n_pure": 403,
+   "n_pure_win0": 149,
+   "zw_pct_pure": 36.9727047146402,
+   "n_finack": 9,
+   "win_transitions": 298,
+   "syn_win": 2920,
+   "synack_win": 49152,
+   "peer_win_hist": {
+    "2920": 1,
+    "1460": 262,
+    "0": 149
+   },
+   "peer_win_pure_hist": {
+    "2920": 1,
+    "1460": 253,
+    "0": 149
+   },
+   "board_win_hist": {
+    "49152": 402
+   },
+   "t_first_ack": 6.40106201171875,
+   "t_last_ack": 64.95472502708435,
+   "pay_bytes": 586920,
+   "life_s": 2.985279083251953,
+   "rate_mbps": 1.5728378717895966
+  },
+  {
+   "cliport": 41778,
+   "n_pkts": 837,
+   "n_data": 405,
+   "n_acks": 430,
+   "n_win0": 164,
+   "zw_pct": 38.13953488372093,
+   "n_pure": 421,
+   "n_pure_win0": 164,
+   "zw_pct_pure": 38.95486935866983,
+   "n_finack": 9,
+   "win_transitions": 326,
+   "syn_win": 2920,
+   "synack_win": 49152,
+   "peer_win_hist": {
+    "2920": 1,
+    "1460": 265,
+    "0": 164
+   },
+   "peer_win_pure_hist": {
+    "2920": 1,
+    "1460": 256,
+    "0": 164
+   },
+   "board_win_hist": {
+    "49152": 405
+   },
+   "t_first_ack": 9.400928020477295,
+   "t_last_ack": 68.02674889564514,
+   "pay_bytes": 591300,
+   "life_s": 2.973633050918579,
+   "rate_mbps": 1.590781350287569
+  },
+  {
+   "cliport": 41790,
+   "n_pkts": 806,
+   "n_data": 397,
+   "n_acks": 407,
+   "n_win0": 149,
+   "zw_pct": 36.60933660933661,
+   "n_pure": 398,
+   "n_pure_win0": 149,
+   "zw_pct_pure": 37.437185929648244,
+   "n_finack": 9,
+   "win_transitions": 298,
+   "syn_win": 2920,
+   "synack_win": 49152,
+   "peer_win_hist": {
+    "2920": 1,
+    "1460": 257,
+    "0": 149
+   },
+   "peer_win_pure_hist": {
+    "2920": 1,
+    "1460": 248,
+    "0": 149
+   },
+   "board_win_hist": {
+    "49152": 397
+   },
+   "t_first_ack": 12.388969898223877,
+   "t_last_ack": 71.0987241268158,
+   "pay_bytes": 579620,
+   "life_s": 2.980556011199951,
+   "rate_mbps": 1.5557365748457088
+  },
+  {
+   "cliport": 53380,
+   "n_pkts": 812,
+   "n_data": 400,
+   "n_acks": 410,
+   "n_win0": 223,
+   "zw_pct": 54.390243902439025,
+   "n_pure": 401,
+   "n_pure_win0": 223,
+   "zw_pct_pure": 55.61097256857855,
+   "n_finack": 9,
+   "win_transitions": 298,
+   "syn_win": 2920,
+   "synack_win": 49152,
+   "peer_win_hist": {
+    "2920": 1,
+    "1460": 186,
+    "0": 223
+   },
+   "peer_win_pure_hist": {
+    "2920": 1,
+    "1460": 177,
+    "0": 223
+   },
+   "board_win_hist": {
+    "49152": 400
+   },
+   "t_first_ack": 15.377021074295044,
+   "t_last_ack": 73.65872406959534,
+   "pay_bytes": 584000,
+   "life_s": 2.9765708446502686,
+   "rate_mbps": 1.5695914002506919
+  },
+  {
+   "cliport": 53392,
+   "n_pkts": 806,
+   "n_data": 397,
+   "n_acks": 407,
+   "n_win0": 223,
+   "zw_pct": 54.79115479115479,
+   "n_pure": 398,
+   "n_pure_win0": 223,
+   "zw_pct_pure": 56.030150753768844,
+   "n_finack": 9,
+   "win_transitions": 296,
+   "syn_win": 2920,
+   "synack_win": 49152,
+   "peer_win_hist": {
+    "2920": 1,
+    "1460": 183,
+    "0": 223
+   },
+   "peer_win_pure_hist": {
+    "2920": 1,
+    "1460": 174,
+    "0": 223
+   },
+   "board_win_hist": {
+    "49152": 397
+   },
+   "t_first_ack": 18.371971130371094,
+   "t_last_ack": 76.73073697090149,
+   "pay_bytes": 578161,
+   "life_s": 2.975098133087158,
+   "rate_mbps": 1.554667373341563
+  },
+  {
+   "cliport": 53394,
+   "n_pkts": 810,
+   "n_data": 399,
+   "n_acks": 409,
+   "n_win0": 223,
+   "zw_pct": 54.52322738386308,
+   "n_pure": 400,
+   "n_pure_win0": 223,
+   "zw_pct_pure": 55.75,
+   "n_finack": 9,
+   "win_transitions": 296,
+   "syn_win": 2920,
+   "synack_win": 49152,
+   "peer_win_hist": {
+    "2920": 1,
+    "1460": 185,
+    "0": 223
+   },
+   "peer_win_pure_hist": {
+    "2920": 1,
+    "1460": 176,
+    "0": 223
+   },
+   "board_win_hist": {
+    "49152": 399
+   },
+   "t_first_ack": 21.355919122695923,
+   "t_last_ack": 79.8027241230011,
+   "pay_bytes": 579622,
+   "life_s": 2.9756979942321777,
+   "rate_mbps": 1.5582817910244562
+  },
+  {
+   "cliport": 53400,
+   "n_pkts": 790,
+   "n_data": 389,
+   "n_acks": 399,
+   "n_win0": 220,
+   "zw_pct": 55.13784461152882,
+   "n_pure": 390,
+   "n_pure_win0": 220,
+   "zw_pct_pure": 56.41025641025641,
+   "n_finack": 9,
+   "win_transitions": 290,
+   "syn_win": 2920,
+   "synack_win": 49152,
+   "peer_win_hist": {
+    "2920": 1,
+    "1460": 178,
+    "0": 220
+   },
+   "peer_win_pure_hist": {
+    "2920": 1,
+    "1460": 169,
+    "0": 220
+   },
+   "board_win_hist": {
+    "49152": 389
+   },
+   "t_first_ack": 24.350054025650024,
+   "t_last_ack": 82.87473893165588,
+   "pay_bytes": 563563,
+   "life_s": 2.955796003341675,
+   "rate_mbps": 1.5253095933897034
+  },
+  {
+   "cliport": 37688,
+   "n_pkts": 819,
+   "n_data": 403,
+   "n_acks": 414,
+   "n_win0": 230,
+   "zw_pct": 55.55555555555556,
+   "n_pure": 405,
+   "n_pure_win0": 230,
+   "zw_pct_pure": 56.79012345679013,
+   "n_finack": 9,
+   "win_transitions": 298,
+   "syn_win": 2920,
+   "synack_win": 49152,
+   "peer_win_hist": {
+    "2920": 1,
+    "1460": 183,
+    "0": 230
+   },
+   "peer_win_pure_hist": {
+    "2920": 1,
+    "1460": 174,
+    "0": 230
+   },
+   "board_win_hist": {
+    "49152": 403
+   },
+   "t_first_ack": 27.313936948776245,
+   "t_last_ack": 85.94672298431396,
+   "pay_bytes": 584003,
+   "life_s": 2.975654125213623,
+   "rate_mbps": 1.5700830148277378
+  },
+  {
+   "cliport": 37690,
+   "n_pkts": 31782,
+   "n_data": 15878,
+   "n_acks": 15902,
+   "n_win0": 7657,
+   "zw_pct": 48.151175952710354,
+   "n_pure": 15902,
+   "n_pure_win0": 7657,
+   "zw_pct_pure": 48.151175952710354,
+   "n_finack": 0,
+   "win_transitions": 11866,
+   "syn_win": 2920,
+   "synack_win": 49152,
+   "peer_win_hist": {
+    "2920": 1,
+    "1460": 8244,
+    "0": 7657
+   },
+   "peer_win_pure_hist": {
+    "2920": 1,
+    "1460": 8244,
+    "0": 7657
+   },
+   "board_win_hist": {
+    "0": 15878
+   },
+   "t_first_ack": 30.308960914611816,
+   "t_last_ack": 149.82363104820251,
+   "pay_bytes": 23104553,
+   "life_s": 119.51459121704102,
+   "rate_mbps": 1.546559479623146
+  }
+ ]
+}
