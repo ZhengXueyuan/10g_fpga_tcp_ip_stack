@@ -202,7 +202,15 @@ s0=$(rd 0x1c)
 if snap_take; then echo "  [PASS] 2.1 触发后 done 置起"; PASS=$((PASS+1));
 else echo "  [FAIL] 2.1 触发后 done 一直不置 (gmii 时钟没跑?)"; FAIL=$((FAIL+1)); fi
 s1=$(rd 0x1c)
-echo "  [INFO] SNAP_STATUS: 触发前 $s0 -> 触发后 $s1 (bit0=busy bit1=done bit2=seen, [31:16]=gen)"
+# ⭐ P11 P1 (2026-10-18 P1FIX / FINDINGS 高-2): SNAP_STATUS[7] = `ch0_snap_to`
+#   ("本代 ch0 束缺失/陈旧"). 置 1 时 W79..W82 是**上一代/复位值**, 不是本代读数 ⇒
+#   必须告警并在 5.x 判红, 否则操作者会把陈旧值当本代读数。
+SNAP_STALE=0
+[ -n "$s1" ] && SNAP_STALE=$(( (s1 >> 7) & 1 ))
+echo "  [INFO] SNAP_STATUS: 触发前 $s0 -> 触发后 $s1 (bit0=busy bit1=done bit2=seen bit6=locked_axi bit7=ch0_stale, [31:16]=gen)"
+if [ "$SNAP_STALE" -eq 1 ]; then
+  echo "  [WARN] SNAP_STATUS[7]=1 (ch0_snap_to): 本代 ch0 束缺失/陈旧 ⇒ **W79..W82 不可信** (上一代/复位值); W76..W78 仍是本代"
+fi
 if [ -n "$s0" ] && [ -n "$s1" ] && [ $(( s1 >> 16 )) -eq $(( (s0 >> 16) + 1 )) ]; then
   echo "  [PASS] 2.2 gen 恰好 +1"; PASS=$((PASS+1))
 else echo "  [FAIL] 2.2 gen 不是恰好 +1 ($s0 -> $s1)"; FAIL=$((FAIL+1)); fi
@@ -292,6 +300,10 @@ freq_check_tgl "TX 域 tx_clk_act" 50 156.25
 
 echo; echo "===== 5. 数据面计数快照 (W0..W$((SNAP_WORDS-1))) ====="
 snap_take
+# P1FIX: 本节的字来自**这次**触发 ⇒ SNAP_STATUS[7] 必须重读 (section 2 的那次可能已换代)
+st5=$(rd 0x1c)
+[ -n "$st5" ] && SNAP_STALE=$(( (st5 >> 7) & 1 ))
+[ "$SNAP_STALE" -eq 0 ] || echo "  [WARN] 本节快照的 SNAP_STATUS[7]=1: ch0 束缺失/陈旧 ⇒ W79..W82 按 stale 读"
 # 标签表: 下标 = word 号。逐字读回时**每一个字都要有名字**, 否则"读全了"只是形式。
 WLABEL=(
  "rx_stat_frames   (MAC 收帧数)" "rx_stat_bytes    (MAC 收字节)"
@@ -370,7 +382,17 @@ for (( i = 0; i < SNAP_WORDS; i++ )); do
   v=$(rd "$(snap_addr $i)")
   W[$i]=$v
   printf "  W%-3s 0x%-3s %s = %s\n" "$i" "$(printf '%02X' $((0x20+4*i)))" "${WLABEL[$i]:-<无标签>}" "$v"
+  # P1FIX: W79..W82 是 ch0 束; 本代陈旧时在**读数旁边**打 stale=1 (不是只在段首提示)
+  if [ "$i" -ge 79 ] && [ "$i" -le 82 ] && [ "$SNAP_STALE" -eq 1 ]; then
+    echo "      [WARN] W$i stale=1 (SNAP_STATUS[7]=1): 本代 ch0 束缺失/陈旧, 该字是上一代/复位值"
+  fi
 done
+# ⭐ P1FIX: ch0 束的"本代有效性"判定 (不是新增几何判据, 是 P1 观测面的安全语义)
+if [ "$SNAP_STALE" -eq 0 ]; then
+  echo "  [PASS] 5.-1 SNAP_STATUS[7]=0: ch0 束 (W79..W82) 属于本代"; PASS=$((PASS+1))
+else
+  echo "  [FAIL] 5.-1 SNAP_STATUS[7]=1: ch0 束本代缺失/陈旧 ⇒ W79..W82 不可信 (读数已按 stale=1 标注; 先查 ch0 rx_clk_out_0 是否停钟/超时)"; FAIL=$((FAIL+1))
+fi
 # ⚠️ 窗口内**不允许**出现 0xffffffff: 译码是连续实现的 (word 8..8+NW-1) ⇒ 窗口内的 F 只可能是
 #    "SLVERR 混进窗口" (= 读没成功), **不是数据**。漏了这条, "全 F" 会被当成合法读数流下去。
 NFF=$(for (( i = 0; i < SNAP_WORDS; i++ )); do [ "${W[$i]}" = "0xffffffff" ] && echo x; done | wc -l)

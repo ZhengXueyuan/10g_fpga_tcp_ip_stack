@@ -60,6 +60,11 @@ set -u
 #   0x14 RO MARKER       0xDEADBEEF          <- 判据2 地址译码
 #   0x18 WO SNAP_CTRL    写 bit0=1 触发快照
 #   0x1C RO SNAP_STATUS  [31:16]gen [2]seen [1]done [0]busy     <- gen 自证用
+#        ⭐ P11 P1 (2026-10-18 P1FIX): 置 0x2B (83 字) 位流时多一位
+#           **bit7 = ch0_snap_to** = "本代 ch0 束缺失/陈旧" ⇒ 置 1 时 W79..W82 是
+#           上一代/复位值, 不可当本代读数。本脚本是 36 字历史口径, 不读 W79..W82;
+#           若拿它对着 P1 位流跑, 引用 ch0 字必须另用 p7b_snap.sh / p6e_snap_check.sh
+#           并带 `ch0_stale=0` 见证 (本脚本仅打印 bit7 解码)。
 #   0x20..0xAC RO SNAP_W0..W35  (P6b+F4 36 字; 全部含义见 agent_docs/P6E_OBS.md 一表)
 #     判据5/6 用到的字: W0 0x20 MAC收帧 / W1 0x24 MAC收字节 / W3 0x2C FCS错 /
 #                       W5 0x34 gmii_free / W6 0x38 交慢路径 / W7 0x3C HLS发帧 /
@@ -146,13 +151,19 @@ el(){ awk -v a="$1" -v b="$2" 'BEGIN{printf "%.6f", b-a}'; }
 #   且没有第二个写者"。⚠️ done 是 sticky 的: 不发这条守卫的话, 并发读者会互相污染 ——
 #   症状是"计数冻结在某个值而别的字仍在变", 单看日志看不出 (2026-09-29 实测踩过, 那次探针的
 #   计数读数因此全部作废)。**这段逻辑是被实证逼出来的, 别简化。**
-snap(){ local g0 g1 s i
+snap(){ local g0 g1 s i st
         g0=$(rd 0x1c) || return 1; g0=$(( (g0 >> 16) & 0xffff ))
         wr 0x18 0x1
         for i in $(seq 1 100); do s=$(rd 0x1c) || continue
             [ $(( s & 2 )) -ne 0 ] && break; sleep 0.01; done
-        g1=$(rd 0x1c) || return 1; g1=$(( (g1 >> 16) & 0xffff ))
+        st=$(rd 0x1c) || return 1; g1=$(( (st >> 16) & 0xffff ))
+        # ⭐ P11 P1 (2026-10-18 P1FIX): bit7 = ch0_snap_to (本代 ch0 束缺失/陈旧)。
+        #   本脚本不读 W79..W82 (36 字历史口径), 但必须把位解码出来 —— 否则拿它
+        #   对着 P1 位流跑时, 用户看不到"ch0 束陈旧"这件事。
+        SNAP_STALE=$(( (st >> 7) & 1 ))
+        [ "$SNAP_STALE" -eq 0 ] || echo "  [WARN] SNAP_STATUS[7]=1 (ch0_snap_to): 本代 ch0 束缺失/陈旧; W79..W82 (若读) 是上一代/复位值"
         [ $(( (g1 - g0) & 0xffff )) -eq 1 ]; }
+SNAP_STALE=0
 # readall(): 读全 **READ_NW 个已实现**的字 (地址 = 0x20 + 4*i, 由 READ_NW 派生); 任一读空 ⇒ 整轮作废
 #   (返回非零), 别让空读伪装成 0。⚠️ 不要在这里顺带读窗口以上的地址: 未实现时它们合法地回
 #   0xffffffff, 混进来会污染整个数组 (新字一律走 rd_new)。

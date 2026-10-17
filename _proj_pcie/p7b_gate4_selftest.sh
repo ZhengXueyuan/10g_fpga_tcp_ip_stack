@@ -220,7 +220,7 @@ case "\$A" in
   0X10) V=0x00000018;;
   0X14) V=0xdeadbeef;;
   0X18) V=0x00000000;;
-  0X1C) V=\$(awk -v g="\$(cat "$GENC")" 'BEGIN{printf "0x%08x", g*65536+2}');;
+  0X1C) V=\$(awk -v g="\$(cat "$GENC")" -v st="\${FAKE_STALE:-0}" 'BEGIN{printf "0x%08x", g*65536+2+st*128}');;
   0X20) V=1000;; 0X24) V=1518000;; 0X28) V=1518;; 0X2C) V=0;; 0X30) V=0;;
   0X34) V=\$(awk -v t="\$T" 'BEGIN{printf "0x%08x", int(t*125000000)%4294967296}');;
   0X38) V=998;; 0X3C) V=998;; 0X40) V=0;; 0X44) V=0;; 0X48) V=0;; 0X4C) V=0;;
@@ -295,6 +295,8 @@ rc=$?
 ckn "正例 6.1 不得 FAIL" "[FAIL] 6.1" "$W/good.log"
 ckc "正例 6.1 PASS"  "[PASS] 6.1" "$W/good.log"
 ckc "正例 汇总 0 FAIL" "FAIL=0" "$W/good.log"
+# ⭐ P11 P1FIX (FINDINGS 高-2): bit7=0 时 5.-1 必须 PASS (否则新判据是恒红)
+ckc "正例 5.-1 ch0 束本代 PASS" "[PASS] 5.-1" "$W/good.log"
 ck  "正例退出码" "$rc" "0"
 ckre "正例读过末字地址 $LAST_A" "^$LAST_A$" "$W/addrlog_good.txt"
 ckre "正例读过未实现地址 $UNIMPL_A" "^$UNIMPL_A$" "$W/addrlog_good.txt"
@@ -315,6 +317,16 @@ FAKE_ADDRLOG=$W/addrlog_wide.txt FAKE_UNIMPL=0x12345678 PATH="$BIN:$PATH" bash "
 rc2=$?
 ckc "负对照 6.1 FAIL" "[FAIL] 6.1" "$W/wide.log"
 ck  "负对照退出码非 0" "$([ "$rc2" -ne 0 ] && echo OK)" "OK"
+
+# ⭐ P11 P1FIX (FINDINGS 高-2): 构造性负对照 —— 假板子把 SNAP_STATUS[7] 置 1。
+#   期望: 工具在 W79..W82 旁报 stale=1 告警 + 5.-1 FAIL + 退出码非 0。
+echo "— 负对照: SNAP_STATUS[7]=1 (ch0 束本代陈旧) (期望: 5.-1 FAIL + stale 告警 + 退出码非 0) —"
+FAKE_ADDRLOG=$W/addrlog_stale.txt FAKE_UNIMPL=0xffffffff FAKE_STALE=1 PATH="$BIN:$PATH" bash "$SRC" > "$W/stale.log" 2>&1
+rc3=$?
+ckc "负对照 stale 5.-1 FAIL" "[FAIL] 5.-1" "$W/stale.log"
+ckc "负对照 stale 告警行" "SNAP_STATUS[7]=1" "$W/stale.log"
+ckc "负对照 stale W79 旁告警" "W79 stale=1" "$W/stale.log"
+ck  "负对照 stale 退出码非 0" "$([ "$rc3" -ne 0 ] && echo OK)" "OK"
 
 echo
 echo "########## 自证汇总: OK=$N_OK BAD=$N_BAD ##########"

@@ -1738,3 +1738,14 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - **审查总评**：**可进入构建 0x2B**（RTL 主体/结构/几何无阻断；ch0 tap 只读、超时/几何有源码+日志支持），但读侧高 2 项须在板级前修。
 - **TL 决策（自主推进）**：**先派 P1 修复轮**（高 2 + 中 1/2/3/4/5/6 + 低项 + REPORT 订正 + 门补），跑门后抽核提交，**再构建 0x2B**。
 - 审查队列已追加本审查件（待报送）。
+
+## §10-128 2026-10-18 05:0x：**P1 修复轮收口**（高 2/2、中 7/7、低 9/9）—— 门全绿：`check_window` **108/0 RC=0**（负控 3/3 有牙）、矩阵 **21/21 FROZEN（308 文件）**、G1 **161/0**、G4 **29/0**、G5 **7/7**（含构建组合 `SFP2_MODE_A` + 两条硬门期望失败）、读侧 bit7 负控 **19/0**；**RTL 功能零改动**（wrapper 仅 2/1 注释；axi_regs/stub 未动）
+- **高-1**：`check_window.py` 判据 3 加 `SNAP_CH0_NW=4`、5a 顶端 4 项 `ch0snap_dout[3..0]`、5c 三种映射（W51..W75 / W76..W78 ch0 PCS / W79..W82 ch0 束槽 0..3）、判据 4 改**冻结锚** `FROZEN_2A_ITEMS`；注册矩阵**第 21 门 `biz_win`**（含 3 个 checker 负控 + `tb_biz_win`）+ 指纹 globs。
+- **高-2**：`p7b_snap.sh`/`p6e_snap_check.sh`/`p7b_gate4_accept.sh`/`p6b_accept.sh` 全部解析/打印 **`SNAP_STATUS[7]`**，W79..W82 旁 `stale=1` 告警；`p7b_snap.sh` 打 ch0 字且 stale ⇒ 退出码 3；两个 selftest 新增 `FAKE_STALE=1` 负控（19/0）；`P7B_BIZ_WINDOW.md` 增 §1b；**自查抓到并修掉 `trig()` 先取 gen 再解 bit7 的错位（原始 STATUS 存 `st1`）**。
+- **中-3**：新增 4 条 ch0 臂全 PASS（`d_ferr=41 · d_bad=21 · d_errv=20 · ferr 饱和 0xFF · vcc Δ=52`）。**与 FINDINGS 描述不符并已如实登记**：W77 的 bad 计数器实际吃 `bad_code`（level），不是 `bad_code_valid`（后者只进 W76[10]）—— 首版强制 `bcode_v_0` 得 Δ=0，诊断后改用 `bcode_0`。
+- **中-6**：`run_elab_4combo.bat` 扩为 **7 combos**（c5 = 构建实际 `-d SFP2_MODE_A` OK；c6 `A+B` / c7 `B` 期望失败且签名逐字命中 `SFP2_MODE_A_AND_B_CONFLICT` / `SFP2_MODE_B_REQUIRES_P7B_10G`）。**工具坑**：xvlog 定义语法是 `-d NAME`，`-d NAME=VALUE` 会把 `1` 当文件（`Can not find file: 1`）。
+- **中-4/5、低-7**：DESIGN_v5 **v5.1**（S-1/S-5 改"绝对值 0 为主判据、Δ 副证"；S-4 改 ≥1 + 记录实际值 + LOS 去抖；§10.3 增 **B4** 与 **B3 后失败 ⇒ abort-to-P0** + DP 定向观察点；§13 登记 MAC 单 `term_pend` 多裸 SOP 的 2 实例与 `vlan_strip` 重同步依据；§2.3 按计数器增量率写回卷；§15 变更表）。
+- **残余/未测**：① `unit_vlan` 矩阵 Run 1 **瞬态**（TB 逐字 PASS 但 `xsim.bat` 非零；单跑 EXIT=0；**机理未定位**，未归因本刀；Run 2 全绿且 content digest 与 Run 1 相同）；② 3 条 ch0 新臂无 `P7B_MUT` 变异证明；③ ch0 tap 内容/字节序未验；④ 超时精确时长（4095 拍）未测；⑤ `p7b_snap.sh` stale 分支仅 `bash -n`（行为由假板负控覆盖，不等价）；⑥ 构建/板级/HLS/乙/BER 未测。
+- **TL 抽核**：`check_window.py` 实跑 **PASS=108 / FAIL=0 / RC=0**；矩阵 **21/21 FROZEN（308 文件）**、`gates failed 0`、digest `3f3ba871…e4869`；G1 **161/0 PASS**；G4 **29/0 PASS**；`p7b_snap.sh` 含 bit7/stale 与 `st1` 修正；wrapper diff 仅 **2/1**（注释）；无 Vivado 运行。
+- **构建前置（已更新）**：`SFP2_MODE_A=1` 已被 G5 c5 elaborate 覆盖；矩阵 21 门；**读 W79..W82 前必须核 `SNAP_STATUS[7]=0`**；G1 检查数 142 → **161**；backstop = **B1 删 W77（82/`0x178`）→ B2 删 W79..W82 + ch0 MAC（79/`0x16C`）→ B3 P1-min（78/`0x168`）→ B4（W76 只留 blk/hi_ber + W78 只留 LOS 电平）→ 仍失败 ⇒ abort-to-P0**。
+- **下一棒**：**构建 0x2B（已派）** → 板级 P1。

@@ -1,5 +1,10 @@
 # P11/P1 G1 chain gate (P7B_10G+PCIE_OBS+DP_156MHZ+APP_MODE+UDP_TX_OVL+TCP_TX_OVL+P7B_SIM_NOPCS)
 # run 2026-10-18 01:5x +0800 marker P1IMPL-G1-20261018
+# ⚠️ 2026-10-18 P1FIX (FINDINGS 低-1): 本件是**摘录**。全文 (142 checks = 132 named + 10 snap_take)
+#   已从 ignored workdir 归档到
+#   _proj_10g/notes/p9_dual_sfp_p1_fix_20261018/gates/G1_chain_2B_full_archived.txt
+#   (sha256 38fda53f1829027ed109578c07fed3875d4e9a70c680363ca742ae86c7ac7c90)。
+#   修复轮重跑后的现役读数 = 161 checks / 0 fail（见 fix 轮 FIX_REPORT + G1_chain_2B_fix_full.txt）。
 PASS=132 FAIL=0
   [G DIAG] bare_sop_n=0 open_end=0 last_open_t=355946000
   [G DIAG] SOP n=55 bad=0 | TLAST n=53 | TERM n=2 bad=0 | tuple: d=0000000000000000 k=00 l=1 u=0 c=0 e=1

@@ -3,6 +3,12 @@
 // tb_p7b_chain.v -- P7b **真 wrapper 全链门** (工程坑 8: 每个 ifdef 构建配置都要有
 //   一条例化真 wrapper 的全链门; 子模块 TB 对 ifdef 里的接线错完全隐身)
 // ===========================================================================
+// ⛔ 2026-10-18 (P1FIX / FINDINGS low-6): **本文件是历史副本，不是现役门。**
+//   P11 P1 把 `board/p7b_pcs_stub.v` 的 status 拆成了 `*_0` / `*_1` 两套，本文件里
+//   的 `force u_dut.u_pcs.blk_lock` / `u_dut.u_pcs.hi_ber`（见下方 DIAG7 段）**旧名已失效**
+//   ⇒ 直接拿本文件跑会 elaboration/force 失败。现役门 = `_proj_10g/p7b_chain/sim/tb_p7b_chain.v`
+//   （用 `blk_lock_0/1`、`hi_ber_0/1`）。本文件仅作历史证据保留，**不许**当门引用。
+// ===========================================================================
 // 被测 = `wrapper_p4` 在 P7B_10G + P7B_SIM_NOPCS + PCIE_OBS + DEV_USP + APP_MODE
 //        + DP_156MHZ + P6B_SIM_CLKGEN 下的**真实例化**。
 //

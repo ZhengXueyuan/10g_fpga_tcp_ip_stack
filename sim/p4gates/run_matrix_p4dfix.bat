@@ -248,6 +248,17 @@ REM   The other wrapper gate (p5_wrapper) compiles -d APP_MODE only and cannot
 REM   see anything inside `ifdef P7B_10G` / `ifdef PCIE_OBS`.
 REM   HLS netlist is passed as a generated -f list; see p7bchain_src.f header.
 call :gate p7b_chain   _proj_10g\p7b_chain\sim\run_tb_p7b_chain.bat p7bchain_src.f -                     -
+REM ---- biz_win (registered 2026-10-18; P11 P1 fix round / FINDINGS high-1) ---
+REM   The snapshot-window verification layer used to live entirely OUTSIDE the
+REM   matrix: `check_window.py` (static assembly check of snap_dout_all) was RED
+REM   (RC=1 / 9 FAIL) and `tb_biz_win` (axi_regs address <-> word readback) was
+REM   not run in this round. This gate runs BOTH:
+REM     A. check_window.py positive (RC=0 / CHECK_WINDOW_PASS) + THREE mutation
+REM        negative controls (--mutate drop|swap|declpatho) that MUST return RC=1
+REM        (a checker that cannot go red is a toothless checker).
+REM     B. run_tb_biz_win.bat -> TB_BIZ_WIN_PASS (NW=83 per-word readback).
+REM   See _proj_10g/notes/p7b_biz_win/run_gate_biz_win_check.bat header.
+call :gate biz_win     _proj_10g\notes\p7b_biz_win\run_gate_biz_win_check.bat bizwinsrc.f -                  -
 
 call :log "--- revision fingerprint (after) ---"
 "%PY%" "%P4GATE_PY%" fingerprint --root "%REPO_ROOT%" --out "%FP_AFTER%" --label after >>"%MATRIX_LOG%" 2>&1

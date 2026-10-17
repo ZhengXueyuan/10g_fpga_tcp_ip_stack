@@ -1,0 +1,307 @@
+==== P4 DEFAULT-BUILD REGRESSION MATRIX (21 gates) ====
+started     : 2026/10/18 ����  3:29:59.06
+repo root   : D:\repo\XCKU5PMini\udp_hls_10g
+root source : D:\repo\XCKU5PMini\udp_hls_10g  (derived from this script's own location)
+run mode    : isolated
+work root   : D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\work_20261018_032959
+matrix log  : D:\repo\XCKU5PMini\udp_hls_10g\sim\p4sim\matrix_p4dfix.log
+gate list   : the 21 'call :gate' rows in run_matrix_p4dfix.bat (declared once)
+gate filter : (none -- all 21)
+guard       : checkpaths + manifestcheck before, scanlog after each gate
+note        : gates unit_retx / unit_fifo exit 0 unconditionally (their
+              .bat ends in 'type xsim*.log') -- read their console tail.
+note        : unit_uart is NOT one of them any more (P7B 2026-09-29): it prints
+              its verdict line and exits non-zero on FAIL:.
+--- revision fingerprint (before) ---
+[P4GATE] fingerprint written: D:\repo\XCKU5PMini\udp_hls_10g\sim\p4sim\P4_MATRIX_FINGERPRINT_20261018_032959_before.txt
+DIGEST_COMPILE = c24d6517dab5889c624a93cb8d96639be11b256125d880593ddca5128d429219
+FILES_COMPILE  = 241
+DIGEST_ALL     = 4af1b9cd9948dca8c2edca6b90575922afab1e4d064bba5f81a44530daa46acd
+FILES_ALL      = 308
+GIT_HEAD       = 4ff38912
+--- gates ---
+=== GATE chain : sim\p4sim\run_tb_p4_chain.bat    [env ]   [cwd D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\work_20261018_032959\chain]
+[P4GUARD OK] checkpaths: 22 paths inside d:\repo\xcku5pmini\udp_hls_10g
+[P4GUARD OK] manifestcheck run_tb_p4_chain.bat: 20 files == manifest D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\chain_src.f
+[P4GUARD OK] scanlog: 6 files, 235 path tokens, 0 outside the repo
+EXIT=0
+--- last 6 lines of _gate_console.log
+| [P4GUARD OK] root=d:\repo\xcku5pmini\udp_hls_10g self=d:\repo\xcku5pmini\udp_hls_10g manifests=9
+| 9 RX frames
+| memh written
+| 9 RX frames
+| frames RX=9 TX=11 (fast=6 slow=5)  STRIPPED=0 (期望 0, VLAN OFF)
+| P4 CHAIN OK
+---
+=== GATE burst200 : sim\p4sim\run_tb_p4_burst.bat 200   [env ]   [cwd D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\work_20261018_032959\burst200]
+[P4GUARD OK] checkpaths: 22 paths inside d:\repo\xcku5pmini\udp_hls_10g
+[P4GUARD OK] manifestcheck run_tb_p4_burst.bat: 20 files == manifest D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\chain_src.f
+[P4GUARD OK] scanlog: 6 files, 235 path tokens, 0 outside the repo
+EXIT=0
+--- last 6 lines of _gate_console.log
+| STATS_ECO (203, 0)
+| STATS_MAC (mac_frames,abort,eend) (411, 0, 0)
+| TCBF (293016, 305711913, 305711913, 49152, 65535, 1, 97, 920, 920, 6144, 16384, 1)
+| TRUNCS (0, 0)  ECOMAX 182 (注入 at=0 len=8; ECOMAX 上限 182 词)
+| STRIPPED 0 (期望 0, VLAN 注入 OFF)
+| BURST OK
+---
+=== GATE trunc50 : sim\p4sim\run_tb_p4_burst.bat 200   [env TRUNC=50;TRUNCM=8]   [cwd D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\work_20261018_032959\trunc50]
+[P4GUARD OK] checkpaths: 22 paths inside d:\repo\xcku5pmini\udp_hls_10g
+[P4GUARD OK] manifestcheck run_tb_p4_burst.bat: 20 files == manifest D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\chain_src.f
+[P4GUARD OK] scanlog: 6 files, 235 path tokens, 0 outside the repo
+EXIT=0
+--- last 6 lines of _gate_console.log
+| STATS_ECO (203, 0)
+| STATS_MAC (mac_frames,abort,eend) (411, 0, 0)
+| TCBF (293016, 305711913, 305711913, 49152, 65535, 1, 97, 920, 920, 6144, 16384, 1)
+| TRUNCS (0, 0)  ECOMAX 182 (注入 at=0 len=8; ECOMAX 上限 182 词)
+| STRIPPED 0 (期望 0, VLAN 注入 OFF)
+| BURST OK
+---
+=== GATE trunc100 : sim\p4sim\run_tb_p4_burst.bat 200   [env TRUNC=100;TRUNCM=8]   [cwd D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\work_20261018_032959\trunc100]
+[P4GUARD OK] checkpaths: 22 paths inside d:\repo\xcku5pmini\udp_hls_10g
+[P4GUARD OK] manifestcheck run_tb_p4_burst.bat: 20 files == manifest D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\chain_src.f
+[P4GUARD OK] scanlog: 6 files, 235 path tokens, 0 outside the repo
+EXIT=0
+--- last 6 lines of _gate_console.log
+| STATS_ECO (203, 0)
+| STATS_MAC (mac_frames,abort,eend) (411, 0, 0)
+| TCBF (293016, 305711913, 305711913, 49152, 65535, 1, 97, 920, 920, 6144, 16384, 1)
+| TRUNCS (0, 0)  ECOMAX 182 (注入 at=0 len=8; ECOMAX 上限 182 词)
+| STRIPPED 0 (期望 0, VLAN 注入 OFF)
+| BURST OK
+---
+=== GATE halfdrop : sim\p4sim\run_tb_p4_burst.bat 200   [env HALFDROP=100;HALFDROPK=990]   [cwd D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\work_20261018_032959\halfdrop]
+[P4GUARD OK] checkpaths: 22 paths inside d:\repo\xcku5pmini\udp_hls_10g
+[P4GUARD OK] manifestcheck run_tb_p4_burst.bat: 20 files == manifest D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\chain_src.f
+[P4GUARD OK] scanlog: 6 files, 235 path tokens, 0 outside the repo
+EXIT=0
+--- last 6 lines of _gate_console.log
+| STATS_ECO (203, 0)
+| STATS_MAC (mac_frames,abort,eend) (411, 0, 0)
+| TCBF (293016, 305711913, 305711913, 49152, 65535, 1, 97, 920, 920, 6144, 16384, 1)
+| TRUNCS (0, 0)  ECOMAX 182 (注入 at=0 len=8; ECOMAX 上限 182 词)
+| STRIPPED 0 (期望 0, VLAN 注入 OFF)
+| BURST OK
+---
+=== GATE txdrop50 : sim\p4sim\run_tb_p4_burst.bat 200 -1 0 4000 0 0 50   [env ]   [cwd D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\work_20261018_032959\txdrop50]
+[P4GUARD OK] checkpaths: 22 paths inside d:\repo\xcku5pmini\udp_hls_10g
+[P4GUARD OK] manifestcheck run_tb_p4_burst.bat: 20 files == manifest D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\chain_src.f
+[P4GUARD OK] scanlog: 6 files, 235 path tokens, 0 outside the repo
+EXIT=0
+--- last 6 lines of _gate_console.log
+| STATS_ECO (203, 0)
+| STATS_MAC (mac_frames,abort,eend) (416, 0, 0)
+| TCBF (293016, 305711913, 305711913, 49152, 65535, 1, 97, 920, 920, 6144, 16384, 1)
+| TRUNCS (0, 0)  ECOMAX 182 (注入 at=0 len=8; ECOMAX 上限 182 词)
+| STRIPPED 0 (期望 0, VLAN 注入 OFF)
+| BURST OK
+---
+=== GATE gate4096 : sim\p4sim\run_tb_p4_burst.bat 200 -1 0 10   [env ]   [cwd D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\work_20261018_032959\gate4096]
+[P4GUARD OK] checkpaths: 22 paths inside d:\repo\xcku5pmini\udp_hls_10g
+[P4GUARD OK] manifestcheck run_tb_p4_burst.bat: 20 files == manifest D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\chain_src.f
+[P4GUARD OK] scanlog: 6 files, 235 path tokens, 0 outside the repo
+EXIT=0
+--- last 6 lines of _gate_console.log
+| STATS_ECO (203, 0)
+| STATS_MAC (mac_frames,abort,eend) (411, 0, 0)
+| TCBF (293016, 305711913, 305711913, 49152, 4096, 1, 97, 920, 920, 6144, 16384, 1)
+| TRUNCS (0, 0)  ECOMAX 182 (注入 at=0 len=8; ECOMAX 上限 182 词)
+| STRIPPED 0 (期望 0, VLAN 注入 OFF)
+| BURST OK
+---
+=== GATE dupstorm : sim\p4sim\run_tb_p4_burst.bat 200 0 0 4000 608 dup   [env ]   [cwd D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\work_20261018_032959\dupstorm]
+[P4GUARD OK] checkpaths: 22 paths inside d:\repo\xcku5pmini\udp_hls_10g
+[P4GUARD OK] manifestcheck run_tb_p4_burst.bat: 20 files == manifest D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\chain_src.f
+[P4GUARD OK] scanlog: 6 files, 235 path tokens, 0 outside the repo
+EXIT=0
+--- last 6 lines of _gate_console.log
+| STATS_ECO (203, 0)
+| STATS_MAC (mac_frames,abort,eend) (455, 0, 0)
+| TCBF (274272, 305693169, 305693169, 49152, 65535, 1, 97, 920, 920, 6144, 16384, 1)
+| TRUNCS (0, 0)  ECOMAX 182 (注入 at=0 len=8; ECOMAX 上限 182 词)
+| STRIPPED 0 (期望 0, VLAN 注入 OFF)
+| BURST OK
+---
+=== GATE pcackoob : sim\p4sim\run_tb_p4_burst.bat 200   [env PCACKOOB=1]   [cwd D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\work_20261018_032959\pcackoob]
+[P4GUARD OK] checkpaths: 22 paths inside d:\repo\xcku5pmini\udp_hls_10g
+[P4GUARD OK] manifestcheck run_tb_p4_burst.bat: 20 files == manifest D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\chain_src.f
+[P4GUARD OK] scanlog: 6 files, 235 path tokens, 0 outside the repo
+EXIT=0
+--- last 6 lines of _gate_console.log
+| STATS_ECO (203, 0)
+| STATS_MAC (mac_frames,abort,eend) (411, 0, 0)
+| TCBF (293016, 305711913, 305711913, 49152, 65535, 1, 97, 920, 920, 6144, 16384, 1)
+| TRUNCS (0, 0)  ECOMAX 182 (注入 at=0 len=8; ECOMAX 上限 182 词)
+| STRIPPED 0 (期望 0, VLAN 注入 OFF)
+| BURST OK
+---
+=== GATE vlanchain : sim\p4sim\run_tb_p4_chain_vlan.bat    [env ]   [cwd D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\work_20261018_032959\vlanchain]
+[P4GUARD OK] checkpaths: 22 paths inside d:\repo\xcku5pmini\udp_hls_10g
+[P4GUARD OK] manifestcheck run_tb_p4_chain_vlan.bat: 20 files == manifest D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\chain_src.f
+[P4GUARD OK] scanlog: 6 files, 235 path tokens, 0 outside the repo
+EXIT=0
+--- last 6 lines of _gate_console.log
+| 9 RX frames
+| memh written
+| VLAN 注入: conn0 数据帧 (data7a/data7b/burst) 加单层 802.1Q tag (TPID 0x8100 + TCI 0)
+| 9 RX frames
+| frames RX=9 TX=11 (fast=6 slow=5)  STRIPPED=2 (期望 2, VLAN ON)
+| P4 CHAIN OK
+---
+=== GATE vlanburst : sim\p4sim\run_tb_p4_burst_vlan.bat 200   [env ]   [cwd D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\work_20261018_032959\vlanburst]
+[P4GUARD OK] checkpaths: 22 paths inside d:\repo\xcku5pmini\udp_hls_10g
+[P4GUARD OK] manifestcheck run_tb_p4_burst_vlan.bat: 20 files == manifest D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\chain_src.f
+[P4GUARD OK] scanlog: 6 files, 235 path tokens, 0 outside the repo
+EXIT=0
+--- last 6 lines of _gate_console.log
+| STATS_ECO (203, 0)
+| STATS_MAC (mac_frames,abort,eend) (411, 0, 0)
+| TCBF (293016, 305711913, 305711913, 49152, 65535, 1, 97, 920, 920, 6144, 16384, 1)
+| TRUNCS (0, 0)  ECOMAX 182 (注入 at=0 len=8; ECOMAX 上限 182 词)
+| STRIPPED 202 (期望 202, VLAN 注入 ON)
+| BURST OK
+---
+=== GATE stallgate : sim\p4sim\run_tb_p4_chain_stall.bat    [env ]   [cwd D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\work_20261018_032959\stallgate]
+[P4GUARD OK] checkpaths: 22 paths inside d:\repo\xcku5pmini\udp_hls_10g
+[P4GUARD OK] manifestcheck run_tb_p4_chain_stall.bat: 20 files == manifest D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\chain_src.f
+[P4GUARD OK] scanlog: 6 files, 235 path tokens, 0 outside the repo
+EXIT=0
+--- last 6 lines of _gate_console.log
+| memh written
+| 210 RX frames
+| PCSTALL 参数: 阈值=49150 延迟=300 (pcstall.memh); TB 实读 阈值=49150 延迟=300
+| PCSTALL 停发拍=141623 会话起点=203649 注入拍=205110 高水位=1235EB75 (停发时 12351871); 注入拍 snd_nxt=123512BD snd_una=123512BD
+| PCSTALL 终态 snd_nxt=12369C41 snd_una=1235EB75 回卷会话数=3; 停摆后新数据帧 129 (TB 计数 129); 首帧 seq=1235EB75 plen=1460
+| PCSTALL OK (burst=200, echo 帧 240)
+---
+=== GATE unit_retx : sim\retxsim\run_retx_tb.bat    [env ]   [cwd D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\work_20261018_032959\unit_retx]
+[P4GUARD OK] checkpaths: 4 paths inside d:\repo\xcku5pmini\udp_hls_10g
+[P4GUARD OK] manifestcheck run_retx_tb.bat: 2 files == manifest D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\retx_src.f
+[P4GUARD OK] scanlog: 5 files, 15 path tokens, 0 outside the repo
+EXIT=0
+--- last 6 lines of _gate_console.log
+| GRP F (reset consistency)          : PASS
+| GRP G (streaming back-to-back reads): PASS
+| ALL 7 GROUPS PASS
+| $finish called at time : 111486 ns : File "D:/repo/XCKU5PMini/udp_hls_10g/tb/tb_retx_ram.v" Line 251
+| exit
+| INFO: [Common 17-206] Exiting xsim at Sun Oct 18 03:53:01 2026...
+---
+=== GATE unit_fifo : sim\retxsim2\run_tb_frame_fifo.bat D:\repo\XCKU5PMini\udp_hls_10g\rtl\frame_fifo.v   [env ]   [cwd D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\work_20261018_032959\unit_fifo]
+[P4GUARD OK] checkpaths: 3 paths inside d:\repo\xcku5pmini\udp_hls_10g
+[P4GUARD OK] manifestcheck run_tb_frame_fifo.bat: 1 files == manifest D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\fifo_src.f
+[P4GUARD OK] scanlog: 5 files, 17 path tokens, 0 outside the repo
+EXIT=0
+--- last 6 lines of _gate_console.log
+| PASS_ALL  frame_fifo unit: writes A=568139 B=595715 C=616302 pops A=567224 B=591216 C=611802 cycles=750700
+| $finish called at time : 7506997 ns : File "D:/repo/XCKU5PMini/udp_hls_10g/tb/tb_frame_fifo.v" Line 488
+| run: Time (s): cpu = 00:00:01 ; elapsed = 00:02:42 . Memory (MB): peak = 227.598 ; gain = 0.000
+| exit
+| INFO: xsimkernel Simulation Memory Usage: 18336 KB (Peak: 18336 KB), Simulation CPU Usage: 161390 ms
+| INFO: [Common 17-206] Exiting xsim at Sun Oct 18 03:55:57 2026...
+---
+=== GATE unit_vlan : sim\vlansim\run_tb_vlan_strip.bat    [env ]   [cwd D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\work_20261018_032959\unit_vlan]
+[P4GUARD OK] checkpaths: 4 paths inside d:\repo\xcku5pmini\udp_hls_10g
+[P4GUARD OK] manifestcheck run_tb_vlan_strip.bat: 2 files == manifest D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\vlan_src.f
+[P4GUARD OK] scanlog: 5 files, 11 path tokens, 0 outside the repo
+EXIT=0
+--- last 2 lines of _gate_console.log
+| [P4GUARD OK] root=d:\repo\xcku5pmini\udp_hls_10g self=d:\repo\xcku5pmini\udp_hls_10g manifests=9
+| VLAN_STRIP TB PASS (in=1595 words, out=1502 words, vlan frames=66, stripped=66)
+---
+=== GATE unit_uart : sim\tbgate\run_tb_uart_dbg.bat    [env ]   [cwd D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\work_20261018_032959\unit_uart]
+[P4GUARD OK] checkpaths: 4 paths inside d:\repo\xcku5pmini\udp_hls_10g
+[P4GUARD OK] manifestcheck run_tb_uart_dbg.bat: 2 files == manifest D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\uart_src.f
+[P4GUARD OK] scanlog: 5 files, 15 path tokens, 0 outside the repo
+EXIT=0
+--- last 6 lines of _gate_console.log
+| L6 突发后空线 79243 拍
+| ALL_OK
+| $finish called at time : 32387788 ns : File "D:/repo/XCKU5PMini/udp_hls_10g/tb/tb_uart_dbg.v" Line 661
+| exit
+| INFO: [Common 17-206] Exiting xsim at Sun Oct 18 03:56:19 2026...
+| UART-GATE-OK
+---
+=== GATE p5_wrapper : sim\p5sim\run_tb_p5_wrapper.bat    [env ]   [cwd D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\work_20261018_032959\p5_wrapper]
+[P4GUARD OK] checkpaths: 33 paths inside d:\repo\xcku5pmini\udp_hls_10g
+[P4GUARD OK] manifestcheck run_tb_p5_wrapper.bat: 31 files == manifest D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\p5wrapper_src.f
+[P4GUARD OK] scanlog: 6 files, 247 path tokens, 0 outside the repo
+EXIT=0
+--- last 4 lines of _gate_console.log
+| [P4GUARD OK] root=d:\repo\xcku5pmini\udp_hls_10g self=d:\repo\xcku5pmini\udp_hls_10g manifests=9
+| wrapper GMII: 3 帧 (conn0 数据 3 / 其它 0 / 坏 FCS 0)
+| wrapper 图案: 3 帧 / 4380 B, 覆盖 [12345679, 12346795)
+| P5 WRAPPER OK (wrapper APP_MODE app-TX 通路端到端逐字节正确)
+---
+=== GATE f3_resync : sim\f3_resync\run_tb_f3_resync.bat    [env ]   [cwd D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\work_20261018_032959\f3_resync]
+[P4GUARD OK] checkpaths: 10 paths inside d:\repo\xcku5pmini\udp_hls_10g
+[P4GUARD OK] manifestcheck run_tb_f3_resync.bat: 8 files == manifest D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\f3resync_src.f
+[P4GUARD OK] scanlog: 1 files, 5 path tokens, 0 outside the repo
+EXIT=0
+--- last 6 lines of _gate_console.log
+| F3R WITNESS dp_rst_dp RISE at 3300000 (t0)
+| F3R WITNESS dp_rst_dp FALL at 15338000 (t1) stall_edges=0 (应=0) rstwin_edges=6 (应>0)
+| F3R SHAPE ndel=8 whole=8 frag=0 stale_frag=0 trunc_with_crs=0 unrec=0 srco_nz=0
+| F3R POP-ACCT pop_pre=32 pop_rst=0 pop_post=64 taken_all=96 taken_post=64 rsw=0 mirror=0
+| F3R CHK J1=1 J2=1 J3eq=1 J3pos=0 J4=1 J5=1 J6=1 ALL=1
+| F3-RESYNC-GATE: PASS 
+---
+=== GATE swc : sim\p9_swc_gate\run_tb_p9_swc.bat    [env ]   [cwd D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\work_20261018_032959\swc]
+[P4GUARD OK] checkpaths: 8 paths inside d:\repo\xcku5pmini\udp_hls_10g
+[P4GUARD OK] manifestcheck run_tb_p9_swc.bat: 6 files == manifest D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\swcg_src.f
+[P4GUARD OK] scanlog: 1 files, 11 path tokens, 0 outside the repo
+EXIT=0
+--- last 6 lines of _gate_console.log
+| RSRC=D:\repo\XCKU5PMini\udp_hls_10g\sim\p9_swc_gate\head_app_pattern.v DEFS=-d P9_HEAD_RTL -d P9_EXP_HEAD -d P7B_10G 
+| RSRC=D:\repo\XCKU5PMini\udp_hls_10g\rtl\app_pattern.v DEFS=-d P9_SWC_OFF -d P9_EXP_HEAD 
+| RSRC=D:\repo\XCKU5PMini\udp_hls_10g\sim\p9_swc_gate\mut\m6_v1_eq.v DEFS=-d P9_SWC_ARM -d P9_EXP_M6 
+| RSRC=D:\repo\XCKU5PMini\udp_hls_10g\sim\p9_swc_gate\mut\m6b_closing_drop.v DEFS=-d P9_SWC_ARM -d P9_EXP_M6B 
+| RSRC=D:\repo\XCKU5PMini\udp_hls_10g\sim\p9_swc_gate\mut\m7_guard_swpend.v DEFS=-d P9_SWC_ARM -d P9_EXP_M7 
+| P9-SWC-GATE: PASS 
+---
+=== GATE p7b_chain : _proj_10g\p7b_chain\sim\run_tb_p7b_chain.bat    [env ]   [cwd D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\work_20261018_032959\p7b_chain]
+[P4GUARD OK] checkpaths: 51 paths inside d:\repo\xcku5pmini\udp_hls_10g
+[P4GUARD OK] manifestcheck run_tb_p7b_chain.bat: 49 files == manifest D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\p7bchain_src.f
+[P4GUARD OK] scanlog: 6 files, 262 path tokens, 0 outside the repo
+EXIT=0
+--- last 6 lines of _gate_console.log
+|   [PASS] G3d lane4+F4 recovery byte-exact   src= lane4 frame after the F4 window
+|   [PASS] 1 every RX SOP word full-aligned   src=eep[7]=1) - never checked before
+|   [PASS] 2 no bare SOP outside F4 windows   src=xcept deliberate F4 drop windows
+|   [PASS] 1 TERM word present (nonvacuous)   src=contract mac_rx_10g.v:16
+|   [PASS] 4 TERM-2 TERM six-tuple verbatim   src=0,tlast=1,tuser=0,tcrs=0,terr=1}
+| VERDICT = PASS
+---
+=== GATE biz_win : _proj_10g\notes\p7b_biz_win\run_gate_biz_win_check.bat    [env ]   [cwd D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\work_20261018_032959\biz_win]
+[P4GUARD OK] checkpaths: 4 paths inside d:\repo\xcku5pmini\udp_hls_10g
+[P4GUARD OK] manifestcheck run_gate_biz_win_check.bat: 2 files == manifest D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\bizwinsrc.f
+[P4GUARD OK] scanlog: 10 files, 16 path tokens, 0 outside the repo
+EXIT=0
+--- last 6 lines of _gate_console.log
+| === A'. check_window.py --mutate declpatho : negative control, expect RC=1 ===
+| [NEGCTL OK] --mutate declpatho RC=1
+| ϵͳ�Ҳ���ָ�����ļ���
+| PASS_ALL  tb_biz_win: 40 项判据全过 (窗口 83 字)
+| TB_BIZ_WIN_PASS
+| BIZ_WIN_CHECK_PASS
+---
+--- revision fingerprint (after) ---
+[P4GATE] fingerprint written: D:\repo\XCKU5PMini\udp_hls_10g\sim\p4sim\P4_MATRIX_FINGERPRINT_20261018_032959_after.txt
+DIGEST_COMPILE = c24d6517dab5889c624a93cb8d96639be11b256125d880593ddca5128d429219
+FILES_COMPILE  = 241
+DIGEST_ALL     = 4af1b9cd9948dca8c2edca6b90575922afab1e4d064bba5f81a44530daa46acd
+FILES_ALL      = 308
+GIT_HEAD       = 4ff38912
+--- freeze check ---
+BEFORE  DIGEST_COMPILE=c24d6517dab5889c624a93cb8d96639be11b256125d880593ddca5128d429219  FILES=241  DIGEST_ALL=4af1b9cd9948dca8c2edca6b90575922afab1e4d064bba5f81a44530daa46acd  HEAD=4ff38912
+AFTER   DIGEST_COMPILE=c24d6517dab5889c624a93cb8d96639be11b256125d880593ddca5128d429219  FILES=241  DIGEST_ALL=4af1b9cd9948dca8c2edca6b90575922afab1e4d064bba5f81a44530daa46acd  HEAD=4ff38912
+VERDICT: FROZEN -- all 308 hashed files byte-identical across the run; this log is bound to revision DIGEST_ALL(content)=3f3ba871763654814d3f25c810afdb15f500882a9a4e1161d20e6fde3b2e4869
+NOTE: the stored DIGEST_ALL in these files was produced by the pre-content-v1 scheme (it included size/mtime): before=4af1b9cd9948dca8c2edca6b90575922afab1e4d064bba5f81a44530daa46acd after=4af1b9cd9948dca8c2edca6b90575922afab1e4d064bba5f81a44530daa46acd
+NOTE: the verdict is content identity only -- file mtimes are recorded as metadata but are not part of it.
+--- summary ---
+gate filter : (none -- all 21)
+gates run   : 21 / 21
+gates failed: 0
+MATRIX DONE 2026/10/18 ����  3:59:20.69

@@ -2,9 +2,22 @@
 
 > 命名裁定（用户 2026-10-18）：本阶段（双 SFP+ 双光口）命名为 **P11**；内部子阶段仍称 P0/P1/P2/P3。
 > 轮目录名 `p9_dual_sfp_p1_impl_20261018/` 保持不变（p9_* = 历史命名空间）。
+>
+> **v5.1 修订注（2026-10-18，P1FIX 轮 / FINDINGS 高 2 + 中 7 + 低 9）**：本文件按
+> `p9_review_p1_impl_20261018/FINDINGS.md` 做了**验证层与读数口径**修订 —— 新增
+> §10.3 的 abort-to-P0 / B4、§10.4 的绝对值为 0 主判据 / LOS 去抖、§13 的 MAC 单
+> `term_pend` 多裸 SOP 行为登记与 tx_ovl 覆盖口径；并补 v5.1 变更表（§15）。
+> ⛔ **RTL 主体（wrapper_p4 / axi_regs / p7b_pcs_stub 的功能）在 v5.1 未改动**；
+> 修改的只有 xsim TB（新增 3 条 ch0 行为臂）与门/读侧工具。文中“v5.1”标记 = 本轮新增/改写。
 
 - 日期：2026-10-18 · 角色 = **实施 agent**（本文件是施工依据；本轮不构建、不碰板/对端、不写 git）。
-- 基线：工作树 **0x2A**（`board/wrapper_p4.v` 现读：`BUILD_ID_V = 32'h0000002A` @`:4479`；`SNAP_NW_P6E = 76` @`:3394`；未实现地址 `0x160`）。
+- 基线：工作树 **0x2A**（`board/wrapper_p4.v` 现读：`BUILD_ID_V = 32'h0000002A`；`SNAP_NW_P6E = 76`；未实现地址 `0x160`）。
+  ⚠️ 行号锚点（low-2）：本文件里的 `:NNN` 一律是 **2026-10-18 提交时现读**的参考值，
+  **不保证**在后续树里仍指向同一行；施工/引用请优先用**符号名**（模块/instance/localparam/
+  assign 语句），需要行号时**现读**。P1 轮后已知漂移的例子：ch0 域别名在 `wrapper_p4.v`
+  的 `rx_core_clk_0`/`tx_fe_clk_0` assign 块（提交时 `:352-353`），装配段 `snap_dout_all`
+  在 `:4601` 起，`BUILD_ID_V` 在 `:4824` —— REPORT v1 里的 `:310/:4630/:4797` 是**笔误级漂移**，
+  已在本轮 REPORT 订正为符号引用。
   板上现役 = 0x2A（台账 §10-117；2026-10-17 19:17 已烧）。
 - 目标：P1-甲位流 **0x2B**（**83 字 / 未实现 `0x17C`**）；乙位流（0x2C）留到 P3。
 - 上位件：`p9_dual_sfp_p1_design_20261017/README_FOR_TL.md`（设计 v4.1）+ `p9_review_dual_sfp_p1_design_20261018/FINDINGS.md`（红队：阻断 0 / 高 7 / 中 20 / 低 10）。
@@ -87,7 +100,13 @@ ch0_rx = {tdata[63:0], tkeep[7:0], tuser, tlast, tcrs, terr}   // 76 bit AXIS, r
 - **口径警告（必须写进读侧/报告）**：
   - W81/W82 与 W79 **不是同一计数点**；`W79 + W81 + W82` **不是**“收到帧总数”（TERM 字/碎片会重复计）。
   - 对好帧：`W80 + 4×W79 = 线上字节（含 FCS）`；对端 NIC 的 `port_tx_bytes` 口径（前导/IFG/pad）**板级前现核**（FINDINGS E-6）。
-  - 32 位计数器 @156.25 MHz **27.487 s 回卷** ⇒ 差值判据必须 mod 2³² 且记原始值（全局 #55）。
+  - **回卷口径按“每个计数器自己的增量率”写**（v5.1 / FINDINGS 低-7）：
+    - `27.487 s` 是 **每拍 +1** 的计数器（W5/W24/W43 类，156.25 MHz）的回卷期，**不适用于 W79..W82**。
+    - **W80（好帧载荷字节）**：10 Gbps 线上量级 ⇒ `2³² / 1.25e9 ≈ 3.44 s`；1 Gbps ⇒ `≈34.4 s`。
+    - **W79（好帧数）**：满几何 809,578 fps ⇒ `2³² / 809578 ≈ 5305 s`（≈88 min）；低速图案流按实际 fps 现算。
+    - **W81/W82（错帧/丢帧）**：事件率未知且通常极低 ⇒ 回卷期 = `2³² / 事件率`，不预设。
+    ⇒ 任何两点差值判据：**mod 2³² + 同时记原始值 `k`（回卷次数）**；窗口时长必须按**该计数器增量率**核对（全局 #55/#74）。
+    S-5 的 10 min 低速率窗口对 W80 可能多次回卷（1 Gbps 下 ≈17 次）⇒ 只记余数会让回卷本身不可见。
   - `pcs_user_rx_reset_0`（W76[28]）有效时 ch0 MAC 计数器清零 ⇒ 跨复位差值无效。
 - `mac_rx_10g` 其余输出（XGMII 层证据）**只接必要的**：P1 只消费 `stat_crc_err/stat_drop` 与本 tap；不新增第二套 W36..W38 式 XGMII 计数（P1-min 成本控制）。
 
@@ -343,6 +362,21 @@ ch0_rx = {tdata[63:0], tkeep[7:0], tuser, tlast, tcrs, terr}   // 76 bit AXIS, r
 1. **B1**：删 W77 ⇒ 6 新字 / NW 82 / `0x178`。
 2. **B2**：删 W79..W82（ch0 计数束 + ch0 MAC 实例）⇒ 3 新字 / NW 79 / `0x16C`。
 3. **B3（P1-min）**：删 W77/W79..W82，只留 W76+W78 ⇒ 2 新字 / NW 78 / `0x168`（P1 退化为“ch0 link + PCS 状态 + LOS”，不交帧计数，需用户接受）。
+4. **B4（v5.1 / FINDINGS 中-5，可选）**：在 B3 之上把**事件字段也去掉** ——
+   W76 只留 `blk_lock`/`hi_ber` 两位（其余位 0），W78 只留 `los1_level`/`los2_level` 两位
+   （去掉 LOS 沿计数与 priming），NW 仍 78 / `0x168`（**字表不变，只减位**）。
+   目标 = 删掉 `pcs0_*_evt` 的 32 FF 与 LOS 24 FF（B1/B2/B3 都不删 `u_snap_p7bdp/hold_b`
+   的 96 DP FF、PCS 3FF 69 与 sig 3 ⇒ 若失败族正是这些，B1..B3 都不解决）。
+5. **B3 之后仍失败 ⇒ abort-to-P0（整轮回退）**（v5.1 / FINDINGS 中-5）：
+   放弃 P1 观测面（W76..W82 全部撤出、NW 回到 76、BID 退回 0x2A 语义），
+   **不要**在 B3/B4 之上继续叠加局部删减 —— 那会变成“改 RTL + 未登记变量”的不可归因轮。
+   回退后登记：本刀 DP 增量（~224 FF）+ `mac_rx_10g` 第二实例（+1453 LUT/+911 FF）**不吃**，
+   P1 观测面改为纯 sim 面（G1/G4）交付，板级只保留 ch0 无观测的“链路是否起来”级实验。
+- **构建轮 DP 观察点（v5.1；定向 STA 必查）**：
+  `u_snap_p7bdp/hold_b_reg[*]`、`pcs0_ferr_sr[*]`/`pcs0_bad_sr[*]`/`pcs0_badv_sr[*]`/`pcs0_errv_sr[*]`/
+  `pcs0_vcc_sr[*]`、`los1_sr[*]`/`los2_sr[*]`、`los1_evt[*]`/`los2_evt[*]`、
+  `pcs0_ferr_evt[*]`/`pcs0_bad_evt[*]`/`pcs0_erv_evt[*]`/`pcs0_vcc_cyc[*]` ——
+  按**定向 `-from` 查询**（#66：端点清单“藏族”，某源最差可能在 2000 条清单里 0 命中）。
 - 每档更新读侧阶段与 TB 几何；**不许在同一输入上反复重跑**。
 
 ### 10.4 板级判据草案（P1 上板轮；不写 PASS/FAIL）
@@ -351,11 +385,11 @@ ch0_rx = {tdata[63:0], tkeep[7:0], tuser, tlast, tcrs, terr}   // 76 bit AXIS, r
 
 | # | 动作 | 期望读数（草案） | 独立仪器/负对照 |
 |---|---|---|---|
-| S-1 | 静置 10 min（两口连、ch1 不跑业务） | 对端 p0 `carrier=1`；板 W76[2]=1、W76[4]=0、W76[5]=0、W76[6]=0；W77 的 ferr/bad/erv 不增（vcc 自由计数不判）；W81=W82=0；W78[0]=0 | 对端 `ip -br link` / `ethtool -S`；板快照 |
+| S-1 | 静置 10 min（两口连、ch1 不跑业务） | 对端 p0 `carrier=1`；板 W76[2]=1、W76[4]=0、W76[5]=0、W76[6]=0；**主判据（v5.1 / FINDINGS 中-4）= `W77[31:8]` 绝对值 == 0**（ferr/bad/erv 三个 8 位字段；饱和计数器“Δ 不增”在打满后是**空判据**，`Δ` 只作副证）；`W76[20:7]` 的事件/错误位**绝对值为 0**（level 位作为交叉核对）；W81=W82=0；W78[0]=0 | 对端 `ip -br link` / `ethtool -S`；板快照。⚠️ 读 W81/W82 前必须核 `SNAP_STATUS[7]=0`（ch0 束本代） |
 | S-2 | 对端 p0 发 N 帧已知长度 | `ΔW79=N+背景`、`ΔW80=Σ(wire−4)+背景`、W81=W82=0；`W80+4×W79=Δport_tx_bytes`（先现核 NIC 口径） | NIC 硬件计数 + pcap |
 | S-3 | TX_DIS 负对照：`0x08=0x1` → 4 s → `0x08=0x0` | 对端 p0 `carrier 1→0` 且 `carrier_changes` **单调增 ≥1（记录实际值；P0 实测同一动作 +3，不钉死 +1）**；p1 不变；恢复后 0→1 | P0 已证；本条复算 |
-| S-4 | LOS：拔 J7 AOC → 恢复 | `W78[0] 0→1`、`W78[23:16]` **+1（只数上升沿）**；对端 p0 `carrier 0`；W76[2] 期望 1→0（若 ch0 钟停则可能不变 ⇒ 以 W78 为准）；**窗口仍可读**（`SNAP_STATUS[7]` 按实际记录） | 物理拔插；若用 `ip link set down` 先确认真能关光 |
-| S-5 | ch0 长收（10 min 低速图案流） | `ΔW81=0`、`ΔW82=0`；W77 ferr/bad/erv 不增；`ΔW79=对端 port_tx_packets`（±0.2%） | BER 代理；PCS 无 BER 数值 |
+| S-4 | LOS：拔 J7 AOC → 恢复 | `W78[0] 0→1`、**`W78[23:16]` 增量 ≥1（只数上升沿；记录实际值，不钉死 +1）** —— 物理拔插的 LOS 引脚可能抖动，`+1` 会假 FAIL（v5.1 / FINDINGS 中-4；S-3 同族教训：`carrier_changes` 实测 +3）；**LOS 事件最小间隔/去抖口径**：两次被计数的上升沿间隔必须 > 3 个 dp 拍（3FF 同步的最小可分辨率）+ 现场记录抖动次数；对端 p0 `carrier 0`；W76[2] 期望 1→0（若 ch0 钟停则可能不变 ⇒ 以 W78 为准）；**窗口仍可读**（`SNAP_STATUS[7]` 按实际记录） | 物理拔插；若用 `ip link set down` 先确认真能关光 |
+| S-5 | ch0 长收（10 min 低速图案流） | **主判据（v5.1 / FINDINGS 中-4）= `W77[31:8]` 绝对值 == 0**（不是 Δ；ferr/bad/erv 是 8 位饱和，打满后 Δ 恒 0 会把坏链路判成好）；`W81`/`W82` **绝对值 == 0**（Δ 作副证）；`ΔW79=对端 port_tx_packets`（±0.2%，W79 回卷按实际 fps 记 k）；**W80/W79 差值 mod 2³² + 记 k**（10 Gbps 下 W80 ≈3.44 s 回卷） | BER 代理；PCS 无 BER 数值。⚠️ 读 W81/W82 前必须核 `SNAP_STATUS[7]=0` |
 | S-6 | ch1 业务回归（同会话 A/B：0x2B vs 0x2A） | ch1 UDP/TCP 读数同档、`mism_bytes=0`、丢弃计数不增；W0/W1/W20/W43 同量级 | 同板同线；记录台架帽（#43/#59/#68） |
 | S-7 | 双口并存静置/轻载 | 两口 `carrier=1`、W76[2]=1、ch1 不退化；无新 W81/W82 | **温度/功耗 = 未测（无板上仪器）**（FINDINGS 中-14/E-4） |
 
@@ -397,7 +431,7 @@ ch0_rx = {tdata[63:0], tkeep[7:0], tuser, tlast, tcrs, terr}   // 76 bit AXIS, r
 | 中-16 | **采纳** | 好帧 = `tlast && tcrs && !terr`；W81 只数 `!tcrs`；`terr` 帧不计好帧（§2.3） |
 | 中-17 | **登记（P3）** | 镜像“满即丢整帧”需帧首空间准入 + 中途 abort 到 TLAST + 丢弃计数 |
 | 中-18 | **采纳（文档）** | TL 注“0x2A 待烧录”已过时 ⇒ 按台账 §10-117 已烧（本文件头） |
-| 中-19 | **采纳** | `SNAP_STATUS[7]` 读侧工具同步（`p6b_accept.sh`/`p7b_snap.sh` 的 0x1C 解析）列入读侧阶段 0x2B；自检加“bit 7 可置 1”的构造性负对照 |
+| 中-19 | **采纳（v5.1 补齐实施/此前只有 RTL 半边）** | `SNAP_STATUS[7]` 读侧工具同步：`p7b_snap.sh` / `p6e_snap_check.sh` / `p7b_gate4_accept.sh` / `p6b_accept.sh` 的 0x1C 解析均加 bit7（`ch0_stale`），W79..W82 旁给 `stale=1` 告警；`p7b_gate4_selftest.sh` 新增 bit7=1 的构造性负对照（期望工具报 stale 且非零）；`P7B_BIZ_WINDOW.md` 增 SNAP_STATUS 段 |
 | 中-20 | **登记（文档）** | plan §7 指针化；本轮不修 plan 目录（只读） |
 
 ### 11.3 低（10）
@@ -441,6 +475,36 @@ ch0_rx = {tdata[63:0], tkeep[7:0], tuser, tlast, tcrs, terr}   // 76 bit AXIS, r
 9. W77 的 `vcc` 自由计数 = 编译期选择，板级读法只作活动指示；不承诺可还原绝对值。
 10. 观测最小集（§4.7）= **建议**，拆除动作待功能测试完成后由用户裁。
 
+**v5.1 新增登记（2026-10-18 P1FIX / FINDINGS 中-1/中-2/中-3/低-9）**
+
+11. **MAC 的“单 `term_pend` 多裸 SOP”行为【已证·源码 + G1 DIAG 日志】**：
+    `mac_rx_10g.v` 只有一个 `term_pend` 槽。当多帧在 F4 丢弃窗口内背靠背失败时，
+    一个 TERM 会关闭**多个已推字的 SOP**。P1 timing 位移后 G1 实测 **SOP n=55 / TLAST n=53 /
+    TERM n=2 ⇒ 2 个 SOP 无 TLAST**（F4 窗口内）。**数据通路安全依据**：`vlan_strip.v`
+    在新 SOP 上重置/直通（`vlan_strip.v:130-131,221-225`），下一帧不会与前一帧合并；
+    但“每 SOP 必被 TLAST 关闭”的合同在 F4 下**不成立**，是**既存行为**（非 P1 引入）。
+    G4 SOP-2 的判据因此限定为“F4 窗口外无裸 SOP”，并额外打印
+    `[G INFO] unclosed SOP inside F4 windows`（**信息量，不作 PASS/FAIL**）。
+    若未来 F4 在板上可触发（下游长期 `tready=0`），需评估 `term_pend` 单槽是否扩。
+12. **`TCP_TX_OVL` body 的行为覆盖 = 无**（v5.1 / FINDINGS 中-1）：chain 门只
+    **elaborate** 该 body（`tb_p7b_chain.v` 的 TX 臂 force `txsrc_*`，不驱动 `tcp_tx_frame`）；
+    `run_tx_ovl_gate.bat` 仍因 8 个 Stage-C 锚点漂移不可用。已在 `P7B_OPEN_ITEMS.md`
+    登记“board TCP TX body 无行为门”；引用时**只许写 compile/elaboration only**。
+13. **W77/W80/W81 的行为覆盖（v5.1 已补 3 条 ch0 臂）**：G1 新增
+    P1-2e/f（坏 FCS ⇒ W81+1、W79/W80 平、W82 平）· P1-2g（`/E/` ⇒ W79/W80/W81/W82 平；TB 侧
+    `fcs_incl_er=1` 让 `/E/` 字节进入 FCS，使 `tcrs=1`，从而只测 `!terr` 项）·
+    P1-2h（`ferr_0/badv_0/errv_0` 持续 N dp 拍 ⇒ W77 对应 8 位字段 +N−同步延迟、ferr >256 拍
+    饱和到 0xFF 不回卷；`vcc` 在 Δ 窗内变化，mod 256 口径）。**残余**：仍无 P7B_MUT 变异证明
+    这 3 条臂有牙；`/E/` 臂依赖 TB 的 CRC 口径与 MAC 一致（`fcs_incl_er`）。
+14. **backstop B3 的成本缺口 + B4**：见 §10.3 第 4/5 条（B3 仍留 ~192 DP FF；B3 后失败
+    ⇒ abort-to-P0，不叠加局部删减）。
+15. **S-1/S-5 饱和空判据已改**：主判据改为 `W77[31:8]` **绝对值为 0**（`Δ` 只作副证）；
+    S-4 改 `≥1` + 记录实际值 + LOS 去抖口径（见 §10.4）。
+16. **本轮未测（新增登记）**：快照超时的**精确时长**（只验证“12000 pcie 周期内完成”，
+    不验证 4095 拍）；**ch0 tap 的内容/字节序**（只计数）；`p6e_snap_selftest_fix2.sh` /
+    `p7b_gate4_selftest.sh` 的 **self-test 本轮已跑 bit7 臂，但 p6e_snap_selftest_fix2 未跑**；
+    P1 位流构建/板级全部未测。
+
 ---
 
 ## 14. 实施结果回填（2026-10-18，本轮门读数；详表见 `gates/` 与回传报告）
@@ -457,6 +521,31 @@ ch0_rx = {tdata[63:0], tkeep[7:0], tuser, tlast, tcrs, terr}   // 76 bit AXIS, r
 | `run_tx_ovl_gate.bat` | 未修（8 锚点漂移）；替代门 = chain 门编 `TCP_TX_OVL` |
 
 - ⛔ 未跑构建/板级；`REPORT.md` 的平台落盘被拒（已知间歇问题），完整报告以 **agent 回传文本** 交 TL 代落盘。
+
+---
+
+## 15. v5.1 变更表（2026-10-18 P1FIX 轮，验证层/文档缺口；RTL 功能零改动）
+
+| # | 对应 FINDINGS | 变更 | 落点 |
+|---|---|---|---|
+| 1 | 高-1 | `check_window.py`：判据 3 加 `SNAP_CH0_NW`；5a 顶端 4 项 = ch0 槽 3..0；5c 拆 W76..W78（ch0 PCS 源）与 W79..W82（ch0 束槽 0..3）；判据 4 oracle 改为**冻结锚** `FROZEN_2A_ITEMS`（0x2A 装配项表，41 项） | `_proj_10g/notes/p7b_biz_win/check_window.py` |
+| 2 | 高-1 | `check_window.py` + `tb_biz_win` 注册为矩阵**第 21 门** `biz_win`（pos + 3 负控 + unit gate）；manifest = `sim/p4gates/bizwinsrc.f`；指纹 glob 加 `p7b_biz_win` | `sim/p4gates/run_matrix_p4dfix.bat` / `paths.txt` / `_proj_10g/notes/p7b_biz_win/run_gate_biz_win_check.bat` |
+| 3 | 高-2 | 读侧 `SNAP_STATUS[7]`：`p7b_snap.sh` / `p6e_snap_check.sh` / `p7b_gate4_accept.sh` / `p6b_accept.sh` 解析/打印 bit7（`ch0_stale`）；W79..W82 旁 `stale=1` 告警；`p7b_gate4_selftest.sh` 新增 bit7=1 构造性负控 | 四个读侧脚本 + `P7B_BIZ_WINDOW.md` |
+| 4 | 中-1 | `tx_ovl_gate_status.txt` 措辞改 **compile/elaboration only**；OPEN_ITEMS 登记 | `gates/` + `P7B_OPEN_ITEMS.md` |
+| 5 | 中-2 | §13-11 MAC 单 `term_pend` 多裸 SOP + 2 实例 + `vlan_strip` 重同步依据；G4 `[G INFO]` 窗口内未闭合 SOP 计数 | 本文件 §13 + `tb_p7b_chain.v` |
+| 6 | 中-3 | G1 新增 P1-2e/f/g/h 四条臂（坏 FCS / `/E/` / W77 更新与饱和 / vcc） | `tb_p7b_chain.v` |
+| 7 | 中-4 | §10.4 S-1/S-5 主判据 = 绝对值 0；S-4 ≥1 + LOS 去抖 | 本文件 §10.4 |
+| 8 | 中-5 | §10.3 加 B4 + abort-to-P0 + DP 观察点 | 本文件 §10.3 |
+| 9 | 中-6 | `run_elab_4combo.bat` 7 combos（+A OK / A+B FAIL / B¬P7B FAIL，含签名判据） | `_proj_10g/p7b_chain/sim/run_elab_4combo.bat` |
+| 10 | 中-7 | diffstat 统一为 **57 files +10041/−289（含 notes/gates）/ 38 +2371/−289（实现面）** | 本文件头 + REPORT + 台账 |
+| 11 | 低-1 | G1 全文日志归档 + “142 = 132 named + 10 snap_take”口径说明 | fix 轮 `gates/` + FIX_REPORT |
+| 12 | 低-2 | 行号锚点改符号引用 / 标“现读于提交时” | 本文件头 + REPORT |
+| 13 | 低-3 | 重复段/陈旧措辞（`not 76-word` → `not 83-word`、`.SNAP_NW` 注释 76→83、`final_state.sh` 重复） | 见 FIX_REPORT |
+| 14 | 低-5 | 独立 TB/小 top 的 `ch0_snap_to` 连 `1'b0` 或注明不覆盖 bit7 | `tb_axi_regs.v` / `pcie_min_top.v` / `tb_int_axr36.v` |
+| 15 | 低-6 | 历史 TB `tb_head.v` 加“旧 stub force 名已失效”注释 | `p7b_chain_cov/tb_head.v` |
+| 16 | 低-7 | §2.3 W80/W79/W81/W82 回卷口径按各自增量率 | 本文件 §2.3 |
+| 17 | 低-8 | p7b_chain 本轮新增 **6 件**（不是 5） | FIX_REPORT |
+| 18 | 低-9 | OPEN_ITEMS 登记本轮新开项 | `P7B_OPEN_ITEMS.md` |
 
 ---
 

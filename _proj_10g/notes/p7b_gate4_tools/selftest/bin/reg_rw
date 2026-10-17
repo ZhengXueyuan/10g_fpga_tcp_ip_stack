@@ -11,18 +11,18 @@ V=0xffffffff
 case "$A" in
   0X00) V=0x50360001;;
   # ⚠️ 假板子的 BID 必须与 p6e_snap_check.sh 的 EXPECT_BID **同代** (否则正例的判据 1.2 假 FAIL,
-  #    而"正例必须 0 FAIL"是本脚本的断言⑤)。现役 = **0x28** (P9 E12 观测计数器 75 字 —— ⛔ 2026-10-15 同步轮: 原 0x27 = 换流门 R5 /
+  #    而"正例必须 0 FAIL"是本脚本的断言⑤)。现役 = **0x2B** (P11 P1 ch0 bring-up 83 字 —— ⛔ 2026-10-15 同步轮: 原 0x27 = 换流门 R5 /
   #    0x26 = RFC seq 修复 / 0x25 = F-3 修复 / 原句 = 现役 17 (构建 C 65 字) / 10 (P7b Stage C)); 跑旧口径时
-  #    FAKE_BID=0x00000027 (换流门 R5; SNAP_WORDS=71) / 0x00000026 (RFC seq 修复; 71) / 0x00000017 / 0x00000008。
+  #    FAKE_BID=0x00000029 (0x29 拆刀; SNAP_WORDS=75) / 0x00000028 (P9 E12; 75) / 0x00000027 (换流门 R5; 71) / 0x00000026 (RFC seq 修复; 71) / 0x00000017 / 0x00000008。
   #    ⚠️ 注释里**不许出现反引号/** —— 这是**无引号 heredoc**, 它们会被当场求值
   #       (实测: 反引号里的 EXPECT_BID 被当命令执行, 报 "command not found")。
-  0X04) V=${FAKE_BID:-0x00000028};;
+  0X04) V=${FAKE_BID:-0x0000002B};;
   0X08) V=0x00000000;;
   0X0C) V=$(awk -v t="$T" 'BEGIN{printf "0x%08x", int(t*250000000)%4294967296}');;
   0X10) V=0x00000018;;
   0X14) V=0xdeadbeef;;
   0X18) V=0x00000000;;
-  0X1C) V=$(awk -v g="$(cat "/d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p7b_gate4_tools/selftest/gen")" 'BEGIN{printf "0x%08x", g*65536+2}');;
+  0X1C) V=$(awk -v g="$(cat "/d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p7b_gate4_tools/selftest/gen")" -v st="${FAKE_STALE:-0}" 'BEGIN{printf "0x%08x", g*65536+2+st*128}');;
   0X20) V=1000;; 0X24) V=1518000;; 0X28) V=1518;; 0X2C) V=0;; 0X30) V=0;;
   0X34) V=$(awk -v t="$T" 'BEGIN{printf "0x%08x", int(t*125000000)%4294967296}');;
   0X38) V=998;; 0X3C) V=998;; 0X40) V=0;; 0X44) V=0;; 0X48) V=0;; 0X4C) V=0;;
@@ -66,7 +66,15 @@ case "$A" in
   0X140) V=0;;     # W72 app_pattern.stat_sw_req (P9 E12)
   0X144) V=0;;     # W73 app_pattern.stat_sw_apply (P9 E12)
   0X148) V=0;;     # W74 app_pattern.stat_up_pend (P9 E12)
-  0X15C) V=${FAKE_UNIMPL:-0xffffffff};;   # 未实现地址 (75 字; = 0x20+4*SW+16)
+  0X14C) V=0;;     # W75 app_ctrl.stat_orphan (孤儿回收计数; p9 孤儿修复)
+  0X150) V=0;;     # W76 ch0_pcs_status (P11 P1)
+  0X154) V=0;;     # W77 ch0_pcs_evt
+  0X158) V=0;;     # W78 ch0_los_mode
+  0X15C) V=0;;     # W79 ch0_rx_frames
+  0X160) V=0;;     # W80 ch0_rx_bytes
+  0X164) V=0;;     # W81 ch0_rx_crc_err
+  0X168) V=0;;     # W82 ch0_rx_drop
+  0X17C) V=${FAKE_UNIMPL:-0xffffffff};;   # 未实现地址 (83 字; = 0x20+4*SW+16)
   *)    V=0xffffffff;;
 esac
 echo "Read 32-bit from address $A : $V"

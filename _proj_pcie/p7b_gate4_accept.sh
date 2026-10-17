@@ -285,10 +285,13 @@ t0=$(date +%s.%N)
 $T/reg_rw $D 0x18 w 0x1 >/dev/null 2>&1
 for i in $(seq 1 100); do s=$(rd 0x1c); [ -n "$s" ] && [ $(( s & 2 )) -ne 0 ] && break; sleep 0.01; done
 t1=$(date +%s.%N)
-g1=$(rd 0x1c); g1=$(( (g1 >> 16) & 0xffff ))
+st1=$(rd 0x1c); g1=$(( (st1 >> 16) & 0xffff ))
 printf 'SNAP_BEGIN\n'
 printf 'TLATCH %s %s\n' "$t0" "$t1"
 printf 'GEN %s %s\n' "$g0" "$g1"
+# ⭐ P11 P1 (2026-10-18 P1FIX / FINDINGS 高-2): SNAP_STATUS 随快照一起带回。
+#   bit7 = ch0_snap_to = "本代 ch0 束缺失/陈旧" ⇒ 置 1 时 W79..W82 是上一代/复位值。
+printf 'STATUS %s\n' "$st1"
 printf 'MAGIC %s\n'  "$(rd 0x00)"
 printf 'BID %s\n'    "$(rd 0x04)"
 printf 'MARKER %s\n' "$(rd 0x14)"
@@ -389,7 +392,7 @@ parse_nic(){
 }
 # snap_copy <A|B|C|D>: 把刚解析的 SW/SM 复制到 <P>_SW/<P>_* (前缀由本脚本写死 ⇒ eval 安全)
 snap_copy(){ local p="$1"; eval "${p}_SW=(\"\${SW[@]}\")"
-  for k in GEN0 GEN1 T0 T1 MAGIC BID MARKER UNIMPL; do eval "${p}_$k=\${SM[$k]}"; done; }
+  for k in GEN0 GEN1 T0 T1 MAGIC BID MARKER UNIMPL STATUS; do eval "${p}_$k=\${SM[$k]:-}"; done; }
 nic_copy(){ local p="$1" k; eval "${p}_NC=()"
   for k in "${!NC[@]}"; do eval "${p}_NC[\$k]=\${NC[\$k]}"; done
   eval "${p}_T0=\$NT0"; eval "${p}_T1=\$NT1"; }
@@ -411,6 +414,24 @@ check_window(){ # <标签> <unimpl 值> <数组名>
                    || res FAIL "B_WIN" "$tg 窗口内不得出现 0xffffffff" "0 个 F" "$nff 个 F ⇒ 这些是**读失败**, 不是数据"
   if [ "$(( un ))" -eq 4294967295 ]; then res PASS "B_UNIMPL" "$tg 未实现地址 $UNIMPL_ADDR" "0xffffffff" "0xffffffff"
   else res FAIL "B_UNIMPL" "$tg 未实现地址 $UNIMPL_ADDR" "0xffffffff" "$un ⇒ 译码过宽, 或该地址其实是已实现字 (窗口挪了地址没挪)"; fi
+}
+# ⭐ P11 P1 (2026-10-18 P1FIX / FINDINGS 高-2): ch0 束的"本代有效性"。
+#   语义 = SNAP_STATUS[7] (`ch0_snap_to`) = 本代 ch0 束缺失/陈旧。置 1 时 W79..W82
+#   是上一代/复位值 ⇒ 不可当本代读数 (W76..W78 仍是本代)。P1 几何 (NW>=83) 才判。
+check_ch0_stale(){ # <标签> <status 原始值> <数组名>
+  local tg="$1" st="${2:-}" ; local -n W="$3"
+  if [ "$SNAP_WORDS" -lt 83 ]; then
+    res SKIP "B_CH0" "$tg ch0 束本代有效性 (SNAP_STATUS[7])" "P1 几何才有" "SNAP_WORDS=$SNAP_WORDS < 83 ⇒ 该代无 ch0 束"; return 0
+  fi
+  if [ -z "$st" ] || ! [[ "$st" =~ ^0[xX][0-9a-fA-F]{1,8}$ ]]; then
+    res SKIP "B_CH0" "$tg ch0 束本代有效性 (SNAP_STATUS[7])" "读到 STATUS" "本块没有 STATUS 行 (离线合成文本?) ⇒ 不判; **未观测到 ≠ 不存在**"; return 0
+  fi
+  if [ $(( ($(( st )) >> 7) & 1 )) -eq 1 ]; then
+    echo "  [WARN] $tg SNAP_STATUS[7]=1 (ch0_snap_to): W79..W82 = ${W[79]:-?}/${W[80]:-?}/${W[81]:-?}/${W[82]:-?} 是**上一代/复位值**, 不是本代读数"
+    res FAIL "B_CH0" "$tg ch0 束本代有效性 (SNAP_STATUS[7])" "0" "1 ⇒ W79..W82 不可信 (先查 ch0 rx_clk_out_0 停钟/超时)"
+  else
+    res PASS "B_CH0" "$tg ch0 束本代有效性 (SNAP_STATUS[7])" "0" "0 (W79..W82 属于本代)"
+  fi
 }
 check_freq(){ # <判据号> <名> <a> <b> <t0a> <t1a> <t0b> <t1b> <标称MHz> <除数>
   local id="$1" nm="$2" a="$3" b="$4" t0a="$5" t1a="$6" t0b="$7" t1b="$8" nom="$9" div="${10}"
@@ -637,6 +658,7 @@ main(){
   if [ "$FATAL" = 0 ]; then
     snap_copy A; check_identity "块A" "$A_MAGIC" "$A_BID" "$A_MARKER" || fatal "身份不符 ⇒ 拒绝继续 (G1 前置闸)"
     check_window "块A" "$A_UNIMPL" A_SW
+    check_ch0_stale "块A" "${A_STATUS:-}" A_SW
   fi
   if [ "$FATAL" != 0 ]; then echo; echo "  [ABORT] 前置闸未过 ⇒ 后面的读数都不算数"; echo "-------- 原始文本 --------"; cat "$sf1"; echo "########## PASS=$PASS FAIL=$FAIL SKIP=$SKIP ##########"; exit 2; fi
 
@@ -650,6 +672,7 @@ main(){
       snap_copy B
       check_identity "块B" "$B_MAGIC" "$B_BID" "$B_MARKER" || fatal "块 B 身份不符"
       check_window "块B" "$B_UNIMPL" B_SW
+      check_ch0_stale "块B" "${B_STATUS:-}" B_SW
       check_freq "G2-W5"  "前端域 gmii_free"   "${A_SW[5]}"  "${B_SW[5]}"  "$A_T0" "$A_T1" "$B_T0" "$B_T1" "$W5_NOM_MHZ" 1
       check_freq "G2-W24" "数据面域 dp_free"   "${A_SW[24]}" "${B_SW[24]}" "$A_T0" "$A_T1" "$B_T0" "$B_T1" 156.25 1
       check_freq_tgl "G2-W50" "TX 域 tx_clk_act" "${A_SW[50]}" "${B_SW[50]}" "$A_T0" "$A_T1" "$B_T0" "$B_T1" 156.25

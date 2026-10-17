@@ -1,7 +1,8 @@
 @echo off
 REM ===========================================================================
 REM run_tb_biz_win.bat -- P7B-BIZ per-word readback gate for the snapshot window
-REM   DUT: _proj_pcie/rtl/axi_regs.v with SNAP_NW=57 (the wrapper's SNAP_NW_P6E).
+REM   DUT: _proj_pcie/rtl/axi_regs.v with SNAP_NW=83 (the wrapper's SNAP_NW_P6E;
+REM        76 = p9 orphan fix / 75 = P9 E12 / 71 = M1 were earlier generations).
 REM   TB : _proj_10g/notes/p7b_biz_win/tb_biz_win.v
 REM   Hard failures: implicit nets / bit-width mismatch keys (see CLAUDE.md #24).
 REM   ASCII-only comments on purpose (project rule for .bat).
@@ -11,7 +12,9 @@ set XV=C:\AMDDesignTools\2025.2\Vivado\bin
 set ROOT=%~dp0..\..\..
 set RTL=%ROOT%\_proj_pcie\rtl\axi_regs.v
 set TB=%~dp0tb_biz_win.v
-cd /d %~dp0
+REM 2026-10-18 (P11 P1 fix): run in the P4 matrix private work dir when exported
+REM (same contract as the other matrix gates; pit 7 = xsim.dir lock isolation).
+if not "%P4_WORKDIR%"=="" (cd /d "%P4_WORKDIR%") else (cd /d %~dp0)
 if not exist "%RTL%" ( echo [PATHGUARD FAIL] no axi_regs.v & exit /b 90 )
 if not exist "%TB%"  ( echo [PATHGUARD FAIL] no tb_biz_win.v & exit /b 90 )
 if not exist "%XV%\xvlog.bat" ( echo [TOOL FAIL] no xvlog.bat & exit /b 91 )
@@ -22,7 +25,7 @@ REM 2026-10-10 (build F): fingerprint 67 -> 70.
 REM 2026-10-10 (build E): fingerprint 66 -> 67.
 REM 2026-10-10 (P7B-GAP9-TX): fingerprint 61 -> 65. It had already gone stale at 63
 REM   (P7B-WU round) => like its sibling (run_xvlog_wrapper.bat) this gate was DEAD (exit 92).
-findstr /C:"SNAP_NW_P6E = 83" "%ROOT%\board\wrapper_p4.v" >NUL || ( echo [FINGERPRINT FAIL] wrapper is not 76-word & exit /b 92 )
+findstr /C:"SNAP_NW_P6E = 83" "%ROOT%\board\wrapper_p4.v" >NUL || ( echo [FINGERPRINT FAIL] wrapper is not 83-word & exit /b 92 )
 
 call "%XV%\xvlog.bat" -work xil_defaultlib "%RTL%" "%TB%" > xvlog_biz.log 2>&1 || ( type xvlog_biz.log & exit /b 1 )
 call "%XV%\xvlog.bat" -work xil_defaultlib "%XV%\..\data\verilog\src\glbl.v" >> xvlog_biz.log 2>&1

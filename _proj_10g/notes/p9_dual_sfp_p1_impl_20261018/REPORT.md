@@ -1,6 +1,11 @@
 # P11（双 SFP+）· P1 实施 —— REPORT
 
 > **TL 代落（2026-10-18 02:2x）**：本件 = P1 实施 agent 的完整报告原文（平台拒写 `.md`），由 TL 转录落盘；未改结论。TL 抽核见文末 §TL 抽核。
+>
+> **v1.1 修订注（2026-10-18 P1FIX 轮 / FINDINGS 低-1/低-2/低-8）**：§3 的行号锚点改为**符号引用**
+> （原 `:310/:4630/:4797` 是提交时笔误级漂移，实际见 DESIGN_v5 头注）；§4 增“142 = 132 named +
+> 10 snap_take”口径；§8 的 p7b_chain 新增文件数订正为 **6 件**；G1 全文日志已归档到 fix 轮
+> `gates/`（原只在 ignored workdir）。**结论与门读数不变**。
 
 - 日期 2026-10-18；轮目录 `p9_dual_sfp_p1_impl_20261018`（p9_* 历史命名空间）。
 - 施工权威 = 同目录 `DESIGN_v5.md`（P11 标注、FINDINGS 逐条处置、U-1..U-7 回灌）。
@@ -18,12 +23,12 @@
 
 - chain 门：+`TCP_TX_OVL`、+xpm（修既有 elaboration 失败）、`P4_WORKDIR`/p4env、字面文件表。
 - 基线（未改 RTL）：**106/0 PASS**，01:21:16 +0800，`gates/G1a_baseline.txt`。
-- `run_tx_ovl_gate.bat`：`mk_mut_tx.py --dry-run` = `DRYRUN FAIL 8 (0 bytes written)`；8 个 Stage-C 锚点漂移（c1/c2×3/c7/c8/f1×2/k1×2/k2）；生成器 all-or-nothing；**替代门 = chain 门编 `TCP_TX_OVL`**。`gates/tx_ovl_gate_status.txt`。
+- `run_tx_ovl_gate.bat`：`mk_mut_tx.py --dry-run` = `DRYRUN FAIL 8 (0 bytes written)`；8 个 Stage-C 锚点漂移（c1/c2×3/c7/c8/f1×2/k1×2/k2）；生成器 all-or-nothing；**替代覆盖 = chain 门编 `TCP_TX_OVL`，级别 = compile/elaboration only（不是行为覆盖；chain TB 只 force `txsrc_*`，不驱动 `tcp_tx_frame` —— v1.1 / FINDINGS 中-1）**。`gates/tx_ovl_gate_status.txt` 已就地订正措辞。
 - `p7bchain_src.f`（49 文件）+ `run_matrix_p4dfix.bat` 第 20 门 + `paths.txt` 指纹；`-only p7b_chain` EXIT=0；全矩阵 20/20。
 
 ## 3. 阶段 3（P1 改动）
 
-`wrapper_p4.v`：`SFP2_MODE` 硬门(:255-283)、ch0 域别名(:310/750)、ch0 复位(:690)、ch0 MAC+tap+sink(:940-1020)、ch0 PCS/事件/LOS(:3890-4000)、几何(:3522-3554)、p7bdp 槽 36..38(:4453)、`u_snap_ch0`(:4480)、超时/busy(:4515-4595)、装配(:4630)、BID `0x2B`(:4797)、axi_regs `ch0_snap_to`。
+`wrapper_p4.v`（**v1.1：符号引用；行号 = 提交时现读，不保证后续树**）：`SFP2_MODE` 硬门（`g_sfp2_mode_conflict` / `g_sfp2_mode_b_requires_p7b` generate）、ch0 域别名（`rx_core_clk_0` / `tx_fe_clk_0` 的 assign 块）、ch0 复位（`rstn_rx_sr_0`）、ch0 MAC+tap+sink（`u_mac_rx_ch0` / `ch0_rx_*` / `ch0_acc_bytes`）、ch0 PCS/事件/LOS（`pcs0_*_sr` / `pcs0_*_evt` / `los1_*` / `los2_*`）、几何（`SNAP_NW_P6E` / `SNAP_P7BDP_NW` / `SNAP_CH0_NW`）、p7bdp 槽 36..38（`assign p7bdp_din[36..38*32 +: 32] = ch0_pcs_status/ch0_pcs_evt/ch0_los_bundle`）、`u_snap_ch0`、超时/busy（`ch0_to_cnt` / `ch0_snap_to` / `snap_busy`）、装配（`snap_dout_all`）、BID（`BUILD_ID_V`）、axi_regs `ch0_snap_to`。⚠️ 原行号 `:310/:4630/:4797` 已订正（实际提交时现读 = `:352-353` / `:4601` / `:4824`；DESIGN_v5 头注同）。
 `axi_regs.v`：`ch0_snap_to` 输入/逐代锁存/`SNAP_STATUS[7]`（bit6 及以下不变）。
 `p7b_pcs_stub.v`：`rx_clk` 拆 0/1、status 拆 `*_0/*_1`、fault 每拍驱动 0（force/release 坑）。
 `tb_p7b_chain.v`：几何 83/`0x17C`、W76..W82 force、ch0 注入/LOS/超时双代/TX 常量、`snap_take` 硬断言、既有 force/W39 同步；6 处健壮化（`snap_take` 12000 硬超时、TX 捕获 65536、group6 负沿 force、SOP 重置 `got_len`、G4 前 drain、G4 SOP-2 限定 F4 窗口外）。
@@ -32,7 +37,7 @@
 
 ## 4. 门读数
 
-G1-a **106/0 PASS**；G1 **142/0 PASS**；G4 **29/0 PASS**；G2 **PASS_ALL**（W76..W82 读 0 全 PASS）；G5 **ELAB_4COMBO_PASS 4/4**；G3 **20/20 EXIT=0/FROZEN/RC=0**（01:42:37–02:11:30）；读侧 apply **65/17/0 fail**、assert 0 fail、rehearse 0 阶段 0 fail、negctl table/bid/tier/face **4/4 有牙（RC=1）**；tx_ovl 未修。全部日志在 `gates/`，均带 `P1IMPL-*` 独有串与时刻。
+G1-a **106/0 PASS**；G1 **142/0 PASS**（**v1.1 口径：142 = 132 条具名 `[PASS]` + 10 次 `snap_take` 硬断言** —— `snap_take` 每次 `checks++` 但不打印 PASS；长标签被 `chk` 的 `[255:0] name` 截断后以 `[PASS] c …` 形式落在全文日志里）；G4 **29/0 PASS**（18 条具名 + 11 次 `snap_take`）；G2 **PASS_ALL**（W76..W82 读 0 全 PASS）；G5 **ELAB_4COMBO_PASS 4/4**；G3 **20/20 EXIT=0/FROZEN/RC=0**（01:42:37–02:11:30）；读侧 apply **65/17/0 fail**、assert 0 fail、rehearse 0 阶段 0 fail、negctl table/bid/tier/face **4/4 有牙（RC=1）**；tx_ovl 未修（**覆盖口径 = compile/elaboration only**，见 §2 与 fix 轮订正）。`gates/` 内为摘录；**G1 全文日志已由 P1FIX 轮从 ignored workdir 归档**（fix 轮 `gates/G1_chain_2B_full.txt`）。均带 `P1IMPL-*`/`P1FIX-*` 独有串与时刻。
 
 ## 5. FINDINGS/裁定对照
 
@@ -52,6 +57,9 @@ W77.vcc 自由计数；G4 SOP-2 口径（F4 窗口外）；chain TB 6 处健壮�
 ## 8. 文件清单
 
 见 `DESIGN_v5 §12` 与本报告 §3；`git show --stat 3d4ce8ad` = **57 files, +10041/−289**（实现面口径：剔除 impl notes/gates = 38 files, +2371/−289）。
+**v1.1（FINDINGS 低-8）**：本轮 `_proj_10g/p7b_chain/` 目录新增 **6 件**（不是 5 件）=
+`tb_p1_ch0_unit.v` · `run_tb_p1_ch0_unit.bat` · `run_elab_4combo.bat` · `elab_files.f` ·
+`hls_p1ch0.f` · `hls_p7bchain.f`（另 `run_tb_p7b_chain.bat` 为**修改**，不计新增）。
 
 ---
 

@@ -1,0 +1,54 @@
+#-----------------------------------------------------------
+# xsim v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Sun Oct 18 02:56:13 2026
+# Process ID         : 4352
+# Current directory  : D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/p7b_chain/sim
+# Command line       : xsim.exe -log xsim_p1ch0.log -mode tcl -source {xsim.dir/tb_p1_ch0_unit/xsim_script.tcl}
+# Log file           : D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/p7b_chain/sim/xsim_p1ch0.log
+# Journal file       : D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/p7b_chain/sim\xsim.jou
+# Running On         : xyz-intel
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26300
+# Processor Detail   : Intel(R) Core(TM) Ultra 7 265K
+# CPU Frequency      : 3878 MHz
+# CPU Physical cores : 20
+# CPU Logical cores  : 20
+# Host memory        : 68053 MB
+# Swap memory        : 4294 MB
+# Total Virtual      : 72348 MB
+# Available Virtual  : 37799 MB
+#-----------------------------------------------------------
+source xsim.dir/tb_p1_ch0_unit/xsim_script.tcl
+# xsim {tb_p1_ch0_unit} -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+WARNING: File ./udp_echo_mac_tx_process_preamble_ROM_AUTO_1R.dat referenced on D:/repo/XCKU5PMini/udp_hls_10g/board/wrapper_p4.v at line 2355 cannot be opened for reading. Please ensure that this file is available in the current working directory or parent directory of xsim.dir location specified via -xsimdir switch.
+WARNING: File ./udp_echo_mac_tx_process_src_mac_ROM_AUTO_1R.dat referenced on D:/repo/XCKU5PMini/udp_hls_10g/board/wrapper_p4.v at line 2355 cannot be opened for reading. Please ensure that this file is available in the current working directory or parent directory of xsim.dir location specified via -xsimdir switch.
+WARNING: File ./udp_echo_arp_dump_Pipeline_VITIS_LOOP_219_1_p_const_ZZL8arp_dumpRN3hls6streamI11gmii_bcud.dat referenced on D:/repo/XCKU5PMini/udp_hls_10g/board/wrapper_p4.v at line 2355 cannot be opened for reading. Please ensure that this file is available in the current working directory or parent directory of xsim.dir location specified via -xsimdir switch.
+  [PASS] 1a mode = A (SFP2_MODE_B_SEL=0)   src=no SFP2_MODE_B macro
+  [PASS] 1b ch0 block_lock (stub default)   src=stub ch0 link-up
+  [PASS] 2a W76 follows ch0 producers   src=blk/hi_ber/rerr forced on ch0
+  [PASS] 2b W39 is NOT polluted by ch0   src=ch1 block_lock/hi_ber forced 0
+  [PASS] 3a dW79 == 2   src=2 good frames
+  [PASS] 3b dW80 == 200   src=2 x 100 content bytes
+  [PASS] 3c dW81 == 0   src=good FCS => no crc_err
+  [PASS] 3d dW82 == 0   src=no drops
+  [PASS] 4a tready=0: W79 flat   src=count point = sink delivery
+  [PASS] 4b tready=0: W82 rises   src=4 x 15 words vs 16-word FIFO
+  [PASS]  falling edge: level=0, no event   src=rising-edge definition
+  [PASS] b rising edge: level=1, +1 event   src=0->1 = +1
+  [PASS] a gen1: SNAP_STATUS[7]=1, busy=0   src= bundle stale; busy excludes ch0
+  [PASS] 6b gen1: W76 readable   src=dp bundle unaffected
+  [PASS] c gen2: SNAP_STATUS[7]=1, busy=0   src=revious stuck => immediate stale
+  [PASS] 6d recovery: SNAP_STATUS[7]=0   src=handshake completes
+  [PASS] 7a ch0 TX data = idle   src=no ch0 TX MAC in P1
+  [PASS] 7b ch0 TX control = /I/   src=all lanes idle
+==== tb_p1_ch0_unit done: 29 checks, 0 fail ====
+UNIT VERDICT = PASS
+$finish called at time : 45326 ns : File "D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/p7b_chain/sim/tb_p1_ch0_unit.v" Line 277
+exit
+INFO: xsimkernel Simulation Memory Usage: 117048 KB (Peak: 117048 KB), Simulation CPU Usage: 2031 ms
+INFO: [Common 17-206] Exiting xsim at Sun Oct 18 02:56:17 2026...

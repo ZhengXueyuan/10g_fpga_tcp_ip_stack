@@ -57,6 +57,10 @@
 #      W61 app_ctrl.stat_wu        (窗口重开通告确实入 ackq 的次数; 寄存器 0x96 的同一根线)
 #      W62 app_ctrl.rx_occ_bytes   (app RX 可读字节, 17 位显式零扩展 ⇒ 高位恒 0)
 #   字 Wi 地址 = 0x20 + 4*i       触发 = 写 0x18=1       done = 0x1c 的 bit1      gen = 0x1c>>16
+#   ⭐ P11 P1 (2026-10-18 P1FIX): **SNAP_STATUS[7] = ch0_snap_to** ("本代 ch0 束缺失/陈旧")。
+#      置 1 时 **W79..W82 是上一代/复位值, 不是本代读数** (W76..W78 仍是本代)。
+#      本脚本在 `SNAP_STATUS` 行与 W79..W82 的每一行旁打 `stale=1`, 且打了 ch0 字时退出码 = 3。
+#      板级纪律: **先读 status 再信 W79..W82**; 判据里引用这些字必须带 `ch0_stale=0` 的见证。
 #   ⚠️ reg_rw 的第 3 个参数 `w` 是**位宽**(word), 不是 write —— 读就是 `reg_rw $D 0x20 w`
 #   ⚠️ 0xffffffff **不是数据**, 是 SLVERR = "这次读没成功"。窗口内出现它 => 整窗作废。
 #   ⚠️ 每次读数必须**自证是新一代** (gen 恰好 +1), 否则读的是上一次锁存的陈旧值
@@ -203,34 +207,47 @@ id_check(){
   return 0
 }
 
-trig(){   # 触发一次并断言 gen 恰好 +1; 结果在 G0/G1
-  local g0 g1 s i
+trig(){   # 触发一次并断言 gen 恰好 +1; 结果在 G0/G1 (+ 原始 STATUS/STALE)
+  local g0 g1 st1 s i
   g0=$(rd 0x1c); g0=$(( (g0 >> 16) & 0xffff ))
   $T/reg_rw $D 0x18 w 0x1 >/dev/null 2>&1
   s=""
   for i in $(seq 1 400); do s=$(rd 0x1c); [ -z "$s" ] && continue
      [ $(( s & 2 )) -ne 0 ] && break; sleep 0.002; done
   if [ -z "$s" ] || [ $(( s & 2 )) -eq 0 ]; then echo "GEN_FAIL done 不置 (该域没时钟 / CDC 卡住)"; return 1; fi
-  g1=$(rd 0x1c); g1=$(( (g1 >> 16) & 0xffff ))
+  # ⚠️ 原始 STATUS 必须**先存**再取 gen —— 第一版直接对 `g1` 做 `>>16` 后再解 bit7,
+  #    bit7 早已被移走 (本脚本当场自查抓到; 与 p7b_gate4_accept 的 st1 同款)。
+  st1=$(rd 0x1c); g1=$(( (st1 >> 16) & 0xffff ))
   if [ $(( (g1 - g0 + 65536) % 65536 )) -ne 1 ]; then
      echo "GEN_FAIL gen 不是恰好 +1 ($g0 -> $g1) => 有并发写者, 本代读数不可归因"; return 2; fi
-  G0=$g0; G1=$g1; return 0
+  G0=$g0; G1=$g1; STATUS=$st1; STALE=$(( (st1 >> 7) & 1 ))
+  return 0
 }
-G0=0; G1=0
+G0=0; G1=0; STATUS=0; STALE=0
 
 dump_words(){   # dump_words <tag> [字列表...] (空 = 全部)
   local tag="$1"; shift
   local list=("$@"); [ ${#list[@]} -eq 0 ] && list=($(seq 0 $((NW-1))))
-  local i v nff=0
-  echo "SNAP_BEGIN $tag gen=$G1"
+  local i v nff=0 staled=0
+  echo "SNAP_BEGIN $tag gen=$G1 status=$(printf '0x%08x' "$STATUS")"
+  # ⭐ P1FIX (FINDINGS 高-2): SNAP_STATUS[7] = ch0_snap_to = 本代 ch0 束缺失/陈旧。
+  #   置 1 时 W79..W82 是**上一代/复位值** ⇒ 必须告警, 且本代读数不可当"本代"用。
+  echo "SNAP_STATUS gen=$G1 busy=$(( STATUS & 1 )) done=$(((STATUS>>1)&1)) seen=$(((STATUS>>2)&1)) locked_axi=$(((STATUS>>6)&1)) ch0_stale=$STALE"
+  [ "$STALE" -eq 1 ] && echo "SNAP_WARN ch0_stale=1 (SNAP_STATUS[7]): 本代 ch0 束缺失/陈旧 => W79..W82 不可信 (上一代/复位值); W76..W78 仍是本代"
   for i in "${list[@]}"; do
     v=$(rd "$(addr "$i")")
     # ⛔ Stage C: SLVERR 判定也走 norm() (原 `[ "$v" = "0xffffffff" ]` —— 大写输出会**静默漏判**)
     [ "$(norm "$v")" = "0xffffffff" ] && nff=$((nff+1))
     printf 'W%-3s %-6s %-22s %s\n' "$i" "$(addr "$i")" "${NAME[$i]:-?}" "$v"
+    if [ "$i" -ge 79 ] && [ "$i" -le 82 ] && [ "$STALE" -eq 1 ]; then
+      echo "  [WARN] W$i stale=1: 本代 ch0 束缺失/陈旧 (SNAP_STATUS[7]=1); 该字是上一代/复位值"
+      staled=$((staled+1))
+    fi
   done
-  echo "SNAP_END $tag nff=$nff"
+  echo "SNAP_END $tag nff=$nff stale_words=$staled"
   [ "$nff" -eq 0 ] || { echo "SNAP_FAIL 窗口内有 $nff 个 0xffffffff (SLVERR 混入, 不是数据) => 整窗作废"; return 1; }
+  # 只有**本代陈旧且确实打了 ch0 字**才非零退出 (打全窗时 W79..W82 一定在列表里)
+  [ "$staled" -eq 0 ] || { echo "SNAP_FAIL stale=1: 本次打印了 $staled 个 ch0 字 (W79..W82) 而本代 ch0 束缺失/陈旧 => 这些读数不可当本代值"; return 3; }
 }
 
 case "${1:-}" in

@@ -57,19 +57,20 @@ LOG=/d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p7b_gate4_tools/fix2/fake_run
 #      BIZ 61 字 = `EXPECT_BID=0x00000008 SNAP_WORDS=61 UNIMPL_ADDR=0x114`。
 # ⚠️ 期望值按 **board/wrapper_p4.v 的 `.BUILD_ID_V`** 填 (源码是唯一权威); 以现场 0x04 读数为准,
 #    若与源码不符 ⇒ 先查是不是烧了别人的位流, 别改这里的数去"迁就"读数。
-EXPECT_BID=${EXPECT_BID:-0x0000001A}       # ⛔ 2026-10-10 构建 F: 原默认 0x00000019 (构建 E 67 字) / 0x18 (构建 D) / 0x0A (Stage C)
+EXPECT_BID=${EXPECT_BID:-0x0000002B}       # ⛔ 2026-10-18 P11 P1 ch0 bring-up: 原默认 0x0000002A (p9 孤儿修复) / 0x29 (0x29 拆刀) / 0x28 (P9 E12) / 0x0A (Stage C)
 
 # ---- 快照窗口几何 (**单一来源**: 只写"字数", 其他全部由它派生) -------------------------
 # ⚠️ 旧版把 44 个地址**手抄**成一行 ⇒ 只到 0xAC (漏 W36..W50) **且尾部 8 项重复** (36 字时代的笔误)。
-#    现在只改这一个数: 地址 = 0x20 + 4*i (i=0..SNAP_WORDS-1), 未实现地址 = 0x20 + 4*SNAP_WORDS。
+#    现在只改这一个数: 地址 = 0x20 + 4*i (i=0..SNAP_WORDS-1), 未实现地址 = 0x20 + 4*SNAP_WORDS
+#    **+ 16** (⭐ M1 起: 快照末字后接 MIR_STATUS/DATA/CTRL/DMA_CNT 四字; 70 字及更早**无** +16)。
 #    **63 = P7B-WU 二轮** (`wrapper_p4.v` 的 `SNAP_NW_P6E = 63`; 0x20..0x118, 未实现 0x11C);
 #    61 = P7B-BIZ (旧位流用 `SNAP_WORDS=61 EXPECT_BID=0x00000008 UNIMPL_ADDR=0x114` 覆盖);
 #    51 = P7b (→ `0xEC`); 36 = P6b (→ `0xB0`)。
 #    ⚠️ **未实现地址必须存在**: 它撑起读侧 SLVERR 负对照 (判据 6)。译码 7 位
 #       (`_proj_pcie/rtl/axi_regs.v`) ⇒ 地址每 512 字节才回绕,
 #       `0x11C` (word 71) 真正未实现 ✓ (上限 119 字); 红线 = **绝不能挑 ≥0x200**。
-SNAP_WORDS=${SNAP_WORDS:-70}
-UNIMPL_ADDR=${UNIMPL_ADDR:-$(printf '0x%X' $(( 0x20 + 4*SNAP_WORDS )))}   # 70 ⇒ 0x138 (67 ⇒ 0x12C; 65 ⇒ 0x124; 63 ⇒ 0x11C; 51 ⇒ 0xEC)
+SNAP_WORDS=${SNAP_WORDS:-83}
+UNIMPL_ADDR=${UNIMPL_ADDR:-$(printf '0x%X' $(( 0x20 + 4*SNAP_WORDS + 16 )))}   # 83 ⇒ 0x17C (P11 P1 起; 76 ⇒ 0x160 (p9 孤儿修复); 75 ⇒ 0x15C (P9 E12); 71 ⇒ 0x14C (M1 期B); 70 字及更早 = 0x138/0x12C/0x124/0x11C/0xEC —— 读旧位流须显式覆盖)
 snap_addr(){ printf '0x%X' $(( 0x20 + 4*$1 )); }                          # word 号 → 字节地址
 # W5 (前端域自由计数) 的**标称频率随构建而变** —— 它是判据的"期望值", 不跟上就是假 FAIL:
 #   · **P7B_10G 构建** (本脚本默认几何 63 字 / EXPECT_BID=10 —— ⛔ Stage C: 原句 = 9): 前端域 = PCS 的 CDR **恢复钟**
@@ -201,7 +202,15 @@ s0=$(rd 0x1c)
 if snap_take; then echo "  [PASS] 2.1 触发后 done 置起"; PASS=$((PASS+1));
 else echo "  [FAIL] 2.1 触发后 done 一直不置 (gmii 时钟没跑?)"; FAIL=$((FAIL+1)); fi
 s1=$(rd 0x1c)
-echo "  [INFO] SNAP_STATUS: 触发前 $s0 -> 触发后 $s1 (bit0=busy bit1=done bit2=seen, [31:16]=gen)"
+# ⭐ P11 P1 (2026-10-18 P1FIX / FINDINGS 高-2): SNAP_STATUS[7] = `ch0_snap_to`
+#   ("本代 ch0 束缺失/陈旧"). 置 1 时 W79..W82 是**上一代/复位值**, 不是本代读数 ⇒
+#   必须告警并在 5.x 判红, 否则操作者会把陈旧值当本代读数。
+SNAP_STALE=0
+[ -n "$s1" ] && SNAP_STALE=$(( (s1 >> 7) & 1 ))
+echo "  [INFO] SNAP_STATUS: 触发前 $s0 -> 触发后 $s1 (bit0=busy bit1=done bit2=seen bit6=locked_axi bit7=ch0_stale, [31:16]=gen)"
+if [ "$SNAP_STALE" -eq 1 ]; then
+  echo "  [WARN] SNAP_STATUS[7]=1 (ch0_snap_to): 本代 ch0 束缺失/陈旧 ⇒ **W79..W82 不可信** (上一代/复位值); W76..W78 仍是本代"
+fi
 if [ -n "$s0" ] && [ -n "$s1" ] && [ $(( s1 >> 16 )) -eq $(( (s0 >> 16) + 1 )) ]; then
   echo "  [PASS] 2.2 gen 恰好 +1"; PASS=$((PASS+1))
 else echo "  [FAIL] 2.2 gen 不是恰好 +1 ($s0 -> $s1)"; FAIL=$((FAIL+1)); fi
@@ -291,6 +300,10 @@ freq_check_tgl "TX 域 tx_clk_act" 50 156.25
 
 echo; echo "===== 5. 数据面计数快照 (W0..W$((SNAP_WORDS-1))) ====="
 snap_take
+# P1FIX: 本节的字来自**这次**触发 ⇒ SNAP_STATUS[7] 必须重读 (section 2 的那次可能已换代)
+st5=$(rd 0x1c)
+[ -n "$st5" ] && SNAP_STALE=$(( (st5 >> 7) & 1 ))
+[ "$SNAP_STALE" -eq 0 ] || echo "  [WARN] 本节快照的 SNAP_STATUS[7]=1: ch0 束缺失/陈旧 ⇒ W79..W82 按 stale 读"
 # 标签表: 下标 = word 号。逐字读回时**每一个字都要有名字**, 否则"读全了"只是形式。
 WLABEL=(
  "rx_stat_frames   (MAC 收帧数)" "rx_stat_bytes    (MAC 收字节)"
@@ -337,12 +350,49 @@ WLABEL=(
  "app_ctrl_rx_occ_bytes(app RX 可读字节, 17 位 ⇒ 高位恒 0)"
  # ---- 构建 C (2026-10-10) 新增 2 字 (65 字窗口; dp 域) ----
  "app_frmwait_cyc    (app_pattern 帧等待/停滞拍数)"
- "app_bp_cyc         (app_pattern 背压拍数)" )
+ "app_bp_cyc         (app_pattern 背压拍数)"
+ # ---- 构建 D/E/F (2026-10-10) 新增 5 字 (66 → 67 → 70 字窗口) ----
+ #    ⚠️ 名字**同源** = `_proj_pcie/p7b_biz/p7b_snap.sh` 的 `NAME[]`([65]..[69]);
+ #       真值源 = `board/wrapper_p4.v` 的装配段注释。表长必须 == SNAP_WORDS (83),
+ #       否则循环把它们打成 `<无标签>` (2026-10-10 加固轮: 本表原只到 W64; M1 再补 W70;
+ #       P9 E12 再补 W71..W74 —— 四个换流门观测计数器; p9 孤儿修复 再补 W75;
+#       P11 P1 再补 W76..W82 —— ch0 J7 状态/事件/LOS + RX 四计数)。
+ "mac_tx_idle        (mac_tx_10g.stat_tx_idle: S_IDLE 拍数 = 线空闲; 构建 D)"
+ "tx_stat_winstall   (tcp_tx_frame.stat_winstall: 帧器侧窗口门停顿拍数; 构建 E)"
+ "tx_winstall_cap    (tcp_tx_frame.stat_winstall_cap: 板帽侧等窗拍数; 构建 F)"
+ "rx_stat_ack_adv    (tcp_rx.stat_ack_adv: 推进 snd_una 的 ACK 次数; 构建 F)"
+ "tx_win_at_winstall (tcp_tx_frame.o_win_at_winstall: 等窗拍锁存; 构建 F)"
+ "mir_drop_bytes     (app_rx_mirror.drop_bytes: 载荷镜像拒收字节数; M1)"
+ # ---- P9 E12 (2026-10-15) 新增 4 字 (71 → 75 字窗口; 换流门四观测计数器) ----
+ "app_stat_up_ev     (app_pattern.stat_up_ev: app 实收 ev_up 事件数; P9 E12)"
+ "app_stat_sw_req    (app_pattern.stat_sw_req: 换流收尾请求数 (ev_same_act); P9 E12)"
+ "app_stat_sw_apply  (app_pattern.stat_sw_apply: 换流应用数 (sw_apply); P9 E12)"
+ "app_stat_up_pend   (app_pattern.stat_up_pend: A3 异槽登记数 (ev_other_act); P9 E12)"
+ # ---- p9 孤儿修复 (2026-10-17) 新增 1 字 (75 → 76 字窗口; 孤儿回收计数) ----
+ "app_stat_orphan    (app_ctrl.stat_orphan: 孤儿会话/槽回收计数; p9 孤儿修复)"
+ # ---- P11 P1 (2026-10-18) 新增 7 字 (76 → 83 字窗口; ch0 J7 bring-up) ----
+ "ch0_pcs_status     (ch0 PCS 状态束: 与 W39 同位域; bit2=block_lock / bit4=hi_ber)"
+ "ch0_pcs_evt        (ch0 PCS 事件束: ferr/bad/erv 饱和; vcc=自由计数 mod 256)"
+ "ch0_los_mode       (LOS 电平/上升沿计数 + SFP2_MODE_B 模式条 bit31)"
+ "ch0_rx_frames      (ch0 好帧数: tlast && tcrs && !terr)"
+ "ch0_rx_bytes       (ch0 好帧载荷字节: Σpopc(tkeep))"
+ "ch0_rx_crc_err     (ch0 MAC 口径 FCS 错帧数)"
+ "ch0_rx_drop        (ch0 MAC 口径整帧丢)" )
 for (( i = 0; i < SNAP_WORDS; i++ )); do
   v=$(rd "$(snap_addr $i)")
   W[$i]=$v
   printf "  W%-3s 0x%-3s %s = %s\n" "$i" "$(printf '%02X' $((0x20+4*i)))" "${WLABEL[$i]:-<无标签>}" "$v"
+  # P1FIX: W79..W82 是 ch0 束; 本代陈旧时在**读数旁边**打 stale=1 (不是只在段首提示)
+  if [ "$i" -ge 79 ] && [ "$i" -le 82 ] && [ "$SNAP_STALE" -eq 1 ]; then
+    echo "      [WARN] W$i stale=1 (SNAP_STATUS[7]=1): 本代 ch0 束缺失/陈旧, 该字是上一代/复位值"
+  fi
 done
+# ⭐ P1FIX: ch0 束的"本代有效性"判定 (不是新增几何判据, 是 P1 观测面的安全语义)
+if [ "$SNAP_STALE" -eq 0 ]; then
+  echo "  [PASS] 5.-1 SNAP_STATUS[7]=0: ch0 束 (W79..W82) 属于本代"; PASS=$((PASS+1))
+else
+  echo "  [FAIL] 5.-1 SNAP_STATUS[7]=1: ch0 束本代缺失/陈旧 ⇒ W79..W82 不可信 (读数已按 stale=1 标注; 先查 ch0 rx_clk_out_0 是否停钟/超时)"; FAIL=$((FAIL+1))
+fi
 # ⚠️ 窗口内**不允许**出现 0xffffffff: 译码是连续实现的 (word 8..8+NW-1) ⇒ 窗口内的 F 只可能是
 #    "SLVERR 混进窗口" (= 读没成功), **不是数据**。漏了这条, "全 F" 会被当成合法读数流下去。
 NFF=$(for (( i = 0; i < SNAP_WORDS; i++ )); do [ "${W[$i]}" = "0xffffffff" ] && echo x; done | wc -l)

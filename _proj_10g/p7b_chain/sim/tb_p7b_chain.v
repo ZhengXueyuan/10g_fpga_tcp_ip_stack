@@ -265,7 +265,17 @@ module tb_p7b_chain;
     // P1 arm scratch (declared here: task-referenced vars must precede the initial block)
     integer p1_a79, p1_a80, p1_a81, p1_a82;
     integer p1_b79, p1_b80, p1_b81, p1_b82;
+    integer p1_c79, p1_c80, p1_c81, p1_c82;
     integer p1_evt1;
+    integer p1_w77a, p1_w77b, p1_d;
+    // P11 P1 fix (FINDINGS mid-3 arm 2): when set, build_frame also feeds the
+    // inserted /E/ byte into the TB's FCS computation. The MAC's CRC hashes
+    // every byte inside the frame window (control lanes included), so a frame
+    // carrying /E/ can only have tcrs=1 if the TB did the same. The /E/ arm
+    // needs tcrs=1 + terr=1 to isolate "terr excludes the frame from W79/W80
+    // while W81 stays flat"; without this flag the FCS mismatches and W81 +1
+    // would confound the arm. Default 0 = every pre-existing call unchanged.
+    integer fcs_incl_er = 0;
 
     reg [31:0] fcs_calc;
     task build_frame;
@@ -275,7 +285,10 @@ module tb_p7b_chain;
         integer i, m;
         begin
             fcs_calc = 32'hFFFFFFFF;
-            for (i = 0; i < n; i = i + 1) fcs_calc = crc32_byte(fcs_calc, PAT[i]);
+            for (i = 0; i < n; i = i + 1) begin
+                fcs_calc = crc32_byte(fcs_calc, PAT[i]);
+                if (fcs_incl_er && (i == er_at)) fcs_calc = crc32_byte(fcs_calc, 8'hFE);
+            end
             fcs_calc = ~fcs_calc;      // 线上 FCS = ~internal (与 MAC 的写法一致)
             wb[0] = 8'hFB; wc[0] = 1;
             for (i = 0; i < 6; i = i + 1) begin wb[1+i] = 8'h55; wc[1+i] = 0; end
@@ -1700,6 +1713,120 @@ module tb_p7b_chain;
         chk("P1-2c dW81 == 0", ((p1_a81 - p1_b81) === 0), "good FCS => no crc_err");
         chk("P1-2d dW82 == 0", ((p1_a82 - p1_b82) === 0), "no drops at 1 word/cycle");
 
+        // ---- P1-2e/f (FINDINGS mid-3 arm 1): bad FCS => W81 +1, W79/W80 flat ----
+        //   Contract (DESIGN_v5 §2.3): a frame with !tcrs is DELIVERED (crc is a flag)
+        //   but is not a "good frame" => it must not move W79/W80; W81 is the MAC's
+        //   stat_crc_err (counted at push time on !res_ok).
+        u_dut.u_pcie_xdma.axil_read(32'h15C, p1_b79);
+        u_dut.u_pcie_xdma.axil_read(32'h160, p1_b80);
+        u_dut.u_pcie_xdma.axil_read(32'h164, p1_b81);
+        u_dut.u_pcie_xdma.axil_read(32'h168, p1_b82);
+        frame_ch0 = 1; build_frame(100, 1'b1, -1);        // FCS = 0x00000000
+        repeat (900) @(posedge u_dut.rx_clk_out_0);
+        repeat (300) @(posedge u_dut.pcie_axi_aclk);
+        snap_take;
+        u_dut.u_pcie_xdma.axil_read(32'h15C, p1_c79);
+        u_dut.u_pcie_xdma.axil_read(32'h160, p1_c80);
+        u_dut.u_pcie_xdma.axil_read(32'h164, p1_c81);
+        u_dut.u_pcie_xdma.axil_read(32'h168, p1_c82);
+        chk("P1-2e bad FCS => dW81 == 1 (MAC stat_crc_err)",
+            ((p1_c81 - p1_b81) === 1), "injected FCS = 0x00000000");
+        chk("P1-2f bad FCS => W79/W80 flat (not a good frame)",
+            (p1_c79 === p1_b79) && (p1_c80 === p1_b80), "good frame = tlast && tcrs && !terr");
+        chk("P1-2f2 bad FCS => W82 flat (delivered, not dropped)",
+            (p1_c82 === p1_b82), "crc is a flag; whole-frame drop is a different counter");
+
+        // ---- P1-2g (FINDINGS mid-3 arm 2): /E/ (terr) => W79/W80 flat, W81 flat ----
+        //   fcs_incl_er=1 makes the TB hash the inserted 0xFE control byte the same way
+        //   the MAC's CRC input does -- that keeps tcrs=1 so this arm isolates the
+        //   `!terr` term of the good-frame definition instead of re-testing bad FCS.
+        u_dut.u_pcie_xdma.axil_read(32'h15C, p1_b79);
+        u_dut.u_pcie_xdma.axil_read(32'h160, p1_b80);
+        u_dut.u_pcie_xdma.axil_read(32'h164, p1_b81);
+        u_dut.u_pcie_xdma.axil_read(32'h168, p1_b82);
+        fcs_incl_er = 1;
+        frame_ch0 = 1; build_frame(100, 1'b0, 50);        // /E/ after content byte 50
+        fcs_incl_er = 0;
+        repeat (900) @(posedge u_dut.rx_clk_out_0);
+        repeat (300) @(posedge u_dut.pcie_axi_aclk);
+        snap_take;
+        u_dut.u_pcie_xdma.axil_read(32'h15C, p1_c79);
+        u_dut.u_pcie_xdma.axil_read(32'h160, p1_c80);
+        u_dut.u_pcie_xdma.axil_read(32'h164, p1_c81);
+        u_dut.u_pcie_xdma.axil_read(32'h168, p1_c82);
+        chk("P1-2g /E/ frame => W79/W80 flat (terr excluded)",
+            (p1_c79 === p1_b79) && (p1_c80 === p1_b80), "good frame requires !terr");
+        chk("P1-2g2 /E/ frame => W81 flat (FCS stays clean by construction)",
+            (p1_c81 === p1_b81), "fcs_incl_er=1: /E/ byte is in the TB's CRC too");
+        chk("P1-2g3 /E/ frame => W82 flat (delivered with terr, not dropped)",
+            (p1_c82 === p1_b82), "contract: err flags the frame, does not drop it");
+
+        // ---- P1-2h (FINDINGS mid-3 arm 3): W77 event counters UPDATE/SATURATE ----
+        //   Group 7 forces the counter registers themselves (0xA5/0xA6/0xA7/0xA8), which
+        //   bypasses the update logic. Here the *producer* flags of the split stub are
+        //   forced high: pcs0_{ferr,badv,errv}_sr are 3FF level synchronisers and the
+        //   counters count "dp cycles high" (8-bit SATURATING for ferr/bad/erv).
+        //   W77 = [31:24]ferr [23:16]bad [15:8]erv [7:0]vcc(mod 256, free-running).
+        snap_take;
+        u_dut.u_pcie_xdma.axil_read(32'h154, p1_w77a);
+        force u_dut.u_pcs.ferr_0 = 1'b1;
+        repeat (40) @(posedge u_dut.dp_clk);               // N = 40 dp cycles
+        release u_dut.u_pcs.ferr_0;
+        repeat (10) @(posedge u_dut.dp_clk);
+        snap_take;
+        u_dut.u_pcie_xdma.axil_read(32'h154, p1_w77b);
+        p1_d = ((p1_w77b[31:24] - p1_w77a[31:24]) & 8'hFF);
+        $display("  [INFO] P1-2h d_ferr = %0d (N=40 dp cycles; force/release both sides ~3-4 edges)", p1_d);
+        chk("P1-2h ferr update: W77[31:24] += ~N (sync latency only)",
+            (p1_d >= 32) && (p1_d <= 48), "N=40 dp cycles; 3FF sync + release tail");
+        // W77[23:16] = "bad" counter. ⚠️ RTL mapping (measured, FINDINGS wording
+        // said `badv`): the event counter watches `pcs0_bad_sr[2]`, whose input is
+        // `stat_rx_bad_code_0` (= bad_code LEVEL, `bcode_0`). `bad_code_valid`
+        // (`bcode_v_0`) is only W76[10] ("valid" flag), NOT a W77 counter.
+        // The first version forced bcode_v_0 => dW77[23:16] == 0 (diagnosed
+        // from the [INFO] print); this arm now drives the real source.
+        u_dut.u_pcie_xdma.axil_read(32'h154, p1_w77a);
+        force u_dut.u_pcs.bcode_0 = 1'b1;
+        repeat (20) @(posedge u_dut.dp_clk);
+        release u_dut.u_pcs.bcode_0;
+        repeat (10) @(posedge u_dut.dp_clk);
+        snap_take;
+        u_dut.u_pcie_xdma.axil_read(32'h154, p1_w77b);
+        p1_d = ((p1_w77b[23:16] - p1_w77a[23:16]) & 8'hFF);
+        $display("  [INFO] P1-2h d_bad = %0d (N=20 dp cycles on bad_code level)", p1_d);
+        chk("P1-2h bad update: W77[23:16] += ~N", (p1_d >= 12) && (p1_d <= 28),
+            "N=20 dp cycles on bad_code level; 3FF sync + release tail");
+        // rx_error_valid (errv) -> W77[15:8]
+        u_dut.u_pcie_xdma.axil_read(32'h154, p1_w77a);
+        force u_dut.u_pcs.rerr_v_0 = 1'b1;
+        repeat (20) @(posedge u_dut.dp_clk);
+        release u_dut.u_pcs.rerr_v_0;
+        repeat (10) @(posedge u_dut.dp_clk);
+        snap_take;
+        u_dut.u_pcie_xdma.axil_read(32'h154, p1_w77b);
+        p1_d = ((p1_w77b[15:8] - p1_w77a[15:8]) & 8'hFF);
+        $display("  [INFO] P1-2h d_errv = %0d (N=20 dp cycles)", p1_d);
+        chk("P1-2h errv update: W77[15:8] += ~N", (p1_d >= 12) && (p1_d <= 28),
+            "N=20 dp cycles on rx_error_valid; 3FF sync + release tail");
+        // saturation (ferr): >256 dp cycles must pin at 0xFF, never wrap
+        force u_dut.u_pcs.ferr_0 = 1'b1;
+        repeat (320) @(posedge u_dut.dp_clk);
+        release u_dut.u_pcs.ferr_0;
+        repeat (10) @(posedge u_dut.dp_clk);
+        snap_take;
+        u_dut.u_pcie_xdma.axil_read(32'h154, p1_w77b);
+        chk("P1-2h ferr saturation: W77[31:24] == 0xFF (no wrap)",
+            (p1_w77b[31:24] === 8'hFF), "8-bit saturating counter, not free-running");
+        // vcc is the ONE free-running field (mod 256) -- it must move in a long window
+        u_dut.u_pcie_xdma.axil_read(32'h154, p1_w77a);
+        repeat (30) @(posedge u_dut.dp_clk);
+        snap_take;
+        u_dut.u_pcie_xdma.axil_read(32'h154, p1_w77b);
+        p1_d = ((p1_w77b[7:0] - p1_w77a[7:0]) & 8'hFF);
+        chk("P1-2h vcc free-runs (mod 256): dW77[7:0] != 0",
+            (p1_d !== 0), "vcc = dp cycles high mod 256 (not saturating)");
+        $display("  [INFO] P1-2h vcc delta in the last window = %0d (mod 256)", p1_d);
+
         // ---- P1-3: sink tready=0 negative control (W79 must not rise, W82 must) ----
         u_dut.u_pcie_xdma.axil_read(32'h15C, p1_b79);   // baseline BEFORE the arm
         force u_dut.ch0_rx_tready = 1'b0;
@@ -2178,6 +2305,14 @@ module tb_p7b_chain;
         $display("  [G DIAG] SOP n=%0d bad=%0d | TLAST n=%0d | TERM n=%0d bad=%0d | tuple: d=%016h k=%02h l=%b u=%b c=%b e=%b",
                  rx_sop_n, rx_sop_bad_n, rx_tlast_n, rx_term_n, rx_term_bad_n,
                  rx_term_d, rx_term_k, rx_term_l, rx_term_u, rx_term_c, rx_term_e);
+        // ⭐ P11 P1 fix (FINDINGS mid-2): MAC "single term_pend closes multiple
+        //   already-pushed SOPs" behaviour -- INFORMATION ONLY, NOT a PASS/FAIL
+        //   criterion. rx_open_n = SOP arrived while a previous SOP was still
+        //   open; rx_bare_n = the same but outside the deliberate F4 windows.
+        //   The difference is the in-window unclosed-SOP count observed this run
+        //   (2 instances seen after the P1 timing shift; baseline had 0).
+        $display("  [G INFO] unclosed SOP inside F4 windows = %0d (rx_open_n=%0d - rx_bare_n=%0d); informational only, NOT a criterion",
+                 rx_open_n - rx_bare_n, rx_open_n, rx_bare_n);
         chk("G4 SOP-1 every RX SOP word full-aligned",
             (rx_sop_n > 0) && (rx_sop_bad_n === 0),
             "contract mac_rx_10g.v:12 (tkeep[7]=1) - never checked before");

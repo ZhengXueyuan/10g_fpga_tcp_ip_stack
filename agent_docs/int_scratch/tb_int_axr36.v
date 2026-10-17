@@ -73,7 +73,10 @@ module tb_int_axr36;
         .s_axil_rdata(rdata), .s_axil_rresp(rresp), .s_axil_rvalid(rvalid), .s_axil_rready(rready),
         .hw_status(hw_status), .scratch(scratch), .wr_count(wr_count), .decode_err(decode_err),
         .snap_req(snap_req), .snap_busy(snap_busy), .snap_valid(snap_valid), .snap_din(snap_din),
-        .fe_state(fe_state), .locked_axi(locked_axi)
+        .fe_state(fe_state), .locked_axi(locked_axi),
+        // P11 P1 (2026-10-18 P1FIX / FINDINGS low-5): new port tied low.
+        // Historical 36-word scratch TB -- does NOT cover SNAP_STATUS[7].
+        .ch0_snap_to(1'b0)
     );
 
     integer errors = 0;

@@ -5,7 +5,13 @@
 #   (mut_s0a/s0b/c3/c6/c9/c4/l1 = USABLE)
 # Decision: NOT fixed in this round (8 Stage-C mutation anchors are outside P1 scope).
 # Replacement coverage: run_tb_p7b_chain.bat now compiles with -d TCP_TX_OVL (board body).
-#   => the OVL body is exercised by the standing chain gate + matrix #20.
+#   => coverage level = **compile / elaboration ONLY**, NOT behavioural.
+#      (2026-10-18 P1FIX / FINDINGS mid-1 correction: the chain TB's TX arm forces the
+#       `txsrc_*` wires at the u_tx_arb OUTPUT and never drives `tcp_tx_frame`
+#       -- see tb_p7b_chain.v "injection source = txsrc_* ... does not test u_tx_arb
+#       internals". So the OVL body is elaborated, not exercised. Do NOT quote this
+#       as behavioural coverage of the board TCP TX body; registered in
+#       P7B_OPEN_ITEMS.md as "board TCP TX body has no behavioural gate".)
 # Archive of the dry-run:
 mut_k1    s1   0/1 <== MISMATCH
 mut_k1    s2   0/1 <== MISMATCH

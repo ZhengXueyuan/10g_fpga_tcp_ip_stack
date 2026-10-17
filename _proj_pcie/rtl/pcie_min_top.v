@@ -164,7 +164,11 @@ module pcie_min_top (
         .hw_status      (hw_status),
         .scratch        (reg_scratch),
         .wr_count       (reg_wrcnt),
-        .decode_err     (reg_decode_err)
+        .decode_err     (reg_decode_err),
+        // P11 P1 (2026-10-18 P1FIX / FINDINGS low-5): new port tied low.
+        // This small top does not instantiate any snapshot bundle (snap_* are
+        // all unconnected here); it does NOT cover SNAP_STATUS[7].
+        .ch0_snap_to    (1'b0)
     );
 
     // 指示 (io_nor 空闲脚, 只当探点): d0 = 链路起, d1 = AXI 域已就绪

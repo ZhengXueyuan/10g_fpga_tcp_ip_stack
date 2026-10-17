@@ -15,10 +15,14 @@ check_window.py -- P7B-BIZ 快照窗口的**静态结构核对** (不需要 IP, 
 判据 (每一条都对着一个真实踩过的缺陷):
   1  SNAP_NW_P6E 与 snap_dout_all 的**项数恰好相等** (少一项 => 高位悬空 X; 多一项 => 截断)
   2  最右一项必须是 `snap_dout` (snap_seq 的 36 字), 其余项数 = NW-36
-  3  束宽等式: FE14 + DP22 + P7BFE3 + (P7BDP-4 占位) + TX4 == SNAP_NW_P6E
-  4  * **旧字一个都没移位**: 与 `git show HEAD:board/wrapper_p4.v` 的装配项**逐项比对**,
-     旧项必须原封不动地出现在新表的**尾部** (新增项只能落在 MSB 端)
-  5  * 新增 6 项落在**最上面**(MSB), 且槽号 <-> 字号的映射与 `p7bdp_din` 的显式 assign 一致
+  3  束宽等式: FE14 + DP22 + P7BFE3 + (P7BDP-4 占位) + TX5 + CH0_4 == SNAP_NW_P6E
+  4  * **旧字一个都没移位**: 与**冻结锚**(上一代 0x2A 的装配项表 FROZEN_2A_ITEMS,
+     从 `git show 3d4ce8ad^:board/wrapper_p4.v` 提取后冻结在源码里)**逐项比对**,
+     旧项必须原封不动地出现在新表的**尾部** (新增项只能落在 MSB 端)。
+     ⚠️ 2026-10-18 P1FIX: 原 oracle 是 `git show HEAD:...` —— 提交后 HEAD 已是新树,
+     该判据**空转**(HEAD 48 项 vs 新表 48 项 => 新增 0 项)。冻结锚不随 HEAD 漂移。
+  5  * 新增项落在**最上面**(MSB), 且槽号 <-> 字号的映射与 `p7bdp_din` / `ch0snap_din` 的
+     显式 assign 一致 (P11 P1: 顶端 4 项是 ch0 束槽 3..0, 其下才是 p7bdp 槽 38..26)
   6  `p7bdp_din` 的驱动项数 = SNAP_P7BDP_NW (generate 12 项 + 显式 assign 6 项)
   7  * 装配里出现的**每个标识符都已声明且声明在使用之前** (xvlog 对隐式网沉默)
   8  译码位宽 vs 回绕红线: `ar_word` 装得下 `(0x20+4*NW)>>2`; `snap_base` 装得下 `(NW-1)<<5`
@@ -34,6 +38,33 @@ import io, os, re, subprocess, sys, argparse
 FAILS = []
 PASSES = []
 INFO = []
+
+# ---------------------------------------------------------------------------
+# 判据 4 的**冻结锚** (2026-10-18 P1FIX / FINDINGS 高-1 低-4)
+#   原实现用 `git show HEAD:board/wrapper_p4.v` 做"旧字未移位"的 oracle —— 提交后
+#   HEAD 已经是新树 ⇒ 判据恒真、**空转** (本机曾输出 "HEAD 48 项 = 新表 48 项")。
+#   现在把"上一代板级已验收的 0x2A 装配项表"逐项冻结在这里 (来源 =
+#   `git show 3d4ce8ad^:board/wrapper_p4.v`, 提取于 2026-10-18; 41 项)。
+#   ⚠️ 换代纪律: 只有**下一代的旧字基线**才允许替换本表 (例如 0x2B 位流板级
+#      验收后), 且必须整表替换并注明出处 commit —— 不许把手改的局部项塞进来。
+#   ⚠️ 本表是**文本锚** (去掉行注释后的表达式), 与位宽/槽号无关。
+# ---------------------------------------------------------------------------
+FROZEN_2A_ITEMS = [
+    'p7bdp_dout[35*32 +: 32]', 'p7bdp_dout[34*32 +: 32]', 'p7bdp_dout[33*32 +: 32]',
+    'p7bdp_dout[32*32 +: 32]', 'p7bdp_dout[31*32 +: 32]', 'p7bdp_dout[30*32 +: 32]',
+    'p7bdp_dout[29*32 +: 32]', 'p7bdp_dout[28*32 +: 32]', 'p7bdp_dout[27*32 +: 32]',
+    'p7bdp_dout[26*32 +: 32]', 'txsnap_dout[4*32 +: 32]', 'p7bdp_dout[25*32 +: 32]',
+    'p7bdp_dout[24*32 +: 32]', 'p7bdp_dout[23*32 +: 32]', 'p7bdp_dout[22*32 +: 32]',
+    'p7bdp_dout[21*32 +: 32]', 'p7bdp_dout[20*32 +: 32]', 'p7bdp_dout[19*32 +: 32]',
+    'p7bdp_dout[18*32 +: 32]', 'p7bdp_dout[17*32 +: 32]', 'p7bdp_dout[16*32 +: 32]',
+    'p7bdp_dout[15*32 +: 32]', 'p7bdp_dout[14*32 +: 32]', 'p7bdp_dout[13*32 +: 32]',
+    'p7bdp_dout[12*32 +: 32]', 'p7bdp_dout[11*32 +: 32]', 'p7bdp_dout[10*32 +: 32]',
+    'p7bdp_dout[9*32 +: 32]', 'p7bdp_dout[8*32 +: 32]', 'p7bdp_dout[7*32 +: 32]',
+    'p7bdp_dout[6*32 +: 32]', 'txsnap_dout[3*32 +: 32]', 'txsnap_dout[2*32 +: 32]',
+    'txsnap_dout[1*32 +: 32]', 'txsnap_dout[0*32 +: 32]', 'p7bdp_dout[1*32 +: 32]',
+    'p7bdp_dout[0*32 +: 32]', 'p7bfe_dout[2*32 +: 32]', 'p7bfe_dout[1*32 +: 32]',
+    'p7bfe_dout[0*32 +: 32]', 'snap_dout',
+]
 
 
 def ck(cond, name, detail=""):
@@ -125,8 +156,8 @@ def main():
         mm = re.search(r"localparam\s+%s\s*=\s*(\d+)" % name, src0)
         return int(mm.group(1)) if mm else None
 
-    fe, dp, pfe, pdp, tx = (lp("SNAP_FE_NW"), lp("SNAP_DP_NW"), lp("SNAP_P7BFE_NW"),
-                            lp("SNAP_P7BDP_NW"), lp("SNAP_TX_NW"))
+    fe, dp, pfe, pdp, tx, ch0 = (lp("SNAP_FE_NW"), lp("SNAP_DP_NW"), lp("SNAP_P7BFE_NW"),
+                                 lp("SNAP_P7BDP_NW"), lp("SNAP_TX_NW"), lp("SNAP_CH0_NW"))
 
     body_raw, _ = grab_concat(src0, r"wire\s*\[SNAP_NW_P6E\*32-1:0\]\s*snap_dout_all\s*=")
     ck(body_raw is not None, "1b snap_dout_all 拼接存在")
@@ -162,7 +193,8 @@ def main():
             return None
         expr = mm.group(1).replace(" ", "")
         for nm, val in (("SNAP_FE_NW", fe), ("SNAP_DP_NW", dp), ("SNAP_P7BFE_NW", pfe),
-                        ("SNAP_P7BDP_NW", pdp), ("SNAP_TX_NW", tx), ("SNAP_NW_P6E", NW)):
+                        ("SNAP_P7BDP_NW", pdp), ("SNAP_TX_NW", tx), ("SNAP_CH0_NW", ch0),
+                        ("SNAP_NW_P6E", NW)):
             expr = expr.replace(nm, str(val))
         expr = re.sub(r"-1:0$", "", expr)
         try:
@@ -187,30 +219,40 @@ def main():
     ck(code_of(items[-1]) == "snap_dout", "2a 最右一项是 snap_dout", "(实际 '%s')" % code_of(items[-1])[:40])
     ck(words_of(code_of(items[-1]), src0) == 36, "2b snap_dout 一项占 36 字 (FE14+DP22)")
 
-    # ---------- 判据 3: 束宽等式 (fe/dp/pfe/pdp/tx 已在上面取过) ----------
-    ck(None not in (fe, dp, pfe, pdp, tx), "3a 五个束宽 localparam 都在",
-       "(fe=%s dp=%s p7bfe=%s p7bdp=%s tx=%s)" % (fe, dp, pfe, pdp, tx))
+    # ---------- 判据 3: 束宽等式 (fe/dp/pfe/pdp/tx/ch0 已在上面取过) ----------
+    #   ⭐ P11 P1 (2026-10-18): 新增 ch0 束 (W79..W82) ⇒ 等式必须带 + SNAP_CH0_NW,
+    #      否则 14+22+3+(39-4)+5 = 79 ≠ 83 (本门 2026-10-18 实测红的就是这一条)。
+    ck(None not in (fe, dp, pfe, pdp, tx, ch0), "3a 六个束宽 localparam 都在",
+       "(fe=%s dp=%s p7bfe=%s p7bdp=%s tx=%s ch0=%s)" % (fe, dp, pfe, pdp, tx, ch0))
     ck(fe + dp == 36, "3b FE+DP = 36 (snap_seq 的两束)", "(%d+%d)" % (fe, dp))
     # p7bdp 的槽 2..5 是占位 (由 tx 束搬运) => 有效字数 = pdp - 4
-    ck(fe + dp + pfe + (pdp - 4) + tx == NW, "3 束宽等式 == NW",
-       "(%d+%d+%d+(%d-4)+%d = %d)" % (fe, dp, pfe, pdp, tx, fe + dp + pfe + pdp - 4 + tx))
+    ck(fe + dp + pfe + (pdp - 4) + tx + ch0 == NW, "3 束宽等式 == NW",
+       "(%d+%d+%d+(%d-4)+%d+%d = %d)"
+       % (fe, dp, pfe, pdp, tx, ch0, fe + dp + pfe + pdp - 4 + tx + ch0))
 
-    # ---------- 判据 4: 旧字未移位 (与 git HEAD 逐项比对) ----------
+    # ---------- 判据 4: 旧字未移位 (与**冻结锚**逐项比对) ----------
+    #   ⚠️ 2026-10-18 P1FIX: 原 oracle = `git show HEAD:board/wrapper_p4.v`。
+    #      提交后 HEAD 已是新树 ⇒ "旧字未移位"判据**空转** (HEAD 与新表同为 48 项,
+    #      "新增 0 项"恒真)。现在改为源码内冻结的 0x2A 项表 (见 FROZEN_2A_ITEMS)。
+    #      它在**任何**工作树/提交状态下都给出同一个 oracle, 不依赖 git。
     try:
-        head = subprocess.check_output(["git", "-C", repo, "show", "HEAD:board/wrapper_p4.v"])
-        hbody, _ = grab_concat(head.decode("utf-8"), r"wire\s*\[SNAP_NW_P6E\*32-1:0\]\s*snap_dout_all\s*=")
-        hitems = [code_of(x) for x in split_top_items(hbody)]
+        hitems = list(FROZEN_2A_ITEMS)
         nitems = [code_of(x) for x in items]
-        tail = nitems[len(nitems) - len(hitems):]
-        ck(tail == hitems, "4 * 旧字未移位 (HEAD 的项 == 新表的尾部)",
-           "(HEAD %d 项, 新表 %d 项 => 新增 %d 项全在 MSB 端)" % (len(hitems), len(nitems), len(nitems) - len(hitems)))
-        if tail != hitems:
-            for i, (x, y) in enumerate(zip(tail, hitems)):
-                if x != y:
-                    print("       第一处不同: 新表 '%s' vs HEAD '%s'" % (x[:50], y[:50]))
-                    break
+        if len(nitems) < len(hitems):
+            ck(False, "4 * 旧字未移位 (冻结锚 0x2A 的项 == 新表的尾部)",
+               "(新表只有 %d 项, 比冻结锚 %d 项还少 => 有旧字被删)" % (len(nitems), len(hitems)))
+        else:
+            tail = nitems[len(nitems) - len(hitems):]
+            ck(tail == hitems, "4 * 旧字未移位 (冻结锚 0x2A 的项 == 新表的尾部)",
+               "(锚 %d 项, 新表 %d 项 => 新增 %d 项全在 MSB 端)"
+               % (len(hitems), len(nitems), len(nitems) - len(hitems)))
+            if tail != hitems:
+                for i, (x, y) in enumerate(zip(tail, hitems)):
+                    if x != y:
+                        print("       第一处不同: 新表 '%s' vs 冻结锚 '%s'" % (x[:50], y[:50]))
+                        break
     except Exception as e:
-        ck(False, "4 旧字未移位 (git HEAD 比对)", "(%s)" % e)
+        ck(False, "4 旧字未移位 (冻结锚比对)", "(%s)" % e)
 
     # ---------- 判据 5: 新增项的槽号 <-> 字号 ----------
     #   ⚠️ 拼接是 **MSB 端先写** ⇒ 表里**最上面那一项 = 最高字号** (下标最大)。
@@ -224,24 +266,22 @@ def main():
     #      (它的源 `tcp_tx_frame.stat_winstall` 在 dp 域), 所以顶端两项 = p7bdp 的 W(NW-1)
     #      与 tx 束的 W65; 紧随其后才是历史那 14 项 (W64..W51)。
     #      ⚠️ "最上面 = tx 束槽" 这条**只对 P7B-A7 那一代成立**, 不是不变量 (就地订正)。
-    nnew_top = 17                             # ⭐ P11 P1: W82..W76 (p7bdp 槽 38..36 + ch0 束槽 3..0)
-                                              #   + W75 (槽 35) + W74..W71 (槽 34..31)
-                                              #   + W70/W69/W68/W67/W66 (槽 30..26)
-                                              #   —— 上一代 (p9 孤儿修复) 是 10; P1 新增 7 字全落
-                                              #   在最上面 ⇒ 顶端段 +7 (本条**每代都要按该代接线核**)
-    ntx = 1                                   # 其后的 tx 束项数 (W65) —— 现在排第 11 项
+    #   ⭐ P11 P1 (2026-10-18): 顶端段 = **两束混合** —— 最上面 4 项是 ch0 束槽 3..0
+    #      (W82..W79), 其下才是 p7bdp 槽 38..26 (W78..W66)。上一代 (p9 孤儿修复)
+    #      顶端是 10 项纯 p7bdp; P1 在其上插了 7 项 (4 ch0 + 3 p7bdp) ⇒ 17 项。
+    #      (本门 2026-10-18 实测红的就是这里: 旧期望把 17 项全按 p7bdp 生成。)
+    nnew_top = 17                             # W82..W66 (ch0 槽 3..0 = 4 项 + p7bdp 槽 38..26 = 13 项)
+    nch0_top = 4                              # 顶端 ch0 束项数 (= SNAP_CH0_NW, W82..W79)
+    ntx = 1                                   # 其后的 tx 束项数 (W65)
     nnew = 14                                 # W64..W51 (槽 25..12) —— 历史段
-    # ⭐ 2026-10-10 (构建 F): 顶端再变一次 —— 三个新字**全在 p7bdp 束里** (槽 27/28/29),
-    #   加上 E 代的 W66 (槽 26) ⇒ 顶端**四项** = p7bdp 的 W69/W68/W67/W66, 第五项才是
-    #   tx 束的 W65, 紧随其后才是历史那 14 项 (W64..W51)。
-    #   ⚠️ "最上面 = 哪一束" **不是不变量** (E 代是 p7bdp 打头、D 代是 tx 束打头)
-    #   —— 每代都要按该代的接线逐项核 (本条第一版就把 nnew_top 写成 3 ⇒ 当场 FAIL)。
     topn = [code_of(x) for x in items[0:nnew_top]]
-    want_top = ["p7bdp_dout[%d*32 +: 32]" % (pdp - 1 - i) for i in range(nnew_top)]
+    want_top = (["ch0snap_dout[%d*32 +: 32]" % (ch0 - 1 - i) for i in range(nch0_top)] +
+                ["p7bdp_dout[%d*32 +: 32]" % (pdp - 1 - i)
+                 for i in range(nnew_top - nch0_top)])
     ck(topn == want_top,
-       "5a 最上面 %d 项 = %s (p7bdp 束槽 %s; P11 P1)"
-       % (nnew_top, "/".join("W%d" % (NW - 1 - i) for i in range(nnew_top)),
-          "/".join("%d" % (pdp - 1 - i) for i in range(nnew_top))),
+       "5a 最上面 %d 项 = ch0 槽 %s + p7bdp 槽 %s (P11 P1)"
+       % (nnew_top, "/".join("%d" % (ch0 - 1 - i) for i in range(nch0_top)),
+          "/".join("%d" % (pdp - 1 - i) for i in range(nnew_top - nch0_top))),
        "(实际 %s, 期望 %s)" % (topn, want_top))
     top2 = code_of(items[nnew_top])
     want2 = "txsnap_dout[%d*32 +: 32]" % (tx - 1)
@@ -253,13 +293,40 @@ def main():
     wantN = ["p7bdp_dout[%d*32 +: 32]" % (25 - i) for i in range(nnew)]   # W64..W51 (槽 25..12)
     ck(topN == wantN, "5b 紧随其后 %d 项 = W64..W51 的槽 (MSB 先写; p7bdp)" % nnew,
        "(实际 %s)" % topN)
-    #   槽号映射 (⚠️ **分段**: W51..W64 = 槽 12..25 (字号−39), 而 W66..W69 = 槽 26..29
-    #   (字号−40) —— 因为 **W65 落在 tx 束**, 把 p7bdp 的槽号序列打出一个洞)。
-    slot_map = [(k, k - 39) for k in range(51, 65)] + [(k, k - 40) for k in range(66, NW)]
+    #   槽号映射 (⚠️ **分段**: W51..W64 = 槽 12..25 (字号−39), 而 W66..W75 = 槽 26..35
+    #   (字号−40) —— 因为 **W65 落在 tx 束**, 把 p7bdp 的槽号序列打出一个洞;
+    #   W76..W78 是 P1 的 ch0 PCS 状态/事件/LOS (p7bdp 槽 36..38, RHS **不是** biz_wNN);
+    #   W79..W82 在 **ch0 束槽 0..3**, 根本不在 p7bdp 里)。
+    #   ⚠️ 2026-10-18 P1FIX: 原 `range(66, NW)` 会把 W76..W82 也按 `biz_w%d` 去找 ——
+    #      那是 9 FAIL 中的 7 条 (W76..W82)。现在分段处理三种形态。
+    slot_map = [(k, k - 39) for k in range(51, 65)] + [(k, k - 40) for k in range(66, 76)]
     for k, slot in slot_map:
         pat = r"assign\s+p7bdp_din\[%d\*32\s*\+\:\s*32\]\s*=\s*biz_w%d\s*;" % (slot, k)
         ck(re.search(pat, src0) is not None, "5c 槽号映射 W%d" % k,
            "(p7bdp_din[%d*32 +: 32] = biz_w%d)" % (slot, k))
+    # W76..W78: p7bdp 槽 36..38, RHS = ch0 PCS 生产者 (名字不同, 所以单列)
+    for k, slot, src_name in ((76, 36, "ch0_pcs_status"), (77, 37, "ch0_pcs_evt"),
+                              (78, 38, "ch0_los_bundle")):
+        pat = r"assign\s+p7bdp_din\[%d\*32\s*\+\:\s*32\]\s*=\s*%s\s*;" % (slot, src_name)
+        ck(re.search(pat, src0) is not None, "5c 槽号映射 W%d (ch0 PCS)" % k,
+           "(p7bdp_din[%d*32 +: 32] = %s)" % (slot, src_name))
+    # W79..W82: **ch0 束**槽 0..3; 装配项 + din 源两者都要在
+    #   (装配项由 5a 的顶端段覆盖, 这里再按字逐项钉一次: 防"槽号对但字配错")
+    #   ⚠️ 两种写法都是**MSB 先写**: 装配项下标 = 82-word (W82 在第 0 项);
+    #      `ch0snap_din = {…}` 拼接下标 = 3-slot (槽 3 在第 0 项)。
+    ch0_body, _ = grab_concat(src0, r"ch0snap_din\s*=")
+    ch0_din_items = [code_of(x) for x in split_top_items(re.sub(r"//[^\n]*", "", ch0_body))] if ch0_body else []
+    ch0_map = ((79, 0, "ch0_rx_frames"), (80, 1, "ch0_rx_bytes"),
+               (81, 2, "ch0_stat_crc_err"), (82, 3, "ch0_stat_drop"))
+    for k, slot, src_name in ch0_map:
+        k2 = 82 - k
+        want_asm = "ch0snap_dout[%d*32 +: 32]" % slot
+        ck(code_of(items[k2]) == want_asm, "5c 槽号映射 W%d (ch0 束装配)" % k,
+           "(装配第 %d 项 = '%s', 期望 '%s')" % (k2, code_of(items[k2])[:40], want_asm))
+        din_idx = 3 - slot
+        got = ch0_din_items[din_idx] if din_idx < len(ch0_din_items) else "<缺项>"
+        ck(got == src_name, "5c 槽号映射 W%d (ch0 束 din)" % k,
+           "(ch0snap_din 第 %d 项 = '%s', 期望 '%s')" % (din_idx, got[:40], src_name))
     # 5d: W65 的**跨文件一致性** (端口 ↔ 接线 ↔ 束槽). 防两种半成品:
     #     "端口加了但没接快照字" (被综合整条优化掉) 与 "只在 wrapper 接、`mac_tx_10g`
     #     没那个端口" (只有合体构建才报错); 另防"接进了错的槽" (最高槽必须是它)。

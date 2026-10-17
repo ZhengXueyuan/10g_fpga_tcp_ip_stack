@@ -1,0 +1,12 @@
+[P4GUARD OK] root=d:\repo\xcku5pmini\udp_hls_10g self=d:\repo\xcku5pmini\udp_hls_10g manifests=9
+[ELAB c1] P7B=1 PCIE=1 EXTRA=[] OK
+[ELAB c2] P7B=0 PCIE=1 EXTRA=[] OK
+[ELAB c3] P7B=1 PCIE=0 EXTRA=[] OK
+[ELAB c4] P7B=0 PCIE=0 EXTRA=[] OK
+[ELAB c5] P7B=1 PCIE=1 EXTRA=[-d SFP2_MODE_A] OK
+[ELAB c6] EXPECTED-FAIL OK at xelab
+ERROR: [VRFC 10-2063] Module <SFP2_MODE_A_AND_B_CONFLICT> not found while processing module instance <g_sfp2_mode_conflict.u_sfp2_mode_conflict> [D:/repo/XCKU5PMini/udp_hls_10g/board/wrapper_p4.v:276]
+[ELAB c7] EXPECTED-FAIL OK at xelab
+ERROR: [VRFC 10-2063] Module <SFP2_MODE_B_REQUIRES_P7B_10G> not found while processing module instance <g_sfp2_mode_b_requires_p7b.u_sfp2_mode_b_requires_p7b> [D:/repo/XCKU5PMini/udp_hls_10g/board/wrapper_p4.v:280]
+ELAB_COMBO_FAILS=0 (7 combos: 4 macro + 3 SFP2 mode)
+ELAB_4COMBO_PASS
