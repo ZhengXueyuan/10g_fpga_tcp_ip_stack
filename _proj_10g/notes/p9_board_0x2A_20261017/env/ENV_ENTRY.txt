@@ -1,0 +1,28 @@
+ENV_ENTRY -- p9_board_0x2A_20261017 entry witnesses (2026-10-17 ~14:44 CST)
+=====================================================================
+PEER (192.168.0.38):
+  hostname a-MS-7850 / uptime 15:24 / load 0.04
+  iptables v1.8.10 (nf_tables) @ /usr/sbin/iptables
+  iptables -S = ONLY -P INPUT ACCEPT / -P FORWARD ACCEPT / -P OUTPUT ACCEPT (no rules)
+  NIC enp1s0f1np1: UP, 192.168.100.100/32, nmcli state unmanaged, carrier 1
+  ethtool -c: Adaptive RX off, rx-usecs 0 (also rx-usecs-irq 0 / tx-usecs 0)
+  route: 192.168.100.2 dev enp1s0f1np1 src 192.168.100.100 uid 0
+  leftover processes: NONE (p7b_tcp_sink / p7b_tcp_churn / tcpdump all empty)
+  /tmp/p7b_biz tools: p7b_tcp_sink md5 f62299291fcb9e02afe109c4ea1f90ab (173,576 B)
+                       p7b_tcp_churn md5 ac2c89bf074f7dde979404776bfe35b5 (140,576 B)
+                       p7b_snap.sh md5 a257af8299904789c6a6dd9ed5ca030f (Oct-16, 75-word/default 0x28;
+                         NOT overwritten this round)
+  deployed this round: /tmp/b2a_snap.sh md5 7d74e14dd9a17da4f1ec6e0973f0d502 (76-word capable;
+                       byte-identical to local _proj_pcie/p7b_biz/p7b_snap.sh)
+                       /tmp/b2a_arm.sh md5 493bf001f60ce3f844be7b65afd1c4c5 (final version with pkill -x; see SHA256SUMS)
+
+BOARD (entry, before any burn):
+  /dev/xdma0_user + /dev/xdma0_control present, xdma module loaded, hw_server active
+  MAGIC 0x50360001 / BID 0x00000028 / SCRATCH 0x08 = 0 / CARRIER = 1
+  LnkSta 5GT/s x4 (identify_bars: 2 BARs; config 1 / user 0)
+  => entry board = 0x28 (as stated by the task's S0 precheck; S0_PROBE also measured
+     952.0 Mbps / mism=0 / NFF=0, i.e. slow basin ABSENT at entry).
+
+GEOMETRY:
+  0x28: 75 words, UNIMPL 0x15C, KW = 5 20 43 51 52 55 63 64 71 72 73 74
+  0x2A: 76 words, UNIMPL 0x160, W75 @ 0x14C, MIR 0x150..0x15C, KW = ... 75

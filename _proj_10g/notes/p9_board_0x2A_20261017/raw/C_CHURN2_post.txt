@@ -1,0 +1,15 @@
+SNAP_BEGIN C_CHURN2_POST gen=4100
+W5   0x34   gmii_free_FE           0xfd4919c6
+W20  0x70   mac_tx_frames          0x0491f320
+W43  0xCC   mtx_stat_tx_words      0xfd375801
+W51  0xEC   app_tx_bytes           0x81729339
+W52  0xF0   app_tx_frames          0x02b80375
+W55  0xFC   tx_stat_retx           0x000005aa
+W63  0x11C  app_frmwait_cyc        0x0f78c146
+W64  0x120  app_bp_cyc             0x30a2a8ba
+W71  0x13C  app_stat_up_ev         0x000000ce
+W72  0x140  app_stat_sw_req        0x00000042
+W73  0x144  app_stat_sw_apply      0x00000044
+W74  0x148  app_stat_up_pend       0x00000087
+W75  0x14C  app_stat_orphan        0x00000000
+SNAP_END C_CHURN2_POST nff=0

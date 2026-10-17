@@ -1,0 +1,28 @@
+RTNETLINK answers: Invalid argument
+== FINAL LIVE READ ==
+1792222328
+MAGIC=Read 32-bit value at address 0x0 (0x77a7be614000): 0x50360001
+BID=Read 32-bit value at address 0x4 (0x7760c3dfd004): 0x00000028
+SCRATCH=Read 32-bit value at address 0x8 (0x7c877f1ce008): 0x00000000
+UNIMPL_0x15C=Read 32-bit value at address 0x15c (0x779fc17f915c): 0xffffffff
+CARRIER=1
+ROUTE=192.168.100.2 dev enp1s0f1np1 src 192.168.100.100 uid 0 
+-P INPUT ACCEPT
+-P FORWARD ACCEPT
+-P OUTPUT ACCEPT
+SINK_NONE
+CHURN_NONE
+TCPDUMP_NONE
+0
+enp1s0f1np1     ethernet  unmanaged                              --                 
+Adaptive RX: off  TX: n/a
+rx-usecs:	0
+7d74e14dd9a17da4f1ec6e0973f0d502  /tmp/b2a_snap.sh
+f62299291fcb9e02afe109c4ea1f90ab  /tmp/p7b_biz/p7b_tcp_sink
+ac2c89bf074f7dde979404776bfe35b5  /tmp/p7b_biz/p7b_tcp_churn
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x00000028   (want 0x00000028 = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1792222328.212215037
+FINAL_ID_RC=0

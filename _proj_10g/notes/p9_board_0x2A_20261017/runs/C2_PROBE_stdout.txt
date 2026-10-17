@@ -1,0 +1,104 @@
+### B2A_BEGIN tag=C2_PROBE gen=0x2A mode=oneprobe dur=140 secs=20 mb=8000000 rcvbuf=2920 conns=1 recover=0 extra='' 1792221384.832300501
+### SNAP_MD5 7d74e14dd9a17da4f1ec6e0973f0d502
+### SNAP_ARGS NW=76 EXPECT_BID=0x0000002A UNIMPL=0x160 KW='5 20 43 51 52 55 63 64 71 72 73 74 75'
+--- leftover precheck (must be empty) ---
+LEFTOVER_CLEAN
+--- environment witnesses ---
+NIC_COALESCE Adaptive RX: off  TX: n/a rx-usecs:	0 
+NMCLI enp1s0f1np1     ethernet  unmanaged                              --                 
+ROUTE_GET 192.168.100.2 dev enp1s0f1np1 src 192.168.100.100 uid 0 
+--- board identity gate (before run) ---
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x0000002a   (want 0x0000002A = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1792221384.903654896
+ID_RC=0
+BID_0x04=Read 32-bit value at address 0x4 (0x7dc29955c004): 0x0000002a
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x7dd03b2c5008): 0x00000000
+CARRIER=1
+--- iptables baseline snapshot ---
+-P INPUT ACCEPT
+-P FORWARD ACCEPT
+-P OUTPUT ACCEPT
+--- pcap (single, full 'tcp port 8080', snaplen 128, 256MBx4 ring) ---
+TCPDUMP_ARMED /tmp/b2a_C2_PROBE_ctl.err (waited ~0s)
+CTL_PID=3924520
+--- peer kernel counters (before) ---
+TcpInSegs                       218025356          0.0
+TcpOutSegs                      97982948           0.0
+TcpRetransSegs                  513663             0.0
+TcpExtDelayedACKs               8311               0.0
+TcpExtDelayedACKLocked          68                 0.0
+TcpExtDelayedACKLost            132659             0.0
+TcpExtTCPPureAcks               51510              0.0
+TcpExtTCPHPAcks                 44364              0.0
+TcpExtTCPFastRetrans            8220               0.0
+TcpExtTCPOFOQueue               164476             0.0
+TcpExtTCPACKSkippedSeq          5                  0.0
+--- SNAP_PRE (explicit, before ring starts) 1792221385.015685578 ---
+SNAP_PRE_RC=0
+SNAP_BEGIN C2_PROBE_PRE gen=1
+W5   0x34   gmii_free_FE           0xb3f2f7c0
+W20  0x70   mac_tx_frames          0x00000000
+W43  0xCC   mtx_stat_tx_words      0xb3f37be2
+W51  0xEC   app_tx_bytes           0x00000000
+W52  0xF0   app_tx_frames          0x00000000
+W55  0xFC   tx_stat_retx           0x00000000
+W63  0x11C  app_frmwait_cyc        0x00000000
+W64  0x120  app_bp_cyc             0x00000000
+W71  0x13C  app_stat_up_ev         0x00000000
+W72  0x140  app_stat_sw_req        0x00000000
+W73  0x144  app_stat_sw_apply      0x00000000
+W74  0x148  app_stat_up_pend       0x00000000
+W75  0x14C  app_stat_orphan        0x00000000
+SNAP_END C2_PROBE_PRE nff=0
+--- board snapshot ring (background; one point per ~0.2 s) ---
+SNAP_PID=3924678
+--- ss sampler (background; 1 Hz per-socket bytes) ---
+SS_PID=3924679
+### PROBE_BEGIN 1792221385.074284387
+PROBE_RC=0 T0=1792221385.074284387 T1=1792221385.177579948 wall=0.103
+SINK_CONN 0 OK bytes=8000800 first_mismatch=-1 mism_bytes=0 conn_ms=0.165 dur_ms=98.107 Mbps=652.416 reads=5479 poll_tmo=0 CPU_FREQ_KHZ=3775438 THREADED=on q_full_push=5479 q_full_pop=5479 q_free_push=5495 q_free_pop=5479 slot_wait_spins=0 checked_bytes=8000800
+SINK_SUM conns=1 fail_conns=0 bytes=8000800 clean_conns=1 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=0.098 net_s=0.098 agg_Mbps=652.416 THREADED=on full_push=5479 full_pop=5479 free_push=5495 free_pop=5479 slot_wait_spins=0 checked_bytes=8000800 threads=2 check=lane8
+SINK_DONE
+--- stop snapshot ring, then SNAP_POST (explicit) 1792221385.180293827 ---
+SNAP_POST_RC=0
+SNAP_BEGIN C2_PROBE_POST gen=3
+W5   0x34   gmii_free_FE           0xb84a8de5
+W20  0x70   mac_tx_frames          0x0000156c
+W43  0xCC   mtx_stat_tx_words      0xb84b0f6d
+W51  0xEC   app_tx_bytes           0x007a1ad4
+W52  0xF0   app_tx_frames          0x00001569
+W55  0xFC   tx_stat_retx           0x00000001
+W63  0x11C  app_frmwait_cyc        0x00543667
+W64  0x120  app_bp_cyc             0x0085ff07
+W71  0x13C  app_stat_up_ev         0x00000001
+W72  0x140  app_stat_sw_req        0x00000000
+W73  0x144  app_stat_sw_apply      0x00000001
+W74  0x148  app_stat_up_pend       0x00000000
+W75  0x14C  app_stat_orphan        0x00000000
+SNAP_END C2_PROBE_POST nff=0
+--- peer kernel counters (after) ---
+TcpInSegs                       218030848          0.0
+TcpOutSegs                      97988450           0.0
+TcpRetransSegs                  513663             0.0
+TcpExtDelayedACKs               8311               0.0
+TcpExtDelayedACKLocked          68                 0.0
+TcpExtDelayedACKLost            132659             0.0
+TcpExtTCPPureAcks               51516              0.0
+TcpExtTCPHPAcks                 44367              0.0
+TcpExtTCPFastRetrans            8220               0.0
+TcpExtTCPOFOQueue               164476             0.0
+TcpExtTCPACKSkippedSeq          5                  0.0
+--- teardown ---
+ctl STOPPED_GRACEFULLY (~0s)
+--- pcap stats ---
+10192 packets captured
+10967 packets received by filter
+0 packets dropped by kernel
+-rw-r--r-- 1 tcpdump tcpdump 1090520 Oct 17 15:16 /tmp/b2a_C2_PROBE_ctl.pcap0
+--- ss log tail ---
+1 /tmp/b2a_C2_PROBE_ss.log
+SS_T 1792221385.073868935
+### B2A_END tag=C2_PROBE 1792221385.963223876

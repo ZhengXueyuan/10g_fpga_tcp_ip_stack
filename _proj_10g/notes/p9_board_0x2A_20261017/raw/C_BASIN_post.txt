@@ -1,0 +1,15 @@
+SNAP_BEGIN C_BASIN_POST gen=2914
+W5   0x34   gmii_free_FE           0x8a82e0f5
+W20  0x70   mac_tx_frames          0x0025541b
+W43  0xCC   mtx_stat_tx_words      0x8a7502dc
+W51  0xEC   app_tx_bytes           0xd4378b1d
+W52  0xF0   app_tx_frames          0x002535f3
+W55  0xFC   tx_stat_retx           0x00001b54
+W63  0x11C  app_frmwait_cyc        0x536b4a0b
+W64  0x120  app_bp_cyc             0x6fd93e9b
+W71  0x13C  app_stat_up_ev         0x00000010
+W72  0x140  app_stat_sw_req        0x00000008
+W73  0x144  app_stat_sw_apply      0x0000000e
+W74  0x148  app_stat_up_pend       0x00000002
+W75  0x14C  app_stat_orphan        0x00000002
+SNAP_END C_BASIN_POST nff=0

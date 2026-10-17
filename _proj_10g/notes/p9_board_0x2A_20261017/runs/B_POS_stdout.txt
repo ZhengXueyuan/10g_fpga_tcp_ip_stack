@@ -1,0 +1,137 @@
+iptables v1.8.10 (nf_tables): unknown option "--sport"
+Try `iptables -h' or 'iptables --help' for more information.
+/tmp/b2a_arm.sh: line 351: 3289419 Killed                  timeout -k 5 $RUN_TIMEOUT $SINK_BIN --host $BOARD --port 8080 --rcvbuf $RCVBUF --conns $CONNS --seconds $SECS --maxbytes $MB --check lane8 $EXTRA > /tmp/b2a_${TAG}_${tag}.txt 2>&1
+### B2A_BEGIN tag=B_POS gen=0x2A mode=orphan dur=140 secs=260 mb=2000000000 rcvbuf=2920 conns=1 recover=0 extra='' 1792220395.385135237
+### SNAP_MD5 7d74e14dd9a17da4f1ec6e0973f0d502
+### SNAP_ARGS NW=76 EXPECT_BID=0x0000002A UNIMPL=0x160 KW='5 20 43 51 52 55 63 64 71 72 73 74 75'
+--- leftover precheck (must be empty) ---
+LEFTOVER_CLEAN
+--- environment witnesses ---
+NIC_COALESCE Adaptive RX: off  TX: n/a rx-usecs:	0 
+NMCLI enp1s0f1np1     ethernet  unmanaged                              --                 
+ROUTE_GET 192.168.100.2 dev enp1s0f1np1 src 192.168.100.100 uid 0 
+--- board identity gate (before run) ---
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x0000002a   (want 0x0000002A = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1792220395.457682341
+ID_RC=0
+BID_0x04=Read 32-bit value at address 0x4 (0x71de06645004): 0x0000002a
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x7d49ebc64008): 0x00000000
+CARRIER=1
+--- iptables baseline snapshot ---
+-P INPUT ACCEPT
+-P FORWARD ACCEPT
+-P OUTPUT ACCEPT
+--- pcap (single, full 'tcp port 8080', snaplen 128, 256MBx4 ring) ---
+TCPDUMP_ARMED /tmp/b2a_B_POS_ctl.err (waited ~0s)
+CTL_PID=3289254
+--- peer kernel counters (before) ---
+TcpInSegs                       215546169          0.0
+TcpOutSegs                      95479013           0.0
+TcpRetransSegs                  512365             0.0
+TcpExtDelayedACKs               8205               0.0
+TcpExtDelayedACKLocked          68                 0.0
+TcpExtDelayedACKLost            132659             0.0
+TcpExtTCPPureAcks               49969              0.0
+TcpExtTCPHPAcks                 43330              0.0
+TcpExtTCPFastRetrans            7078               0.0
+TcpExtTCPOFOQueue               164468             0.0
+TcpExtTCPACKSkippedSeq          5                  0.0
+--- SNAP_PRE (explicit, before ring starts) 1792220395.568808547 ---
+SNAP_PRE_RC=0
+SNAP_BEGIN B_POS_PRE gen=1
+W5   0x34   gmii_free_FE           0x223c77e6
+W20  0x70   mac_tx_frames          0x00000004
+W43  0xCC   mtx_stat_tx_words      0x223cbb87
+W51  0xEC   app_tx_bytes           0x00000000
+W52  0xF0   app_tx_frames          0x00000000
+W55  0xFC   tx_stat_retx           0x00000000
+W63  0x11C  app_frmwait_cyc        0x00000000
+W64  0x120  app_bp_cyc             0x00000000
+W71  0x13C  app_stat_up_ev         0x00000000
+W72  0x140  app_stat_sw_req        0x00000000
+W73  0x144  app_stat_sw_apply      0x00000000
+W74  0x148  app_stat_up_pend       0x00000000
+W75  0x14C  app_stat_orphan        0x00000000
+SNAP_END B_POS_PRE nff=0
+--- board snapshot ring (background; one point per ~0.2 s) ---
+SNAP_PID=3289412
+--- ss sampler (background; 1 Hz per-socket bytes) ---
+SS_PID=3289413
+### ORPHAN_BEGIN 1792220395.630190956
+SINK1_PID=3289419
+PORT=33734 RATE_Mbps=850.9
+--- swap to blackout-window pcap (drop the fast-phase capture) 1792220396.878834129 ---
+ctl STOPPED_GRACEFULLY (~0s)
+TCPDUMP_ARMED /tmp/b2a_B_POS_ctl2.err (waited ~0s)
+REPLAY_PCAP_PID=3290657
+--- install two iptables DROP rules (4-tuple) at 1792220397.083985499 ---
+ADD_INPUT_RC=0
+ADD_OUTPUT_RC=2
+IPTABLES_POST_DROP:
+-P INPUT ACCEPT
+-P FORWARD ACCEPT
+-P OUTPUT ACCEPT
+-A INPUT -s 192.168.100.2/32 -d 192.168.100.100/32 -p tcp -m tcp --sport 8080 --dport 33734 -j DROP
+DROP_INSTALLED t=1792220397.088909473 port=33734 pre_rate_Mbps=850.9
+ORPHAN_WINDOW_END t=1792220537.090703163
+--- iptables cleanup (delete the two DROP rules for port 33734) ---
+DEL_INPUT_RC=0
+iptables v1.8.10 (nf_tables): unknown option "--sport"
+Try `iptables -h' or 'iptables --help' for more information.
+DEL_OUTPUT_RC=2
+IPTABLES_CLEAN_SNAPSHOT:
+-P INPUT ACCEPT
+-P FORWARD ACCEPT
+-P OUTPUT ACCEPT
+IPTABLES_CLEAN_OK (post == pre)
+RESUME_PROBE old_port=33734 delta_bytes=0 rate_Mbps=0.0
+--- stop snapshot ring, then SNAP_POST (explicit) 1792220542.129832624 ---
+SNAP_POST_RC=0
+SNAP_BEGIN B_POS_POST gen=909
+W5   0x34   gmii_free_FE           0x79f8b2bd
+W20  0x70   mac_tx_frames          0x000198be
+W43  0xCC   mtx_stat_tx_words      0x79f582d9
+W51  0xEC   app_tx_bytes           0x091a7080
+W52  0xF0   app_tx_frames          0x000198a0
+W55  0xFC   tx_stat_retx           0x00000011
+W63  0x11C  app_frmwait_cyc        0x030844eb
+W64  0x120  app_bp_cyc             0x48e34b5e
+W71  0x13C  app_stat_up_ev         0x00000001
+W72  0x140  app_stat_sw_req        0x00000000
+W73  0x144  app_stat_sw_apply      0x00000001
+W74  0x148  app_stat_up_pend       0x00000000
+W75  0x14C  app_stat_orphan        0x00000001
+SNAP_END B_POS_POST nff=0
+--- peer kernel counters (after) ---
+TcpInSegs                       215650967          0.0
+TcpOutSegs                      95583971           0.0
+TcpRetransSegs                  512387             0.0
+TcpExtDelayedACKs               8205               0.0
+TcpExtDelayedACKLocked          68                 0.0
+TcpExtDelayedACKLost            132659             0.0
+TcpExtTCPPureAcks               50122              0.0
+TcpExtTCPHPAcks                 43352              0.0
+TcpExtTCPFastRetrans            7078               0.0
+TcpExtTCPOFOQueue               164470             0.0
+TcpExtTCPACKSkippedSeq          5                  0.0
+--- teardown ---
+ctl STOPPED_GRACEFULLY (~0s)
+--- pcap stats ---
+177065 packets captured
+177487 packets received by filter
+0 packets dropped by kernel
+10775 packets captured
+10775 packets received by filter
+0 packets dropped by kernel
+-rw-r--r-- 1 tcpdump tcpdump 18945894 Oct 17 14:59 /tmp/b2a_B_POS_ctl.pcap0
+-rw-r--r-- 1 tcpdump tcpdump  1067184 Oct 17 15:02 /tmp/b2a_B_POS_replay.pcap
+--- ss log tail ---
+436 /tmp/b2a_B_POS_ss.log
+	 cubic rto:201 rtt:0.072/0.036 ato:40 mss:1460 pmtu:1500 rcvmss:1460 advmss:1460 cwnd:10 bytes_acked:1 bytes_received:152726220 segs_out:104610 segs_in:104609 data_segs_in:104608 send 1622222222bps lastsnd:145544 lastrcv:144093 lastack:144093 pacing_rate 3217777776bps delivered:1 app_limited rcv_rtt:0.01 rcv_space:4380 rcv_ssthresh:1665 minrtt:0.072 snd_wnd:49152
+SS_T 1792220542.188121982
+0      0      192.168.100.100:33734 192.168.100.2:8080
+	 cubic rto:201 rtt:0.072/0.036 ato:40 mss:1460 pmtu:1500 rcvmss:1460 advmss:1460 cwnd:10 bytes_acked:1 bytes_received:152726220 segs_out:104610 segs_in:104609 data_segs_in:104608 send 1622222222bps lastsnd:146555 lastrcv:145104 lastack:145104 pacing_rate 3217777776bps delivered:1 app_limited rcv_rtt:0.01 rcv_space:4380 rcv_ssthresh:1665 minrtt:0.072 snd_wnd:49152
+### B2A_END tag=B_POS 1792220542.902519122

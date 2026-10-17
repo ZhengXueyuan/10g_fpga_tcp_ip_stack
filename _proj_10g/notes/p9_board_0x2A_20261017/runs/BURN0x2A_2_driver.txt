@@ -1,0 +1,50 @@
+=== BURN_BEGIN gen=0x2A 1792221229.033112700 Sat Oct 17 15:13:49     2026 anchor=single independent + local copy
+--- 1) sha256 anchor check (must equal expected) ---
+aa44a0eda1604623eac951afc26b9f27d4798fc414a5eb9c7137ee47f9a2a3b6 */d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_build_0x2A_20261017/build/wrapper_p4.bit
+aa44a0eda1604623eac951afc26b9f27d4798fc414a5eb9c7137ee47f9a2a3b6 */d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_board_0x2A_20261017/burn/wrapper_p4_0x2A.bit
+WANT=aa44a0eda1604623eac951afc26b9f27d4798fc414a5eb9c7137ee47f9a2a3b6
+SHA_OK (build artifact + local byte copy == expected; copy is NOT independent)
+LOCAL_BIT /d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_board_0x2A_20261017/burn/wrapper_p4_0x2A.bit size=15431261 mtime=2026-10-17 15:13:49.195237200 +0800
+--- 2) pre-burn state + hw_server + xdma insmod ---
+active
+xdma                  110592  0
+xdma                  110592  0
+--- 3) burn (JTAG via 192.168.0.38:3121) 1792221233 ---
+BURN_STDOUT=/d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p7b_biz_tcpreg/tcpreg_program_stdout.txt mtime=1792221365 T0=1792221233 age=132s
+# puts "TCPREG_BIT = $bit"
+TCPREG_BIT = D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_board_0x2A_20261017\burn\wrapper_p4_0x2A.bit
+# puts "TCPREG_BIT_EXISTS = [file exists $bit]"
+TCPREG_BIT_EXISTS = 1
+# puts "TCPREG_PROG device=$dev freq=1MHz"
+TCPREG_PROG device=xcku5p_0 freq=1MHz
+# if {![file exists $bit]} { puts "TCPREG-ABORT: bitstream missing"; exit 1 }
+# if {[catch {program_hw_devices $dev} em]} { puts "TCPREG-ABORT PROGRAM FAILED: $em"; exit 1 }
+INFO: [Labtools 27-3164] End of startup status: HIGH
+# puts "TCPREG_PROG_DONE (检查上�? 'End of startup status: HIGH')"
+TCPREG_PROG_DONE (检查上�? 'End of startup status: HIGH')
+BURN_OK (HIGH + DONE + path + freshness + no-ABORT)
+--- 4) PCIe recovery: device-level remove+rescan (escalate to root port on failure) 1792221365 ---
+		LnkSta:	Speed 5GT/s (downgraded), Width x4
+[55799.253149] xdma:identify_bars: 2 BARs: config 1, user 0, bypass -1.
+[56378.519805] xdma:identify_bars: 2 BARs: config 1, user 0, bypass -1.
+[57379.943733] xdma:identify_bars: 2 BARs: config 1, user 0, bypass -1.
+/dev/xdma0_control
+/dev/xdma0_user
+--- 5) identity gate (GEN=0x2A: NW=76 BID=0x0000002A UNIMPL=0x160) ---
+MAGIC_0x00=Read 32-bit value at address 0x0 (0x7425d2b00000): 0x50360001
+BID_0x04=Read 32-bit value at address 0x4 (0x7310f8992004): 0x0000002a
+UNIMPL_0x160=Read 32-bit value at address 0x160 (0x704bd9f61160): 0xffffffff
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x776bf67d7008): 0x00000000
+MIR_DMA_CNT_0x15C=Read 32-bit value at address 0x15c (0x7105d5ee515c): 0x00000000
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x0000002a   (want 0x0000002A = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1792221379.625997871
+ID_RC=0
+--- 6) window scan: NFF must be 0 over NW words ---
+WINDOW_SCAN_NFF=0
+--- 7) release controlled stop (0x08 <- 0) ---
+SCRATCH_0x08(after)=Read 32-bit value at address 0x8 (0x75c284249008): 0x00000000
+CARRIER=1
+=== BURN_END gen=0x2A 1792221381.120711300 ===

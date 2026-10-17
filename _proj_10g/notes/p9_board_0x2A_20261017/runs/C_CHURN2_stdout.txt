@@ -1,0 +1,127 @@
+### B2A_BEGIN tag=C_CHURN2 gen=0x2A mode=churn dur=120 secs=240 mb=2000000000 rcvbuf=2920 conns=1 recover=0 extra='' 1792222009.437472298
+### SNAP_MD5 7d74e14dd9a17da4f1ec6e0973f0d502
+### SNAP_ARGS NW=76 EXPECT_BID=0x0000002A UNIMPL=0x160 KW='5 20 43 51 52 55 63 64 71 72 73 74 75'
+--- leftover precheck (must be empty) ---
+LEFTOVER_CLEAN
+--- environment witnesses ---
+NIC_COALESCE Adaptive RX: off  TX: n/a rx-usecs:	0 
+NMCLI enp1s0f1np1     ethernet  unmanaged                              --                 
+ROUTE_GET 192.168.100.2 dev enp1s0f1np1 src 192.168.100.100 uid 0 
+--- board identity gate (before run) ---
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x0000002a   (want 0x0000002A = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1792222009.510233744
+ID_RC=0
+BID_0x04=Read 32-bit value at address 0x4 (0x7e80fee0d004): 0x0000002a
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x7a046c291008): 0x00000000
+CARRIER=1
+--- iptables baseline snapshot ---
+-P INPUT ACCEPT
+-P FORWARD ACCEPT
+-P OUTPUT ACCEPT
+--- pcap (single, full 'tcp port 8080', snaplen 128, 256MBx4 ring) ---
+TCPDUMP_ARMED /tmp/b2a_C_CHURN2_ctl.err (waited ~0s)
+CTL_PID=240725
+--- peer kernel counters (before) ---
+TcpInSegs                       258666474          0.0
+TcpOutSegs                      102235395          0.0
+TcpRetransSegs                  523847             0.0
+TcpExtDelayedACKs               8350               0.0
+TcpExtDelayedACKLocked          68                 0.0
+TcpExtDelayedACKLost            133203             0.0
+TcpExtTCPPureAcks               52268              0.0
+TcpExtTCPHPAcks                 44682              0.0
+TcpExtTCPFastRetrans            8227               0.0
+TcpExtTCPOFOQueue               165103             0.0
+TcpExtTCPACKSkippedSeq          5                  0.0
+--- SNAP_PRE (explicit, before ring starts) 1792222009.622005152 ---
+SNAP_PRE_RC=0
+SNAP_BEGIN C_CHURN2_PRE gen=3354
+W5   0x34   gmii_free_FE           0x6d1151e4
+W20  0x70   mac_tx_frames          0x027ead5c
+W43  0xCC   mtx_stat_tx_words      0x6d02a534
+W51  0xEC   app_tx_bytes           0x7ca83230
+W52  0xF0   app_tx_frames          0x025d65d5
+W55  0xFC   tx_stat_retx           0x00000027
+W63  0x11C  app_frmwait_cyc        0x3836df00
+W64  0x120  app_bp_cyc             0xef0876ba
+W71  0x13C  app_stat_up_ev         0x0000003c
+W72  0x140  app_stat_sw_req        0x00000012
+W73  0x144  app_stat_sw_apply      0x00000016
+W74  0x148  app_stat_up_pend       0x00000026
+W75  0x14C  app_stat_orphan        0x00000000
+SNAP_END C_CHURN2_PRE nff=0
+--- board snapshot ring (background; one point per ~0.2 s) ---
+SNAP_PID=240883
+--- ss sampler (background; 1 Hz per-socket bytes) ---
+SS_PID=240884
+### CHURN_BEGIN 1792222009.680441281 dur=120
+CHURN_RC=0 1792222134.751542407
+CHURN_T t=108.3 conns=10829 estab=120 connecting=10709 connfail=0 eof=0 reset=0 err=0 closed_safe=0 bytes=8908407725 rx_MBps=15.093 CPU_FREQ_KHZ=3895082
+CHURN_T t=109.3 conns=10930 estab=121 connecting=10809 connfail=0 eof=0 reset=0 err=0 closed_safe=0 bytes=8922645645 rx_MBps=14.238 CPU_FREQ_KHZ=3729846
+CHURN_T t=110.3 conns=11030 estab=121 connecting=10909 connfail=0 eof=0 reset=0 err=0 closed_safe=0 bytes=8943338225 rx_MBps=20.693 CPU_FREQ_KHZ=3858091
+CHURN_T t=111.3 conns=11131 estab=124 connecting=11007 connfail=0 eof=0 reset=0 err=0 closed_safe=0 bytes=8959755089 rx_MBps=16.417 CPU_FREQ_KHZ=3843801
+CHURN_T t=112.3 conns=11231 estab=124 connecting=11107 connfail=0 eof=0 reset=0 err=0 closed_safe=0 bytes=8974080609 rx_MBps=14.326 CPU_FREQ_KHZ=3798123
+CHURN_T t=113.3 conns=11331 estab=124 connecting=11207 connfail=0 eof=0 reset=0 err=0 closed_safe=0 bytes=8988213409 rx_MBps=14.133 CPU_FREQ_KHZ=3895392
+CHURN_T t=114.3 conns=11432 estab=127 connecting=11305 connfail=0 eof=0 reset=0 err=0 closed_safe=0 bytes=9002433809 rx_MBps=14.220 CPU_FREQ_KHZ=3900284
+CHURN_T t=115.3 conns=11532 estab=127 connecting=11405 connfail=0 eof=0 reset=0 err=0 closed_safe=0 bytes=9016181169 rx_MBps=13.747 CPU_FREQ_KHZ=3900304
+CHURN_T t=116.3 conns=11632 estab=129 connecting=11503 connfail=0 eof=0 reset=0 err=0 closed_safe=0 bytes=9029820633 rx_MBps=13.639 CPU_FREQ_KHZ=3793857
+CHURN_T t=117.3 conns=11732 estab=130 connecting=11602 connfail=0 eof=0 reset=0 err=0 closed_safe=0 bytes=9046212053 rx_MBps=16.391 CPU_FREQ_KHZ=3743727
+CHURN_T t=118.3 conns=11833 estab=130 connecting=11703 connfail=0 eof=0 reset=0 err=0 closed_safe=0 bytes=9066608397 rx_MBps=20.396 CPU_FREQ_KHZ=3846936
+CHURN_T t=119.3 conns=11933 estab=132 connecting=11801 connfail=0 eof=0 reset=0 err=0 closed_safe=0 bytes=9079914877 rx_MBps=13.306 CPU_FREQ_KHZ=3710084
+CHURN_T t=120.3 conns=12000 estab=133 connecting=11867 connfail=0 eof=0 reset=0 err=0 closed_safe=0 bytes=9092808137 rx_MBps=12.893 CPU_FREQ_KHZ=3846341
+CHURN_T t=121.3 conns=12000 estab=133 connecting=11867 connfail=0 eof=0 reset=0 err=0 closed_safe=0 bytes=9105399177 rx_MBps=12.591 CPU_FREQ_KHZ=3895004
+CHURN_T t=122.3 conns=12000 estab=134 connecting=11866 connfail=0 eof=0 reset=0 err=0 closed_safe=0 bytes=9117990217 rx_MBps=12.591 CPU_FREQ_KHZ=3894937
+CHURN_T t=123.3 conns=12000 estab=136 connecting=11864 connfail=0 eof=0 reset=0 err=0 closed_safe=0 bytes=9131108317 rx_MBps=13.118 CPU_FREQ_KHZ=3896260
+CHURN_T t=124.3 conns=12000 estab=136 connecting=11864 connfail=0 eof=0 reset=0 err=0 closed_safe=0 bytes=9143699357 rx_MBps=12.591 CPU_FREQ_KHZ=3898521
+CHURN_DUMP none (--dump-prefix-dir 未给 ⇒ 16 条候选前缀**未落盘**)
+CHURN_SUM conns=12000 estab=136 connecting=11864 connfail=0 eof=0 reset=0 err=0 closed_safe=0 bytes=9151986317 window_s=125.002 conn_window_s=120.000 rate_per_s=100.000 estab_rate_per_s=1.133 gap_max_ms=17.298 verdict_off0=25 verdict_offk=4 candidates=16 candidates_full=16 candidates_short=0 short_lt32=0 nodata=11955 dumps=0 dumps_skipped=0 dump_fail=0 cap_hit=0 safe_close=0 needle_len=32 scan_bytes=4096 CPU_FREQ_KHZ=3894941
+CHURN_DONE
+--- stop snapshot ring, then SNAP_POST (explicit) 1792222134.756248445 ---
+SNAP_POST_RC=0
+SNAP_BEGIN C_CHURN2_POST gen=4100
+W5   0x34   gmii_free_FE           0xfd4919c6
+W20  0x70   mac_tx_frames          0x0491f320
+W43  0xCC   mtx_stat_tx_words      0xfd375801
+W51  0xEC   app_tx_bytes           0x81729339
+W52  0xF0   app_tx_frames          0x02b80375
+W55  0xFC   tx_stat_retx           0x000005aa
+W63  0x11C  app_frmwait_cyc        0x0f78c146
+W64  0x120  app_bp_cyc             0x30a2a8ba
+W71  0x13C  app_stat_up_ev         0x000000ce
+W72  0x140  app_stat_sw_req        0x00000042
+W73  0x144  app_stat_sw_apply      0x00000044
+W74  0x148  app_stat_up_pend       0x00000087
+W75  0x14C  app_stat_orphan        0x00000000
+SNAP_END C_CHURN2_POST nff=0
+--- peer kernel counters (after) ---
+TcpInSegs                       279554286          0.0
+TcpOutSegs                      116972006          0.0
+TcpRetransSegs                  631270             0.0
+TcpExtDelayedACKs               8350               0.0
+TcpExtDelayedACKLocked          68                 0.0
+TcpExtDelayedACKLost            176259             0.0
+TcpExtTCPPureAcks               52405              0.0
+TcpExtTCPHPAcks                 44711              0.0
+TcpExtTCPFastRetrans            8229               0.0
+TcpExtTCPOFOQueue               218307             0.0
+TcpExtTCPACKSkippedSeq          5                  0.0
+--- teardown ---
+ctl STOPPED_GRACEFULLY (~0s)
+--- pcap stats ---
+35327593 packets captured
+35328464 packets received by filter
+0 packets dropped by kernel
+-rw-r--r-- 1 tcpdump tcpdump 256000034 Oct 17 15:28 /tmp/b2a_C_CHURN2_ctl.pcap0
+-rw-r--r-- 1 tcpdump tcpdump 256000092 Oct 17 15:28 /tmp/b2a_C_CHURN2_ctl.pcap1
+-rw-r--r-- 1 tcpdump tcpdump 256000048 Oct 17 15:28 /tmp/b2a_C_CHURN2_ctl.pcap2
+-rw-r--r-- 1 tcpdump tcpdump 180959798 Oct 17 15:28 /tmp/b2a_C_CHURN2_ctl.pcap3
+--- ss log tail ---
+17360 /tmp/b2a_C_CHURN2_ss.log
+0      0      192.168.100.100:60292 192.168.100.2:8080
+	 cubic rto:201 rtt:0.068/0.034 ato:40 mss:1460 pmtu:1500 rcvmss:1460 advmss:1460 cwnd:10 bytes_acked:1 bytes_received:44513376 segs_out:886 segs_in:30622 data_segs_in:30621 send 1717647059bps lastsnd:29631 lastrcv:27003 lastack:27003 pacing_rate 3407058816bps delivered:1 app_limited rcv_rtt:26.502 rcv_space:1029300 rcv_ssthresh:598016 minrtt:0.068                                             
+0      0      192.168.100.100:60428 192.168.100.2:8080
+	 cubic rto:201 rtt:0.261/0.13 mss:1460 pmtu:1500 rcvmss:536 advmss:1460 cwnd:10 bytes_acked:1 segs_out:2 segs_in:1 send 447509579bps lastsnd:52184 lastrcv:52184 lastack:52184 pacing_rate 887662832bps delivered:1 app_limited rcv_space:14600 rcv_ssthresh:65535 minrtt:0.261 snd_wnd:49152                                                                                                             
+### B2A_END tag=C_CHURN2 1792222135.843747316

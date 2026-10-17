@@ -1,0 +1,129 @@
+### B2A_BEGIN tag=C_CHURN gen=0x2A mode=churn dur=120 secs=240 mb=2000000000 rcvbuf=2920 conns=1 recover=0 extra='' 1792221874.623684325
+### SNAP_MD5 7d74e14dd9a17da4f1ec6e0973f0d502
+### SNAP_ARGS NW=76 EXPECT_BID=0x0000002A UNIMPL=0x160 KW='5 20 43 51 52 55 63 64 71 72 73 74 75'
+--- leftover precheck (must be empty) ---
+LEFTOVER_CLEAN
+--- environment witnesses ---
+NIC_COALESCE Adaptive RX: off  TX: n/a rx-usecs:	0 
+NMCLI enp1s0f1np1     ethernet  unmanaged                              --                 
+ROUTE_GET 192.168.100.2 dev enp1s0f1np1 src 192.168.100.100 uid 0 
+--- board identity gate (before run) ---
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x0000002a   (want 0x0000002A = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1792221874.697511634
+ID_RC=0
+BID_0x04=Read 32-bit value at address 0x4 (0x7213bb028004): 0x0000002a
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x7abae44a1008): 0x00000000
+CARRIER=1
+--- iptables baseline snapshot ---
+-P INPUT ACCEPT
+-P FORWARD ACCEPT
+-P OUTPUT ACCEPT
+--- pcap (single, full 'tcp port 8080', snaplen 128, 256MBx4 ring) ---
+TCPDUMP_ARMED /tmp/b2a_C_CHURN_ctl.err (waited ~0s)
+CTL_PID=132613
+--- peer kernel counters (before) ---
+TcpInSegs                       220238935          0.0
+TcpOutSegs                      100198582          0.0
+TcpRetransSegs                  513723             0.0
+TcpExtDelayedACKs               8345               0.0
+TcpExtDelayedACKLocked          68                 0.0
+TcpExtDelayedACKLost            132660             0.0
+TcpExtTCPPureAcks               52113              0.0
+TcpExtTCPHPAcks                 44646              0.0
+TcpExtTCPFastRetrans            8227               0.0
+TcpExtTCPOFOQueue               164481             0.0
+TcpExtTCPACKSkippedSeq          5                  0.0
+--- SNAP_PRE (explicit, before ring starts) 1792221874.808929638 ---
+SNAP_PRE_RC=0
+SNAP_BEGIN C_CHURN_PRE gen=2642
+W5   0x34   gmii_free_FE           0x8583fa82
+W20  0x70   mac_tx_frames          0x0021c273
+W43  0xCC   mtx_stat_tx_words      0x85789f5d
+W51  0xEC   app_tx_bytes           0xc087a6d9
+W52  0xF0   app_tx_frames          0x0021c23b
+W55  0xFC   tx_stat_retx           0x0000000a
+W63  0x11C  app_frmwait_cyc        0x7a46a70a
+W64  0x120  app_bp_cyc             0xc9c20300
+W71  0x13C  app_stat_up_ev         0x00000003
+W72  0x140  app_stat_sw_req        0x00000000
+W73  0x144  app_stat_sw_apply      0x00000003
+W74  0x148  app_stat_up_pend       0x00000000
+W75  0x14C  app_stat_orphan        0x00000000
+SNAP_END C_CHURN_PRE nff=0
+--- board snapshot ring (background; one point per ~0.2 s) ---
+SNAP_PID=132771
+--- ss sampler (background; 1 Hz per-socket bytes) ---
+SS_PID=132772
+### CHURN_BEGIN 1792221874.866772906 dur=120
+CHURN_RC=0 1792221999.876211819
+CHURN_T t=108.0 conns=1021 estab=57 connecting=964 connfail=9781 eof=0 reset=0 err=0 closed_safe=0 bytes=48288448983 rx_MBps=393.057 CPU_FREQ_KHZ=3868426
+CHURN_T t=109.0 conns=1021 estab=57 connecting=964 connfail=9881 eof=0 reset=0 err=0 closed_safe=0 bytes=48678946278 rx_MBps=390.497 CPU_FREQ_KHZ=3868426
+CHURN_T t=110.0 conns=1021 estab=57 connecting=964 connfail=9981 eof=0 reset=0 err=0 closed_safe=0 bytes=49060997328 rx_MBps=382.051 CPU_FREQ_KHZ=3868426
+CHURN_T t=111.0 conns=1021 estab=57 connecting=964 connfail=10081 eof=0 reset=0 err=0 closed_safe=0 bytes=49453992683 rx_MBps=392.995 CPU_FREQ_KHZ=3868426
+CHURN_T t=112.0 conns=1021 estab=57 connecting=964 connfail=10181 eof=0 reset=0 err=0 closed_safe=0 bytes=49838540333 rx_MBps=384.548 CPU_FREQ_KHZ=3868426
+CHURN_T t=113.0 conns=1021 estab=57 connecting=964 connfail=10281 eof=0 reset=0 err=0 closed_safe=0 bytes=50219806048 rx_MBps=381.266 CPU_FREQ_KHZ=3868426
+CHURN_T t=114.0 conns=1021 estab=57 connecting=964 connfail=10381 eof=0 reset=0 err=0 closed_safe=0 bytes=50608400818 rx_MBps=388.595 CPU_FREQ_KHZ=3868426
+CHURN_T t=115.0 conns=1021 estab=57 connecting=964 connfail=10481 eof=0 reset=0 err=0 closed_safe=0 bytes=51001009273 rx_MBps=392.608 CPU_FREQ_KHZ=3868426
+CHURN_T t=116.0 conns=1021 estab=57 connecting=964 connfail=10581 eof=0 reset=0 err=0 closed_safe=0 bytes=51395363888 rx_MBps=394.355 CPU_FREQ_KHZ=3868426
+CHURN_T t=117.0 conns=1021 estab=57 connecting=964 connfail=10681 eof=0 reset=0 err=0 closed_safe=0 bytes=51776511198 rx_MBps=381.147 CPU_FREQ_KHZ=3868426
+CHURN_T t=118.0 conns=1021 estab=57 connecting=964 connfail=10781 eof=0 reset=0 err=0 closed_safe=0 bytes=52165398113 rx_MBps=388.887 CPU_FREQ_KHZ=3868426
+CHURN_T t=119.0 conns=1021 estab=57 connecting=964 connfail=10881 eof=0 reset=0 err=0 closed_safe=0 bytes=52554538923 rx_MBps=389.141 CPU_FREQ_KHZ=3868426
+CHURN_T t=120.0 conns=1021 estab=57 connecting=964 connfail=10979 eof=0 reset=0 err=0 closed_safe=0 bytes=52945995438 rx_MBps=391.457 CPU_FREQ_KHZ=3868426
+CHURN_T t=121.0 conns=1021 estab=57 connecting=964 connfail=10979 eof=0 reset=0 err=0 closed_safe=0 bytes=53314411548 rx_MBps=368.416 CPU_FREQ_KHZ=3868426
+CHURN_T t=122.0 conns=1021 estab=57 connecting=964 connfail=10979 eof=0 reset=0 err=0 closed_safe=0 bytes=53692335323 rx_MBps=377.924 CPU_FREQ_KHZ=3868426
+CHURN_T t=123.0 conns=1021 estab=57 connecting=964 connfail=10979 eof=0 reset=0 err=0 closed_safe=0 bytes=54073599578 rx_MBps=381.264 CPU_FREQ_KHZ=3868426
+CHURN_T t=124.0 conns=1021 estab=57 connecting=964 connfail=10979 eof=0 reset=0 err=0 closed_safe=0 bytes=54454028568 rx_MBps=380.429 CPU_FREQ_KHZ=3868426
+CHURN_DUMP none (--dump-prefix-dir 未给 ⇒ 1 条候选前缀**未落盘**)
+CHURN_SUM conns=1021 estab=57 connecting=964 connfail=10979 eof=0 reset=0 err=0 closed_safe=0 bytes=54829125783 window_s=125.000 conn_window_s=120.000 rate_per_s=8.508 estab_rate_per_s=0.475 gap_max_ms=11.842 verdict_off0=18 verdict_offk=0 candidates=1 candidates_full=1 candidates_short=0 short_lt32=0 nodata=1002 dumps=0 dumps_skipped=0 dump_fail=0 cap_hit=0 safe_close=0 needle_len=32 scan_bytes=4096 CPU_FREQ_KHZ=3868426
+CHURN_DONE
+CHURN_WARN RLIMIT_NOFILE soft=1024 < 16384 —— 120 s x 100/s 约需 12,000 fd；无安全关模式会撞 EMFILE（跑前先 `ulimit -n 16384`）
+CHURN_WARN EMFILE/ENFILE (Too many open files) —— fd 上限到了；`ulimit -n` 提高后再跑
+--- stop snapshot ring, then SNAP_POST (explicit) 1792221999.879211775 ---
+SNAP_POST_RC=0
+SNAP_BEGIN C_CHURN_POST gen=3353
+W5   0x34   gmii_free_FE           0x1521b8b4
+W20  0x70   mac_tx_frames          0x027ead5c
+W43  0xCC   mtx_stat_tx_words      0x1513476b
+W51  0xEC   app_tx_bytes           0x7ca83230
+W52  0xF0   app_tx_frames          0x025d65d5
+W55  0xFC   tx_stat_retx           0x00000027
+W63  0x11C  app_frmwait_cyc        0x3836df00
+W64  0x120  app_bp_cyc             0xef0876ba
+W71  0x13C  app_stat_up_ev         0x0000003c
+W72  0x140  app_stat_sw_req        0x00000012
+W73  0x144  app_stat_sw_apply      0x00000016
+W74  0x148  app_stat_up_pend       0x00000026
+W75  0x14C  app_stat_orphan        0x00000000
+SNAP_END C_CHURN_POST nff=0
+--- peer kernel counters (after) ---
+TcpInSegs                       258666420          0.0
+TcpOutSegs                      102235292          0.0
+TcpRetransSegs                  523738             0.0
+TcpExtDelayedACKs               8345               0.0
+TcpExtDelayedACKLocked          68                 0.0
+TcpExtDelayedACKLost            133203             0.0
+TcpExtTCPPureAcks               52240              0.0
+TcpExtTCPHPAcks                 44670              0.0
+TcpExtTCPFastRetrans            8227               0.0
+TcpExtTCPOFOQueue               165103             0.0
+TcpExtTCPACKSkippedSeq          5                  0.0
+--- teardown ---
+ctl STOPPED_GRACEFULLY (~0s)
+--- pcap stats ---
+40473004 packets captured
+40473740 packets received by filter
+0 packets dropped by kernel
+-rw-r--r-- 1 tcpdump tcpdump 256000040 Oct 17 15:26 /tmp/b2a_C_CHURN_ctl.pcap0
+-rw-r--r-- 1 tcpdump tcpdump 256000060 Oct 17 15:26 /tmp/b2a_C_CHURN_ctl.pcap1
+-rw-r--r-- 1 tcpdump tcpdump  44899390 Oct 17 15:26 /tmp/b2a_C_CHURN_ctl.pcap2
+-rw-r--r-- 1 tcpdump tcpdump 256000002 Oct 17 15:26 /tmp/b2a_C_CHURN_ctl.pcap3
+--- ss log tail ---
+10642 /tmp/b2a_C_CHURN_ss.log
+0      0      192.168.100.100:60952 192.168.100.2:8080
+	 cubic backoff:5 mss:1460 pmtu:1500 rcvmss:536 advmss:1460 cwnd:1 bytes_acked:1 segs_out:11 segs_in:1 lastsnd:79418 lastrcv:79418 lastack:79418 pacing_rate 185344000000bps delivered:1 app_limited retrans:0/9 rcv_space:14600 rcv_ssthresh:65535 snd_wnd:49152                                                                                                                                   
+0      0      192.168.100.100:60958 192.168.100.2:8080
+	 cubic backoff:5 mss:1460 pmtu:1500 rcvmss:536 advmss:1460 cwnd:1 bytes_acked:1 segs_out:11 segs_in:1 lastsnd:79418 lastrcv:79418 lastack:79418 pacing_rate 185344000000bps delivered:1 app_limited retrans:0/9 rcv_space:14600 rcv_ssthresh:65535 snd_wnd:49152                                                                                                                                   
+### B2A_END tag=C_CHURN 1792222000.661788467

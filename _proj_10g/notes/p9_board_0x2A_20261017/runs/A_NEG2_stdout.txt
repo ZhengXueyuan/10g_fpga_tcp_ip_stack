@@ -1,0 +1,134 @@
+iptables v1.8.10 (nf_tables): unknown option "--sport"
+Try `iptables -h' or 'iptables --help' for more information.
+### B2A_BEGIN tag=A_NEG2 gen=0x28 mode=orphan dur=140 secs=260 mb=2000000000 rcvbuf=2920 conns=1 recover=0 extra='' 1792220050.796738711
+### SNAP_MD5 7d74e14dd9a17da4f1ec6e0973f0d502
+### SNAP_ARGS NW=75 EXPECT_BID=0x00000028 UNIMPL=0x15C KW='5 20 43 51 52 55 63 64 71 72 73 74'
+--- leftover precheck (must be empty) ---
+LEFTOVER_CLEAN
+--- environment witnesses ---
+NIC_COALESCE Adaptive RX: off  TX: n/a rx-usecs:	0 
+NMCLI enp1s0f1np1     ethernet  unmanaged               --           
+ROUTE_GET 192.168.100.2 dev enp1s0f1np1 src 192.168.100.100 uid 0 
+--- board identity gate (before run) ---
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x00000028   (want 0x00000028 = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1792220050.868495309
+ID_RC=0
+BID_0x04=Read 32-bit value at address 0x4 (0x788137da5004): 0x00000028
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x7c686b82f008): 0x00000000
+CARRIER=1
+--- iptables baseline snapshot ---
+-P INPUT ACCEPT
+-P FORWARD ACCEPT
+-P OUTPUT ACCEPT
+--- pcap (single, full 'tcp port 8080', snaplen 128, 256MBx4 ring) ---
+TCPDUMP_ARMED /tmp/b2a_A_NEG2_ctl.err (waited ~0s)
+CTL_PID=3155237
+--- peer kernel counters (before) ---
+TcpInSegs                       215446207          0.0
+TcpOutSegs                      95377613           0.0
+TcpRetransSegs                  512321             0.0
+TcpExtDelayedACKs               8148               0.0
+TcpExtDelayedACKLocked          68                 0.0
+TcpExtDelayedACKLost            132656             0.0
+TcpExtTCPPureAcks               49526              0.0
+TcpExtTCPHPAcks                 43015              0.0
+TcpExtTCPFastRetrans            7078               0.0
+TcpExtTCPOFOQueue               164397             0.0
+TcpExtTCPACKSkippedSeq          5                  0.0
+--- SNAP_PRE (explicit, before ring starts) 1792220050.980324487 ---
+SNAP_PRE_RC=0
+SNAP_BEGIN A_NEG2_PRE gen=950
+W5   0x34   gmii_free_FE           0xabf9811d
+W20  0x70   mac_tx_frames          0x0001a656
+W43  0xCC   mtx_stat_tx_words      0xabf4239d
+W51  0xEC   app_tx_bytes           0x0967cf74
+W52  0xF0   app_tx_frames          0x0001a631
+W55  0xFC   tx_stat_retx           0x00000011
+W63  0x11C  app_frmwait_cyc        0x03829f6f
+W64  0x120  app_bp_cyc             0xdcd1adbc
+W71  0x13C  app_stat_up_ev         0x00000001
+W72  0x140  app_stat_sw_req        0x00000000
+W73  0x144  app_stat_sw_apply      0x00000001
+W74  0x148  app_stat_up_pend       0x00000000
+SNAP_END A_NEG2_PRE nff=0
+--- board snapshot ring (background; one point per ~0.2 s) ---
+SNAP_PID=3155385
+--- ss sampler (background; 1 Hz per-socket bytes) ---
+SS_PID=3155386
+### ORPHAN_BEGIN 1792220051.035320564
+SINK1_PID=3155392
+PORT=53810 RATE_Mbps=803.9
+--- swap to blackout-window pcap (drop the fast-phase capture) 1792220052.286627027 ---
+ctl STOPPED_GRACEFULLY (~0s)
+TCPDUMP_ARMED /tmp/b2a_A_NEG2_ctl2.err (waited ~0s)
+REPLAY_PCAP_PID=3156686
+--- install two iptables DROP rules (4-tuple) at 1792220052.493266452 ---
+ADD_INPUT_RC=0
+ADD_OUTPUT_RC=2
+IPTABLES_POST_DROP:
+-P INPUT ACCEPT
+-P FORWARD ACCEPT
+-P OUTPUT ACCEPT
+-A INPUT -s 192.168.100.2/32 -d 192.168.100.100/32 -p tcp -m tcp --sport 8080 --dport 53810 -j DROP
+DROP_INSTALLED t=1792220052.499171714 port=53810 pre_rate_Mbps=803.9
+ORPHAN_WINDOW_END t=1792220192.501119774
+--- iptables cleanup (delete the two DROP rules for port 53810) ---
+DEL_INPUT_RC=0
+iptables v1.8.10 (nf_tables): unknown option "--sport"
+Try `iptables -h' or 'iptables --help' for more information.
+DEL_OUTPUT_RC=2
+IPTABLES_CLEAN_SNAPSHOT:
+-P INPUT ACCEPT
+-P FORWARD ACCEPT
+-P OUTPUT ACCEPT
+IPTABLES_CLEAN_OK (post == pre)
+RESUME_PROBE old_port=53810 delta_bytes=0 rate_Mbps=0.0
+--- stop snapshot ring, then SNAP_POST (explicit) 1792220197.540839020 ---
+SNAP_POST_RC=0
+SNAP_BEGIN A_NEG2_POST gen=1882
+W5   0x34   gmii_free_FE           0x03b07074
+W20  0x70   mac_tx_frames          0x00032073
+W43  0xCC   mtx_stat_tx_words      0x03a77fbc
+W51  0xEC   app_tx_bytes           0x11d37564
+W52  0xF0   app_tx_frames          0x0003202c
+W55  0xFC   tx_stat_retx           0x00000026
+W63  0x11C  app_frmwait_cyc        0x06488f6f
+W64  0x120  app_bp_cyc             0x30a87f28
+W71  0x13C  app_stat_up_ev         0x00000002
+W72  0x140  app_stat_sw_req        0x00000001
+W73  0x144  app_stat_sw_apply      0x00000002
+W74  0x148  app_stat_up_pend       0x00000000
+SNAP_END A_NEG2_POST nff=0
+--- peer kernel counters (after) ---
+TcpInSegs                       215543167          0.0
+TcpOutSegs                      95474718           0.0
+TcpRetransSegs                  512328             0.0
+TcpExtDelayedACKs               8148               0.0
+TcpExtDelayedACKLocked          68                 0.0
+TcpExtDelayedACKLost            132657             0.0
+TcpExtTCPPureAcks               49686              0.0
+TcpExtTCPHPAcks                 43038              0.0
+TcpExtTCPFastRetrans            7078               0.0
+TcpExtTCPOFOQueue               164401             0.0
+TcpExtTCPACKSkippedSeq          5                  0.0
+--- teardown ---
+ctl STOPPED_GRACEFULLY (~0s)
+--- pcap stats ---
+161965 packets captured
+163149 packets received by filter
+0 packets dropped by kernel
+13091 packets captured
+13091 packets received by filter
+0 packets dropped by kernel
+-rw-r--r-- 1 tcpdump tcpdump 17330058 Oct 17 14:54 /tmp/b2a_A_NEG2_ctl.pcap0
+-rw-r--r-- 1 tcpdump tcpdump  1296526 Oct 17 14:56 /tmp/b2a_A_NEG2_replay.pcap
+--- ss log tail ---
+436 /tmp/b2a_A_NEG2_ss.log
+	 cubic rto:201 rtt:0.052/0.026 ato:40 mss:1460 pmtu:1500 rcvmss:1460 advmss:1460 cwnd:10 bytes_acked:1 bytes_received:141271100 segs_out:96774 segs_in:96772 data_segs_in:96771 send 2246153846bps lastsnd:145545 lastrcv:144089 lastack:144089 pacing_rate 4455384608bps delivered:1 app_limited rcv_rtt:0.011 rcv_space:4380 rcv_ssthresh:1665 minrtt:0.052 rcv_ooopack:3 snd_wnd:49152
+SS_T 1792220197.592644430
+0      0      192.168.100.100:53810 192.168.100.2:8080
+	 cubic rto:201 rtt:0.052/0.026 ato:40 mss:1460 pmtu:1500 rcvmss:1460 advmss:1460 cwnd:10 bytes_acked:1 bytes_received:141271100 segs_out:96774 segs_in:96772 data_segs_in:96771 send 2246153846bps lastsnd:146556 lastrcv:145100 lastack:145100 pacing_rate 4455384608bps delivered:1 app_limited rcv_rtt:0.011 rcv_space:4380 rcv_ssthresh:1665 minrtt:0.052 rcv_ooopack:3 snd_wnd:49152
+### B2A_END tag=A_NEG2 1792220198.310824614

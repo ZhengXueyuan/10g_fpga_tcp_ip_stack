@@ -1,0 +1,51 @@
+FINAL_STATE -- p9_board_0x2A_20261017 (0x2A orphan fix board verification)
+=====================================================================
+Round: 0x2A board arms (identity gates / orphan negative+positive / 4 regression arms).
+Date: 2026-10-17 ~14:44-15:32 CST.  4 JTAG volatile burns. QSPI NEVER written.
+
+BURNS (all via _proj_10g/notes/p9_board_0x2A_20261017/burn/burn_round_b2a.sh):
+  1) 14:47:32-14:49:52  0x28  sha 79c9cf434eb66723b97f654cbece9ea061632e2297c0a8ab0ea0dc198c43bec8
+     double independent anchors (p9_build_0x28/wrapper_p4.bit == p9_mdio_aplus_board_20261016/burn/wrapper_p4_0x28.bit)
+  2) 14:57:11-14:59:37  0x2A  sha aa44a0eda1604623eac951afc26b9f27d4798fc414a5eb9c7137ee47f9a2a3b6
+     ONE independent anchor (p9_build_0x2A_20261017/build/wrapper_p4.bit) + local byte copy in burn/ (NOT independent)
+  3) 15:10:31-15:12:57  0x2A  re-burn to clear the slow basin (same sha; single+local-copy anchor)
+  4) 15:29:03-15:31:28  0x28  restore active build (double independent anchors)
+  Every burn: SHA gate OK / BURN_OK (HIGH + DONE + path + freshness + no-ABORT) /
+  device-level remove+rescan (LnkSta 5GT/s x4, 2 BARs) / identity gate / NFF=0 / 0x08<-0.
+
+FINAL BOARD STATE (live read 1792222328 = 15:32:08 CST, env/FINAL_LIVE_READ.txt):
+  MAGIC 0x50360001 / BID 0x00000028 / UNIMPL 0x15C = 0xffffffff / ID_RC=0
+  reg 0x08 = 0 (not stopped) / CARRIER = 1
+  route 192.168.100.2 dev enp1s0f1np1 src 192.168.100.100
+  NIC: unmanaged / Adaptive RX off / rx-usecs 0
+  iptables: ONLY the three default policy lines (-P INPUT/FORWARD/OUTPUT ACCEPT); no rules
+  peer leftovers: NONE (p7b_tcp_sink / p7b_tcp_churn / tcpdump all empty)
+  ss 8080 established: 0
+  tools md5: /tmp/b2a_snap.sh 7d74e14dd9a17da4f1ec6e0973f0d502
+             /tmp/p7b_biz/p7b_tcp_sink f62299291fcb9e02afe109c4ea1f90ab
+             /tmp/p7b_biz/p7b_tcp_churn ac2c89bf074f7dde979404776bfe35b5
+
+ARM RESULT SUMMARY (no PASS/FAIL verdicts; see README_FOR_TL.md):
+  A 0x28 orphan negative: W75 absent; W55 17->38 (+20, all in 0.47 s after DROP) then FLAT 144 s;
+     W51/W52 frozen at DROP; old connection does not resume (0 B/5 s); no board FIN/RST;
+     slot remains stuck (no recycle path on this build).
+  B 0x2A orphan positive: W75 1->2 (+1) at t_rel 61.68 s (design 61.85 s); W55 17->34 (+17, <=0.35 s)
+     then FLAT; old connection does not resume (0 B/5 s); NEW connection 802.2 Mbps / 200 MB /
+     mism_bytes=0 / 2.0 s => slot recovered; W75 stays 2 after new connection.
+  C-fast (0x2A): 30 s, 784.7-813.3 Mbps (median 801.2), dW75=0.
+  C-basin (0x2A): 140.4 s basin present (27.28 MB payload = 1.55 Mbps; 37.3% IAT in 15-25 ms;
+     W55 ~49-50/s), dW75=0 over 141 s. Entry arm reproduced the collapse (42.76 MB fast then crawl).
+  C-zero-window (0x2A): 200.0 s live zero-window, dW75=0; persist probes on the 60 s cap
+     (p99 IAT 60.000085 s; 7 x 1-byte probes); after SIGCONT resume 1.114 GB/10 s = 891 Mbps.
+  C-churn (0x2A): 120 s, 12,000 conns / 136 estab / connfail=0 / 9.15 GB; dW75=0;
+     pcap 35,327,593 packets, 0 dropped; last 16.2 s: board FIN/RST = 0.
+
+DEVIATIONS REGISTERED (details in README_FOR_TL.md sec.7):
+  - A_NEG/A_NEG2/B_POS OUTPUT iptables rule was missing "-p tcp" => only INPUT DROP was active.
+    Fixed for B_POS2 and all later arms; B_POS2 (both rules) reproduced dW75=+1.
+  - Total blackout does NOT produce sustained 20 ms replay: board retransmits 16-21 sessions
+    within ~0.5-2 s, then goes silent. dW55 does NOT keep growing over 130 s.
+  - Teardown bug in early arms left a timeout-wrapped sink alive; fixed with pkill -x.
+  - Zero-window v1 was invalid (SIGSTOP hit the timeout wrapper, not the sink); re-run C_ZEROWIN2.
+  - C_BASIN v1 sinks stalled early (stall-n 3); re-run C_BASIN2 with stall-n 500.
+  - C_CHURN v1 hit EMFILE (ulimit 1024); re-run C_CHURN2 with ulimit 16384.
