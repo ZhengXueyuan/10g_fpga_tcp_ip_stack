@@ -13,7 +13,8 @@
 # 假板子的关键 (与上一轮 selftest 的假板子**不同**): 这里的字是**真锁存语义** ——
 #   字值 = f(最后一次触发的时刻), **不是**"读的时候现算"。这正是真板的行为, 也是伪影的
 #   必要条件; 上一轮的假板子每次读都现算 ⇒ 它结构性看不见这个缺陷。
-# ⚠️ 假板子的**几何必须与现役 RTL 同代** (= **76 字 / 未实现 0x160**; 2026-10-17 p9 孤儿修复;
+# ⚠️ 假板子的**几何必须与现役 RTL 同代** (= **83 字 / 未实现 0x17C**; 2026-10-18 P11 P1;
+#    原句 = 76 字 / 0x160 (p9 孤儿修复);
 #    原句 = 75 字 / 0x15C (P9 E12);
 #    原句 = 71 字 / 0x14C (M1 镜像窗);
 #    原句 = 70 字 / 0x138 (构建 F);
@@ -77,7 +78,7 @@ LT=\$(cat "$W/latch")
 freecnt(){ awk -v t="\$1" -v f="\$2" 'BEGIN{ n=int((t-1700000000)*f)%4294967296; if(n<0) n+=4294967296; printf "0x%08x", n }'; }
 case "\$A" in
   0X00) V=0x50360001;;
-  0X04) V=\${FAKE_BID:-0x0000002A};;   # p9 孤儿修复 = 0x2A (⛔ 原 0x29 = 0x29 拆刀 / 0x28 = P9 E12 / 0x0A = Stage C);
+  0X04) V=\${FAKE_BID:-0x0000002B};;   # P11 P1 ch0 bring-up = 0x2B (⛔ 原 0x2A = p9 孤儿修复 / 0x29 = 0x29 拆刀 / 0x28 = P9 E12 / 0x0A = Stage C);
                                        # 必须与被验的 p6e_snap_check.sh 默认 EXPECT_BID **同代**
                                        # (否则 case ① 正对照因判据 1.2 身份不符**假红**); 可覆盖。
   0X08) V=0x00000000;;
@@ -106,7 +107,14 @@ case "\$A" in
   0X144) V=0x00000000;;                                       # W73 app_pattern.stat_sw_apply (P9 E12)
   0X148) V=0x00000000;;                                       # W74 app_pattern.stat_up_pend (P9 E12)
   0X14C) V=0x00000000;;                                       # W75 app_ctrl.stat_orphan (76 字起; p9 孤儿修复)
-  0X160) V=0xffffffff;;                                       # 未实现地址 (76 字; = 0x20+4*SW+16)
+  0X150) V=0x00000000;;                                       # W76 ch0_pcs_status (83 字起; P11 P1)
+  0X154) V=0x00000000;;                                       # W77 ch0_pcs_evt
+  0X158) V=0x00000000;;                                       # W78 ch0_los_mode
+  0X15C) V=0x00000000;;                                       # W79 ch0_rx_frames
+  0X160) V=0x00000000;;                                       # W80 ch0_rx_bytes
+  0X164) V=0x00000000;;                                       # W81 ch0_rx_crc_err
+  0X168) V=0x00000000;;                                       # W82 ch0_rx_drop                                       # W75 app_ctrl.stat_orphan (76 字起; p9 孤儿修复)
+  0X17C) V=0xffffffff;;                                       # 未实现地址 (76 字; = 0x20+4*SW+16)
   *)    V=0x00000000;;
 esac
 echo "Read 32-bit from address \$A : \$V"

@@ -75,6 +75,7 @@ EDITS_27 = []          # 阶段 ⑫: 0x26 树 -> 0x27 树 (换流门 R5 修复; 
 EDITS_28 = []          # 阶段 ⑬: 0x27 树 -> 0x28 树 (P9 E12 观测计数器; **BID + 几何**: 71->75 字 / 0x14C->0x15C)
 EDITS_29 = []          # 阶段 ⑭: 0x28 树 -> 0x29 树 (0x29 拆刀; **BID-only**: 几何不变 75 字 / 0x15C)
 EDITS_2A = []          # 阶段 ⑮: 0x29 树 -> 0x2A 树 (p9 孤儿修复; **BID + 几何**: 75->76 字 / 0x15C->0x160)
+EDITS_2B = []          # 阶段 ⑯: 0x2A 树 -> 0x2B 树 (P11 / P1 ch0 bring-up; **BID + 几何**: 76->83 字 / 0x160->0x17C)
 
 
 def E3(rel, old, new, n=1):
@@ -127,6 +128,10 @@ def E14(rel, old, new, n=1):
 
 def E15(rel, old, new, n=1):
     EDITS_2A.append((rel, old, new, n))
+
+
+def E16(rel, old, new, n=1):
+    EDITS_2B.append((rel, old, new, n))
 
 
 
@@ -475,6 +480,210 @@ E15('_proj_10g/notes/p7b_biz_win/tb_biz_win.v',
   'chk("6a 未实现地址 (0x20+4*NW+16 = 0x14C @NW=71) 回 0"',
   'chk("6a 未实现地址 (0x20+4*NW+16 = 0x160 @NW=76) 回 0"', 1)
 
+
+# ===========================================================================
+# 阶段 ⑯ (0x2A -> 0x2B, P11 / P1 ch0 bring-up)
+#   生成器 = _proj_10g/notes/p9_dual_sfp_p1_impl_20261018/gen_edits_2A_2B.py
+#   几何: 83 字 / 未实现 0x17C / BID 0x2B; W76..W82; MIR 四址 +0x1C。
+#   ⚠️ p6e wrapper/counters 与 p7b_chain TB 已由实现 agent 手工同步 (见生成器 §15),
+#      本阶段不对它们发 EDITS; DEFAULT_SPECS 仍断言其终值。
+# ===========================================================================
+E16('_proj_10g/notes/p7b_affinity/j6_r6fix.sh',
+  '#     ⑦ **几何门 (硬断言)**: ① `NW=${NW:-76}` (p9 孤儿修复; 更早 P9 E12=75',
+  '#     ⑦ **几何门 (硬断言)**: ① `NW=${NW:-83}` (P11 P1 ch0 bring-up; 更早 p9 孤儿修复=76 / P9 E12=75', 1)
+E16('_proj_10g/notes/p7b_affinity/j6_r6fix.sh',
+  '\nNW=${NW:-76}\n',
+  '\nNW=${NW:-83}\n', 1)
+E16('_proj_10g/notes/p7b_affinity/j6_r6fix.sh',
+  'EXPECT_BID=${EXPECT_BID:-0x0000002A}   # 2026-10-17 p9 孤儿修复 (76 字; 原 0x00000029 = 0x29 拆刀 / 0x28 = P9 E12 / 0x27 = 换流门 R5)',
+  'EXPECT_BID=${EXPECT_BID:-0x0000002B}   # 2026-10-18 P11 P1 ch0 bring-up (83 字; 原 0x0000002A = p9 孤儿修复 / 0x29 = 0x29 拆刀 / 0x28 = P9 E12)', 1)
+E16('_proj_10g/notes/p7b_affinity/j6_r6fix.sh',
+  '  "76|0x0000002A|61 62|p9 孤儿修复',
+  '  "83|0x0000002B|61 62|P11 P1 ch0 bring-up (2026-10-18) 83 字 / BID 0x2B (ch0 J7 RX MAC + 76-bit tap + sink; W76 = ch0 PCS 状态 / W77 = ch0 PCS 事件 / W78 = LOS+模式 / W79..W82 = ch0 好帧/载荷字节/FCS 错/丢帧; **几何变**: 76 -> 83 字, 未实现地址 0x160 -> 0x17C)"\n  "76|0x0000002A|61 62|p9 孤儿修复', 1)
+E16('_proj_10g/notes/p7b_biz_tcpreg/tcpreg_j6.sh',
+  '#     ⑦ **几何门 (硬断言)**: ① `NW=${NW:-76}` (p9 孤儿修复; 更早 P9 E12=75',
+  '#     ⑦ **几何门 (硬断言)**: ① `NW=${NW:-83}` (P11 P1 ch0 bring-up; 更早 p9 孤儿修复=76 / P9 E12=75', 1)
+E16('_proj_10g/notes/p7b_biz_tcpreg/tcpreg_j6.sh',
+  '\nNW=${NW:-76}\n',
+  '\nNW=${NW:-83}\n', 1)
+E16('_proj_10g/notes/p7b_biz_tcpreg/tcpreg_j6.sh',
+  'EXPECT_BID=${EXPECT_BID:-0x0000002A}   # 2026-10-17 p9 孤儿修复 (76 字; 原 0x00000029 = 0x29 拆刀 / 0x28 = P9 E12 / 0x27 = 换流门 R5)',
+  'EXPECT_BID=${EXPECT_BID:-0x0000002B}   # 2026-10-18 P11 P1 ch0 bring-up (83 字; 原 0x0000002A = p9 孤儿修复 / 0x29 = 0x29 拆刀 / 0x28 = P9 E12)', 1)
+E16('_proj_10g/notes/p7b_biz_tcpreg/tcpreg_j6.sh',
+  '  "76|0x0000002A|61 62|p9 孤儿修复',
+  '  "83|0x0000002B|61 62|P11 P1 ch0 bring-up (2026-10-18) 83 字 / BID 0x2B (ch0 J7 RX MAC + 76-bit tap + sink; W76 = ch0 PCS 状态 / W77 = ch0 PCS 事件 / W78 = LOS+模式 / W79..W82 = ch0 好帧/载荷字节/FCS 错/丢帧; **几何变**: 76 -> 83 字, 未实现地址 0x160 -> 0x17C)"\n  "76|0x0000002A|61 62|p9 孤儿修复', 1)
+E16('_proj_pcie/p7b_biz/p7b_snap.sh',
+  '(**现役 = 76 字 / BID 0x2A**',
+  '(**现役 = 83 字 / BID 0x2B**', 1)
+E16('_proj_pcie/p7b_biz/p7b_snap.sh',
+  '#   ⭐ p9 孤儿修复 (2026-10-17): **字长 75 → 76**',
+  '#   ⭐ P11 P1 ch0 bring-up (2026-10-18): **字长 76 → 83** (W76..W82 = ch0 PCS/LOS/计数)\n#      + 身份 0x2A → **0x2B**; 未实现地址 **0x160 → 0x17C** (公式 `0x20+4*NW+16` 不变)。\n#   ⭐ p9 孤儿修复 (2026-10-17): **字长 75 → 76**', 1)
+E16('_proj_pcie/p7b_biz/p7b_snap.sh',
+  '\nNW=${NW:-76}\n',
+  '\nNW=${NW:-83}\n', 1)
+E16('_proj_pcie/p7b_biz/p7b_snap.sh',
+  '# 76 ⇒ 0x160 (p9 孤儿修复起; 75 ⇒ 0x15C',
+  '# 83 ⇒ 0x17C (P11 P1 起; 76 ⇒ 0x160 (p9 孤儿修复); 75 ⇒ 0x15C', 1)
+E16('_proj_pcie/p7b_biz/p7b_snap.sh',
+  'EXPECT_BID=${EXPECT_BID:-0x0000002A}',
+  'EXPECT_BID=${EXPECT_BID:-0x0000002B}', 1)
+E16('_proj_pcie/p7b_biz/p7b_snap.sh',
+  '[75]=app_stat_orphan\n)',
+  '[75]=app_stat_orphan\n# ⭐ P11 P1 (2026-10-18): W76..W82 —— ch0 (J7) 状态/事件/LOS + RX 四计数\n#    (真值源 = wrapper 的 p7bdp 槽 36..38 + ch0 束槽 0..3; b 域 = dp_clk / rx_clk_out_0)\n[76]=ch0_pcs_status     [77]=ch0_pcs_evt        [78]=ch0_los_mode\n[79]=ch0_rx_frames      [80]=ch0_rx_bytes       [81]=ch0_rx_crc_err\n[82]=ch0_rx_drop\n)', 1)
+E16('_proj_pcie/p6e_snap_check.sh',
+  'EXPECT_BID=${EXPECT_BID:-0x0000002A}       # ⛔ 2026-10-17 p9 孤儿修复: 原默认 0x00000029 (0x29 拆刀) / 0x28 (P9 E12) / 0x0A (Stage C)',
+  'EXPECT_BID=${EXPECT_BID:-0x0000002B}       # ⛔ 2026-10-18 P11 P1 ch0 bring-up: 原默认 0x0000002A (p9 孤儿修复) / 0x29 (0x29 拆刀) / 0x28 (P9 E12) / 0x0A (Stage C)', 1)
+E16('_proj_pcie/p6e_snap_check.sh',
+  'SNAP_WORDS=${SNAP_WORDS:-76}',
+  'SNAP_WORDS=${SNAP_WORDS:-83}', 1)
+E16('_proj_pcie/p6e_snap_check.sh',
+  '# 76 ⇒ 0x160 (p9 孤儿修复起; 75 ⇒ 0x15C',
+  '# 83 ⇒ 0x17C (P11 P1 起; 76 ⇒ 0x160 (p9 孤儿修复); 75 ⇒ 0x15C', 1)
+E16('_proj_pcie/p6e_snap_check.sh',
+  ' "app_stat_orphan    (app_ctrl.stat_orphan: 孤儿会话/槽回收计数; p9 孤儿修复)" )',
+  ' "app_stat_orphan    (app_ctrl.stat_orphan: 孤儿会话/槽回收计数; p9 孤儿修复)"\n # ---- P11 P1 (2026-10-18) 新增 7 字 (76 → 83 字窗口; ch0 J7 bring-up) ----\n "ch0_pcs_status     (ch0 PCS 状态束: 与 W39 同位域; bit2=block_lock / bit4=hi_ber)"\n "ch0_pcs_evt        (ch0 PCS 事件束: ferr/bad/erv 饱和; vcc=自由计数 mod 256)"\n "ch0_los_mode       (LOS 电平/上升沿计数 + SFP2_MODE_B 模式条 bit31)"\n "ch0_rx_frames      (ch0 好帧数: tlast && tcrs && !terr)"\n "ch0_rx_bytes       (ch0 好帧载荷字节: Σpopc(tkeep))"\n "ch0_rx_crc_err     (ch0 MAC 口径 FCS 错帧数)"\n "ch0_rx_drop        (ch0 MAC 口径整帧丢)" )', 1)
+E16('_proj_pcie/p6e_snap_check.sh',
+  '表长必须 == SNAP_WORDS (76),',
+  '表长必须 == SNAP_WORDS (83),', 1)
+E16('_proj_pcie/p6e_snap_check.sh',
+  '#       P9 E12 再补 W71..W74 —— 四个换流门观测计数器; p9 孤儿修复 再补 W75)。',
+  '#       P9 E12 再补 W71..W74 —— 四个换流门观测计数器; p9 孤儿修复 再补 W75;\n#       P11 P1 再补 W76..W82 —— ch0 J7 状态/事件/LOS + RX 四计数)。', 1)
+E16('_proj_pcie/p7b_gate4_accept.sh',
+  'EXPECT_BID=${EXPECT_BID:-0x0000002A}      # p9 孤儿修复 = 0x2A (源码 board/wrapper_p4.v 的 BUILD_ID_V; 原 0x29 = 0x29 拆刀 / 0x28 = P9 E12)',
+  'EXPECT_BID=${EXPECT_BID:-0x0000002B}      # P11 P1 ch0 bring-up = 0x2B (源码 board/wrapper_p4.v 的 BUILD_ID_V; 原 0x2A = p9 孤儿修复 / 0x29 = 0x29 拆刀 / 0x28 = P9 E12)', 1)
+E16('_proj_pcie/p7b_gate4_accept.sh',
+  'SNAP_WORDS=${SNAP_WORDS:-76}',
+  'SNAP_WORDS=${SNAP_WORDS:-83}', 1)
+E16('_proj_pcie/p7b_gate4_accept.sh',
+  '# 76 ⇒ 0x160 (p9 孤儿修复起; 75 ⇒ 0x15C',
+  '# 83 ⇒ 0x17C (P11 P1 起; 76 ⇒ 0x160 (p9 孤儿修复); 75 ⇒ 0x15C', 1)
+E16('_proj_pcie/p7b_gate4_accept.sh',
+  '#    ⇒ 71 字 = **0x14C** (M1 期B); ⭐ P9 E12 起 75 字 = **0x15C**; ⭐ p9 孤儿修复起 76 字 = **0x160**。',
+  '#    ⇒ 71 字 = **0x14C** (M1 期B); ⭐ P9 E12 起 75 字 = **0x15C**; ⭐ p9 孤儿修复起 76 字 = **0x160**;\n#    ⭐ P11 P1 起 83 字 = **0x17C**。', 1)
+E16('_proj_pcie/p7b_gate4_selftest.sh',
+  'SW=${SNAP_WORDS:-76}',
+  'SW=${SNAP_WORDS:-83}', 1)
+E16('_proj_pcie/p7b_gate4_selftest.sh',
+  '现役 = **0x2A** (p9 孤儿修复 76 字',
+  '现役 = **0x2B** (P11 P1 ch0 bring-up 83 字', 1)
+E16('_proj_pcie/p7b_gate4_selftest.sh',
+  '0X04) V=\\${FAKE_BID:-0x0000002A};;',
+  '0X04) V=\\${FAKE_BID:-0x0000002B};;', 1)
+E16('_proj_pcie/p7b_gate4_selftest.sh',
+  '#   SW ≥ 76 (2026-10-17 p9 孤儿修复起)',
+  '#   SW ≥ 83 (2026-10-18 P11 P1 ch0 bring-up 起) ⇒ 0x150..0x168 也是窗口内的真字\n#     (W76..W82 = ch0 状态/事件/LOS/四计数), 且未实现地址 = 0x17C;\n#   SW ≥ 76 (2026-10-17 p9 孤儿修复起)', 1)
+E16('_proj_pcie/p7b_gate4_selftest.sh',
+  'if [ "$SW" -ge 76 ]; then\n  FAKE_TAIL=\'  0X114) V=1234;;  # W61 app_ctrl.stat_wu (次数; 非 0 才像真板)\n  0X118) V=0;;     # W62 app_ctrl.rx_occ_bytes (17 位 ⇒ 高位恒 0)\n  0X11C) V=0;;     # W63 app_pattern.stat_frmwait_cyc (停滞拍数; 0 = 无停顿)\n  0X120) V=0;;     # W64 app_pattern.stat_bp_cyc (背压拍数)\n  0X124) V=0;;     # W65 mac_tx_10g.stat_tx_idle (S_IDLE 拍数; 0 = 空载, 建 D 新增)\n  0X128) V=0;;     # W66 tcp_tx_frame.stat_winstall (窗口门停顿拍数, 建 E 新增)\n  0X12C) V=0;;     # W67 tcp_tx_frame.stat_winstall_cap (板帽侧等窗拍数, 建 F 新增)\n  0X130) V=0;;     # W68 tcp_rx.stat_ack_adv (推进 snd_una 的 ACK 次数, 建 F 新增)\n  0X134) V=0;;     # W69 tcp_tx_frame.o_win_at_winstall (等窗拍操作点锁存, 建 F 新增)\n  0X138) V=0;;     # W70 app_rx_mirror.drop_bytes (载荷镜像拒收字节数, M1 新增; 真字)\n  0X13C) V=0;;     # W71 app_pattern.stat_up_ev (换流门观测; P9 E12)\n  0X140) V=0;;     # W72 app_pattern.stat_sw_req (P9 E12)\n  0X144) V=0;;     # W73 app_pattern.stat_sw_apply (P9 E12)\n  0X148) V=0;;     # W74 app_pattern.stat_up_pend (P9 E12)\n  0X14C) V=0;;     # W75 app_ctrl.stat_orphan (孤儿回收计数; p9 孤儿修复)\n  0X160) V=${FAKE_UNIMPL:-0xffffffff};;   # 未实现地址 (76 字; = 0x20+4*SW+16)\'\n',
+  'if [ "$SW" -ge 83 ]; then\n  FAKE_TAIL=\'  0X114) V=1234;;  # W61 app_ctrl.stat_wu (次数; 非 0 才像真板)\n  0X118) V=0;;     # W62 app_ctrl.rx_occ_bytes (17 位 ⇒ 高位恒 0)\n  0X11C) V=0;;     # W63 app_pattern.stat_frmwait_cyc (停滞拍数; 0 = 无停顿)\n  0X120) V=0;;     # W64 app_pattern.stat_bp_cyc (背压拍数)\n  0X124) V=0;;     # W65 mac_tx_10g.stat_tx_idle (S_IDLE 拍数; 0 = 空载, 建 D 新增)\n  0X128) V=0;;     # W66 tcp_tx_frame.stat_winstall (窗口门停顿拍数, 建 E 新增)\n  0X12C) V=0;;     # W67 tcp_tx_frame.stat_winstall_cap (板帽侧等窗拍数, 建 F 新增)\n  0X130) V=0;;     # W68 tcp_rx.stat_ack_adv (推进 snd_una 的 ACK 次数, 建 F 新增)\n  0X134) V=0;;     # W69 tcp_tx_frame.o_win_at_winstall (等窗拍操作点锁存, 建 F 新增)\n  0X138) V=0;;     # W70 app_rx_mirror.drop_bytes (载荷镜像拒收字节数, M1 新增; 真字)\n  0X13C) V=0;;     # W71 app_pattern.stat_up_ev (换流门观测; P9 E12)\n  0X140) V=0;;     # W72 app_pattern.stat_sw_req (P9 E12)\n  0X144) V=0;;     # W73 app_pattern.stat_sw_apply (P9 E12)\n  0X148) V=0;;     # W74 app_pattern.stat_up_pend (P9 E12)\n  0X14C) V=0;;     # W75 app_ctrl.stat_orphan (孤儿回收计数; p9 孤儿修复)\n  0X150) V=0;;     # W76 ch0_pcs_status (P11 P1)\n  0X154) V=0;;     # W77 ch0_pcs_evt\n  0X158) V=0;;     # W78 ch0_los_mode\n  0X15C) V=0;;     # W79 ch0_rx_frames\n  0X160) V=0;;     # W80 ch0_rx_bytes\n  0X164) V=0;;     # W81 ch0_rx_crc_err\n  0X168) V=0;;     # W82 ch0_rx_drop\n  0X17C) V=${FAKE_UNIMPL:-0xffffffff};;   # 未实现地址 (83 字; = 0x20+4*SW+16)\'\nelif [ "$SW" -ge 76 ]; then\n  FAKE_TAIL=\'  0X114) V=1234;;  # W61 app_ctrl.stat_wu (次数; 非 0 才像真板)\n  0X118) V=0;;     # W62 app_ctrl.rx_occ_bytes (17 位 ⇒ 高位恒 0)\n  0X11C) V=0;;     # W63 app_pattern.stat_frmwait_cyc (停滞拍数; 0 = 无停顿)\n  0X120) V=0;;     # W64 app_pattern.stat_bp_cyc (背压拍数)\n  0X124) V=0;;     # W65 mac_tx_10g.stat_tx_idle (S_IDLE 拍数; 0 = 空载, 建 D 新增)\n  0X128) V=0;;     # W66 tcp_tx_frame.stat_winstall (窗口门停顿拍数, 建 E 新增)\n  0X12C) V=0;;     # W67 tcp_tx_frame.stat_winstall_cap (板帽侧等窗拍数, 建 F 新增)\n  0X130) V=0;;     # W68 tcp_rx.stat_ack_adv (推进 snd_una 的 ACK 次数, 建 F 新增)\n  0X134) V=0;;     # W69 tcp_tx_frame.o_win_at_winstall (等窗拍操作点锁存, 建 F 新增)\n  0X138) V=0;;     # W70 app_rx_mirror.drop_bytes (载荷镜像拒收字节数, M1 新增; 真字)\n  0X13C) V=0;;     # W71 app_pattern.stat_up_ev (换流门观测; P9 E12)\n  0X140) V=0;;     # W72 app_pattern.stat_sw_req (P9 E12)\n  0X144) V=0;;     # W73 app_pattern.stat_sw_apply (P9 E12)\n  0X148) V=0;;     # W74 app_pattern.stat_up_pend (P9 E12)\n  0X14C) V=0;;     # W75 app_ctrl.stat_orphan (孤儿回收计数; p9 孤儿修复)\n  0X160) V=${FAKE_UNIMPL:-0xffffffff};;   # 未实现地址 (76 字; = 0x20+4*SW+16)\'\n', 1)
+E16('_proj_pcie/p7b_gate4_negctrl.sh',
+  '# 几何: **76 字 (W0..W75)** —— p9 孤儿修复 (2026-10-17, BID=0x2A / 未实现 0x160);',
+  '# 几何: **83 字 (W0..W82)** —— P11 P1 ch0 bring-up (2026-10-18, BID=0x2B / 未实现 0x17C);\n#       (原句: "76 字 (W0..W75) —— p9 孤儿修复 (2026-10-17, BID=0x2A / 未实现 0x160)" = 历史代, 逐字保留于下)', 1)
+E16('_proj_pcie/p7b_gate4_negctrl.sh',
+  'echo "BID 0x0000002A"',
+  'echo "BID 0x0000002B"', 1)
+E16('_proj_pcie/p7b_gate4_negctrl.sh',
+  'p9 孤儿修复: 原 0x29 = 0x29 拆刀',
+  'P11 P1 ch0 bring-up: 原 0x2A = p9 孤儿修复 / 0x29 = 0x29 拆刀', 1)
+E16('_proj_pcie/p7b_gate4_negctrl.sh',
+  '                0 0 0 0 0 0 0 0 0)   # W51..W75',
+  '                0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0)   # W51..W82', 1)
+E16('_proj_pcie/p7b_gate4_negctrl.sh',
+  '    local i; for (( i = 0; i < 76; i++ ))',
+  '    local i; for (( i = 0; i < 83; i++ ))', 1)
+E16('_proj_pcie/p7b_gate4_negctrl.sh',
+  'awk -v NW=76 ',
+  'awk -v NW=83 ', 1)
+E16('_proj_pcie/p7b_gate4_livefake.sh',
+  '        + [0] * 25          # W51..W75 = P7B-BIZ/WU/C/D/E/F + M1 + P9 E12 + p9 孤儿修复 新增字 (accept 只要求窗口齐全 + 无 0xffffffff)',
+  '        + [0] * 32          # W51..W82 = P7B-BIZ/WU/C/D/E/F + M1 + P9 E12 + p9 孤儿修复 + P11 P1 新增字 (accept 只要求窗口齐全 + 无 0xffffffff)', 1)
+E16('_proj_pcie/p7b_gate4_livefake.sh',
+  'bid = {76: "0x0000002A"',
+  'bid = {83: "0x0000002B", 76: "0x0000002A"', 1)
+E16('_proj_pcie/p7b_gate4_livefake.sh',
+  '.get(nw, "0x0000002A")',
+  '.get(nw, "0x0000002B")', 1)
+E16('_proj_pcie/p6e_snap_selftest_fix2.sh',
+  '# ⚠️ 假板子的**几何必须与现役 RTL 同代** (= **76 字 / 未实现 0x160**; 2026-10-17 p9 孤儿修复;',
+  '# ⚠️ 假板子的**几何必须与现役 RTL 同代** (= **83 字 / 未实现 0x17C**; 2026-10-18 P11 P1;\n#    原句 = 76 字 / 0x160 (p9 孤儿修复);', 1)
+E16('_proj_pcie/p6e_snap_selftest_fix2.sh',
+  '0X04) V=\\${FAKE_BID:-0x0000002A};;   # p9 孤儿修复 = 0x2A (⛔ 原 0x29 = 0x29 拆刀 / 0x28 = P9 E12 / 0x0A = Stage C);',
+  '0X04) V=\\${FAKE_BID:-0x0000002B};;   # P11 P1 ch0 bring-up = 0x2B (⛔ 原 0x2A = p9 孤儿修复 / 0x29 = 0x29 拆刀 / 0x28 = P9 E12 / 0x0A = Stage C);', 1)
+E16('_proj_pcie/p6e_snap_selftest_fix2.sh',
+  '  0X14C) V=0x00000000;;',
+  '  0X14C) V=0x00000000;;                                       # W75 app_ctrl.stat_orphan (76 字起; p9 孤儿修复)\n  0X150) V=0x00000000;;                                       # W76 ch0_pcs_status (83 字起; P11 P1)\n  0X154) V=0x00000000;;                                       # W77 ch0_pcs_evt\n  0X158) V=0x00000000;;                                       # W78 ch0_los_mode\n  0X15C) V=0x00000000;;                                       # W79 ch0_rx_frames\n  0X160) V=0x00000000;;                                       # W80 ch0_rx_bytes\n  0X164) V=0x00000000;;                                       # W81 ch0_rx_crc_err\n  0X168) V=0x00000000;;                                       # W82 ch0_rx_drop', 1)
+E16('_proj_pcie/p6e_snap_selftest_fix2.sh',
+  '  0X160) V=0xffffffff;;',
+  '  0X17C) V=0xffffffff;;', 1)
+E16('_proj_10g/notes/p7b_gate4_3/final_state.sh',
+  'UNIMPL=$(rd 0x160)',
+  'UNIMPL=$(rd 0x17C)', 1)
+E16('_proj_10g/notes/p7b_gate4_3/final_state.sh',
+  '# ⚠️ UNIMPL 地址跟窗口宽度走: **76 字 (p9 孤儿修复, 2026-10-17 起) ⇒ 0x160** (word 88; 快照末字后接',
+  '# ⚠️ UNIMPL 地址跟窗口宽度走: **83 字 (P11 P1, 2026-10-18 起) ⇒ 0x17C** (word 95; 快照末字后接\n#     MIR 四字 ⇒ 公式 = 0x20+4*NW+16); 76 字 (p9 孤儿修复) = 0x160 (word 88);', 1)
+E16('_proj_10g/notes/p7b_gate4_3/final_state.sh',
+  'EXPECT_BID=${EXPECT_BID:-0x0000002A}   # ⛔ 2026-10-17 p9 孤儿修复 (76 字); 原 0x29 = 0x29 拆刀',
+  'EXPECT_BID=${EXPECT_BID:-0x0000002B}   # ⛔ 2026-10-18 P11 P1 ch0 bring-up (83 字); 原 0x2A = p9 孤儿修复', 1)
+E16('_proj_10g/notes/p7b_gate4_3/final_state.sh',
+  'echo "W75=$(rd 0x14c)  # p9 孤儿修复: app_ctrl.stat_orphan (孤儿会话/槽回收计数)"',
+  'echo "W75=$(rd 0x14c)  # p9 孤儿修复: app_ctrl.stat_orphan (孤儿会话/槽回收计数)"\necho "W76=$(rd 0x150) W77=$(rd 0x154) W78=$(rd 0x158)  # P11 P1: ch0 PCS 状态/事件/LOS+mode"\necho "W79=$(rd 0x15c) W80=$(rd 0x160) W81=$(rd 0x164) W82=$(rd 0x168)  # P11 P1: ch0 RX 好帧/载荷字节/FCS 错/丢帧"', 1)
+E16('_proj_10g/notes/p7b_gate4_criteria/gen_inputs.py',
+  'SNAP_BEGIN / TLATCH / GEN / MAGIC / BID / MARKER / W0..W75 / UNIMPL / SNAP_END',
+  'SNAP_BEGIN / TLATCH / GEN / MAGIC / BID / MARKER / W0..W82 / UNIMPL / SNAP_END', 1)
+E16('_proj_10g/notes/p7b_gate4_criteria/gen_inputs.py',
+  '0x14C (M1) / 0x15C (P9 E12) / **0x160** (p9 孤儿修复起);',
+  '0x14C (M1) / 0x15C (P9 E12) / 0x160 (p9 孤儿修复) / **0x17C** (P11 P1 起);', 1)
+E16('_proj_10g/notes/p7b_gate4_criteria/gen_inputs.py',
+  '→ **76 字/0x2A (p9 孤儿修复, 未实现地址 0x15C → 0x160)**。',
+  '→ 76 字/0x2A (p9 孤儿修复) → **83 字/0x2B (P11 P1 ch0 bring-up, 未实现地址 0x160 → 0x17C)**。', 1)
+E16('_proj_10g/notes/p7b_gate4_criteria/gen_inputs.py',
+  '几何 = **76 字 / BID 0x2A** (p9 孤儿修复, 2026-10-17 同步轮从 75 字/BID 0x29 同步)',
+  '几何 = **83 字 / BID 0x2B** (P11 P1 ch0 bring-up, 2026-10-18 同步轮从 76 字/BID 0x2A 同步)', 1)
+E16('_proj_10g/notes/p7b_gate4_criteria/gen_inputs.py',
+  'NW_FIX = 76                # 快照字数 (W0..W75; p9 孤儿修复起 —— 原 75 (P9 E12) / 71 (M1) / 70)',
+  'NW_FIX = 83                # 快照字数 (W0..W82; P11 P1 起 —— 原 76 (p9 孤儿修复) / 75 (P9 E12) / 71 (M1) / 70)', 1)
+E16('_proj_10g/notes/p7b_gate4_criteria/gen_inputs.py',
+  'BID_FIX = 0x0000002A       # 位流身份 (p9 孤儿修复) —— ⛔ 2026-10-17: 原值 0x00000029 (0x29 拆刀)',
+  'BID_FIX = 0x0000002B       # 位流身份 (P11 P1 ch0 bring-up) —— ⛔ 2026-10-18: 原值 0x0000002A (p9 孤儿修复)', 1)
+E16('_proj_10g/notes/p7b_gate4_criteria/gen_inputs.py',
+  '"""**76 字 (W0..W75)**',
+  '"""**83 字 (W0..W82)**', 1)
+E16('_proj_10g/notes/p7b_gate4_criteria/gen_inputs.py',
+  '本夹具现 = **76 字 / BID 0x2A**, accept 默认也已是 76 字 / BID 0x2A',
+  '本夹具现 = **83 字 / BID 0x2B**, accept 默认也已是 83 字 / BID 0x2B', 1)
+E16('_proj_10g/notes/p7b_a3_negctl_20261010/step0_selfcheck.sh',
+  '(i)  缺省档 (NW=76 / 0x160 / BID 0x2A) 对 D **响亮失败**',
+  '(i)  缺省档 (NW=83 / 0x17C / BID 0x2B) 对 D **响亮失败**', 1)
+E16('_proj_10g/notes/p7b_a3_negctl_20261010/step0_selfcheck.sh',
+  'echo "### C-a) 默认档 (NW=76 / 0x160 / BID 0x2A)',
+  'echo "### C-a) 默认档 (NW=83 / 0x17C / BID 0x2B)', 1)
+E16('_proj_10g/notes/p7b_a3_negctl_20261010/step0_selfcheck.sh',
+  'BID 0x18 != 0x2A',
+  'BID 0x18 != 0x2B', 1)
+E16('_proj_10g/notes/p7b_biz_win/run_xvlog_wrapper.bat',
+  'findstr /C:"SNAP_NW_P6E = 76"',
+  'findstr /C:"SNAP_NW_P6E = 83"', 1)
+E16('_proj_10g/notes/p7b_biz_win/run_tb_biz_win.bat',
+  'findstr /C:"SNAP_NW_P6E = 76"',
+  'findstr /C:"SNAP_NW_P6E = 83"', 1)
+E16('sim/p5wu_p1p2/run_xvlog_wrapper63.bat',
+  'findstr /C:"SNAP_NW_P6E = 76"',
+  'findstr /C:"SNAP_NW_P6E = 83"', 1)
+E16('_proj_10g/notes/p7b_biz_win/tb_biz_win.v',
+  'localparam integer NW = 76;  // = wrapper 的 SNAP_NW_P6E (p9 孤儿修复; 原 75 = P9 E12 / 71 = M1 / 70 = 构建 F)',
+  'localparam integer NW = 83;  // = wrapper 的 SNAP_NW_P6E (P11 P1; 原 76 = p9 孤儿修复 / 75 = P9 E12 / 71 = M1)', 1)
+E16('_proj_10g/notes/p7b_biz_win/tb_biz_win.v',
+  ".BUILD_ID_V(32'h0000002A)",
+  ".BUILD_ID_V(32'h0000002B)", 1)
+E16('_proj_10g/notes/p7b_biz_win/tb_biz_win.v',
+  'chk("1b BUILD_ID", v, 32\'h0000002A);',
+  'chk("1b BUILD_ID", v, 32\'h0000002B);', 1)
+E16('_proj_10g/notes/p7b_biz_win/check_window.py',
+  '    nnew_top = 10                             # ⭐ p9 孤儿修复: W75 (槽 35)\n                                              #   + W74/W73/W72/W71 (槽 34/33/32/31)\n                                              #   + W70/W69/W68/W67/W66 (槽 30/29/28/27/26)\n                                              #   —— 上一代 (P9 E12) 是 9 (W74..W66); W75 落\n                                              #   在最上面 ⇒ 顶端段 +1 (本条**每代都要按该代接线核**)',
+  '    nnew_top = 17                             # ⭐ P11 P1: W82..W76 (p7bdp 槽 38..36 + ch0 束槽 3..0)\n                                              #   + W75 (槽 35) + W74..W71 (槽 34..31)\n                                              #   + W70/W69/W68/W67/W66 (槽 30..26)\n                                              #   —— 上一代 (p9 孤儿修复) 是 10; P1 新增 7 字全落\n                                              #   在最上面 ⇒ 顶端段 +7 (本条**每代都要按该代接线核**)', 1)
+E16('_proj_10g/notes/p7b_biz_win/check_window.py',
+  '"5a 最上面 %d 项 = %s (p7bdp 束槽 %s; p9 孤儿修复)"',
+  '"5a 最上面 %d 项 = %s (p7bdp 束槽 %s; P11 P1)"', 1)
+
 # 目标 BID ⇒ 阶段链 (链上每阶段的 old 侧 = 上一阶段的 new 侧)。
 # ⚠️ 列表对象身份共享 ⇒ 这里的引用能看见后面的 append (定义顺序无关)。
 STAGES = [("0x0000001C", EDITS_1C, "缺陷刀 (2026-10-11)", 70, 0x138),
@@ -491,7 +700,8 @@ STAGES = [("0x0000001C", EDITS_1C, "缺陷刀 (2026-10-11)", 70, 0x138),
           ("0x00000027", EDITS_27, "换流门 R5 修复 (2026-10-15)", 71, 0x14C),
           ("0x00000028", EDITS_28, "P9 E12 观测计数器 (2026-10-15)", 75, 0x15C),
           ("0x00000029", EDITS_29, "0x29 拆刀 (persist 关; 2026-10-17)", 75, 0x15C),
-          ("0x0000002A", EDITS_2A, "p9 孤儿修复 (2026-10-17)", 76, 0x160)]
+          ("0x0000002A", EDITS_2A, "p9 孤儿修复 (2026-10-17)", 76, 0x160),
+          ("0x0000002B", EDITS_2B, "P11 P1 ch0 bring-up (2026-10-18)", 83, 0x17C)]
 #   ⚠️ 每个阶段带**自己的**几何 (nw, unimpl): 0x1F 起 M1 把快照扩到 71 字并在快照末字后插 4 个
 #      MIR 字 (0x13C/0x140/0x144/0x148) ⇒ 未实现地址 = **0x20 + 4*NW + 16** = 0x14C (不再等于 0x20+4*NW)。
 #      ⇒ 断言按**目标代**的几何比, 不按现读 wrapper (它可能已在更后的代上)。
@@ -2395,6 +2605,15 @@ ALLOW = [
     (r"^_proj_10g/notes/p9_orphan_fix_design_20261017/", "现役: 孤儿修复设计轮目录 (v4.1; 含 0x2A 字样)"),
     (r"^_proj_10g/notes/p9_dissect_0x29_20261017/", "旧位流读法: 0x29 拆刀轮 (2026-10-17; 烧 0x29 位流 + LEGACY 两跑; BID 0x29 = 那一代真值)"),
     (r"^_proj_10g/notes/p9_build_0x2A_20261017/readside/", "现役: 本轮读侧生成器/拼接器/自检输出"),
+    (r"^_proj_10g/notes/p9_dual_sfp_p1_impl_20261018/", "现役: P11/P1 实施轮 (设计/报告/门日志/读侧生成器)"),
+    (r"^_proj_10g/notes/p9_dual_sfp_p1_design_20261017/", "P11/P1 设计轮 (v4.1; 含旧代 BID/NW)"),
+    (r"^_proj_10g/notes/p9_dual_sfp_plan_20261017/", "P11 总计划轮 (含 0x2A/0x28 旧代)"),
+    (r"^_proj_10g/notes/p9_dual_sfp_p0_20261017/", "P11 P0 板级轮 (0x2A 位流身份)"),
+    (r"^_proj_10g/notes/p9_dual_sfp_exit_identity_compare_20261018/", "P11 出口身份分析轮"),
+    (r"^_proj_10g/notes/p9_dual_sfp_s1_cost_20261018/", "P11 双栈代价分析轮"),
+    (r"^_proj_10g/notes/p9_review_dual_sfp_p1_design_20261018/", "P11 P1 设计红队 FINDINGS (含旧代值)"),
+    (r"^_proj_10g/notes/p9_basin_zero_win_20261017/", "旧位流读法: 慢盆/零窗板级轮 (烧 0x2A 时代位流; 其 NW/BID 是那一代真值)"),
+    (r"^_proj_10g/notes/p9_board_0x2A_20261017/", "旧位流读法: 0x2A 板级轮 (烧 0x2A 位流; 其 NW/BID/UNIMPL 是那一代真值)"),
     (r"^_proj_10g/notes/p9_(board_0x28_k0_20261016|review_build0x28_20261016|mdio_aplus_board_20261016|c1_board_20261017|t2fast_ab_20261017|slowbasin_gc_20261017|basin_probe_20261017|sink_delta_20261017|p3win_trickle_board_20261017)/",
      "旧位流读法: 2026-10-16/17 板级/实验轮现场 (烧的是 0x24/0x27/0x28 各代归档位流; "
      "其 BID/NW/UNIMPL 是**那一代的真值**, 由各轮 WANT sha256 钉死; 改它反而毁掉该轮取证)"),

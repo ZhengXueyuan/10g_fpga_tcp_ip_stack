@@ -239,6 +239,15 @@ REM   Registered the p5_wrapper way (#19): private cwd (P4_WORKDIR) + declared
 REM   manifest sim\p4gates\swcg_src.f (6 files; each DUT variant appears as
 REM   exactly one literal xvlog row in the gate .bat).
 call :gate swc         sim\p9_swc_gate\run_tb_p9_swc.bat   swcg_src.f  -                            -
+REM ---- p7b_chain (registered 2026-10-18; P1 impl round #22) -------------------
+REM   The ONLY standing gate that compiles the P7B_10G BOARD configuration
+REM   (P7B_10G + DP_156MHZ + PCIE_OBS + APP_MODE + UDP_TX_OVL + TCP_TX_OVL
+REM   + P7B_SIM_NOPCS). Covers ch0 (J7) RX MAC / 76-bit tap / sink counters,
+REM   W76..W82, the snapshot gather timeout and the LOS edge counters.
+REM   The other wrapper gate (p5_wrapper) compiles -d APP_MODE only and cannot
+REM   see anything inside `ifdef P7B_10G` / `ifdef PCIE_OBS`.
+REM   HLS netlist is passed as a generated -f list; see p7bchain_src.f header.
+call :gate p7b_chain   _proj_10g\p7b_chain\sim\run_tb_p7b_chain.bat p7bchain_src.f -                     -
 
 call :log "--- revision fingerprint (after) ---"
 "%PY%" "%P4GATE_PY%" fingerprint --root "%REPO_ROOT%" --out "%FP_AFTER%" --label after >>"%MATRIX_LOG%" 2>&1

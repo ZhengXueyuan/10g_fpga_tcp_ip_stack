@@ -1,0 +1,9 @@
+# G1-a baseline (unmodified RTL, gate bat with TCP_TX_OVL + xpm fix)
+# run at 2026-10-18 01:21:16 +0800 ; unique marker P1IMPL-BASELINE-20261018
+==== tb_p7b_chain done: 106 checks, 0 fail ====
+VERDICT = PASS
+# PASS=106 FAIL=0, RC=0
+214dac0964723f05f71153b6980bfed082a05940281e99064ba19ab410cafb71 *board/wrapper_p4.v
+68979b25450252ef9b45d550bfb1134d5023a01f6c2da1c53cd452c626448e93 *_proj_10g/p7b_chain/sim/tb_p7b_chain.v
+d2a717697fff5f249bd5af91ccc27a68c3432413c7ef49dab465fe7041b18fcc *_proj_pcie/rtl/axi_regs.v
+66940874f17d96394a2ec217beda4a7dc17daf8878092054d7beafb2f7d464d0 *board/p7b_pcs_stub.v

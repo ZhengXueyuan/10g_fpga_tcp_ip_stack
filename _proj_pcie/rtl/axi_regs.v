@@ -190,6 +190,10 @@ module axi_regs #(
     // ---- P6b 新增 (加端口, 不改既有语义): 链式序列器的两路状态 ----
     input  wire [2:0] fe_state,   // {fe_busy, fe_seen, fe_done} → SNAP_STATUS[5:3]
     input  wire       locked_axi, // MMCM locked 的 axi 域同步版    → SNAP_STATUS[6]
+    // P1 (2026-10-18): ch0 计数束 (W79..W82) 的本代缺失/陈旧标志 → SNAP_STATUS[7]
+    //   ⚠️ 逐代锁存: 在 snap_valid 那一拍与 snap_din 同拍采样 (读到的是同代语义),
+    //   不是 sticky, 也不是活值。非 P7B 构建里 wrapper 接常量 0 ("不适用")。
+    input  wire       ch0_snap_to,
     // ---- M1: 载荷镜像窗的读侧接口 (¬(APP_MODE∧DP_156MHZ) 构建由 wrapper 接常量:
     //      level=0 / empty=1 / dout=0 / any_drop=0 / **dma_cnt=0 (期 B 新增第 5 个)** ——
     //      v2 §V1.4 的 tie-off 常量表 + 期 B 的 m_axi 响应线常量表) ----
@@ -332,6 +336,7 @@ module axi_regs #(
     // 单驱动块: "触发清零" 与 "valid 捕获" 都在同一个 always 里 (避免两个 always 写同一寄存器)
     reg [SNAP_NW*32-1:0] snap_words_r;
     reg         snap_done_r, snap_seen_r;
+    reg         ch0_snap_to_r;         // P1: SNAP_STATUS[7], latched per generation
     reg [15:0]  snap_gen_r;
 
     wire        snap_clr = wr_go && (w_word == 7'd6);      // 对 0x18 的一次成功写
@@ -341,11 +346,13 @@ module axi_regs #(
         if (!rst_n) begin
             snap_words_r <= {SNAP_NW*32{1'b0}}; snap_done_r <= 1'b0;
             snap_seen_r  <= 1'b0;               snap_gen_r  <= 16'd0;
+            ch0_snap_to_r <= 1'b0;
         end else if (snap_valid) begin
-            snap_words_r <= snap_din;
-            snap_done_r  <= 1'b1;
-            snap_seen_r  <= 1'b1;
-            snap_gen_r   <= snap_gen_r + 16'd1;
+            snap_words_r  <= snap_din;
+            snap_done_r   <= 1'b1;
+            snap_seen_r   <= 1'b1;
+            snap_gen_r    <= snap_gen_r + 16'd1;
+            ch0_snap_to_r <= ch0_snap_to;   // same edge as snap_words_r -> same generation
         end else if (snap_clr) begin
             snap_done_r  <= 1'b0;
         end
@@ -400,10 +407,12 @@ module axi_regs #(
     //     (未实现地址 `0x138` ⇒ word 78 < 128 ✓)。⚠️ 本条是**纯注释** (本行取值逐代未变)。
     wire [11:0] snap_base   = {snap_idx, 5'b0};
     // SNAP_STATUS 位域 (**必须恰好 32 位**):
-    //   [31:16] gen | [15:7] 0 (9 位) | [6] locked_axi | [5:3] fe_state | [2] seen | [1] done | [0] busy
-    // ⚠️ 15:7 是 **9** 位 —— 加了 [6] 与 [5:3] 之后零填充区被压缩了; 照抄旧的 13'd0 会拼出 36 位
-    //    ⇒ 高 4 位被静默截掉 (低 32 位有可能仍然对, 但那是"靠截断碰巧对", 不留这种账)。
-    wire [31:0] snap_status = {snap_gen_r, 9'd0, locked_axi, fe_state,
+    //   [31:16] gen | [15:8] 0 (8 位) | [7] ch0_snap_to (P1) | [6] locked_axi
+    //   | [5:3] fe_state | [2] seen | [1] done | [0] busy
+    // ⚠️ P1 把原来的 9 位零填充区 (15:7) 改成 8 位零填充 + [7] ch0 束缺失/陈旧标志
+    //    —— bit 6 及以下**逐位不变** (既有脚本取位不受影响); 拼接仍必须恰好 32 位。
+    //    [7] = 本代 ch0 计数束超时而未回 ⇒ W79..W82 是上一代/复位值; 非 P7B 构建恒 0。
+    wire [31:0] snap_status = {snap_gen_r, 8'd0, ch0_snap_to_r, locked_axi, fe_state,
                                snap_seen_r, snap_done_r, snap_busy};
 
     reg [31:0] rdata_mux;

@@ -1,0 +1,22 @@
+# P11/P1 G4 unit gate tb_p1_ch0_unit (real wrapper, P7B config)
+# run 2026-10-18 marker P1IMPL-UNIT-20261018
+  [PASS] 1a mode = A (SFP2_MODE_B_SEL=0)   src=no SFP2_MODE_B macro
+  [PASS] 1b ch0 block_lock (stub default)   src=stub ch0 link-up
+  [PASS] 2a W76 follows ch0 producers   src=blk/hi_ber/rerr forced on ch0
+  [PASS] 2b W39 is NOT polluted by ch0   src=ch1 block_lock/hi_ber forced 0
+  [PASS] 3a dW79 == 2   src=2 good frames
+  [PASS] 3b dW80 == 200   src=2 x 100 content bytes
+  [PASS] 3c dW81 == 0   src=good FCS => no crc_err
+  [PASS] 3d dW82 == 0   src=no drops
+  [PASS] 4a tready=0: W79 flat   src=count point = sink delivery
+  [PASS] 4b tready=0: W82 rises   src=4 x 15 words vs 16-word FIFO
+  [PASS]  falling edge: level=0, no event   src=rising-edge definition
+  [PASS] b rising edge: level=1, +1 event   src=0->1 = +1
+  [PASS] a gen1: SNAP_STATUS[7]=1, busy=0   src= bundle stale; busy excludes ch0
+  [PASS] 6b gen1: W76 readable   src=dp bundle unaffected
+  [PASS] c gen2: SNAP_STATUS[7]=1, busy=0   src=revious stuck => immediate stale
+  [PASS] 6d recovery: SNAP_STATUS[7]=0   src=handshake completes
+  [PASS] 7a ch0 TX data = idle   src=no ch0 TX MAC in P1
+  [PASS] 7b ch0 TX control = /I/   src=all lanes idle
+==== tb_p1_ch0_unit done: 29 checks, 0 fail ====
+UNIT VERDICT = PASS

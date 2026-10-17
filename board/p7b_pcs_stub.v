@@ -146,15 +146,21 @@ module p7b_pcs_stub (
 
     // ---------------------------------------------------------------- clocks
     // Free-running 156.25 MHz (6.400 ns).  rx_core_clk_* are user inputs.
-    reg tx_clk = 1'b0;
-    reg rx_clk = 1'b0;
-    always #3.2 tx_clk = ~tx_clk;
-    always #3.2 rx_clk = ~rx_clk;
+    // ⭐ P1 (2026-10-18): rx_clk is SPLIT into rx_clk_0 / rx_clk_1 so the
+    //    timeout arm can stop ONLY the ch0 CDR clock (force rx_clk_0 = 0).
+    //    Before the split both channels shared one reg and stopping it would
+    //    also stop ch1 (the cabled business channel) -> no discriminating arm.
+    reg tx_clk   = 1'b0;
+    reg rx_clk_0 = 1'b0;
+    reg rx_clk_1 = 1'b0;
+    always #3.2 tx_clk   = ~tx_clk;
+    always #3.2 rx_clk_0 = ~rx_clk_0;
+    always #3.2 rx_clk_1 = ~rx_clk_1;
 
     assign tx_mii_clk_0 = tx_clk;
     assign tx_mii_clk_1 = tx_clk;
-    assign rx_clk_out_0 = rx_clk;
-    assign rx_clk_out_1 = rx_clk;
+    assign rx_clk_out_0 = rx_clk_0;
+    assign rx_clk_out_1 = rx_clk_1;
 
     // ------------------------------------------------------- link-up releases
     // user_*_reset_* are ACTIVE HIGH on the real core (the MAC ports document
@@ -177,12 +183,19 @@ module p7b_pcs_stub (
     reg [7:0]  rx_c1_r = 8'hFF;
     reg [63:0] rx_d0_r = 64'h0707070707070707;
     reg [7:0]  rx_c0_r = 8'hFF;
-    always @(posedge rx_clk) begin
+    // separate always blocks: each channel is clocked by its own rx clock, so
+    // forcing one channel's clock leaves the other channel's pump untouched
+    always @(posedge rx_clk_1) begin
         if (!rel) begin
             rx_d1_r <= 64'h0707070707070707; rx_c1_r <= 8'hFF;
-            rx_d0_r <= 64'h0707070707070707; rx_c0_r <= 8'hFF;
         end else begin
             rx_d1_r <= inj_d1; rx_c1_r <= inj_c1;
+        end
+    end
+    always @(posedge rx_clk_0) begin
+        if (!rel) begin
+            rx_d0_r <= 64'h0707070707070707; rx_c0_r <= 8'hFF;
+        end else begin
             rx_d0_r <= inj_d0; rx_c0_r <= inj_c0;
         end
     end
@@ -207,41 +220,66 @@ module p7b_pcs_stub (
     // A healthy link by default, so that the datapath downstream of the MAC is
     // not gated by a status that this stub cannot actually produce.  The TB
     // forces these to exercise the snapshot plumbing.
-    reg blk_lock = 1'b0, rx_stat = 1'b0, hi_ber = 1'b0;
-    reg rloc_fault = 1'b0, tloc_fault = 1'b0;
-    reg ferr = 1'b0, ferr_v = 1'b0, bcode = 1'b0, bcode_v = 1'b0;
-    reg ferr_fifo = 1'b0, vcc = 1'b0;
-    reg [7:0] rerr = 8'd0; reg rerr_v = 1'b0;
-    always @(posedge dclk) if (rel) begin
-        blk_lock <= 1'b1; rx_stat <= 1'b1; vcc <= 1'b1;
+    // ⭐ P1 (2026-10-18): ch0 / ch1 status regs are SPLIT (*_0 / *_1). Before
+    //    the split both channels were hard-wired to the same regs, so W76 (ch0)
+    //    and W39 (ch1) could never be distinguished -> G1-c had no discriminating
+    //    power (FINDINGS mid-6). Both default to link-up.
+    reg blk_lock_0 = 1'b0, rx_stat_0 = 1'b0, hi_ber_0 = 1'b0;
+    reg rloc_fault_0 = 1'b0, tloc_fault_0 = 1'b0;
+    reg ferr_0 = 1'b0, ferr_v_0 = 1'b0, bcode_0 = 1'b0, bcode_v_0 = 1'b0;
+    reg ferr_fifo_0 = 1'b0, vcc_0 = 1'b0;
+    reg [7:0] rerr_0 = 8'd0; reg rerr_v_0 = 1'b0;
+    reg blk_lock_1 = 1'b0, rx_stat_1 = 1'b0, hi_ber_1 = 1'b0;
+    reg rloc_fault_1 = 1'b0, tloc_fault_1 = 1'b0;
+    reg ferr_1 = 1'b0, ferr_v_1 = 1'b0, bcode_1 = 1'b0, bcode_v_1 = 1'b0;
+    reg ferr_fifo_1 = 1'b0, vcc_1 = 1'b0;
+    reg [7:0] rerr_1 = 8'd0; reg rerr_v_1 = 1'b0;
+    always @(posedge dclk) begin
+        if (rel) begin
+            blk_lock_0 <= 1'b1; rx_stat_0 <= 1'b1; vcc_0 <= 1'b1;
+            blk_lock_1 <= 1'b1; rx_stat_1 <= 1'b1; vcc_1 <= 1'b1;
+        end else begin
+            blk_lock_0 <= 1'b0; rx_stat_0 <= 1'b0; vcc_0 <= 1'b0;
+            blk_lock_1 <= 1'b0; rx_stat_1 <= 1'b0; vcc_1 <= 1'b0;
+        end
+        // Fault/error flags: explicitly driven to 0 EVERY cycle. This matters for
+        // force/release: a variable with no procedural driver KEEPS its forced
+        // value after release (xsim), which is exactly the bug that made the P1
+        // status arm read hi_ber=1 after the group-7 force was released.
+        hi_ber_0 <= 1'b0;   rloc_fault_0 <= 1'b0; tloc_fault_0 <= 1'b0;
+        ferr_0 <= 1'b0;     ferr_v_0 <= 1'b0;     bcode_0 <= 1'b0;  bcode_v_0 <= 1'b0;
+        ferr_fifo_0 <= 1'b0; rerr_0 <= 8'd0;      rerr_v_0 <= 1'b0;
+        hi_ber_1 <= 1'b0;   rloc_fault_1 <= 1'b0; tloc_fault_1 <= 1'b0;
+        ferr_1 <= 1'b0;     ferr_v_1 <= 1'b0;     bcode_1 <= 1'b0;  bcode_v_1 <= 1'b0;
+        ferr_fifo_1 <= 1'b0; rerr_1 <= 8'd0;      rerr_v_1 <= 1'b0;
     end
 
-    assign stat_rx_block_lock_0    = blk_lock;
-    assign stat_rx_block_lock_1    = blk_lock;
-    assign stat_rx_status_0        = rx_stat;
-    assign stat_rx_status_1        = rx_stat;
-    assign stat_rx_hi_ber_0        = hi_ber;
-    assign stat_rx_hi_ber_1        = hi_ber;
-    assign stat_rx_local_fault_0   = rloc_fault;
-    assign stat_rx_local_fault_1   = rloc_fault;
-    assign stat_tx_local_fault_0   = tloc_fault;
-    assign stat_tx_local_fault_1   = tloc_fault;
-    assign stat_rx_framing_err_0       = ferr;
-    assign stat_rx_framing_err_1       = ferr;
-    assign stat_rx_framing_err_valid_0 = ferr_v;
-    assign stat_rx_framing_err_valid_1 = ferr_v;
-    assign stat_rx_bad_code_0          = bcode;
-    assign stat_rx_bad_code_1          = bcode;
-    assign stat_rx_bad_code_valid_0    = bcode_v;
-    assign stat_rx_bad_code_valid_1    = bcode_v;
-    assign stat_rx_error_0             = rerr;
-    assign stat_rx_error_1             = rerr;
-    assign stat_rx_error_valid_0       = rerr_v;
-    assign stat_rx_error_valid_1       = rerr_v;
-    assign stat_rx_fifo_error_0        = ferr_fifo;
-    assign stat_rx_fifo_error_1        = ferr_fifo;
-    assign stat_rx_valid_ctrl_code_0   = vcc;
-    assign stat_rx_valid_ctrl_code_1   = vcc;
+    assign stat_rx_block_lock_0    = blk_lock_0;
+    assign stat_rx_block_lock_1    = blk_lock_1;
+    assign stat_rx_status_0        = rx_stat_0;
+    assign stat_rx_status_1        = rx_stat_1;
+    assign stat_rx_hi_ber_0        = hi_ber_0;
+    assign stat_rx_hi_ber_1        = hi_ber_1;
+    assign stat_rx_local_fault_0   = rloc_fault_0;
+    assign stat_rx_local_fault_1   = rloc_fault_1;
+    assign stat_tx_local_fault_0   = tloc_fault_0;
+    assign stat_tx_local_fault_1   = tloc_fault_1;
+    assign stat_rx_framing_err_0       = ferr_0;
+    assign stat_rx_framing_err_1       = ferr_1;
+    assign stat_rx_framing_err_valid_0 = ferr_v_0;
+    assign stat_rx_framing_err_valid_1 = ferr_v_1;
+    assign stat_rx_bad_code_0          = bcode_0;
+    assign stat_rx_bad_code_1          = bcode_1;
+    assign stat_rx_bad_code_valid_0    = bcode_v_0;
+    assign stat_rx_bad_code_valid_1    = bcode_v_1;
+    assign stat_rx_error_0             = rerr_0;
+    assign stat_rx_error_1             = rerr_1;
+    assign stat_rx_error_valid_0       = rerr_v_0;
+    assign stat_rx_error_valid_1       = rerr_v_1;
+    assign stat_rx_fifo_error_0        = ferr_fifo_0;
+    assign stat_rx_fifo_error_1        = ferr_fifo_1;
+    assign stat_rx_valid_ctrl_code_0   = vcc_0;
+    assign stat_rx_valid_ctrl_code_1   = vcc_1;
 
     assign user_rx_reset_0 = ~rel;
     assign user_rx_reset_1 = ~rel;

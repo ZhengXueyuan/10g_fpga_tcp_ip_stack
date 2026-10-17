@@ -224,11 +224,11 @@ def main():
     #      (它的源 `tcp_tx_frame.stat_winstall` 在 dp 域), 所以顶端两项 = p7bdp 的 W(NW-1)
     #      与 tx 束的 W65; 紧随其后才是历史那 14 项 (W64..W51)。
     #      ⚠️ "最上面 = tx 束槽" 这条**只对 P7B-A7 那一代成立**, 不是不变量 (就地订正)。
-    nnew_top = 10                             # ⭐ p9 孤儿修复: W75 (槽 35)
-                                              #   + W74/W73/W72/W71 (槽 34/33/32/31)
-                                              #   + W70/W69/W68/W67/W66 (槽 30/29/28/27/26)
-                                              #   —— 上一代 (P9 E12) 是 9 (W74..W66); W75 落
-                                              #   在最上面 ⇒ 顶端段 +1 (本条**每代都要按该代接线核**)
+    nnew_top = 17                             # ⭐ P11 P1: W82..W76 (p7bdp 槽 38..36 + ch0 束槽 3..0)
+                                              #   + W75 (槽 35) + W74..W71 (槽 34..31)
+                                              #   + W70/W69/W68/W67/W66 (槽 30..26)
+                                              #   —— 上一代 (p9 孤儿修复) 是 10; P1 新增 7 字全落
+                                              #   在最上面 ⇒ 顶端段 +7 (本条**每代都要按该代接线核**)
     ntx = 1                                   # 其后的 tx 束项数 (W65) —— 现在排第 11 项
     nnew = 14                                 # W64..W51 (槽 25..12) —— 历史段
     # ⭐ 2026-10-10 (构建 F): 顶端再变一次 —— 三个新字**全在 p7bdp 束里** (槽 27/28/29),
@@ -239,7 +239,7 @@ def main():
     topn = [code_of(x) for x in items[0:nnew_top]]
     want_top = ["p7bdp_dout[%d*32 +: 32]" % (pdp - 1 - i) for i in range(nnew_top)]
     ck(topn == want_top,
-       "5a 最上面 %d 项 = %s (p7bdp 束槽 %s; p9 孤儿修复)"
+       "5a 最上面 %d 项 = %s (p7bdp 束槽 %s; P11 P1)"
        % (nnew_top, "/".join("W%d" % (NW - 1 - i) for i in range(nnew_top)),
           "/".join("%d" % (pdp - 1 - i) for i in range(nnew_top))),
        "(实际 %s, 期望 %s)" % (topn, want_top))

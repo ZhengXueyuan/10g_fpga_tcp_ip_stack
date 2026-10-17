@@ -22,7 +22,7 @@ REM 2026-10-10 (build F): fingerprint 67 -> 70.
 REM 2026-10-10 (build E): fingerprint 66 -> 67.
 REM 2026-10-10 (P7B-GAP9-TX): fingerprint 61 -> 65. It had already gone stale at 63
 REM   (P7B-WU round) => like its sibling (run_xvlog_wrapper.bat) this gate was DEAD (exit 92).
-findstr /C:"SNAP_NW_P6E = 76" "%ROOT%\board\wrapper_p4.v" >NUL || ( echo [FINGERPRINT FAIL] wrapper is not 76-word & exit /b 92 )
+findstr /C:"SNAP_NW_P6E = 83" "%ROOT%\board\wrapper_p4.v" >NUL || ( echo [FINGERPRINT FAIL] wrapper is not 76-word & exit /b 92 )
 
 call "%XV%\xvlog.bat" -work xil_defaultlib "%RTL%" "%TB%" > xvlog_biz.log 2>&1 || ( type xvlog_biz.log & exit /b 1 )
 call "%XV%\xvlog.bat" -work xil_defaultlib "%XV%\..\data\verilog\src\glbl.v" >> xvlog_biz.log 2>&1

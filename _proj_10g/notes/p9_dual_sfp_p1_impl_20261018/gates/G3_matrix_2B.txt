@@ -1,0 +1,25 @@
+# P11/P1 G3 full matrix (20 gates; p7b_chain = gate #20)
+# run 2026-10-18 01:42:37 .. 02:11:30 +0800 marker P1IMPL-MATRIX-20261018
+--- revision fingerprint (before) ---
+DIGEST_ALL     = 55d6f09c1ae5b65eed80c3e01594d8db96cc2caacef60abf74cc4ab61215cfb1
+GIT_HEAD       = dbbbe1e7
+--- revision fingerprint (after) ---
+DIGEST_ALL     = 55d6f09c1ae5b65eed80c3e01594d8db96cc2caacef60abf74cc4ab61215cfb1
+GIT_HEAD       = dbbbe1e7
+BEFORE  DIGEST_COMPILE=ee5658e0d2d37ac8e7e528d2f6825ddbba7bd5c2ad64fdfa25a46e2904b28f21  FILES=240  DIGEST_ALL=55d6f09c1ae5b65eed80c3e01594d8db96cc2caacef60abf74cc4ab61215cfb1  HEAD=dbbbe1e7
+AFTER   DIGEST_COMPILE=ee5658e0d2d37ac8e7e528d2f6825ddbba7bd5c2ad64fdfa25a46e2904b28f21  FILES=240  DIGEST_ALL=55d6f09c1ae5b65eed80c3e01594d8db96cc2caacef60abf74cc4ab61215cfb1  HEAD=dbbbe1e7
+VERDICT: FROZEN -- all 296 hashed files byte-identical across the run; this log is bound to revision DIGEST_ALL(content)=37851074ec8f26cbc8fac4152a7aa85ce98a691ca6537becd6c6e1d7a45123a7
+NOTE: the stored DIGEST_ALL in these files was produced by the pre-content-v1 scheme (it included size/mtime): before=55d6f09c1ae5b65eed80c3e01594d8db96cc2caacef60abf74cc4ab61215cfb1 after=55d6f09c1ae5b65eed80c3e01594d8db96cc2caacef60abf74cc4ab61215cfb1
+gates run   : 20 / 20
+gates failed: 0
+MATRIX DONE 2026/10/18 ÷‹»’  2:11:30.12
+# p7b_chain gate line:
+GATE p7b_chain EXIT=0
+---- summary ----
+# all EXIT lines:
+EXIT=0 EXIT=0 EXIT=0 EXIT=0 EXIT=0 EXIT=0 EXIT=0 EXIT=0 EXIT=0 EXIT=0 EXIT=0 EXIT=0 EXIT=0 EXIT=0 EXIT=0 EXIT=0 EXIT=0 EXIT=0 EXIT=0 EXIT=0 
+# verify freeze:
+--- freeze check ---
+BEFORE  DIGEST_COMPILE=ee5658e0d2d37ac8e7e528d2f6825ddbba7bd5c2ad64fdfa25a46e2904b28f21  FILES=240  DIGEST_ALL=55d6f09c1ae5b65eed80c3e01594d8db96cc2caacef60abf74cc4ab61215cfb1  HEAD=dbbbe1e7
+AFTER   DIGEST_COMPILE=ee5658e0d2d37ac8e7e528d2f6825ddbba7bd5c2ad64fdfa25a46e2904b28f21  FILES=240  DIGEST_ALL=55d6f09c1ae5b65eed80c3e01594d8db96cc2caacef60abf74cc4ab61215cfb1  HEAD=dbbbe1e7
+VERDICT: FROZEN -- all 296 hashed files byte-identical across the run; this log is bound to revision DIGEST_ALL(content)=37851074ec8f26cbc8fac4152a7aa85ce98a691ca6537becd6c6e1d7a45123a7

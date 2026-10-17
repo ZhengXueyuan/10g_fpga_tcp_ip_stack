@@ -1,0 +1,17 @@
+# P11/P1 gate debt: run_tx_ovl_gate.bat status (2026-10-18 marker P1IMPL-TXOVL-20261018)
+# Command: python sim/p7b_stagec_tx/mk_mut_tx.py --dry-run
+# Result: DRYRUN FAIL 8 (0 bytes written) -- anchor drift after 0x1C/0x1D/0x1E/0x2A RTL revisions:
+#   mut_c1 / mut_c2(s1..s3) / mut_c7 / mut_c8 / mut_f1(s1..s2) / mut_k1(s1..s2) / mut_k2
+#   (mut_s0a/s0b/c3/c6/c9/c4/l1 = USABLE)
+# Decision: NOT fixed in this round (8 Stage-C mutation anchors are outside P1 scope).
+# Replacement coverage: run_tb_p7b_chain.bat now compiles with -d TCP_TX_OVL (board body).
+#   => the OVL body is exercised by the standing chain gate + matrix #20.
+# Archive of the dry-run:
+mut_k1    s1   0/1 <== MISMATCH
+mut_k1    s2   0/1 <== MISMATCH
+          BROKEN
+mut_k2    s1   0/1 <== MISMATCH
+          BROKEN
+mut_l1    s1   1/1 
+          USABLE
+DRYRUN FAIL 8 (0 bytes written)

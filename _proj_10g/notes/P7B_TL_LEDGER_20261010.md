@@ -1716,3 +1716,15 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - **自主决策规则**：① 预登记事项按设计执行并登记；② 新分叉若影响架构/产品语义 ⇒ 登记 `P7B_OPEN_ITEMS.md` 待用户裁，**先做不受影响的部分**；③ 构建 FAIL 按预登记 backstop；④ 板/对端不可用 ⇒ 记录并转无板工作（设计/工具/门）；⑤ 每轮提交 + push + 台账 + 审查队列追加。
 - **排期**：**P11 优先**于 P-3（v3 部署/Q2-A）、慢盆后续等板级排队项；板空档时穿插。
 - 记忆档已同步（`p11-autonomous-run.md` + `MEMORY.md`）。
+
+## §10-126 2026-10-18 02:2x：**P1 实施轮收口（P11）** —— 29 文件 +1297/−288；门全绿：G1a 106/0、G1 142/0、G4 29/0、G2 PASS_ALL、G5 4/4、G3 20/20 FROZEN；读侧 65 处/17 文件 0 fail + 负控 4/4 有牙；**下一棒 = 实施红队审查 → 构建 0x2B**
+- **交付**：`p9_dual_sfp_p1_impl_20261018/DESIGN_v5.md`（施工权威；FINDINGS 高 7/中 20/低 10 逐条处置 + U-1..U-7 裁定回灌）· `REPORT.md`（TL 代落 + 抽核 12/12）· `gates/`（G1a/G1/G2/G3/G4/G5 + 读侧 assert/rehearse/负控 + tx_ovl 状态）。
+- **阶段 2 门债**：`run_tb_p7b_chain.bat` 加 `-d TCP_TX_OVL`（对齐板上生效体）、修 xpm 缺库、支持 `P4_WORKDIR/p4env`；**未改 RTL 基线 106/0 PASS**；`run_tx_ovl_gate.bat` **未修**（`mk_mut_tx.py --dry-run = DRYRUN FAIL 8`，Stage-C 8 锚点随 0x1C→0x2A 漂移；生成器 all-or-nothing）⇒ **替代门 = chain 门编 `TCP_TX_OVL`**；`p7bchain_src.f`（49 文件）+ 矩阵**第 20 门** + `paths.txt` 指纹。
+- **阶段 3 P1 实现**：ch0 `mac_rx_10g` + 76 位 tap + 真 sink（W79/W80）+ PCS 状态/事件（W76/W77）+ LOS 电平/沿（W78）+ `u_snap_ch0`（`rx_clk_out_0` 域）+ 逐代 arming/4096 拍超时（`snap_busy` **不含 `ch0_busy`**）+ `SNAP_STATUS[7]` + `SNAP_NW_P6E 83` / `SNAP_P7BDP_NW 39` / `SNAP_CH0_NW 4` / UNIMPL `0x17C` / MIR `0x16C..0x178` + `SFP2_MODE_A/B` elaboration 硬门 + **BID `0x2B`**；ch0 TX 保持常量 IDLE。
+- **TL 抽核 12/12**：diffstat 29/+1297/−288；wrapper `:255-280/:3522/:3554/:4478/:3998`；axi_regs `:196/:339`；G1a 106/0 PASS、G1 142/0 PASS、G4 29/0 PASS、G3 FROZEN（296 文件 / HEAD `dbbbe1e7`）、G5 4/4、G2 PASS_ALL；读侧负控 4/4 `NEGCTL_EXIT=1`；无 Vivado 运行；未跟踪边界干净。
+- **偏离/未测照录**：W77.vcc 自由计数 mod 256；chain TB 6 处健壮化（`snap_take` 硬超时 / G4 SOP-2 限定 F4 窗口外 等）；读侧 3 TB 手工同步；p6e MIR 降序 token；`tb_biz_win` 加 `ch0_snap_to(1'b0)`；**未测** = 构建/板级/HLS 双 IP/乙镜像/BER/`rx_clk_out_0` 停钟行为/观测最小集待裁/`run_tx_ovl_gate` 未修。
+- **构建前置**：`board/build_p7b_ku5p.tcl:286` **追加** `SFP2_MODE_A=1`（不覆盖既有 7 宏）；只走 `board/run_build_p7b_ku5p.bat`；一次收口；读数 WNS/WHS/三类端点/`12-4739`/隐式网五键/DRC/clock interaction/sha256/资源。
+- **backstop（每次 = 新输入）**：**B1** 删 W77（NW 82 / `0x178`）→ **B2** 删 W79..W82 + ch0 MAC（79 / `0x16C`）→ **B3** P1-min 仅 W76+W78（78 / `0x168`，需用户接受"不交帧计数"）。
+- **板级判据草案** = `DESIGN_v5 §10.4`：身份门 `0x04=0x2B` / 83 字 / `0x17C=0xffffffff` / 2 BARs / x4；S-1..S-7（含负对照）；`0x08` bit1=0。
+- **记录**：审查队列已追加本实施轮（DESIGN_v5/REPORT/gates → 待报送）。
+- **下一棒**：**实施红队审查**（独立只读）→ 抽核/提交 → **构建 0x2B** → 板级 P1。

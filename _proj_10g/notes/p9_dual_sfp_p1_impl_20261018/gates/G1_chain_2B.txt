@@ -1,0 +1,17 @@
+# P11/P1 G1 chain gate (P7B_10G+PCIE_OBS+DP_156MHZ+APP_MODE+UDP_TX_OVL+TCP_TX_OVL+P7B_SIM_NOPCS)
+# run 2026-10-18 01:5x +0800 marker P1IMPL-G1-20261018
+PASS=132 FAIL=0
+  [G DIAG] bare_sop_n=0 open_end=0 last_open_t=355946000
+  [G DIAG] SOP n=55 bad=0 | TLAST n=53 | TERM n=2 bad=0 | tuple: d=0000000000000000 k=00 l=1 u=0 c=0 e=1
+==== tb_p7b_chain done: 142 checks, 0 fail ====
+VERDICT = PASS
+# --- P1 arm lines ---
+  [PASS] P1-1a W76 block_lock (real)   src=stub ch0 defaults link-up
+  [PASS] P1-1b W76 hi_ber=0 (real)   src=stub ch0 hi_ber default 0
+  [PASS] P1-1d W78 mode=A (bit31=0)   src=SFP2_MODE_B not defined
+  [PASS] P1-2a dW79 == 3   src=3 injected good frames
+  [PASS] P1-2b dW80 == 300   src=3 x 100 content bytes
+  [PASS] P1-2c dW81 == 0   src=good FCS => no crc_err
+  [PASS] P1-2d dW82 == 0   src=no drops at 1 word/cycle
+  [PASS] P1-6a ch0 TX data constant   src=0 TX MAC; copy of p7b_ch0_idle_d
+  [PASS] P1-6b ch0 TX control constant   src=all lanes /I/

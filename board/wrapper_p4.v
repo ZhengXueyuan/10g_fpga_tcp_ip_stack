@@ -250,6 +250,38 @@ module wrapper_p4 #(
     localparam APP_EN = 1'b0;
 `endif
 
+    //=========================================================================
+    // P1 (2026-10-18): SFP2 mode switch (ch0 = J7/SFP A bring-up).
+    //   A (default) = no macro, or explicit SFP2_MODE_A=1 (build witness).
+    //   B           = SFP2_MODE_B=1 (mirror ch0 RX out of the second port; P3).
+    //   P1 only instantiates the switch + the W78[31] mode bit; the A/B
+    //   functional fork (rx_merge2 vs mirror) is P2/P3.
+    //   Hard gates (elaboration failure, same idiom as g_orph_zw_guard below):
+    //     A AND B  -> SFP2_MODE_A_AND_B_CONFLICT (undefined module)
+    //     B && !P7B_10G -> SFP2_MODE_B_REQUIRES_P7B_10G (undefined module)
+    //=========================================================================
+`ifdef SFP2_MODE_A
+    localparam SFP2_MODE_A_DEF = 1'b1;
+`else
+    localparam SFP2_MODE_A_DEF = 1'b0;
+`endif
+`ifdef SFP2_MODE_B
+    localparam SFP2_MODE_B_DEF = 1'b1;
+`else
+    localparam SFP2_MODE_B_DEF = 1'b0;
+`endif
+    localparam SFP2_MODE_B_SEL = SFP2_MODE_B_DEF;
+    generate
+        if (SFP2_MODE_A_DEF && SFP2_MODE_B_DEF) begin : g_sfp2_mode_conflict
+            SFP2_MODE_A_AND_B_CONFLICT u_sfp2_mode_conflict();
+        end
+`ifndef P7B_10G
+        if (SFP2_MODE_B_DEF) begin : g_sfp2_mode_b_requires_p7b
+            SFP2_MODE_B_REQUIRES_P7B_10G u_sfp2_mode_b_requires_p7b();
+        end
+`endif
+    endgenerate
+
     // ---- P5: 窗口/ring 帽单一来源 (W5) ----
     // 三处必须同值: tcp_tx_frame.RING_CAP (ring 门控帽) = tcb.WIN_CAP (注册窗口
     // 门帽) = app_ctrl.WIN_CAP (app_tx_ready 的窗帽)。原先各自独立字面量,
@@ -313,6 +345,12 @@ module wrapper_p4 #(
     // P7B_10G:  RX 侧 = PCS 恢复钟 `rx_clk_out_1`; TX 侧 = `tx_mii_clk_1` (两域, 物理无关)。
     wire gmii_clk;      // FE RX 域 (u_mac_rx / u_rxcdc 写侧 / wl_last / gmii_free / 快照 FE 束)
     wire tx_fe_clk;     // FE TX 域 (u_mac_tx / u_txcdc 读侧)
+    // P1: ch0 (SFP A / J7) domain aliases — ch0 RX CDR clock / ch0 TX MII clock.
+    //   Declared unconditionally (used only inside `ifdef P7B_10G) so that the
+    //   four macro combinations never see an implicitly-declared 1-bit net
+    //   (project trap 24 / FINDINGS mid-9).
+    wire gmii_clk_0;    // ch0 RX 域 = rx_clk_out_0
+    wire tx_fe_clk_0;   // ch0 TX 域 = tx_mii_clk_0
 
     // =====================================================================
     // P7b: 10G 前端 —— 官方 `xxv_ethernet` PCS/PMA 64-bit + 自写 64 位 XGMII MAC
@@ -649,6 +687,18 @@ module wrapper_p4 #(
     assign rx_mac_rst_n = rstn_rx_sr[2] & ~pcs_user_rx_reset_1;
     assign tx_mac_rst_n = rstn_tx_sr[2] & ~pcs_user_tx_reset_1;
 
+    // P1: ch0 RX MAC reset — same discipline as ch1 (reset_n synced into the
+    // ch0 RX clock domain, then ANDed with the core's user_rx_reset_0, which is
+    // active HIGH). No TX-side synchronizer in P1: ch0 TX stays constant IDLE.
+`ifdef P7B_10G
+    (* ASYNC_REG = "TRUE" *) reg [2:0] rstn_rx_sr_0;
+    always @(posedge gmii_clk_0 or negedge reset_n) begin
+        if (!reset_n) rstn_rx_sr_0 <= 3'b000;
+        else          rstn_rx_sr_0 <= {rstn_rx_sr_0[1:0], 1'b1};
+    end
+    wire rx_mac_rst_n_0 = rstn_rx_sr_0[2] & ~pcs_user_rx_reset_0;
+`endif
+
     // (SFP TX_DIS 的驱动在**后面**的 PCIE_OBS 段 —— 它用 `pcie_scratch` 做负对照,
     //  而 `pcie_scratch` 的声明在那一块里, xvlog 要求先声明后用)
 `else
@@ -699,8 +749,15 @@ module wrapper_p4 #(
 `ifdef P7B_10G
     assign gmii_clk  = rx_clk_out_1;
     assign tx_fe_clk = tx_mii_clk_1;
+    // P1: ch0 domain aliases (ch0 RX CDR / ch0 TX MII)
+    assign gmii_clk_0  = rx_clk_out_0;
+    assign tx_fe_clk_0 = tx_mii_clk_0;
 `else
     assign tx_fe_clk = gmii_clk;
+    // No P7B front end in this build: tie the aliases to the single FE clock so
+    // the nets are never undriven (they have no consumers outside P7B_10G).
+    assign gmii_clk_0  = gmii_clk;
+    assign tx_fe_clk_0 = gmii_clk;
 `endif
 
     //=========================================================================
@@ -887,6 +944,71 @@ module wrapper_p4 #(
         .dbg_rx_last_len    (mac_rx_10g_last_len),
         .dbg_rx_last_tlane  (mrx_dbg_last_tlane),
         .dbg_rx_state       (mrx_dbg_state)
+    );
+
+    // =====================================================================
+    // P1 (2026-10-18): ch0 (X0Y4 = J7 = SFP A) RX MAC + fixed 76-bit tap
+    //   + a REAL sink (frame/byte counters). ch0 TX stays constant IDLE
+    //   (p7b_ch0_idle_d/c above) — P1 does not build a ch0 TX MAC.
+    //   The tap contract is byte-for-byte the mac_rx_10g output contract:
+    //     {tdata[63:0], tkeep[7:0], tuser, tlast, tcrs, terr} + tvalid/tready
+    //   The sink MUST consume the stream: with no load the synthesis could
+    //   prune the MAC's FIFO read side -> FIFO fills -> stat_drop (frame count
+    //   silently becomes a drop count). The counters below are that load.
+    // ---------------------------------------------------------------------
+    wire [63:0] ch0_rx_tdata;
+    wire [7:0]  ch0_rx_tkeep;
+    wire        ch0_rx_tvalid, ch0_rx_tready;
+    wire        ch0_rx_tlast, ch0_rx_tuser, ch0_rx_tcrs, ch0_rx_terr;
+    wire [31:0] ch0_stat_frames, ch0_stat_crc_err, ch0_stat_drop, ch0_stat_bytes;
+    reg  [31:0] ch0_rx_frames, ch0_rx_bytes, ch0_acc_bytes;
+    reg  [3:0]  ch0_bcnt;
+    integer     ch0_bi;
+
+    always @* begin
+        ch0_bcnt = 4'd0;
+        for (ch0_bi = 0; ch0_bi < 8; ch0_bi = ch0_bi + 1)
+            ch0_bcnt = ch0_bcnt + {3'd0, ch0_rx_tkeep[ch0_bi]};
+    end
+    assign ch0_rx_tready = 1'b1;
+
+    // Sink counters (W79/W80). Good frame = tlast && tcrs && !terr (FINDINGS
+    // mid-16: mac_rx_10g drives tcrs and terr independently). Bytes are
+    // accumulated per frame and committed only for a good frame.
+    always @(posedge gmii_clk_0 or negedge rx_mac_rst_n_0) begin
+        if (!rx_mac_rst_n_0) begin
+            ch0_rx_frames <= 32'd0;
+            ch0_rx_bytes  <= 32'd0;
+            ch0_acc_bytes <= 32'd0;
+        end else if (ch0_rx_tvalid && ch0_rx_tready) begin
+            ch0_acc_bytes <= ch0_acc_bytes + {28'd0, ch0_bcnt};
+            if (ch0_rx_tlast) begin
+                if (ch0_rx_tcrs && !ch0_rx_terr) begin
+                    ch0_rx_frames <= ch0_rx_frames + 32'd1;
+                    ch0_rx_bytes  <= ch0_rx_bytes + ch0_acc_bytes + {28'd0, ch0_bcnt};
+                end
+                ch0_acc_bytes <= 32'd0;   // good or bad: next frame starts at 0
+            end
+        end
+    end
+
+    mac_rx_10g u_mac_rx_ch0 (
+        .clk                (gmii_clk_0),
+        .rst_n              (rx_mac_rst_n_0),
+        .xgmii_rxd          (rx_mii_d_0),
+        .xgmii_rxc          (rx_mii_c_0),
+        .m_axis_tdata       (ch0_rx_tdata),
+        .m_axis_tkeep       (ch0_rx_tkeep),
+        .m_axis_tvalid      (ch0_rx_tvalid),
+        .m_axis_tready      (ch0_rx_tready),
+        .m_axis_tlast       (ch0_rx_tlast),
+        .m_axis_tuser       (ch0_rx_tuser),
+        .m_axis_terr        (ch0_rx_terr),
+        .m_axis_tcrs        (ch0_rx_tcrs),
+        .stat_frames        (ch0_stat_frames),
+        .stat_crc_err       (ch0_stat_crc_err),
+        .stat_drop          (ch0_stat_drop),
+        .stat_bytes         (ch0_stat_bytes)
     );
 `else
     mac_rx_64 u_mac_rx (
@@ -3391,7 +3513,13 @@ module wrapper_p4 #(
     //   **未实现地址 = 0x160** (word 88).
     //   预算复算: 76 ≤ 119 ✓; {snap_idx,5'b0} 最大 = (76-1)<<5 = 2400 < 4096 ✓;
     //   `snap_idx = r_word[6:0]-8` 最大 67 ⇒ 7 位 ✓ (回绕红线仍 ≥0x200).
-    localparam SNAP_NW_P6E = 76;        // 总字数 W0..W75 (未实现地址 = 0x160 = word 88)
+    // ⭐ P1 (2026-10-18): 76 → **83** (W76..W82 = ch0 状态/事件/LOS + ch0 RX 四计数).
+    //   预算复算: 83 ≤ 119 ✓; W82 @ 0x168; MIR 四字由 `SNAP_LAST_IDX` 自动下移 ⇒
+    //   MIR_STATUS/DATA/CTRL/DMA_CNT = 0x16C/0x170/0x174/0x178;
+    //   **未实现地址 = 0x17C** (word 95; = 0x20+4*83+16);
+    //   {snap_idx,5'b0} 最大 = (83-1)<<5 = 2624 < 4096 ⇒ snap_base [11:0] 不动;
+    //   `snap_idx = r_word[6:0]-8` 最大 82 ⇒ 7 位 ✓ (回绕红线仍 ≥0x200).
+    localparam SNAP_NW_P6E = 83;        // 总字数 W0..W82 (未实现地址 = 0x17C = word 95)
     // ⭐ P7B-GAP9-TX (2026-10-10): 63 → **65** (W63/W64 = app_pattern 的两个停滞计数器)。
     //   预算复算: 65 ≤ 119 (7 位译码上限) ✓; 未实现地址 = 0x20+4*65 = **0x124** (word 73, 真正未实现);
     //   `{snap_idx,5'b0}` 最大 = (65-1)<<5 = 2048 < 4096 ⇒ `axi_regs.snap_base` 仍是 [11:0] (**不动**);
@@ -3412,7 +3540,7 @@ module wrapper_p4 #(
     localparam SNAP_DP_NW  = 22;        // DP 束字数 (b 域 = dp_clk)
     // P7b 三条新束的字数 (与上面同源: 装配段 `snap_dout_all` 的项数必须与之对账)
     localparam SNAP_P7BFE_NW = 3;       // W36..W38 (b 域 = gmii_clk)
-    localparam SNAP_P7BDP_NW = 36;      // W39/W40, W45..W50 + W51..W60 (BIZ) + W61/W62 (WU)
+    localparam SNAP_P7BDP_NW = 39;      // W39/W40, W45..W50 + W51..W60 (BIZ) + W61/W62 (WU)
                                         //   + **W63/W64 (P7B-GAP9-TX 的两个停滞计数器)**
                                         //   + **W66 (构建 E: tcp_tx_frame.stat_winstall)**
                                         //   + **W67/W68/W69 (构建 F: 三个纯观测仪器 —— 板帽侧
@@ -3423,6 +3551,7 @@ module wrapper_p4 #(
                                         //   ⚠️ 槽号 ↔ 字号**不连续**是刻意的 (W65 在 tx 束槽 4;
                                         //      槽 2..5 是给 W41..W44 留的**占位**(由 tx 束搬) ⇒ 不驱动真值):
                                         //      新字一律落窗口 MSB 端, 旧字逐项不动。
+    localparam SNAP_CH0_NW   = 4;       // P1: W79..W82 (b 域 = rx_clk_out_0; ch0 RX MAC/sink)
     localparam SNAP_TX_NW    = 5;       // W41..W44 (b 域 = tx_mii_clk) + **W65 (P7B-A7-LINE:
                                         //   `mac_tx_10g.stat_tx_idle` 线占空计数)** —— 槽 4
                                         //   = W65 (槽号 ↔ 字号**不连续**是刻意的: 新字一律
@@ -3759,12 +3888,126 @@ module wrapper_p4 #(
         pcs_ferrv_sr[2], pcs_ferr_sr[2], pcs_tlf_sr[2], pcs_rlf_sr[2],
         pcs_ber_sr[2], pcs_st_sr[2], pcs_blk_sr[2], 2'd0};
     assign pcs_evt_bundle = {pcs_ferr_evt, pcs_bad_evt, pcs_erv_evt, pcs_vcc_cyc};
+
+    // =====================================================================
+    // P1 (2026-10-18): ch0 PCS status / events / LOS  (all in dp_clk)
+    // ---------------------------------------------------------------------
+    // ch0 status bits: one 3FF synchronizer per bit, exactly the ch1 policy
+    // (P7B_GATE1 §B4: only block_lock has a netlist-confirmed domain; treat
+    // everything else as asynchronous). rx_error[7:0] is PER-LANE: each bit
+    // gets its own 3FF and must never be read as an 8-bit value.
+    // The raw ch0 outputs already drive pcs_ch0_sig (W39[30]) — that XOR is
+    // kept verbatim as the structural load + historical signature.
+    // =====================================================================
+    (* ASYNC_REG = "TRUE" *) reg [2:0] pcs0_blk_sr, pcs0_st_sr, pcs0_ber_sr;
+    (* ASYNC_REG = "TRUE" *) reg [2:0] pcs0_rlf_sr, pcs0_tlf_sr;
+    (* ASYNC_REG = "TRUE" *) reg [2:0] pcs0_ferr_sr, pcs0_ferrv_sr;
+    (* ASYNC_REG = "TRUE" *) reg [2:0] pcs0_bad_sr, pcs0_badv_sr;
+    (* ASYNC_REG = "TRUE" *) reg [2:0] pcs0_fifo_sr, pcs0_vcc_sr;
+    (* ASYNC_REG = "TRUE" *) reg [2:0] pcs0_erv_sr, pcs0_gpw_sr;
+    (* ASYNC_REG = "TRUE" *) reg [2:0] pcs0_rtxrst_sr, pcs0_ttxrst_sr;
+    (* ASYNC_REG = "TRUE" *) reg [2:0] pcs0_rerr_sr [7:0];
+    (* ASYNC_REG = "TRUE" *) reg [2:0] pcs0_sig_sr;
+    integer pcs0_i;
+    always @(posedge dp_clk or negedge dp_rst_n) begin
+        if (!dp_rst_n) begin
+            pcs0_blk_sr <= 3'd0; pcs0_st_sr <= 3'd0; pcs0_ber_sr <= 3'd0;
+            pcs0_rlf_sr <= 3'd0; pcs0_tlf_sr <= 3'd0; pcs0_ferr_sr <= 3'd0;
+            pcs0_ferrv_sr <= 3'd0; pcs0_bad_sr <= 3'd0; pcs0_badv_sr <= 3'd0;
+            pcs0_fifo_sr <= 3'd0; pcs0_vcc_sr <= 3'd0; pcs0_erv_sr <= 3'd0;
+            pcs0_gpw_sr <= 3'd0; pcs0_rtxrst_sr <= 3'd0; pcs0_ttxrst_sr <= 3'd0;
+            pcs0_sig_sr <= 3'd0;
+            for (pcs0_i = 0; pcs0_i < 8; pcs0_i = pcs0_i + 1) pcs0_rerr_sr[pcs0_i] <= 3'd0;
+        end else begin
+            pcs0_blk_sr    <= {pcs0_blk_sr[1:0],    pcs_ch0_u_blk};
+            pcs0_st_sr     <= {pcs0_st_sr[1:0],     pcs_ch0_u_status};
+            pcs0_ber_sr    <= {pcs0_ber_sr[1:0],    pcs_ch0_u_ber};
+            pcs0_rlf_sr    <= {pcs0_rlf_sr[1:0],    pcs_ch0_u_rlf};
+            pcs0_tlf_sr    <= {pcs0_tlf_sr[1:0],    pcs_ch0_u_tlf};
+            pcs0_ferr_sr   <= {pcs0_ferr_sr[1:0],   pcs_ch0_u_ferr};
+            pcs0_ferrv_sr  <= {pcs0_ferrv_sr[1:0],  pcs_ch0_u_ferrv};
+            pcs0_bad_sr    <= {pcs0_bad_sr[1:0],    pcs_ch0_u_bad};
+            pcs0_badv_sr   <= {pcs0_badv_sr[1:0],   pcs_ch0_u_badv};
+            pcs0_fifo_sr   <= {pcs0_fifo_sr[1:0],   pcs_ch0_u_fifo};
+            pcs0_vcc_sr    <= {pcs0_vcc_sr[1:0],    pcs_ch0_u_vcc};
+            pcs0_erv_sr    <= {pcs0_erv_sr[1:0],    pcs_ch0_u_errv};
+            pcs0_gpw_sr    <= {pcs0_gpw_sr[1:0],    pcs_gtpowergood_0};
+            pcs0_rtxrst_sr <= {pcs0_rtxrst_sr[1:0], pcs_user_rx_reset_0};
+            pcs0_ttxrst_sr <= {pcs0_ttxrst_sr[1:0], pcs_user_tx_reset_0};
+            pcs0_sig_sr    <= {pcs0_sig_sr[1:0],    pcs_ch0_sig};
+            for (pcs0_i = 0; pcs0_i < 8; pcs0_i = pcs0_i + 1)
+                pcs0_rerr_sr[pcs0_i] <= {pcs0_rerr_sr[pcs0_i][1:0], pcs_ch0_u_err[pcs0_i]};
+        end
+    end
+
+    // ch0 PCS events — ferr/bad/erv are 8-bit SATURATING (same semantics as
+    // W40: dp cycles with the synced flag high, NOT exact event counts).
+    // `vcc` is deliberately a FREE-RUNNING mod-256 counter (no saturation):
+    // on a healthy link vcc is ~always 1, so a saturating counter hits 0xFF in
+    // ~1.6 us and S-1's "events do not increase" could never hold (FINDINGS
+    // mid-2/E-1). It is an activity indicator only (dp cycles mod 256); the
+    // three event counters are the actual link-health judgment.
+    reg [7:0] pcs0_ferr_evt, pcs0_bad_evt, pcs0_erv_evt, pcs0_vcc_cyc;
+    always @(posedge dp_clk or negedge dp_rst_n) begin
+        if (!dp_rst_n) begin
+            pcs0_ferr_evt <= 8'd0; pcs0_bad_evt <= 8'd0;
+            pcs0_erv_evt  <= 8'd0; pcs0_vcc_cyc <= 8'd0;
+        end else begin
+            if (pcs0_ferr_sr[2] && (pcs0_ferr_evt != 8'hFF)) pcs0_ferr_evt <= pcs0_ferr_evt + 8'd1;
+            if (pcs0_bad_sr[2]  && (pcs0_bad_evt  != 8'hFF)) pcs0_bad_evt  <= pcs0_bad_evt  + 8'd1;
+            if (pcs0_erv_sr[2]  && (pcs0_erv_evt  != 8'hFF)) pcs0_erv_evt  <= pcs0_erv_evt  + 8'd1;
+            if (pcs0_vcc_sr[2])                               pcs0_vcc_cyc <= pcs0_vcc_cyc + 8'd1;
+        end
+    end
+
+    // LOS: asynchronous board pins (B11 / C9), 3FF into dp_clk. Edge definition
+    // is unified to RISING EDGE ONLY (= LOS asserted), 8-bit saturating.
+    // Priming: the first 3 dp cycles after reset only build the baseline, they
+    // never count (otherwise "power-on" itself looks like one event).
+    (* ASYNC_REG = "TRUE" *) reg [2:0] los1_sr, los2_sr;
+    reg [1:0] los_prim_cnt;
+    reg [7:0] los1_evt, los2_evt;
+    always @(posedge dp_clk or negedge dp_rst_n) begin
+        if (!dp_rst_n) begin
+            los1_sr <= 3'd0; los2_sr <= 3'd0; los_prim_cnt <= 2'd0;
+            los1_evt <= 8'd0; los2_evt <= 8'd0;
+        end else begin
+            los1_sr <= {los1_sr[1:0], sfp1_rx_los};
+            los2_sr <= {los2_sr[1:0], sfp2_rx_los};
+            if (los_prim_cnt != 2'd3) begin
+                los_prim_cnt <= los_prim_cnt + 2'd1;
+            end else begin
+                if (los1_sr[1] && !los1_sr[2] && (los1_evt != 8'hFF))
+                    los1_evt <= los1_evt + 8'd1;
+                if (los2_sr[1] && !los2_sr[2] && (los2_evt != 8'hFF))
+                    los2_evt <= los2_evt + 8'd1;
+            end
+        end
+    end
+
+    // W76 / W77 / W78 bundles (bit layouts frozen; see DESIGN_v5 §3).
+    wire [31:0] ch0_pcs_status = {1'b0, pcs0_sig_sr[2],
+        pcs0_gpw_sr[2], pcs0_rtxrst_sr[2], pcs0_ttxrst_sr[2], 5'd0,
+        pcs0_erv_sr[2],
+        pcs0_rerr_sr[7][2], pcs0_rerr_sr[6][2], pcs0_rerr_sr[5][2], pcs0_rerr_sr[4][2],
+        pcs0_rerr_sr[3][2], pcs0_rerr_sr[2][2], pcs0_rerr_sr[1][2], pcs0_rerr_sr[0][2],
+        pcs0_vcc_sr[2], pcs0_fifo_sr[2], pcs0_badv_sr[2], pcs0_bad_sr[2],
+        pcs0_ferrv_sr[2], pcs0_ferr_sr[2], pcs0_tlf_sr[2], pcs0_rlf_sr[2],
+        pcs0_ber_sr[2], pcs0_st_sr[2], pcs0_blk_sr[2], 2'd0};
+    wire [31:0] ch0_pcs_evt = {pcs0_ferr_evt, pcs0_bad_evt, pcs0_erv_evt, pcs0_vcc_cyc};
+    wire [31:0] ch0_los_bundle = {SFP2_MODE_B_SEL, 7'd0, los1_evt, los2_evt,
+                                  6'd0, los2_sr[2], los1_sr[2]};
 `else
     // 非 P7B 构建: 这些源**不存在** ⇒ 常量占位 (装配出来恒 0, 是预期的, 不是缺陷)。
     //   ⚠️ 常量满足 snap_cdc 的前提 ("din_b 只在 clk_b 沿变化")。
     wire [31:0]  pcs_status_bundle = 32'd0;
     wire [31:0]  pcs_evt_bundle    = 32'd0;
     wire [31:0]  tx_clk_act        = 32'd0;
+    // P1: the ch0 bundles are referenced by the PCIE_OBS assembly in every
+    // macro combination; in a non-P7B build they are constants (not defects).
+    wire [31:0]  ch0_pcs_status    = 32'd0;
+    wire [31:0]  ch0_pcs_evt       = 32'd0;
+    wire [31:0]  ch0_los_bundle    = 32'd0;
 `endif
 
     // ---- P7b: 三束 (全部在 axi 域装配) ---------------------------------------
@@ -4206,6 +4449,10 @@ module wrapper_p4 #(
     assign p7bdp_din[33*32 +: 32] = biz_w73;   // 槽 33 → W73 app_pattern.stat_sw_apply (P9 E12)
     assign p7bdp_din[34*32 +: 32] = biz_w74;   // 槽 34 → W74 app_pattern.stat_up_pend (P9 E12)
     assign p7bdp_din[35*32 +: 32] = biz_w75;   // 槽 35 → W75 app_ctrl.stat_orphan (p9 orphan fix; dp 域寄存器输出)
+    // ---- P1: ch0 PCS status / events / LOS (dp 域寄存器输出; 槽 36..38 = W76..W78) ----
+    assign p7bdp_din[36*32 +: 32] = ch0_pcs_status;  // 槽 36 → W76
+    assign p7bdp_din[37*32 +: 32] = ch0_pcs_evt;     // 槽 37 → W77
+    assign p7bdp_din[38*32 +: 32] = ch0_los_bundle;  // 槽 38 → W78
 
     snap_cdc #(.W(32), .NW(SNAP_P7BFE_NW)) u_snap_p7bfe (
         .clk_a(pcie_axi_aclk), .rst_n(pcie_axi_aresetn), .req_a(snap_req),
@@ -4226,6 +4473,32 @@ module wrapper_p4 #(
         .valid_a(txsnap_valid), .clk_b(tx_fe_clk), .din_b(txsnap_din)
     );
 
+    // ---- P1: ch0 计数束 (W79..W82), b 域 = rx_clk_out_0 (ch0 CDR 恢复钟) ----
+    //   ⚠️ 该钟在拔线/LOS 负对照时可能停 ⇒ 本束必须由下面的“汇合超时”兜住,
+    //      且 `snap_busy` **不得** OR 进 ch0snap_busy (否则第一次超时后主机永远
+    //      看到 busy; FINDINGS 高-5)。非 P7B 构建: 无实例、常量、valid=0。
+    wire [SNAP_CH0_NW*32-1:0] ch0snap_dout;
+    wire                      ch0snap_valid, ch0snap_busy;
+`ifdef P7B_10G
+    wire [SNAP_CH0_NW*32-1:0] ch0snap_din = {
+        ch0_stat_drop,       // 槽 3 → W82
+        ch0_stat_crc_err,    // 槽 2 → W81
+        ch0_rx_bytes,        // 槽 1 → W80
+        ch0_rx_frames        // 槽 0 → W79
+    };
+    snap_cdc #(.W(32), .NW(SNAP_CH0_NW)) u_snap_ch0 (
+        .clk_a(pcie_axi_aclk), .rst_n(pcie_axi_aresetn), .req_a(snap_req),
+        .busy_a(ch0snap_busy),
+        .dout_a(ch0snap_dout),
+        .valid_a(ch0snap_valid), .clk_b(rx_clk_out_0), .din_b(ch0snap_din)
+    );
+`else
+    wire [SNAP_CH0_NW*32-1:0] ch0snap_din = {SNAP_CH0_NW{32'd0}};
+    assign ch0snap_dout  = {SNAP_CH0_NW{32'd0}};
+    assign ch0snap_valid = 1'b0;
+    assign ch0snap_busy  = 1'b0;
+`endif
+
     // ---- 三条新束的 `seen` 锁存 + 完成门 ------------------------------------
     //   `snap_valid_all` 才是给 axi_regs 的 "可以采了": 它要求 **snap_seq 的两束 +
     //   三条新束**在本代**都到齐 (任一条早到不构成完成 —— 那是"读到半代快照")。
@@ -4243,11 +4516,76 @@ module wrapper_p4 #(
             end
         end
     end
-    wire snap_valid_all = snap_valid & p7bfe_seen & p7bdp_seen & tx_seen;
-    // 合体 busy: 任一束在飞就是 busy (主机的 "trigger→poll done"协议靠它)
-    assign snap_busy = snap_seq_busy | p7bfe_busy | p7bdp_busy | txsnap_busy;
 
-    // ---- 75 字装配 (**逐项写出**: 每项的槽号在注释里, 不依赖"从右往左"的记忆) ----
+    // =====================================================================
+    // P1 (2026-10-18): snapshot gather with a per-generation ch0 timeout.
+    // ---------------------------------------------------------------------
+    // WHY: u_snap_ch0.clk_b = rx_clk_out_0. If that CDR clock stops (unplug /
+    // LOS negative control), snap_cdc's toggle handshake never returns and
+    // busy_a stays high forever (rtl/snap_cdc.v:78,117). Waiting for it would
+    // make the WHOLE 83-word window unreadable exactly when the LOS reading is
+    // needed. Design (DESIGN_v5 §4.3):
+    //   * per-generation arming: at snap_req, ch0_armed = ~ch0snap_busy;
+    //     a generation that starts while the previous one is still stuck marks
+    //     the ch0 bundle stale immediately (ch0_to_hit=1).
+    //   * ch0_seen accepts ch0snap_valid ONLY while armed (no late valid from
+    //     the previous generation may be credited to this one).
+    //   * wait window = 4095 pcie cycles (~16.4 us @250 MHz).
+    //   * snap_main_seen latches the four older bundles (their `valid` may be
+    //     earlier than the timeout decision).
+    //   * snap_valid_all is a ONE-CYCLE pulse (axi_regs capture semantics).
+    //   * snap_busy = snap_pending | the four ORIGINAL busies. It MUST NOT
+    //     include ch0snap_busy (FINDINGS high-5): after the first timeout that
+    //     net is stuck high and would hang the host's trigger->poll protocol.
+    //   * non-P7B builds: CH0_EXISTS=0 -> no instance, ch0_done_ok=1,
+    //     ch0_snap_to=0 ("not applicable", not a failure) and W79..W82 read 0.
+    // =====================================================================
+`ifdef P7B_10G
+    localparam CH0_EXISTS = 1'b1;
+`else
+    localparam CH0_EXISTS = 1'b0;
+`endif
+    reg        snap_main_seen, snap_done_r, snap_pending;
+    reg        ch0_armed, ch0_seen, ch0_to_hit;
+    reg [12:0] ch0_to_cnt;
+    wire       ch0_ready = CH0_EXISTS ? ~ch0snap_busy : 1'b1;
+    wire       snap_main_now = snap_valid & p7bfe_seen & p7bdp_seen & tx_seen;
+    wire       snap_done = snap_main_seen &
+                           (ch0_seen | ch0_to_hit | (~CH0_EXISTS));
+    wire       snap_valid_all = snap_done & ~snap_done_r;
+    wire       ch0_snap_to = CH0_EXISTS & ch0_to_hit & ~ch0_seen & snap_done;
+
+    always @(posedge pcie_axi_aclk or negedge pcie_axi_aresetn) begin
+        if (!pcie_axi_aresetn) begin
+            snap_main_seen <= 1'b0; snap_done_r <= 1'b0; snap_pending <= 1'b0;
+            ch0_armed <= 1'b0; ch0_seen <= 1'b0; ch0_to_hit <= 1'b0;
+            ch0_to_cnt <= 13'd0;
+        end else begin
+            snap_done_r <= snap_done;
+            if (snap_req) begin
+                // new generation: clear ALL per-generation state (FINDINGS high-5)
+                snap_main_seen <= 1'b0;
+                ch0_armed      <= ch0_ready;
+                ch0_seen       <= 1'b0;
+                ch0_to_hit     <= ~ch0_ready;
+                ch0_to_cnt     <= 13'd0;
+                snap_pending   <= 1'b1;
+            end else begin
+                if (snap_main_now) snap_main_seen <= 1'b1;
+                if (ch0_armed && !ch0_seen && !ch0_to_hit) begin
+                    if (ch0snap_valid)              ch0_seen   <= 1'b1;
+                    else if (ch0_to_cnt == 13'd4095) ch0_to_hit <= 1'b1;
+                    else                             ch0_to_cnt <= ch0_to_cnt + 13'd1;
+                end
+                if (snap_valid_all) snap_pending <= 1'b0;
+            end
+        end
+    end
+    assign snap_busy = snap_pending | snap_seq_busy | p7bfe_busy | p7bdp_busy | txsnap_busy;
+
+    // ---- 83 字装配 (**逐项写出**: 每项的槽号在注释里, 不依赖"从右往左"的记忆) ----
+    //   ⭐ P1 (2026-10-18): 新增 W76..W78 (p7bdp 槽 36..38) 与 W79..W82 (ch0 束槽 0..3)
+    //      落在**最上面** (= MSB 端); 旧 76 项逐项未动。
     //   ⭐ P9 E12: 新增 W71..W74 落在**最上面** (= MSB 端); 旧 71 项逐项未动。
     //   ⭐ 构建 F: 新增 W67/W68/W69 落在**最上面** (= MSB 端); 旧 67 项逐项未动。
     //   ⭐ 构建 E: 新增 W66 落在**最上面** (= MSB 端); 旧 66 项逐项未动。
@@ -4261,6 +4599,13 @@ module wrapper_p4 #(
     //   ⚠️ **新增项一律写在最上面 (= 向量 MSB 端 = 最高槽号)**: 这样 W0..W50 的槽号
     //      逐项不动 (已入库的板级读数不受影响)。写错位置 = 全体旧字平移 = 假读数。
     wire [SNAP_NW_P6E*32-1:0] snap_dout_all = {
+        ch0snap_dout[3*32 +: 32],  // W82 ch0 RX 丢帧数 (mac_rx_ch0.stat_drop; P1; 槽 3)
+        ch0snap_dout[2*32 +: 32],  // W81 ch0 RX FCS 错帧数 (mac_rx_ch0.stat_crc_err; P1; 槽 2)
+        ch0snap_dout[1*32 +: 32],  // W80 ch0 RX 好帧载荷字节 (Σpopc(tkeep) 仅好帧; P1; 槽 1)
+        ch0snap_dout[0*32 +: 32],  // W79 ch0 RX 好帧数 (tlast && tcrs && !terr; P1; 槽 0)
+        p7bdp_dout[38*32 +: 32],   // W78 ch0 LOS 电平/沿 + 模式条 (P1; 槽 38)
+        p7bdp_dout[37*32 +: 32],   // W77 ch0 PCS 事件束 (P1; 槽 37)
+        p7bdp_dout[36*32 +: 32],   // W76 ch0 PCS 状态束 (P1; 槽 36)
         p7bdp_dout[35*32 +: 32],   // W75 app_ctrl.stat_orphan (孤儿回收提交数; p9 orphan fix; 槽 35)
         p7bdp_dout[34*32 +: 32],   // W74 app_pattern.stat_up_pend (A3 登记数; P9 E12; 槽 34)
         p7bdp_dout[33*32 +: 32],   // W73 app_pattern.stat_sw_apply (换流应用数; P9 E12; 槽 33)
@@ -4476,7 +4821,7 @@ module wrapper_p4 #(
 
     axi_regs #(
         .MAGIC_V    (32'h50360001),
-        .BUILD_ID_V (32'h0000002A),     // ⚠️ 每次改动自增 (前置闸读这一项认位流; p9 孤儿修复 + persist 还原 = 0x2A)
+        .BUILD_ID_V (32'h0000002B),     // ⚠️ 每次改动自增 (前置闸读这一项认位流; P1 = ch0 bring-up + W76..W82 = 0x2B)
                                         //   ⭐ 本轮构建 (2026-10-15): **0x27 → 0x28** = **E12 观测计数器**
                                         //      (换流门四计数器: `stat_up_ev` / `stat_sw_req` /
                                         //       `stat_sw_apply` / `stat_up_pend` —— `rtl/app_pattern.v`
@@ -5003,6 +5348,8 @@ module wrapper_p4 #(
         // P6b: SNAP_STATUS 的两个新字段 (加位不改已有位 ⇒ 既有脚本的取位方式不受影响)
         .fe_state       (snap_fe_state),          // [5:3] = {fe_busy, fe_seen, fe_done}
         .locked_axi     (mmcm_locked_sr_axi[1]),  // [6]   = MMCM locked (axi 域同步版)
+        // P1: [7] = 本代 ch0 束缺失/陈旧 (超时命中且无 valid); 逐代锁存在 axi_regs 内
+        .ch0_snap_to    (ch0_snap_to),
         // ---- ⭐ M1: 载荷镜像窗 (¬(APP_MODE∧DP_156MHZ) 时上面接的是 tie-off 常量) ----
         .mir_level      (mir_level),
         .mir_empty      (mir_empty),
