@@ -1,0 +1,554 @@
+# p9_orphan_fix_design_20261017 —— 孤儿会话/槽泄漏修复设计件
+
+> 件名 `_proj_10g/notes/p9_orphan_fix_design_20261017/README_FOR_TL.md` · 日期 **2026-10-17** · 轮次 = **纯设计件（只读）**
+> 上游：`p9_c1_mech_doc_20261017/README_FOR_TL.md`（机制档案，451 行）· `p9_c1_board_20261017/README_FOR_TL.md`（C1 板级两代臂）
+> ⛔ **本件只读**：未碰板/对端，未改任何 RTL/HLS/工具/构建脚本；**不含 PASS/FAIL 裁定，不含实施授权**。
+> 标签口径：【已证（`文件:行`）】= 本 agent 2026-10-17 现读源码可当场复核 ·【推断】= 有依据但未直接测（附证伪法）·【未判定】·【未测】。
+> ⚠️ 行号一律本 agent 现读；与旧文引用不同处按本件。
+> ⚠️ **树态（现读）**：HEAD 的 `board/wrapper_p4.v:2185` = `.PERSIST_EN(1'b0)`、`:4377` = `BUILD_ID_V = 32'h00000029`
+> ⇒ **提交树 = 0x29 拆刀幽灵配置（persist 关）**；**板上现役 = 0x28（persist 开）**【已证（本件现读源码 + CLAUDE.md 2026-10-17 块）】。
+> 本设计凡涉构建的都按"先还原 persist + BID bump"为**硬前置**（§7.3）。
+
+---
+
+## 一页答案（先读这一页）
+
+### Q1「释放 ≠ 死亡」——推荐语义
+
+**两类事件必须分开：**
+
+| | 事件 A = 慢路径放弃跟踪 | 事件 B = 对端失联（会话死亡） |
+|---|---|---|
+| 判定者 | HLS（`T_SYN_RCVD` RTO 超时 / 看门狗复位） | **快路径**（数据面判据，§3） |
+| 含义 | HLS 自己的握手簿记丢失；**快路径 TCB 可能仍然完全健康** | 会话已无法推进（长时间无 `snd_una` 进展 + 有未决数据 + 被窗挡住） |
+| 应该做什么 | **什么都不做**（不发 cfg 记录、不动 CAM/TCB、不产生 ev） | 快路径回收（state=0 + CAM 清）→ app CONN_DOWN → 槽可复用 |
+| 通知谁 | **不通知任何消费者**（可选：HLS 内部计数器，单独一轮） | app（复用 `o_ev_down`/`o_ev_slot` 这一对脉冲） |
+
+**推荐载体 = 完全不发释放记录；B 的通知由 app_ctrl 自产 `orph_down`，并入 app_ctrl 的 ev_down 内部事件块（同一个清理块 + 同一个 `o_ev_down` 脉冲）。**
+`slow_cfg_adp.ev_down` 的"DEL 已落地"语义**原样保留**（`rtl/slow_cfg_adp.v:158-168`）。
+
+**为什么 DEL 绝对不行（灾难级）**：被动连接的第三个握手 ACK 是纯 ACK ⇒ `rx_classify` 判 FAST（`rtl/rx_classify.v:101-107`）⇒ HLS 永远停在 `T_SYN_RCVD`、约 **2.56 s** 后被静默释放（`hls/src/layer_tcp.cpp:531-535`；C1 板级实测）⇒ **每一条健康被动连接都会在 2.56 s 时收到 DEL** ⇒ 全部被拆。这是 P4b-5"定时重传 SYN+ACK 会 RST 掉活连接"教训的同族。
+
+**为什么 REL 记录（释放通知）不必要**：它只能告诉快路径"慢路径不看了"，而快路径**已经能用 snd_una 判死**（它才是数据面的所有者）。代价 = HLS 改源码+重综合 + cfg 记录协议 + `slow_cfg_adp` 解析；收益边际。**本批不做**（变体 B 见 §2.4，只作后备）。
+
+### Q2 快路径"失联回收"——判据与阈值
+
+**判据（三因子，缺一不点火）：**
+
+1. **长期停滞**：`state==ESTAB` ∧ `snd_wnd != 0` ∧ 有未决数据（`snd_nxt != snd_una`，或本槽重传会话进行中）∧ 无 FIN/RST 在飞；`snd_una` **持续不前进**超过阈值。
+   - `snd_una` 每次推进（`tcp_rx` 的 `upd_sel==2` 授权写，`rtl/tcp_rx.v:486-490`）⇒ **计数清零**。
+2. **重传见证**：停滞区间内**至少见过一次本槽的重传会话**（`retx_active && retx_id==slot`；逐拍置 `orph_saw[slot]`，不靠扫描采样）。
+   - 作用：把"对端安静且本端也没在重试"的慢盆末端/空闲态排除掉。
+3. **点火时"正在努力但出不去"**：`inflight = snd_nxt - snd_una ≥ min(snd_wnd, WIN_CAP)`（与 `tcb.win_open` 同一不等式，`rtl/tcb.v:151-157`）**或** 本槽重传会话正在进行（`retx_active && retx_id==slot`）。
+   - 作用 ①：把"慢盆最后一段（小在飞）永不重传"这类**小在飞停滞**结构性排除（`win_closed` 支）。
+   - 作用 ②：覆盖一个**既存潜伏态**——`replay_full`（RTO 触发的整窗重放）只有在 `snd_nxt` 被新 app 帧推进到 `ring_hi` 时才收尾（`ring_delta` 清零，`tcp_tx_frame.v:773-795,1198-1236`）；若 app 已停/不再产帧，重放可能自持。此时 `inflight` 因 `svc_rewind` 被压到 0、`win_closed` 恒假 ⇒ 只用窗满门会**永不回收**。加"本槽重传会话进行中"这一支即可覆盖（`saw` 已要求至少一次重传，慢盆末端无重传 ⇒ 不误伤）。
+
+**明确排除"重传次数多"作为充分条件**（反例）：慢盆 `W55=49.9/s`（每 20 ms 一次锁步重放）但 `snd_una` 在推进、必须不被杀；Stage C 的 dup-ACK 自持环重传 13.8–19.3× 但 ACK 在回来；persist 零窗探询也是"重传"，对端活着。⇒ 重传只能当**必要见证**，不能当判据。
+
+**阈值（先验值）**：默认 **60 s** = `ORPHAN_LIM = 8'd144`，计数单位 = **256 个扫描轮 = 419.43 µs**（`scan_round[7:0]==0` 那一轮；app_ctrl 扫描轮 = 1.6384 µs @156.25MHz，`rtl/app_ctrl.v:78-88,455-457,545`）。
+依据：≫ HLS 释放周期 2.56 s；≫ app FIN 超时 400 ms（`FIN_TO_LIM=244141` 轮）；≫ RTO 20 ms（`RTO_LIM=12207` visits，`rtl/tcp_tx_frame.v:219-223`）；≫ 慢盆 20 ms 锁步；< Linux `tcp_retries2` 的 ~13 min。8-bit 饱和计数器上限 106.9 s，144 留 40% 余量。
+**可配置**：`ORPHAN_LIM`/`ORPHAN_TICK_BITS` 为参数（wrapper 传默认值，TB 传小值）；板上无 CPU ⇒ 不做运行时寄存器。
+
+**成本**：16×8 = 128 FF（饱和计数）+ 16 FF（saw）+ ~15 FF（FSM）+ 32 FF（stat）+ 4 FF（slot）≈ **195 FF**；`ORPHAN_EN=0` 时整块折叠为 0（默认 0，零回归）。
+
+**回收动作清单（逐项）**：见 §3.5（state=0 / CAM 清 / 重传状态 / app 收尾 / 槽复用 / 是否发 RST / 竞态）。
+
+### Q3 迟到 RST 误杀——**不同批，登记**
+
+- 迟到 RST 按残留 `peer_ip/port` 命中 ⇒ 4 元组复用时可能误杀新连接（`hls/src/layer_tcp.cpp:631-641`）。
+- **不同批的理由**：① 本修复**不产生任何 RST**（§3.8），不新增该向量；② 该向量在静默释放后就已存在（HLS 槽在 2.56 s 就空出，与本修复无关）；③ 可信的修法需要"按 incarnation 的 seq 窗口"判据，而 HLS **从未见过第三个 ACK 与数据**（`peer_seq` 停在 SYN+1），`seq==peer_seq` 这类朴素修法会拒掉合法 RST、破坏"用 RST 清残留 TCB"的现有兜底。⇒ **后置**，风险登记见 §4.3，候选修法见 §4.4（且有本修复后可安全收紧）。
+
+---
+
+## 1 事实基线（逐条现读复证）
+
+### 1.1 静默释放链（HLS，机制档案已列，本件复核）
+
+- 被动建连：SYN 在 `T_LISTEN` 分支发 `cfg ADD + SYN|ACK`（`hls/src/layer_tcp.cpp:668-679`），HLS 进 `T_SYN_RCVD`。
+- 第三个 ACK（纯 ACK）由 `rx_classify` 判 **FAST**（`rtl/rx_classify.v:101-107`：`cur_tcp_ctl = |flags[2:0]`，纯 ACK 的 FIN|SYN|RST 全 0）；`tcp_rx` 只认 CAM 命中 + `state==ESTAB`（`rtl/tcp_rx.v:307,347`）⇒ **HLS 永远看不到第三个 ACK**。
+- `T_SYN_RCVD` 的握手完成分支因此结构性不可达（`layer_tcp.cpp:680-684`）；定时重传已被 P4b-5 废除（`:524-530`）⇒ 唯一出口 = 空闲拍 RTO 扫描的一次超时：`c.state=T_FREE; c.retrans_pending=false; continue;`（`:531-535`）。
+- **该分支不写 cfg 记录**（`grep cfg_write` 调用点 = `:609/:637/:663/:677/:699/:721`，无一处在此）⇒ `slow_cfg_adp` 的 ev 源（`:164-168` / `:193-195`）不产生任何脉冲。
+- 释放只动 HLS 的 `state/retrans_pending`（+退避量），**快路径 CAM/TCB、app 会话、各 per-slot 外围一个字节不动**（机制档案 §2.3 的逐字段表）；
+  `tcb.v` 无任何超时（全文），`tcp_rx.v` 无 RST 自产（`:404-418` 只有 `ack_req`），`tcp_tx_frame.v` 的 RTO/persist 只 reload、不放弃（`:1249-1259`、persist 阶梯封顶 60 s）。
+- `MAX_TCP_CONN = 3`（`layer_tcp.cpp:10-12`），ADD 的 slot 字段 = HLS cid（0..2，`cfg_write` w0 低 4 位，`:170`）；快路径 CAM/TCB 是 **16** 槽（`tcb.v:8-19`、`tcp_cam.v:6-7`）⇒ **现役可达槽只有 0..2**；本设计的扫描仍按 16 槽统一处理（未来 `MAX_TCP_CONN` 变大自动覆盖）。
+
+### 1.2 app 的通知面（穷举，复核机制档案 §2.1）
+
+- `ev_up`：ADD 的 wscale 授权拍（`slow_cfg_adp.v:187-198`）→ `app_ctrl` → `app_pattern`。
+- `ev_down`：DEL 的 state=0 授权拍（`slow_cfg_adp.v:158-168`）+ `app_ctrl` 自己的超时 CONN_DOWN（`app_ctrl.v:861-863,1056-1067`）。
+- `app_tx_ready[15:0]`：256 拍轮扫电平（`app_ctrl.v:557-585`）。
+- **没有第四条**（`app_pattern.v:55-57,67`）。静默释放不经过这三处中的任何一处。
+
+### 1.3 快路径的 `state=0` 写口（穷举）
+
+1. **DEL 记录**：`slow_cfg_adp.v:158-163`（`upd_sel=5`，`val=0`，`ev_down` 同拍）。
+2. **app_ctrl 的 `fc` 通道**：`st_pend` 位图 + `fc_sel_r=5`（`app_ctrl.v:701-726,871-874,1311-1336`），其现有触发 = `rst_sent[slot]`（真发过 RST）或 `st_grace`（`to_fired` 且宽限到点），而 `to_fire` 要求 `fin_sent[slot]`（`app_ctrl.v:861-863`）。
+3. **无第三条**。⇒ 连续模式（`TX_CONTINUOUS=1`，本构型永不 close）下，**没有任何自主路径写 state=0**。
+
+### 1.4 与既有机制的交互（设计必须兼容）
+
+- **persist 零窗探询**：`ps_arm = PERSIST_EN && scan_estab && snd_wnd==0 && snd_nxt!=snd_una && !fin_sent_r && !rst_sent_r`（`tcp_tx_frame.v:752-757`）；退避 20ms→5→10→20→40→60s 封顶（`:408-417`）。⇒ **零窗是"对端活着但窗关"，本设计在 `snd_wnd==0` 时把 orphan 计数清零**（结构性不误杀）。
+- **慢盆**：20 ms 锁步重放是常态，`W55≈49.9/s`，但 `snd_una` 在推进（爬行 1.55 Mbps）⇒ 本设计每次 `snd_una` 推进清零 ⇒ 不误杀。慢盆"最后一段永不重传"的小在飞停滞由**点火时窗满门**排除（§3.2 因子 3）。
+- **C1 偷槽（ADD 覆盖）**：HLS 释放后的槽是"最低空闲"，新 SYN 会 ADD 同名槽；ADD 全量覆盖 CAM+TCB 并发 `ev_up`（`slow_cfg_adp.v:129-198`）⇒ 本设计在 `ev_up` 同槽时**中止回收**（§3.6），绝不与新会话抢。
+- **app 的 `closing`/`ack_seen` 门**：`ev_down && active && slot==act_id` ⇒ `closing<=1` ⇒ W3 收尾 ⇒ `active=0`（`app_pattern.v:388,896-940`）；`ack_seen_w` 只在 `scfg_ev_up` 清（`wrapper_p4.v:2155-2166`）。
+- **D1 同槽重连清理**：`cfg_up`（= `scfg_ev_up`）清 `fin_sent_r/whi_r/rst_sent_r/...`（`tcp_tx_frame.v:1101-1128`）。
+- **E12 四计数器**：`stat_up_ev/stat_sw_req/stat_sw_apply/stat_up_pend`（`app_pattern.v:556-591`，W71..W74）。本设计**不改 ev_up 链**；只新增 `stat_orphan`（回收提交数）。
+
+### 1.5 观测面（现役 75 字）
+
+`SNAP_NW_P6E=75`（`wrapper_p4.v:3296`）、`SNAP_P7BDP_NW=35`（`:3317`）、W74 @ `0x148`、未实现地址 `0x15C`（`:3285-3290`）；W55 = `tcp_tx_frame.stat_retx`、W68 = `tcp_rx.stat_ack_adv`（推进 snd_una 的 ACK 计数）——**这两个是板级判据的现成仪器**（`P7B_BIZ_WINDOW.md` §1）。
+
+---
+
+## 2 Q1：「释放 ≠ 死亡」的语义设计
+
+### 2.1 定义（本件口径）
+
+- **事件 A（释放）**：HLS 的 `T_SYN_RCVD` RTO 超时（`layer_tcp.cpp:531-535`）与 HLS 看门狗复位全槽清空（`:498-503`）。**只说明慢路径不再拥有该槽**。
+- **事件 B（失联）**：快路径判据（§3）成立。**说明会话已无法推进**。
+- 关系：A 不蕴含 B；B 不蕴含 A。健康连接会先经历 A（2.56 s）再无限期 B=假；死连接可能 A 之前就 B=真。
+
+### 2.2 载体候选
+
+| 方案 | 内容 | 代价 | 结论 |
+|---|---|---|---|
+| **A（推荐）** | 释放 **不写任何记录**；B 由快路径 app_ctrl 自产 `orph_down`，并入 app_ctrl 的 ev_down 内部事件块；`slow_cfg_adp.ev_down` 语义不动 | 零 HLS 改动；app_ctrl + wrapper + slow_cfg_adp 一个 busy 输出 | **采用** |
+| B | 新增 `CFG_REL`（cmd=2）记录：HLS 释放分支发 8 词；`slow_cfg_adp` 只置 per-slot `slow_released` 电平（**不拆连、不通知 app**），用来立即武装 orphan 定时器 + 观测 | HLS 改源码+重综合；记录协议+解析器；新语义位 | **后备**（仅当 TL 要求"释放时通知"字面语义；见 §2.4） |
+| C | 复用/变体 DEL（cmd=1 带新字段，或释放时直接 DEL） | 最小改动量看似最小 | **⛔ 禁止**：会把全部健康连接在 2.56 s 后拆掉（§2.3） |
+
+### 2.3 为什么 DEL 是灾难（含量化）
+
+- 被动连接在 `T_LISTEN` 就**乐观建连**（ADD 已发、SYN+ACK 已发，`layer_tcp.cpp:668-679`）；第三个 ACK 只进快路径 ⇒ HLS **永远**停在 `T_SYN_RCVD`。
+- 因此**每一条**健康被动连接都会在 ~2.56 s 被静默释放（C1 板级实测；名义 80 ms 是注释按 125MHz/pass 的错估）。
+- 若释放时发 DEL：`slow_cfg_adp` 清 CAM + 写 state=0 + 发 `ev_down`（`:129-168`）⇒ 快路径立刻停止收/发该连接，app 收尾。**线上所有连接每 2.56 s 被拆一次**。
+- 这与 P4b-5 的板级实锤同族：定时重发 SYN+ACK 会招 RST 杀连接（`layer_tcp.cpp:524-530` 注释）——那条教训的本质就是"慢路径不能对慢路径看不见的连接做主动动作"。
+
+### 2.4 为什么 REL 记录不必要（但保留为后备）
+
+- 快路径判死所需的一切（`snd_una/snd_wnd/snd_nxt/state/retx 会话`）都在它自己手里；REL 只多告诉它"慢路径不看了"，而这对判死**不是必要条件**（死连接在 HLS 仍跟踪时也应被回收）。
+- 代价：HLS 源码+重综合（行为漂移风险）+ 新记录类型 + `slow_cfg_adp` 解析 + 新事件语义；收益 = 可把定时器从"释放后"起算（省 2.56 s，相对 60 s 阈值 = 4%）。
+- **后备变体 B 的最小定义**（若 TL 坚持要）：`w0 = (wscale<<16)|(cmd=2<<8)|slot`，其余 7 词 0；`slow_cfg_adp` 在 S_CAM 锁存 slot 并输出 `rel_slot/rel_pulse`（1 拍）；app_ctrl 收到后只做 `orph_cnt[slot]<=0; orph_saw[slot]<=0;`（重新武装），**不碰 TCB/CAM、不动 ev**。验证锚 = csim 对照（释放分支只多一次 write，`T_FREE` 与后续行为逐字段不变）+ 板级 `Δstat_orphan` 不变。
+
+### 2.5 `ev_down` 语义的边界（写清楚，避免下游误读）
+
+- **`slow_cfg_adp.ev_down`** 仍是"DEL 的 state=0 已落地"（唯一生成点 `:164-168`）。
+- **app 看到的 `o_ev_down`** 语义是"**会话结束**"（可能来自 DEL，也可能来自快路径失联回收）。这是 app 需要的语义，也是它原本就消费的语义（`app_pattern.v:896-940`）。
+- 新增的 `orph_down` **不进入事件 FIFO**（FIFO 是慢路径 peer 事件日志；`ev_push` 仍只看原始 `ev_up/ev_down`），只走内部事件块与 `o_ev_down`。⇒ 若 M1 将来接通 app 寄存器总线，FIFO 里不会出现"peer 字段是上一条记录的孤儿 DOWN"。
+
+---
+
+## 3 Q2：快路径失联判据与回收
+
+### 3.1 判据候选与反例（逐步收窄）
+
+| 候选 | 反例（必须不误杀） | 结论 |
+|---|---|---|
+| `retx` 次数 / `W55` 高 | 慢盆 `W55=49.9/s` 但 `snd_una` 在推进；Stage C 自持环重传 13.8–19.3×；persist 探询也是重传 | **不能当判据**（只能当见证） |
+| 仅 `snd_una` 停滞 | persist 零窗：`snd_una` 不前进但对端活着（每 20ms–60s 回零窗 ACK） | 需加 `snd_wnd != 0` |
+| `snd_una` 停滞 + 非零窗 | 慢盆最后一段：小在飞、永不重传，`snd_una` 冻结但连接可能只是"末端卡住" | 需加"点火时窗满" |
+| `snd_una` 停滞 + 非零窗 + 窗满 | "对端安静且本端也没重试"（例如 app 已停、在飞恰好未清） | 需加"重传见证" |
+| `snd_una` 停滞 + 非零窗 +（窗满 **或** 本槽重传会话中） | 慢盆末端小在飞、无活动重传（`saw=0`）；慢盆爬行（`snd_una` 在推进） | **加 `saw` 覆盖**——`saw` 是"本端确实在努力重传"的直接见证；"窗满"是"app 被挡住"的直接见证 |
+| **三因子（本设计）** | —— | **采用** |
+
+### 3.2 正式判据（逐条可综合）
+
+记 `scan_id` 为 app_ctrl 当前扫描槽（`app_ctrl.v:455-457,538`），每槽每 1.6384 µs 采样一次。
+
+**输入（app_ctrl 新增，均来自现役线）：**
+- `rc_state/rc_snd_nxt/rc_snd_una/rc_snd_wnd`（现有 TCB 组合读口 C，`:343-350`）。
+- `retx_active` + `retx_id[3:0]`（`tcp_tx_frame` 现成输出 `o_retx_active/o_retx_id`，`tcp_tx_frame.v:113-114,1008-1010`；wrapper `:1761,2132,2219,2264`）。
+- `una_adv` + `una_adv_id[3:0]`（wrapper 从 `rx_upd_gnt && (rx_upd_sel==3'd2)` 取，即 tcp_rx 的 snd_una 授权写；`rx_upd_gnt = sel_rx`，`wrapper_p4.v:1782-1784,2052-2053`，`tcp_rx.v:486-490`）。
+- `scfg_busy`（`slow_cfg_adp` 新增输出：`state != S_RECV || !f_empty`）。
+
+**组合量：**
+```
+inflight   = rc_snd_nxt - rc_snd_una                 // 32 位
+cap_eff    = min(rc_snd_wnd, WIN_CAP)                // WIN_CAP 与 app_tx_ready 同源
+win_closed = (inflight < 32'h8000_0000) && (inflight >= {16'b0, cap_eff})
+work       = (rc_snd_nxt != rc_snd_una) || (retx_active && (retx_id == scan_id))
+accrue     = scan_tick && !init_pend && !(ev_blk && (ev_slot_i == scan_id)) &&
+             (rc_state == ST_ESTAB) && (rc_snd_wnd != 0) && work &&
+             !fin_sent[scan_id] && !rst_sent[scan_id] &&
+             !st_done[scan_id] && !to_fired[scan_id]
+```
+⚠️ 这里用的是**同槽事件守卫** `!(ev_blk && ev_slot_i==scan_id)`（与扫描采样守卫同款，`app_ctrl.v:1069-1079`），**不是**全局 `!ev_blk`：别的槽的事件不得重置本槽的孤儿计数。`fire` 同款（只受同槽事件阻塞）；真正的"事件拍让位"发生在 `orph_down` 投递拍（§3.6）。
+**计数（每槽 8 位饱和）：**
+```
+if (scan_tick && 采样未被阻塞) begin
+  if (!accrue)            orph_cnt[scan_id] <= 0;    // 含 state 退出/零窗/无工作/FIN/RST/已拆
+  else if (orph_tick)     orph_cnt[scan_id] <= (orph_cnt==8'hFF) ? 8'hFF : orph_cnt+1;
+end
+orph_tick = (scan_round[ORPHAN_TICK_BITS-1:0] == 0)   // 默认 8 位 = 256 轮 = 419.43 µs
+```
+**见证（逐拍，不靠扫描采样）：**
+```
+if (retx_active && (retx_id == <slot>)) orph_saw[retx_id] <= 1'b1;
+```
+**清零（优先于计数）：**
+- `una_adv && (una_adv_id == <slot>)` ⇒ `orph_cnt[slot]<=0; orph_saw[slot]<=0;`（`snd_una` 推进 = 新停滞区间）。
+- 扫描时 `!accrue` ⇒ 清（含 `snd_wnd==0`）。
+- `ev_up || ev_down` 同槽、`cfg_up` 同槽 ⇒ 清。
+- 点火/中止 ⇒ 清。
+
+**点火：**
+```
+fire = scan_tick && !init_pend && !(ev_blk && (ev_slot_i == scan_id)) && accrue &&
+       orph_saw[scan_id] &&
+       (orph_cnt[scan_id] >= ORPHAN_LIM) &&
+       (win_closed || (retx_active && (retx_id == scan_id)));
+```
+- `win_closed` 在 `snd_una` 停滞区间内绝大多数采样为真；在 RTO 回卷重放的几十 µs 内可能为假 ⇒ 若此时也没有 `retx_active` 则**不点火、不清零**，下一轮（1.6 µs 后）再判。⇒ 这是"延后"不是"丢失"。
+- 若 app 是慢生产者、永远填不满窗且从无重传 ⇒ 永不回收（**安全的假阴性**；见 §9-6）。
+
+**点火动作（分两步，不直接通知）：**
+1. **fire 拍**：`st_pend[slot]<=1; st_done[slot]<=1;`（state=0 请求挂出）+ `orph_slot<=slot; orph_cam_req<=1; orph_state_req<=1; orph_cnt[slot]<=0; orph_saw[slot]<=0;`。**此时不写 pool、不发 `o_ev_down`**（清理仍由事件块统一做）。
+2. **等待落地**：`orph_cam_req && !scfg_busy` ⇒ 发 1 拍 `orphan_cam_clr`（**寄存器输出**，CAM 写在该拍结束沿落地），清 `orph_cam_req`；`fc_gnt && fc_sel_r==5 && fc_id_r==orph_slot` ⇒ 清 `orph_state_req`。**两者都清且 `orphan_cam_clr` 已回落（≥1 拍）后** ⇒ 发 1 拍 `orph_down`（并入 `ev_down_i`），由事件块做 pool/winq/wu/fc/st 清理 + `o_ev_down` + `stat_ev_down++`；同拍 `stat_orphan++`。⚠️ 不能把"clr 寄存器为高的那一拍"当成"CAM 已落地"（写是在沿上发生的）。
+3. **中止**：等待期同槽 `ev_up`/`ev_down`/`fin_sent`/`rst_sent` 上升 ⇒ 清全部 pending，**不发通知**（新会话或既有拆除路径优先）。
+
+### 3.3 阈值（先验值 + 依据 + 可配置性）
+
+- `ORPHAN_LIM = 8'd144`，单位 = `256 × 1.6384 µs = 419.43 µs` ⇒ **60.40 s**；8 位饱和上限 **106.9 s**。
+- 依据（从大到小卡）：
+  - ≫ HLS 释放周期 ~2.56 s（C1 板级）——避免与慢路径自己的簿记赛跑；
+  - ≫ app FIN 超时 400 ms（`FIN_TO_LIM=244141` 轮，`app_ctrl.v:315-319`）——FIN 场景由既有路径先收尾，本判据应让位；
+  - ≫ RTO 20 ms（`RTO_LIM=12207`，`tcp_tx_frame.v:219-223`）——即使连续 100 次 RTO 丢失也只有 2 s；
+  - > 慢盆 20 ms 锁步簇的观测尺度（慢盆是秒级，但 `snd_una` 推进即清零）；
+  - < Linux `tcp_retries2` 的 ~13–30 min——否则操作上等于不回收。
+- **可配置**：`app_ctrl` 参数 `ORPHAN_EN`（默认 `1'b0`）、`ORPHAN_LIM[7:0]`（默认 144）、`ORPHAN_TICK_BITS`（默认 8，**≥1**）；wrapper 传 `ORPHAN_EN(1'b1)` 与 `ORPHAN_LIM_5`（wrapper 参数，默认 144）。TB 覆盖为 `ORPHAN_LIM=2`、`ORPHAN_TICK_BITS=1`（tick 每 2 轮 ≈3.3 µs）即可把仿真压到微秒级。
+- **不做运行时寄存器**：板上 app 寄存器总线静态钉死（`wrapper_p4.v:1345-1347`：`app_reg_addr=8'h00`/`wr=0`/`wdata=0`），写了也读不到；调阈值 = 一次构建（#64：改常量会确定性改网表/时序）。
+
+### 3.4 计数器成本
+
+| 项 | 位宽×份数 | FF |
+|---|---|---|
+| `orph_cnt[0:15]` | 8×16 | 128 |
+| `orph_saw[0:15]` | 1×16 | 16 |
+| FSM（act/cam_req/state_req/slot/`orphan_cam_clr`/`orph_down`/done） | ~10 | ~15 |
+| `stat_orphan` | 32 | 32 |
+| 合计 | | **≈191 FF** |
+
+`ORPHAN_EN=0` ⇒ 全部折叠（参数常量化，与 `PERSIST_EN` 同款零回归手法）。**关键实现纪律**：`orph_down`/`orphan_cam_clr` 必须显式与 `ORPHAN_EN` 相与（`wire orph_down = ORPHAN_EN && ...`），保证 `ORPHAN_EN=0` 时 `ev_down_i ≡ ev_down`、`ev_slot_i ≡ ev_slot`；否则既有 8 个直接例化 `app_ctrl` 的 TB 未接新输入（Z）时，Z 可能经 `ev_down_i` 传播。默认 0 ⇒ 既有 TB 不改、逐位不变。
+
+### 3.5 回收动作清单（逐项）
+
+| # | 动作 | 实现 | 备注 |
+|---|---|---|---|
+| 1 | **TCB[slot].state = 0** | `st_pend[slot]<=1; st_done[slot]<=1`，走既有 `fc` 通道（`fc_sel_r=5`, `val=0`；`app_ctrl.v:701-726,1311-1336`） | fc 是 TCB 第 4 级仲裁（最低）；不会被 tx/rx/cfg 抢丢失，只会延迟 |
+| 2 | **CAM[slot] 清零** | 新增 `orphan_cam_clr` 脉冲 + slot；wrapper 里与 `scfg_cam_wr` 做 mux（**scfg 优先**） | 只清该槽五字段（`tcp_cam.v:49-55`）；不清别的槽 |
+| 3 | **tcp_tx_frame 重传状态** | 不新增端口：下一次扫描（≤1.6384 µs）看到 `rb_state != ESTAB` ⇒ 清 `fin_sent_r/rst_sent_r/fin_retx_pend/rto_pend/rto_timer`（`tcp_tx_frame.v:1240-1259`）；`ring_start/replay_jump/ring_restore` 全部要求 `scan_estab`（`:783-795,1198-1236`）⇒ 不再起新重放帧，当前会话在 ≤1 帧内排空 | `whi_r` 不清（`:1186-1187` 有回绕安全上界；下一次 `cfg_up` 清，`:1103`） |
+| 4 | **app_ctrl 租约/流控清理** | `orph_down` 并入 `ev_down_i` ⇒ 复用现有 ev_down 块：归还 `pool`、`winq=0`、清 `wu_*/fc_*/st_*/to_*/fin_req/rst_req`、`o_ev_down` 脉冲、`stat_ev_down++`（`app_ctrl.v:973-1054`） | **不重复写清理逻辑**（单一写者）；只把 FIFO push 留在原始 `ev_down` |
+| 5 | **app 收尾** | `app_pattern` 现有 `closing`→W3 收尾→`active=0`（`app_pattern.v:896-940`） | 单会话被释放后，`up_pend_r`（别的槽的 ev_up）才能被应用 |
+| 6 | **槽复用** | 1+2+4 完成后即可；新 ADD 全量覆盖 + `cfg_up` 清 per-slot TX 状态（`tcp_tx_frame.v:1101-1128`） | 与 C1 偷槽/D1 同槽重连完全同路径 |
+| 7 | **发不发 RST** | **不发**（§3.8） | 见论证 |
+| 8 | **ack_seen_w[slot]** | 不清（下一次 `scfg_ev_up` 清，`wrapper_p4.v:2160-2166`） | 若槽长期不复用，该位悬空无消费者 |
+| 9 | **retx_ram ring 内容** | 不清（新 `cfg_up` 清 `whi_r`；ring_hi 回绕安全上界挡住伪重放） | 残余登记 §9-8 |
+| 10 | **HLS** | **零改动** | 见 Q1 |
+
+### 3.6 竞态/时序论证（ADD / DEL / replay / fc）
+
+**ADD（同槽新连接）——三条防线：**
+1. **CAM 清只在 `!scfg_busy` 时发**：`scfg_busy = state != S_RECV || !f_empty`。若 busy=0（`S_RECV` 且 FIFO 空），本拍**不可能**有 `scfg_cam_wr`（最早的新记录 CAM 写也要 9 拍以后）⇒ 清脉冲不会撞 ADD 的 CAM 写。
+2. **state=0 走 fc（最低优先级）**：ADD 的 TCB 写（scfg 级）永远优先于 fc；`ev_up` 在 ADD 最后一个字段（wscale）授权拍生成（`slow_cfg_adp.v:187-198`），而该拍 `scfg_upd_wr=1` ⇒ `sel_fc=0` ⇒ fc 不可能同拍落地；下一拍 app_ctrl 已看到 `ev_up` 并清 `st_pend`/中止 ⇒ **state=0 不会落在新 ADD 之后**。
+3. **`ev_up` 同槽 ⇒ 中止**：回收 FSM 在 `orph_slot` 上看到 `ev_up` 或 `ev_down` 就清 `orph_cam_req/orph_state_req`，不发 `orph_down`。⇒ 新会话优先，app 得到的是 `ev_up`（SWC 换流路径）。
+
+**DEL（同槽拆除）：** `scfg_busy` 在整条记录期间为高 ⇒ CAM 清被挡住；`ev_down` 到达 ⇒ 中止 FSM（DEL 自己会通知 app）。重复的 state=0/CAM 清即使发生也无害（幂等）。
+
+**Replay 会话进行中：** state=0 落地后 `scan_estab=0` ⇒ `ring_start/replay_jump/ring_restore` 全 0；`ring_eval` 的排空支（`tcp_tx_frame.v:1222-1236`）在 ≤1 拍收尾；已进 TX 引擎的 1 帧照常发完。`rto_pend` 在下一扫描被 `!scan_estab` 清（`:1245-1246`）。⇒ **不需要等 `retx_active` 落下**。
+
+**fc 饿死：** TCB 更新口每拍最多 1 写；tx 数据写每帧 1 次（~193 拍 1 次）、rx 每帧几次、cfg 每条记录 8 次，fc 是第 4 级，仍有大量空拍。`fc_sel5` 是 round-robin（`app_ctrl.v:701-726`），同槽最多 16 个 gnt 内被选中。**不设超时**（登记为残余风险，§9-4）。
+
+**通知顺序：** `orph_down` 只在 **CAM 清脉冲已回落（写入沿已过）** 且 **state=0 的 fc gnt 之后** 才发（"两边都已落地"才通知 app）。这保持了"通知 = 条目已拆"的现有语义（与 DEL 的 `ev_down` 生成拍一致）。投递拍还要**让位**：`orph_down = orph_ready && !ev_up && !ev_down && !to_push && !ev1_v`（外部事件/超时投递优先或顺延 1 拍），保证 `ev_slot_i` 的 mux 不会把"外部脉冲 + 孤儿槽号"配错。
+
+### 3.7 观测字（W75）
+
+- 新增 **1 个字 W75 = `app_ctrl.stat_orphan`**（32 位，提交回收计数），落 `0x14C`，进 `p7bdp` 束（槽 35）。非 `APP_MODE` 构建按既有 W71..W74 同款处理：`p7bdp_din[35]` 接常量 0（`app_ctrl` 不存在）。
+- 几何：`SNAP_P7BDP_NW 35→36`、`SNAP_NW_P6E 75→76`；**未实现地址保持 `0x15C`**（W75 之后 `0x150..0x158` 仍未实现，`0x15C` 仍是负对照地址——**不要用 `0x20+4*NW` 自动推**，读侧脚本按显式常量走）。
+- 读侧：`_proj_pcie/p6e_snap_check.sh` 的 `WLABEL`、`apply_readside.py`、`P7B_BIZ_WINDOW.md` §1、一切 `NW=`/`UNIMPL_ADDR=`/`EXPECT_BID=` 的读者——实施时**重新穷举**（0x28 轮是 63 处/20 文件；不要照抄这个数）。
+- **与 §0-46 快照复位族的关系（关键评估）**：0x28 全局 WNS = +0.065 ns（周期 1.02%），宿主 = `user_reset_reg → snap_words_r_reg[...]/CLR` 的**异步复位 Recovery 族**；每字 ≈ **96 FF**（`snap_cdc.hold_b` 32 DP + `dout_a` 32 pcie + `snap_words_r` 阵列 32 pcie）。**加 W75 = 给这条宿主族 +96 FF**，这是本设计的第一位时序风险。
+  - 推荐：**先按 +1 字做一次构建**；若三类失败端点非 0 或 WNS 转负 ⇒ **第一刀砍 W75**（纯观测，功能修复不受影响），板级改用现成 `W55/W68/W71..W74` + pcap 出证据。
+  - 不推荐：为了省这个字而把 `stat_orphan` 塞进现有字的空位（改既有字语义 = 违反"旧字逐项未动"不变量）。
+
+### 3.8 是否对端发 RST（论证）
+
+**推荐不发。** 理由：
+1. 对端按定义不 ACK、不推进；state=0 + CAM 清后它的迟到数据被静默丢弃，RST 不能改变这一点。
+2. `rst_push` 要求 `rb_state==1`（`tcp_tx_frame.v:980`）⇒ 要发 RST 必须"先 RST 后 state=0"，需要 `rst_sent`/`st_grace` 那套宽限（`app_ctrl.v:864-874`），复杂度和时序都增加；且 RST 可能与 4 元组复用/迟到 RST 问题（Q3）纠缠。
+3. 最小改动/最小风险原则。**后备**：若板级发现对端 socket 长期悬挂有实际危害，可把 `rst_req[slot]` 在 fire 时置 1（机制已在，`app_ctrl.v:362-363,864-874`），作为单独一轮 + 单独 A/B。
+
+---
+
+## 4 Q3：迟到 RST 误杀新连接
+
+### 4.1 现状（已证）
+
+- RST 扫描**不要求 `state != T_FREE`**，只比 `peer_ip/peer_port`（`layer_tcp.cpp:631-641`，注释逐字"含重传超限已释放槽"）⇒ 静默释放后残留 peer 字段仍能命中。
+- 槽被新连接（**同 4 元组**）复用时，迟到的旧 RST 会命中，`cfg DEL` ⇒ `ev_down` ⇒ 新连接被拆。
+- 若新连接是**不同** 4 元组，则旧 RST 不匹配（安全）。
+
+### 4.2 为什么不同批
+
+1. **本修复不产生 RST**（§3.8）⇒ 不新增该向量。
+2. **该向量与本修复无关地存在**：HLS 槽在静默释放（~2.56 s）时就已经空出、可被复用；快路径回收没有改变 HLS 槽的复用率。
+3. **可信修法需要快路径的 seq 窗口**：HLS 的 `peer_seq` 停在 SYN+1（第三个 ACK 与数据都不进 HLS），拿它做 `seq==peer_seq` 会拒掉"已交换过数据的连接"的合法 RST，破坏现有"用 RST 清残留 TCB"的兜底。
+4. 同批会把改动面扩到 HLS + 重综合，违反"最小改动"。
+
+### 4.3 风险登记
+
+- **窗口**：同一 4 元组在静默释放后复用时，旧 RST 到达。
+- **后果**：新连接被拆（app 收 `ev_down`，可重连；不是静默错误）。
+- **可观测**：pcap 上"新连接建立后立刻收到一个 seq 属于旧空间的 RST"；`Δstat_ev_down` 多 1。
+- **概率**：需要"同源端口 + 同目的端口"复用 + 旧 RST 迟到；工程上低，但不可忽略。
+
+### 4.4 后续候选（不在本批）
+
+- **候选 1（推荐后续做）**：快路径在 `cfg ADD` 时把 `rcv_nxt` 通过一个新读口暴露给 HLS，HLS 的 RST 扫描加 RFC 5961 窗口检查（`seq ∈ [rcv_nxt, rcv_nxt+rcv_wnd]`）。需要 HLS 端口/记录改动，单独一轮。
+- **候选 2**：HLS 侧记录"本槽曾被静默释放"并在复用时要求 RST 的 `seq` 与**新**连接的 `peer_seq` 同侧；信息不足，不推荐。
+- **候选 3**：本修复之后，RST 不再是清残留 TCB 的唯一兜底 ⇒ 可以更激进地"忽略未在窗口内的 RST"，风险更低；这正是把 Q3 放到 Q1/Q2 之后的价值。
+
+---
+
+## 5 改动面清单（逐文件/逐块）
+
+| 文件 / 块 | 类型 | 改动 | 需 HLS 重综合？ |
+|---|---|---|---|
+| `hls/src/layer_tcp.cpp` | HLS | **不动**（Q1 结论 A） | **否** |
+| `rtl/app_ctrl.v` | DP RTL | 新增参数 `ORPHAN_EN/ORPHAN_LIM/ORPHAN_TICK_BITS`；新增输入 `retx_active/retx_id/una_adv/una_adv_id/scfg_busy`；新增输出 `orphan_cam_clr/orphan_cam_slot/stat_orphan`；每槽 `orph_cnt[15:0][7:0]` + `orph_saw[15:0]`；回收 FSM；`orph_down` 并入 `ev_down_i`（内部事件块复用；FIFO push 仍看原始 ev_down）；`stat_ev_drop` 条件改回原始事件；`0xA0` 读回 `stat_orphan`（可选） | 否 |
+| `rtl/slow_cfg_adp.v` | RTL | 只新增 `output wire o_busy = (state != S_RECV) || !f_empty;`（无输入/行为改动） | 否 |
+| `rtl/tcp_tx_frame.v` | RTL | **不动**（判据所需的 `o_retx_active/o_retx_id` 已是现成输出；`state=0` 后由现有扫描清状态） | 否 |
+| `rtl/tcp_rx.v` | RTL | **不动**（`snd_una` 推进脉冲由 wrapper 从现成 `rx_upd_*` 授权写取） | 否 |
+| `rtl/tcb.v` / `rtl/tcp_cam.v` | RTL | **不动**（state=0 走现有 upd 口；CAM 清走现有 cfg 口，wrapper 做 mux） | 否 |
+| `rtl/app_pattern.v` | RTL | **不动**（现有 `ev_down`→`closing`→W3 收尾） | 否 |
+| `board/wrapper_p4.v` | RTL | ① **前置声明** `rx_upd_wr/id/sel`、`rx_upd_gnt`、`tx_retx_active`、`tx_retx_id_o`、`scfg_busy`、`orphan_cam_*` **到 `u_app_ctrl` 之前**（现声明在 `:1761/:1782-1784/:2052/:2132`，晚于 `:1279` 的例化——**不前置就是隐式 1 位网静默截断**，坑 #24）；② `una_adv = rx_upd_gnt && (rx_upd_sel==3'd2)`；③ `u_app_ctrl` 加新端口 + `ORPHAN_EN(1'b1)`/`ORPHAN_LIM_5`；④ CAM 写 mux（scfg 优先）；⑤ W75 装配 + `SNAP_P7BDP_NW 35→36` + `SNAP_NW_P6E 75→76`（未实现地址保持 `0x15C`）；⑥ **`.PERSIST_EN(1'b1)` 还原** + **`BUILD_ID_V` bump 到 `0x2A`** | 否 |
+| 快照读侧（`_proj_pcie/p6e_snap_check.sh`、`apply_readside.py`、`P7B_BIZ_WINDOW.md`、一切 NW/UNIMPL/EXPECT_BID 读者） | 工具/文档 | 重新穷举同步到 NW=76 / BID=0x2A / W75=0x14C；UNIMPL 保持 0x15C | 否 |
+| `tb/tb_app_orphan.v`（新）+ 门 bat（新） | TB | 单元门：判据/阈值/竞态/变异（§6.1） | 否 |
+| `tb/tb_p5_wrapper.v`（或新 wrapper 门） | TB | 全链门：真 app_ctrl+tcb+cam+app_pattern，参数覆盖小阈值（§6.2） | 否 |
+| `sim/p4gates/run_matrix_p4dfix.bat` | 矩阵 | 新门入册（19→20）；⚠️ 矩阵对 `app_pattern.v`/`wrapper_p4.v` 是结构性盲（编译清单不含）⇒ 新门必须自带"被改文件在编译清单"的指纹断言 | 否 |
+
+**不需要改的**：`rtl/mac_tx_10g.v`、`rtl/mac_rx_10g.v`、`rtl/persist` 相关（`tcp_tx_frame` 内已存在）、`rtl/fifo_*`、任何 HLS IP 网表。
+
+---
+
+## 6 判据（三层）+ 变异有牙
+
+### 6.1 单元门（xsim，新 `tb/tb_app_orphan.v`）
+
+| 判据 | 激励 | 期望 | 判别力 |
+|---|---|---|---|
+| U1 健康推进 | `snd_una` 每 32 轮 +1，跑 2×LIM | `stat_orphan=0`、无 `o_ev_down`、无 `st_pend` | 基础 |
+| U2 孤儿 | ESTAB、`snd_wnd=0xF000`、`snd_nxt=snd_una+0xF000`、`snd_una` 冻结；每 12207 visits 一次 `retx_active`（回卷期间 `snd_nxt==snd_una`） | 恰 1 次 `fc sel=5 val=0`、恰 1 个 CAM 清脉冲、恰 1 个 `o_ev_down`、`stat_orphan=1` | **主判据** |
+| U3 persist 零窗 | `snd_wnd=0`、`snd_nxt!=snd_una` 冻结，跑 >LIM | 0 次点火 | **负对照** |
+| U4 慢盆 | `snd_una` 每 1000 轮 +1（<LIM）跑 >LIM；另加两个子例：U4b "小在飞冻结、无重传"（`saw=0`）、U4c "先有一次重传（`saw=1`）再小在飞冻结、无活动重传"（`inflight < cap`） | 0 次点火 | **负对照** |
+| U5 回卷重放 | `retx_active=1` 且 `snd_nxt==snd_una` 30 轮/20ms | 计数**不清零**、按时点火 | 防"回卷清计数" |
+| U6 ADD 竞态 | `cnt=LIM-1` 时同槽 `ev_up` | 中止：无 `o_ev_down`、无 CAM 清、`st_pend` 被清 | 防误杀新会话 |
+| U7 通知顺序 | 点火后 `scfg_busy` 保持 20 拍，CAM 清后 fc gnt 延迟 | `o_ev_down` 严格晚于两者；无重复脉冲 | 语义 |
+| U8 DEL 竞态 | 等待期同槽 `ev_down` | 中止，不发第二次通知 | 幂等 |
+| U9 饱和 | 孤儿保持 >255 tick | 计数饱和、只点火一次 | 回卷 |
+| U10 `ORPHAN_EN=0` | 同 U2 激励 | 全部输出 0（零回归锚） | 默认 |
+
+### 6.2 全链门（xsim，真 wrapper + 真 app_ctrl/tcb/cam/app_pattern）
+
+- 在 `tb_p5_wrapper`（APP_MODE 全链，`sim/p5sim/run_tb_p5_wrapper.bat`）加场景，wrapper 用 `ORPHAN_LIM_5=2~4` 缩短仿真：
+  - **C1**：层次 force 槽 0 为 ESTAB + 窗满 + `snd_una` 冻结 + 周期 `retx_active` ⇒ 期望 `o_ev_down` + `app_pattern.closing` + 后续 `active=0`；再发一个 `scfg ADD`（新槽）⇒ `ev_up` 被应用、`app_pattern` 重新发帧。**功能终局判据**。
+  - **C2**：健康推进 / 零窗 / 慢盆三种 force 模式 ⇒ 无点火（同 U1/U3/U4，但在真 wrapper 上）。
+  - **C3**：CAM 仲裁断言：`!(orphan_cam_clr && scfg_cam_wr)`；`orphan_cam_clr` 只在该槽 `st_pend` 期间出现。
+  - **C4**：`scfg_busy` 保持期间 `orphan_cam_clr` 不出现。
+- **门面纪律**：新门必须断言"编译文件清单含 `rtl/app_ctrl.v`、`rtl/slow_cfg_adp.v`、`board/wrapper_p4.v`"（矩阵对这几个文件是空证据——CLAUDE.md 已登记）。
+
+### 6.3 板级臂（同一会话、同板同线；0x28 当负臂）
+
+| 臂 | 构型 | 主读数 | 期望（新臂） | 期望（负臂 0x28） |
+|---|---|---|---|---|
+| **B1 孤儿复现** | 建连（8080）→ 持续下行 → 对端 `iptables`/黑洞屏蔽该 4 元组（不发 FIN/RST）→ 静默 ≥ 90 s | `ΔW75`(stat_orphan)、`ΔW55`(stat_retx)、pcap 重放帧、`ΔW68`、`ΔW52` | `ΔW75=1`；`ΔW55` 在回收后**停止**（≈阈值前每 20 ms 一次）；pcap 重放停止；`ΔW68=0`；app 转 idle | `ΔW75` 不存在；`ΔW55` 持续增长；pcap 20 ms 重放不止 |
+| **B2 回收后新连接** | B1 之后解除黑洞、新客户端建连 | `ΔW71`(ev_up)、`ΔW73`(sw_apply)/`ΔW74`、`ΔW51/52`、逐字节 | ev_up 被应用、图案数据恢复、逐字节 `mism=0` | 若新连接落在同槽（C1 偷槽）也可能恢复 ⇒ **不作为主判别**，只作功能验证 |
+| **B3 健康快流** | 9 Gbps 连续下行 > 60 s | `ΔW75`、`ΔW68`、`ΔW55` | `ΔW75=0`；`ΔW68` 大；`ΔW55` 低 | 同左 |
+| **B4 慢盆爬行** | 小窗/慢盆构型 > 60 s | `ΔW75`、吞吐、连接存活 | `ΔW75=0`，连接不被杀 | 同左 |
+| **B5 零窗 persist** | 对端停读 → 窗 0 → 保持 > 60 s → 恢复读 | `ΔW75`、恢复后吞吐 | `ΔW75=0`，恢复后照常 | 同左 |
+| **B6 C1 偷槽并存** | 孤儿等待期发新 SYN（< LIM） | `ΔW75`、新连接功能 | 中止回收（`ΔW75=0`），新连接正常、app 换流 | 新连接正常 |
+| **B7 身份/几何** | 烧 0x2A | `0x04=BID 0x2A`、NW=76、`0x14C`=W75、`0x15C=0xffffffff`、2 BAR、LnkSta x4 | 全中 | 0x28：NW=75、BID 0x28 |
+
+**读数纪律**：`stat_orphan` 32 位 @156.25MHz 回卷 27.5 s ⇒ 差值 mod 2³² 并记原始值；`ΔW55/ΔW68` 同（全局 #55）。每次测量前重烧并核 sha256/BID（#58）。
+
+### 6.4 变异有牙（门必须红）
+
+| 变异 | 期望红在哪 |
+|---|---|
+| M1 `ORPHAN_LIM=0` | U1 健康臂点火 ⇒ 单元门红 |
+| M2 删 `snd_wnd != 0` | U3 persist 臂点火 ⇒ 红 |
+| M3 删 `retx_active` 覆盖 | U5 回卷把计数清零 ⇒ 不点火 ⇒ 红 |
+| M4 删点火时 `win_closed`（保留 `retx_active` 支） | U4c 小在飞冻结点火 ⇒ 红 |
+| M5 删 `ev_up` 中止 | U6 通知杀掉新会话 ⇒ 红 |
+| M6 删 CAM 清 | U2 的 CAM 内容检查红（链级：旧 4 元组仍 CAM 命中） |
+| M7 通知早于 state gnt | U7 顺序断言红 |
+| M8 删 `o_ev_down` | U2 的 app 收尾检查红；板级 B1 的 app 不转 idle |
+
+### 6.5 判据边界（必须先写，不许事后解释）
+
+- **CAM 清的板级判据是弱环**：CAM 不可读，"CAM 清 vs 只 state=0"在多数板级时序下都表现为"包被丢"。**权威层 = xsim**（C3/内容检查）；板级只证行为（重放停止、app 收尾、槽复用）。
+- **B4 慢盆若点火**：不是判据 PASS/FAIL，而是**设计输入**（阈值/窗满门需要重定）；先登记再改。
+- **B5 零窗** 必须在 `PERSIST_EN=1` 的构建上跑；0x29（persist 关）上该臂本身是"完全静默"，无判别力。
+- **B1 的"对端黑洞"** 必须确保板上收不到 RST/FIN（否则走既有 ev_down 路径，测的不是本修复）；用对端 `iptables` 双向 DROP 或 raw 工具，并在 pcap 上确认回收前无 RST。
+- **W75 若被砍**（§7.5），B1 主判据退化为 `ΔW55` 停止 + pcap，`stat_orphan` 改用 xsim 读数；**不许**把"没有 W75"写成"无法验证"。
+
+---
+
+## 7 成本/风险/排期 + 构建前置
+
+### 7.1 构建预算
+
+- 0x28 基线：`WNS +0.065`（1.02%）、`WHS +0.010`、三类失败端点 `0/0/0`、资源 77,631 LUT / 75,086 FF / 348 BRAM（`p9_build_0x28/READINGS_BID28.txt`）。
+- 0x29（HEAD）基线：`WNS +0.060`、三类失败端点 `0/0/0`（CLAUDE.md 2026-10-17 块）。
+- 本设计增量：app_ctrl ≈ **+191 FF** + 小组合（32 位减法/比较 ×2、8 位比较、16 位或树）；slow_cfg_adp 1 根 `o_busy`；wrapper CAM mux ~2 级；W75 ≈ **+96 FF**（其中 32 DP）。
+- **WNS 宿主**：全局最差 = 快照阵列异步复位族（0x28 已换族）；加 W75 直接落在该族。DP setup 是另一对象（0x23 曾 `+0.311`；**不可与全局 WNS 比大小**，全局 #66）。
+- **一次构建收口**（同输入重跑位级复现，方差 0；不允许"重跑到过为止"）。
+
+### 7.2 HLS 重综合与行为漂移
+
+- **Q1 方案 A ⇒ 零 HLS 改动 ⇒ 无重综合 ⇒ 无 HLS 行为漂移风险。** 这是本设计最大的成本优势。
+- 若选后备 B（`CFG_REL`）：必须加一轮 HLS 构建 + csim 锚（释放分支只多一次 `cfg_write`；`T_FREE`/退避/后续建连逐字段不变）+ `slow_cfg_adp` 单门；排期 +1 天。
+
+### 7.3 硬前置（写死，构建第一动作）
+
+1. **`board/wrapper_p4.v:2185`：`.PERSIST_EN(1'b0)` → `1'b1`**。HEAD = 0x29 拆刀幽灵配置（persist 关）；不还原就构建 = 交付一个"零窗完全静默"的幽灵位流（0x29 拆刀已定案消灭者 = `PERSIST_EN=1` 单独）。**这是阻断级前置。**
+2. **`BUILD_ID_V 32'h00000029` → `32'h0000002A`**（`:4377`）。每次构建必 bump（BID 是唯一身份门；位流长度恒 15,431,261 B）。
+3. 快照几何：`SNAP_P7BDP_NW 35→36`、`SNAP_NW_P6E 75→76`、W75 @ `0x14C`、UNIMPL 保持 `0x15C`；读侧同步。
+4. 构建**只走** `board/run_build_p7b_ku5p.bat`（`create_project -force` 会清上一轮取证 ⇒ 归档必须在构建脚本内，全局 #54）。
+5. 矩阵：19 门 + 新门 = 20 门；**新门必须证明编译清单含被改文件**（矩阵对 `app_pattern.v`/`wrapper_p4.v` 是空证据）。
+6. 烧录前核 `.PERSIST_EN`/BID/W75 三处现读值（防止"改了一处、另一处还旧"）。
+
+### 7.4 排期建议（TL 裁定，本件只给量级）
+
+- 设计审查 + 红队：0.5 天；实施 + 单元门/全链门：1–1.5 天；构建 + 矩阵 + 归档：0.5–1 天；板级 B1–B7 + 收尾：0.5 天。**总 ~3 天**（不含审查往返）。
+- 板级必须**同一会话**完成 0x28（负）与 0x2A（正）两臂；重烧两次，核 sha256。
+
+### 7.5 失败回退顺序（事前准则）
+
+1. **先砍 W75**（纯观测；功能修复 + xsim/`W55/W68` 证据保留）。
+2. 若时序仍不够：`ORPHAN_TICK_BITS`/`ORPHAN_LIM` **不改实际值**（#64），改为把 32 位减法/比较拆一级流水（扫描节拍 256 拍，中间大量空闲，流水免费）。
+3. 若仍有功能问题：`ORPHAN_EN=0` 回到零回归网表（参数默认 0），保留设计件与门，待下一轮。
+- ⛔ 不允许"重跑到过为止"；每档 = 不同输入，按事前准则取值。
+
+---
+
+## 8 威胁清单（供红队）
+
+1. **ADD 竞态**：`scfg_busy` 覆盖窗口（`S_RECV`+FIFO 空）是否真的排除 CAM 写？需形式化：`!busy ⇒ !scfg_cam_wr` 同拍（S_CAM 的 `cam_cfg_wr` 在 S_TCB 拍为高，已含在 `state != S_RECV`）。红队要查 `cam_cfg_wr` 的寄存器延迟。
+2. **fc 同拍**：`ev_up` 生成拍 scfg 必占 TCB 口 ⇒ fc 不可能同拍落地；红队要查 `scfg_upd_wr`/`sel_fc` 的 mux 条件（`wrapper_p4.v:2055-2068`）。
+3. **通知早于落地**：`orph_down` 必须等 CAM 清脉冲**之后** + `fc_gnt && fc_sel_r==5 && fc_id_r==slot`；红队要查 `fc_sel_r` 是寄存器、gnt 是同拍。
+4. **replay 竞态**：state=0 与 `retx_active` 同拍/前后拍；红队要查 `ring_start/replay_jump/ring_restore` 的 `scan_estab` 门是否全部覆盖。
+5. **计数器回卷/饱和**：8 位饱和 + `scan_round` 8 位 tick；`stat_orphan` 32 位 mod 2³²。
+6. **阈值误伤**：对端网络分区但活着、对端内核卡死、慢盆末端窗满冻结；60 s + 窗满 + saw-retx 是否足够？红队要构造"分区 61 s 后恢复"的臂（可选，板级时间成本高）。
+7. **假阴性**：慢生产者永不填窗；`retx_active` 单帧会话被漏（已用逐拍置 saw 解决）；扫描饥饿（ACK/svc/ring 长期占用 `scan_now`）——注意 **app_ctrl 的扫描是自由运行的 `/16`，不被数据面阻塞**（`app_ctrl.v:269-272`），所以这一点比 tcp_tx_frame 的 `scan_now` 好。
+8. **HLS/RTL 语义漂移**：本批为零；若上后备 B，红队要审 `CFG_REL` 的记录长度/背靠背 FIFO 深度（16 深，`slow_cfg_adp.v:64`）。
+9. **app closing 交互**：`ev_down` 与 `up_pend_r`/`sw_pend` 同拍/相邻拍；`ev_down_i` 的引入要覆盖 `ev1_v`/`hit_b`/`hit_c`/`to_push`/`ev_blk` **全部**使用点（实施时 grep 穷举，漏一处 = 旧会话事件毒化管线）。
+10. **观测字成本**：W75 落在全局 WNS 宿主族；+96 FF；读侧 NW 同步漏一处 = 读到旧字/越界。
+11. **`st_pend`/`st_done` 与 `to_fire`/`to_fired` 的池记账**：本设计用 `ev_down` 的单一清理块（`pool_ret_x`），红队要证"orphan 的 pool 归还"与"之后的真 ev_down"不会 double-return（`winq=0` 后归还 0）。
+12. **`whi_r`/ring 内容**：不清 ⇒ 跨 ADD 伪重放？现有 `ring_hi` 回绕安全上界 + `cfg_up` 清 `whi_r`；红队要构造"回收后同槽 ADD 且首帧 seq 小于旧 whi"的臂。
+13. **CAM 双条目（④-5）**：本修复只清本槽；别的槽的同 4 元组残留仍在。红队要判断是否会把 B1 的读数污染。
+14. **迟到 RST（Q3）**：本批不修；红队要确认 B6/C1 偷槽臂不会把它引出来。
+15. **非 APP_MODE 构建**：app_ctrl 不存在 ⇒ 功能缺席；红队要确认默认构建（无 APP_MODE）不受影响（`ORPHAN_EN` 在 app_ctrl 内，app_ctrl 本身不在默认构建）。
+16. **`o_busy` 组合路径**：slow_cfg_adp.state/FIFO → app_ctrl；红队要查是否形成跨模块组合环（应无：app_ctrl 只读它做门，不回写）。
+17. **`replay_full` 的既存自持形态**：`ring_delta = ring_hi - rb_snd_nxt` 只由新 app 帧的 `upd_wr_data` 推进 `snd_nxt` 来缩减（`tcp_tx_frame.v:637,648,773`）；若 app 停帧，`replay_full` 会话可能不自行收尾。本设计的 `retx_active` 点火支是它的兜底；红队要构造"app 停帧 + RTO 重放"臂，确认 60 s 后能回收（并登记这是**既存**形态，不是本设计引入）。
+
+---
+
+## 9 未判定/未测清单
+
+1. 【未测】60 s 阈值在真实慢盆/分区现场是否足够（只有 C1 2.56 s 与慢盆 20 ms 的读数；无"分区 60 s"臂）。
+2. 【未判定】"点火时窗满"门对**慢盆末端**的排除是否 100%（慢盆末段的 `snd_wnd`/在飞值未逐连接读）。
+3. 【未测】CAM 清的板级直接判据（CAM 不可读；只能用行为+xsim）。
+4. 【未判定】fc 状态写的最坏延迟（tx 每帧 1 写、rx/cfg 突发时）；无超时，理论上可无限等待（实测应 <µs 级）。
+5. 【未判定】回收发生在 `retx_active` 会话中时，已进 TX 引擎的那 1 帧是否会造成对端"半段"（推断：对端已死，无影响；若对端其实活着 = 误判场景）。
+6. 【推断】慢生产者（<1 KB/s）永不填窗 ⇒ 永不回收；证伪法 = 构造 1 KB/s 源 + 黑洞。
+7. 【未测】W75 对全局 WNS 的实际增量（只有 +96 FF 的构造估计；需一次构建）。
+8. 【未测】`retx_ram` 旧内容在"回收→同槽 ADD→重放"中的可见性（机制档案 §④-2① 同款候选；本设计不清 ring）。
+9. 【未判定】Q3 迟到 RST 的实际发生率（无计数器；pcap 可查 RST 的 seq）。
+10. 【未判定】`scfg_busy` 长期为高的形态（HLS 半条记录卡住）：CAM 清/通知会等待；`slow_cfg_adp.rst_n = reset_n & hls_rst_n`（`wrapper_p4.v:2083`）在 HLS 看门狗复位时清掉，但"HLS 没卡死、只是记录滞留"这一格未测。实现时在 FSM 里加一个**观测**（不是超时动作）的等待周期计数，进 xsim 断言。
+11. 【未判定】`replay_full` 在 app 停帧时是否真会自持（§8-17）；本设计用 `retx_active` 支兜底，但该形态本身未实测。证伪法 = xsim 构造"app 停帧 + RTO 重放 + 无新数据"。 
+
+---
+
+## 附录 A 现读行号表（本件引用）
+
+| 事实 | 位置 |
+|---|---|
+| `MAX_TCP_CONN=3` | `hls/src/layer_tcp.cpp:10-12` |
+| `tcp_find`（低索引优先/空闲） | `hls/src/layer_tcp.cpp:142-148` |
+| cfg 记录布局（ADD/DEL，8 词） | `hls/src/layer_tcp.cpp:163-187` |
+| 被动建连 ADD+SYN|ACK | `hls/src/layer_tcp.cpp:668-679` |
+| `T_SYN_RCVD` 握手分支（纯 ACK 不可达） | `hls/src/layer_tcp.cpp:680-684` |
+| `T_SYN_RCVD` FIN 分支（发 DEL） | `hls/src/layer_tcp.cpp:696-708` |
+| **静默释放（不发 DEL）** | `hls/src/layer_tcp.cpp:531-535` |
+| RST 扫描（按残留 peer 字段） | `hls/src/layer_tcp.cpp:631-641` |
+| HLS 看门狗清槽 | `hls/src/layer_tcp.cpp:498-503` |
+| `ev_down` = DEL state=0 gnt | `rtl/slow_cfg_adp.v:158-168` |
+| `ev_up` = ADD wscale gnt | `rtl/slow_cfg_adp.v:187-198` |
+| cfg FIFO 16 深 | `rtl/slow_cfg_adp.v:62-68` |
+| TCB 16 槽 / 更新口 | `rtl/tcb.v:8-19,78-105` |
+| `win_open` 注册门 | `rtl/tcb.v:151-157` |
+| CAM 16 槽 / 写 / 匹配 | `rtl/tcp_cam.v:6-7,49-55,58-69` |
+| 纯 ACK ⇒ FAST | `rtl/rx_classify.v:101-107` |
+| tcp_rx `ack_adv` / `ack_hi` | `rtl/tcp_rx.v:342-344` |
+| tcp_rx TCB 更新口（sel 0/2/4） | `rtl/tcp_rx.v:486-490` |
+| tcp_rx drain / pend | `rtl/tcp_rx.v:528-544` |
+| `RTO_LIM=12207` / persist 参数 | `rtl/tcp_tx_frame.v:219-223,299-301` |
+| `scan_now` / `scan_tick` | `rtl/tcp_tx_frame.v:536,576` |
+| `ps_arm`/`ps_fire` | `rtl/tcp_tx_frame.v:752-757` |
+| `cfg_up` 清 per-slot | `rtl/tcp_tx_frame.v:1101-1128` |
+| svc/epoch/replay 门 | `rtl/tcp_tx_frame.v:1180-1236` |
+| RTO 扫描/persist 段 | `rtl/tcp_tx_frame.v:1239-1296` |
+| 帧首四元组/seq 锁存（OVL 分支） | `rtl/tcp_tx_frame.v:2392-2415` |
+| `o_retx_active/o_retx_id` | `rtl/tcp_tx_frame.v:1008-1010,113-114` |
+| app_ctrl 扫描节拍/单位 | `rtl/app_ctrl.v:78-88,455-457,545` |
+| `FIN_TO_LIM=244141` | `rtl/app_ctrl.v:305-319` |
+| `to_fire` / `st_req_now` | `rtl/app_ctrl.v:861-874` |
+| 事件块（ev_up/ev_down 清理） | `rtl/app_ctrl.v:973-1054` |
+| `to_push` | `rtl/app_ctrl.v:1056-1067` |
+| 扫描采样 | `rtl/app_ctrl.v:1069-1079` |
+| `st_req_now` 落地块 | `rtl/app_ctrl.v:1156-1177` |
+| fc 选择/请求寄存器 | `rtl/app_ctrl.v:701-726,1311-1336` |
+| app 寄存器映射 | `rtl/app_ctrl.v:760-790` |
+| app `closing`/W3 | `rtl/app_pattern.v:388,896-940` |
+| app `tx_ok` | `rtl/app_pattern.v:447` |
+| app `ev_same_act`/`up_ok`/`sw_apply` | `rtl/app_pattern.v:544-554` |
+| wrapper app_ctrl 例化 | `board/wrapper_p4.v:1279-1301` |
+| `rx_upd_*` 声明/授予 | `board/wrapper_p4.v:1782-1784,2052-2053` |
+| `tx_retx_active/id` | `board/wrapper_p4.v:1761,2132,2219,2264` |
+| TCB 四级仲裁 | `board/wrapper_p4.v:2047-2074` |
+| `slow_cfg_adp` 例化 | `board/wrapper_p4.v:2080-2103` |
+| `ack_seen_w` | `board/wrapper_p4.v:2155-2166` |
+| **`.PERSIST_EN(1'b0)`** | `board/wrapper_p4.v:2185` |
+| **`BUILD_ID_V=0x29`** | `board/wrapper_p4.v:4377` |
+| 快照 NW=75 / p7bdp=35 | `board/wrapper_p4.v:3296,3317` |
+| 未实现地址 0x15C | `board/wrapper_p4.v:3285-3290` |
+| W71..W74 装配 | `board/wrapper_p4.v:4037-4040,4103-4107` |
+
+## 附录 B 判据表达式（实现直接照此写，不要改写语义）
+
+```
+// 逐拍见证（按 retx_id 解码，逐槽 16 份或 one-hot 置位）
+if (retx_active)  orph_saw[retx_id] <= 1'b1;
+
+// snd_una 推进清零（wrapper 给的脉冲）
+if (una_adv) begin orph_cnt[una_adv_id] <= 0; orph_saw[una_adv_id] <= 0; end
+
+// 扫描拍（同槽事件守卫，不是全局 ev_blk）
+inflight  = rc_snd_nxt - rc_snd_una;
+cap_eff   = (rc_snd_wnd < WIN_CAP) ? rc_snd_wnd : WIN_CAP;
+win_closed= (inflight < 32'h8000_0000) && (inflight >= {16'b0, cap_eff});
+work      = (rc_snd_nxt != rc_snd_una) || (retx_active && (retx_id == scan_id));
+accrue    = scan_tick && !init_pend && !(ev_blk && (ev_slot_i == scan_id)) &&
+            (rc_state == ST_ESTAB) && (rc_snd_wnd != 0) && work &&
+            !fin_sent[scan_id] && !rst_sent[scan_id] &&
+            !st_done[scan_id] && !to_fired[scan_id];
+if (scan_tick && !init_pend && !(ev_blk && (ev_slot_i == scan_id))) begin
+    if (!accrue)        orph_cnt[scan_id] <= 8'd0;
+    else if (orph_tick) orph_cnt[scan_id] <= (orph_cnt[scan_id]==8'hFF) ? 8'hFF
+                                                                      : orph_cnt[scan_id] + 8'd1;
+end
+orph_tick = (scan_round[ORPHAN_TICK_BITS-1:0] == 0);
+fire = scan_tick && !init_pend && !(ev_blk && (ev_slot_i == scan_id)) && accrue &&
+       orph_saw[scan_id] && (orph_cnt[scan_id] >= ORPHAN_LIM) &&
+       (win_closed || (retx_active && (retx_id == scan_id)));
+```
+
+—— 完（本件 = 纯设计；**不含任何 PASS/FAIL 裁定，不含实施授权**）
