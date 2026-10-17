@@ -1,0 +1,34 @@
+# 原文转载：2026-10-17 peer 对端 stdout（BUSY_CHECK=0 窗口；无网络收发；只跑参数校验与 CPU-only 自检）
+# binary = /tmp/p3_tool_v3_20261017/p7b_tcp_churn_v3 (md5 5ffab696dd45ccc67ecf2e150b56bba4)
+BUSY_CHECK=0
+BAD interval0 rc=2 stderr_bytes=42 PASS
+BAD intervalneg rc=2 stderr_bytes=43 PASS
+BAD seconds0 rc=2 stderr_bytes=30 PASS
+BAD rcvbuf_lo rc=2 stderr_bytes=47 PASS
+BAD rcvbuf_hi rc=2 stderr_bytes=54 PASS
+BAD prefixkb0 rc=2 stderr_bytes=39 PASS
+BAD scan31 rc=2 stderr_bytes=62 PASS
+BAD scan_toobig rc=2 stderr_bytes=67 PASS
+BAD port0 rc=2 stderr_bytes=35 PASS
+BAD localport_hi rc=2 stderr_bytes=60 PASS
+BAD dumpmax_neg rc=2 stderr_bytes=28 PASS
+BAD maxconns0 rc=2 stderr_bytes=41 PASS
+BAD hold_neg rc=2 stderr_bytes=37 PASS
+BAD host_bogus rc=2 stderr_bytes=38 PASS
+BAD dumpdir_miss rc=2 stderr_bytes=81 PASS
+BAD unknown_arg rc=2 stderr_bytes=28 PASS
+BAD missing_val rc=2 stderr_bytes=18 PASS
+HELP_RC=0 help_grep=3
+SELFTEST_RC=0
+SELFTEST_SCAN_RC=0
+SELFTEST_EQUIV_RC=0
+SELFTEST_VERIFY_RC=0
+BAD_SUMMARY_LEGACY PASS=17 FAIL=0
+BADV3 scanall2 rc=2 stderr_bytes=37 PASS
+BADV3 needlemax_neg rc=2 stderr_bytes=41 PASS
+BADV3 needlemax_hi rc=2 stderr_bytes=43 PASS
+BADV3 verifystream2 rc=2 stderr_bytes=42 PASS
+BADV3 degrade_lo rc=2 stderr_bytes=61 PASS
+BADV3 breakmax_neg rc=2 stderr_bytes=40 PASS
+BADV3 check_bad rc=2 stderr_bytes=32 PASS
+BAD_SUMMARY_V3 PASS=7 FAIL=0

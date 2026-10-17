@@ -1,0 +1,50 @@
+PIN_RULE=avoid-nic PIN_DEGRADED=none PIN_CPU=7 PIN_CORES_ONLINE=0-7 PIN_NIC_IFACE=enp1s0f0np0,enp1s0f1np1 PIN_NIC_CPUS=0,1,2,3,4,5 PIN_NIC_EXCLUDED=none PIN_CORE_LOAD=24145582 PIN_ALLOWED_MASK=80 PIN_GETCPU_START=7 PIN_FREQ_START_KHZ=800000 PIN_GOV=schedutil PIN_NIC_IRQLINES=12 PIN_NIC_IFACE_SRC=auto PIN_TUPLE_ORDER=own_sib_t PIN_PAIR_RULE=n/a PIN_PAIR_DEGRADED=n/a PIN_CPU_IO=n/a PIN_CPU_WORK=n/a PIN_PC_IO=n/a PIN_PC_WORK=n/a PIN_PAIR_EXCL=n/a PIN_PAIR_REQ=n/a
+SELFTEST p7b_tcp_churn_v3: OK
+  off0..15   got=7F 0B 02 E5 36 A1 4E D6 1A B0 49 B8 56 AD D6 3F 
+             want=7F 0B 02 E5 36 A1 4E D6 1A B0 49 B8 56 AD D6 3F 
+  off1460..7 got=03 00 42 2D 9B 47 CA C0 
+             want=03 00 42 2D 9B 47 CA C0 
+  state@100  got=0xAB5917A81F0FB2AE want=0xAB5917A81F0FB2AE
+SCAN needle len=32 fnv1a32=0xF372FA09
+SCAN needle[0..31]  = 7F 0B 02 E5 36 A1 4E D6 1A B0 49 B8 56 AD D6 3F FC 7D 55 6B C8 6D 9A 9C 82 ED C1 CD 69 69 98 6C 
+SCAN needle[0..15]  = 7F 0B 02 E5 36 A1 4E D6 1A B0 49 B8 56 AD D6 3F 
+SCAN case=needle_vs_doc_vector got=7F 0B 02 E5 36 A1 4E D6 1A B0 49 B8 56 AD D6 3F  want=7F 0B 02 E5 36 A1 4E D6 1A B0 49 B8 56 AD D6 3F  PASS
+SCAN case=match_at_0             got=0        want=0        PASS
+SCAN case=match_at_1234          got=1234     want=1234     PASS
+SCAN case=no_match               got=-1       want=-1       PASS
+SCAN case=window_edge_in_4064    got=4064     want=4064     PASS
+SCAN case=window_edge_out_4065   got=-1       want=-1       PASS
+SCAN case=window_edge_out_full   got=4065     want=4065     PASS
+SCAN case=partial_31_of_32       got=-1       want=-1       PASS
+SCAN case=flip_1bit_no_match     got=-1       want=-1       PASS
+SCAN case=short_window_31        got=-1       want=-1       PASS
+SCAN case=first_of_two_matches   got=0        want=0        PASS
+SCANV3 case=bytewise_two_hits hits=2 first=0 last=132 stored=2 trunc=0 PASS
+SCANV3 case=split_16_16 hits=1 first=10 stored=1 PASS
+SCANV3 case=trunc_cap3 hits=5 stored=3 trunc=1 first=20 last=380 PASS
+SCANV3 case=short_streams hits0=0 hits31=0 PASS
+SCANV3 seed=0 n=1048576 chunks=263 inj=40 hits=40 first=56252 last=1030735
+SCANV3 random_equiv ok=20/20 want=20/20 PASS
+SCAN_SELFTEST PASS checks=16 fails=0
+EQUIV p7b_tcp_churn_v3: begin (seq vs lane8; 进程默认模式 = seq)
+EQUIV p7b_tcp_churn_v3: table_rebuild bad=0/4096 want=0 MATCH
+EQUIV p7b_tcp_churn_v3: long n=8388613 seq=(-1,0,0x19CFF6A4002170D8) lane8=(-1,0,0x19CFF6A4002170D8) ctor_oracle=0x19CFF6A4002170D8 MATCH
+EQUIV p7b_tcp_churn_v3: inj[0] 首字节 off=0 cnt=1 seq=(0,1) lane8=(0,1) state_eq=1 MATCH
+EQUIV p7b_tcp_churn_v3: inj[1] 非 8 对齐单 bit off=12345 cnt=1 seq=(12345,1) lane8=(12345,1) state_eq=1 MATCH
+EQUIV p7b_tcp_churn_v3: inj[2] 8 对齐块首整字节 off=65536 cnt=1 seq=(65536,1) lane8=(65536,1) state_eq=1 MATCH
+EQUIV p7b_tcp_churn_v3: inj[3] 块尾 (i+7) off=65543 cnt=1 seq=(65543,1) lane8=(65543,1) state_eq=1 MATCH
+EQUIV p7b_tcp_churn_v3: inj[4] 尾段最后一个字节 off=8388612 cnt=1 seq=(8388612,1) lane8=(8388612,1) state_eq=1 MATCH
+EQUIV p7b_tcp_churn_v3: inj[5] 3 个相邻字节 off=100 cnt=3 seq=(100,3) lane8=(100,3) state_eq=1 MATCH
+EQUIV p7b_tcp_churn_v3: xblk L=1048579 blocks=11 states=12/12 seq=(-1,0,0x13C199A4F551A1A4) lane8=(-1,0,0x13C199A4F551A1A4) MATCH
+EQUIV p7b_tcp_churn_v3: dispatch seq=(-1,0) lane8=(-1,0) mode_name=lane8 direct_lane8=-1 MATCH
+EQUIV p7b_tcp_churn_v3: PASS (checks=10 fail=0)
+VERIFY inv_init rows=64 basis=64 rand=1000 OK (B[0]=0x5088A2A8011EB0B6)
+VERIFY clean chunk=1        n=65541     seq=(0,-1,-1,65541,0) lane8=(0,-1,-1,65541,0) state_eq=1 PASS
+VERIFY clean_all ok=12/12 PASS
+VERIFY inj single_bit_flip      off=12345   seq=(1,12345,12345) lane8=(1,12345,12345) PASS
+VERIFY inj restart_to_offset0   off=100000  seq=(1,100000,100000) lane8=(1,100000,100000) PASS
+VERIFY inj phase_jump_to_5000   off=200000  seq=(1,200000,200000) lane8=(1,200000,200000) PASS
+VERIFY garbage budget=65536 seq=(deg=1,proc=65536,breaks=0) lane8=(deg=1,proc=65536,breaks=0) PASS
+VERIFY_SELFTEST PASS checks=18 fails=0
+SELFTEST_ALL PASS
+PIN_GETCPU_END=7 PIN_FREQ_END_KHZ=3742300

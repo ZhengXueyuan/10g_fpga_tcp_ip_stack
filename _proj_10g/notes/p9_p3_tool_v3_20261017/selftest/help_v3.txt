@@ -1,0 +1,47 @@
+PIN_RULE=avoid-nic PIN_DEGRADED=none PIN_CPU=7 PIN_CORES_ONLINE=0-7 PIN_NIC_IFACE=enp1s0f0np0,enp1s0f1np1 PIN_NIC_CPUS=0,1,2,3,4,5 PIN_NIC_EXCLUDED=none PIN_CORE_LOAD=24145722 PIN_ALLOWED_MASK=80 PIN_GETCPU_START=7 PIN_FREQ_START_KHZ=3760593 PIN_GOV=schedutil PIN_NIC_IRQLINES=12 PIN_NIC_IFACE_SRC=auto PIN_TUPLE_ORDER=own_sib_t PIN_PAIR_RULE=n/a PIN_PAIR_DEGRADED=n/a PIN_CPU_IO=n/a PIN_CPU_WORK=n/a PIN_PC_IO=n/a PIN_PC_WORK=n/a PIN_PAIR_EXCL=n/a PIN_PAIR_REQ=n/a
+p7b_tcp_churn_v3 -- C1/P-3 对端工具 v3（connect 洪流 + 持有不关 + 读干 + **全流滚动针**）
+  --host H                  默认 192.168.100.2
+  --port P                  默认 8080
+  --connect-interval-ms N   connect 节奏（默认 10 ⇒ ~100/s；必须 >= 1）
+  --seconds S               连接窗口秒数（默认 120；必须 >= 1；⚠️ 只停新建，不终止已建连接）
+  --rcvbuf B                SO_RCVBUF（默认 1048576；合法 1024..2^30；落点 = connect **之前**）
+  --safe-close              仅当**更新的连接已收到数据**后才关最旧 fd（默认关 = 永不主动 close）
+  --local-port N            connect 之前 bind 本地端口（0 = 不 bind；hold 模式下固定端口第 2 条起必失败）
+  --prefix-kb N             每连接留存前缀 KB（默认 64；合法 1..1024）
+  --scan-bytes N            首窗扫描（v2 语义；默认 4096；合法 32..prefix 字节数）
+  --dump-prefix-dir DIR     候选（restart@off=-1）首前缀落盘目录（默认无 ⇒ 不落盘，响亮提示）
+  --dump-max N              落盘上限（默认 2048；超限响亮计数）
+  --max-conns N             连接总数上限（默认 16000；`CHURN_CAP` 行响亮提示）
+  --hold-s N                逐连接行 + CHURN_SUM 打完后**继续读干** N 秒再退（给板侧收数留窗）
+
+  ---- v3 新增（全流滚动针 / 相位连续性）----
+  --scan-all 0|1            **全流滚动针扫描**（默认 1）：扫每一个收到字节，不是首 4 KB
+  --needle-max N            每连接保存的针偏移条数（默认 64；合法 0..4096；0 = 只计数）
+  --verify-stream 0|1       相位连续性校验（默认 0；开启后每 chunk 多一层全流检查）
+  --verify-degrade-bytes N  resync 预算（默认 1048576；合法 1024..2^30；超限置 vdegraded=1）
+  --break-max N             每连接保存的断点偏移条数（默认 16；合法 0..4096）
+  --check seq|lane8         校验器引擎（默认 seq = 历史已上板验过的逐字节路径；
+                            lane8 = M⁸ 表 8 字节/步；两条路径的逐位等价由 --selftest-equiv 自证）
+  --no-pin / --core N       绑核开关（p7b_affinity.h；默认自动选核，绑不上 = exit(2)）
+  --selftest                图案自检向量（p7b_pattern.h 的 RTL 对齐向量）
+  --selftest-scan           扫描器单测（v2 的 11 条 + 滚动等价/截断/边界）
+  --selftest-equiv          M⁸ lane8 vs 逐字节的逐位等价（表重建/长序列/注入/跨块）
+  --selftest-verify         校验器自检（反解表/干净流/三种注入/降级预算；seq vs lane8）
+  --selftest-all            以上四项全跑（CPU-only；不发任何网络包）
+
+  输出：CHURN_OPTS（逐字未动）/ CHURN_SCAN_OPTS（v3 新）/ CHURN_ULIMIT / CHURN_RCVBUF /
+        CHURN_NEEDLE / CHURN_TARGET / CHURN_LIMITS → CHURN_T 周期行 → 每连接
+        `CHURN conn=k bytes=… restart@off=… idle_ms=…`（既有字段不动，新字段追加在
+        CPU_FREQ_KHZ= 之后：full_scan= first_needle= hits= last_needle= scanned=
+        scan_state= needle_trunc= verify= vbreaks= vfirst_break= vlast_break=
+        vdegraded= vscanned= vmode=）→ CHURN_NEEDLES（有针时）→ CHURN_VBREAKS（有断点时）
+        → CHURN_DUMP 行 → CHURN_SUM（既有键不动，新键追加）→ CHURN_DONE
+  ⛔ 退出码：0 = 跑完 ∧ 有连接 ∧ 无 dump 失败；1 = 任一不成立；2 = 用法/环境错
+  ⛔ 本工具**没有** --maxbytes；`--seconds` 不终止已建连接；退出时内核会对每条已建立
+     连接发 1 个 FIN（真臂用 --hold-s 留窗）
+  restart@off（v2 语义，首 --scan-bytes 窗）: k>=1 = 偏移 k 处重启 / 0 = 偏移 0
+      （语义两义，单独计数）/ -1 = 首窗内无匹配（**旧口径候选**）/ na = 收到字节 < 32
+  全流口径（v3）: hits==0 ∧ scan_state=full ⇒ **该连接全流无重启**；
+      first_needle/last_needle = 全流首次/末次重启偏移；scan_state=none|short ⇒ 判不了
+      （短流不是"无重启"）；needle_trunc=1 ⇒ 偏移列表不完整（hits 计数仍完整）
+PIN_GETCPU_END=7 PIN_FREQ_END_KHZ=3760593

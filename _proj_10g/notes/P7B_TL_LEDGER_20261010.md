@@ -1607,3 +1607,15 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - **TL 抽核**：`wrapper_p4.v:601-608` / `:452-453` / `:3394` / `:3415` / `:4479` 逐条相符；`git status` 确认未改 RTL/脚本。**已代落 TL 注（文末）**：0x2A 转现役裁定 ⇒ P1 基代 = 0x2A（待物理烧录）；其余 9 条待裁保持。
 - **待用户裁（设计件列 10 条，关键）**：P1 基代（已由 0x2A 裁定回答）· BID `0x2B/0x2C` · 观测档位 · 超时机制/`SNAP_STATUS[7]` · 乙模式转发目的地（建议 PCIe C2H）· 甲 HLS 两 IP 改动授权 · 甲出口身份（无标签 A-1）· `p7b_chain` 入矩阵 · LOS 负对照方式 · 乙位流暂缓 · ch0 TX MAC（建议不加）。
 - **下一棒**：红队审（设计件）→ 实施（P1 甲）→ 门 → 一次构建收口（0x2B；backstop 预登记：先砍 W77 → ch0 计数束 → P1-min）。
+
+## §10-115 2026-10-17 18:50：**P-3 工具 v3（全流滚动针）收口** —— 新增 `p7b_tcp_churn_v3.cpp`（1,653 行）；编译 RC=0 + `SELFTEST_ALL PASS`；现役 v2 零触碰；56/77 socket 判据【未测】
+- **交付**：`_proj_pcie/p7b_biz/p7b_tcp_churn_v3.cpp`（78,239 B / md5 `44ccdb9a61008033542240dada7c20cd`）+ `p9_p3_tool_v3_20261017/README_FOR_TL.md`（33 KB）+ `selftest/`、`env/` 取证。
+- **A. 全流滚动针（Q2 承重件）**：每连接对**全部接收字节**做 32 B 针滚动扫描（跨 chunk 保留 31 B carry）；整针只在"最后字节到达"的 feed 记一次、边界块只记 carry 内起点 ⇒ 结构性无重复；期望 O(n)、最坏 O(32n)、内存 O(31 B + 针表)/连接（有界，不是队列）。新增字段 `full_scan/hits/last_needle/scanned/scan_state/needle_trunc` **只追加在 `CPU_FREQ_KHZ=` 之后**；`scan_state=none/short/off` 明示"判不了"，避免空判据。
+- **B. M⁸ lane-parallel 相位连续性校验**（`--verify-stream 1`，默认关）：`--check lane8`（M⁸ 表 8 B/步）vs `--check seq`（默认，历史已上板路径）；9 B 反解 + 下 8 B 验证（17 B 窗，误同步率 ≈2⁻⁷²）；非图案数据有硬预算（`vdegraded=1` 停校验）。新增 `verify/vbreaks/vfirst_break/vlast_break/vdegraded/vscanned/vmode` 只追加。
+- **接口纪律**：`CHURN_OPTS` 整行逐字未动；每连接行前 13 字段、`CHURN_SUM/CHURN_T` 既有键全保持；程序化比对四条 printf 前缀 `PREFIX_IDENTICAL=True`；退出码三条件逐字保留（`needle_trunc/vdegraded` 不改变 RC）。⚠️ **派单描述订正**：`s1_3_run.sh`/`recompute_s1_3.py` 解析的是 `p7b_udp_src` 的 `UDP_SUM`（不是 `CHURN_*`）；新工具对 `CHURN_*` 遵循同一只追加纪律。
+- **编译【已证】**：对端 `g++ 13.3.0`，`g++ -O3 -pthread` ⇒ RC=0；`-Wall -fsyntax-only` RC=0 / 0 行输出；产物 203,304 B / md5 `5ffab696…`。
+- **自检【已证】**：`SELFTEST_ALL PASS` —— 滚动针 vs 朴素全流 20/20 逐位相同（1 MiB × 20 种子 × 随机 chunk × 40 注入）；M⁸ lane8 vs seq 10/10 MATCH（8,388,613 B、6 点注入、跨块 12/12）；校验器 18/18；边界 v2 17/17 + v3 7/7 `rc=2`。⭐ **自检抓到并修掉工具自身 2 个缺陷**（逆矩阵取行而非列；小 chunk 时 carry 被覆盖而非合并）。
+- **现役 v2 零触碰【已证】**：源码 md5 `388cd5d4…` 未变；对端二进制 md5 `ac2c89bf…` 未变（mtime 03:01:29）。
+- **【未测】如实照录**：v2 的 56/77 判据（T1–T5/T1b 41 + E1/E2 15）需真实 socket ⇒ 未执行（代码路径逐字保留，不写"已通过"）；板级 Q2-A/Q2-B 未跑；`--scan-all` 读速影响与 `--verify-stream` CPU 成本未测；设计件末 64 KB 环形 dump 与离线分类器 `p3_sep.py` 未实施（传参会 `unknown arg` RC=2）；32 B 针在干净非零相位流中的数学唯一性未证明（只有双扫描器一致 + 历史 0 误报）；`vfirst_break` 是首次失配、不保证严格相位切换点。
+- **过程**：对端当时有板级慢盆轮在跑（`p7b_tcp_sink --rcvbuf 6000 --conns 3 --check lane8` + tcpdump）；最终编译/自检在 `BUSY_CHECK=0` 安静窗口执行（CPU-only、自动绑核 CPU 7），首次 pre-fix 自检在实验启动后跑过、已登记；全程未发网络包 / 未碰板 / 未写 `/tmp/p7b_biz`。
+- **下一棒**：部署 v3 到对端 → 板级 Q2-A（0x24 300 s，零构建）；末 64 KB dump / 离线分类器按需补实施；56 条 socket 判据在板级轮自然覆盖。

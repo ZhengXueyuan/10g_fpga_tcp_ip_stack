@@ -1,0 +1,22 @@
+DATE_UTC 2026-10-17T10:45:58Z
+HOST a-MS-7850
+GXX g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+CMD g++ -O3 -pthread -o p7b_tcp_churn_v3 p7b_tcp_churn_v3.cpp
+---- md5 ----
+44ccdb9a61008033542240dada7c20cd  p7b_tcp_churn_v3.cpp
+b2f2e9627bac53bf3b4ab2b565afe872  p7b_pattern.h
+b03222792d20443138515ba2804b0d87  p7b_affinity.h
+62b1257d69c40f24bfa9a799593073b7  p7b_io.h
+5ffab696dd45ccc67ecf2e150b56bba4  p7b_tcp_churn_v3
+---- sizes ----
+p7b_tcp_churn_v3.cpp 78239 bytes
+p7b_tcp_churn_v3 203304 bytes
+---- selftest tail ----
+VERIFY clean_all ok=12/12 PASS
+VERIFY inj single_bit_flip      off=12345   seq=(1,12345,12345) lane8=(1,12345,12345) PASS
+VERIFY inj restart_to_offset0   off=100000  seq=(1,100000,100000) lane8=(1,100000,100000) PASS
+VERIFY inj phase_jump_to_5000   off=200000  seq=(1,200000,200000) lane8=(1,200000,200000) PASS
+VERIFY garbage budget=65536 seq=(deg=1,proc=65536,breaks=0) lane8=(deg=1,proc=65536,breaks=0) PASS
+VERIFY_SELFTEST PASS checks=18 fails=0
+SELFTEST_ALL PASS
+PIN_GETCPU_END=7 PIN_FREQ_END_KHZ=3742300
