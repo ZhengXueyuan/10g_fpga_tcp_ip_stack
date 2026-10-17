@@ -1,0 +1,33 @@
+ACTIVE PROMOTION -- 0x2A becomes the active build
+================================================================
+Date (CST)      : 2026-10-17 19:17:10 -> 19:19:41 (burn 19:17:10-19:17:47; identity/scan 19:19:40; end 19:19:41)
+User ruling     : 2026-10-17 18:38 "批准：0x2A转现役" (ledger §10-113)
+Burn log        : burn/BURN_0x2A_20261017_191710.txt (+ BURN_stdout_copy_20261017_191927.txt)
+Script          : burn/burn_round_b2a.sh 0x2A  (skeleton = p9_c1_board burn gates)
+Bitstream       : _proj_10g/notes/p9_build_0x2A_20261017/build/wrapper_p4.bit
+sha256          : aa44a0eda1604623eac951afc26b9f27d4798fc414a5eb9c7137ee47f9a2a3b6 (15,431,261 B)
+Anchors         : ONE independent (build artifact) + local byte copy in burn/ (NOT independent; registered)
+Gates passed    : SHA_OK (== expected)
+                  BURN_OK (End of startup status HIGH + DONE + bit path + freshness + no-ABORT)
+                  PCIe device-level remove+rescan (LnkSta 5GT/s x4, 2 BARs, /dev/xdma0_user+control)
+                  Identity gate: MAGIC 0x50360001 / BID 0x0000002A / MARKER 0xdeadbeef /
+                                 UNIMPL 0x160 = 0xffffffff / MIR_DMA_CNT 0x15C readable (=0) /
+                                 SCRATCH 0x08 = 0 / ID_RC=0
+                  WINDOW_SCAN_NFF = 0 (over NW=76 words)
+                  Release controlled stop: 0x08 <- 0 ; CARRIER = 1
+QSPI            : NEVER written (JTAG volatile only)
+
+NEW ACTIVE GEOMETRY (0x2A):
+  76 snapshot words (W0..W75) / UNIMPL = 0x160 / W75 = stat_orphan @ 0x14C / MIR 0x150..0x15C
+  Orphan reclaim thresholds: mode A 61.85 s (TICK_BITS=18 x LIM=144); mode B (zero window) 180.39 s (20 x 105)
+  Readside tooling has been synced to 0x2A (build round, 110 edits / 0 fail).
+
+RESIDUALS (unchanged by promotion; do not treat as closed):
+  - 0x2A has ONE independent anchor (the second file is a byte copy).
+  - app-internal closing/active has no snapshot word (behavioural evidence only).
+  - B5c (zero-window single loss >=200 s) and B5b (zero-window dead peer >=361 s) NOT run.
+  - F6-a (inflight==0 idle dead peer) remains open; F7 delivery-gate A/A+1 race registered.
+  - F1 (post-reclaim app tail word waits for next ADD) accepted as self-healing (option 1).
+
+BOARD STATE AFTER PROMOTION:
+  MAGIC 0x50360001 / BID 0x0000002A / UNIMPL 0x160 = 0xffffffff / 0x08 = 0 / CARRIER = 1

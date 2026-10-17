@@ -1634,3 +1634,11 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - **TL 抽核**：轮目录与 `FINAL_STATE` 相符；`CRITERIA_EVAL.txt` 数值与 README 表一致；`git status` 仅新增本轮目录（无 RTL/脚本改动）。
 - **口径**："SUPPORTED" = **预注册规则的评估输出**（不是全局判据层 PASS/FAIL 裁定）；因果方向与 12000 机理仍【未判定/未定位】。
 - **下一棒建议**：以零窗占比为后续筛选轴；针对 12000 第二慢区与因果方向设计新实验（控制变量：同一 rcvbuf 下主动制造零窗 vs 慢导致零窗）；I1/I2/I3 三字构建是否能分离"占比"与"慢"。
+
+## §10-117 2026-10-17 19:22：**0x2A 转现役 —— 执行完成**（用户 18:38 裁定「批准：0x2A转现役」；板现为 0x2A）
+- **烧录【已证】**：19:17:10–19:19:41，`burn_round_b2a.sh 0x2A`：sha 门（独立锚 `p9_build_0x2A_20261017/build/wrapper_p4.bit` = `aa44a0ed…a3b6` + burn/ 本地字节副本，副本非独立）→ **BURN_OK**（HIGH + DONE + path + freshness + no-ABORT）→ PCIe device-level remove+rescan（LnkSta 5GT/s x4 / 2 BARs / `/dev/xdma0_user+control`）→ **身份门**（MAGIC `0x50360001` / BID `0x0000002A` / MARKER `0xdeadbeef` / UNIMPL `0x160`=`0xffffffff` / MIR_DMA_CNT `0x15C` 可读（=0）/ `0x08`=0 / CARRIER=1 / ID_RC=0）→ **WINDOW_SCAN_NFF=0**（76 字）→ `0x08 <- 0`。**QSPI 零写入**。
+- **现役几何**：76 字（W0..W75）/ UNIMPL `0x160` / W75 = `stat_orphan` @`0x14C` / MIR `0x150..0x15C`；孤儿回收阈值 A 61.85 s（`TICK_BITS=18 × LIM=144`）、零窗 B 180.39 s（`20 × 105`）；读侧工具已同步 0x2A（构建轮 110 处/0 fail）。
+- **现役声明**：`p9_board_0x2A_20261017/ACTIVE_PROMOTION_20261017.txt`；烧录日志 `burn/BURN_0x2A_20261017_191710.txt` + `BURN_stdout_copy_20261017_191927.txt`。
+- **文档同步**（本条目同批）：`P7B_OPEN_ITEMS.md`（§0-57 行 + A35 + 顶部块共 3 处"待裁"→"已裁转现役"）、`CLAUDE.md` 置顶块、memory（`xcku5p-mini-10g-board.md` + `MEMORY.md`）。
+- **残照照录（不因转现役消失）**：0x2A 单独立锚（burn 副本非独立）· app 内部 closing/active 无快照字 · B5c（零窗单次丢失 ≥200 s）与 B5b（零窗死对端 ≥361 s）未跑 · F6-a（`inflight==0` 空闲死对端）未闭 · F7 投递门 A/A+1 竞态已登记 · F1 自愈按选项①接受。
+- **后续口径**：板级实验默认 0x2A；临时实验（如 P-3 Q2-A 的 0x24 臂、慢盆清盆重烧）烧后必须恢复 0x2A 并核身份门。板现态 = **0x2A + `0x08=0` + carrier=1**。
