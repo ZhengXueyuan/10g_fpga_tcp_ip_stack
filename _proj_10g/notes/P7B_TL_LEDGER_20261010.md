@@ -1642,3 +1642,13 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - **文档同步**（本条目同批）：`P7B_OPEN_ITEMS.md`（§0-57 行 + A35 + 顶部块共 3 处"待裁"→"已裁转现役"）、`CLAUDE.md` 置顶块、memory（`xcku5p-mini-10g-board.md` + `MEMORY.md`）。
 - **残照照录（不因转现役消失）**：0x2A 单独立锚（burn 副本非独立）· app 内部 closing/active 无快照字 · B5c（零窗单次丢失 ≥200 s）与 B5b（零窗死对端 ≥361 s）未跑 · F6-a（`inflight==0` 空闲死对端）未闭 · F7 投递门 A/A+1 竞态已登记 · F1 自愈按选项①接受。
 - **后续口径**：板级实验默认 0x2A；临时实验（如 P-3 Q2-A 的 0x24 臂、慢盆清盆重烧）烧后必须恢复 0x2A 并核身份门。板现态 = **0x2A + `0x08=0` + carrier=1**。
+
+## §10-118 2026-10-18 00:41：**双 SFP+ 设计方案审查轮收口（红队，TL 代落 `FINDINGS.md`）—— 阻断 0 / 高 7 / 中 20 / 低 10；TL 抽核 9/9；P1 可进入实施（先修 3 类高优先），plan S2/P3 判据需重写，A-1 路线需用户重裁**
+- **审查对象** = plan（`p9_dual_sfp_plan_20261017/DESIGN.md` 485 行）+ P1 设计（`p9_dual_sfp_p1_design_20261017/README_FOR_TL.md` 606 行），基线 HEAD `8eaac606`。
+- **分级【红队，不下 PASS/FAIL】**：**阻断 0**；**高 7** = 高-1（S2 单栈/单线/共享 `WIN_POOL` 聚合上限 ~9.5 Gbps ⇒ "每口满速"判据不可满足；双连接各 ~24 KB，RTT>~19.7 µs BDP 不够）· 高-2（RX 合并自抄严格优先 ⇒ 低优先口饿死；合并前 FIFO 256 字 = 1.36 帧）· 高-3（**TX 端口位无物理通路**：两级 `tx_arb` 73 位硬编码，split 在其后）· 高-4（**A-1 漏 `tcp_tx_frame` 的 `cfg_src_ip` 6 组用途**〔帧头/IP 校验/TCP 种子，OVL 双体〕+ 与 §0.5「其余按推荐 CAM+1」冲突 ⇒ 需重裁）· 高-5（`snap_busy` 必须排除 `ch0_busy` + `snap_main_seen` 在 `snap_req` 清）· 高-6（**DP 域 FF 实为 ~223、pcie 448**，P1 写 ~110/320；0x2A WNS 宿主正是 DP setup 0.61%）· 高-7（**plan 行号全部 = 0x28 树，17 处漂移 +35…+110**）；**中 20**；**低 10**。
+- **事实核**：严格不一致 **11 项**（含 plan 行号簇 1 项）+ 需限定 6；P1 唯一明确错误 = `board/build_p7b_ku5p.tcl:145`（`verilog_define` 实际 `:286`）。
+- **空判据清单 E-1…E-10**（`vcc_cyc` 饱和 ⇒ W77 必增 · `carrier_changes +1` vs P0 实测 +3 · LOS 沿极性 · 温度/功耗无板上仪器 · P2 守恒计数未同批 · NIC pad 口径未核 · `snap_take` 无失败判据 等）。
+- **待裁复核**：P1 §6.4 实际 **14 条**（派单说 9 条）；6 条不应由用户裁（超时机制/矩阵入册/stub/0x08/排期/BID）；**新增 7 条待确认**（A-1 冲突 · S2 目标口径 · WIN_POOL 代价 · `cfg_src_mac` per-port · 乙镜像 FCS/元数据 · 乙背压语义 · 第二 IP 地址值）。
+- **TL 抽核 9/9 全中**：`rtl/tx_arb.v:9-25` 无 port 位；`cfg_src_ip` 用途组（`:400-401/:817/:874/:1440/:2008-2009/:2022/:2481`，双体）；`wrapper_p4.v:2331` `.cfg_src_ip(32'hC0A86402)`；tcl `:145` vs `:286`；`snap_cdc` 停钟 busy；`vcc_cyc` 饱和；`P7B_GATE2.md:95 rx0_free=0`；sha `214dac09…cafb71`；0x28 树 5025 行 vs HEAD 5127 行。**未发现审查 agent 的数值/行号转录错误**。
+- **产出**：`p9_review_dual_sfp_p1_design_20261018/FINDINGS.md`（代落全文 + TL 抽核）；进展文档 `p9_dual_sfp_progress_20261018/README.md` 已更新（审查完成 + §4.1 结论摘要 + 下一步）。
+- **下一步**：**用户裁定**（A-1 路线 / S2 目标口径 / 乙转发目的地 / HLS 两 IP 授权 / 观测档位）→ **设计修订轮**（修 3 类高优先 + 中项 + plan 行号与 S2/P3 判据重写）→ 复审 → P1 实施。
