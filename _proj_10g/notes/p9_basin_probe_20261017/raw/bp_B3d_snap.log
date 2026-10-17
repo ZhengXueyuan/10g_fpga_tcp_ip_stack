@@ -1,0 +1,39 @@
+SNAP_T 1792203168.013680317
+GEN_FAIL gen 不是恰好 +1 (2518 -> 2520) => 有并发写者, 本代读数不可归因
+SNAP_ABORT
+SNAP_T 1792203168.177511930
+SNAP_BEGIN B3d gen=2521
+W5   0x34   gmii_free_FE           0xe3aad73c
+W20  0x70   mac_tx_frames          0x000660b6
+W43  0xCC   mtx_stat_tx_words      0xe1c39083
+W51  0xEC   app_tx_bytes           0x20c6ba38
+W52  0xF0   app_tx_frames          0x0005bf43
+W55  0xFC   tx_stat_retx           0x0000741e
+W63  0x11C  app_frmwait_cyc        0x0b534b13
+W64  0x120  app_bp_cyc             0x0dad9194
+W65  0x124  mac_tx_idle            0xdcf8274d
+W66  0x128  tx_stat_winstall       0x0c9b3543
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x0004c202
+W69  0x134  tx_win_at_winstall     0x16d016d0
+W57  0x104  tx_retx_hi             0x13713205
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END B3d nff=0
+SNAP_T 1792203168.420294546
+SNAP_BEGIN B3d gen=2522
+W5   0x34   gmii_free_FE           0xe5f10524
+W20  0x70   mac_tx_frames          0x00073f86
+W43  0xCC   mtx_stat_tx_words      0xe409bcf8
+W51  0xEC   app_tx_bytes           0x25a2c89c
+W52  0xF0   app_tx_frames          0x00069966
+W55  0xFC   tx_stat_retx           0x000075cd
+W63  0x11C  app_frmwait_cyc        0x0cc7af07
+W64  0x120  app_bp_cyc             0x0ddd0b7f
+W65  0x124  mac_tx_idle            0xde965b06
+W66  0x128  tx_stat_winstall       0x0cc34ec5
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x00052729
+W69  0x134  tx_win_at_winstall     0x223816d0
+W57  0x104  tx_retx_hi             0x125a0829
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END B3d nff=0

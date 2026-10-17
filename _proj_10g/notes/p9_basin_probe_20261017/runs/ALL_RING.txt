@@ -1,0 +1,193 @@
+======================================================================================================================
+p9_basin_probe_20261017 -- per-arm readings (ring = KW basis, mod 2^32)
+======================================================================================================================
+
+####################################################################################################
+### tag=B0 nsinks=1 stagger=0 rcvbuf=2920 conns=3 secs=60 maxbytes=60000000 ring=256MBx4 sink_extra='' sink_bin=/tmp/p7b_biz/p7b_tcp_sink 1792202571.802710950
+    ### SINK_MD5 f62299291fcb9e02afe109c4ea1f90ab
+    ### SINK_OPTS_WITNESS sink1 SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+    ### SINK_RC_SUM=0 T0=1792202572.008278116 T1=1792202573.648404359 T1-T0=1.640
+    ### K0M_END tag=B0 1792202574.223164751
+    SUM SINK_SUM conns=3 fail_conns=0 bytes=180000480 clean_conns=3 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=1.634 net_s=1.634 agg_Mbps=881.182 THREADED=on full_push=123285 full_pop=123285 free_push=123333 
+    per-conn Mbps: 821.989, 957.100, 875.292
+    VERDICT-READ (n=3): fast(>=100Mbps)=3 crawl(<=5Mbps)=0 mid=0
+    pcap: captured=246599 received=246599 dropped=0
+    snap ring: n=8 span=1.44s
+      W5=156133380.133 W20=74584.270 W43=156131838.362 W51=108871978.762 W52=74574.656 W55=0.000 W66=101516959.952 W67=0.000 W68=74565.041
+      W20 = W52+W55 : 74584.270 vs 74574.656 (diff 0.013%)
+      W67/W66=0.0000 (W66 rate 101516960.0/s)
+    PRE/POST deltas (mod 2^32): W5=268151457 W20=123300 W43=268148815 W51=180004860 W52=123293 W55=3 W63=59986102 W64=171922357 W65=244353007 W66=160886918 W67=0 W68=123288 W69=95684020 W71=3 W72=0 W73=3 W74=0
+    E12: dEv=3 dsw_req=0 dapply=3 dup_pend=0 trig_face=0 identity=CLOSED(ev==apply+pend)
+    W69 latch POST raw=0x05b405b4 -> {infl, wnd}={1460,1460}
+    nstat delta: TcpInSegs=+123321 TcpOutSegs=+123344 TcpRetransSegs=+0 TCPOFOQueue=+0 TCPFastRetrans=+0 TCPACKSkippedSeq=+0 DelayedACKs=+0 DelayedACKLocked=+0 DelayedACKLost=+0 TCPPureAcks=+17 TCPHPAcks=+5
+    delayed-ACK trace: DelayedACKs/InSegs=0.000e+00 Locked=0 Lost=0 RetransSegs/InSegs=0.000e+00
+
+####################################################################################################
+### tag=B1 nsinks=2 stagger=0.4 rcvbuf=2920 conns=6 secs=120 maxbytes=50000000 ring=256MBx4 sink_extra='--poll-ms 1000 --stall-n 3' sink_bin=/tmp/p7b_biz/p7b_tcp_sink 1792202577.808823000
+    ### SINK_MD5 f62299291fcb9e02afe109c4ea1f90ab
+    ### SINK_OPTS_WITNESS sink1 SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+    ### SINK_OPTS_WITNESS sink2 SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+    ### SINK_RC_SUM=125 T0=1792202578.014958594 T1=1792202818.018195360 T1-T0=240.003
+    ### K0M_END tag=B1 1792202818.574881138
+    SUM SINK_SUM conns=6 fail_conns=0 bytes=1493580 clean_conns=0 bad_conns=6 mismatch_bytes=0 stall_conns=6 err_conns=0 poll_tmo=18 wall_s=32.973 net_s=32.973 agg_Mbps=0.362 THREADED=on full_push=1018 full_pop=1018 free_push=1114 free_po
+    per-conn Mbps: 54.787, 0.343, 0.341, 0.335, 0.484, 0.000, 0.341, 0.343, 0.337, 0.486, 0.487
+    VERDICT-READ (n=11): fast(>=100Mbps)=0 crawl(<=5Mbps)=10 mid=1
+    pcap: captured=123442 received=123492 dropped=0
+    snap ring: n=1199 span=239.93s
+      W5=156249496.544 W20=134.691 W43=156247983.159 W51=123750.344 W52=84.761 W55=49.944 W66=3287.585 W67=0.000 W68=84.761
+      W20 = W52+W55 : 134.691 vs 134.704 (diff -0.010%)
+      W67/W66=0.0000 (W66 rate 3287.6/s)
+    PRE/POST deltas (mod 2^32): W5=3153508789 W20=61697 W43=3154897086 W51=71880180 W52=49234 W55=11898 W63=3090354433 W64=43522091 W65=3142997198 W66=40298025 W67=0 W68=49216 W69=0 W71=12 W72=10 W73=11 W74=1
+    E12: dEv=12 dsw_req=10 dapply=11 dup_pend=1 trig_face=11 identity=CLOSED(ev==apply+pend)
+    W69 latch POST raw=0x05b405b4 -> {infl, wnd}={1460,1460}
+    nstat delta: TcpInSegs=+61705 TcpOutSegs=+61851 TcpRetransSegs=+16 TCPOFOQueue=+1 TCPFastRetrans=+0 TCPACKSkippedSeq=+0 DelayedACKs=+0 DelayedACKLocked=+0 DelayedACKLost=+0 TCPPureAcks=+18 TCPHPAcks=+7
+    delayed-ACK trace: DelayedACKs/InSegs=0.000e+00 Locked=0 Lost=0 RetransSegs/InSegs=2.593e-04
+
+####################################################################################################
+### tag=B2 nsinks=1 stagger=0 rcvbuf=2920 conns=6 secs=60 maxbytes=50000000 ring=256MBx4 sink_extra='' sink_bin=/tmp/p7b_biz/p7b_tcp_sink 1792202860.639103950
+    ### SINK_MD5 f62299291fcb9e02afe109c4ea1f90ab
+    ### SINK_OPTS_WITNESS sink1 SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+    ### SINK_RC_SUM=124 T0=1792202860.852093800 T1=1792202990.855322168 T1-T0=130.003
+    ### K0M_END tag=B2 1792202991.388692469
+    pcap: captured=35937 received=35987 dropped=0
+    snap ring: n=592 span=129.79s
+      W5=156252975.597 W20=136.199 W43=156251460.892 W51=125810.026 W52=86.171 W55=50.081 W66=3849.828 W67=0.000 W68=86.131
+      W20 = W52+W55 : 136.199 vs 136.253 (diff -0.039%)
+      duties (ring): W63/W5=0.9999 W64/W5=0.000033 W65/W5=0.9998
+      W67/W66=0.0000 (W66 rate 3849.8/s)
+      W57=119924.091 W58=0.0000 (session-level; 3 Hz ring sees only long sessions)
+    PRE/POST deltas (mod 2^32): W5=3146479697 W20=17552 W43=3146282018 W51=16087740 W52=11019 W55=6477 W63=3130109720 W64=687863 W65=3142897576 W66=469293 W67=0 W68=11017 W69=0 W71=1 W72=0 W73=1 W74=0
+    E12: dEv=1 dsw_req=0 dapply=1 dup_pend=0 trig_face=0 identity=CLOSED(ev==apply+pend)
+    W69 latch POST raw=0x05b405b4 -> {infl, wnd}={1460,1460}
+    nstat delta: TcpInSegs=+17575 TcpOutSegs=+18506 TcpRetransSegs=+1 TCPOFOQueue=+0 TCPFastRetrans=+0 TCPACKSkippedSeq=+0 DelayedACKs=+0 DelayedACKLocked=+0 DelayedACKLost=+0 TCPPureAcks=+21 TCPHPAcks=+6
+    delayed-ACK trace: DelayedACKs/InSegs=0.000e+00 Locked=0 Lost=0 RetransSegs/InSegs=5.690e-05
+
+####################################################################################################
+### tag=B3a nsinks=1 stagger=0 rcvbuf=4380 conns=3 secs=60 maxbytes=50000000 ring=256MBx4 sink_extra='' sink_bin=/tmp/p7b_biz/p7b_tcp_sink 1792203007.398794322
+    ### SINK_MD5 f62299291fcb9e02afe109c4ea1f90ab
+    ### SINK_OPTS_WITNESS sink1 SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+    ### SINK_RC_SUM=124 T0=1792203007.610836246 T1=1792203097.614334520 T1-T0=90.003
+    ### K0M_END tag=B3a 1792203098.151337623
+    pcap: captured=23925 received=23975 dropped=0
+    snap ring: n=410 span=89.87s
+      W5=156250385.024 W20=132.140 W43=156248859.430 W51=119734.549 W52=82.010 W55=50.066 W66=3851.594 W67=0.000 W68=82.010
+      W20 = W52+W55 : 132.140 vs 132.076 (diff 0.048%)
+      duties (ring): W63/W5=0.9999 W64/W5=0.000033 W65/W5=0.9998
+      W67/W66=0.0000 (W66 rate 3851.6/s)
+      W57=119736.500 W58=0.0000 (session-level; 3 Hz ring sees only long sessions)
+    PRE/POST deltas (mod 2^32): W5=1191713539 W20=11975 W43=1191576536 W51=10933940 W52=7489 W55=4478 W63=1176853989 W64=457973 W65=1189266635 W66=321160 W67=0 W68=7488 W69=0 W71=1 W72=0 W73=1 W74=0
+    E12: dEv=1 dsw_req=0 dapply=1 dup_pend=0 trig_face=0 identity=CLOSED(ev==apply+pend)
+    W69 latch POST raw=0x05b405b4 -> {infl, wnd}={1460,1460}
+    nstat delta: TcpInSegs=+12413 TcpOutSegs=+15222 TcpRetransSegs=+2 TCPOFOQueue=+1 TCPFastRetrans=+0 TCPACKSkippedSeq=+0 DelayedACKs=+15 DelayedACKLocked=+0 DelayedACKLost=+0 TCPPureAcks=+48 TCPHPAcks=+248
+    delayed-ACK trace: DelayedACKs/InSegs=1.208e-03 Locked=0 Lost=0 RetransSegs/InSegs=1.611e-04
+
+####################################################################################################
+### tag=B3b nsinks=1 stagger=0 rcvbuf=5840 conns=3 secs=60 maxbytes=50000000 ring=256MBx4 sink_extra='' sink_bin=/tmp/p7b_biz/p7b_tcp_sink 1792203100.294857586
+    ### SINK_MD5 f62299291fcb9e02afe109c4ea1f90ab
+    ### SINK_OPTS_WITNESS sink1 SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+    ### SINK_RC_SUM=0 T0=1792203100.506146028 T1=1792203163.433118370 T1-T0=62.927
+    ### K0M_END tag=B3b 1792203164.004003193
+    SUM SINK_SUM conns=2 fail_conns=0 bytes=100001240 clean_conns=2 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=62.921 net_s=62.921 agg_Mbps=12.715 THREADED=on full_push=45621 full_pop=45621 free_push=45653 fr
+    per-conn Mbps: 7.063, 63.603
+    VERDICT-READ (n=2): fast(>=100Mbps)=0 crawl(<=5Mbps)=0 mid=2
+    pcap: captured=141783 received=143013 dropped=0
+    snap ring: n=287 span=62.87s
+      W5=156254038.900 W20=200.431 W43=156252516.374 W51=146310.759 W52=100.213 W55=50.106 W66=12576.712 W67=0.000 W68=59.251
+      W20 = W52+W55 : 200.431 vs 150.319 (diff 25.002%)
+      duties (ring): W63/W5=0.9996 W64/W5=0.000184 W65/W5=0.9996
+      W67/W66=0.0000 (W66 rate 12576.7/s)
+      W57=146309.646 W58=0.0000 (session-level; 3 Hz ring sees only long sessions)
+    PRE/POST deltas (mod 2^32): W5=1255392267 W20=81064 W43=1255296655 W51=100008540 W52=68499 W55=5470 W63=1222116439 W64=6460598 W65=1243286876 W66=4319833 W67=0 W68=46272 W69=95684020 W71=2 W72=0 W73=2 W74=0
+    E12: dEv=2 dsw_req=0 dapply=2 dup_pend=0 trig_face=0 identity=CLOSED(ev==apply+pend)
+    W69 latch POST raw=0x0b680b68 -> {infl, wnd}={2920,2920}
+    nstat delta: TcpInSegs=+81380 TcpOutSegs=+64221 TcpRetransSegs=+1 TCPOFOQueue=+1961 TCPFastRetrans=+0 TCPACKSkippedSeq=+0 DelayedACKs=+17 DelayedACKLocked=+0 DelayedACKLost=+1612 TCPPureAcks=+64 TCPHPAcks=+117
+    delayed-ACK trace: DelayedACKs/InSegs=2.089e-04 Locked=0 Lost=1612 RetransSegs/InSegs=1.229e-05
+
+####################################################################################################
+### tag=B3c nsinks=1 stagger=0 rcvbuf=8760 conns=3 secs=60 maxbytes=50000000 ring=256MBx4 sink_extra='' sink_bin=/tmp/p7b_biz/p7b_tcp_sink 1792203165.023283801
+    ### SINK_MD5 f62299291fcb9e02afe109c4ea1f90ab
+    ### SINK_OPTS_WITNESS sink1 SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+    ### SINK_RC_SUM=0 T0=1792203165.235198018 T1=1792203165.985399413 T1-T0=0.750
+    ### K0M_END tag=B3c 1792203166.567334033
+    SUM SINK_SUM conns=3 fail_conns=0 bytes=150003320 clean_conns=3 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=0.744 net_s=0.744 agg_Mbps=1612.264 THREADED=on full_push=67328 full_pop=67328 free_push=67376 fr
+    per-conn Mbps: 1718.157, 1636.691, 1499.205
+    VERDICT-READ (n=3): fast(>=100Mbps)=3 crawl(<=5Mbps)=0 mid=0
+    pcap: captured=178921 received=178921 dropped=0
+    snap ring: n=4 span=0.71s
+      W5=156334823.154 W20=143149.958 W43=156333304.977 W51=201816972.894 W52=138230.803 W55=1641.139 W66=6296846.183 W67=0.000 W68=90582.354
+      W20 = W52+W55 : 143149.958 vs 139871.942 (diff 2.290%)
+      duties (ring): W63/W5=0.7612 W64/W5=0.049522 W65/W5=0.8266
+      W67/W66=0.0000 (W66 rate 6296846.2/s)
+      W57=147655043.743 W58=0.0000 (session-level; 3 Hz ring sees only long sessions)
+    PRE/POST deltas (mod 2^32): W5=130160062 W20=106482 W43=130158797 W51=150015000 W52=102750 W55=1245 W63=91119247 W64=5652930 W65=115032702 W66=4569908 W67=0 W68=67402 W69=0 W71=3 W72=0 W73=3 W74=0
+    E12: dEv=3 dsw_req=0 dapply=3 dup_pend=0 trig_face=0 identity=CLOSED(ev==apply+pend)
+    W69 latch POST raw=0x0b680b68 -> {infl, wnd}={2920,2920}
+    nstat delta: TcpInSegs=+106506 TcpOutSegs=+72486 TcpRetransSegs=+0 TCPOFOQueue=+1241 TCPFastRetrans=+0 TCPACKSkippedSeq=+0 DelayedACKs=+0 DelayedACKLocked=+0 DelayedACKLost=+500 TCPPureAcks=+18 TCPHPAcks=+6
+    delayed-ACK trace: DelayedACKs/InSegs=0.000e+00 Locked=0 Lost=500 RetransSegs/InSegs=0.000e+00
+
+####################################################################################################
+### tag=B3d nsinks=1 stagger=0 rcvbuf=13140 conns=3 secs=60 maxbytes=50000000 ring=256MBx4 sink_extra='' sink_bin=/tmp/p7b_biz/p7b_tcp_sink 1792203167.884528934
+    ### SINK_MD5 f62299291fcb9e02afe109c4ea1f90ab
+    ### SINK_OPTS_WITNESS sink1 SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+    ### SINK_RC_SUM=0 T0=1792203168.096908020 T1=1792203168.558285577 T1-T0=0.461
+    ### K0M_END tag=B3d 1792203169.127056702
+    SUM SINK_SUM conns=3 fail_conns=0 bytes=150009160 clean_conns=3 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=0.455 net_s=0.455 agg_Mbps=2635.764 THREADED=on full_push=50353 full_pop=50353 free_push=50401 fr
+    per-conn Mbps: 2308.657, 2763.073, 2922.039
+    VERDICT-READ (n=3): fast(>=100Mbps)=3 crawl(<=5Mbps)=0 mid=0
+    pcap: captured=160129 received=160129 dropped=0
+    snap ring: n=2 span=0.24s
+      W5=157151728.071 W20=234942.709 W43=157150199.955 W51=335816777.754 W52=230012.372 W55=1775.251 W66=10824375.710 W67=0.000 W68=106659.212
+      W20 = W52+W55 : 234942.709 vs 231787.623 (diff 1.343%)
+      duties (ring): W63/W5=0.6396 W64/W5=0.081549 W65/W5=0.7115
+      W67/W66=0.0000 (W66 rate 10824375.7/s)
+      W57=17615233395.217 W58=0.0000 (session-level; 3 Hz ring sees only long sessions)
+    PRE/POST deltas (mod 2^32): W5=85119868 W20=105185 W43=85119041 W51=150031060 W52=102761 W55=875 W63=45960527 W64=5646102 W65=64818882 W66=4722441 W67=0 W68=50502 W69=191368040 W71=3 W72=0 W73=3 W74=0
+    E12: dEv=3 dsw_req=0 dapply=3 dup_pend=0 trig_face=0 identity=CLOSED(ev==apply+pend)
+    W69 latch POST raw=0x16d016d0 -> {infl, wnd}={5840,5840}
+    nstat delta: TcpInSegs=+105210 TcpOutSegs=+54992 TcpRetransSegs=+0 TCPOFOQueue=+1743 TCPFastRetrans=+0 TCPACKSkippedSeq=+0 DelayedACKs=+0 DelayedACKLocked=+0 DelayedACKLost=+1394 TCPPureAcks=+19 TCPHPAcks=+6
+    delayed-ACK trace: DelayedACKs/InSegs=0.000e+00 Locked=0 Lost=1394 RetransSegs/InSegs=0.000e+00
+
+####################################################################################################
+### tag=B3e nsinks=1 stagger=0 rcvbuf=26280 conns=3 secs=60 maxbytes=50000000 ring=256MBx4 sink_extra='' sink_bin=/tmp/p7b_biz/p7b_tcp_sink 1792203170.083793023
+    ### SINK_MD5 f62299291fcb9e02afe109c4ea1f90ab
+    ### SINK_OPTS_WITNESS sink1 SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+    ### SINK_RC_SUM=0 T0=1792203170.296359335 T1=1792203170.603415632 T1-T0=0.307
+    ### K0M_END tag=B3e 1792203171.177768421
+    SUM SINK_SUM conns=3 fail_conns=0 bytes=150012080 clean_conns=3 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=0.301 net_s=0.301 agg_Mbps=3986.960 THREADED=on full_push=30780 full_pop=30780 free_push=30828 fr
+    per-conn Mbps: 4269.149, 3635.634, 4125.654
+    VERDICT-READ (n=3): fast(>=100Mbps)=3 crawl(<=5Mbps)=0 mid=0
+    pcap: captured=134235 received=134751 dropped=0
+    snap ring: n=2 span=0.26s
+      W5=148424240.180 W20=265026.896 W43=148422797.888 W51=385683703.566 W52=264166.920 W55=281.517 W66=8502090.138 W67=0.000 W68=83560.369
+      W20 = W52+W55 : 265026.896 vs 264448.437 (diff 0.218%)
+      duties (ring): W63/W5=0.4308 W64/W5=0.066586 W65/W5=0.6554
+      W67/W66=0.0000 (W66 rate 8502090.1/s)
+      W57=152711625.988 W58=0.0000 (session-level; 3 Hz ring sees only long sessions)
+    PRE/POST deltas (mod 2^32): W5=61006070 W20=103089 W43=61005479 W51=150061720 W52=102782 W55=101 W63=23689944 W64=3804309 W65=45779242 W66=3259066 W67=0 W68=30915 W69=574102660 W71=3 W72=0 W73=3 W74=0
+    E12: dEv=3 dsw_req=0 dapply=3 dup_pend=0 trig_face=0 identity=CLOSED(ev==apply+pend)
+    W69 latch POST raw=0x39083354 -> {infl, wnd}={14600,13140}
+    nstat delta: TcpInSegs=+103113 TcpOutSegs=+31710 TcpRetransSegs=+0 TCPOFOQueue=+445 TCPFastRetrans=+0 TCPACKSkippedSeq=+0 DelayedACKs=+0 DelayedACKLocked=+0 DelayedACKLost=+148 TCPPureAcks=+19 TCPHPAcks=+6
+    delayed-ACK trace: DelayedACKs/InSegs=0.000e+00 Locked=0 Lost=148 RetransSegs/InSegs=0.000e+00
+
+####################################################################################################
+### tag=B4 nsinks=2 stagger=0.4 rcvbuf=2920 conns=6 secs=120 maxbytes=50000000 ring=256MBx4 sink_extra='--poll-ms 1000 --stall-n 3' sink_bin=/tmp/p7b_biz/p7b_tcp_sink 1792203419.396166531
+    ### SINK_MD5 f62299291fcb9e02afe109c4ea1f90ab
+    ### SINK_OPTS_WITNESS sink1 SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+    ### SINK_OPTS_WITNESS sink2 SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+    ### SINK_RC_SUM=125 T0=1792203419.608810613 T1=1792203659.612473869 T1-T0=240.004
+    ### K0M_END tag=B4 1792203660.163805400
+    SUM SINK_SUM conns=6 fail_conns=0 bytes=1261440 clean_conns=0 bad_conns=6 mismatch_bytes=0 stall_conns=6 err_conns=0 poll_tmo=18 wall_s=29.989 net_s=29.989 agg_Mbps=0.337 THREADED=on full_push=860 full_pop=860 free_push=956 free_pop=8
+    per-conn Mbps: 0.359, 0.335, 0.585, 0.487, 0.000, 0.372, 0.341, 0.000, 0.487, 0.484
+    VERDICT-READ (n=10): fast(>=100Mbps)=0 crawl(<=5Mbps)=10 mid=0
+    pcap: captured=63891 received=63936 dropped=0
+    snap ring: n=1093 span=239.91s
+      W5=156251488.525 W20=132.153 W43=156249966.827 W51=119720.764 W52=82.001 W55=50.065 W66=3853.424 W67=0.000 W68=81.998
+      W20 = W52+W55 : 132.153 vs 132.065 (diff 0.067%)
+      duties (ring): W63/W5=0.9999 W64/W5=0.000033 W65/W5=0.9998
+      W67/W66=0.0000 (W66 rate 3853.4/s)
+      W57=119708.022 W58=0.0000 (session-level; 3 Hz ring sees only long sessions)
+    PRE/POST deltas (mod 2^32): W5=3154518775 W20=31920 W43=3154152052 W51=28618920 W52=19602 W55=11914 W63=3135559628 W64=1363257 W65=3148000228 W66=869697 W67=0 W68=19587 W69=3433812576 W71=11 W72=8 W73=9 W74=2
+    E12: dEv=11 dsw_req=8 dapply=9 dup_pend=2 trig_face=10 identity=CLOSED(ev==apply+pend)
+    W69 latch POST raw=0x05b405b4 -> {infl, wnd}={1460,1460}
+    nstat delta: TcpInSegs=+31959 TcpOutSegs=+32054 TcpRetransSegs=+80 TCPOFOQueue=+0 TCPFastRetrans=+0 TCPACKSkippedSeq=+0 DelayedACKs=+3 DelayedACKLocked=+0 DelayedACKLost=+0 TCPPureAcks=+27 TCPHPAcks=+13
+    delayed-ACK trace: DelayedACKs/InSegs=9.387e-05 Locked=0 Lost=0 RetransSegs/InSegs=2.503e-03

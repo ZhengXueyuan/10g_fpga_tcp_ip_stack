@@ -1,0 +1,64 @@
+{
+ "label": "B3a",
+ "span": 89.80543899536133,
+ "conns": [
+  {
+   "cliport": 52218,
+   "n_pkts": 23925,
+   "has_syn": true,
+   "t_syn": 1792203007.614858,
+   "syn_win": 4380,
+   "synack_win": 49152,
+   "n_data": 11943,
+   "n_ack": 11980,
+   "pay_bytes": 17436780,
+   "uniq_bytes": 10912040,
+   "life_s": 89.80531191825867,
+   "dup_ratio": 0.37419408858745706,
+   "rate_mbps": 1.5532960915159282,
+   "uniq_mbps": 0.9720618762446661,
+   "first1s_mbps": 1.6026980907920654,
+   "n_gaps": 11942,
+   "n_gap_lt2us": 4336,
+   "burst_pct": 36.3088259922961,
+   "gap_med_us": 38.14697265625,
+   "gap_p10_us": 0.0,
+   "gap_p90_us": 20052.90985107422,
+   "first_seg_count": 4,
+   "first_seg_note": "counted_before_first_covering_ack",
+   "t_first_cov_d1_ms": 0.0059604644775390625,
+   "n_uniq_seq": 7474,
+   "n_covered": 7473,
+   "n_never_covered": 1,
+   "n_held": 4468,
+   "held_pct": 59.78857219322896,
+   "held_pct_tx": 37.411035753160846,
+   "held_pct_all": 59.78057265185978,
+   "held_delay_med_ms": 20.06816864013672,
+   "replay_cover_med_ms": 0.017881393432617188,
+   "peer_win_hist": {
+    "4380": 1,
+    "2920": 1,
+    "0": 4506,
+    "1460": 7472
+   },
+   "board_win_hist": {
+    "0": 11943
+   },
+   "peer_win_mss_hist": {
+    "4380": 1,
+    "2920": 1,
+    "0": 4506,
+    "1460": 7472
+   },
+   "peer_win_ge8mss_accepted": 0,
+   "peer_win_ge8mss_pct": 0.0,
+   "last_data_t": 1792203097.420285,
+   "last_seq": 316330477,
+   "last_seq_retx": 0,
+   "last_ack_win": 1460,
+   "last_ack_t": 1792203097.420263,
+   "has_next_syn": false
+  }
+ ]
+}

@@ -1,0 +1,75 @@
+SNAP_T 1792204187.073874290
+GEN_FAIL gen 不是恰好 +1 (20 -> 22) => 有并发写者, 本代读数不可归因
+SNAP_ABORT
+SNAP_T 1792204187.237362386
+SNAP_BEGIN B6c gen=23
+W5   0x34   gmii_free_FE           0xeda8755b
+W20  0x70   mac_tx_frames          0x0003a112
+W43  0xCC   mtx_stat_tx_words      0xeda8dcbf
+W51  0xEC   app_tx_bytes           0x14b22e4c
+W52  0xF0   app_tx_frames          0x0003a101
+W55  0xFC   tx_stat_retx           0x00000007
+W63  0x11C  app_frmwait_cyc        0x06fee50c
+W64  0x120  app_bp_cyc             0x12e853a2
+W65  0x124  mac_tx_idle            0xeaec75dc
+W66  0x128  tx_stat_winstall       0x11b11540
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x00039753
+W69  0x134  tx_win_at_winstall     0x0b680b68
+W57  0x104  tx_retx_hi             0x12347e65
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END B6c nff=0
+SNAP_T 1792204187.499564399
+SNAP_BEGIN B6c gen=24
+W5   0x34   gmii_free_FE           0xf0115ddd
+W20  0x70   mac_tx_frames          0x00042b68
+W43  0xCC   mtx_stat_tx_words      0xf011c3da
+W51  0xEC   app_tx_bytes           0x17c709f4
+W52  0xF0   app_tx_frames          0x00042b54
+W55  0xFC   tx_stat_retx           0x00000008
+W63  0x11C  app_frmwait_cyc        0x075d15a7
+W64  0x120  app_bp_cyc             0x148c18de
+W65  0x124  mac_tx_idle            0xeced138d
+W66  0x128  tx_stat_winstall       0x13395581
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x0003fa5d
+W69  0x134  tx_win_at_winstall     0x0b680b68
+W57  0x104  tx_retx_hi             0x12347e65
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END B6c nff=0
+SNAP_T 1792204187.739711187
+SNAP_BEGIN B6c gen=25
+W5   0x34   gmii_free_FE           0xf24e7159
+W20  0x70   mac_tx_frames          0x00049a74
+W43  0xCC   mtx_stat_tx_words      0xf24ed607
+W51  0xEC   app_tx_bytes           0x1a404394
+W52  0xF0   app_tx_frames          0x00049a5d
+W55  0xFC   tx_stat_retx           0x00000009
+W63  0x11C  app_frmwait_cyc        0x07a3bb45
+W64  0x120  app_bp_cyc             0x162ff60e
+W65  0x124  mac_tx_idle            0xeed66f1a
+W66  0x128  tx_stat_winstall       0x14c1d03e
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x00043d99
+W69  0x134  tx_win_at_winstall     0x0b680b68
+W57  0x104  tx_retx_hi             0x12347e65
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END B6c nff=0
+SNAP_T 1792204187.983835935
+SNAP_BEGIN B6c gen=27
+W5   0x34   gmii_free_FE           0xf491c2bb
+W20  0x70   mac_tx_frames          0x0005046b
+W43  0xCC   mtx_stat_tx_words      0xf4922617
+W51  0xEC   app_tx_bytes           0x1c9c9840
+W52  0xF0   app_tx_frames          0x00050454
+W55  0xFC   tx_stat_retx           0x00000009
+W63  0x11C  app_frmwait_cyc        0x07b59921
+W64  0x120  app_bp_cyc             0x17ca3ae7
+W65  0x124  mac_tx_idle            0xf0c9dbf3
+W66  0x128  tx_stat_winstall       0x16416ef0
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x00047b4f
+W69  0x134  tx_win_at_winstall     0x0b680b68
+W57  0x104  tx_retx_hi             0x12347e65
+W58  0x108  tx_retx_active         0x00000000
+SNAP_END B6c nff=0

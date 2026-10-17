@@ -1,0 +1,42 @@
+SNAP_T 1792203956.911614771
+GEN_FAIL gen 不是恰好 +1 (0 -> 2) => 有并发写者, 本代读数不可归因
+SNAP_ABORT
+SNAP_T 1792203957.074809177
+SNAP_BEGIN B5 gen=3
+W5   0x34   gmii_free_FE           0x0e93dde8
+W20  0x70   mac_tx_frames          0x000116a5
+W43  0xCC   mtx_stat_tx_words      0x0e92fc4d
+W51  0xEC   app_tx_bytes           0x0634dae0
+W52  0xF0   app_tx_frames          0x0001169a
+W55  0xFC   tx_stat_retx           0x00000000
+W66  0x128  tx_stat_winstall       0x00073a5c
+W67  0x12C  tx_winstall_cap        0x0006b56d
+W68  0x130  rx_stat_ack_adv        0x00002f6e
+W69  0x134  tx_win_at_winstall     0xf53cf000
+SNAP_END B5 nff=0
+SNAP_T 1792203957.285229398
+SNAP_BEGIN B5 gen=4
+W5   0x34   gmii_free_FE           0x10848e0a
+W20  0x70   mac_tx_frames          0x0002f31d
+W43  0xCC   mtx_stat_tx_words      0x1083ab38
+W51  0xEC   app_tx_bytes           0x10d010a4
+W52  0xF0   app_tx_frames          0x0002f2b4
+W55  0xFC   tx_stat_retx           0x00000004
+W66  0x128  tx_stat_winstall       0x0084e5de
+W67  0x12C  tx_winstall_cap        0x007c6ab5
+W68  0x130  rx_stat_ack_adv        0x00009ae8
+W69  0x134  tx_win_at_winstall     0x00000000
+SNAP_END B5 nff=0
+SNAP_T 1792203957.490137868
+SNAP_BEGIN B5 gen=5
+W5   0x34   gmii_free_FE           0x126c33a8
+W20  0x70   mac_tx_frames          0x00040edb
+W43  0xCC   mtx_stat_tx_words      0x126b4fa5
+W51  0xEC   app_tx_bytes           0x17212994
+W52  0xF0   app_tx_frames          0x00040e42
+W55  0xFC   tx_stat_retx           0x00000006
+W66  0x128  tx_stat_winstall       0x00c81c30
+W67  0x12C  tx_winstall_cap        0x00bb5e05
+W68  0x130  rx_stat_ack_adv        0x0000d9f7
+W69  0x134  tx_win_at_winstall     0x00000000
+SNAP_END B5 nff=0

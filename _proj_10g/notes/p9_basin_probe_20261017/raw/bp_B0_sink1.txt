@@ -1,0 +1,13 @@
+PIN_RULE=avoid-nic PIN_DEGRADED=none PIN_CPU=7 PIN_CORES_ONLINE=0-7 PIN_NIC_IFACE=enp1s0f0np0,enp1s0f1np1 PIN_NIC_CPUS=0,1,2,3,4,5 PIN_NIC_EXCLUDED=none PIN_CORE_LOAD=17659093 PIN_ALLOWED_MASK=80 PIN_GETCPU_START=7 PIN_FREQ_START_KHZ=3834215 PIN_GOV=schedutil PIN_NIC_IRQLINES=12 PIN_NIC_IFACE_SRC=auto PIN_TUPLE_ORDER=own_sib_t PIN_PAIR_RULE=load-only PIN_PAIR_DEGRADED=nic0-0 PIN_CPU_IO=6 PIN_CPU_WORK=4 PIN_PC_IO=2 PIN_PC_WORK=0 PIN_PAIR_EXCL=3 PIN_PAIR_REQ=want
+SINK_CHECK check=lane8
+SINK_LIMITS maxbytes=60000000 poll_ms=5000 stall_n=3 rcvbuf=2920 conns=3 secs=60
+SINK_RCVBUF_ORDER RCVBUF_ORDER=before_connect rcvbuf=2920
+SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+PIN_THREAD name=io PIN_TID_IO=2418262 PIN_CPU_IO=6 PIN_ALLOWED_MASK_IO=40 PIN_GETCPU_IO=6 CPU_FREQ_IO_KHZ=3891188
+PIN_THREAD name=work PIN_TID_WORK=2418263 PIN_CPU_WORK=4 PIN_ALLOWED_MASK_WORK=10 PIN_GETCPU_WORK=4 CPU_FREQ_WORK_KHZ=3826568
+SINK_CONN 0 OK bytes=60000160 first_mismatch=-1 mism_bytes=0 conn_ms=0.217 dur_ms=583.951 Mbps=821.989 reads=41095 poll_tmo=0 CPU_FREQ_KHZ=3900631 THREADED=on q_full_push=41095 q_full_pop=41095 q_free_push=41111 q_free_pop=41095 slot_wait_spins=0 checked_bytes=60000160
+SINK_CONN 1 OK bytes=60000160 first_mismatch=-1 mism_bytes=0 conn_ms=0.129 dur_ms=501.516 Mbps=957.100 reads=41095 poll_tmo=0 CPU_FREQ_KHZ=3700298 THREADED=on q_full_push=41095 q_full_pop=41095 q_free_push=41111 q_free_pop=41095 slot_wait_spins=0 checked_bytes=60000160
+SINK_CONN 2 OK bytes=60000160 first_mismatch=-1 mism_bytes=0 conn_ms=0.087 dur_ms=548.390 Mbps=875.292 reads=41095 poll_tmo=0 CPU_FREQ_KHZ=3700284 THREADED=on q_full_push=41095 q_full_pop=41095 q_free_push=41111 q_free_pop=41095 slot_wait_spins=0 checked_bytes=60000160
+SINK_SUM conns=3 fail_conns=0 bytes=180000480 clean_conns=3 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=1.634 net_s=1.634 agg_Mbps=881.182 THREADED=on full_push=123285 full_pop=123285 free_push=123333 free_pop=123285 slot_wait_spins=0 checked_bytes=180000480 threads=6 check=lane8
+SINK_DONE
+PIN_GETCPU_END=7 PIN_FREQ_END_KHZ=3702121

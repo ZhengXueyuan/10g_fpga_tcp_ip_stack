@@ -1,0 +1,37 @@
+2026-10-17 100243 1792202563
+Sat Oct 17 10:02:45 AM CST 2026
+---IDENTITY---
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x00000028   (want 0x00000028 = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1792202565.275637666
+ID_RC=0
+BID_0x04=Read 32-bit value at address 0x4 (0x7b3feab58004): 0x00000028
+UNIMPL_0x15C=Read 32-bit value at address 0x15c (0x76114731915c): 0xffffffff
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x7bc42c7b2008): 0x00000000
+CARRIER=1
+---NIC---
+Pause parameters for enp1s0f1np1:
+Autonegotiate:	on
+RX:		on
+TX:		on
+RX negotiated: off
+TX negotiated: off
+
+Coalesce parameters for enp1s0f1np1:
+Adaptive RX: off  TX: n/a
+stats-block-usecs:	n/a
+sample-interval:	n/a
+pkt-rate-low:		n/a
+pkt-rate-high:		n/a
+enp1s0f1np1     ethernet  unmanaged               --           
+---ROUTE---
+192.168.100.2 dev enp1s0f1np1 src 192.168.100.100 uid 0 
+    cache 
+---TOOLS---
+f62299291fcb9e02afe109c4ea1f90ab  /tmp/p7b_biz/p7b_tcp_sink
+a257af8299904789c6a6dd9ed5ca030f  /tmp/p7b_biz/p7b_snap.sh
+6f25cd2c672f8443089ff00145dbc96d  /tmp/p7b_biz/bp_arm.sh
+---LEFTOVER---
+LEFTOVER_END

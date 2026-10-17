@@ -1,0 +1,21 @@
+SNAP_BEGIN B3c_POST gen=2517
+W5   0x34   gmii_free_FE           0xcf471e93
+W20  0x70   mac_tx_frames          0x000626fd
+W43  0xCC   mtx_stat_tx_words      0xcd5fe4d4
+W51  0xEC   app_tx_bytes           0x1f86d5d4
+W52  0xF0   app_tx_frames          0x0005872c
+W55  0xFC   tx_stat_retx           0x00007383
+W63  0x11C  app_frmwait_cyc        0x0ac3d19a
+W64  0x120  app_bp_cyc             0x0da1be44
+W65  0x124  mac_tx_idle            0xc912c50a
+W66  0x128  tx_stat_winstall       0x0c918bf1
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x0004a62b
+W69  0x134  tx_win_at_winstall     0x0b680b68
+W57  0x104  tx_retx_hi             0x152c6f65
+W58  0x108  tx_retx_active         0x00000000
+W71  0x13C  app_stat_up_ev         0x00000016
+W72  0x140  app_stat_sw_req        0x0000000a
+W73  0x144  app_stat_sw_apply      0x00000015
+W74  0x148  app_stat_up_pend       0x00000001
+SNAP_END B3c_POST nff=0

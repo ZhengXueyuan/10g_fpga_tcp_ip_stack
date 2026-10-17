@@ -1,0 +1,107 @@
+SNAP_T 1792202571.932081194
+GEN_FAIL gen 不是恰好 +1 (0 -> 2) => 有并发写者, 本代读数不可归因
+SNAP_ABORT
+SNAP_T 1792202572.095434476
+SNAP_BEGIN B0 gen=3
+W5   0x34   gmii_free_FE           0x341eec42
+W20  0x70   mac_tx_frames          0x000018cb
+W43  0xCC   mtx_stat_tx_words      0x32457949
+W51  0xEC   app_tx_bytes           0x007455b8
+W52  0xF0   app_tx_frames          0x00001466
+W55  0xFC   tx_stat_retx           0x00000001
+W66  0x128  tx_stat_winstall       0x0068865e
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x00001465
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END B0 nff=0
+SNAP_T 1792202572.297799086
+SNAP_BEGIN B0 gen=4
+W5   0x34   gmii_free_FE           0x360109ac
+W20  0x70   mac_tx_frames          0x00005260
+W43  0xCC   mtx_stat_tx_words      0x3427957b
+W51  0xEC   app_tx_bytes           0x01bcbb7c
+W52  0xF0   app_tx_frames          0x00004dfb
+W55  0xFC   tx_stat_retx           0x00000001
+W66  0x128  tx_stat_winstall       0x01a10d7f
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x00004dfb
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END B0 nff=0
+SNAP_T 1792202572.499796653
+SNAP_BEGIN B0 gen=5
+W5   0x34   gmii_free_FE           0x37e2080e
+W20  0x70   mac_tx_frames          0x00008c76
+W43  0xCC   mtx_stat_tx_words      0x360892a6
+W51  0xEC   app_tx_bytes           0x030800f4
+W52  0xF0   app_tx_frames          0x00008811
+W55  0xFC   tx_stat_retx           0x00000001
+W66  0x128  tx_stat_winstall       0x02d9f3bd
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x00008810
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END B0 nff=0
+SNAP_T 1792202572.703024283
+SNAP_BEGIN B0 gen=6
+W5   0x34   gmii_free_FE           0x39c941eb
+W20  0x70   mac_tx_frames          0x0000c55c
+W43  0xCC   mtx_stat_tx_words      0x37efcb49
+W51  0xEC   app_tx_bytes           0x044c6f90
+W52  0xF0   app_tx_frames          0x0000c0f5
+W55  0xFC   tx_stat_retx           0x00000002
+W66  0x128  tx_stat_winstall       0x03fb1eea
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x0000c0f2
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END B0 nff=0
+SNAP_T 1792202572.911431383
+SNAP_BEGIN B0 gen=7
+W5   0x34   gmii_free_FE           0x3bb9baff
+W20  0x70   mac_tx_frames          0x00010aff
+W43  0xCC   mtx_stat_tx_words      0x39e0431d
+W51  0xEC   app_tx_bytes           0x05d9952c
+W52  0xF0   app_tx_frames          0x00010698
+W55  0xFC   tx_stat_retx           0x00000002
+W66  0x128  tx_stat_winstall       0x05414cc5
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x00010695
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END B0 nff=0
+SNAP_T 1792202573.119451010
+SNAP_BEGIN B0 gen=8
+W5   0x34   gmii_free_FE           0x3daa4f9c
+W20  0x70   mac_tx_frames          0x0001479a
+W43  0xCC   mtx_stat_tx_words      0x3bd0d679
+W51  0xEC   app_tx_bytes           0x0733280c
+W52  0xF0   app_tx_frames          0x00014331
+W55  0xFC   tx_stat_retx           0x00000003
+W66  0x128  tx_stat_winstall       0x0667c542
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x0001432c
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END B0 nff=0
+SNAP_T 1792202573.325233901
+SNAP_BEGIN B0 gen=9
+W5   0x34   gmii_free_FE           0x3f93eb7a
+W20  0x70   mac_tx_frames          0x00018680
+W43  0xCC   mtx_stat_tx_words      0x3dba711b
+W51  0xEC   app_tx_bytes           0x0899dfc4
+W52  0xF0   app_tx_frames          0x00018217
+W55  0xFC   tx_stat_retx           0x00000003
+W66  0x128  tx_stat_winstall       0x07a83838
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x00018213
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END B0 nff=0
+SNAP_T 1792202573.531548316
+SNAP_BEGIN B0 gen=10
+W5   0x34   gmii_free_FE           0x4180299d
+W20  0x70   mac_tx_frames          0x0001c5bf
+W43  0xCC   mtx_stat_tx_words      0x3fa6ae01
+W51  0xEC   app_tx_bytes           0x0a029310
+W52  0xF0   app_tx_frames          0x0001c156
+W55  0xFC   tx_stat_retx           0x00000003
+W66  0x128  tx_stat_winstall       0x08ebb3c6
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x0001c151
+W69  0x134  tx_win_at_winstall     0x05b405b4
+SNAP_END B0 nff=0

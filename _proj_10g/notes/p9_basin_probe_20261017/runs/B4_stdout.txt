@@ -1,0 +1,158 @@
+--- leftover precheck (must be empty) ---
+LEFTOVER_CLEAN
+### K0M_BEGIN tag=B4 nsinks=2 stagger=0.4 rcvbuf=2920 conns=6 secs=120 maxbytes=50000000 ring=256MBx4 sink_extra='--poll-ms 1000 --stall-n 3' sink_bin=/tmp/p7b_biz/p7b_tcp_sink 1792203419.396166531
+### SNAP_MD5 a257af8299904789c6a6dd9ed5ca030f
+### SINK_PATH /tmp/p7b_biz/p7b_tcp_sink
+### SINK_MD5 f62299291fcb9e02afe109c4ea1f90ab
+### SINK_SIZE 173576
+### SNAP_ARGS NW=75 EXPECT_BID=0x00000028 KW='5 20 43 51 52 55 63 64 65 66 67 68 69 57 58' KW2='5 20 43 51 52 55 63 64 65 66 67 68 69 57 58 71 72 73 74' RUN_TIMEOUT=240
+### SS_SAMPLER cmd="ss -tinH state established (dport = :8080)" every 1s -> /tmp/bp_B4_ss.log
+--- board identity gate (before run) ---
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x00000028   (want 0x00000028 = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1792203419.416243577
+ID_RC=0
+BID_0x04=Read 32-bit value at address 0x4 (0x743707d7f004): 0x00000028
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x742e9f8df008): 0x00000000
+CARRIER=1
+ROUTE_GET=192.168.100.2 dev enp1s0f1np1 src 192.168.100.100 uid 0 
+--- pcap (single, 'ctl'): full 'tcp port 8080', snaplen 128, 256MBx4 ring ---
+TCPDUMP_ARMED /tmp/bp_B4_ctl.err (waited ~0s)
+CTL_PID=2799124
+--- board snapshot ring (background; one point per ~0.15 s) ---
+SNAP_PID=2799128
+--- ss sampler (background; per-second per-socket kernel byte counters) ---
+SS_PID=2799129
+--- peer kernel counters (before) ---
+TcpInSegs                       212960156          0.0
+TcpOutSegs                      93127453           0.0
+TcpRetransSegs                  508852             0.0
+TcpExtDelayedACKs               7496               0.0
+TcpExtDelayedACKLocked          67                 0.0
+TcpExtDelayedACKLost            132325             0.0
+TcpExtTCPPureAcks               35295              0.0
+TcpExtTCPHPAcks                 37854              0.0
+TcpExtTCPFastRetrans            4400               0.0
+TcpExtTCPOFOQueue               164263             0.0
+TcpExtTCPACKSkippedSeq          5                  0.0
+--- SNAP_PRE (explicit) 1792203419.528519431 ---
+SNAP_BEGIN B4_PRE gen=2530
+W5   0x34   gmii_free_FE           0x0897721d
+W20  0x70   mac_tx_frames          0x0009549c
+W43  0xCC   mtx_stat_tx_words      0x06aa4730
+W51  0xEC   app_tx_bytes           0x3169e340
+W52  0xF0   app_tx_frames          0x0008aa13
+W55  0xFC   tx_stat_retx           0x00007753
+W63  0x11C  app_frmwait_cyc        0x0eea99c1
+W64  0x120  app_bp_cyc             0x0e31f1ef
+W65  0x124  mac_tx_idle            0xffa50b08
+W66  0x128  tx_stat_winstall       0x0d0b55b4
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x0005e434
+W69  0x134  tx_win_at_winstall     0x39083354
+W57  0x104  tx_retx_hi             0x149100b1
+W58  0x108  tx_retx_active         0x00000000
+W71  0x13C  app_stat_up_ev         0x0000001c
+W72  0x140  app_stat_sw_req        0x0000000a
+W73  0x144  app_stat_sw_apply      0x0000001b
+W74  0x148  app_stat_up_pend       0x00000001
+SNAP_END B4_PRE nff=0
+--- main run: 2 sinks in parallel (staggered 0.4s), timeout 240s ---
+SINK1_START pid=2799372 t=1792203419.610558007
+SINK2_START pid=2799722 t=1792203420.012363678
+SINK1_RC=124
+SINK1_TIMEOUT_KILLED (RUN_TIMEOUT=240s)
+SINK2_RC=1
+### SINK_RC_SUM=125 T0=1792203419.608810613 T1=1792203659.612473869 T1-T0=240.004
+SINK1_SUM_MISSING
+--- SNAP_POST (explicit) 1792203659.617228275 ---
+SNAP_BEGIN B4_POST gen=3624
+W5   0x34   gmii_free_FE           0xc49d9514
+W20  0x70   mac_tx_frames          0x0009d14c
+W43  0xCC   mtx_stat_tx_words      0xc2aad1a4
+W51  0xEC   app_tx_bytes           0x331e93e8
+W52  0xF0   app_tx_frames          0x0008f6a5
+W55  0xFC   tx_stat_retx           0x0000a5dd
+W63  0x11C  app_frmwait_cyc        0xc9cf718d
+W64  0x120  app_bp_cyc             0x0e46bf28
+W65  0x124  mac_tx_idle            0xbb47b6ec
+W66  0x128  tx_stat_winstall       0x0d189af5
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x000630b7
+W69  0x134  tx_win_at_winstall     0x05b405b4
+W57  0x104  tx_retx_hi             0x13bdacd9
+W58  0x108  tx_retx_active         0x00000000
+W71  0x13C  app_stat_up_ev         0x00000027
+W72  0x140  app_stat_sw_req        0x00000012
+W73  0x144  app_stat_sw_apply      0x00000024
+W74  0x148  app_stat_up_pend       0x00000003
+SNAP_END B4_POST nff=0
+--- peer kernel counters (after) ---
+TcpInSegs                       212992115          0.0
+TcpOutSegs                      93159507           0.0
+TcpRetransSegs                  508932             0.0
+TcpExtDelayedACKs               7499               0.0
+TcpExtDelayedACKLocked          67                 0.0
+TcpExtDelayedACKLost            132325             0.0
+TcpExtTCPPureAcks               35322              0.0
+TcpExtTCPHPAcks                 37867              0.0
+TcpExtTCPFastRetrans            4400               0.0
+TcpExtTCPOFOQueue               164263             0.0
+TcpExtTCPACKSkippedSeq          5                  0.0
+--- teardown: stop ss sampler + snapshot ring + pcap ---
+ctl STOPPED_GRACEFULLY (~0s)
+--- pcap stats (tcpdump self-report) ---
+63891 packets captured
+63936 packets received by filter
+0 packets dropped by kernel
+-rw-r--r-- 1 tcpdump tcpdump 6829670 Oct 17 10:21 /tmp/bp_B4_ctl.pcap0
+7163a031b8bb99dc923c0613a570d1c2a7cec6128460f28d4114f11b72ad7417  /tmp/bp_B4_ctl.pcap0
+--- ss log tail witness ---
+772 /tmp/bp_B4_ss.log
+	 cubic rto:201 rtt:0.058/0.029 ato:40 mss:1460 pmtu:1500 rcvmss:1460 advmss:1460 cwnd:10 bytes_acked:1 bytes_received:25586500 segs_out:28046 segs_in:28014 data_segs_in:28013 send 2013793103bps lastsnd:211018 lastrcv:10 lastack:10 pacing_rate 3994482752bps delivered:1 app_limited rcv_rtt:0.005 rcv_space:4380 rcv_ssthresh:1665 minrtt:0.058 snd_wnd:49152
+SS_T 1792203659.040846074
+0      0      192.168.100.100:48184 192.168.100.2:8080
+	 cubic rto:201 rtt:0.058/0.029 ato:40 mss:1460 pmtu:1500 rcvmss:1460 advmss:1460 cwnd:10 bytes_acked:1 bytes_received:25709140 segs_out:28180 segs_in:28148 data_segs_in:28147 send 2013793103bps lastsnd:212028 lastrcv:13 lastack:13 pacing_rate 3994482752bps delivered:1 app_limited rcv_rtt:0.005 rcv_space:4380 rcv_ssthresh:1665 minrtt:0.058 snd_wnd:49152
+--- SINK_OPTS witness (new binary prints it; old binary => MISSING) ---
+### SINK_OPTS_WITNESS sink1 SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+### SINK_OPTS_WITNESS sink2 SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+--- sink summary (verbatim) ---
+== SINK 1 ==
+SINK_CHECK check=lane8
+SINK_LIMITS maxbytes=50000000 poll_ms=1000 stall_n=3 rcvbuf=2920 conns=6 secs=120
+SINK_RCVBUF_ORDER RCVBUF_ORDER=before_connect rcvbuf=2920
+SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+SINK_CONN 0 POLL_TIMEOUT 3 x 1000 ms 无数据 (got=287620) => 中止本连接
+SINK_CONN 0 STALL bytes=287620 first_mismatch=-1 mism_bytes=0 conn_ms=0.122 dur_ms=6401.248 Mbps=0.359 reads=196 poll_tmo=3 CPU_FREQ_KHZ=3895207 THREADED=on q_full_push=196 q_full_pop=196 q_free_push=212 q_free_pop=196 slot_wait_spins=0 checked_bytes=287620
+SINK_CONN 1 POLL_TIMEOUT 3 x 1000 ms 无数据 (got=251120) => 中止本连接
+SINK_CONN 1 STALL bytes=251120 first_mismatch=-1 mism_bytes=0 conn_ms=0.116 dur_ms=6000.705 Mbps=0.335 reads=171 poll_tmo=3 CPU_FREQ_KHZ=3900291 THREADED=on q_full_push=171 q_full_pop=171 q_free_push=187 q_free_pop=171 slot_wait_spins=0 checked_bytes=251120
+SINK_CONN 2 POLL_TIMEOUT 3 x 1000 ms 无数据 (got=658460) => 中止本连接
+SINK_CONN 2 STALL bytes=658460 first_mismatch=-1 mism_bytes=0 conn_ms=0.112 dur_ms=9001.184 Mbps=0.585 reads=450 poll_tmo=3 CPU_FREQ_KHZ=3900282 THREADED=on q_full_push=450 q_full_pop=450 q_free_push=466 q_free_pop=450 slot_wait_spins=0 checked_bytes=658460
+SINK_CONN 3 POLL_TIMEOUT 3 x 1000 ms 无数据 (got=365000) => 中止本连接
+SINK_CONN 3 STALL bytes=365000 first_mismatch=-1 mism_bytes=0 conn_ms=0.110 dur_ms=5997.447 Mbps=0.487 reads=249 poll_tmo=3 CPU_FREQ_KHZ=3900309 THREADED=on q_full_push=249 q_full_pop=249 q_free_push=265 q_free_pop=249 slot_wait_spins=0 checked_bytes=365000
+== SINK 2 ==
+SINK_CHECK check=lane8
+SINK_LIMITS maxbytes=50000000 poll_ms=1000 stall_n=3 rcvbuf=2920 conns=6 secs=120
+SINK_RCVBUF_ORDER RCVBUF_ORDER=before_connect rcvbuf=2920
+SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+SINK_CONN 0 POLL_TIMEOUT 3 x 1000 ms 无数据 (got=0) => 中止本连接
+SINK_CONN 0 STALL bytes=0 first_mismatch=-1 mism_bytes=0 conn_ms=0.111 dur_ms=3003.191 Mbps=0.000 reads=0 poll_tmo=3 CPU_FREQ_KHZ=3702143 THREADED=on q_full_push=0 q_full_pop=0 q_free_push=16 q_free_pop=0 slot_wait_spins=0 checked_bytes=0
+SINK_CONN 1 POLL_TIMEOUT 3 x 1000 ms 无数据 (got=278860) => 中止本连接
+SINK_CONN 1 STALL bytes=278860 first_mismatch=-1 mism_bytes=0 conn_ms=0.116 dur_ms=5994.686 Mbps=0.372 reads=190 poll_tmo=3 CPU_FREQ_KHZ=3779023 THREADED=on q_full_push=190 q_full_pop=190 q_free_push=206 q_free_pop=190 slot_wait_spins=0 checked_bytes=278860
+SINK_CONN 2 POLL_TIMEOUT 3 x 1000 ms 无数据 (got=255500) => 中止本连接
+SINK_CONN 2 STALL bytes=255500 first_mismatch=-1 mism_bytes=0 conn_ms=0.123 dur_ms=5998.899 Mbps=0.341 reads=174 poll_tmo=3 CPU_FREQ_KHZ=3775580 THREADED=on q_full_push=174 q_full_pop=174 q_free_push=190 q_free_pop=174 slot_wait_spins=0 checked_bytes=255500
+SINK_CONN 3 POLL_TIMEOUT 3 x 1000 ms 无数据 (got=0) => 中止本连接
+SINK_CONN 3 STALL bytes=0 first_mismatch=-1 mism_bytes=0 conn_ms=0.101 dur_ms=3002.813 Mbps=0.000 reads=0 poll_tmo=3 CPU_FREQ_KHZ=3775580 THREADED=on q_full_push=0 q_full_pop=0 q_free_push=16 q_free_pop=0 slot_wait_spins=0 checked_bytes=0
+SINK_CONN 4 POLL_TIMEOUT 3 x 1000 ms 无数据 (got=365000) => 中止本连接
+SINK_CONN 4 STALL bytes=365000 first_mismatch=-1 mism_bytes=0 conn_ms=0.118 dur_ms=6001.836 Mbps=0.487 reads=249 poll_tmo=3 CPU_FREQ_KHZ=3768108 THREADED=on q_full_push=249 q_full_pop=249 q_free_push=265 q_free_pop=249 slot_wait_spins=0 checked_bytes=365000
+SINK_CONN 5 POLL_TIMEOUT 3 x 1000 ms 无数据 (got=362080) => 中止本连接
+SINK_CONN 5 STALL bytes=362080 first_mismatch=-1 mism_bytes=0 conn_ms=0.122 dur_ms=5986.839 Mbps=0.484 reads=247 poll_tmo=3 CPU_FREQ_KHZ=3900319 THREADED=on q_full_push=247 q_full_pop=247 q_free_push=263 q_free_pop=247 slot_wait_spins=0 checked_bytes=362080
+SINK_SUM conns=6 fail_conns=0 bytes=1261440 clean_conns=0 bad_conns=6 mismatch_bytes=0 stall_conns=6 err_conns=0 poll_tmo=18 wall_s=29.989 net_s=29.989 agg_Mbps=0.337 THREADED=on full_push=860 full_pop=860 free_push=956 free_pop=860 slot_wait_spins=0 checked_bytes=1261440 threads=12 check=lane8
+--- board state (after) ---
+BID_0x04=Read 32-bit value at address 0x4 (0x7308f7d9f004): 0x00000028
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x7bb0ef84d008): 0x00000000
+CARRIER=1
+(empty = no leftover processes)
+### K0M_END tag=B4 1792203660.163805400

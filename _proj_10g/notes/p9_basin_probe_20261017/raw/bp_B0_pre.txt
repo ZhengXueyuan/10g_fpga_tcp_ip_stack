@@ -1,0 +1,19 @@
+SNAP_BEGIN B0_PRE gen=2
+W5   0x34   gmii_free_FE           0x32a09e7a
+W20  0x70   mac_tx_frames          0x00000462
+W43  0xCC   mtx_stat_tx_words      0x30c72c78
+W51  0xEC   app_tx_bytes           0x00000000
+W52  0xF0   app_tx_frames          0x00000000
+W55  0xFC   tx_stat_retx           0x00000000
+W66  0x128  tx_stat_winstall       0x00000000
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x00000000
+W69  0x134  tx_win_at_winstall     0x00000000
+W63  0x11C  app_frmwait_cyc        0x00000000
+W64  0x120  app_bp_cyc             0x00000000
+W65  0x124  mac_tx_idle            0x30c6fbb6
+W71  0x13C  app_stat_up_ev         0x00000000
+W72  0x140  app_stat_sw_req        0x00000000
+W73  0x144  app_stat_sw_apply      0x00000000
+W74  0x148  app_stat_up_pend       0x00000000
+SNAP_END B0_PRE nff=0
