@@ -128,18 +128,18 @@ BOARD_IP=192.168.100.2
 MYIP=192.168.100.100
 DEV=/dev/xdma0_user
 TOOLS=/home/a/xdma_test/dma_ip_drivers-patched/XDMA/linux-kernel/tools
-EXPECT_BID=${EXPECT_BID:-0x00000028}      # P9 E12 观测计数器 = 0x28 (源码 board/wrapper_p4.v 的 BUILD_ID_V; 原 0x27 = 换流门 R5 / 0x26 = RFC seq 修复)
+EXPECT_BID=${EXPECT_BID:-0x0000002A}      # p9 孤儿修复 = 0x2A (源码 board/wrapper_p4.v 的 BUILD_ID_V; 原 0x29 = 0x29 拆刀 / 0x28 = P9 E12)
 # ⛔ 2026-10-07 Stage C 同步轮: 原句 = "P7B-WU 二轮 = 9"; 读 Build 2 (63 字 / BID 9) 覆盖 EXPECT_BID=0x00000009
 # ⛔ 2026-10-10 订正 (构建 C 门同步轮): 原默认 0x0000000A (P7b Stage C 63 字) ⇒ 现役 = **17 / 65 字**。
 #    ⚠️ 默认 `EXPECT_BID` 与默认 `SNAP_WORDS` **必须同代** (后者本轮已 = 65): 不同代 ⇒ G1 身份红 +
 #    B_WIN "窗口不完整" 红 (假红)。读旧位流: Stage C 63 字 = `EXPECT_BID=0x0000000A SNAP_WORDS=63`;
 #    WU 二轮 / Build 2 = `EXPECT_BID=0x00000009 SNAP_WORDS=63`。
-SNAP_WORDS=${SNAP_WORDS:-75}
-UNIMPL_ADDR=${UNIMPL_ADDR:-$(printf '0x%X' $(( 0x20 + 4*SNAP_WORDS + 16 )))}   # 75 ⇒ 0x15C (P9 E12 起; 71 ⇒ 0x14C (M1 期B); 70 字及更早 = 0x138/0x12C/0x128/0x124/0x11C/0x114/0xEC —— 读旧位流须显式覆盖)
+SNAP_WORDS=${SNAP_WORDS:-76}
+UNIMPL_ADDR=${UNIMPL_ADDR:-$(printf '0x%X' $(( 0x20 + 4*SNAP_WORDS + 16 )))}   # 76 ⇒ 0x160 (p9 孤儿修复起; 75 ⇒ 0x15C (P9 E12); 71 ⇒ 0x14C (M1 期B); 70 字及更早 = 0x138/0x12C/0x128/0x124/0x11C/0x114/0xEC —— 读旧位流须显式覆盖)
 # ⚠️ 未实现地址的**公式 M1 起变了**: 旧 = `0x20 + 4*SNAP_WORDS` (63/65/66/67/70 字各代成立);
 #    M1 期B 起 = `0x20 + 4*SNAP_WORDS + 16` (快照末字后接 MIR_STATUS/DATA/CTRL/DMA_CNT 四字)
-#    ⇒ 71 字 = **0x14C** (M1 期B); ⭐ P9 E12 起 75 字 = **0x15C**。
-#    ⚠️ 读旧位流 (≤71 字) 必须显式 `UNIMPL_ADDR=` 覆盖, 否则默认值会指到真字。
+#    ⇒ 71 字 = **0x14C** (M1 期B); ⭐ P9 E12 起 75 字 = **0x15C**; ⭐ p9 孤儿修复起 76 字 = **0x160**。
+#    ⚠️ 读旧位流 (≤75 字) 必须显式 `UNIMPL_ADDR=` 覆盖, 否则默认值会指到真字。
 #    红线不变 (读侧译码 7 位 ⇒ **绝不能挑 ≥0x200**)。
 W32=$((1<<32))
 NIC_GOOD_MIN=${NIC_GOOD_MIN:-100000}      # 增量阈值 (帧): 背景 0.1~0.5 帧/s, 差 6 个数量级

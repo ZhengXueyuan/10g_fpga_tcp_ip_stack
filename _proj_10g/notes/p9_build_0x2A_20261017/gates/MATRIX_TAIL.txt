@@ -1,0 +1,40 @@
+EXIT=0
+--- last 6 lines of _gate_console.log
+| F3R WITNESS dp_rst_dp RISE at 3300000 (t0)
+| F3R WITNESS dp_rst_dp FALL at 15338000 (t1) stall_edges=0 (Â∫î=0) rstwin_edges=6 (Â∫î>0)
+| F3R SHAPE ndel=8 whole=8 frag=0 stale_frag=0 trunc_with_crs=0 unrec=0 srco_nz=0
+| F3R POP-ACCT pop_pre=32 pop_rst=0 pop_post=64 taken_all=96 taken_post=64 rsw=0 mirror=0
+| F3R CHK J1=1 J2=1 J3eq=1 J3pos=0 J4=1 J5=1 J6=1 ALL=1
+| F3-RESYNC-GATE: PASS 
+---
+=== GATE swc : sim\p9_swc_gate\run_tb_p9_swc.bat    [env ]   [cwd D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\work_20261017_140918\swc]
+[P4GUARD OK] checkpaths: 8 paths inside d:\repo\xcku5pmini\udp_hls_10g
+[P4GUARD OK] manifestcheck run_tb_p9_swc.bat: 6 files == manifest D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\swcg_src.f
+[P4GUARD OK] scanlog: 1 files, 11 path tokens, 0 outside the repo
+EXIT=0
+--- last 6 lines of _gate_console.log
+| RSRC=D:\repo\XCKU5PMini\udp_hls_10g\sim\p9_swc_gate\head_app_pattern.v DEFS=-d P9_HEAD_RTL -d P9_EXP_HEAD -d P7B_10G 
+| RSRC=D:\repo\XCKU5PMini\udp_hls_10g\rtl\app_pattern.v DEFS=-d P9_SWC_OFF -d P9_EXP_HEAD 
+| RSRC=D:\repo\XCKU5PMini\udp_hls_10g\sim\p9_swc_gate\mut\m6_v1_eq.v DEFS=-d P9_SWC_ARM -d P9_EXP_M6 
+| RSRC=D:\repo\XCKU5PMini\udp_hls_10g\sim\p9_swc_gate\mut\m6b_closing_drop.v DEFS=-d P9_SWC_ARM -d P9_EXP_M6B 
+| RSRC=D:\repo\XCKU5PMini\udp_hls_10g\sim\p9_swc_gate\mut\m7_guard_swpend.v DEFS=-d P9_SWC_ARM -d P9_EXP_M7 
+| P9-SWC-GATE: PASS 
+---
+--- revision fingerprint (after) ---
+[P4GATE] fingerprint written: D:\repo\XCKU5PMini\udp_hls_10g\sim\p4sim\P4_MATRIX_FINGERPRINT_20261017_140918_after.txt
+DIGEST_COMPILE = 23e5fefe9d4fd0e0260cd19826eb3631ea1a58084061eb6c282f555b5c0cd6bb
+FILES_COMPILE  = 221
+DIGEST_ALL     = 6d6ac35a0bdb0c52932f7f0d8136a0ed08a446e738f63bcb33a241ca97f522d3
+FILES_ALL      = 272
+GIT_HEAD       = 3d5a8262
+--- freeze check ---
+BEFORE  DIGEST_COMPILE=23e5fefe9d4fd0e0260cd19826eb3631ea1a58084061eb6c282f555b5c0cd6bb  FILES=221  DIGEST_ALL=6d6ac35a0bdb0c52932f7f0d8136a0ed08a446e738f63bcb33a241ca97f522d3  HEAD=3d5a8262
+AFTER   DIGEST_COMPILE=23e5fefe9d4fd0e0260cd19826eb3631ea1a58084061eb6c282f555b5c0cd6bb  FILES=221  DIGEST_ALL=6d6ac35a0bdb0c52932f7f0d8136a0ed08a446e738f63bcb33a241ca97f522d3  HEAD=3d5a8262
+VERDICT: FROZEN -- all 272 hashed files byte-identical across the run; this log is bound to revision DIGEST_ALL(content)=26af7c31608376e1e3413e12ec0efb521b8220f95c8f6d36b4df38c1cf9f708b
+NOTE: the stored DIGEST_ALL in these files was produced by the pre-content-v1 scheme (it included size/mtime): before=6d6ac35a0bdb0c52932f7f0d8136a0ed08a446e738f63bcb33a241ca97f522d3 after=6d6ac35a0bdb0c52932f7f0d8136a0ed08a446e738f63bcb33a241ca97f522d3
+NOTE: the verdict is content identity only -- file mtimes are recorded as metadata but are not part of it.
+--- summary ---
+gate filter : (none -- all 19)
+gates run   : 19 / 19
+gates failed: 0
+MATRIX DONE 2026/10/17 ÷‹¡˘ 14:36:24.98

@@ -26,7 +26,13 @@ module tb_biz_win;
     // ⭐ M1 (2026-10-11): 70 -> 71 (= wrapper 的 SNAP_NW_P6E; 新末字 W70 = app_rx_mirror.drop_bytes)。
     //   ⚠️ 本 TB 的 NW 必须**跟住 wrapper 的地图** —— 它是『地址 <-> 字』这一半的单元门
     //   (另一半 = check_window.py 的装配静态核对)。
-    localparam integer NW = 75;  // = wrapper 的 SNAP_NW_P6E (P9 E12; 原 71 = M1 / 70 = 构建 F / 61/63/65/66/67)
+    localparam integer NW = 76;  // = wrapper 的 SNAP_NW_P6E (p9 孤儿修复; 原 75 = P9 E12 / 71 = M1 / 70 = 构建 F)
+    // ⭐ p9 孤儿修复 (2026-10-17): MIR 地址**由 NW 派生** (不再写死; 每代自动跟随)
+    localparam [31:0] MIR_STATUS_A = 32'h20 + NW*4;       // 0x150 @NW=76 (快照末字后第一格; +16 是 UNIMPL)
+    localparam [31:0] MIR_DATA_A   = MIR_STATUS_A + 4;    // 0x154
+    localparam [31:0] MIR_CTRL_A   = MIR_STATUS_A + 8;    // 0x158
+    localparam [31:0] MIR_DMA_A    = MIR_STATUS_A + 12;   // 0x15C
+    localparam [31:0] UNIMPL_A     = MIR_STATUS_A + 16;   // 0x160
 
     reg clk = 0, rst_n = 0;
     always #5 clk = ~clk;
@@ -52,7 +58,7 @@ module tb_biz_win;
     reg  [2:0]  fe_state   = 3'b101;      // → SNAP_STATUS[5:3]
     reg         locked_axi = 1'b1;        // → SNAP_STATUS[6]
 
-    axi_regs #(.MAGIC_V(32'h50360001), .BUILD_ID_V(32'h00000008), .SNAP_NW(NW)) u_dut (
+    axi_regs #(.MAGIC_V(32'h50360001), .BUILD_ID_V(32'h0000002A), .SNAP_NW(NW)) u_dut (
         .clk(clk), .rst_n(rst_n),
         .s_axil_awaddr(awaddr), .s_axil_awprot(awprot), .s_axil_awvalid(awvalid), .s_axil_awready(awready),
         .s_axil_wdata(wdata), .s_axil_wstrb(wstrb), .s_axil_wvalid(wvalid), .s_axil_wready(wready),
@@ -65,7 +71,7 @@ module tb_biz_win;
         // ⭐ M1: 载荷镜像窗的 tie-off 常量 (v2 §V1.4 的 ¬DP_156MHZ 表: level=0/empty=1/dout=0/any_drop=0)
         // ⭐ 期 B: mir_dma_cnt 用**互不相同**的常数 (判据 11j 靠"地址↔值"映射判它没接错)
         .mir_level(9'd0), .mir_empty(1'b1), .mir_dout(32'd0), .mir_any_drop(1'b0),
-        .mir_dma_cnt(32'hD0C0_0148),
+        .mir_dma_cnt(32'hD0C0_015C),
         .mir_pop(mir_pop), .mir_ctrl(mir_ctrl)
     );
 
@@ -147,7 +153,7 @@ module tb_biz_win;
 
         // ---- 判据 1: 身份 (前置闸读的那两项) ----
         axil_rd(32'h00, v, resp); chk("1a MAGIC", v, 32'h50360001);
-        axil_rd(32'h04, v, resp); chk("1b BUILD_ID", v, 32'h00000008);
+        axil_rd(32'h04, v, resp); chk("1b BUILD_ID", v, 32'h0000002A);
         axil_rd(32'h14, v, resp); chk("1c MARKER (地址译码)", v, 32'hDEADBEEF);
 
         // ---- 判据 2: 触发 + 注入一束**逐字唯一**的数据 ----
@@ -191,7 +197,7 @@ module tb_biz_win;
         // ⭐ 期 B (2026-10-11): 再插第 4 个字 MIR_DMA_CNT@0x148 ⇒ 后移 **16 B**;
         //   未实现地址 = 0x20+4*NW+16 = **0x14C** (@NW=71)。
         axil_rd(32'h20 + NW*4 + 16, v, resp);
-        chk("6a 未实现地址 (0x20+4*NW+16 = 0x14C @NW=71) 回 0", v, 32'h0000_0000);
+        chk("6a 未实现地址 (0x20+4*NW+16 = 0x160 @NW=76) 回 0", v, 32'h0000_0000);
         chkresp("6b 未实现地址 rresp = SLVERR", resp, 2'b10);
 
         // ---- 判据 7: **回绕红线的实测位置** (本轮把译码 6 位 → 7 位的直接后果) ----
@@ -249,36 +255,37 @@ module tb_biz_win;
         //   dma_cnt=0xD0C00148) ⇒ 这里验: 地址映射 + 空读哨兵/underflow sticky +
         //   MIR_CTRL 写/读回 (含期 B 的 bit3) + clr 清 sticky + 未实现地址边界。
         //   **活体镜像 + 真 C2H 环**那一半由 sim/p6e_pcie/run_tb_p6e_pcie.bat 的全链门覆盖。
-        axil_rd(32'h13C, v, resp);
+        axil_rd(MIR_STATUS_A, v, resp);
         // ⛔ 2026-10-11 (M1 期 A): ver 1 → **2** (MIR 寄存区块加了 src_sel 位)。本判据的
         //    切片 {v[31:23]} 现在**含** bit23 = src_sel (复位 = 0) ⇒ 期望值仍为 0。
         // ⛔ 2026-10-11 (M1 期 B): ver 2 → **3** (MIR_CTRL 加 bit3 = dma_en + 新字 MIR_DMA_CNT)。
-        chk("11a MIR_STATUS: level==0 / ver==3 / cap==0 / unf==0 / src_sel==0",
-            {v[31:23], v[22:19], v[18], v[16], v[15:0]}, {9'd0, 4'd3, 1'b0, 1'b0, 16'd0});
+        // ⛔ 2026-10-17 (p9 孤儿修复): ver 3 → **4** (P9 的 MIR_DMA_CNT 口径变更; 真值源 `axi_regs.v:327`)。
+        chk("11a MIR_STATUS: level==0 / ver==4 / cap==0 / unf==0 / src_sel==0",
+            {v[31:23], v[22:19], v[18], v[16], v[15:0]}, {9'd0, 4'd4, 1'b0, 1'b0, 16'd0});
         chkresp("11b MIR_STATUS 读 rresp = OKAY", resp, 2'b00);
-        axil_rd(32'h140, v, resp);
+        axil_rd(MIR_DATA_A, v, resp);
         chk("11c 空读 MIR_DATA = 哨兵 0x5A5A5A5A (响亮值)", v, 32'h5A5A5A5A);
-        axil_rd(32'h13C, v, resp);
+        axil_rd(MIR_STATUS_A, v, resp);
         chk("11d 空读后 unf_sticky 置位 (权威证据)", {31'd0, v[16]}, 32'd1);
-        axil_wr(32'h144, 32'h3, 4'hF, resp);
+        axil_wr(MIR_CTRL_A, 32'h3, 4'hF, resp);
         chkresp("11e 写 MIR_CTRL=0x3 rresp = OKAY", resp, 2'b00);
-        axil_rd(32'h144, v, resp);
+        axil_rd(MIR_CTRL_A, v, resp);
         chk("11f MIR_CTRL 读回 == 0x3 ([0]cap [1]clr)", v, 32'h0000_0003);
-        axil_rd(32'h13C, v, resp);
+        axil_rd(MIR_STATUS_A, v, resp);
         chk("11g 写 0x3 后: capture_on==1 且 unf 已清", {v[18], v[16]}, 2'b10);
         // ---- 未实现地址边界 (期 B: 0x148 → 0x14C) ----
-        axil_rd(32'h14C, v, resp);
-        chk("11h 读 0x14C (未实现) 回 0", v, 32'h0000_0000);
-        chkresp("11h2 读 0x14C rresp = SLVERR", resp, 2'b10);
-        axil_wr(32'h14C, 32'hDEAD_0000, 4'hF, resp);
-        chkresp("11i 写 0x14C = SLVERR (白名单仍只有 0x08/0x18/0x144)", resp, 2'b10);
+        axil_rd(UNIMPL_A, v, resp);
+        chk("11h 读 0x160 (未实现) 回 0", v, 32'h0000_0000);
+        chkresp("11h2 读 0x160 rresp = SLVERR", resp, 2'b10);
+        axil_wr(UNIMPL_A, 32'hDEAD_0000, 4'hF, resp);
+        chkresp("11i 写 0x160 = SLVERR (白名单仍只有 0x08/0x18/0x144)", resp, 2'b10);
         // ---- ⭐ 期 B: MIR_DMA_CNT (0x148) 的"地址↔值"映射 + bit3 (dma_en) 写读回 ----
-        axil_rd(32'h148, v, resp);
-        chk("11j MIR_DMA_CNT @0x148 读回 tie-off 常数 (地址映射对)", v, 32'hD0C0_0148);
+        axil_rd(MIR_DMA_A, v, resp);
+        chk("11j MIR_DMA_CNT @0x15C 读回 tie-off 常数 (地址映射对)", v, 32'hD0C0_015C);
         chkresp("11k MIR_DMA_CNT rresp = OKAY (它是**已实现**字)", resp, 2'b00);
-        axil_wr(32'h144, 32'h8 | 32'h3, 4'hF, resp);        // [3]dma_en=1 + [0]cap + [1]clr
+        axil_wr(MIR_CTRL_A, 32'h8 | 32'h3, 4'hF, resp);        // [3]dma_en=1 + [0]cap + [1]clr
         chkresp("11l 写 MIR_CTRL=0xB rresp = OKAY", resp, 2'b00);
-        axil_rd(32'h144, v, resp);
+        axil_rd(MIR_CTRL_A, v, resp);
         // ⚠️ bit1 是 **toggle** (写 1 翻转) ⇒ 读回值 = 翻转奇偶性, 不能整字比 (11e 已翻过一次
         //    ⇒ 本笔写完 bit1 = 0)。只判三个**语义位**: [3]dma_en / [2]src_sel / [0]cap_en。
         chk("11m MIR_CTRL 读回: dma_en=1/cap_en=1/src_sel=0 (掩 bit1 toggle)",

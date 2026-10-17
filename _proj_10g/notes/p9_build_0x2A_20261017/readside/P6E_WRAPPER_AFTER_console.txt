@@ -1,0 +1,159 @@
+  [PASS] 1  MAGIC = 50360001
+  [PASS] D (pÿÿÿ­ÿÿÿ¿ÿÿÿåÿÿÿÿÿÿº = 0x2A) = 0000002a
+  [PASS] 3  MARKER = deadbeef
+  [PASS] 4  HW_STATUS.bit3 = user_lnk_up = 1 (æ›¿èº«å·²æŠ¥é“¾è·¯èµ·)
+  [INFO] W5(gmii_free): 000000a2 -> 00000881
+  [PASS] 5  gmii åŸŸè‡ªç”±è®¡æ•°åœ¨è·‘ (å¿«ç…§ CDC çœŸçš„åœ¨æ¬æ•°)
+  [INFO] W5(fe)=2193->6211 (Î”4018)  W24(dp)=2743->7766 (Î”5023)
+  [PASS] 5b Î”W24/Î”W5 = 5023/4018 = 1.2501 âˆˆ [1.24, 1.26] â‡’ æ•°æ®é¢è·‘åœ¨ 156.25MHz (1.25Ã—125MHz)
+  [PASS] locked == 1 (DP ÿÿÿéÿÿÿºÿÿÿÿÿš) = 00000001
+  [PASS] 6 W0 = rx_stat_frames = 11111111
+  [PASS] 6 W1 = rx_stat_bytes = 22222222
+  [PASS] 6 W2 = {16'd0,wl_last} = 0000abcd
+  [PASS] 6 W3 = rx_stat_crc_err = 33333333
+  [PASS] 6 W4 = rx_stat_drop = 44444444
+  [PASS] 6 W6 = srx_stat_commit = 66666666
+  [PASS] 6 W7  = stx_stat_frames = 77777777
+  [PASS] 6 W8  = udpapp_tx_frames = 88888888
+  [PASS] 6 W9  = udpapp_tx_bytes = 99999999
+  [PASS] 6 W10 = udpapp_rx_frames = aaaaaaaa
+  [PASS] 6 W11 = udpapp_rx_bytes = bbbbbbbb
+  [PASS] 6 W12 = udpapp_rx_null = cccccccc
+  [PASS] 6 W13 = udpapp_mismatch = dddddddd
+  [PASS] 6 W14 = tx_stat_frames (TCP) = eeeeeeee
+  [PASS] 6 W15 = tx_stat_bytes (TCP) = ffffffff
+  [PASS] 6 W16 = srx_hls_bytes = 01020304
+  [PASS] 6 W17 = hr_cnt = 05060708
+  [PASS] 6 W18 = stx_stat_purge = 090a0b0c
+  [PASS] 6 W19 = srx_stat_drop = 0d0e0f10
+  [PASS] 6 W20 = mac_tx_frames = 11121314
+  [PASS] 6 W21 = tx_stat_abort = 15161718
+  [PASS] 6 W22 = rx_stat_pass = 191a1b1c
+  [PASS] 6 W23 = rx_stat_nonmatch = 1d1e1f20
+  [PASS] 6 W26 = rxcdc_full_cycles = 21222324
+  [PASS] 6 W27 = {16'd0,rxcdc_occ_max} = 00002526
+  [PASS] 6 W28 = {16'd0,txcdc_occ_max} = 00002728
+  [PASS] 6 W29 = txwire_stall_cycles = 292a2b2c
+  [PASS] 6 W30 = rxcdc_out_frames = 2d2e2f30
+  [PASS] 6 W31 = rxcdc_out_bytes = 31323334
+  [PASS] 6 W32 = stat_drop_partial (C10) = 35363738
+  [PASS] 6 W33 = stat_orphan_bytes (C10) = 393a3b3c
+  [PASS] 6 W34 = stat_drop_full = 3d3e3f40
+  [PASS]  stat_fifo_ovf (ÿÿ’ ÿÿÿÿÿÿ·ÿÿ) = 41424344
+  [PASS] 6 W70 = u_mir.drop_bytes (M1) = 4d494d31
+  [PASS] 6 W71 = u_app.stat_up_ev (E12) = 71717171
+  [PASS] 6 W72 = u_app.stat_sw_req (E12) = 72727272
+  [PASS]  W73 = u_app.stat_sw_apply (E12) = 73737373
+  [PASS] 6 W74 = u_app.stat_up_pend (E12) = 74747474
+  [PASS] ning) frozen while not triggered = 00001861
+  [PASS] 8  gen æ°å¥½ +1 (5 -> 6)
+  [PASS] 9  unimpl 0x160 => rresp=SLVERR = 00000002
+  [PASS] M1-0a idle level == 0 = 00000000
+  [PASS] M1-0b idle unf_sticky == 0 = 00000000
+  [PASS] M1-1a ctrl: capture_on == 1 = 00000001
+  [PASS] evel == 2 (8B = 2 logical words) = 00000002
+  [PASS] M1-2b any_drop == 0 (no drop) = 00000000
+  [PASS] M1-3a content == 0xA1A6A7A4 = a1a6a7a4
+  [PASS] == 1 (dec by 1, stash holds 2nd) = 00000001
+  [PASS] 1 == 0xADA2A3A0 (0x08^0xA5=0xAD) = ada2a3a0
+  [PASS] M1-3d level == 0 (both popped) = 00000000
+  [PASS] M1-4a pre: level == 2 = 00000002
+  [PASS] 4b lvl unchanged == 2 (S1 tooth) = 00000002
+  [PASS] M1-5a 0x160 rresp = SLVERR = 00000002
+  [PASS] M1-5b lvl unchanged == 2 = 00000002
+  [PASS] M1-6a 0x100 bresp = SLVERR = 00000002
+  [PASS] M1-6b lvl unchanged == 2 = 00000002
+  [PASS] M1-7a word2 == 0x81868784 = 81868784
+  [PASS] M1-7a2 word3 == 0x8D828380 = 8d828380
+  [PASS] M1-7b empty read = MIR_SENT = 5a5a5a5a
+  [PASS] M1-7c unf_sticky set = 00000001
+  [PASS] M1-7d level still == 0 = 00000000
+  [PASS] M1-8a unf_sticky cleared = 00000000
+  [PASS] M1-8b cap_en kept by clr = 00000001
+  [INFO] M1-9 W70: 4d494d31 -> 4d494e79 (çˆ†å‘ 300 æ‹ x 8B/æ‹)
+  [PASS] M1-9a dW70 > 0 (æ‹’æ”¶è¢«è®¡åˆ° + å¿«ç…§è·¯å¾„çœŸ)
+  [PASS] M1-9b any_drop_sticky == 1 = 00000001
+  [INFO] M1-11 DMA_CNT: 00000000 -> 00000258 ; W70: 4d494e79 -> 4d494e79 ; level=0
+  [PASS]  0 (structural drop unreachable) = 00000000
+  [PASS] _CNT == 600 (300x8B = 600 words) = 00000258
+  [PASS] M1-11c level == 0 after drain = 00000000
+  [PASS] M1-10a1 src_sel readback == 1 = 00000001
+  [PASS] M1-10a2 capture_on == 1 = 00000001
+  [PASS] M1-10a3 cÿÿÿåÿÿÿš„ level == 0 = 00000000
+  [PASS]  UDPÿÿÿªÿÿÿéÿÿÿ¸­ => levÿÿÿäÿ 0 = 00000000
+  [PASS] 10c1 TCPÿÿÿ«ÿÿÿäÿ­ => level == 2 = 00000002
+  [PASS] 10c2 TCPÿÿÿ½ÿÿÿåÿ— == 0xA1A6A7A4 = a1a6a7a4
+  [PASS] ÿÿÿ“ => level == 3 (ÿÿª TCP, +2) = 00000003
+  [PASS] ÿÿÿ‹ÿÿÿŒÿÿ“ ÿÿÿåÿ— 1ÿÿÿ¯ TCPÿÿÿ§ = ada2a3a0
+  [PASS] ÿÿ— 2 == 0xE19687B4 (TCPÿÿÿ° 8B) = e19687b4
+  [PASS] M1-10e1 src_sel readback == 0 = 00000000
+  [PASS] ÿÿÿÿÿ TCP ÿÿÿèÿÿÿ´¦ => level 0 = 00000000
+  [PASS] ÿÿÿ‡ÿÿÿåÿ Uÿÿÿèÿÿÿ´¦ => level 2 = 00000002
+  [PASS] 10e4 UDPÿÿÿ½ÿÿÿåÿ— == 0xFDF2F3F0 = fdf2f3f0
+  [PASS] ÿÿÿ˜ÿÿÿ¯ÿÿÿçÿÿÿ­— (cÿÿÿåÿ == 0) = 00000000
+  [PASS] sel=0/dma_en=1 (ÿÿ© bit1 toggle) = 00000005
+  [PASS] ver == 4 (P9ÿÿÿÿÿÿ„ÿÿÿæÿ´ bump) = 00000004
+  [PASS] ÿÿÿ­ÿÿÿ…ÿÿÿæÿÿÿˆÿÿÿÿÿÿ—ÿÿÿ…ÿÿ¶) = 00000000
+  [PASS] P9-B-1bÿÿÿÿÿ° == 1 = 00000001
+  [PASS] ÿÿÿ®¹ ==ÿÿÿ‹ÿÿÿéÿš {w3,w2,w1,w0} = e1e6e7e49196979481868784b1b6b7b4
+  [PASS] 9-B-1d tkeep == FFFFÿÿÿÿÿÿ«ÿÿ) = 0000ffff
+  [PASS] ÿÿˆ ÿÿÿåÿÿÿµÿÿÿ€ÿÿÿæÿÿÿ™ÿÿÿ¿ÿÿ…) = 00000000
+  [PASS] ÿÿÿäÿÿÿ¬ÿÿÿ¤ÿÿ˜ ÿÿÿ¸ª 32ÿÿÿÿÿ—) = 00000004
+  [PASS] ÿÿÿåÿÿÿÿÿÿ­ÿÿ€:ÿÿÿ  keeÿÿÿ¿ÿÿÿ„ = 00000000
+  [PASS] P9-B-ÿÿÿæÿÿÿ¶ÿÿÿ¶ = 00000000
+  [PASS] P9-B-ÿÿÿæÿÿÿ•° == 5 (1+4) = 00000005
+  [PASS] P9-B-2c MIR_DMA_CNT == 20 (4+16) = 00000014
+  [PASS] -B-2ÿÿÿ‹ÿÿÿ…ÿÿÿéÿÿÿ‹ (beat 1+i) = c0de0007c0de0006c0de0005c0de0004
+  [PASS] -B-2ÿÿÿ‹ÿÿÿ…ÿÿÿéÿÿÿ‹ (beat 1+i) = c0de000bc0de000ac0de0009c0de0008
+  [PASS] -B-2ÿÿÿ‹ÿÿÿ…ÿÿÿéÿÿÿ‹ (beat 1+i) = c0de000fc0de000ec0de000dc0de000c
+  [PASS] -B-2ÿÿÿ‹ÿÿÿ…ÿÿÿéÿÿÿ‹ (beat 1+i) = c0de0013c0de0012c0de0011c0de0010
+  [PASS] eadyÿÿÿâÿÿÿäÿÿÿ‹ÿÿÿ½ÿÿÿèÿÿÿ”ÿÿÿ‹ = 00000000
+  [PASS] ÿÿÿåÿÿÿ»¡ (20 + 4 grant x2 = 28) = 0000001c
+  [PASS] ‰ dma_req** ÿÿÿ ÿÿÿéÿÿÿ¸ÿÿÿ·ÿÿ‚) = 00000000
+  [INFO] P9-B-3 W70: 4d494e79 -> 4d49fea1 (æ³¨å…¥ 20000 æ‹ = 80000 B, ä¸‹æ¸¸åœæ”¶)
+  [INFO] P9-B-3 dW70 = 45096 B (å¼¹æ€§ä¸Šç•Œé¢„ç®— = 35840 B, å®æµ‹å¸æ”¶ = 34904 B)
+  [PASS] P9-B-3d lower leg: dW70 >= inject - elastic_max (= 44160)
+  [PASS] P9-B-3ÿÿÿÿÿÿÿÿÿæÿÿÿ¶ÿÿÿ¶ = 00000000
+  [INFO] P9-B-3 delivered words = 8746 ; beats = 2181 ; keep_bad = 0
+  [PASS] ÿÿÿÿÿÿÿÿÿæÿ  keep ÿÿÿåÿÿÿ¿ÿÿÿ„ = 00000000
+  [INFO] P9-B-3 close: injected=20000 w, dW70/4=11274 w, expected_delivered=8726 w, delivered=8726 w
+  [PASS] P9-B-3h upper leg: delivered == inject - dW70/4 (Â±1)
+  [PASS] ÿÿ¹ == goldeÿÿÿ‰ÿÿÿ€ÿÿÿ—ÿÿÿŸÿÿ) = dead0003dead0002dead0001dead0000
+  [PASS] ÿÿ¹ == goldeÿÿÿ‰ÿÿÿ€ÿÿÿ—ÿÿÿŸÿÿ) = dead0007dead0006dead0005dead0004
+  [PASS] ÿÿ¹ == goldeÿÿÿ‰ÿÿÿ€ÿÿÿ—ÿÿÿŸÿÿ) = dead000bdead000adead0009dead0008
+  [PASS] ÿÿ¹ == goldeÿÿÿ‰ÿÿÿ€ÿÿÿ—ÿÿÿŸÿÿ) = dead000fdead000edead000ddead000c
+  [PASS] tvalid=0ÿÿÿÿÿÿÿÿÿåÿÿÿÿÿÿ´ÿÿ) = 00000000
+  [PASS] B-4b fluÿÿÿæÿÿÿ‡ÿÿÿ°ÿÿÿ—ÿÿÿ…ÿÿ¶) = 00000000
+  [PASS] P9-B-4c flushÿÿÿÿÿ° == 1 = 00000001
+  [PASS] ÿÿÿ¸ª 8 B} (ÿÿÿæÿÿÿ­ÿÿÿ‚ÿÿ¤ LSB) = 00000000000000005566778811223344
+  [PASS] ep == 00FF (ÿÿ¤ LSB ÿÿÿéÿÿÿ…¨ 0) = 000000ff
+  [PASS] P9-B-4f flusÿÿÿ‹ tlast == 1 = 00000001
+  [PASS] ÿÿÿåÿÿÿÿÿÿ­ÿÿ€:ÿÿÿ  keeÿÿÿ¿ÿÿÿ„ = 00000000
+  [PASS] ÿÿÿæÿÿÿ¹ÿÿÿ¡ÿÿÿäÿ˜ (ÿÿÿåÿÿÿº¿+2) = 00000002
+  [PASS] P9-B-5a clÿÿÿÿÿÿ¡ÿÿÿåÿÿÿ½ÿÿÿ¶ = 00000000
+  [PASS] en=0ÿÿÿ’ÿÿÿÿÿ¨ ÿÿÿ¡ÿÿÿåÿÿÿ» 0) = 00000000
+  [PASS] -5c dma_en=0ÿÿÿ’ÿÿÿ€ÿÿÿéÿÿÿ¸ÿÿÿ‘ = 00000000
+  [PASS] ÿÿÿ‡ÿÿÿ­ÿÿÿ™ÿÿ¨ leveÿÿÿ‡Œ (== 2) = 00000002
+  [PASS] ÿÿÿ° (== 2; ÿÿÿæÿÿÿ‚¹ = aux ÿÿ£) = 00000002
+  [PASS] ÿ FIFO ÿÿÿæÿÿÿ¹ÿÿÿ‡’ level == 0 = 00000000
+  [PASS] n=1 ÿÿ’ stopÿÿÿâÿÿÿäÿÿÿ‡ÿÿÿ«ÿÿ) = 00000000
+  [PASS] P9-B-5h clr drops residue = 00000000
+  [PASS] P9-B-5i clr: zero tlast beats = 00000000
+  [PASS] P9-B-5j clr: no keep viol = 00000000
+  [PASS] P9-B-5l clrÿÿÿÿÿÿæÿÿÿ½ÿÿÿ¶ = 00000000
+  [PASS] P9-B-5m0 half held (stop=0) = 00000000
+  [PASS] P9-B-5m1 clr drops residue = 00000000
+  [PASS] P9-B-5m2 clr: zero tlast = 00000000
+  [PASS] P9-B-5m3 clrÿÿÿÿÿÿæÿÿÿ½ÿÿÿ¶ = 00000000
+  [PASS] P9-B-5m4 new head (no tmo) = 00000000
+  [PASS] P9-B-5m5 new window 1 beat = 00000001
+  [PASS] P9-B-5m6 head == new words = 44444444333333332222222211111111
+  [PASS] P9-B-5m7 head keep == FFFF = 0000ffff
+  [PASS] P9-B-5m8 head tlast == 0 = 00000000
+  [PASS] P9-B-5m9 no keep viol = 00000000
+  [PASS] P9-B-5m10 count == 4 = 00000004
+  [PASS] P9-B-6a H2C tvalid å…¨è¢«å (tready æ’ 1; è®¡æ•° 50)
+  [PASS] P9-B-6b H2C å››æ¡è¾¹å¸¦çº¿çœŸæ¥ä¸Š (u_dut.mir_h2c_tvalid é Z/X)
+PASS_ALL  tb_p6e_pcie_wrapper: å…¨é“¾é—¨å…¨è¿‡
+INFO: xsimkernel Simulation Memory Usage: 117248 KB (Peak: 117248 KB), Simulation CPU Usage: 25328 ms
+INFO: [Common 17-206] Exiting xsim at Sat Oct 17 14:38:35 2026...

@@ -1,0 +1,137 @@
+##### [13] _proj_pcie/p7b_gate4_livefake.sh n=1
+---OLD---
+    bid = {71: "0x00000027", 70: "0x0000001E", 67: "0x00000019", 66: "0x00000018", 65: "0x00000017", 63: "0x0000000A", 61: "0x00000008", 51: "0x00000007"}.get(nw, "0x00000027")
+---NEW---
+    bid = {75: "0x00000028", 71: "0x00000027", 70: "0x0000001E", 67: "0x00000019", 66: "0x00000018", 65: "0x00000017", 63: "0x0000000A", 61: "0x00000008", 51: "0x00000007"}.get(nw, "0x00000028")
+
+##### [29] _proj_pcie/p7b_biz/p7b_snap.sh n=1
+---OLD---
+UNIMPL_ADDR=${UNIMPL_ADDR:-$(printf '0x%X' $(( 0x20 + 4*NW + 16 )))}   # 71 ⇒ 0x14C (M1 期B 起; 70 字及更早 = 0x138/0x12C/0x124/0x11C/0x114/0xEC —— 读旧位流须显式覆盖)
+---NEW---
+UNIMPL_ADDR=${UNIMPL_ADDR:-$(printf '0x%X' $(( 0x20 + 4*NW + 16 )))}   # 75 ⇒ 0x15C (P9 E12 起; 71 ⇒ 0x14C (M1 期B); 70 字及更早 = 0x138/0x12C/0x124/0x11C/0x114/0xEC —— 读旧位流须显式覆盖)
+
+##### [30] _proj_pcie/p7b_biz/p7b_snap.sh n=1
+---OLD---
+# ⭐ M1 (2026-10-11): W70 —— 载荷镜像的拒收字节数 (真值源 = wrapper 装配段 `p7bdp_dout[30*32 +: 32]`):
+[70]=mir_drop_bytes
+)
+---NEW---
+# ⭐ M1 (2026-10-11): W70 —— 载荷镜像的拒收字节数 (真值源 = wrapper 装配段 `p7bdp_dout[30*32 +: 32]`):
+[70]=mir_drop_bytes
+# ⭐ P9 E12 (2026-10-15): W71..W74 —— 换流门四观测计数器 (真值源 = wrapper 装配段
+#    `p7bdp_dout[31..34*32 +: 32]` / 槽 31..34):
+[71]=app_stat_up_ev      [72]=app_stat_sw_req     [73]=app_stat_sw_apply
+[74]=app_stat_up_pend
+)
+
+##### [33] _proj_pcie/p6e_snap_check.sh n=1
+---OLD---
+UNIMPL_ADDR=${UNIMPL_ADDR:-$(printf '0x%X' $(( 0x20 + 4*SNAP_WORDS + 16 )))}   # 71 ⇒ 0x14C (M1 期B 起; 70 字及更早 = 0x138/0x12C/0x124/0x11C/0xEC —— 读旧位流须显式覆盖)
+---NEW---
+UNIMPL_ADDR=${UNIMPL_ADDR:-$(printf '0x%X' $(( 0x20 + 4*SNAP_WORDS + 16 )))}   # 75 ⇒ 0x15C (P9 E12 起; 71 ⇒ 0x14C (M1 期B); 70 字及更早 = 0x138/0x12C/0x124/0x11C/0xEC —— 读旧位流须显式覆盖)
+
+##### [35] _proj_pcie/p6e_snap_check.sh n=1
+---OLD---
+ "mir_drop_bytes     (app_rx_mirror.drop_bytes: 载荷镜像拒收字节数; M1)" )
+---NEW---
+ "mir_drop_bytes     (app_rx_mirror.drop_bytes: 载荷镜像拒收字节数; M1)"
+ # ---- P9 E12 (2026-10-15) 新增 4 字 (71 → 75 字窗口; 换流门四观测计数器) ----
+ "app_stat_up_ev     (app_pattern.stat_up_ev: app 实收 ev_up 事件数; P9 E12)"
+ "app_stat_sw_req    (app_pattern.stat_sw_req: 换流收尾请求数 (ev_same_act); P9 E12)"
+ "app_stat_sw_apply  (app_pattern.stat_sw_apply: 换流应用数 (sw_apply); P9 E12)"
+ "app_stat_up_pend   (app_pattern.stat_up_pend: A3 异槽登记数 (ev_other_act); P9 E12)" )
+
+##### [41] _proj_pcie/p7b_gate4_selftest.sh n=1
+---OLD---
+if [ "$SW" -ge 71 ]; then
+  FAKE_TAIL='  0X114) V=1234;;  # W61 app_ctrl.stat_wu (次数; 非 0 才像真板)
+  0X118) V=0;;     # W62 app_ctrl.rx_occ_bytes (17 位 ⇒ 高位恒 0)
+  0X11C) V=0;;     # W63 app_pattern.stat_frmwait_cyc (停滞拍数; 0 = 无停顿)
+  0X120) V=0;;     # W64 app_pattern.stat_bp_cyc (背压拍数)
+  0X124) V=0;;     # W65 mac_tx_10g.stat_tx_idle (S_IDLE 拍数; 0 = 空载, 建 D 新增)
+  0X128) V=0;;     # W66 tcp_tx_frame.stat_winstall (窗口门停顿拍数, 建 E 新增)
+  0X12C) V=0;;     # W67 tcp_tx_frame.stat_winstall_cap (板帽侧等窗拍数, 建 F 新增)
+  0X130) V=0;;     # W68 tcp_rx.stat_ack_adv (推进 snd_una 的 ACK 次数, 建 F 新增)
+  0X134) V=0;;     # W69 tcp_tx_frame.o_win_at_winstall (等窗拍操作点锁存, 建 F 新增)
+  0X138) V=0;;     # W70 app_rx_mirror.drop_bytes (载荷镜像拒收字节数, M1 新增; 真字)
+  0X14C) V=${FAKE_UNIMPL:-0xffffffff};;   # 未实现地址 (71 字; M1 起 = 0x20+4*SW+16)'
+
+---NEW---
+if [ "$SW" -ge 75 ]; then
+  FAKE_TAIL='  0X114) V=1234;;  # W61 app_ctrl.stat_wu (次数; 非 0 才像真板)
+  0X118) V=0;;     # W62 app_ctrl.rx_occ_bytes (17 位 ⇒ 高位恒 0)
+  0X11C) V=0;;     # W63 app_pattern.stat_frmwait_cyc (停滞拍数; 0 = 无停顿)
+  0X120) V=0;;     # W64 app_pattern.stat_bp_cyc (背压拍数)
+  0X124) V=0;;     # W65 mac_tx_10g.stat_tx_idle (S_IDLE 拍数; 0 = 空载, 建 D 新增)
+  0X128) V=0;;     # W66 tcp_tx_frame.stat_winstall (窗口门停顿拍数, 建 E 新增)
+  0X12C) V=0;;     # W67 tcp_tx_frame.stat_winstall_cap (板帽侧等窗拍数, 建 F 新增)
+  0X130) V=0;;     # W68 tcp_rx.stat_ack_adv (推进 snd_una 的 ACK 次数, 建 F 新增)
+  0X134) V=0;;     # W69 tcp_tx_frame.o_win_at_winstall (等窗拍操作点锁存, 建 F 新增)
+  0X138) V=0;;     # W70 app_rx_mirror.drop_bytes (载荷镜像拒收字节数, M1 新增; 真字)
+  0X13C) V=0;;     # W71 app_pattern.stat_up_ev (换流门观测; P9 E12)
+  0X140) V=0;;     # W72 app_pattern.stat_sw_req (P9 E12)
+  0X144) V=0;;     # W73 app_pattern.stat_sw_apply (P9 E12)
+  0X148) V=0;;     # W74 app_pattern.stat_up_pend (P9 E12)
+  0X15C) V=${FAKE_UNIMPL:-0xffffffff};;   # 未实现地址 (75 字; = 0x20+4*SW+16)'
+elif [ "$SW" -ge 71 ]; then
+if [ "$SW" -ge 71 ]; then
+  FAKE_TAIL='  0X114) V=1234;;  # W61 app_ctrl.stat_wu (次数; 非 0 才像真板)
+  0X118) V=0;;     # W62 app_ctrl.rx_occ_bytes (17 位 ⇒ 高位恒 0)
+  0X11C) V=0;;     # W63 app_pattern.stat_frmwait_cyc (停滞拍数; 0 = 无停顿)
+  0X120) V=0;;     # W64 app_pattern.stat_bp_cyc (背压拍数)
+  0X124) V=0;;     # W65 mac_tx_10g.stat_tx_idle (S_IDLE 拍数; 0 = 空载, 建 D 新增)
+  0X128) V=0;;     # W66 tcp_tx_frame.stat_winstall (窗口门停顿拍数, 建 E 新增)
+  0X12C) V=0;;     # W67 tcp_tx_frame.stat_winstall_cap (板帽侧等窗拍数, 建 F 新增)
+  0X130) V=0;;     # W68 tcp_rx.stat_ack_adv (推进 snd_una 的 ACK 次数, 建 F 新增)
+  0X134) V=0;;     # W69 tcp_tx_frame.o_win_at_winstall (等窗拍操作点锁存, 建 F 新增)
+  0X138) V=0;;     # W70 app_rx_mirror.drop_bytes (载荷镜像拒收字节数, M1 新增; 真字)
+  0X14C) V=${FAKE_UNIMPL:-0xffffffff};;   # 未实现地址 (71 字; M1 起 = 0x20+4*SW+16)'
+
+
+##### [42] _proj_pcie/p7b_gate4_negctrl.sh n=1
+---OLD---
+                0 0 0 0)   # W51..W70 (M1: W70 = app_rx_mirror.drop_bytes)
+
+---NEW---
+                0 0 0 0 0 0 0 0)   # W51..W74 (M1: W70 = app_rx_mirror.drop_bytes; E12: W71..W74 = 换流门四观测计数器)
+
+
+##### [45] _proj_pcie/p7b_gate4_livefake.sh n=1
+---OLD---
+        + [0] * 20          # W51..W70 = P7B-BIZ/WU/C/D/E/F + M1 新增字 (accept 只要求窗口齐全 + 无 0xffffffff)
+---NEW---
+        + [0] * 24          # W51..W74 = P7B-BIZ/WU/C/D/E/F + M1 + P9 E12 新增字 (accept 只要求窗口齐全 + 无 0xffffffff)
+
+##### [47] _proj_pcie/p6e_snap_selftest_fix2.sh n=1
+---OLD---
+  0X14C) V=0xffffffff;;                                       # 未实现地址 (71 字; M1 起 = 0x20+4*SW+16)
+
+---NEW---
+  0X13C) V=0x00000000;;                                       # W71 app_pattern.stat_up_ev (75 字起; P9 E12)
+  0X140) V=0x00000000;;                                       # W72 app_pattern.stat_sw_req (P9 E12)
+  0X144) V=0x00000000;;                                       # W73 app_pattern.stat_sw_apply (P9 E12)
+  0X148) V=0x00000000;;                                       # W74 app_pattern.stat_up_pend (P9 E12)
+  0X15C) V=0xffffffff;;                                       # 未实现地址 (75 字; = 0x20+4*SW+16)
+
+
+##### [50] _proj_10g/notes/p7b_gate4_3/final_state.sh n=1
+---OLD---
+echo "W70=$(rd 0x138)  # M1: app_rx_mirror.drop_bytes (载荷镜像拒收字节数)"
+
+---NEW---
+echo "W70=$(rd 0x138)  # M1: app_rx_mirror.drop_bytes (载荷镜像拒收字节数)"
+echo "W71=$(rd 0x13c) W72=$(rd 0x140) W73=$(rd 0x144) W74=$(rd 0x148)  # P9 E12: 换流门四观测计数器 (up_ev / sw_req / sw_apply / up_pend)"
+
+
+##### [55] _proj_10g/p7b_chain/sim/tb_p7b_chain.v n=1
+---OLD---
+        u_dut.u_pcie_xdma.axil_read(32'h14C, v);
+        chk("7b 0x14C reads 0 no wrap",
+            (v === 32'h00000000) && (u_dut.u_pcie_xdma.last_rresp === 2'd2),
+            "axi_regs decode; 71-word bound (M1: 0x14C = 0x20+4*71+16; 原 70 字/0x138, 67 字/0x12C, 63 字/0x11C; 2026-10-11 M1 订正)");
+---NEW---
+        u_dut.u_pcie_xdma.axil_read(32'h15C, v);
+        chk("7b 0x15C reads 0 no wrap",
+            (v === 32'h00000000) && (u_dut.u_pcie_xdma.last_rresp === 2'd2),
+            "axi_regs decode; 75-word bound (P9 E12: 0x15C = 0x20+4*75+16; 原 71 字/0x14C, 70 字/0x138, 63 字/0x11C; 2026-10-15 E12 订正)");
+

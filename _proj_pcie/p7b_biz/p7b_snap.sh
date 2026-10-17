@@ -1,6 +1,10 @@
 #!/bin/bash
-# p7b_snap.sh -- 板侧快照窗口取数器 (**现役 = 75 字 / BID 0x28**; 标题原文 = "板侧 **63** 字
+# p7b_snap.sh -- 板侧快照窗口取数器 (**现役 = 76 字 / BID 0x2A**; 标题原文 = "板侧 **63** 字
 #   快照窗口的取数器 (P7b Stage C: BID=10 / SNAP_NW=63)" —— 那一代已过时, 见下逐代订正)
+#   ⭐ p9 孤儿修复 (2026-10-17): **字长 75 → 76** (W75 = `app_ctrl.stat_orphan` 孤儿回收计数)
+#      + 身份 0x29 → **0x2A**; 未实现地址 **0x15C → 0x160** (公式 `0x20+4*NW+16` 不变)。
+#   ⭐ 0x29 拆刀 (2026-10-17): 身份 0x28 → **0x29** (**字长/未实现地址不变** = 75 字 / 0x15C;
+#      `board/wrapper_p4.v` `.PERSIST_EN(1'b1) → (1'b0)` 单比特; 板级 LEGACY 两跑幽灵=有)。
 #   ⭐ P9 E12 观测计数器 (2026-10-15): **字长 71 → 75** (W71..W74 = 四观测计数器
 #      `stat_up_ev`/`stat_sw_req`/`stat_sw_apply`/`stat_up_pend`) + 身份 0x27 → **0x28**;
 #      未实现地址 **0x14C → 0x15C** (快照末字后仍是 MIR 四字; 公式 `0x20+4*NW+16` 不变)。
@@ -72,9 +76,9 @@ D=/dev/xdma0_user
 #   ⚠️ **NW 上限 = 119** (读侧译码 7 位 ⇒ 字 0..127; 快照从字 8 起; 负对照需留 1 个空字)。
 #      红线随之从"≥ 0x100 回绕" 改成 **"绝不能挑 ≥ 0x200"**
 #      (0x200 在 7 位译码下回绕到 word 0 = MAGIC ⇒ 假 FAIL)。
-NW=${NW:-75}
-UNIMPL_ADDR=${UNIMPL_ADDR:-$(printf '0x%X' $(( 0x20 + 4*NW + 16 )))}   # 75 ⇒ 0x15C (P9 E12 起; 71 ⇒ 0x14C (M1 期B); 70 字及更早 = 0x138/0x12C/0x124/0x11C/0x114/0xEC —— 读旧位流须显式覆盖)
-EXPECT_BID=${EXPECT_BID:-0x00000028}
+NW=${NW:-76}
+UNIMPL_ADDR=${UNIMPL_ADDR:-$(printf '0x%X' $(( 0x20 + 4*NW + 16 )))}   # 76 ⇒ 0x160 (p9 孤儿修复起; 75 ⇒ 0x15C (P9 E12); 71 ⇒ 0x14C (M1 期B); 70 字及更早 = 0x138/0x12C/0x124/0x11C/0x114/0xEC —— 读旧位流须显式覆盖)
+EXPECT_BID=${EXPECT_BID:-0x0000002A}
 # ⛔ 2026-10-07 Stage C: 原默认值 = 0x00000009 (P7B-WU 二轮 = 9)。
 # ⛔ 2026-10-10 (构建 C 门同步轮): 再上一代的默认 = **0x0000000A** (Stage C 63 字) ——
 #    现役 = **0x00000017** (65 字; 源码 `board/wrapper_p4.v` 的 `BUILD_ID_V = 32'h00000017`)。
@@ -134,7 +138,8 @@ declare -A NAME=(
  #          ⇒ W56 打出的是**拼错的名字**。已删。
  #    W61/W62 = **P7B-WU 二轮**新增 (stat_wu / rx_occ_bytes)。
  #    地址由 NW 派生: UNIMPL_ADDR = 0x20+4*63 = **0x11C** (⛔ 2026-10-10: 现役 NW=65 ⇒ **0x124**;
-#    ⭐ P9 E12: 现役 NW=75 / MIR 四字在中间 ⇒ **0x15C** = 0x20+4*75+16)。
+#    ⭐ P9 E12: 现役 NW=75 / MIR 四字在中间 ⇒ **0x15C** = 0x20+4*75+16);
+#    ⭐ p9 孤儿修复: (**现役 NW=76** / MIR 四字在中间 ⇒ **0x160** = 0x20+4*76+16)。
  #    逐字归属见 `board/wrapper_p4.v` 的装配段 (源码是唯一权威) 与
  #    `_proj_10g/notes/P7B_BIZ_WINDOW.md` §1 (现役槽位表)。
  [51]=app_tx_bytes         [52]=app_tx_frames       [53]=app_rx_bytes
@@ -163,6 +168,9 @@ declare -A NAME=(
 #    `p7bdp_dout[31..34*32 +: 32]` / 槽 31..34):
 [71]=app_stat_up_ev      [72]=app_stat_sw_req     [73]=app_stat_sw_apply
 [74]=app_stat_up_pend
+# ⭐ p9 孤儿修复 (2026-10-17): W75 —— 孤儿回收计数 (真值源 = wrapper 装配段
+#    `p7bdp_dout[35*32 +: 32]` / 槽 35)
+[75]=app_stat_orphan
 )
 
 id_check(){

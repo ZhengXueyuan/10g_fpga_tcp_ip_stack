@@ -1,0 +1,14 @@
+WROTE D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_build_0x2A_20261017\readside\apply_readside_bid1c__spliced.py (324313 -> 417327 bytes)
+PY_COMPILE OK
+STAGES = ['0x0000001C', '0x0000001D', '0x0000001E', '0x0000001F', '0x00000020', '0x00000021', '0x00000022', '0x00000023', '0x00000024', '0x00000025', '0x00000026', '0x00000027', '0x00000028', '0x00000029', '0x0000002A']
+len(EDITS_29) = 24 / len(EDITS_2A) = 86
+NEGCTL 破坏件 (临时副本, 仓内原件不动): C:\Users\zhxue\AppData\Local\Temp\readside_negctl_bg5ldydb\p6e_snap_check.sh
+NEGCTL 做法: 把 _proj_pcie/p6e_snap_check.sh 的 WLABEL 末项删掉 (表长 76 → 75)
+FAIL _proj_pcie/p6e_snap_check.sh                               表长 = 74 / 期望 NW = 76   WLABEL (逐字打印的名字表; F 轮补到 70 —— 再短一项 ⇒ 该字打成 <无标签>)
+FAIL _proj_pcie/p7b_biz/p7b_snap.sh                             键集合 = {0..74} 共 75 项 / 期望 {0..75} 共 76 项   NAME[] (板侧取数器的名字表)
+FAIL _proj_pcie/p7b_gate4_livefake.sh                           表长 = 75 / 期望 NW = 76   假对端的 W 字表 (长度 < NW ⇒ for i in range(nw) 直接 IndexError = '整台安静')
+FAIL _proj_pcie/p7b_gate4_negctrl.sh                            表长 = 75 / 期望 NW = 76   合成夹具的 V 字表 (长度 < NW ⇒ 尾部字打 0 = 假数据)
+FAIL _proj_pcie/p7b_gate4_selftest.sh                           表长断言异常: substring not found
+NEGCTL_VERDICT 有牙 (断言确实变红 (共 5 条 FAIL)) ⇒ 真实运行会 FAIL 并非零退出
+NEGCTL_EXIT=1
+TOOL_RC=1 (args: --bid 0x2A --negctl=table)
