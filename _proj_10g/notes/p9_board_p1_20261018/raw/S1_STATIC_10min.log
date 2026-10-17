@@ -1,0 +1,488 @@
+=== P1BOARD-S1-BEGIN 1792273673.509576380Sun Oct 18 05:47:53 AM CST 2026
+CARCHG_START p0=19
+CARCHG_START p1=55
+SAMPLE_T 1792273673.513106157 i=1
+SNAP_BEGIN S1_1 gen=2 status=0x00020056
+SNAP_STATUS gen=2 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W39  0xBC   pcs_status_bundle      0x2000100c
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x00000062
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000014
+W80  0x160  ch0_rx_bytes           0x00000cb5
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S1_1 nff=0 stale_words=0
+SAMPLE_T 1792273688.054188248 i=2
+SNAP_BEGIN S1_2 gen=3 status=0x00030056
+SNAP_STATUS gen=3 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W39  0xBC   pcs_status_bundle      0x2000100c
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x000000eb
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x0000001f
+W80  0x160  ch0_rx_bytes           0x00001337
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S1_2 nff=0 stale_words=0
+SAMPLE_T 1792273702.598376138 i=3
+SNAP_BEGIN S1_3 gen=4 status=0x00040056
+SNAP_STATUS gen=4 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W39  0xBC   pcs_status_bundle      0x2000100c
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x00000090
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000026
+W80  0x160  ch0_rx_bytes           0x000017e6
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S1_3 nff=0 stale_words=0
+SAMPLE_T 1792273717.140837090 i=4
+SNAP_BEGIN S1_4 gen=5 status=0x00050056
+SNAP_STATUS gen=5 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W39  0xBC   pcs_status_bundle      0x2000100c
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x0000006f
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000029
+W80  0x160  ch0_rx_bytes           0x000019d8
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S1_4 nff=0 stale_words=0
+SAMPLE_T 1792273731.683936641 i=5
+SNAP_BEGIN S1_5 gen=6 status=0x00060056
+SNAP_STATUS gen=6 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W39  0xBC   pcs_status_bundle      0x2000100c
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x0000000a
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x0000002f
+W80  0x160  ch0_rx_bytes           0x00001d2f
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S1_5 nff=0 stale_words=0
+SAMPLE_T 1792273746.226817437 i=6
+SNAP_BEGIN S1_6 gen=7 status=0x00070056
+SNAP_STATUS gen=7 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W39  0xBC   pcs_status_bundle      0x2000100c
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x00000049
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x0000003b
+W80  0x160  ch0_rx_bytes           0x00002509
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S1_6 nff=0 stale_words=0
+SAMPLE_T 1792273760.770474164 i=7
+SNAP_BEGIN S1_7 gen=8 status=0x00080056
+SNAP_STATUS gen=8 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W39  0xBC   pcs_status_bundle      0x2000100c
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x000000ca
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x0000003c
+W80  0x160  ch0_rx_bytes           0x00002547
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S1_7 nff=0 stale_words=0
+SAMPLE_T 1792273775.312630241 i=8
+SNAP_BEGIN S1_8 gen=9 status=0x00090056
+SNAP_STATUS gen=9 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W39  0xBC   pcs_status_bundle      0x2000100c
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x00000099
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000043
+W80  0x160  ch0_rx_bytes           0x000029e4
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S1_8 nff=0 stale_words=0
+SAMPLE_T 1792273789.855292275 i=9
+SNAP_BEGIN S1_9 gen=10 status=0x000a0056
+SNAP_STATUS gen=10 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W39  0xBC   pcs_status_bundle      0x2000100c
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x000000a6
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x0000004f
+W80  0x160  ch0_rx_bytes           0x000030e3
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S1_9 nff=0 stale_words=0
+SAMPLE_T 1792273804.396928693 i=10
+SNAP_BEGIN S1_10 gen=11 status=0x000b0056
+SNAP_STATUS gen=11 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W39  0xBC   pcs_status_bundle      0x2000100c
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x0000006d
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000050
+W80  0x160  ch0_rx_bytes           0x0000322c
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S1_10 nff=0 stale_words=0
+SAMPLE_T 1792273818.939799496 i=11
+SNAP_BEGIN S1_11 gen=12 status=0x000c0056
+SNAP_STATUS gen=12 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W39  0xBC   pcs_status_bundle      0x2000100c
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x000000e9
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000053
+W80  0x160  ch0_rx_bytes           0x0000341e
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S1_11 nff=0 stale_words=0
+SAMPLE_T 1792273833.482745511 i=12
+SNAP_BEGIN S1_12 gen=13 status=0x000d0056
+SNAP_STATUS gen=13 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W39  0xBC   pcs_status_bundle      0x2000100c
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x000000a1
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000055
+W80  0x160  ch0_rx_bytes           0x000034fa
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S1_12 nff=0 stale_words=0
+SAMPLE_T 1792273848.025315824 i=13
+SNAP_BEGIN S1_13 gen=14 status=0x000e0056
+SNAP_STATUS gen=14 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W39  0xBC   pcs_status_bundle      0x2000100c
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x000000a7
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000055
+W80  0x160  ch0_rx_bytes           0x000034fa
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S1_13 nff=0 stale_words=0
+SAMPLE_T 1792273862.567727793 i=14
+SNAP_BEGIN S1_14 gen=15 status=0x000f0056
+SNAP_STATUS gen=15 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W39  0xBC   pcs_status_bundle      0x2000100c
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x000000e3
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000055
+W80  0x160  ch0_rx_bytes           0x000034fa
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S1_14 nff=0 stale_words=0
+SAMPLE_T 1792273877.112193773 i=15
+SNAP_BEGIN S1_15 gen=16 status=0x00100056
+SNAP_STATUS gen=16 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W39  0xBC   pcs_status_bundle      0x2000100c
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x0000008f
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000055
+W80  0x160  ch0_rx_bytes           0x000034fa
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S1_15 nff=0 stale_words=0
+SAMPLE_T 1792273891.655668671 i=16
+SNAP_BEGIN S1_16 gen=17 status=0x00110056
+SNAP_STATUS gen=17 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W39  0xBC   pcs_status_bundle      0x2000100c
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x0000007c
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000055
+W80  0x160  ch0_rx_bytes           0x000034fa
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S1_16 nff=0 stale_words=0
+SAMPLE_T 1792273906.198674900 i=17
+SNAP_BEGIN S1_17 gen=18 status=0x00120056
+SNAP_STATUS gen=18 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W39  0xBC   pcs_status_bundle      0x2000100c
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x0000009c
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000055
+W80  0x160  ch0_rx_bytes           0x000034fa
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S1_17 nff=0 stale_words=0
+SAMPLE_T 1792273920.741042783 i=18
+SNAP_BEGIN S1_18 gen=19 status=0x00130056
+SNAP_STATUS gen=19 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W39  0xBC   pcs_status_bundle      0x2000100c
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x000000c7
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000055
+W80  0x160  ch0_rx_bytes           0x000034fa
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S1_18 nff=0 stale_words=0
+SAMPLE_T 1792273935.283875362 i=19
+SNAP_BEGIN S1_19 gen=20 status=0x00140056
+SNAP_STATUS gen=20 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W39  0xBC   pcs_status_bundle      0x2000100c
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x00000072
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000055
+W80  0x160  ch0_rx_bytes           0x000034fa
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S1_19 nff=0 stale_words=0
+SAMPLE_T 1792273949.828116739 i=20
+SNAP_BEGIN S1_20 gen=21 status=0x00150056
+SNAP_STATUS gen=21 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W39  0xBC   pcs_status_bundle      0x2000100c
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x0000007d
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000055
+W80  0x160  ch0_rx_bytes           0x000034fa
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S1_20 nff=0 stale_words=0
+SAMPLE_T 1792273964.370672648 i=21
+SNAP_BEGIN S1_21 gen=22 status=0x00160056
+SNAP_STATUS gen=22 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W39  0xBC   pcs_status_bundle      0x2000100c
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x000000f1
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000055
+W80  0x160  ch0_rx_bytes           0x000034fa
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S1_21 nff=0 stale_words=0
+SAMPLE_T 1792273978.913759900 i=22
+SNAP_BEGIN S1_22 gen=23 status=0x00170056
+SNAP_STATUS gen=23 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W39  0xBC   pcs_status_bundle      0x2000100c
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x00000070
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000055
+W80  0x160  ch0_rx_bytes           0x000034fa
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S1_22 nff=0 stale_words=0
+SAMPLE_T 1792273993.456457244 i=23
+SNAP_BEGIN S1_23 gen=24 status=0x00180056
+SNAP_STATUS gen=24 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W39  0xBC   pcs_status_bundle      0x2000100c
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x00000054
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000055
+W80  0x160  ch0_rx_bytes           0x000034fa
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S1_23 nff=0 stale_words=0
+SAMPLE_T 1792274007.999249483 i=24
+SNAP_BEGIN S1_24 gen=25 status=0x00190056
+SNAP_STATUS gen=25 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W39  0xBC   pcs_status_bundle      0x2000100c
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x000000aa
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000055
+W80  0x160  ch0_rx_bytes           0x000034fa
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S1_24 nff=0 stale_words=0
+SAMPLE_T 1792274022.544636720 i=25
+SNAP_BEGIN S1_25 gen=26 status=0x001a0056
+SNAP_STATUS gen=26 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W39  0xBC   pcs_status_bundle      0x2000100c
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x00000021
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000055
+W80  0x160  ch0_rx_bytes           0x000034fa
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S1_25 nff=0 stale_words=0
+SAMPLE_T 1792274037.087209791 i=26
+SNAP_BEGIN S1_26 gen=27 status=0x001b0056
+SNAP_STATUS gen=27 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W39  0xBC   pcs_status_bundle      0x2000100c
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x00000049
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000055
+W80  0x160  ch0_rx_bytes           0x000034fa
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S1_26 nff=0 stale_words=0
+SAMPLE_T 1792274051.630002749 i=27
+SNAP_BEGIN S1_27 gen=28 status=0x001c0056
+SNAP_STATUS gen=28 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W39  0xBC   pcs_status_bundle      0x2000100c
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x00000071
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000055
+W80  0x160  ch0_rx_bytes           0x000034fa
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S1_27 nff=0 stale_words=0
+SAMPLE_T 1792274066.173668317 i=28
+SNAP_BEGIN S1_28 gen=29 status=0x001d0056
+SNAP_STATUS gen=29 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W39  0xBC   pcs_status_bundle      0x2000100c
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x00000025
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000055
+W80  0x160  ch0_rx_bytes           0x000034fa
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S1_28 nff=0 stale_words=0
+SAMPLE_T 1792274080.716776852 i=29
+SNAP_BEGIN S1_29 gen=30 status=0x001e0056
+SNAP_STATUS gen=30 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W39  0xBC   pcs_status_bundle      0x2000100c
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x000000be
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000055
+W80  0x160  ch0_rx_bytes           0x000034fa
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S1_29 nff=0 stale_words=0
+SAMPLE_T 1792274095.259028036 i=30
+SNAP_BEGIN S1_30 gen=31 status=0x001f0056
+SNAP_STATUS gen=31 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W39  0xBC   pcs_status_bundle      0x2000100c
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x000000d2
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000055
+W80  0x160  ch0_rx_bytes           0x000034fa
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S1_30 nff=0 stale_words=0
+SAMPLE_T 1792274109.801569271 i=31
+SNAP_BEGIN S1_31 gen=32 status=0x00200056
+SNAP_STATUS gen=32 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W39  0xBC   pcs_status_bundle      0x2000100c
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x000000ce
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000055
+W80  0x160  ch0_rx_bytes           0x000034fa
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S1_31 nff=0 stale_words=0
+SAMPLE_T 1792274124.343509405 i=32
+SNAP_BEGIN S1_32 gen=33 status=0x00210056
+SNAP_STATUS gen=33 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W39  0xBC   pcs_status_bundle      0x2000100c
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x00000009
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000060
+W80  0x160  ch0_rx_bytes           0x00003bd9
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S1_32 nff=0 stale_words=0
+SAMPLE_T 1792274138.885779861 i=33
+SNAP_BEGIN S1_33 gen=34 status=0x00220056
+SNAP_STATUS gen=34 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W39  0xBC   pcs_status_bundle      0x2000100c
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x0000008d
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000066
+W80  0x160  ch0_rx_bytes           0x00003fbd
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S1_33 nff=0 stale_words=0
+SAMPLE_T 1792274153.427740775 i=34
+SNAP_BEGIN S1_34 gen=35 status=0x00230056
+SNAP_STATUS gen=35 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W39  0xBC   pcs_status_bundle      0x2000100c
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x00000003
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000069
+W80  0x160  ch0_rx_bytes           0x000041af
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S1_34 nff=0 stale_words=0
+SAMPLE_T 1792274167.969474699 i=35
+SNAP_BEGIN S1_35 gen=36 status=0x00240056
+SNAP_STATUS gen=36 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W39  0xBC   pcs_status_bundle      0x2000100c
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x0000006b
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000074
+W80  0x160  ch0_rx_bytes           0x00004831
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S1_35 nff=0 stale_words=0
+SAMPLE_T 1792274182.512055705 i=36
+SNAP_BEGIN S1_36 gen=37 status=0x00250056
+SNAP_STATUS gen=37 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W39  0xBC   pcs_status_bundle      0x2000100c
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x00000002
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x0000007b
+W80  0x160  ch0_rx_bytes           0x00004ce0
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S1_36 nff=0 stale_words=0
+SAMPLE_T 1792274197.054634477 i=37
+SNAP_BEGIN S1_37 gen=38 status=0x00260056
+SNAP_STATUS gen=38 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W39  0xBC   pcs_status_bundle      0x2000100c
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x000000bb
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x0000007d
+W80  0x160  ch0_rx_bytes           0x00004e94
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S1_37 nff=0 stale_words=0
+SAMPLE_T 1792274211.598403365 i=38
+SNAP_BEGIN S1_38 gen=39 status=0x00270056
+SNAP_STATUS gen=39 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W39  0xBC   pcs_status_bundle      0x2000100c
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x000000fa
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000084
+W80  0x160  ch0_rx_bytes           0x00005251
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S1_38 nff=0 stale_words=0
+SAMPLE_T 1792274226.142357667 i=39
+SNAP_BEGIN S1_39 gen=40 status=0x00280056
+SNAP_STATUS gen=40 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W39  0xBC   pcs_status_bundle      0x2000100c
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x00000016
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x0000008f
+W80  0x160  ch0_rx_bytes           0x00005960
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S1_39 nff=0 stale_words=0
+SAMPLE_T 1792274240.684132054 i=40
+SNAP_BEGIN S1_40 gen=41 status=0x00290056
+SNAP_STATUS gen=41 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W39  0xBC   pcs_status_bundle      0x2000100c
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x00000070
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000090
+W80  0x160  ch0_rx_bytes           0x0000599e
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S1_40 nff=0 stale_words=0
+=== P1BOARD-S1-END 1792274255.227234306Sun Oct 18 05:57:35 AM CST 2026
+CARCHG_END p0=19
+CARCHG_END p1=55
+CARRIER_END p0=1
+CARRIER_END p1=1

@@ -1,0 +1,373 @@
+=== P1BOARD-LINKDOWN 1792274454.669218893 Sun Oct 18 06:00:54 AM CST 2026 ===
+SCRATCH_0x08_PRE=0x00000000
+p0 carrier=1
+p0 carchg=21
+p1 carrier=1
+p1 carchg=55
+--- SNAP PRE ---
+SNAP_BEGIN linkdown_PRE gen=49 status=0x00310056
+SNAP_STATUS gen=49 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x000000a4
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000887
+W80  0x160  ch0_rx_bytes           0x00045a22
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END linkdown_PRE nff=0 stale_words=0
+--- ip link set enp1s0f0np0 down t=1792274454.709795507 ---
+LINK_DOWN_RC=0
+--- DN sample 1 t=1792274454.716975665 ---
+p0 carrier=cat: /sys/class/net/enp1s0f0np0/carrier: Invalid argument
+p0 carchg=21
+p1 carrier=1
+p1 carchg=55
+SNAP_BEGIN S4_DN_1 gen=50 status=0x00320056
+SNAP_STATUS gen=50 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x0000008f
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000887
+W80  0x160  ch0_rx_bytes           0x00045a22
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S4_DN_1 nff=0 stale_words=0
+--- DN sample 2 t=1792274455.757226399 ---
+p0 carrier=cat: /sys/class/net/enp1s0f0np0/carrier: Invalid argument
+p0 carchg=21
+p1 carrier=1
+p1 carchg=55
+SNAP_BEGIN S4_DN_2 gen=51 status=0x00330056
+SNAP_STATUS gen=51 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x000000f9
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000887
+W80  0x160  ch0_rx_bytes           0x00045a22
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S4_DN_2 nff=0 stale_words=0
+--- DN sample 3 t=1792274456.797934220 ---
+p0 carrier=cat: /sys/class/net/enp1s0f0np0/carrier: Invalid argument
+p0 carchg=21
+p1 carrier=1
+p1 carchg=55
+SNAP_BEGIN S4_DN_3 gen=52 status=0x00340056
+SNAP_STATUS gen=52 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x000000bf
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000887
+W80  0x160  ch0_rx_bytes           0x00045a22
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S4_DN_3 nff=0 stale_words=0
+--- DN sample 4 t=1792274457.838566581 ---
+p0 carrier=cat: /sys/class/net/enp1s0f0np0/carrier: Invalid argument
+p0 carchg=21
+p1 carrier=1
+p1 carchg=55
+SNAP_BEGIN S4_DN_4 gen=53 status=0x00350056
+SNAP_STATUS gen=53 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x000000f1
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000887
+W80  0x160  ch0_rx_bytes           0x00045a22
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S4_DN_4 nff=0 stale_words=0
+--- DN sample 5 t=1792274458.885209877 ---
+p0 carrier=cat: /sys/class/net/enp1s0f0np0/carrier: Invalid argument
+p0 carchg=21
+p1 carrier=1
+p1 carchg=55
+SNAP_BEGIN S4_DN_5 gen=54 status=0x00360056
+SNAP_STATUS gen=54 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x000000bf
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000887
+W80  0x160  ch0_rx_bytes           0x00045a22
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S4_DN_5 nff=0 stale_words=0
+--- DN sample 6 t=1792274459.926219009 ---
+p0 carrier=cat: /sys/class/net/enp1s0f0np0/carrier: Invalid argument
+p0 carchg=21
+p1 carrier=1
+p1 carchg=55
+SNAP_BEGIN S4_DN_6 gen=55 status=0x00370056
+SNAP_STATUS gen=55 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x000000d9
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000887
+W80  0x160  ch0_rx_bytes           0x00045a22
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S4_DN_6 nff=0 stale_words=0
+--- DN sample 7 t=1792274460.967812400 ---
+p0 carrier=cat: /sys/class/net/enp1s0f0np0/carrier: Invalid argument
+p0 carchg=21
+p1 carrier=1
+p1 carchg=55
+SNAP_BEGIN S4_DN_7 gen=56 status=0x00380056
+SNAP_STATUS gen=56 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x00000094
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000887
+W80  0x160  ch0_rx_bytes           0x00045a22
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S4_DN_7 nff=0 stale_words=0
+--- DN sample 8 t=1792274462.008392082 ---
+p0 carrier=cat: /sys/class/net/enp1s0f0np0/carrier: Invalid argument
+p0 carchg=21
+p1 carrier=1
+p1 carchg=55
+SNAP_BEGIN S4_DN_8 gen=57 status=0x00390056
+SNAP_STATUS gen=57 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x0000002c
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000887
+W80  0x160  ch0_rx_bytes           0x00045a22
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S4_DN_8 nff=0 stale_words=0
+--- DN sample 9 t=1792274463.049615885 ---
+p0 carrier=cat: /sys/class/net/enp1s0f0np0/carrier: Invalid argument
+p0 carchg=21
+p1 carrier=1
+p1 carchg=55
+SNAP_BEGIN S4_DN_9 gen=58 status=0x003a0056
+SNAP_STATUS gen=58 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x00000041
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000887
+W80  0x160  ch0_rx_bytes           0x00045a22
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S4_DN_9 nff=0 stale_words=0
+--- DN sample 10 t=1792274464.090904125 ---
+p0 carrier=cat: /sys/class/net/enp1s0f0np0/carrier: Invalid argument
+p0 carchg=21
+p1 carrier=1
+p1 carchg=55
+SNAP_BEGIN S4_DN_10 gen=59 status=0x003b0056
+SNAP_STATUS gen=59 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x00000084
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000887
+W80  0x160  ch0_rx_bytes           0x00045a22
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S4_DN_10 nff=0 stale_words=0
+--- DN sample 11 t=1792274465.131441239 ---
+p0 carrier=cat: /sys/class/net/enp1s0f0np0/carrier: Invalid argument
+p0 carchg=21
+p1 carrier=1
+p1 carchg=55
+SNAP_BEGIN S4_DN_11 gen=60 status=0x003c0056
+SNAP_STATUS gen=60 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x0000005c
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000887
+W80  0x160  ch0_rx_bytes           0x00045a22
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S4_DN_11 nff=0 stale_words=0
+--- DN sample 12 t=1792274466.173332399 ---
+p0 carrier=cat: /sys/class/net/enp1s0f0np0/carrier: Invalid argument
+p0 carchg=21
+p1 carrier=1
+p1 carchg=55
+SNAP_BEGIN S4_DN_12 gen=61 status=0x003d0056
+SNAP_STATUS gen=61 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x00000045
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000887
+W80  0x160  ch0_rx_bytes           0x00045a22
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S4_DN_12 nff=0 stale_words=0
+--- ip link set enp1s0f0np0 up t=1792274467.215109279 ---
+LINK_UP_RC=0
+CARRIER_UP after 1s t=1792274467.225647799
+p0 carrier=1
+p0 carchg=21
+p1 carrier=1
+p1 carchg=55
+--- UP sample 1 t=1792274467.230057904 ---
+p0 carrier=1
+p0 carchg=21
+p1 carrier=1
+p1 carchg=55
+SNAP_BEGIN S4_UP_1 gen=62 status=0x003e0056
+SNAP_STATUS gen=62 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x000000e5
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000889
+W80  0x160  ch0_rx_bytes           0x00045bd9
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S4_UP_1 nff=0 stale_words=0
+--- UP sample 2 t=1792274468.269782238 ---
+p0 carrier=1
+p0 carchg=21
+p1 carrier=1
+p1 carchg=55
+SNAP_BEGIN S4_UP_2 gen=63 status=0x003f0056
+SNAP_STATUS gen=63 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x00000049
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x0000088b
+W80  0x160  ch0_rx_bytes           0x00045c9d
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S4_UP_2 nff=0 stale_words=0
+--- UP sample 3 t=1792274469.311334437 ---
+p0 carrier=1
+p0 carchg=21
+p1 carrier=1
+p1 carchg=55
+SNAP_BEGIN S4_UP_3 gen=64 status=0x00400056
+SNAP_STATUS gen=64 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x000000f3
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x0000088f
+W80  0x160  ch0_rx_bytes           0x00045e82
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S4_UP_3 nff=0 stale_words=0
+--- UP sample 4 t=1792274470.353466203 ---
+p0 carrier=1
+p0 carchg=21
+p1 carrier=1
+p1 carchg=55
+SNAP_BEGIN S4_UP_4 gen=65 status=0x00410056
+SNAP_STATUS gen=65 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x0000004f
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000891
+W80  0x160  ch0_rx_bytes           0x00046036
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S4_UP_4 nff=0 stale_words=0
+--- UP sample 5 t=1792274471.394640678 ---
+p0 carrier=1
+p0 carchg=21
+p1 carrier=1
+p1 carchg=55
+SNAP_BEGIN S4_UP_5 gen=66 status=0x00420056
+SNAP_STATUS gen=66 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x000000e7
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000892
+W80  0x160  ch0_rx_bytes           0x00046101
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S4_UP_5 nff=0 stale_words=0
+--- UP sample 6 t=1792274472.435706388 ---
+p0 carrier=1
+p0 carchg=21
+p1 carrier=1
+p1 carchg=55
+SNAP_BEGIN S4_UP_6 gen=67 status=0x00430056
+SNAP_STATUS gen=67 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x000000e5
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000892
+W80  0x160  ch0_rx_bytes           0x00046101
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S4_UP_6 nff=0 stale_words=0
+--- UP sample 7 t=1792274473.476494269 ---
+p0 carrier=1
+p0 carchg=21
+p1 carrier=1
+p1 carchg=55
+SNAP_BEGIN S4_UP_7 gen=68 status=0x00440056
+SNAP_STATUS gen=68 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x0000006c
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000893
+W80  0x160  ch0_rx_bytes           0x0004613f
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S4_UP_7 nff=0 stale_words=0
+--- UP sample 8 t=1792274474.519057170 ---
+p0 carrier=1
+p0 carchg=21
+p1 carrier=1
+p1 carchg=55
+SNAP_BEGIN S4_UP_8 gen=69 status=0x00450056
+SNAP_STATUS gen=69 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x000000dd
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000895
+W80  0x160  ch0_rx_bytes           0x000462f3
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S4_UP_8 nff=0 stale_words=0
+--- UP sample 9 t=1792274475.559762019 ---
+p0 carrier=1
+p0 carchg=21
+p1 carrier=1
+p1 carchg=55
+SNAP_BEGIN S4_UP_9 gen=70 status=0x00460056
+SNAP_STATUS gen=70 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x00000077
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000895
+W80  0x160  ch0_rx_bytes           0x000462f3
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S4_UP_9 nff=0 stale_words=0
+--- UP sample 10 t=1792274476.601403104 ---
+p0 carrier=1
+p0 carchg=21
+p1 carrier=1
+p1 carchg=55
+SNAP_BEGIN S4_UP_10 gen=71 status=0x00470056
+SNAP_STATUS gen=71 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x00000019
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000895
+W80  0x160  ch0_rx_bytes           0x000462f3
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S4_UP_10 nff=0 stale_words=0
+--- SNAP FINAL ---
+SNAP_BEGIN linkdown_FINAL gen=72 status=0x00480056
+SNAP_STATUS gen=72 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x0000004d
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000895
+W80  0x160  ch0_rx_bytes           0x000462f3
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END linkdown_FINAL nff=0 stale_words=0
+SCRATCH_0x08_FINAL=0x00000000
+p0 carrier=1
+p0 carchg=21
+p1 carrier=1
+p1 carchg=55
+=== P1BOARD-LINKDOWN-END 1792274477.682407831 ===

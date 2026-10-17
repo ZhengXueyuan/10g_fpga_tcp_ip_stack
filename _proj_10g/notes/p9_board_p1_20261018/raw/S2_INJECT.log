@@ -1,0 +1,45 @@
+=== P1BOARD-S2 1792274412.742617396 Sun Oct 18 06:00:12 AM CST 2026 N=2000 PAY=114 content=128 wire=132 ===
+--- NIC counters PRE ---
+     port_tx_bytes: 2050634
+     port_tx_packets: 12534
+     port_tx_unicast: 0
+     port_tx_multicast: 9582
+     port_tx_broadcast: 2952
+--- SNAP PRE ---
+SNAP_BEGIN S2_PRE gen=42 status=0x002a0056
+SNAP_STATUS gen=42 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x000000dd
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x000000a9
+W80  0x160  ch0_rx_bytes           0x00006951
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S2_PRE nff=0 stale_words=0
+--- tcpdump arm ---
+--- send ---
+SENT_OK iface=enp1s0f0np0 n=2000 sent=256000 err=0 content_len=128 wire_len=132 ethertype=0x88b5 dt=0.004111
+--- tcpdump log ---
+tcpdump: listening on enp1s0f0np0, link-type EN10MB (Ethernet), snapshot length 262144 bytes
+2000 packets captured
+2000 packets received by filter
+0 packets dropped by kernel
+PCAP_FRAMES=18000
+--- NIC counters POST ---
+     port_tx_bytes: 2314634
+     port_tx_packets: 14534
+     port_tx_unicast: 0
+     port_tx_multicast: 9582
+     port_tx_broadcast: 4952
+--- SNAP POST ---
+SNAP_BEGIN S2_POST gen=43 status=0x002b0056
+SNAP_STATUS gen=43 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x00000097
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000879
+W80  0x160  ch0_rx_bytes           0x00045151
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S2_POST nff=0 stale_words=0
+=== P1BOARD-S2-END 1792274416.988014270 ===

@@ -1,0 +1,83 @@
+=== P1BOARD-TXDIS 1792274436.941062775 Sun Oct 18 06:00:36 AM CST 2026 ===
+SCRATCH_0x08_PRE=0x00000000
+p0 carrier=1
+p0 carchg=19
+p1 carrier=1
+p1 carchg=55
+--- SNAP PRE ---
+SNAP_BEGIN txdis_PRE gen=44 status=0x002c0056
+SNAP_STATUS gen=44 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x0000003c
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000879
+W80  0x160  ch0_rx_bytes           0x00045151
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END txdis_PRE nff=0 stale_words=0
+--- SET 0x08=0x1 (sfp1_tx_dis=1) t=1792274436.982385398 ---
+SCRATCH_0x08_AFTER_SET=0x00000001
+--- during TX_DIS (t+4s) ---
+p0 carrier=0
+p0 carchg=20
+p1 carrier=1
+p1 carchg=55
+SNAP_BEGIN S3_DIS gen=45 status=0x002d0056
+SNAP_STATUS gen=45 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x000000db
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000879
+W80  0x160  ch0_rx_bytes           0x00045151
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S3_DIS nff=0 stale_words=0
+--- during TX_DIS (t+6s) ---
+p0 carrier=0
+p0 carchg=20
+p1 carrier=1
+p1 carchg=55
+SNAP_BEGIN S3_DIS2 gen=46 status=0x002e0056
+SNAP_STATUS gen=46 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x00000081
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000879
+W80  0x160  ch0_rx_bytes           0x00045151
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S3_DIS2 nff=0 stale_words=0
+--- RESTORE 0x08=0x0 t=1792274443.067060812 ---
+SCRATCH_0x08_AFTER_RESTORE=0x00000000
+--- after restore (t+6s) ---
+p0 carrier=1
+p0 carchg=21
+p1 carrier=1
+p1 carchg=55
+SNAP_BEGIN S3_POST gen=47 status=0x002f0056
+SNAP_STATUS gen=47 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x0000007e
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000885
+W80  0x160  ch0_rx_bytes           0x0004586e
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END S3_POST nff=0 stale_words=0
+--- SNAP FINAL ---
+SNAP_BEGIN txdis_FINAL gen=48 status=0x00300056
+SNAP_STATUS gen=48 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x00000047
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000885
+W80  0x160  ch0_rx_bytes           0x0004586e
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+SNAP_END txdis_FINAL nff=0 stale_words=0
+SCRATCH_0x08_FINAL=0x00000000
+p0 carrier=1
+p0 carchg=21
+p1 carrier=1
+p1 carchg=55
+=== P1BOARD-TXDIS-END 1792274449.149505831 ===

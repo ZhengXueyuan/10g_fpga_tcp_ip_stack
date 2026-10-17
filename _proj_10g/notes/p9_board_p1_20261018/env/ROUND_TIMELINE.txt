@@ -1,0 +1,39 @@
+ROUND_TIMELINE -- p9_board_p1_20261018 (unique string = P1BOARD-20261018)
+=======================================================================
+All timestamps are epoch (CST = UTC+8) as printed by the peer unless noted.
+
+1792273498.21  P1BOARD-ENTRY       05:44:58  entry gate (env/ENTRY_CHECK.txt)
+1792273501.26  BURN 0x2B begin     05:45:01  sha gate OK (7dd2ea33...)
+1792273639     burn stdout mtime   05:47:19  End of startup status HIGH; age 133 s
+1792273657.63  BURN 0x2B end       05:47:37  identity gate + NFF=0 + 0x08<-0
+1792273663.50  S1_BASE             05:47:43  baseline full snapshot (W76=0x2000100c)
+1792273673.51  P1BOARD-S1-BEGIN    05:47:53
+1792274255.23  P1BOARD-S1-END      05:57:35  span 567.17 s, 40 samples
+1792274412.74  P1BOARD-S2          06:00:12  2000-frame injection (raw/S2_INJECT.log)
+1792274416.99  P1BOARD-S2-END      06:00:16
+1792274436.94  P1BOARD-TXDIS       06:00:36  S-3 (raw/S3_TXDIS.log)
+1792274449.15  P1BOARD-TXDIS-END   06:00:49
+1792274454.67  P1BOARD-LINKDOWN    06:00:54  S-4/S-5 arm 1
+1792274477.68  P1BOARD-LINKDOWN-END 06:01:17
+1792274518.01  P1BOARD-PCIREMOVE   06:01:58  S-4/S-5 arm 2
+1792274547.20  P1BOARD-PCIREMOVE-END 06:02:27
+1792274566.01  P1BOARD-S6          06:02:46  ch1 TCP fast arm (raw/S6_CH1_FAST.log)
+1792274597.81  P1BOARD-S6-END      06:03:17
+1792274616     BURN 0x2A begin     06:03:36  sha gate OK (aa44a0ed...)
+1792274748     burn stdout mtime   06:05:48  HIGH; age 132 s
+1792274768.31  BURN 0x2A end       06:06:08  identity gate + NFF=0 + 0x08<-0
+1792274775.27  P1BOARD-FINAL-LIVE  06:06:15  env/FINAL_LIVE_READ.txt
+
+Tool md5 on peer (unchanged / deployed this round)
+  58ad0951d87fcef797271dc252b9c4a3  /tmp/p1b_snap.sh        (= _proj_pcie/p7b_biz/p7b_snap.sh, 83-word/0x2B read side)
+  3a45e47544c3ee457216b22b7ad622a4  /tmp/p1b_rawsend.py      (round-local)
+  dc5878da6929555fb583360638dbb92d  /tmp/p1b_s2.sh           (round-local)
+  4cb14882b202912686dfe489d6de85c2  /tmp/p1b_s3.sh           (round-local)
+  edfe7035914eeca20ff8990e40290ec9  /tmp/p1b_s5_pci.sh       (round-local)
+  4c6e991e6bac86664429e489b7defba4  /tmp/p1b_s6.sh           (round-local)
+  f62299291fcb9e02afe109c4ea1f90ab  /tmp/p7b_biz/p7b_tcp_sink (pre-existing; NOT modified)
+
+Artifact md5/sha
+  p1b_S2.pcap  md5 e4d1970c8328f585e3b4fe2e44c7dc26  (288,024 B; 2000 frames, 0 dropped)
+  wrapper_p4_0x2B.bit  sha256 7dd2ea3316dbed3915239d39391c90765ad6b7c8a9d472fa1c8fecca54ba2c23
+  wrapper_p4_0x2A.bit  sha256 aa44a0eda1604623eac951afc26b9f27d4798fc414a5eb9c7137ee47f9a2a3b6

@@ -1,0 +1,38 @@
+=== P1BOARD-ENTRY 1792273498.208835200 Sun Oct 18 05:44:58     2026 ===
+a-MS-7850
+ 05:44:59 up 1 day,  6:25,  3 users,  load average: 0.11, 0.09, 0.02
+--- NIC ---
+enp1s0f0np0      UP             00:0f:53:2c:68:00 <BROADCAST,MULTICAST,UP,LOWER_UP> 
+enp1s0f1np1      UP             00:0f:53:2c:68:01 <BROADCAST,MULTICAST,UP,LOWER_UP> 
+carrier_p0=1
+carrier_p1=1
+carchg_p0=17
+carchg_p1=53
+	Speed: 10000Mb/s
+	Link detected: yes
+	Speed: 10000Mb/s
+	Link detected: yes
+--- leftovers ---
+NONE_sink
+NONE_churn
+NONE_udp_src
+NONE_tcp_src
+NONE_bench
+NONE_tcpdump
+--- iptables ---
+-P INPUT ACCEPT
+-P FORWARD ACCEPT
+-P OUTPUT ACCEPT
+--- ss 8080 ---
+0
+--- BOARD ---
+MAGIC=Read 32-bit value at address 0x0 (0x79f225dce000): 0x50360001
+BID=Read 32-bit value at address 0x4 (0x7a93e244f004): 0x0000002a
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x7f0238316008): 0x00000000
+UNIMPL_0x160=Read 32-bit value at address 0x160 (0x7ba328d49160): 0xffffffff
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x0000002a   (want 0x0000002A = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1792273500.086670942
+ID_RC=0

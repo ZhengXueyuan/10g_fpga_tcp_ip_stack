@@ -1,0 +1,98 @@
+=== P1BOARD-S6 1792274566.009765560 Sun Oct 18 06:02:46 AM CST 2026 DUR=30 ===
+p1 carrier=1
+--- NIC p1 counters PRE ---
+     port_tx_bytes: 7351599891
+     port_tx_packets: 114701477
+     port_rx_bytes: 505456469945
+     port_rx_packets: 333094144
+--- SNAP PRE ---
+SNAP_BEGIN S6_PRE gen=100 status=0x00640056
+SNAP_STATUS gen=100 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x00000001
+W1   0x24   rx_stat_bytes          0x0000005b
+W20  0x70   mac_tx_frames          0x00000036
+W36  0xB0   mrx_stat_rx_words      0xb2bf1859
+W43  0xCC   mtx_stat_tx_words      0xb2a9ea28
+W51  0xEC   app_tx_bytes           0x00000000
+W52  0xF0   app_tx_frames          0x00000000
+W53  0xF4   app_rx_bytes           0x00000000
+W54  0xF8   app_mismatch           0x00000000
+W55  0xFC   tx_stat_retx           0x00000000
+W63  0x11C  app_frmwait_cyc        0x00000000
+W64  0x120  app_bp_cyc             0x00000000
+W65  0x124  mac_tx_idle            0xb2a9e74a
+W71  0x13C  app_stat_up_ev         0x00000000
+W72  0x140  app_stat_sw_req        0x00000000
+W73  0x144  app_stat_sw_apply      0x00000000
+W74  0x148  app_stat_up_pend       0x00000000
+W75  0x14C  app_stat_orphan        0x00000000
+SNAP_END S6_PRE nff=0 stale_words=0
+SINK_PID=1285080 PORT=50738 T0=1792274566.101708557
+SS_T 1792274566.333722603 port=50738 bytes=27147240
+SS_T 1792274567.347172653 port=50738 bytes=165308500
+SS_T 1792274568.360702060 port=50738 bytes=300111615
+SS_T 1792274569.373085741 port=50738 bytes=438594075
+SS_T 1792274570.385005385 port=50738 bytes=574560810
+SS_T 1792274571.396817148 port=50738 bytes=714173310
+SS_T 1792274572.410473547 port=50738 bytes=850915305
+SS_T 1792274573.423893438 port=50738 bytes=990310265
+SS_T 1792274574.437545594 port=50738 bytes=1129011580
+SS_T 1792274575.449495898 port=50738 bytes=1267663400
+SS_T 1792274576.461273563 port=50738 bytes=1403784895
+SS_T 1792274577.473289827 port=50738 bytes=1542449855
+SS_T 1792274578.485358312 port=50738 bytes=1678029690
+SS_T 1792274579.496905650 port=50738 bytes=1816710710
+SS_T 1792274580.510585048 port=50738 bytes=1952548965
+SS_T 1792274581.525756396 port=50738 bytes=0
+SS_T 1792274582.540536582 port=50738 bytes=0
+SS_T 1792274583.555536627 port=50738 bytes=0
+SS_T 1792274584.570552283 port=50738 bytes=0
+SS_T 1792274585.585356534 port=50738 bytes=0
+SS_T 1792274586.600486436 port=50738 bytes=0
+SS_T 1792274587.614826784 port=50738 bytes=0
+SS_T 1792274588.629447060 port=50738 bytes=0
+SS_T 1792274589.644442495 port=50738 bytes=0
+SS_T 1792274590.655816142 port=50738 bytes=0
+SS_T 1792274591.666674334 port=50738 bytes=0
+SS_T 1792274592.681526590 port=50738 bytes=0
+SS_T 1792274593.692825033 port=50738 bytes=0
+SS_T 1792274594.703687891 port=50738 bytes=0
+SS_T 1792274595.714709330 port=50738 bytes=0
+SS_SPAN t0=1792274566.333722603 t1=1792274596.716792275 b0=27147240 b1=0
+RATE_Mbps -7.1 (bytes=-27147240 dt=30.383)
+--- sink output ---
+SINK_CHECK check=lane8
+SINK_LIMITS maxbytes=2000000000 poll_ms=5000 stall_n=3 rcvbuf=2920 conns=1 secs=90
+SINK_RCVBUF_ORDER RCVBUF_ORDER=before_connect rcvbuf=2920
+SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+SINK_CONN 0 OK bytes=2000000425 first_mismatch=-1 mism_bytes=0 conn_ms=0.189 dur_ms=14751.495 Mbps=1084.636 reads=1369863 poll_tmo=0 CPU_FREQ_KHZ=3797539 THREADED=on q_full_push=1369863 q_full_pop=1369863 q_free_push=1369879 q_free_pop=1369863 slot_wait_spins=0 checked_bytes=2000000425
+SINK_SUM conns=1 fail_conns=0 bytes=2000000425 clean_conns=1 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=14.752 net_s=14.751 agg_Mbps=1084.636 THREADED=on full_push=1369863 full_pop=1369863 free_push=1369879 free_pop=1369863 slot_wait_spins=0 checked_bytes=2000000425 threads=2 check=lane8
+SINK_DONE
+--- NIC p1 counters POST ---
+     port_tx_bytes: 7439271905
+     port_tx_packets: 116071352
+     port_rx_bytes: 507535934818
+     port_rx_packets: 334464019
+--- SNAP POST ---
+SNAP_BEGIN S6_POST gen=101 status=0x00650056
+SNAP_STATUS gen=101 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x0014e714
+W1   0x24   rx_stat_bytes          0x0539c529
+W20  0x70   mac_tx_frames          0x0014e749
+W36  0xB0   mrx_stat_rx_words      0xda17e7f4
+W43  0xCC   mtx_stat_tx_words      0xda01f5e2
+W51  0xEC   app_tx_bytes           0x77359b5d
+W52  0xF0   app_tx_frames          0x0014e709
+W53  0xF4   app_rx_bytes           0x00000000
+W54  0xF8   app_mismatch           0x00000000
+W55  0xFC   tx_stat_retx           0x00000007
+W63  0x11C  app_frmwait_cyc        0x1b28614d
+W64  0x120  app_bp_cyc             0x5eb9c65c
+W65  0x124  mac_tx_idle            0xca3fc051
+W71  0x13C  app_stat_up_ev         0x00000001
+W72  0x140  app_stat_sw_req        0x00000000
+W73  0x144  app_stat_sw_apply      0x00000001
+W74  0x148  app_stat_up_pend       0x00000000
+W75  0x14C  app_stat_orphan        0x00000000
+SNAP_END S6_POST nff=0 stale_words=0
+=== P1BOARD-S6-END 1792274597.811746010 ===

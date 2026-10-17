@@ -1,0 +1,64 @@
+FINAL_STATE -- p9_board_p1_20261018 (P11 / P1 board verification, 0x2B -> restore 0x2A)
+=========================================================================================
+Round string : P1BOARD-20261018
+Date (CST)   : 2026-10-18 05:44:58 -> 06:06:15
+Operator     : single board writer (JTAG volatile only; QSPI NEVER written)
+
+BURNS (2)
+  1) 05:45:01-05:47:37  0x2B  sha256 7dd2ea3316dbed3915239d39391c90765ad6b7c8a9d472fa1c8fecca54ba2c23
+     (15,431,261 B; ONE independent anchor = build artifact; burn-dir copy NOT independent)
+     BURN_OK (End of startup status HIGH + DONE + path + freshness 133 s + no-ABORT)
+     device-level remove+rescan OK (LnkSta 5GT/s x4, 2 BARs)
+  2) 06:03:32-06:06:08  0x2A  sha256 aa44a0eda1604623eac951afc26b9f27d4798fc414a5eb9c7137ee47f9a2a3b6
+     (15,431,261 B; ONE independent anchor = build artifact; burn-dir copy NOT independent)
+     BURN_OK (HIGH + DONE + path + freshness 132 s + no-ABORT); remove+rescan OK
+
+0x2B IDENTITY GATE (all match)
+  MAGIC 0x50360001 / BID 0x0000002B / MARKER 0xdeadbeef / UNIMPL 0x17C = 0xffffffff / 0x08 = 0
+  MIR 0x16C=0x00200000 0x170=0x5a5a5a5a 0x174=0 0x178=0 (readable)
+  NW=83 / WINDOW_SCAN_NFF=0 / 2 BARs (sysfs nonzero=2) / LnkSta 5GT/s x4 / CARRIER p1=1 p0=1
+
+S RESULTS (no PASS/FAIL verdicts; status words only)
+  S-1 static 567 s / 40 samples: W77[31:8] ABS == 0 x40; W76 event/error bits == 0 x40
+      (W76 constant 0x2000100c: blk_lock=1 hi_ber=0 local_fault=0); W78 == 0 x40;
+      W81 == W82 == 0 x40; SNAP_STATUS[7]=0 x40; gens +1 per trigger.
+      background p0: W79 20->144 (+124), W80 3253->22942 (+19689)  [status 已证]
+  S-2 p0 inject 2000 x 128B-content frames (wire 132B):
+      W79 169->2169 (+2000); W80 26961->282961 (+256000);
+      NIC p0 port_tx_packets 12534->14534 (+2000); port_tx_bytes 2050634->2314634 (+264000);
+      DeltaW80 + 4*DeltaW79 = 264000 = Delta port_tx_bytes EXACT;
+      W81=W82=0; stale=0; pcap 2000 captured / 0 dropped        [status 已证]
+  S-3 TX_DIS negative control (0x08 bit0):
+      p0 carrier 1->0->1; p0 carrier_changes 19->20->21 (+1/+1, actual);
+      p1 carrier=1 and carrier_changes=55 unchanged; board W78=0, snapshot fresh  [status 已证]
+  S-4 LOS: NOT OBSERVED via remote approximations (peer netdev down 12 s; peer PCI function
+      0000:01:00.0 removed 15 s). W78[0]=0, los1_evt=0, ch0_stale=0, W76 block_lock=1
+      in 12/12 and 15/15 samples. Physical J7 AOC pull unavailable        [status 未测]
+  S-5 clock-stop/timeout: rx_clk_out_0 never stopped; SNAP_STATUS[7] never =1
+      (12/12 + 15/15 samples)                                             [status 未测]
+  S-6 ch1 TCP fast arm: 2,000,000,425 B / 14.751 s = 1084.636 Mbps (sink);
+      ss per-second min 1064.0 / max 1103.9 / mean 1086.5 / median 1094.3 Mbps;
+      mism_bytes=0, stall_conns=0, fail_conns=0, poll_tmo=0, check=lane8;
+      board W51=2,000,001,885 (exactly one 1460B MSS above sink), W52=1,369,865,
+      W54=0, W55=7, W75=0; NIC p1 dbytes/dpackets = 1517.99     [status 已证 - single arm]
+  S-7 temperature/power: no on-board instrument                        [status 未测]
+      Dual-port coexist static covered by S-1.
+
+FINAL BOARD STATE (live read 1792274775 = 06:06:15 CST; env/FINAL_LIVE_READ.txt)
+  MAGIC 0x50360001 / BID 0x0000002A / MARKER 0xdeadbeef / UNIMPL 0x160 = 0xffffffff
+  0x08 = 0 (not stopped) / CARRIER p1=1 p0=1
+  snapshot NW=76: SNAP_STATUS gen=1 ch0_stale=0; W0=0 W1=0 W20=2 W43=0x04ef9a3d
+  LnkSta 5GT/s x4 / 2 BARs / /dev/xdma0_user + /dev/xdma0_control present
+  p1 NIC unmanaged; p0 NIC managed by NetworkManager ("connecting", same as entry)
+  iptables: ONLY the three default policy lines; no rules (none were ever added)
+  leftovers: NONE (p7b_tcp_sink / p7b_tcp_churn / p7b_udp_src / tcpdump)
+  QSPI: ZERO writes (JTAG volatile only)
+
+DEVIATIONS (see README_FOR_TL sec.5)
+  - S-1 duration 567 s (target 600 s; sampling overhead).
+  - S-4/S-5 未测 (no physical AOC pull; neither remote approximation stops the peer TX).
+  - S-7 未测 (no temperature/power instrument).
+  - Task text's 0x2A-restore parenthetical (79c9cf43... / 0x28 / 75 words / 0x15C) is 0x28's
+    identity; restored the ACTUAL active 0x2A (aa44a0ed... / BID 0x2A / 76 words / 0x160).
+  - S-6 ran the 0x2B arm only (task wording = at least 1 arm; no same-session 0x2A A/B).
+  - p0 carrier_changes resets across PCI remove/rescan (21 -> 1); cross-arm comparison invalid.
