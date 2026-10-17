@@ -8,7 +8,7 @@
 
 ## 0. 结论表
 
-阶段 1 设计 v5 已落盘；阶段 2 门债：chain 门加 `TCP_TX_OVL`+xpm，未改 RTL 基线 **106/0 PASS**；`run_tx_ovl_gate` 未修（8 锚点漂移），替代门 = chain 门；阶段 3 RTL 完成，目标 **0x2B**（83 字/`0x17C`）；**G1 142/0 PASS**；**G4 29/0 PASS**；**G2 PASS_ALL**；**G5 4/4**；**G3 矩阵 20/20 EXIT=0 FROZEN**；读侧 **0x2B 65 处/17 文件 0 fail**，负控 **4/4 有牙**；改动 **29 文件 +1297/−288**；未跑构建/板级。
+阶段 1 设计 v5 已落盘；阶段 2 门债：chain 门加 `TCP_TX_OVL`+xpm，未改 RTL 基线 **106/0 PASS**；`run_tx_ovl_gate` 未修（8 锚点漂移），替代门 = chain 门；阶段 3 RTL 完成，目标 **0x2B**（83 字/`0x17C`）；**G1 142/0 PASS**；**G4 29/0 PASS**；**G2 PASS_ALL**；**G5 4/4**；**G3 矩阵 20/20 EXIT=0 FROZEN**；读侧 **0x2B 65 处/17 文件 0 fail**，负控 **4/4 有牙**；改动 **57 文件 +10041/−289**（含 impl notes/gates；实现面剔除 notes = 38 文件 +2371/−289）；未跑构建/板级。
 
 ## 1. 阶段 1（设计 v5）
 
@@ -51,7 +51,7 @@ W77.vcc 自由计数；G4 SOP-2 口径（F4 窗口外）；chain TB 6 处健壮�
 
 ## 8. 文件清单
 
-见 `DESIGN_v5 §12` 与本报告 §3；`git diff --stat` = **29 files, +1297/−288**。
+见 `DESIGN_v5 §12` 与本报告 §3；`git show --stat 3d4ce8ad` = **57 files, +10041/−289**（实现面口径：剔除 impl notes/gates = 38 files, +2371/−289）。
 
 ---
 
@@ -59,7 +59,7 @@ W77.vcc 自由计数；G4 SOP-2 口径（F4 窗口外）；chain TB 6 处健壮�
 
 | # | 抽核项 | 结果 |
 |---|---|---|
-| 1 | `git diff --stat` | ✓ 29 files, +1297/−288（与报告一致） |
+| 1 | diffstat | ✓ 提交后 `git show --stat 3d4ce8ad` = 57 files +10041/−289；提交前 `git diff --stat`（未加新文件）= 29/+1297/−288 —— 两个口径不同，已按实际订正（审查 中-7） |
 | 2 | wrapper 锚点 | ✓ `SFP2_MODE` 硬门 `:255-280`；`SNAP_NW_P6E=83` `:3522`；`SNAP_CH0_NW=4` `:3554`；`snap_busy` 注释"不得 OR ch0snap_busy" `:4478`；`ch0_los_bundle` 模式位 `:3998` |
 | 3 | axi_regs | ✓ `ch0_snap_to` 输入 `:196`、逐代锁存 `:339`、`SNAP_STATUS[7]` 注释 `:193` |
 | 4 | G1a 基线 | ✓ `tb_p7b_chain done: 106 checks, 0 fail; VERDICT = PASS` |

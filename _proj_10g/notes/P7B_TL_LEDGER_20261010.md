@@ -1728,3 +1728,13 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - **板级判据草案** = `DESIGN_v5 §10.4`：身份门 `0x04=0x2B` / 83 字 / `0x17C=0xffffffff` / 2 BARs / x4；S-1..S-7（含负对照）；`0x08` bit1=0。
 - **记录**：审查队列已追加本实施轮（DESIGN_v5/REPORT/gates → 待报送）。
 - **下一棒**：**实施红队审查**（独立只读）→ 抽核/提交 → **构建 0x2B** → 板级 P1。
+
+## §10-127 2026-10-18 03:3x：**P1 实施红队审查收口（`p9_review_p1_impl_20261018/FINDINGS.md` 代落）—— 阻断 0 / 高 2 / 中 7 / 低 9；结论 = 可进入构建，但读侧两项高须在板级前修 ⇒ 先派修复轮再构建**
+- **审查范围**：HEAD `3d4ce8ad`（DESIGN_v5/REPORT/gates + 实施改动 + 读侧 + 门）。TL 抽核：**`check_window.py` 独立复跑 TRUE_RC=1（PASS=95 / FAIL=9）**；`p7b_snap.sh:208-214` 只取 gen/done（无 bit7）；`git show --stat 3d4ce8ad` = **57 文件 +10041/−289**；G1 DIAG `SOP 55 / TLAST 53 / TERM 2` —— 均与审查一致。
+- **高 2**：**高-1** `check_window.py` 静态装配核对器红（判据 3 束宽等式漏 `+4`、5a 顶端 17 项、5c W76..W82 槽位；RC=1），且**不在 20 门矩阵内** ⇒ "读侧 0 fail/门全绿"不覆盖；**高-2** `SNAP_STATUS[7]` **未进入任何读侧工具**（`p7b_snap.sh`/`p6e_snap_check.sh`/`p7b_gate4_accept.sh`/`p6b_accept.sh` 的 0x1C 解析均未加 bit7）⇒ 板级读 W79..W82 时看不到"ch0 束陈旧"告警（P1 观测面核心安全语义）。
+- **中 7**：中-1 `TCP_TX_OVL` 替代门只 elaborate（chain TB force `txsrc_*`，从不驱动 `tcp_tx_frame`；tx_ovl 变异门未修）· 中-2 G4 SOP-2 语义放宽（F4 窗口内 2 个裸 SOP；MAC 单 `term_pend` 多 SOP 行为未登记）· 中-3 W77/W80/W81 行为覆盖缺口（坏 FCS/`/E/`/事件更新无臂）· 中-4 S-1/S-5 "W77 不增"是饱和后空判据（1.6 µs 到 0xFF）+ S-4 `+1` 脆性 · 中-5 backstop B1/B2/B3 不删 W76/W78 的 ~192 DP FF（建议 B3 后 abort-to-P0 或 B4）· 中-6 `SFP2_MODE_A/B` 硬门与构建实际 A=1 组合无 elaboration 门 · 中-7 diffstat 事实不一致（**已在 REPORT/队列订正**：57/+10041/−289，注释两个口径）。
+- **低 9**：G1 摘录不全/全文在 ignored workdir · 行号漂移 · 文档重复/陈旧 · `check_window` 判据 4 oracle=HEAD 空转（改冻结锚）· `axi_regs.ch0_snap_to` 在 `tb_axi_regs`/`pcie_min_top` 未连 · 历史 TB 旧 stub force 名 · W80 回卷口径数字用错 · 文件数表述 · `OPEN_ITEMS` 未登记无门区。
+- **独立复算正结果**：G3 FROZEN 内容摘要 `37851074…45123a7` 与 HEAD 296 文件逐字节一致（content-bound to `3d4ce8ad`，日志 `GIT_HEAD=dbbbe1e7` 是提交前 HEAD）；manifest 49 文件与 manifestcheck 一致；G1 142 = 132 具名 + 10 `snap_take`；G4 29 = 18 + 11。
+- **审查总评**：**可进入构建 0x2B**（RTL 主体/结构/几何无阻断；ch0 tap 只读、超时/几何有源码+日志支持），但读侧高 2 项须在板级前修。
+- **TL 决策（自主推进）**：**先派 P1 修复轮**（高 2 + 中 1/2/3/4/5/6 + 低项 + REPORT 订正 + 门补），跑门后抽核提交，**再构建 0x2B**。
+- 审查队列已追加本审查件（待报送）。
