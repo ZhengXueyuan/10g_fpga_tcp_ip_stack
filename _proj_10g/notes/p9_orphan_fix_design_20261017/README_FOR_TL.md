@@ -1,8 +1,8 @@
 # p9_orphan_fix_design_20261017 —— 孤儿会话/槽泄漏修复设计件
 
-> 件名 `_proj_10g/notes/p9_orphan_fix_design_20261017/README_FOR_TL.md` · 日期 **2026-10-17** · 轮次 = **纯设计件（只读，修订版 v2）**
+> 件名 `_proj_10g/notes/p9_orphan_fix_design_20261017/README_FOR_TL.md` · 日期 **2026-10-17** · 轮次 = **纯设计件（只读，修订版 v4）**
 > 上游：`p9_c1_mech_doc_20261017/README_FOR_TL.md`（机制档案，451 行）· `p9_c1_board_20261017/README_FOR_TL.md`（C1 板级两代臂）
-> 审查：`p9_review_orphan_fix_design_20261017/FINDINGS.md`（F1–F18，TL 处置 = 全采纳）
+> 审查：`p9_review_orphan_fix_design_20261017/FINDINGS.md`（F1–F18）· `FINDINGS_V2.md`（N1–N15）· `FINDINGS_V3.md`（必修 7 条）—— TL 处置 = **全部采纳**
 > ⛔ **本件只读**：未碰板/对端，未改任何 RTL/HLS/工具/构建脚本；**不含 PASS/FAIL 裁定，不含实施授权**。
 > 标签口径：【已证（`文件:行`）】= 本 agent 2026-10-17 现读源码可当场复核 ·【推断】= 有依据但未直接测（附证伪法）·【未判定】·【未测】。
 > ⚠️ 行号一律本 agent 2026-10-17 现读；与旧文引用不同处按本件。
@@ -12,7 +12,28 @@
 
 ---
 
-## 修订版 v3（2026-10-17，按 FINDINGS_V2 N1–N15）—— 逐条闭项表
+## 修订版 v4（2026-10-17，按 FINDINGS_V3 必修 7 条）—— 逐条闭项表
+
+> 被审件 = v3（736 行）；复评件 = `p9_review_orphan_fix_design_20261017/FINDINGS_V3.md`（**机制层已全闭**；必修 7 条全部是"附录伪代码 / 测试配置 / 措辞"级）。
+> 本版 = **纯纸面修订**；只改这 7 条及其直接相关句（附录 B 的 FSM/清零顺序、§3.2 模式 B 折叠、§3.3/§6.3/§7.4/§9 的 B5 与两连丢措辞、§6.1 使能、§6.2 参数臂与 C2b 刺激）。**N4 机制 / N2 机制 / F2 作用域 / C1–C4 断言 / U6b–c / B5b–B5c 时长 / 死零窗占槽登记 / N14 已闭项不动。**
+> ⚠️ **红队认账 N14**：现读 `board/wrapper_p4.v:1345-1347` 属实（v3 对、FINDINGS_V2 差一行）。
+> ⚠️ 本版附录 B 是"实现直接照此写"的权威；正文与附录冲突处**按附录读**（FINDINGS_V3 教训①）。
+
+| # | 严重度 | v3 残留问题 | v4 处置（闭法） | 闭项位置 |
+|---|---|---|---|---|
+| **V4-1（N3/N5）** | **阻断** | 附录 FSM 缺 `orph_wait_cam<=0`（照抄 ⇒ wait_cam 永 1 ⇒ busy 永 1 ⇒ FSM 永挂、无 orph_down/stat_orphan）；`orph_notify_pend` 置/清**完全没写**；`orph_ready` **未定义**；`orph_down_r` 清位/默认不全 | `if (cam_clr_done) begin orph_wait_cam<=0; orph_notify_pend<=1; end`（**同沿交接**，busy 连续无 1 拍空档）；**`orph_ready = orph_notify_pend`**；投递沿 `orph_down_r<=1` 且**同沿清 `orph_notify_pend<=0`** ⇒ `orph_down_r` 严格 1 拍脉冲；`orph_down_r` 每分支清位/默认写全（fire/abort 清 0；非投递拍默认 0）；U6b 加"**第一槽停在 wait_cam→notify_pend 交接拍时第二槽达限**"臂 | 附录 B、§3.2 步骤 3/4、§6.1 U6b |
+| **V4-2（N2）** | **阻断（门/测试）** | 附录 `zw_accrue`/`orph_zw_cnt` 计数/`fireB` **未包 `ORPHAN_ZW_EN`** ⇒ 照附录实现时 p5wrapper 的 `ORPHAN_ZW_EN_5=0` 关不掉 Mode B（N2 误杀回归）；v3 缺"OVL 内将来禁用 ack_obs ⇒ 默认推导失效"自评（红队 grep 0 命中，属实） | Mode B 的**全部**（`accrueB`/计数/清零/`fireB`）包进 **`if (ORPHAN_ZW_EN)`**（常数折叠）；补自评：结构性防呆依赖不变量"`TCP_TX_OVL=1 ⇒ ack_obs 置位`"——若将来在 OVL 支内加开关禁用 ack_obs 置位，默认推导会静默给出 1 ⇒ Mode B 打开而 ack_obs 恒 0 ⇒ **误杀**；建议 wrapper 加 `ORPHAN_ZW_EN_5 && ack_obs_available` 结构断言，或至少在 `tcp_rx` 端口注释里写死该不变量 | §3.2 模式 B、附录 B、§8-19、§9-12 |
+| **V4-3（N6）** | 高（测试可执行性） | §6.1 未写活动单元臂的 **`ORPHAN_EN=1`**（app_ctrl 默认 0 ⇒ 全部活动门空判）；U11/U12 未写 `ORPHAN_ZW_EN=1`；附录"清零块在计数块之前"在 NBA 下清零无效（U1/U12 每 tick 撞车 ⇒ 会点火） | §6.1 明写：**活动臂（U1–U9/U11/U12）以 `ORPHAN_EN=1` 例化；U11/U12 另 `ORPHAN_ZW_EN=1`；U10/U10' 用 0**；附录清零改为 **`if (clr) 0; else if (tick) +1;`（clr 优先）**，且**清零块物理上放在计数块之后** | §6.1、附录 B |
+| **V4-4（N1）** | 中 | B5 时长 ≥120 s **测不到 persist 60 s 档**（累计探询 0.02/5.02/15.02/35.02/**75.02/135.02**/195.02 s；120 s 窗只含 75 s，上一间隔 40 s）；"连续 2 次丢失 ⇒ 180 s，余量 0.39 s ⇒ 不覆盖"**符号/表述矛盾**（180 < 180.39 ⇒ 数学覆盖 0.39 s）；"活零窗对端"未限定 socket 状态 | **B5 ≥135 s**（含 75/135 两次探询 = 一个完整 60 s 间隔；要两个 60 s 间隔 ⇒ ≥195 s）；措辞改为"**2 次丢失 = 180 s < 180.39 s，数学上覆盖 0.39 s；该余量对 ACK 延迟/抖动敏感，按不覆盖处理**"，并补"**≥3 次丢失（240 s）必误杀**"；"活零窗对端"限定为"**socket 未 close** 的活对端"（app close ⇒ 内核回 **RST** ⇒ Mode B 回收是**对的**，不是误杀） | §3.3、§6.3 B5、§7.4、§9-6b、§8-6 |
+| **V4-5（X6）** | 中（测试配置） | v3 让 p5wrapper 同时传 `ORPHAN_EN_5=0`/`ORPHAN_ZW_EN_5=0` ⇒ C2a 的"Mode A 无点火"是**空判**（全块关）；C1/C3/C4 的孤儿臂未逐条点名 | **C2a 用 `ORPHAN_EN_5=1 + ORPHAN_ZW_EN_5=0`**（Mode A 开 / B 关）；**基线臂（保旧 p5wrapper）才用 0/0**；**C1/C3/C4 用孤儿臂 A 覆盖并逐条点名**（C1/C2a/C3/C4 均 `ORPHAN_EN_5=1, ORPHAN_ZW_EN_5=0`） | §6.2 |
+| **V4-6（X3）** | 中 | `ORPHAN_EN`/`ORPHAN_ZW_EN` 嵌套折叠未写；`ZW_EN=0` 时 `orph_zw_cnt` 是否仍计数未写 | 明写四组合：**00** 全关（零回归，`ev_down_i≡ev_down`）；**01** 外关内"开" = **外层胜出 ⇒ 全关**（内层被外层折叠，等价 00）；**10** Mode A 开 / Mode B 全关（`accrueB`/计数/清零/`fireB` 常数折叠，`orph_zw_cnt` **完全不动**、寄存器被优化掉；C2a 用此）；**11** 全开（板 / C2b）。**`ZW_EN=0` ⇒ `orph_zw_cnt` 不计数、不清零、不点火（整块折叠；不是"计数但无火"）** | §3.2、§3.3、§5、附录 B |
+| **V4-7（X7）** | 中（门级） | C2b 的 `ack_obs` 未写刺激方式（force vs 真 ACK 帧）；force 则"真路径门"名不副实 | C2b 的 `ack_obs` 用**真纯 ACK 帧注入**（现有 TB 帧注入设施：按 4 元组构造 flags=ACK、无载荷的以太帧注入 RX 路径，使 `tcp_rx` **真置位** `ack_obs`），**不用 force**；活零窗臂 = 周期注入真 ACK，死零窗臂 = 完全不注入。TB 注入设施不足时先补 helper，并把"**注入后 `ack_obs` 真出现脉冲**"作为前置断言（防"注入过 ≠ 测到了"） | §6.2 C2b |
+
+**v4 对账说明**：FINDINGS_V3 的 7 条必修**全部接受**（逐条现读复核，未发现需要反驳的条目）；N14 的红队认账与 v3 现读一致。v3 的机制层结论（模式 A 四因子、模式 B 判据、FSM 串行化、state-first 顺序）**不变**，本版只补附录权威文本与测试配置。
+
+---
+
+## 修订版 v3（2026-10-17，按 FINDINGS_V2 N1–N15）—— 逐条闭项表（**历史；与 v4 冲突处按 v4 块读**）
 
 > 被审件 = v2（636 行，`8658c373`）；复评件 = `p9_review_orphan_fix_design_20261017/FINDINGS_V2.md`（N1–N15，TL 全采纳）。
 > 本版 = **纯纸面修订**；v3 只改 N1–N15 与由此引出的 §3.2/§3.3/§5/§6/§7/§8/§9 对应句；F1/F4/F5/F7/F8/F11/F12/F14–F18 按复评"闭项属实"**不动**。
@@ -20,7 +41,7 @@
 
 | # | 严重度 | v2 问题 | v3 处置（闭法） | 闭项位置 |
 |---|---|---|---|---|
-| **N1** | **阻断** | Mode B 阈值 61.85 s vs persist **60 s 封顶**只余 1.85 s；**任意一次** 60 s 档探询/ACK 丢失 ⇒ ack_obs 间隔 **120 s** ⇒ 误杀活零窗对端；8 位 ZW 计数 + 18 位 tick 上限 109.5 s **物理到不了 120 s** | 选 **(a) ZW 专用 tick**：`ORPHAN_ZW_TICK_BITS=20` ⇒ 2^20 × 1.6384 µs = **1.718 s/tick**；`ORPHAN_ZW_LIM=8'd105` ⇒ **180.39 s**；8 位饱和 **438.1 s**。最坏单次丢失 120 s ⇒ 余量 60.4 s；**连续 2 次丢失（180 s）不在覆盖内**（余量 0.39 s）⇒ 残余措辞改为"**单次**探询/ACK 丢失可容忍；连续两次 = 误杀风险"；B5 跑 ≥2×60 s + 记录探询/ACK 计数；B5c 加"单次丢失"臂 | §3.2-模式B、§3.3、§6.3、§9-6b |
+| **N1** | **阻断** | Mode B 阈值 61.85 s vs persist **60 s 封顶**只余 1.85 s；**任意一次** 60 s 档探询/ACK 丢失 ⇒ ack_obs 间隔 **120 s** ⇒ 误杀活零窗对端；8 位 ZW 计数 + 18 位 tick 上限 109.5 s **物理到不了 120 s** | 选 **(a) ZW 专用 tick**：`ORPHAN_ZW_TICK_BITS=20` ⇒ 2^20 × 1.6384 µs = **1.718 s/tick**；`ORPHAN_ZW_LIM=8'd105` ⇒ **180.39 s**；8 位饱和 **438.1 s**。最坏单次丢失 120 s ⇒ 余量 60.4 s；**连续 2 次丢失（180 s）不在覆盖内**（余量 0.39 s）⇒ 残余措辞改为"**单次**探询/ACK 丢失可容忍；连续两次 = 误杀风险"；B5 跑 ≥2×60 s + 记录探询/ACK 计数；B5c 加"单次丢失"臂。**⚠️ v4 订正：2 次丢失 = 180 < 180.39（数学覆盖 0.39 s、按不覆盖处理）、≥3 次必误杀；B5 ≥135 s** | §3.2-模式B、§3.3、§6.3、§9-6b |
 | **N2** | **阻断（门/测试）** | `ack_obs` 只在 `TCP_TX_OVL` 支置位，`else` 恒 0（`tcp_rx.v:617-626`）；v2 §9-12"两支都置位"**不实** ⇒ 非 OVL 的 p5wrapper/C2 零窗臂 Mode B 必误杀 | wrapper 暴露 **`ORPHAN_ZW_EN_5`**（默认由 `` `ifdef TCP_TX_OVL `` 推出：OVL=1 / 非 OVL=0）；p5wrapper 显式传 **0**；板构建（TCP_TX_OVL=1）默认 1；**另设一个定义 `TCP_TX_OVL` 的全链臂**测 Mode B；C2 零窗臂改判"仅 Mode A 负对照（Mode B 在本门关闭）"；§9-12 订正为"仅 OVL 支" | §3.2-模式B、§5、§6.2、§9-12 |
 | **N3** | 高 | `fireA/fireB` 无 `!orph_busy`：两槽相邻扫描拍都达 LIM ⇒ 第二槽覆盖第一槽的 FSM ⇒ 第一槽 state=0 半回收（CAM 残留、winq 不还、无 orph_down、st_done 阻止重试） | `orph_busy = orph_state_req || orph_cam_req || orph_wait_cam || **orph_notify_pend** || orph_down_r`；`fireA/fireB` 都加 **`!orph_busy`**（第二槽计数保持饱和、等第一槽完成后下一扫描再点火）；U6 加"双槽同时达限"臂；串行化最坏 = 3 槽 ×（fc 等待 + CAM 清），无半回收。**`orph_notify_pend`** = "state_done+CAM 清都完成、等 `orph_down_r` 投递拍"的寄存器（防止投递被 `to_push/ev1_v` 顺延时 busy 短暂落 0，第二槽乘虚而入） | §3.2、§3.4、§6.1 U6b |
 | **N4** | 高 | CAM 清 issue 缺 `state_done`；C3 ③ 用 `st_pend`（fc gnt 沿已清，`app_ctrl.v:1323`）⇒ F9 顺序可回归 / 断言恒假 | 新增寄存器 **`orph_state_done`**：`fc_gnt && fc_sel_r==5 && fc_id_r==orph_slot` 时置 1；fire/abort 清 0。CAM 清 issue = `orph_cam_req && orph_state_done && !scfg_busy && !abort_comb`；C3 ③ 改判 `orph_state_done` | §3.2 步骤 2/3、§3.5、§6.2 C3 |
@@ -28,7 +49,7 @@
 | **N6** | 高（测试可执行性） | U1"每 4096 轮"、U4"每 1000 轮(<LIM)"、U12"每 5 s"与 TB 小值（LIM=2/TICK_BITS=1 ⇒ 6.6 µs）量纲冲突 ⇒ 基线即红/负对照空转；U6 无"state gnt 后、CAM 清前"臂；U2"visits"无定义 | 全部按 **tick 单位**重写：U1/U4 进度每 `max(1,LIM/2)` ticks；U12 `ack_obs` 每 `max(1,LIM/2)` ticks；U2 `retx_active` 每 `max(1,LIM/2)` ticks；U6 加 state-gnt→CAM-clear 窗口臂；U6b 加双槽同时达限；TB 参数显式 `ORPHAN_LIM=2/TICK_BITS=1`、`ORPHAN_ZW_LIM=2/ZW_TICK_BITS=1` | §6.1 |
 | N7 | 中 | C2 零窗臂的"无点火"在 Mode B 下只有"活零窗 + ack_obs"成立；v2 未更新 | C2 拆两行：**C2a（p5wrapper，Mode B 关闭）只测 Mode A 零窗排除**；**C2b（新 OVL 全链臂，Mode B 开）测活零窗（注入 ack_obs）不点火 + 死零窗点火** | §6.2 |
 | N8 | 中 | §3.6 use-point 把 `stat_ev_drop` 写成 `:1376`（实为 `ev_ovf`；stat_ev_drop 在 `:974`）；`ev_ovf` 未列入"保持原始" | 两处都改：**保持原始 = `ev_push`(:437)、`stat_ev_drop`(:974)、`ev_ovf`(:1376)**；内部用 `_i` 的清单照旧 | §3.6 |
-| N9 | 低 | B5b 未进 §6.3 编号臂序；§7.4 汇总漏 B5；2×LIM 时长未在 §6.3 统一 | §6.3 臂序补 B5/B5b/B5c；§7.4 补 B5；时长统一（模式 A ≥2×LIM = ≥124 s；B5 ≥2×60 s = ≥120 s；B5c ≥200 s；B5b ≥2×180.39 s ≈ ≥361 s） | §6.3、§7.4 |
+| N9 | 低 | B5b 未进 §6.3 编号臂序；§7.4 汇总漏 B5；2×LIM 时长未在 §6.3 统一 | §6.3 臂序补 B5/B5b/B5c；§7.4 补 B5；时长统一（模式 A ≥2×LIM = ≥124 s；B5 ≥2×60 s = ≥120 s；B5c ≥200 s；B5b ≥2×180.39 s ≈ ≥361 s）。**⚠️ v4 订正：B5 ≥135 s（120 s 测不到 60 s 档）** | §6.3、§7.4 |
 | N10 | 低 | wrapper 未暴露 `ORPHAN_ZW_EN_5` | 加 wrapper 参数 `ORPHAN_ZW_EN_5`（见 N2） | §5 |
 | N11 | 低 | U10' 的"改前冻结锚"未点名（现有 `app_ctrl_base.v` 早于 HEAD） | U10' 冻结锚 = **快照当前 HEAD 的 `rtl/app_ctrl.v`**（实施时按 sha256 命名，如 `tb/frozen/app_ctrl_head_<sha8>.v`）；**不用** `sim/p5wu_p1p2/app_ctrl_base.v` | §6.1 U10'、§7.2 |
 | N12 | 低 | p5wrapper "重基线"削弱回归门 | wrapper 暴露 **`ORPHAN_EN_5`**（默认 1）；**p5wrapper 显式传 `1'b0`**（保旧基线，不重基线）；板构建与新 OVL 臂传 1 | §5、§6.2、§7.2 |
@@ -42,7 +63,7 @@
 
 ## 修订版 v2（2026-10-17，按 FINDINGS F1–F18）—— 逐条闭项表（**历史；冲突处按 v3 块读**）
 
-> ⚠️ **本块 = v2 历史**。凡与上方 v3 块冲突处**按 v3 块读**，尤其：F6-b 阈值（v2 的 61.85 s → v3 的 180.39 s）· F9 的 CAM 清 issue（v2 无 `state_done` → v3 加 `orph_state_done`）· F3 的 issue 门（v3 加 `orph_state_done`）· F2 的作用域（v3 放进 `ORPHAN_EN` + `ORPHAN_EN_5`）· N3/N4/N5（v2 未覆盖）。
+> ⚠️ **本块 = v2 历史**。凡冲突处**按 v4 → v3 的顺序读**（v4 最新），尤其：F6-b 阈值（v2 的 61.85 s → v3 的 180.39 s）· F9 的 CAM 清 issue（v2 无 `state_done` → v3 加 `orph_state_done`）· F3 的 issue 门（v3 加 `orph_state_done`）· F2 的作用域（v3 放进 `ORPHAN_EN` + `ORPHAN_EN_5`）· N3/N4/N5（v2 未覆盖）。
 > 被审件 = 本文件 v1；审查件 = `p9_review_orphan_fix_design_20261017/FINDINGS.md`（18 项，TL 全采纳）。
 > 本版 = **纯纸面修订**；下列每条给出"v1 问题 → v2 处置 → 闭项位置"。红队判"不实"的条目按**红队结论**改（若本 agent 复核后认为红队某条不实，在该行写"对账"并给源码依据）。
 
@@ -71,7 +92,7 @@
 
 ---
 
-## 一页答案（Q1/Q2/Q3，v2 口径）
+## 一页答案（Q1/Q2/Q3，v4 口径）
 
 ### Q1「释放 ≠ 死亡」——推荐语义（v1 结论不变）
 
@@ -86,7 +107,7 @@
 **为什么 DEL 绝对不行**：被动连接的第三个握手 ACK 是纯 ACK ⇒ `rx_classify` 判 FAST（`rtl/rx_classify.v:101-107`）⇒ HLS 永远停在 `T_SYN_RCVD`、约 2.56 s 后被静默释放（`hls/src/layer_tcp.cpp:531-535`）⇒ 释放时发 DEL 会把每一条健康被动连接拆掉（灾难）。
 **后备变体 B（REL 记录）的 v2 补充**：`slow_cfg_adp` 的 `is_add/is_del` 只有 0/1，**任何未知 cmd 会落进 DEL 的 else 支**（`slow_cfg_adp.v:145-168`）⇒ 实施 cmd=2 必须**同时改解析器**，否则 REL 会变成拆连。本批仍不推荐（HLS 重综合 + 记录协议）。
 
-### Q2 快路径"失联回收"——v2 判据与阈值
+### Q2 快路径"失联回收"——v4 判据与阈值
 
 **判据（模式 A：非零窗；四因子，缺一不点火）：**
 1. **长期停滞**：`state==ESTAB` ∧ `snd_wnd != 0` ∧ 有未决数据（`snd_nxt != snd_una`，或本槽重传会话进行中）∧ 无 FIN/RST 在飞；`snd_una` 持续不前进超过阈值。`snd_una` 每次推进（`tcp_rx` 的 `upd_sel==2` 授权写，`rtl/tcp_rx.v:486-490`）⇒ **计数清零**。
@@ -97,20 +118,20 @@
 4. **排除重传次数作为充分条件**（反例）：慢盆 `W55=49.9/s` 但 `snd_una` 在推进；Stage C 自持环重传 13.8–19.3× 但 ACK 在回来；persist 探询也是"重传"，对端活着。⇒ 重传只能当**必要见证**。
 
 **模式 B（零窗死对端，F6-b 闭法，v3 修 N1/N2）**：`state==ESTAB ∧ snd_wnd==0 ∧ snd_nxt!=snd_una ∧ !fin_sent ∧ !rst_sent`，且**本槽在 180.39 s 内没有收到任何合法 ACK**（`tcp_rx.ack_obs` 每槽脉冲清零）⇒ 回收。
-- **阈值（v3 修正 N1）**：`ORPHAN_ZW_TICK_BITS=20` ⇒ 2^20 × 1.6384 µs = **1.718 s/tick**；`ORPHAN_ZW_LIM=8'd105` ⇒ **180.39 s**；8 位饱和 **438.1 s**。
+- **阈值（v3 修正 N1，v4 修正措辞）**：`ORPHAN_ZW_TICK_BITS=20` ⇒ 2^20 × 1.6384 µs = **1.718 s/tick**；`ORPHAN_ZW_LIM=8'd105` ⇒ **180.39 s**；8 位饱和 **438.1 s**。
   - persist 退避 `ps_reload` = 20 ms→5→10→20→40→**60→60… s**（`tcp_tx_frame.v:407-419`、`PS_MAX` `:299-301`）⇒ 稳态 ACK 间隔 **60 s**；**任意一次 60 s 档探询或其 ACK 丢失 ⇒ ack_obs 间隔 120 s** ⇒ 180.39 s 阈值**可容忍 1 次**（余量 60.39 s）。
-  - **连续 2 次丢失 ⇒ 间隔 180 s**；180.39 s 只余 0.39 s ⇒ **不在覆盖内**（残余，§9-6b）。
-  - 活零窗对端会对 persist 探询回 ACK（win=0）⇒ `ack_obs` 清零 ⇒ 不误杀。【推断：RFC 1122 §4.2.2.17 / Linux 行为；本板未单独测；验证臂 = U12 + B5/B5c】
+  - **连续 2 次丢失 ⇒ 间隔 180 s；180 < 180.39 ⇒ 数学上覆盖 0.39 s**。该余量对 ACK 延迟/抖动敏感（内核延迟 ACK、调度卡顿可吃掉它）⇒ **按"不覆盖"处理**（v4 修正符号/表述）。**≥3 次丢失（240 s）⇒ 必误杀**（v4 补）。
+  - **socket 未 close** 的活零窗对端会对 persist 探询回 ACK（win=0）⇒ `ack_obs` 清零 ⇒ 不误杀。【推断：RFC 1122 §4.2.2.17 / Linux 行为；本板未单独测；验证臂 = U12 + B5/B5c】**app 已 close 的 socket ⇒ 内核回 RST 而非 ACK ⇒ Mode B 回收是"对的"（会话确实死了），不是误杀**（v4 限定）。
 - **N2（ack_obs 仅 OVL）**：`tcp_rx.v:617-626` 的 `ack_obs` **只在 `ifdef TCP_TX_OVL` 支置位**，`else` 恒 0 ⇒ 模式 B 只在板构建（`TCP_TX_OVL=1`）有效；wrapper 用 `ORPHAN_ZW_EN_5`（由 `ifdef TCP_TX_OVL` 推出默认）把非 OVL 门关掉，另设 OVL 全链臂测模式 B。
 - 死零窗对端没有任何 ACK ⇒ 180.39 s 后回收（v1 的永久占槽被闭）。
 
 **模式 A 阈值（v2 修正 F1，v3 不变）**：默认 **61.85 s** = `ORPHAN_LIM = 8'd144` × `429.4967 ms/tick`；tick = `ORPHAN_TICK_BITS=18`（`scan_round[17:0]==0` = 262,144 轮 × 1.6384 µs = 429.4967 ms）；8 位饱和 **109.52 s**。
 依据（v2 重算）：61.85 s ≫ RTO 20 ms（≈3092×）、≫ app FIN 超时 400 ms（≈155×）、≫ HLS 释放周期 2.56 s（≈24×）、> 慢盆 20 ms 簇尺度；< Linux `tcp_retries2` ~13 min。
 
-**成本（v3）**：模式 A 128 FF + 模式 B 128 FF + saw 16 + FSM ~22 + `stat_orphan` 32 + `orph_state_done`/`orph_busy`/`orph_down_r`/`orph_notify_pend` ~7 ≈ **330 FF**；`ORPHAN_EN=0` 整块折叠为 0。
+**成本（v4）**：模式 A 128 FF + 模式 B 128 FF（`ORPHAN_ZW_EN=0` 时折叠）+ saw 16 + FSM ~22 + `stat_orphan` 32 + `orph_state_done`/`orph_busy`/`orph_down_r`/`orph_notify_pend` ~7 ≈ **330 FF**；`ORPHAN_EN=0` 整块折叠为 0。
 **F6-a 登记未闭**：`inflight==0` 的空闲 ESTAB 死对端无法与健康空闲区分，本批不回收（影响界/候选见 §9-6a；winq 由同槽 ADD 的 C18 归还，`app_ctrl.v:987-991`）；**不许把它算作已闭**。
 
-### Q3 迟到 RST 误杀——**不同批，登记**（v2 可观测路径修正）
+### Q3 迟到 RST 误杀——**不同批，登记**（F7 可观测路径修正）
 
 - 迟到 RST 按残留 `peer_ip/port` 命中 ⇒ 4 元组复用时可能误杀新连接（`hls/src/layer_tcp.cpp:631-641`）。
 - **不同批的理由**：本修复不产生任何 RST；该向量在静默释放后就已存在（HLS 槽 2.56 s 就空出）；可信修法需要快路径的 seq 窗口，而 HLS 从未见过第三 ACK/数据（`peer_seq` 停在 SYN+1）；同批会扩到 HLS 重综合。
@@ -151,7 +172,7 @@
 - **D1 同槽重连清理**：`cfg_up`（= `scfg_ev_up`）清 `fin_sent_r/whi_r/rst_sent_r/...`（`tcp_tx_frame.v:1101-1128`）。
 - **E12 四计数器**：`stat_up_ev/stat_sw_req/stat_sw_apply/stat_up_pend`（`app_pattern.v:556-591`，W71..W74）。本设计不改 ev_up 链；新增 `stat_orphan`（回收提交数）。
 
-### 1.5 观测面（现役 75 字）与 v2 的几何
+### 1.5 观测面（现役 75 字）与 v4 的几何
 
 `SNAP_NW_P6E=75`（`wrapper_p4.v:3296`）、`SNAP_P7BDP_NW=35`（`:3317`）、W74 @ `0x148`。
 **v2 加 W75 后**（F4）：`SNAP_NW_P6E=76`、`SNAP_P7BDP_NW=36`；W75 @ **`0x14C`**；MIR_STATUS=**`0x150`** / MIR_DATA=**`0x154`** / MIR_CTRL=**`0x158`** / MIR_DMA_CNT=**`0x15C`**；**UNIMPL=0x160**（`axi_regs.v:206,214-218` 的 `SNAP_LAST_IDX=8+SNAP_NW-1` 自动推导；**不写死 MIR 地址**）。
@@ -196,7 +217,7 @@ W55 = `tcp_tx_frame.stat_retx`、W68 = `tcp_rx.stat_ack_adv`——板级判据�
 
 ---
 
-## 3 Q2：快路径失联判据与回收（v2）
+## 3 Q2：快路径失联判据与回收（v4）
 
 ### 3.1 判据候选与反例
 
@@ -207,7 +228,7 @@ W55 = `tcp_tx_frame.stat_retx`、W68 = `tcp_rx.stat_ack_adv`——板级判据�
 | `snd_una` 停滞 + 非零窗 | 慢盆最后一段：小在飞、永不重传 | 需加 `win_closed` |
 | `snd_una` 停滞 + 非零窗 +（窗满或本槽重传会话中） | "对端安静且本端也没重试"（app 已停、在飞恰好未清） | 需加 `saw` |
 | **模式 A：四因子** | —— | **采用** |
-| **模式 B：零窗 + 61.85 s 无 `ack_obs`** | 活零窗对端会回 ACK（persist 探询） | **采用（F6-b 闭）** |
+| **模式 B：零窗 + 180.39 s 无 `ack_obs`** | **socket 未 close** 的活零窗对端会回 ACK（persist 探询）；app close ⇒ RST ⇒ 回收正确 | **采用（F6-b 闭）** |
 
 ### 3.2 正式判据（逐条可综合）
 
@@ -255,7 +276,7 @@ if (retx_active) orph_saw[retx_id] <= 1'b1;   // 按 retx_id 解码/one-hot 置�
 ```
 orph_busy = orph_state_req || orph_cam_req || orph_wait_cam || orph_notify_pend || orph_down_r
 ```
-`orph_wait_cam` = "CAM 清脉冲已发、等 clr 回落"的 1 拍状态；`orph_notify_pend` = "state_done + CAM 清都完成、等 `orph_down_r` 投递拍"的寄存器（投递被 `to_push/ev1_v` 顺延时 busy 不落 0，第二槽不能乘虚而入）。
+`orph_wait_cam` = "CAM 清脉冲已发、等 clr 回落"的短状态（clr 高 1 拍 + 回落后检测拍，共约 2 拍；在 `cam_clr_done` 沿与 `orph_notify_pend` 同沿交接）；`orph_notify_pend` = "state_done + CAM 清都完成、等 `orph_down_r` 投递拍"的寄存器（投递被 `to_push/ev1_v` 顺延时 busy 不落 0，第二槽不能乘虚而入）。
 
 **点火（模式 A，N3 加 `!orph_busy`）：**
 ```
@@ -268,31 +289,35 @@ fire_a = scan_tick && !init_pend && !(ev_blk && (ev_slot_i == scan_id)) && accru
 - **不是**"replay_full 自持兜底"——重放帧自己推进 `snd_nxt`（`tcp_tx_frame.v:634,648,1200-1213,1383-1385`），会话自然收尾。
 - `!orph_busy`：第二槽达限时计数保持饱和、**等第一槽 FSM 完成后下一扫描再点火** ⇒ 不会覆盖第一槽的 `orph_slot`/pending（N3）。
 
-**模式 B（零窗死对端，F6-b；N1/N2）：**
+**模式 B（零窗死对端，F6-b；N1/N2；v4 全块包 `ORPHAN_ZW_EN`）：**
 ```
-zw_accrue = scan_tick && !init_pend && !(ev_blk && (ev_slot_i == scan_id)) &&
-            (rc_state == ST_ESTAB) && (rc_snd_wnd == 0) &&
-            (rc_snd_nxt != rc_snd_una) &&
-            !fin_sent[scan_id] && !rst_sent[scan_id] &&
-            !st_done[scan_id] && !to_fired[scan_id]
-zw_tick   = (scan_round[ORPHAN_ZW_TICK_BITS-1:0] == 0)   // 默认 20 位 = 1,048,576 轮 = 1.718 s
-zw_reset  = ack_obs && (ack_obs_id == <slot>)            // 任何合法 ACK（含零窗 ACK）重置
-fire_b    = ... && zw_accrue && (orph_zw_cnt[scan_id] >= ORPHAN_ZW_LIM) && !orph_busy
+if (ORPHAN_ZW_EN) begin : g_orph_zw          // 常数折叠：=0 ⇒ 整块不存在（不计数、不清零、不点火）
+  zw_accrue = scan_tick && !init_pend && !(ev_blk && (ev_slot_i == scan_id)) &&
+              (rc_state == ST_ESTAB) && (rc_snd_wnd == 0) &&
+              (rc_snd_nxt != rc_snd_una) &&
+              !fin_sent[scan_id] && !rst_sent[scan_id] &&
+              !st_done[scan_id] && !to_fired[scan_id]
+  zw_tick   = (scan_round[ORPHAN_ZW_TICK_BITS-1:0] == 0)   // 默认 20 位 = 1,048,576 轮 = 1.718 s
+  zw_reset  = ack_obs && (ack_obs_id == <slot>)            // 任何合法 ACK（含零窗 ACK）重置
+  fire_b    = ... && zw_accrue && (orph_zw_cnt[scan_id] >= ORPHAN_ZW_LIM) && !orph_busy
+end
 ```
-- `orph_zw_cnt` 16×8 位饱和，**独立 `zw_tick`**（`ORPHAN_ZW_TICK_BITS=20`，1.718 s/tick；`ORPHAN_ZW_LIM=105` ⇒ 180.39 s；8 位饱和 438.1 s）；`ack_obs` 逐拍清零。
-- **N2**：`ack_obs` 只在 `TCP_TX_OVL` 支置位（`tcp_rx.v:617-626`）⇒ `ORPHAN_ZW_EN` 由 wrapper 的 `ORPHAN_ZW_EN_5` 控制（默认 `ifdef TCP_TX_OVL` 1/0）；非 OVL 门显式 0。
-- 活零窗对端对 persist 探询回 win=0 的 ACK ⇒ `ack_obs` ⇒ 不点火；死对端无 ACK ⇒ 180.39 s 后回收。**单次 60 s 档探询/ACK 丢失 ⇒ 120 s 间隔，180.39 s 可容忍（余量 60.39 s）；连续 2 次丢失 ⇒ 180 s，只余 0.39 s ⇒ 残余（§9-6b）**。
+- `orph_zw_cnt` 16×8 位饱和，**独立 `zw_tick`**（`ORPHAN_ZW_TICK_BITS=20`，1.718 s/tick；`ORPHAN_ZW_LIM=105` ⇒ 180.39 s；8 位饱和 438.1 s）；`ack_obs` 逐拍清零（清零优先于计数，见附录 B）。**名称映射：本节 `zw_accrue/zw_tick/fire_b` = 附录 B 的 `accrueB/orph_zw_tick/fireB`（同一量）。**
+- **N2**：`ack_obs` 只在 `TCP_TX_OVL` 支置位（`tcp_rx.v:617-626`）⇒ `ORPHAN_ZW_EN` 由 wrapper 的 `ORPHAN_ZW_EN_5` 控制（默认 `ifdef TCP_TX_OVL` 1/0）；非 OVL 门显式 0。**`ORPHAN_ZW_EN=0` 时 `orph_zw_cnt` 完全不动（寄存器被优化掉），不是"仍计数但无火"**（X3 钉死）。
+- **嵌套折叠（X3）**：`ORPHAN_EN` 是外层、`ORPHAN_ZW_EN` 是内层 ⇒ **00** 全关（零回归）；**01** 外层关 ⇒ **外层胜出、全关**（等价 00，内层不打开任何逻辑）；**10** Mode A 开 / Mode B 全关（C2a 用此）；**11** 全开（板 / C2b）。`ORPHAN_EN=0` 时一切新输出恒 0、`ev_down_i≡ev_down`。
+- **活零窗（socket 未 close）** 对 persist 探询回 win=0 的 ACK ⇒ `ack_obs` ⇒ 不点火；死对端无 ACK ⇒ 180.39 s 后回收。**单次 60 s 档探询/ACK 丢失 ⇒ 120 s 间隔，180.39 s 可容忍（余量 60.39 s）；连续 2 次丢失 = 180 s < 180.39 s（数学覆盖 0.39 s，余量不足、按不覆盖处理）；≥3 次（240 s）必误杀**（v4 修正措辞，残余见 §9-6b）。
+- **N2 自评（v4 补；红队查证 v3 0 命中）**：结构性防呆依赖不变量"**`TCP_TX_OVL=1` ⇒ `ack_obs` 置位**"。若将来有人在 `TCP_TX_OVL` 支内加开关/参数**禁用 `ack_obs` 置位**，`ORPHAN_ZW_EN_5` 的默认推导会**静默**给出 1 ⇒ Mode B 打开而 `ack_obs` 恒 0 ⇒ **误杀**。建议在 wrapper 加 `ORPHAN_ZW_EN_5 && ack_obs_available` 结构断言，或在 `tcp_rx` 端口注释里写死该不变量（实施时二选一，登记为构建期硬门）。
 
-**点火动作（v3 顺序 = state=0 先、CAM 清后 + N3/N4/N5）：**
-1. **fire 拍**：`st_pend[slot]<=1; st_done[slot]<=1;` + `orph_slot<=slot; orph_state_req<=1; orph_cam_req<=1; orph_state_done<=0; orph_down_r<=0; orph_cnt/orph_zw_cnt/orph_saw<=0;`。**不写 pool、不发 `o_ev_down`**。
+**点火动作（v4 顺序 = state=0 先、CAM 清后 + N3/N4/N5）：**
+1. **fire 拍**：`st_pend[slot]<=1; st_done[slot]<=1;` + `orph_slot<=slot; orph_state_req<=1; orph_cam_req<=1; orph_state_done<=0; orph_wait_cam<=0; orph_notify_pend<=0; orph_down_r<=0; orphan_cam_clr<=0; orph_cnt/orph_zw_cnt/orph_saw<=0;`。**不写 pool、不发 `o_ev_down`**。
 2. **等 state=0 落地（N4）**：`fc_gnt && fc_sel_r==5 && fc_id_r==orph_slot` ⇒ `orph_state_req<=0; **orph_state_done<=1**`（**寄存器**）。**在 `orph_state_done=0` 期间不发 CAM 清**（否则零 CAM 窗口内 `start_data` 仍可启动，`cam_rd_*` 全 0 ⇒ 线上出 0 MAC/IP/port 帧——F9）。
-3. **state_done 后**：`orph_cam_req && orph_state_done && !scfg_busy && !abort_comb` ⇒ 发 1 拍 `orphan_cam_clr`（寄存器输出；CAM 写在该拍结束沿落地），清 `orph_cam_req`、置 `orph_wait_cam`；**等 clr 回落 ≥1 拍**后清 `orph_wait_cam`。
-4. **两者都已落地** ⇒ 置 `orph_notify_pend<=1`；在投递门开的那一拍 `orph_down_r <= 1`（**寄存器，1 拍脉冲**；N5）并清 `orph_notify_pend`，由事件块做 pool/winq/wu/fc/st 清理 + `o_ev_down` + `stat_ev_down++`；同拍 `stat_orphan++`。
-5. **中止**：等待期同槽 `ev_up`/`ev_down`/`fin_sent`/`rst_sent` 上升 ⇒ 清全部 pending（含 `orph_state_done/orph_cam_req/orph_state_req/orph_down_r/orph_wait_cam`），**不发通知**。
+3. **state_done 后**：`orph_cam_req && orph_state_done && !scfg_busy && !abort_comb` ⇒ 发 1 拍 `orphan_cam_clr`（寄存器输出；CAM 写在该拍结束沿落地），清 `orph_cam_req`、置 `orph_wait_cam`；等 clr 回落 ≥1 拍（`cam_clr_done`）⇒ **同沿 `orph_wait_cam<=0; orph_notify_pend<=1;`**（**N3：必须同沿**；先清 wait_cam 下一拍才置 notify_pend ⇒ 中间 1 拍 `orph_busy=0` ⇒ 第二槽乘虚改写 `orph_slot` ⇒ 第一槽半回收）。
+4. **两者都已落地** ⇒ `orph_ready = orph_notify_pend`（**v4 定义，N5**）。在投递门开的那一拍 `orph_down_r <= 1`（**寄存器，1 拍脉冲**）并**同沿清 `orph_notify_pend<=0`**；`orph_down_r` 非投递拍默认 0 ⇒ **严格 1 拍高**（不会多拍、不会丢脉冲）。由事件块做 pool/winq/wu/fc/st 清理 + `o_ev_down` + `stat_ev_down++`；`orph_down_r` 高拍 `stat_orphan++`。
+5. **中止**：等待期同槽 `ev_up`/`ev_down`/`fin_sent`/`rst_sent` 上升 ⇒ 清全部 pending（含 `orph_state_done/orph_cam_req/orph_state_req/orph_down_r/orph_wait_cam/orph_notify_pend/orphan_cam_clr`），**不发通知**。
    - `abort_comb = (ev_up&&ev_slot==orph_slot) || (ev_down&&ev_slot==orph_slot) || fin_sent[orph_slot] || rst_sent[orph_slot]`（**组合**，F3）。
    - `orph_down_r` 是寄存器 ⇒ `to_push` 的 `!orph_down_r` 项与 `orph_down_r` 的 `!to_push` 项**不构成组合环**（N5）。
 
-### 3.3 阈值（v3：模式 A = F1；模式 B = N1）
+### 3.3 阈值（v4：模式 A = F1；模式 B = N1）
 
 **模式 A（非零窗，v2 修正 F1，v3 不变）**
 - `ORPHAN_TICK_BITS = 18`：`scan_round[17:0]==0` 每 **262,144 轮** = **429.4967 ms**（262,144 × 1.6384 µs）。
@@ -303,16 +328,19 @@ fire_b    = ... && zw_accrue && (orph_zw_cnt[scan_id] >= ORPHAN_ZW_LIM) && !orph
 **模式 B（零窗，N1 修正）**
 - `ORPHAN_ZW_TICK_BITS = 20`：`scan_round[19:0]==0` 每 **1,048,576 轮** = **1.7180 s**（1,048,576 × 1.6384 µs）。
 - `ORPHAN_ZW_LIM = 8'd105` ⇒ **180.39 s**；8 位饱和 **255 × 1.7180 s = 438.1 s**。
-- **persist 60 s 封顶的算术**：`ps_reload` = 20 ms→5→10→20→40→**60→60… s**（`tcp_tx_frame.v:407-419`；`PS_MAX` `:299-301`）⇒ 稳态 ACK 间隔 60 s；**任意一次探询/ACK 丢失 ⇒ 120 s**；180.39 s 可容忍 **1 次**（余量 60.39 s）。**连续 2 次丢失 = 180 s，余量 0.39 s ⇒ 不覆盖（残余）**。
-- v2 的"61.85 s 内所有 ACK 都丢"措辞作废（严重低估）；v3 的残余 = "**单次丢失可容忍、连续两次不覆盖**"。
+- **persist 60 s 封顶的算术**：`ps_reload` = 20 ms→5→10→20→40→**60→60… s**（`tcp_tx_frame.v:407-419`；`PS_MAX` `:299-301`）⇒ 稳态 ACK 间隔 60 s；**任意一次探询/ACK 丢失 ⇒ 120 s**；180.39 s 可容忍 **1 次**（余量 60.39 s）。
+- **连续 2 次丢失（v4 修正符号/表述）**：间隔 = 3×60 = **180 s**；`180 < 180.39` ⇒ **数学上覆盖 0.39 s**。该 0.39 s 余量对 ACK 延迟/抖动敏感（内核 delayed ACK ≤40 ms + 调度卡顿即可吃掉）⇒ **按"不覆盖"处理**（不是"180 > 180.39"）。**≥3 次丢失（240 s）⇒ 必误杀**。
+- **活零窗对端（v4 限定）**：仅指 **socket 未 close** 的活对端（内核会 ACK persist 探询）；**app 已 close ⇒ 内核回 RST，不是 ACK** ⇒ `ack_obs` 不脉冲、Mode B 在 180.39 s 回收 —— 这是**正确回收**（会话确实死了），不是误杀；HLS 的 RST 扫描兜底（`layer_tcp.cpp:631-641`）同向。
+- v2 的"61.85 s 内所有 ACK 都丢"措辞作废（严重低估）；v3/v4 的残余 = "**单次丢失可容忍**；**2 次丢失数学覆盖 0.39 s、按不覆盖处理**；**≥3 次必误杀**"。
 
-**可配置**
-- `app_ctrl`：`ORPHAN_EN`（0）、`ORPHAN_LIM[7:0]`（144）、`ORPHAN_TICK_BITS`（18，≥1）、`ORPHAN_ZW_EN`（0/1）、`ORPHAN_ZW_LIM[7:0]`（105）、`ORPHAN_ZW_TICK_BITS`（20，≥1）。
+**可配置（v4 钉死默认值与嵌套语义）**
+- `app_ctrl`：`ORPHAN_EN`（**默认 0**）、`ORPHAN_LIM[7:0]`（144）、`ORPHAN_TICK_BITS`（18，≥1）、`ORPHAN_ZW_EN`（**默认 0；仅 `ORPHAN_EN=1` 时有效**）、`ORPHAN_ZW_LIM[7:0]`（105）、`ORPHAN_ZW_TICK_BITS`（20，≥1）。
 - wrapper：`ORPHAN_EN_5`（默认 1；p5wrapper 显式 0）、`ORPHAN_LIM_5`（144）、`ORPHAN_TICK_BITS_5`（18）、`ORPHAN_ZW_EN_5`（默认由 `` `ifdef TCP_TX_OVL `` 推出：OVL=1/非 OVL=0；p5wrapper 显式 0）、`ORPHAN_ZW_LIM_5`（105）、`ORPHAN_ZW_TICK_BITS_5`（20）。
-- TB：`ORPHAN_LIM=2`、`ORPHAN_TICK_BITS=1`（tick 每 2 轮 ≈3.2768 µs；LIM=2 ⇒ 6.55 µs）；`ORPHAN_ZW_LIM=2`、`ORPHAN_ZW_TICK_BITS=1`（Mode B 同量级）。
+- TB：`ORPHAN_LIM=2`、`ORPHAN_TICK_BITS=1`（tick 每 2 轮 ≈3.2768 µs；LIM=2 ⇒ 6.55 µs）；`ORPHAN_ZW_LIM=2`、`ORPHAN_ZW_TICK_BITS=1`（Mode B 同量级）。**活动臂必须显式 `ORPHAN_EN=1`（U11/U12 另 `ORPHAN_ZW_EN=1`）；U10/U10' 用 0**（§6.1）。
+- **嵌套折叠（X3）**：外层 `ORPHAN_EN`、内层 `ORPHAN_ZW_EN`。**00** 全关 = 零回归；**01** 外层关 ⇒ 全关（外层胜出，不是"Mode B 单开"）；**10** Mode A 开 / Mode B 全关（`orph_zw_cnt` 不计数、不清零、不点火，寄存器折叠掉）；**11** 全开。⚠️ 不存在"只开 Mode B"的组合（00/01/10/11 中 01 与 00 等价）。
 - **不做运行时寄存器**：板 app 总线静态钉死（`wrapper_p4.v:1345-1347`，N14 对账见上）；调阈值 = 一次构建（#64）。
 
-### 3.4 计数器成本（v3）
+### 3.4 计数器成本（v4）
 
 | 项 | 位宽×份数 | FF |
 |---|---|---|
@@ -323,11 +351,11 @@ fire_b    = ... && zw_accrue && (orph_zw_cnt[scan_id] >= ORPHAN_ZW_LIM) && !orph
 | `stat_orphan` | 32 | 32 |
 | 合计 | | **≈326–330 FF** |
 
-`ORPHAN_EN=0` ⇒ 全部折叠（参数常量化，与 `PERSIST_EN` 同款零回归手法）。**关键纪律**：`orph_down_r`/`orphan_cam_clr` 显式与 `ORPHAN_EN` 相与，保证 `ORPHAN_EN=0` 时 `ev_down_i ≡ ev_down`、`ev_slot_i ≡ ev_slot`；否则既有 8–9 个直接例化 `app_ctrl` 的 TB 未接新输入（Z）时 Z 可经 `ev_down_i` 传播。
+`ORPHAN_EN=0` ⇒ 全部折叠；`ORPHAN_EN=1 && ORPHAN_ZW_EN=0` ⇒ **Mode B 的 128 FF 一并折叠**（`orph_zw_cnt` 不计数、不清零、不点火，X3/V4-2）。参数常量化，与 `PERSIST_EN` 同款零回归手法。**关键纪律**：`orph_down_r`/`orphan_cam_clr` 显式与 `ORPHAN_EN` 相与，保证 `ORPHAN_EN=0` 时 `ev_down_i ≡ ev_down`、`ev_slot_i ≡ ev_slot`；否则既有 8–9 个直接例化 `app_ctrl` 的 TB 未接新输入（Z）时 Z 可经 `ev_down_i` 传播。
 **N5**：`orph_down_r` 是寄存器；`to_push` 的 `!orph_down_r` 与 `orph_down_r` 的 `!to_push` 不构成组合环。
 **N3**：`orph_busy` 只串行化 FSM，不丢计数（第二槽的 8 位计数饱和保留）。
 
-### 3.5 回收动作清单（v2）
+### 3.5 回收动作清单（v4）
 
 | # | 动作 | 实现 | 备注 |
 |---|---|---|---|
@@ -342,7 +370,7 @@ fire_b    = ... && zw_accrue && (orph_zw_cnt[scan_id] >= ORPHAN_ZW_LIM) && !orph
 | 9 | **retx_ram ring 内容** | 不清（新 `cfg_up` 清 `whi_r`；ring_hi 回绕安全上界挡住伪重放） | 残余登记 §9-8 |
 | 10 | **HLS** | **零改动** | 见 Q1 |
 
-### 3.6 竞态/时序论证（v2，含 F2/F3/F8/F9）
+### 3.6 竞态/时序论证（v4，含 F2/F3/F8/F9/N3/N4/N5）
 
 **ADD（同槽新连接）——四道防线（v3）：**
 1. **CAM 清 issue 门**：`orph_cam_req && orph_state_done && !scfg_busy && !abort_comb`（N4 加 `orph_state_done`；`st_pend` 在 fc gnt 沿已清，`app_ctrl.v:1323`，不能当判据）。`scfg_busy` 覆盖 `S_CAM/S_TCB/S_TCB_LAST` 与 FIFO 非空、`wcnt!=0`（F16）。**光有 busy 不够**：ev_up 拍 state=S_RECV、busy=0，而 ADD 的 CAM 写已在此前完成 ⇒ 必须加 `abort_comb` 的 **组合** ev_up/ev_down 门（F3）。
@@ -358,7 +386,7 @@ fire_b    = ... && zw_accrue && (orph_zw_cnt[scan_id] >= ORPHAN_ZW_LIM) && !orph
 
 **fc 饿死**：TCB 更新口每拍最多 1 写；tx 数据写每帧 1 次（~193 拍 1 次）、rx 每帧几次、cfg 每条记录 8 次，fc 是第 4 级，仍有大量空拍。`fc_sel5` 是 round-robin（`app_ctrl.v:701-726`），同槽最多 16 个 gnt 内被选中。**不设超时**（残余风险 §9-4）。**v2 顺序**：state=0 先落，CAM 清后发 ⇒ 即使 fc 被压住，也不会出现"CAM 已清、state 仍 ESTAB 且 `start_data` 可启动"的零 CAM 帧窗口（F9）。
 
-**通知顺序（v3）**：`orph_down_r` 只在 **CAM 清脉冲已回落（写入沿已过）+ `orph_state_done=1`** 后才置 1（寄存器，1 拍脉冲）。投递拍让位：`orph_down_r <= orph_ready && !ev_up && !ev_down && !to_push && !ev1_v && !to_pushed_r`（F8：补 `!to_pushed_r`，防止 `to_push` 下一拍与 orphan 连续两拍 `o_ev_down`）。
+**通知顺序（v4）**：`orph_wait_cam` 在 CAM 清脉冲回落（写入沿已过）后**同沿**清 0 并置 `orph_notify_pend<=1`（`cam_clr_done` 交接，N3）；**`orph_ready = orph_notify_pend`**（v4 定义）。`orph_down_r` 只在 **`orph_state_done=1` + notify_pend=1** 且投递门开的那一拍置 1（寄存器，1 拍脉冲），**同沿清 `orph_notify_pend<=0`**；非投递拍 `orph_down_r` 默认 0 ⇒ 严格 1 拍。投递门：`orph_ready && !ev_up && !ev_down && !to_push && !ev1_v && !to_pushed_r`（F8：补 `!to_pushed_r`，防止 `to_push` 下一拍与 orphan 连续两拍 `o_ev_down`）。
 - **N5 无环**：`to_push` 的 `!orph_down_r` 与 `orph_down_r` 的门里的 `!to_push` 都是**寄存器项**（`orph_down_r` 是寄存器）⇒ 组合环不存在。
 - **N4**：`orph_state_done` 也是寄存器（fc gnt 时置 1，fire/abort 清 0）；C3 断言用它，不用 `st_pend`（`st_pend` 在 gnt 沿已清，`app_ctrl.v:1323`）。
 
@@ -366,7 +394,7 @@ fire_b    = ... && zw_accrue && (orph_zw_cnt[scan_id] >= ORPHAN_ZW_LIM) && !orph
 - 必须改成 `_i`/`ev_slot_i`：事件块（`:973-1054`）、`ev_blk`（`:836`）、`ev1_v/ev1_slot`（`:926-927`）、`hit_b/hit_c`（`:837-839`）、`to_push` 门（`:698-699`，加 `!orph_down_r`）、**`ret_slot_q/pool_ret_x`（`:880-883`）**（F8）。
 - **保持原始**：`ev_push`（`:437`）、**`stat_ev_drop` 条件（`:974`）**、**`ev_ovf`（`:1376`）**。⚠️ N8：v2 把 `stat_ev_drop` 写成 `:1376`（那是 `ev_ovf`）；两处都列出。
 
-### 3.7 观测字 W75（v2，F4/F15）
+### 3.7 观测字 W75（v4，F4/F15）
 
 - 新增 **1 个字 W75 = `app_ctrl.stat_orphan`**（32 位，提交回收计数），落 **`0x14C`**，进 `p7bdp` 束（槽 35）。
 - 几何：`SNAP_P7BDP_NW 35→36`、`SNAP_NW_P6E 75→76`；**MIR 四寄存器自动下移**：MIR_STATUS=**0x150**、DATA=**0x154**、CTRL=**0x158**、DMA_CNT=**0x15C**；**UNIMPL=0x160**（`axi_regs.v:206,214-218`：`SNAP_LAST_IDX = 8 + SNAP_NW - 1`，MIR 由它 +1..+4 推导）。**不要写死 MIR 地址，也不要再把 0x15C 当空洞**（F4）。
@@ -381,7 +409,7 @@ fire_b    = ... && zw_accrue && (orph_zw_cnt[scan_id] >= ORPHAN_ZW_LIM) && !orph
 
 ---
 
-## 4 Q3：迟到 RST 误杀新连接（v2）
+## 4 Q3：迟到 RST 误杀新连接（v4）
 
 ### 4.1 现状
 
@@ -395,7 +423,7 @@ fire_b    = ... && zw_accrue && (orph_zw_cnt[scan_id] >= ORPHAN_ZW_LIM) && !orph
 3. 可信修法需要快路径的 seq 窗口：HLS 的 `peer_seq` 停在 SYN+1（第三 ACK 与数据都不进 HLS），`seq==peer_seq` 会拒掉合法 RST、破坏现有兜底。
 4. 同批会扩到 HLS + 重综合。
 
-### 4.3 风险登记（v2 可观测路径，F7）
+### 4.3 风险登记（F7 可观测路径）
 
 - **窗口**：同一 4 元组在静默释放后复用时，旧 RST 到达。
 - **后果**：新连接被拆（app 收 `ev_down`，可重连；不是静默错误）。
@@ -410,33 +438,34 @@ fire_b    = ... && zw_accrue && (orph_zw_cnt[scan_id] >= ORPHAN_ZW_LIM) && !orph
 
 ---
 
-## 5 改动面清单（v3，逐文件/逐块）
+## 5 改动面清单（v4，逐文件/逐块）
 
 | 文件 / 块 | 类型 | 改动 | 需 HLS 重综合？ |
 |---|---|---|---|
 | `hls/src/layer_tcp.cpp` | HLS | **不动**（Q1 结论 A） | **否** |
-| `rtl/app_ctrl.v` | DP RTL | 参数 `ORPHAN_EN/ORPHAN_LIM/ORPHAN_TICK_BITS/ORPHAN_ZW_EN/ORPHAN_ZW_LIM/ORPHAN_ZW_TICK_BITS`；输入 `retx_active/retx_id/una_adv/una_adv_id/ack_obs/ack_obs_id/scfg_busy`；输出 `orphan_cam_clr/orphan_cam_slot/stat_orphan`；`orph_cnt`/`orph_zw_cnt` 各 16×8、`orph_saw` 16；回收 FSM + **`orph_state_done`（N4）+ `orph_busy`（N3）+ `orph_down_r` 寄存器（N5）**；**`fc_upd_wr` 组合门放在 `ORPHAN_EN` 内（F2/F13）**；`orph_down_r` 并入 `ev_down_i`（含 `ret_slot_q` 的 use-point，F8）；CAM 清 issue 门含 `orph_state_done`（F3/N4）；`0xA0` 读回 `stat_orphan`（可选） | 否 |
+| `rtl/app_ctrl.v` | DP RTL | 参数 `ORPHAN_EN/ORPHAN_LIM/ORPHAN_TICK_BITS/ORPHAN_ZW_EN/ORPHAN_ZW_LIM/ORPHAN_ZW_TICK_BITS`；输入 `retx_active/retx_id/una_adv/una_adv_id/ack_obs/ack_obs_id/scfg_busy`；输出 `orphan_cam_clr/orphan_cam_slot/stat_orphan`；`orph_cnt`/`orph_zw_cnt` 各 16×8、`orph_saw` 16；回收 FSM + **`orph_state_done`（N4）+ `orph_busy`（N3）+ `orph_down_r` 寄存器（N5）**；**`fc_upd_wr` 组合门放在 `ORPHAN_EN` 内（F2/F13）**；`orph_down_r` 并入 `ev_down_i`（含 `ret_slot_q` 的 use-point，F8）；CAM 清 issue 门含 `orph_state_done`（F3/N4）；**Mode B 全块包 `if (ORPHAN_ZW_EN)`（V4-2）；`orph_zw_cnt` 计数用 clr 优先（V4-3）**；`0xA0` 读回 `stat_orphan`（可选） | 否 |
 | `rtl/slow_cfg_adp.v` | RTL | 只新增 `output wire o_busy = (state != S_RECV) || !f_empty || (wcnt != 3'd0);`（无输入/行为改动；F16） | 否 |
 | `rtl/tcp_tx_frame.v` | RTL | **不动**（`o_retx_active/o_retx_id` 已是现成输出；state=0 后由现有扫描清状态） | 否 |
 | `rtl/tcp_rx.v` | RTL | **不动**（`ack_obs/ack_obs_id` 与 `rx_upd_*` 都是现成输出；⚠️ `ack_obs` **只在 `TCP_TX_OVL` 支置位**，`else` 恒 0，N2） | 否 |
 | `rtl/tcb.v` / `rtl/tcp_cam.v` | RTL | **不动**（state=0 走现有 upd 口；CAM 清走现有 cfg 口，wrapper 做 mux） | 否 |
 | `rtl/app_pattern.v` | RTL | **不动**（现有 ev_down→closing→W3 收尾） | 否 |
-| `board/wrapper_p4.v` | RTL | ① **前置声明** `rx_upd_wr/id/sel`、`rx_upd_gnt`、`rx_ack_obs/id`、`tx_retx_active`、`tx_retx_id_o`、`scfg_busy`、`orphan_cam_*` **到 `u_app_ctrl` 之前**（现声明在 `:1761/:1782-1784/:1829-1830/:2052/:2132`，晚于 `:1279` 的例化——**不前置就是隐式 1 位网静默截断**，坑 #24）；② `una_adv = rx_upd_gnt && (rx_upd_sel==3'd2)`；③ `u_app_ctrl` 加新端口 + **`ORPHAN_EN_5`（默认 1；p5wrapper 传 0，N12）/`ORPHAN_LIM_5`/`ORPHAN_TICK_BITS_5`/`ORPHAN_ZW_EN_5`（默认由 `ifdef TCP_TX_OVL` 推，N2/N10）/`ORPHAN_ZW_LIM_5`/`ORPHAN_ZW_TICK_BITS_5`**；④ CAM 写 mux（scfg 优先）；⑤ W75 装配 + `SNAP_P7BDP_NW 35→36` + `SNAP_NW_P6E 75→76`（MIR 自动下移，UNIMPL=0x160）；⑥ **`.PERSIST_EN(1'b1)` 还原** + **`BUILD_ID_V` bump 到 `0x2A`** | 否 |
+| `board/wrapper_p4.v` | RTL | ① **前置声明** `rx_upd_wr/id/sel`、`rx_upd_gnt`、`rx_ack_obs/id`、`tx_retx_active`、`tx_retx_id_o`、`scfg_busy`、`orphan_cam_*` **到 `u_app_ctrl` 之前**（现声明在 `:1761/:1782-1784/:1829-1830/:2052/:2132`，晚于 `:1279` 的例化——**不前置就是隐式 1 位网静默截断**，坑 #24）；② `una_adv = rx_upd_gnt && (rx_upd_sel==3'd2)`；③ `u_app_ctrl` 加新端口 + **`ORPHAN_EN_5`（默认 1；p5wrapper 传 0，N12）/`ORPHAN_LIM_5`/`ORPHAN_TICK_BITS_5`/`ORPHAN_ZW_EN_5`（默认由 `ifdef TCP_TX_OVL` 推，N2/N10）/`ORPHAN_ZW_LIM_5`/`ORPHAN_ZW_TICK_BITS_5`**；**N2 自评的防呆**：加结构断言 `ORPHAN_ZW_EN_5 && ack_obs_available`（或在 `tcp_rx` 端口注释写死不变量"`TCP_TX_OVL=1 ⇒ ack_obs` 置位"）；将来 OVL 内禁用 ack_obs 置位 ⇒ 默认推导静默失效 ⇒ 误杀（V4-2）；④ CAM 写 mux（scfg 优先）；⑤ W75 装配 + `SNAP_P7BDP_NW 35→36` + `SNAP_NW_P6E 75→76`（MIR 自动下移，UNIMPL=0x160）；⑥ **`.PERSIST_EN(1'b1)` 还原** + **`BUILD_ID_V` bump 到 `0x2A`** | 否 |
 | 快照读侧（`_proj_pcie/p6e_snap_check.sh`、`apply_readside.py`、`P7B_BIZ_WINDOW.md`、`check_window.py`、`tb_biz_win.v`、`tb_p6e_pcie_wrapper.v`、一切 NW/UNIMPL/EXPECT_BID 读者） | 工具/文档 | 同步到 NW=76 / BID=0x2A / W75=0x14C / **UNIMPL=0x160** / MIR=0x150..0x15C；**不要写死 MIR**（F4 补三件点名） | 否 |
 | `tb/tb_app_orphan.v`（新）+ 门 bat（新） | TB | 单元门：判据/阈值/竞态/变异 + **ORPHAN_EN=0 同激励全输出对比臂**（F13，锚 = 当前 HEAD app_ctrl 快照，N11） | 否 |
-| `tb/tb_p5_wrapper.v`（或新 wrapper 门） | TB | 全链门：真 app_ctrl+tcb+cam+app_pattern；**p5wrapper 显式 `ORPHAN_EN_5=0/ORPHAN_ZW_EN_5=0` 保旧基线（N12）**；另设孤儿臂参数覆盖 | 否 |
-| **新 OVL 全链臂**（定义 `TCP_TX_OVL`） | TB | **Mode B 真路径门（N2/N7）**：`ack_obs` 可用；活零窗 + ack_obs 不点火 / 死零窗点火 | 否 |
+| `tb/tb_p5_wrapper.v`（或新 wrapper 门） | TB | 全链门：真 app_ctrl+tcb+cam+app_pattern；**基线臂显式 `ORPHAN_EN_5=0/ORPHAN_ZW_EN_5=0` 保旧基线（N12）**；**孤儿臂 A = `ORPHAN_EN_5=1 + ORPHAN_ZW_EN_5=0` 覆盖 C1/C2a/C3/C4（X6，逐条点名见 §6.2）** | 否 |
+| **新 OVL 全链臂**（定义 `TCP_TX_OVL`） | TB | **Mode B 真路径门（N2/N7）**：`ORPHAN_EN_5=1 + ORPHAN_ZW_EN_5=1`；`ack_obs` 用**真纯 ACK 帧注入**（不用 force，X7）；活零窗 + 真 ACK 不点火 / 死零窗点火 | 否 |
 | `sim/p4gates/run_matrix_p4dfix.bat` | 矩阵 | 新门入册（19→20）；**纠正**：`p5wrapper_src.f:39-43` 已含 app_ctrl/app_pattern/wrapper_p4（F12）；真盲区 = 板宏配置，新门仍要断言被改文件在编译清单 | 否 |
 
 **不需要改的**：`rtl/mac_tx_10g.v`、`rtl/mac_rx_10g.v`、`rtl/persist` 相关、`rtl/fifo_*`、任何 HLS IP 网表。
 
 ---
 
-## 6 判据（三层）+ 变异有牙（v2）
+## 6 判据（三层）+ 变异有牙（v4）
 
 ### 6.1 单元门（xsim，新 `tb/tb_app_orphan.v`）
 
 **TB 量纲（N6 钉死）**：`ORPHAN_LIM=2`、`ORPHAN_TICK_BITS=1`（模式 A：1 tick = 2 轮 = 3.2768 µs；LIM=2 ⇒ **6.55 µs**）；`ORPHAN_ZW_LIM=2`、`ORPHAN_ZW_TICK_BITS=1`（模式 B 同量级）。表中所有"tick"按此单位；不再写"4096 轮/1000 轮/5 s/12207 visits"。
+**TB 使能（v4 补，N6 必修）**：**活动单元臂（U1–U9、U11、U12）的 `app_ctrl` 以 `ORPHAN_EN=1` 例化；U11/U12 另加 `ORPHAN_ZW_EN=1`；U10/U10' 以 `ORPHAN_EN=0`（U10' 同时 `ORPHAN_ZW_EN=0`）例化**。⚠️ 不写 = app_ctrl 默认 0 ⇒ 活动门全部空判（U1 期望 0 通过、U11 期望 1 失败、U12 空转、M1–M12 全不红）——红队 §6 必修，v3 正是漏了这一行。
 
 | 判据 | 激励（tick 单位） | 期望 | 判别力 |
 |---|---|---|---|
@@ -447,29 +476,33 @@ fire_b    = ... && zw_accrue && (orph_zw_cnt[scan_id] >= ORPHAN_ZW_LIM) && !orph
 | U5 回卷重放 | `retx_active=1` 且 `snd_nxt==snd_una` 持续 **`LIM/2` ticks**，再回到正常 | 计数不清零、按时点火 | 防"回卷清计数" |
 | U5b 活动 retx 支 | `inflight<cap`、saw=1、每 **`max(1,LIM/2)` ticks** 一次 `retx_active`（每次 1–2 ticks） | 在 LIM 后 ≤N 次会话内点火（概率性；记录实际命中次数） | F5 口径 |
 | U6 ADD 竞态（pre/post） | **pre-fire**：`cnt=LIM-1` 时同槽 `ev_up`；**post-fire**：fire 后 1–2 拍同槽 `ev_up`（带 saw+win_closed 见证） | 中止：无 `o_ev_down`、无 CAM 清、`st_pend` 被清；**删 abort_comb ⇒ 红** | F3 牙 |
-| **U6b 双槽同时达限（N3）** | 两个 cid 在**相邻扫描拍**都达 LIM（各自 saw+win_closed） | 两槽**最终都完成**回收（各 1 次 state=0 + 1 个 CAM 清 + 1 个 `o_ev_down`，`stat_orphan=2`）；无"state=0 已落但 CAM 残留/winq 不还"的半回收；**删 `!orph_busy` ⇒ 第一槽半回收 ⇒ 红** | N3 牙 |
+| **U6b 双槽同时达限（N3）** | 两个 cid 在**相邻扫描拍**都达 LIM（各自 saw+win_closed）；**另加交接拍臂（v4）**：让第一槽**恰好停在 `cam_clr_done`（`wait_cam→notify_pend` 同沿交接）那一拍**时第二槽达 LIM | 两槽**最终都完成**回收（各 1 次 state=0 + 1 个 CAM 清 + 1 个 `o_ev_down`，`stat_orphan=2`）；无"state=0 已落但 CAM 残留/winq 不还"的半回收；**删 `!orph_busy` ⇒ 第一槽半回收 ⇒ 红**；**把交接拆成两拍（先清 wait_cam、下一拍才置 notify_pend）⇒ 交接拍 `orph_busy=0` ⇒ 第二槽改写 `orph_slot` ⇒ 第一槽半回收 ⇒ 红（v4 牙）** | N3 牙 |
 | **U6c state-gnt→CAM 清窗口（N4/F9）** | fire 后等 state gnt；然后 `scfg_busy` 保持 N ticks | `orph_state_done=1` 前无 CAM 清；busy 期间无 CAM 清；释放后恰 1 个 CAM 清；**把 issue 门里的 state_done 删掉 ⇒ 红**（或 C3 ③ 空判） | N4/F9 牙 |
 | U7 通知顺序 | 点火后 `scfg_busy` 保持 20 拍，state gnt 后 CAM 清延迟 | `o_ev_down` 严格晚于 `orph_state_done` **和** CAM 清回落；无重复脉冲；**删 state-first 顺序 ⇒ 红**（F9） | 语义 |
 | U8 DEL 竞态 | 等待期同槽 `ev_down` | 中止，不发第二次通知 | 幂等 |
 | U9 饱和 | 孤儿保持 **>255 ZW/A ticks** | 计数饱和、只点火一次 | 回卷 |
 | U10 `ORPHAN_EN=0` 冒烟 | 同 U2 激励 | 新输出全 0 | 冒烟（**不是**零回归证据） |
 | **U10' 零回归（F13/N11）** | **同一激励**同时跑 **当前 HEAD `app_ctrl.v` 的快照锚**（实施时按 sha256 命名，如 `tb/frozen/app_ctrl_head_<sha8>.v`；**不用**旧的 `app_ctrl_base.v`）+ 新 RTL `ORPHAN_EN=0` | `o_ev_up/o_ev_down/o_ev_slot/stat_ev_up/stat_ev_down/pool/winq/app_tx_ready` **逐拍逐位相同** | **零回归主判据** |
-| **U11 模式 B（F6-b，OVL 臂）** | `snd_wnd=0`、`snd_nxt!=snd_una`、**无 `ack_obs`** 跑 **>ORPHAN_ZW_LIM ticks**（TB: 2 ticks） | 点火、`stat_orphan=1` | 闭 F6-b |
-| **U12 模式 B 负对照（OVL 臂）** | 同上，但每 **`max(1,ZW_LIM/2)` ticks** 注入一次 `ack_obs`（模拟活零窗对端回 persist ACK；TB: 每 tick） | 0 次点火 | 防误杀 + M10 牙 |
+| **U11 模式 B（F6-b，单元臂：`ORPHAN_EN=1`+`ORPHAN_ZW_EN=1`，TB 直接驱动 `ack_obs` 端口模拟 OVL 行为）** | `snd_wnd=0`、`snd_nxt!=snd_una`、**无 `ack_obs`** 跑 **>ORPHAN_ZW_LIM ticks**（TB: 2 ticks） | 点火、`stat_orphan=1` | 闭 F6-b |
+| **U12 模式 B 负对照（同一单元臂）** | 同上，但每 **`max(1,ZW_LIM/2)` ticks** 注入一次 `ack_obs` 脉冲（模拟活零窗对端回 persist ACK；TB: 每 tick） | 0 次点火 | 防误杀 + M10 牙 |
 | **U12b 模式 B 单次丢失（N1）** | 同上；在 **`2×ZW_LIM` ticks 窗口内只漏 1 次 `ack_obs`**（其余每 tick 注入；模拟一次 60 s 档探询/ACK 丢失） | 0 次点火（180.39 s 容忍 1 次；TB 按 tick 比例缩） | N1 牙 |
 
 ### 6.2 全链门（xsim，真 wrapper + 真 app_ctrl/tcb/cam/app_pattern）
 
-- **C1/C2a/C3/C4 在 `tb_p5_wrapper`**（APP_MODE 全链，`sim/p5sim/run_tb_p5_wrapper.bat`；`p5wrapper_src.f:39-43` 已含被改文件），wrapper **显式传 `ORPHAN_EN_5=1'b0`、`ORPHAN_ZW_EN_5=1'b0`** 保旧基线，另用一套"孤儿臂"参数覆盖（`ORPHAN_EN_5=1`、`ORPHAN_LIM_5=2~4`、`ORPHAN_TICK_BITS_5=1`）：
-  - **C1**：层次 force 槽 0 为 ESTAB + 窗满 + `snd_una` 冻结 + 周期 `retx_active` ⇒ 期望 `o_ev_down` + `app_pattern.closing` + 后续 `active=0`；再发 `scfg ADD` ⇒ `ev_up` 被应用、`app_pattern` 重新发帧。**app 收尾/新会话应用 = C1（F18）**。
-  - **C2a**（p5wrapper，**Mode B 关闭**）：健康推进 / 零窗 / 慢盆三种 force 模式 ⇒ **Mode A** 无点火；零窗行**只**验证 Mode A 的 `snd_wnd!=0` 排除（Mode B 在本门关闭，N7）。
-  - **C3**：CAM 仲裁断言：① `!(orphan_cam_clr && scfg_cam_wr)`（busy 门）；② **强制同拍碰撞**（TB force）时 CAM 写入的是 scfg 值（mux 分支，F10）；③ `orphan_cam_clr` 只在 **`orph_state_done=1`** 且 CAM 未清之后出现（**N4**；不用 `st_pend`——gnt 沿已清）。
-  - **C4**：`scfg_busy` 保持期间 `orphan_cam_clr` 不出现；`wcnt!=0` 也算 busy。
-- **C2b（新 OVL 全链臂）**：**定义 `TCP_TX_OVL`**（使 `ack_obs` 真置位），wrapper 传 `ORPHAN_EN_5=1`、`ORPHAN_ZW_EN_5=1`、`ORPHAN_ZW_LIM_5=2`、`ORPHAN_ZW_TICK_BITS_5=1`；测**活零窗 + 周期 ack_obs ⇒ 不点火**、**死零窗（无 ack_obs）⇒ 点火**。这是 Mode B 的唯一真路径门（N2/N7）。
-- **门面纪律**：新门必须断言"编译文件清单含 `rtl/app_ctrl.v`、`rtl/slow_cfg_adp.v`、`board/wrapper_p4.v`"；**纠正 F12**：p5wrapper 门确实编译这些文件，真盲区是**板宏配置**（`P7B_10G`/`TCP_TX_OVL`/`DP_156MHZ`），C2b 用 `TCP_TX_OVL` 覆盖其一。
-- **门面纪律**：新门必须断言"编译文件清单含 `rtl/app_ctrl.v`、`rtl/slow_cfg_adp.v`、`board/wrapper_p4.v`"；**纠正 F12**：p5wrapper 门确实编译这些文件，真盲区是**板宏配置**（`P7B_10G`/`TCP_TX_OVL`/`DP_156MHZ`），需要构建 + 板级臂覆盖。
+- **参数臂（v4 钉死，X6/N12；必须逐条点名）**：全链门 = `tb_p5_wrapper`（APP_MODE，`sim/p5sim/run_tb_p5_wrapper.bat`；`p5wrapper_src.f:39-43` 已含被改文件）。
+  - **基线臂（保旧 p5wrapper）**：`ORPHAN_EN_5=1'b0`、`ORPHAN_ZW_EN_5=1'b0` ⇒ **只**证明零回归/旧基线，**不承担任何活动判据**。
+  - **孤儿臂 A（Mode A 开 / Mode B 关）**：`ORPHAN_EN_5=1`、`ORPHAN_ZW_EN_5=0`、`ORPHAN_LIM_5=2~4`、`ORPHAN_TICK_BITS_5=1` ⇒ **C1、C2a、C3、C4 全部用这一套**（逐条点名如下）。
+  - **孤儿臂 B（全开，仅 C2b）**：`ORPHAN_EN_5=1`、`ORPHAN_ZW_EN_5=1`、`ORPHAN_ZW_LIM_5=2`、`ORPHAN_ZW_TICK_BITS_5=1`。
+- **C1**（**孤儿臂 A**）：层次 force 槽 0 为 ESTAB + 窗满 + `snd_una` 冻结 + 周期 `retx_active` ⇒ 期望 `o_ev_down` + `app_pattern.closing` + 后续 `active=0`；再发 `scfg ADD` ⇒ `ev_up` 被应用、`app_pattern` 重新发帧。**app 收尾/新会话应用 = C1（F18）**。
+- **C2a**（**孤儿臂 A，`ORPHAN_EN_5=1` + `ORPHAN_ZW_EN_5=0`，X6 必修**）：健康推进 / 零窗 / 慢盆三种 force 模式 ⇒ **Mode A** 无点火；零窗行**只**验证 Mode A 的 `snd_wnd!=0` 排除（Mode B 在本门关闭，N7）。⚠️ **若照 v3 传 0/0，本行是空判（全块关）**。
+- **C3**（**孤儿臂 A**）：CAM 仲裁断言：① `!(orphan_cam_clr && scfg_cam_wr)`（busy 门）；② **强制同拍碰撞**（TB force）时 CAM 写入的是 scfg 值（mux 分支，F10）；③ `orphan_cam_clr` 只在 **`orph_state_done=1`** 且 CAM 未清之后出现（**N4**；不用 `st_pend`——gnt 沿已清）。
+- **C4**（**孤儿臂 A**）：`scfg_busy` 保持期间 `orphan_cam_clr` 不出现；`wcnt!=0` 也算 busy。
+- **C2b（新 OVL 全链臂，孤儿臂 B）**：**定义 `TCP_TX_OVL`**（使 `ack_obs` 真置位），wrapper 传 `ORPHAN_EN_5=1`、`ORPHAN_ZW_EN_5=1`、`ORPHAN_ZW_LIM_5=2`、`ORPHAN_ZW_TICK_BITS_5=1`；测**活零窗 + 周期 ack_obs ⇒ 不点火**、**死零窗（无 ack_obs）⇒ 点火**。这是 Mode B 的唯一真路径门（N2/N7）。
+  - **刺激方式（X7 必修）**：`ack_obs` **用真纯 ACK 帧注入** —— 用现有 TB 帧注入设施按该槽 4 元组构造 `flags=ACK`、无载荷的以太帧注入 RX 路径，让 `tcp_rx` **真置位** `ack_obs`；**不用 `force ack_obs`**。活零窗臂 = 周期注入真 ACK；死零窗臂 = 完全不注入。
+  - **前置断言**：每次注入后必须观测到 `ack_obs` 真脉冲（防"注入过 ≠ 测到了"）；TB 现有注入设施不足时先补 helper，并把该断言列为 C2b 的**第一条**判据。
+- **门面纪律**：新门必须断言"编译文件清单含 `rtl/app_ctrl.v`、`rtl/slow_cfg_adp.v`、`board/wrapper_p4.v`"；**纠正 F12**：p5wrapper 门确实编译这些文件，真盲区是**板宏配置**（`P7B_10G`/`TCP_TX_OVL`/`DP_156MHZ`）——C2b 用 `TCP_TX_OVL` 覆盖其一，其余由构建 + 板级臂覆盖。
 
-### 6.3 板级臂（v2，F11/F14）
+### 6.3 板级臂（v4，F11/F14/N1）
 
 **臂序（v3，必须按此，否则慢盆混淆；N9）**：
 1. **烧 0x2A**（或先 0x28 负臂）→ 核"盆不在场"（900 Mbps 级二值；`p9_basin_probe §174`）。
@@ -484,17 +517,17 @@ fire_b    = ... && zw_accrue && (orph_zw_cnt[scan_id] >= ORPHAN_ZW_LIM) && !orph
 | **B2 回收后新连接** | B1 之后解除黑洞、新客户端建连 | `ΔW71`、`ΔW73/ΔW74`、`ΔW51/52`、逐字节 | ev_up 被应用、图案数据恢复、`mism=0` | 若新连接落同槽（C1 偷槽）也可能恢复 ⇒ 不作主判别 |
 | **B3 健康快流** | 9 Gbps 连续下行 > 2×LIM | `ΔW75`、`ΔW68`、`ΔW55` | `ΔW75=0`；`ΔW68` 大；`ΔW55` 低 | 同左 |
 | **B4 慢盆爬行** | 进盆配方（真异槽并行 + 小窗 2920）> 2×LIM | `ΔW75`、吞吐、`W55`、盆签名 | `ΔW75=0`，连接不被杀 | 同左 |
-| **B5 零窗 persist（活对端）** | 对端停读 → 窗 0 → 保持 **≥ 2×60 s = ≥120 s**（跨至少 2 个 persist 60 s 档）→ 恢复读；**记录探询/ACK 计数** | `ΔW75`、persist 探询计数、对端 ACK 计数、恢复后吞吐 | `ΔW75=0`，恢复后照常（活零窗回 ACK） | 同左 |
-| **B5c 零窗 persist 单次丢失（N1）** | 同 B5，但**人为丢 1 个 60 s 档探询或其 ACK**（对端 iptables 精确丢一帧 / 板侧只记录不注入）；保持 **≥200 s** | `ΔW75`、探询/ACK 计数、恢复后吞吐 | `ΔW75=0`（180.39 s 阈值容忍 1 次 120 s 间隔） | 同左 |
+| **B5 零窗 persist（socket 未 close 的活对端）** | 对端停读 → 窗 0 → 保持 **≥135 s（v4 修正；≥120 s 不够）** → 恢复读；**记录探询/ACK 计数**。⚠️ persist 累计探询时刻 = **0.02/5.02/15.02/35.02/75.02/135.02/195.02 s**；**60 s 档第一对在 75.02/135.02 s**，120 s 窗只含 75 s（上一间隔 40 s）⇒ 测不到 60 s 档。要覆盖两个 60 s 间隔 ⇒ **≥195 s** | `ΔW75`、persist 探询计数、对端 ACK 计数、恢复后吞吐 | `ΔW75=0`，恢复后照常（活零窗回 ACK） | 同左 |
+| **B5c 零窗 persist 单次丢失（N1）** | 同 B5，但**人为丢 1 个 60 s 档探询或其 ACK**（**只能在对端用 iptables 精确丢一帧**；⚠️ "板侧只记录不注入"需改 RTL、板上不可实现，仅可作 TB 臂）；保持 **≥200 s**（覆盖 135/195 s） | `ΔW75`、探询/ACK 计数、恢复后吞吐 | `ΔW75=0`（180.39 s 阈值容忍 1 次 120 s 间隔） | 同左 |
 | **B5b 零窗死对端（F6-b）** | 对端先停读（窗 0）→ 再黑洞；保持 **≥ 2×180.39 s ≈ ≥361 s** | `ΔW75`、pcap persist 探询（应约 6 次 60 s 档） | `ΔW75=1`（模式 B）；persist 停止 | `ΔW75` 不存在；persist 永续 |
 | **B6 C1 偷槽并存** | 孤儿等待期发新 SYN（< LIM）；**post-fire** 臂：在 LIM+ε 附近连续重试新 SYN | `ΔW75`、新连接功能 | 中止回收（`ΔW75=0`）或新连接存活；app 换流 | 新连接正常 |
 | **B7 身份/几何** | 烧 0x2A | `0x04=BID 0x2A`、NW=76、`0x14C`=W75、**MIR 0x150..0x15C**、**`0x160=0xffffffff`**、2 BAR、LnkSta x4 | 全中 | 0x28：NW=75、BID 0x28、UNIMPL=0x15C |
 
 **读数纪律**：`stat_orphan` 32 位 @156.25MHz 回卷 27.5 s ⇒ 差值 mod 2³² 并记原始值；`ΔW55/ΔW68` 同（#55）。每次测量前重烧并核 sha256/BID（#58）。
 **B1 变量清单（F14）**：0x2A vs 0x28 的差异 = **orphan fix + W75 + BID**。W75 是纯读侧观测量（不参与任何行为判据），BID 只改身份；**接受 W75 为第二变量并写明**；若要严格单变量，按 §7.5 先砍 W75 再跑 B1（多一次构建）。
-**B5/B5c/B5b 的时间预算**：B5 ≥120 s、B5c ≥200 s、B5b ≥361 s；B5b 的长时窗是**模式 B 阈值的直接代价**（180.39 s），必须在排期里预留（不是"跑 124 s 看不到点火"就判失败）。
+**B5/B5c/B5b 的时间预算（v4 修正 B5）**：**B5 ≥135 s**（60 s 档第一对在 75/135 s）、B5c ≥200 s、B5b ≥361 s；B5b 的长时窗是**模式 B 阈值的直接代价**（180.39 s），必须在排期里预留（不是"跑 124/135 s 看不到点火"就判失败）。
 
-### 6.4 变异有牙（v2，F10/F18）
+### 6.4 变异有牙（v4，F10/F18）
 
 | 变异 | 期望红在哪 |
 |---|---|
@@ -517,7 +550,7 @@ fire_b    = ... && zw_accrue && (orph_zw_cnt[scan_id] >= ORPHAN_ZW_LIM) && !orph
 - **CAM 清的板级判据是弱环**：CAM 不可读；**权威层 = xsim C3**；板级只证行为（重放停止、app 收尾、槽复用）。
 - **B4 慢盆若点火**：不是 PASS/FAIL，而是设计输入（阈值/窗满门需重定）；先登记再改。
 - **B5/B5c/B5b 零窗** 必须在 `PERSIST_EN=1` 的构建上跑；0x29（persist 关）上该臂无判别力。
-- **B5** 只跑 120 s 恰好两次探询都成功 ⇒ 会给"未误杀"的**假安全**读数；必须记录探询/ACK 计数，并跑 B5c（单次丢失）才能证明 180.39 s 的余量（N1）。
+- **B5 的 ≥135 s 是"能测到 60 s 档"的下界，不是"余量已证"**：必须记录探询/ACK 计数（见证 75.02/135.02 s 两次探询），并跑 B5c（单次丢失）才能对 180.39 s 的容错下结论（N1）。⚠️ **120 s 窗结构性测不到 60 s 档**（只含 75 s，上一间隔 40 s）——若照此跑，"未误杀"是**假安全**读数。
 - **B5b** 的 ≥361 s 是模式 B 阈值的直接代价；**不许**用 124 s 的短窗判"未点火"。
 - **B1 黑洞** 必须确保板上收不到 RST/FIN；用对端 `iptables` 双向 DROP 或 raw 工具，并在 pcap 确认回收前无 RST。
 - **W75 若被砍**：B1 主判据退化为 `ΔW55` 停止 + pcap；`stat_orphan` 用 xsim 读数；不许写"无法验证"。
@@ -525,7 +558,7 @@ fire_b    = ... && zw_accrue && (orph_zw_cnt[scan_id] >= ORPHAN_ZW_LIM) && !orph
 
 ---
 
-## 7 成本/风险/排期 + 构建前置（v2）
+## 7 成本/风险/排期 + 构建前置（v4）
 
 ### 7.1 构建预算
 
@@ -555,7 +588,7 @@ fire_b    = ... && zw_accrue && (orph_zw_cnt[scan_id] >= ORPHAN_ZW_LIM) && !orph
 ### 7.4 排期建议（TL 裁定，只给量级）
 
 - 设计审查+红队复评：0.5 天；实施+单元/全链门：1–1.5 天；构建+矩阵+归档：0.5–1 天；板级 B3→B5→B5c→B4→重烧→B1/B2/B5b/B6/B7：**1.5 天**（慢盆进入不可控 + 多次重烧 + B5b 的 ≥361 s 长窗）。**总 ~4 天**（不含审查往返）。
-- 板级必须同一会话完成；每次重烧后核 sha256/BID + 盆不在场；模式 A 的 B1/B3/B4 静默时长按 **2×LIM（≥124 s）** 计；B5 **≥120 s**、B5c **≥200 s**、B5b **≥361 s**（N9/N1）。
+- 板级必须同一会话完成；每次重烧后核 sha256/BID + 盆不在场；模式 A 的 B1/B3/B4 静默时长按 **2×LIM（≥124 s）** 计；**B5 ≥135 s（v4：覆盖 75.02/135.02 s 的 60 s 档；120 s 测不到）**、B5c **≥200 s**、B5b **≥361 s**（N9/N1）。
 
 ### 7.5 失败回退顺序（事前准则）
 
@@ -566,14 +599,14 @@ fire_b    = ... && zw_accrue && (orph_zw_cnt[scan_id] >= ORPHAN_ZW_LIM) && !orph
 
 ---
 
-## 8 威胁清单（供红队，v2）
+## 8 威胁清单（供红队，v4）
 
 1. **ADD 竞态**：`scfg_busy` 门 + **组合 abort_comb** + scfg>fc + fc 组合门（F2/F3）。红队要查 `cam_cfg_wr` 的寄存器延迟、ev_up 拍 busy=0 的窗口。
 2. **fc 同拍**：`ev_up` 晚一拍（F2）；组合门 `fc_upd_wr` 不得与事件块形成环（ev_up/ev_down 是输入，fc_id_r 是寄存器）。
 3. **通知早于落地**：等 state gnt + CAM 清回落 + `!to_pushed_r`（F8/F9）。
 4. **replay 竞态**：state=0 与 `retx_active` 同拍/前后拍；`ring_start/replay_jump/ring_restore` 的 `scan_estab`；**重放自身推进 snd_nxt**（F5）。
 5. **计数器回卷/饱和**：模式 A/B 各 8 位饱和；`stat_orphan` 32 位 mod 2³²；`scan_round` 模式 A 18 位 tick / 模式 B 20 位 tick。
-6. **阈值误伤**：网络分区但活着、对端内核卡死、慢盆末端；模式 A 61.85 s + 窗满/saw；模式 B **180.39 s**（容忍 1 次 60 s 探询/ACK 丢失，**不覆盖连续 2 次**）；红队可构造"分区 62 s 后恢复"臂（成本高）。
+6. **阈值误伤**：网络分区但活着、对端内核卡死、慢盆末端；模式 A 61.85 s + 窗满/saw；模式 B **180.39 s**（容忍 1 次 60 s 探询/ACK 丢失；**2 次丢失 = 180 s < 180.39 s 只覆盖 0.39 s、按不覆盖处理**；**≥3 次必误杀**）；**活零窗仅限于 socket 未 close**（app close ⇒ RST ⇒ 回收正确）；红队可构造"分区 62 s 后恢复"臂（成本高）。
 7. **假阴性**：慢生产者永不填窗且从无 retx（模式 A 不点火，模式 B 也要求 snd_wnd==0）；扫描时间基被 init/事件拉长（安全方向，F17）；`retx_active` 周期采样漏抓（F5：下一会话再判）。
 8. **HLS/RTL 语义漂移**：本批为零；后备 B 要审 `CFG_REL` 的解析器 else 支与 FIFO 16 深（`slow_cfg_adp.v:64`）。
 9. **app closing 交互**：`ev_down_i` 的 use-point 清单（§3.6）**必须穷举**，尤其 `ret_slot_q/pool_ret_x`（F8）；`orph_down_r` 是**寄存器**（N5），`to_push` 的 `!orph_down_r` 不构成环；投递门含 `!to_pushed_r`（F8）。
@@ -586,7 +619,7 @@ fire_b    = ... && zw_accrue && (orph_zw_cnt[scan_id] >= ORPHAN_ZW_LIM) && !orph
 16. **`o_busy` 组合路径**：slow_cfg_adp.state/FIFO/wcnt → app_ctrl；无环（app_ctrl 只读做门）。
 17. **`replay_full` 不自持【已证源码】**：重放帧在 RX_FIN 用 `upd_wr_data` 推进 `snd_nxt`（`tcp_tx_frame.v:634,648,1200-1213,1383-1385`），`ring_delta` 随重放排空；v1 的"自持"说法删除。红队若要证伪，需给出与该源码链相反的读数。
 18. **F6-a 未闭**：`inflight==0` 空闲 ESTAB 死对端无法与健康空闲区分；本批不回收（见 §9-6a）；红队不要把它算作本设计的"已闭"。
-19. **模式 B 的 `ack_obs` 语义（v3）**：`ack_obs` 是"任一合法 ACK（含零推进/零窗）"（`tcp_rx.v:618-622`），但**只在 `TCP_TX_OVL` 支置位**（`else` 恒 0，`:624-626`；N2）；活零窗对端的 persist ACK 会重置；若对端在 **180.39 s** 内一个 ACK 都不发（即使活着），或**连续 2 次 60 s 档探询/ACK 丢失**，模式 B 会误杀——登记（N1）。
+19. **模式 B 的 `ack_obs` 语义（v3/v4）**：`ack_obs` 是"任一合法 ACK（含零推进/零窗）"（`tcp_rx.v:618-622`），但**只在 `TCP_TX_OVL` 支置位**（`else` 恒 0，`:624-626`；N2）；活零窗（socket 未 close）的 persist ACK 会重置；若对端在 **180.39 s** 内一个 ACK 都不发（即使活着），或**2 次丢失（180 s，余量 0.39 s、按不覆盖处理）/ ≥3 次丢失（240 s，必误杀）**，模式 B 会误杀——登记（N1）。**N2 自评见 §3.2：OVL 内将来禁用 ack_obs 置位 ⇒ 默认推导失效**。
 20. **N3 双槽串行**：`!orph_busy` 使两个/三个槽同时达限时串行回收；若第一槽的 fc 被长期压住（§9-4），第二槽的计数饱和等待，**不会半回收**但会延迟；最坏 = 3 槽 ×（fc 等待 + CAM 清）。登记。
 21. **N4 `orph_state_done`**：CAM 清必须在 state=0 的 fc gnt 之后；`st_pend` 在 gnt 沿已清（`app_ctrl.v:1323`），不能当判据；C3 ③ 用 `orph_state_done`。
 22. **N5 `orph_down_r` 寄存器**：`to_push ↔ orph_down` 的互条件在两处都是寄存器项 ⇒ 无组合环；若实施时误写成组合，综合/时序门必须红。
@@ -594,22 +627,22 @@ fire_b    = ... && zw_accrue && (orph_zw_cnt[scan_id] >= ORPHAN_ZW_LIM) && !orph
 
 ---
 
-## 9 未判定/未测清单（v2）
+## 9 未判定/未测清单（v4）
 
-1. 【未测】模式 A 61.85 s 与模式 B **180.39 s** 阈值在真实慢盆/分区/零窗现场是否足够（C1 2.56 s + 慢盆 20 ms + persist 60 s 的读数；无"分区 62 s"臂；无板级零窗单次丢失臂）。B5 ≥120 s / B5c ≥200 s / B5b ≥361 s。
+1. 【未测】模式 A 61.85 s 与模式 B **180.39 s** 阈值在真实慢盆/分区/零窗现场是否足够（C1 2.56 s + 慢盆 20 ms + persist 60 s 的读数；无"分区 62 s"臂；无板级零窗单次丢失臂）。**B5 ≥135 s** / B5c ≥200 s / B5b ≥361 s。
 2. 【未判定】"窗满"门对慢盆末端的排除是否 100%（慢盆末段的 `snd_wnd`/在飞值未逐连接读）。
 3. 【未测】CAM 清的板级直接判据（CAM 不可读；行为 + xsim C3）。
 4. 【未判定】fc 状态写的最坏延迟（tx 每帧 1 写、rx/cfg 突发）；无超时，理论可无限等待（实测应 <µs 级）。**F2 组合门后，fc 被 ev_up 同拍挡掉是"取消"而不是"延迟"**；**N3 下第二/第三槽会等第一槽的 fc**（串行最坏 3 槽）。
 5. 【未判定】回收发生在 `retx_active` 会话中时，已进 TX 引擎的那 1 帧是否造成对端"半段"（对端已死无影响；误判场景另论）。
 6. **F6 两类真漏（v3 分列）**：
    - **6a【未闭】** `inflight==0` 的空闲 ESTAB 死对端：`snd_nxt==snd_una`、无 RTO/无 ACK 期望 ⇒ 与健康空闲不可区分；本批不回收。影响界：只有 HLS 3 个 cid / 快路径 16 槽，且无线上流量；连续 app 下这是瞬态；有限 app 由 FIN/to_fire 收尾；**winq 不会永久蒸发**——同槽 ADD 的 C18 会先归还旧配额（`app_ctrl.v:987-991`：`pool <= pool - g_grant + winq[ev_slot]`），只是占用到下一次 ADD。候选闭法 = app 级 keepalive/`active` 空闲定时器（单独设计，需防误杀合法空闲）。
-   - **6b【已闭（模式 B），N1 修正】** `snd_wnd==0` 的死对端：`ack_obs` **180.39 s** 无 ACK ⇒ 回收；活零窗对端回 persist ACK ⇒ 不误杀。残余：**单次** 60 s 档探询/ACK 丢失 ⇒ 120 s 间隔，180.39 s 可容忍；**连续 2 次丢失 ⇒ 180 s，不覆盖（余量 0.39 s）**；若活对端在 180.39 s 内一个 ACK 都不发，也会误杀（登记）。
+   - **6b【已闭（模式 B），N1 修正，v4 措辞订正】** `snd_wnd==0` 的死对端：`ack_obs` **180.39 s** 无 ACK ⇒ 回收；**socket 未 close** 的活零窗对端回 persist ACK ⇒ 不误杀。残余：**单次** 60 s 档探询/ACK 丢失 ⇒ 120 s 间隔，180.39 s 可容忍；**2 次丢失 = 180 s < 180.39 s（数学覆盖 0.39 s；余量对 ACK 延迟敏感、按不覆盖处理）**；**≥3 次丢失（240 s）必误杀**；若活对端在 180.39 s 内一个 ACK 都不发，也会误杀（登记）。**app 已 close ⇒ RST 而非 ACK ⇒ Mode B 回收正确，不是误杀。**
 7. 【未测】W75 对全局 WNS 的实际增量（+32 宿主/+32 dout_a/+32 DP 的构造估计；一次构建）。
 8. 【未测】`retx_ram` 旧内容在"回收→同槽 ADD→重放"中的可见性（本设计不清 ring）。
 9. 【未判定】Q3 迟到 RST 的实际发生率（pcap 查 RST seq）。
 10. 【未判定】`scfg_busy` 长期为高（HLS 半条记录卡住）：CAM 清/通知等待；`slow_cfg_adp.rst_n = reset_n & hls_rst_n`（`wrapper_p4.v:2083`）在看门狗复位时清掉；"HLS 没卡死、只是记录滞留"未测。实现时加等待周期**观测**（不进动作）。
 11. 【已证源码，无需 xsim 臂】**`replay_full` 不自持**（F5）；v1 的 §9-11 xsim 臂删除。若红队坚持，需给反证读数。
-12. 【未判定，N2 订正】**模式 B 的 `ack_obs` 只在 `TCP_TX_OVL` 支置位**（`tcp_rx.v:617-626`；`else` 恒 0）⇒ 板构建可用；非 OVL 的 p5wrapper 必须 `ORPHAN_ZW_EN_5=0`，Mode B 的真路径只在 C2b（定义 `TCP_TX_OVL`）验证；板级未单独验。
+12. 【未判定，N2 订正，v4 收紧】**模式 B 的 `ack_obs` 只在 `TCP_TX_OVL` 支置位**（`tcp_rx.v:617-626`；`else` 恒 0）⇒ 板构建可用；非 OVL 的 p5wrapper 必须 `ORPHAN_ZW_EN_5=0`（C2a 用 `ORPHAN_EN_5=1 + ORPHAN_ZW_EN_5=0`），Mode B 的真路径只在 C2b（定义 `TCP_TX_OVL` + **真纯 ACK 帧注入**）验证；板级未单独验。**自评：OVL 内将来禁用 ack_obs 置位 ⇒ 默认推导静默失效 ⇒ 误杀（§3.2 N2 自评）**。
 13. 【未判定，N3】**双槽/三槽同时达限**的串行化最坏延迟 = Σ（fc 等待 + CAM 清 + 通知）；`!orph_busy` 保证不半回收，但若第一槽的 fc 长期被压住，第二/三槽会一直等待（计数饱和）。U6b 只覆盖 xsim 的完成性，板级未构造三槽同时黑洞。
 14. 【未判定，N1】**模式 B 的 persist 相位**：180.39 s 是按 2×60 s 最坏间隔选的；实际探询/ACK 间隔由 `ps_reload` 的 60 s 封顶决定，板级未独立复测（B5/B5c 会给）。
 15. 【未判定，N4/N5】`orph_state_done`/`orph_down_r` 的寄存器时序：源码推演正确，但未跑 xsim 波形；U6c/U7 是实施后的门。
@@ -680,57 +713,129 @@ fire_b    = ... && zw_accrue && (orph_zw_cnt[scan_id] >= ORPHAN_ZW_LIM) && !orph
 | p5wrapper 源清单含被改文件 | `sim/p4gates/p5wrapper_src.f:39-43` |
 | 慢盆进入/清除/签名 | `p9_basin_probe_20261017/README_FOR_TL.md:8,174`（F11 引） |
 
-## 附录 B 判据表达式（v3，实现直接照此写，不要改写语义）
+## 附录 B 判据表达式（v4，实现直接照此写，不要改写语义）
+
+> ⚠️ **本附录 = 实现权威**（FINDINGS_V3 教训①：附录必须与正文同等自洽）。v4 相对 v3 的改动：① 模式 B 全块包 `if (ORPHAN_ZW_EN)`（V4-2）；② 清零改 **clr 优先**、且物理放在计数块之后（V4-3）；③ FSM 补 **`cam_clr_done` 同沿交接**、**`orph_ready` 定义**、**投递沿同沿清 `orph_notify_pend`**、**`orph_down_r` 默认/清位写全**（V4-1）。
 
 ```
-// 逐拍见证（按 retx_id 解码，逐槽 16 份或 one-hot 置位）
-if (retx_active)  orph_saw[retx_id] <= 1'b1;
+// ===== 0. 参数折叠（X3）=====
+// ORPHAN_EN=0        ⇒ 本附录全部逻辑不存在；ev_down_i≡ev_down、ev_slot_i≡ev_slot。
+// ORPHAN_EN=1, ZW=0  ⇒ 第 4 节整块不存在：orph_zw_cnt 不计数、不清零、不点火（寄存器被优化掉）。
+// ORPHAN_EN=0, ZW=1  ⇒ 外层胜出 ⇒ 全关（等价 00；不存在"只开 Mode B"）。
 
-// snd_una 推进清零
-if (una_adv) begin orph_cnt[una_adv_id] <= 0; orph_saw[una_adv_id] <= 0; end
-// 任何合法 ACK（含零窗 ACK）清模式 B（仅 TCP_TX_OVL 支有 ack_obs；N2）
-if (ack_obs) begin orph_zw_cnt[ack_obs_id] <= 0; end
+// ===== 1. 逐拍见证（模式 A）=====
+if (retx_active)  orph_saw[retx_id] <= 1'b1;         // 按 retx_id 解码 / one-hot 置位
 
-// 扫描拍（同槽事件守卫，不是全局 ev_blk）
+// ===== 2. 扫描组合量 =====
+scan_gate = scan_tick && !init_pend && !(ev_blk && (ev_slot_i == scan_id));
 inflight  = rc_snd_nxt - rc_snd_una;
 cap_eff   = (rc_snd_wnd < WIN_CAP) ? rc_snd_wnd : WIN_CAP;
 win_closed= (inflight < 32'h8000_0000) && (inflight >= {16'b0, cap_eff});
 work      = (rc_snd_nxt != rc_snd_una) || (retx_active && (retx_id == scan_id));
-accrueA   = scan_tick && !init_pend && !(ev_blk && (ev_slot_i == scan_id)) &&
+accrueA   = scan_gate &&
             (rc_state == ST_ESTAB) && (rc_snd_wnd != 0) && work &&
             !fin_sent[scan_id] && !rst_sent[scan_id] &&
             !st_done[scan_id] && !to_fired[scan_id];
-accrueB   = scan_tick && !init_pend && !(ev_blk && (ev_slot_i == scan_id)) &&
+// accrueB 定义在下面第 4 节的 `if (ORPHAN_ZW_EN)` 内（V4-2：不放在外层，确保随使能常数折叠）
+orph_busy    = orph_state_req || orph_cam_req || orph_wait_cam || orph_notify_pend || orph_down_r;  // N3
+orph_tick    = (scan_round[ORPHAN_TICK_BITS-1:0]    == 0);    // 默认 18 位 ⇒ 429.4967 ms
+
+// ===== 3. 计数（模式 A）—— 清零优先（N6：NBA 下"清零在前"等于清零无效）=====
+// 3.1 逐拍 snd_una 推进清零（立即生效）
+if (una_adv) begin
+  orph_cnt[una_adv_id] <= 8'd0;
+  orph_saw[una_adv_id] <= 1'b0;
+end
+// 3.2 扫描计数（物理放在 3.1 之后；同拍"清零+计数"时 clr 赢）
+if (scan_gate) begin
+  if (!accrueA || (una_adv && (una_adv_id == scan_id)))
+       orph_cnt[scan_id] <= 8'd0;
+  else if (orph_tick)
+       orph_cnt[scan_id] <= (orph_cnt[scan_id] == 8'hFF) ? 8'hFF : orph_cnt[scan_id] + 8'd1;
+  if (!accrueA) orph_saw[scan_id] <= 1'b0;                   // 与 3.1 同目标同值
+end
+
+// ===== 4. 模式 B（accrueB + 计数 + fireB）—— 全块包 ORPHAN_ZW_EN（V4-2）=====
+if (ORPHAN_ZW_EN) begin : g_orph_zw
+  orph_zw_tick = (scan_round[ORPHAN_ZW_TICK_BITS-1:0] == 0);   // 默认 20 位 ⇒ 1.7180 s
+  accrueB = scan_gate &&
             (rc_state == ST_ESTAB) && (rc_snd_wnd == 0) &&
             (rc_snd_nxt != rc_snd_una) &&
             !fin_sent[scan_id] && !rst_sent[scan_id] &&
             !st_done[scan_id] && !to_fired[scan_id];
-if (scan_tick && !init_pend && !(ev_blk && (ev_slot_i == scan_id))) begin
-  if (!accrueA)          orph_cnt[scan_id]    <= 8'd0;
-  else if (orph_tick)    orph_cnt[scan_id]    <= (orph_cnt[scan_id]==8'hFF) ? 8'hFF : orph_cnt+1;
-  if (!accrueB)          orph_zw_cnt[scan_id] <= 8'd0;
-  else if (orph_zw_tick) orph_zw_cnt[scan_id] <= (orph_zw_cnt[scan_id]==8'hFF) ? 8'hFF : orph_zw_cnt+1;
+  if (ack_obs) orph_zw_cnt[ack_obs_id] <= 8'd0;              // 逐拍清零（含零窗 ACK）
+  if (scan_gate) begin
+    if (!accrueB || (ack_obs && (ack_obs_id == scan_id)))
+         orph_zw_cnt[scan_id] <= 8'd0;
+    else if (orph_zw_tick)
+         orph_zw_cnt[scan_id] <= (orph_zw_cnt[scan_id] == 8'hFF) ? 8'hFF : orph_zw_cnt[scan_id] + 8'd1;
+  end
+  fireB = scan_gate && accrueB && (orph_zw_cnt[scan_id] >= ORPHAN_ZW_LIM) && !orph_busy;
 end
-orph_tick    = (scan_round[ORPHAN_TICK_BITS-1:0]    == 0);   // 默认 18 位 ⇒ 429.4967 ms
-orph_zw_tick = (scan_round[ORPHAN_ZW_TICK_BITS-1:0] == 0);   // 默认 20 位 ⇒ 1.7180 s
-orph_busy    = orph_state_req || orph_cam_req || orph_wait_cam || orph_notify_pend || orph_down_r;   // N3
-fireA = scan_tick && !init_pend && !(ev_blk && (ev_slot_i == scan_id)) && accrueA &&
-        orph_saw[scan_id] && (orph_cnt[scan_id] >= ORPHAN_LIM) &&
-        (win_closed || (retx_active && (retx_id == scan_id))) && !orph_busy;
-fireB = scan_tick && !init_pend && !(ev_blk && (ev_slot_i == scan_id)) && accrueB &&
-        (orph_zw_cnt[scan_id] >= ORPHAN_ZW_LIM) && !orph_busy;
+else begin : g_orph_zw_off
+  fireB = 1'b0;      // 常数折叠：orph_zw_cnt 不存在；不计数、不清零、不点火（V4-6 钉死）
+end
 
-// FSM（N3/N4/N5）
-// fire 拍: st_pend[slot]<=1; st_done[slot]<=1; orph_slot<=slot;
-//          orph_state_req<=1; orph_cam_req<=1; orph_state_done<=0; orph_down_r<=0;
-// fc gnt:  if (fc_gnt && fc_sel_r==3'd5 && fc_id_r==orph_slot)
-//              begin orph_state_req<=0; orph_state_done<=1; end
-// CAM 清:  if (orph_cam_req && orph_state_done && !scfg_busy && !abort_comb)
-//              begin orphan_cam_clr<=1; orph_cam_req<=0; orph_wait_cam<=1; end
-//          else if (orph_wait_cam) orphan_cam_clr<=0; // 等 clr 回落 ≥1 拍后清 wait
-// 通知:    orph_down_r <= orph_ready && !ev_up && !ev_down && !to_push && !ev1_v && !to_pushed_r;
-// 中止:    同槽 ev_up/ev_down/fin_sent/rst_sent ⇒ 清 state_req/cam_req/state_done/down_r/wait_cam
-// 计数:    if (orph_down_r) stat_orphan <= stat_orphan + 1;  // 只在提交拍
+// ===== 5. 点火 =====
+fireA = scan_gate && accrueA && orph_saw[scan_id] && (orph_cnt[scan_id] >= ORPHAN_LIM) &&
+        (win_closed || (retx_active && (retx_id == scan_id))) && !orph_busy;
+fire  = fireA || fireB;
+
+// ===== 6. FSM（N3/N4/N5）—— 逐拍
+// 寄存器：orph_slot[3:0], orph_state_req, orph_cam_req, orph_state_done,
+//         orph_wait_cam, orph_notify_pend, orph_down_r, orphan_cam_clr
+// 组合：
+orph_ready   = orph_notify_pend;        // v4 定义（N5）：电平 = notify_pend
+abort_comb   = (ev_up && (ev_slot == orph_slot)) || (ev_down && (ev_slot == orph_slot)) ||
+               fin_sent[orph_slot] || rst_sent[orph_slot];
+orph_active  = orph_state_req || orph_cam_req || orph_wait_cam || orph_notify_pend;  // 不含 down_r
+cam_clr_done = orph_wait_cam && !orphan_cam_clr;    // clr 1 拍脉冲已回落（写沿已过）
+deliver_gate = orph_ready && !ev_up && !ev_down && !to_push && !ev1_v && !to_pushed_r;
+
+// 每拍默认（脉冲契约）：clr / down_r 非置位拍恒 0
+orphan_cam_clr <= 1'b0;
+orph_down_r    <= 1'b0;
+
+if (abort_comb && orph_active) begin       // 中止：清全部 pending，不发通知
+  orph_state_req <= 0; orph_cam_req <= 0; orph_state_done <= 0;
+  orph_wait_cam <= 0;  orph_notify_pend <= 0; orph_down_r <= 0; orphan_cam_clr <= 0;
+end
+else if (fire) begin                       // fire 拍（!orph_busy 已保证无进行中 FSM）
+  st_pend[scan_id] <= 1'b1; st_done[scan_id] <= 1'b1;
+  orph_slot       <= scan_id;
+  orph_state_req  <= 1'b1;  orph_cam_req <= 1'b1;
+  orph_state_done <= 1'b0;  orph_wait_cam <= 1'b0; orph_notify_pend <= 1'b0;
+  orph_down_r     <= 1'b0;  orphan_cam_clr <= 1'b0;
+end
+else begin
+  // (a) fc gnt：TCB state=0 已在本拍落地 ⇒ 下一拍起 state_done=1
+  if (fc_gnt && fc_sel_r == 3'd5 && fc_id_r == orph_slot) begin
+    orph_state_req  <= 1'b0;
+    orph_state_done <= 1'b1;
+  end
+  // (b) CAM 清 issue：必须在 state_done=1 之后（F9）
+  if (orph_cam_req && orph_state_done && !scfg_busy && !abort_comb) begin
+    orphan_cam_clr <= 1'b1;                // 1 拍脉冲；CAM 写在本拍结束沿落地
+    orph_cam_req   <= 1'b0;
+    orph_wait_cam  <= 1'b1;
+  end
+  // (c) wait_cam → notify_pend 交接：必须同沿（N3；拆两拍 ⇒ busy 1 拍空档 ⇒ 第二槽乘虚）
+  if (cam_clr_done) begin
+    orph_wait_cam    <= 1'b0;
+    orph_notify_pend <= 1'b1;
+  end
+  // (d) 通知投递：orph_ready = notify_pend；同沿清 notify_pend ⇒ down_r 严格 1 拍
+  if (deliver_gate) begin
+    orph_down_r      <= 1'b1;
+    orph_notify_pend <= 1'b0;
+  end
+end
+
+// ===== 7. 计数 =====
+if (orph_down_r) stat_orphan <= stat_orphan + 32'd1;       // 只在提交拍（1 拍脉冲）
 ```
 
-—— 完（本件 = 纯设计修订版 v3；**不含任何 PASS/FAIL 裁定，不含实施授权**）
+> **逐拍检查（照此实现的预期波形）**：fire 拍 `state_req=1` ⇒ busy=1；fc gnt 拍 `state_req<=0, state_done<=1`（cam_req 仍 1）⇒ busy=1；CAM 清拍 `cam_req<=0, wait_cam<=1` ⇒ busy=1；`cam_clr_done` 拍 `wait_cam<=0, notify_pend<=1`（**同沿，busy 连续**）⇒ busy=1；投递拍 `down_r<=1, notify_pend<=0` ⇒ busy=1；下一拍 `down_r<=0` ⇒ busy=0。**交接处任何一拍都没有 busy=0**。**`orphan_cam_clr`/`orph_down_r` 严格 1 拍**；`orph_notify_pend` 在投递门长期关闭时保持 1（busy 保持），直到投递或 abort。
+> **与正文的对应**：§3.2 步骤 3 的"等 clr 回落"= 本附录 `cam_clr_done`；步骤 4 的 `orph_ready` = 本附录定义；§3.4 的 busy 五项 = 本附录 `orph_busy`；§3.6 的投递门 = `deliver_gate`。
+
+—— 完（本件 = 纯设计修订版 v4；**不含任何 PASS/FAIL 裁定，不含实施授权**）
