@@ -1749,3 +1749,14 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - **TL 抽核**：`check_window.py` 实跑 **PASS=108 / FAIL=0 / RC=0**；矩阵 **21/21 FROZEN（308 文件）**、`gates failed 0`、digest `3f3ba871…e4869`；G1 **161/0 PASS**；G4 **29/0 PASS**；`p7b_snap.sh` 含 bit7/stale 与 `st1` 修正；wrapper diff 仅 **2/1**（注释）；无 Vivado 运行。
 - **构建前置（已更新）**：`SFP2_MODE_A=1` 已被 G5 c5 elaborate 覆盖；矩阵 21 门；**读 W79..W82 前必须核 `SNAP_STATUS[7]=0`**；G1 检查数 142 → **161**；backstop = **B1 删 W77（82/`0x178`）→ B2 删 W79..W82 + ch0 MAC（79/`0x16C`）→ B3 P1-min（78/`0x168`）→ B4（W76 只留 blk/hi_ber + W78 只留 LOS 电平）→ 仍失败 ⇒ abort-to-P0**。
 - **下一棒**：**构建 0x2B（已派）** → 板级 P1。
+
+## §10-129 2026-10-18 05:5x：**构建 0x2B 收口（P11 P1-甲）—— 一次收口成功，backstop 未触发**：WNS **+0.048** / WHS **+0.010** / 三类失败端点 **0/0/0**（setup/hold/pulse）；位流 **`7dd2ea3316dbed3915239d39391c90765ad6b7c8a9d472fa1c8fecca54ba2c23`**（15,431,261 B，`SW_CRC=f65e8188`）
+- **构建**：`cmd //c 'board\run_build_p7b_ku5p.bat'` 04:05:15–04:52:05；`BAT_RC=0` / `BUILD_EXIT=0` / 末行 `BITSTREAM-OK`；**唯一源码编辑 = `board/build_p7b_ku5p.tcl:286` 的 verilog_define 追加 `SFP2_MODE_A=1`**（+1/−1，8 宏逐字回读）；构建读 `board/wrapper_p4.v`（sha `c45203e5…`），未用 `vivado_prj/.../imports` 的 0x2A 旧副本；`create_project -force` 前自动归档 `p7b_build_archive/20261018_040515/`（19 件/161 MB，盘上未入库）。
+- **资源**：placed **80,024 LUT / 76,888 FF / 348 BRAM / 1 URAM / 4 DSP / 6 GTYE4**（vs 0x2A placed **+1,776 LUT / +1,528 FF**；BRAM/URAM/DSP/GT 不变）；synth 64,331 / 55,133 / 312。
+- **时序/宿主**：全局宿主 = `u_tcp_tx/u_fifo_a/wptr_reg[0]_replica/C → u_app/bcnt_reg[1]/CE`（与 0x2A 宿主**不同对象**，#66 只并列）；**DP top10 无任何 ch0 新族**；ch0 RX 域 `rxoutclk_out[0]_2` 独立 WNS **+0.181**（4,834 端点，0 失败）；ch0 全部跨域行 = `Ignored / Asynchronous Groups`；唯一 `Timed (unsafe)` 行与 0x2A **同签名**（`txoutclk→rxoutclk`，64 端点/6.40 = 既存）。
+- **硬门**：`12-4739`=0；隐式网五键各 0；DRC 69 checks / **0 Error / 0 Critical**；route 0 错（fully routed 142,079）；2 条 CRITICAL WARNING 与 0x2A 同族同数（gtrefclk 覆盖 + evaluation license）。
+- **门（本轮现跑）**：矩阵 **21/21 EXIT=0 / RC=0 / FROZEN（308 文件）**，content digest `3f3ba871…e4869`（与修复轮逐字相同），`GIT_HEAD=a3ac6db3`；`p7b_chain` **161/0**；读侧 assert **52 OK / 0 FAIL**（A 5/5 · B 四族未登记 0 · C 全绿 · D 17/17）+ 负控 **4/4 RC=1 有牙**；p6e wrapper **155 PASS / 0 FAIL**（0x2A 基数 148，+7 未逐条归因）+ counters 26/0；`tb_biz_win` **108/0** + tb 40/40；**构建输入绑定 222 件 BEFORE==AFTER（0 变）**。
+- **偏离/未测（如实）**：输入哈希 universe 用 222 件（0x2A 的 287 件生成器未留存，只做本轮绑定）；methodology 计数无 0x2A 对照（旧报告被 `-force` 清掉）；WPWS 汇总 0.000（0 失败）未判定类别；`biz_win` console 一行未归因的良性 cmd 噪声（两 checker 全过、门 RC=0）；定向 STA 两个拼写壳（`pcs0_errv_sr`/`las_prim_cnt`）0 匹配（实信号已覆盖）；**板级全部未测**。
+- **轮目录**：`p9_build_0x2B_20261018/`（README 16 KB + SHA256SUMS + `build/` 91 MB〔dcp/bit 按仓规不入库，只提交 READINGS/BIT_SHA/BUILD_CONSOLE/collector〕+ gates 2.4 MB + readside 212 KB + env 69 KB）。
+- **板级前置**：烧 `7dd2ea33…`；身份门 `0x04=0x2B` / **83 字** / **`0x17C=0xffffffff`** / 2 BARs / `LnkSta x4`；**读 W79..W82 前先核 `SNAP_STATUS[7]=0`**；`0x08` bit1 保持 0；判据草案 = DESIGN_v5 §10.4。
+- **下一棒**：板级 P1（已派；收尾按纪律烧回 0x2A 现役）。

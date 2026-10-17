@@ -1,0 +1,53 @@
+# P1BUILD0x2B directed STA (post-route dcp)  Sun Oct 18 04:55:55 +0800 2026
+# dcp = D:/repo/XCKU5PMini/udp_hls_10g/vivado_prj/p7b_ku5p_prj.runs/impl_1/wrapper_p4_routed.dcp
+# GLOBAL worst_setup_slack = 0.048
+# GLOBAL start = u_tcp_tx/u_fifo_a/wptr_reg[0]_replica/C
+# GLOBAL end   = u_app/bcnt_reg[1]/CE
+
+# --- DP group (g_hw.clk_out0) top10 by slack ---
+DP01 slack=0.048  u_tcp_tx/u_fifo_a/wptr_reg[0]_replica/C -> u_app/bcnt_reg[1]/CE
+DP02 slack=0.048  u_tcp_tx/u_fifo_a/wptr_reg[0]_replica/C -> u_app/bcnt_reg[2]/CE
+DP03 slack=0.049  u_tcp_tx/u_fifo_a/wptr_reg[0]_replica/C -> u_app/bcnt_reg[0]/CE
+DP04 slack=0.057  u_tcp_tx/u_fifo_a/wptr_reg[0]_replica/C -> u_app/bcnt_reg[3]/CE
+DP05 slack=0.066  u_app_udp/u_txf/dout_reg[70]/C -> u_udp_tx/ip_csum_r_reg[0][5]/D
+DP06 slack=0.067  u_tcp_tx/u_fifo_a/wptr_reg[0]_replica/C -> u_app/pw_data_reg[15]/D
+DP07 slack=0.069  u_app_udp/u_txf/dout_reg[70]/C -> u_udp_tx/ip_csum_r_reg[0][15]/D
+DP08 slack=0.077  u_tcp_tx/u_fifo_a/wptr_reg[0]_replica/C -> u_app/bcnt_reg[3]/D
+DP09 slack=0.078  u_tcp_tx/u_fifo_a/wptr_reg[0]_replica/C -> u_app_ctrl/orph_cnt_reg[15][2]/D
+DP10 slack=0.084  u_tcp_tx/u_fifo_a/wptr_reg[0]_replica/C -> u_app/pw_keep_reg[1]/D
+
+# --- directed families: worst setup path FROM the family ---
+u_snap_p7bdp/hold_b_reg  cells=982  slack=  u_snap_p7bdp/hold_b_reg[708]/C -> u_snap_p7bdp/dout_a_reg[708]/D
+pcs0_ferr_sr             cells=3    slack=5.456  pcs0_ferr_sr_reg[2]/C -> pcs0_ferr_evt_reg[2]/CE
+pcs0_bad_sr              cells=3    slack=4.627  pcs0_bad_sr_reg[2]/C -> pcs0_bad_evt_reg[6]/CE
+pcs0_badv_sr             cells=3    slack=5.808  pcs0_badv_sr_reg[2]/C -> u_snap_p7bdp/hold_b_reg[1162]/D
+pcs0_errv_sr             NO_CELL (0 matches)
+pcs0_erv_sr              cells=3    slack=5.593  pcs0_erv_sr_reg[2]/C -> pcs0_erv_evt_reg[0]/CE
+pcs0_vcc_sr              cells=3    slack=5.687  pcs0_vcc_sr_reg[2]/C -> u_snap_p7bdp/hold_b_reg[1164]/D
+pcs0_fifo_sr             cells=3    slack=5.884  pcs0_fifo_sr_reg[2]/C -> u_snap_p7bdp/hold_b_reg[1163]/D
+los1_sr                  cells=3    slack=5.593  los1_sr_reg[1]/C -> los1_evt_reg[6]/CE
+los2_sr                  cells=3    slack=4.979  los2_sr_reg[2]/C -> los2_evt_reg[0]/CE
+los1_evt                 cells=18   slack=5.352  los1_evt_reg[3]/C -> los1_evt_reg[6]/CE
+los2_evt                 cells=19   slack=4.787  los2_evt_reg[2]/C -> los2_evt_reg[0]/CE
+las_prim_cnt             NO_CELL (0 matches)
+pcs0_ferr_evt            cells=18   slack=5.276  pcs0_ferr_evt_reg[5]/C -> pcs0_ferr_evt_reg[2]/CE
+pcs0_bad_evt             cells=18   slack=4.991  pcs0_bad_evt_reg[2]/C -> pcs0_bad_evt_reg[6]/CE
+pcs0_erv_evt             cells=18   slack=5.130  pcs0_erv_evt_reg[2]/C -> pcs0_erv_evt_reg[0]/CE
+pcs0_vcc_cyc             cells=17   slack=5.494  pcs0_vcc_cyc_reg[4]/C -> pcs0_vcc_cyc_reg[6]/D
+
+# --- directed families: worst setup path INTO the family (sink check) ---
+u_snap_p7bdp/hold_b_reg  cells=982  slack=0.801  u_snap_p7bdp/rstb_sync_reg[1]/C -> u_snap_p7bdp/hold_b_reg[846]/CLR
+pcs0_ferr_sr             cells=3    slack=3.010  u_clkgen/rel_sr_reg[3]/C -> pcs0_ferr_sr_reg[0]/CLR
+pcs0_bad_sr              cells=3    slack=3.017  u_clkgen/rel_sr_reg[3]/C -> pcs0_bad_sr_reg[0]/CLR
+pcs0_badv_sr             cells=3    slack=3.007  u_clkgen/rel_sr_reg[3]/C -> pcs0_badv_sr_reg[0]/CLR
+pcs0_erv_sr              cells=3    slack=3.015  u_clkgen/rel_sr_reg[3]/C -> pcs0_erv_sr_reg[0]/CLR
+pcs0_vcc_sr              cells=3    slack=3.032  u_clkgen/rel_sr_reg[3]/C -> pcs0_vcc_sr_reg[0]/CLR
+pcs0_fifo_sr             cells=3    slack=3.026  u_clkgen/rel_sr_reg[3]/C -> pcs0_fifo_sr_reg[0]/CLR
+los1_sr                  cells=3    slack=3.013  u_clkgen/rel_sr_reg[3]/C -> los1_sr_reg[0]/CLR
+los2_sr                  cells=3    slack=3.018  u_clkgen/rel_sr_reg[3]/C -> los2_sr_reg[0]/CLR
+los1_evt                 cells=18   slack=3.013  u_clkgen/rel_sr_reg[3]/C -> los1_evt_reg[0]/CLR
+los2_evt                 cells=19   slack=3.022  u_clkgen/rel_sr_reg[3]/C -> los2_evt_reg[6]/CLR
+pcs0_ferr_evt            cells=18   slack=3.015  u_clkgen/rel_sr_reg[3]/C -> pcs0_ferr_evt_reg[3]/CLR
+pcs0_bad_evt             cells=18   slack=3.020  u_clkgen/rel_sr_reg[3]/C -> pcs0_bad_evt_reg[0]/CLR
+pcs0_erv_evt             cells=18   slack=3.019  u_clkgen/rel_sr_reg[3]/C -> pcs0_erv_evt_reg[6]/CLR
+pcs0_vcc_cyc             cells=17   slack=3.027  u_clkgen/rel_sr_reg[3]/C -> pcs0_vcc_cyc_reg[1]/CLR

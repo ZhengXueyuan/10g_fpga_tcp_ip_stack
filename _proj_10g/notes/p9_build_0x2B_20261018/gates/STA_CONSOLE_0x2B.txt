@@ -1,0 +1,129 @@
+
+****** Vivado v2025.2 (64-bit)
+  **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+  **** Start of session at: Sun Oct 18 04:54:42 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source {D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_build_0x2B_20261018\gates\sta_dp_observe_0x2B.tcl}
+# set here [file dirname [file normalize [info script]]]
+# set R [file normalize [file join $here ".." ".." ".." ".."]]
+# set DCP "$R/vivado_prj/p7b_ku5p_prj.runs/impl_1/wrapper_p4_routed.dcp"
+# set OUT "$here/STA_DP_OBSERVE_0x2B.txt"
+# puts "P1BUILD0x2B-STA open $DCP"
+P1BUILD0x2B-STA open D:/repo/XCKU5PMini/udp_hls_10g/vivado_prj/p7b_ku5p_prj.runs/impl_1/wrapper_p4_routed.dcp
+# open_checkpoint $DCP
+Command: open_checkpoint D:/repo/XCKU5PMini/udp_hls_10g/vivado_prj/p7b_ku5p_prj.runs/impl_1/wrapper_p4_routed.dcp
+
+Starting open_checkpoint Task
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.025 . Memory (MB): peak = 326.906 ; gain = 4.695
+INFO: [Device 21-403] Loading part xcku5p-ffvb676-1-e
+Netlist sorting complete. Time (s): cpu = 00:00:01 ; elapsed = 00:00:01 . Memory (MB): peak = 1689.031 ; gain = 0.000
+INFO: [Netlist 29-17] Analyzing 8066 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 2 CPU seconds
+INFO: [Project 1-479] Netlist was created with Vivado 2025.2
+INFO: [Project 1-570] Preparing netlist for logic optimization
+Read ShapeDB Complete: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.234 . Memory (MB): peak = 1901.586 ; gain = 33.941
+INFO: [Timing 38-478] Restoring timing data from binary archive.
+INFO: [Timing 38-479] Binary timing data restore complete.
+INFO: [Project 1-856] Restoring constraints from binary archive.
+INFO: [Constraints 18-5170] The checkpoint was created with non-default parameter values which do not match the current Vivado settings.  Mismatching parameters are:
+  general.maxThreads
+INFO: [Project 1-853] Binary constraint restore complete.
+INFO: [Designutils 20-5722] Start Reading Physical Databases.
+Reading placement.
+Read Netlist Cache: Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.129 . Memory (MB): peak = 4152.191 ; gain = 0.000
+Reading placer database...
+Read Device Cache: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.029 . Memory (MB): peak = 4152.191 ; gain = 0.000
+Read PlaceDB: Time (s): cpu = 00:00:04 ; elapsed = 00:00:04 . Memory (MB): peak = 4152.191 ; gain = 0.000
+Read PulsedLatchDB: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 4152.191 ; gain = 0.000
+Reading routing.
+Read RouteStorage: Time (s): cpu = 00:00:03 ; elapsed = 00:00:02 . Memory (MB): peak = 4152.191 ; gain = 0.000
+Read Physdb Files: Time (s): cpu = 00:00:08 ; elapsed = 00:00:06 . Memory (MB): peak = 4152.191 ; gain = 0.000
+Restored from archive | CPU: 9.000000 secs | Memory: 0.000000 MB |
+Finished XDEF File Restore: Time (s): cpu = 00:00:08 ; elapsed = 00:00:06 . Memory (MB): peak = 4152.191 ; gain = 0.000
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.063 . Memory (MB): peak = 4152.191 ; gain = 0.000
+INFO: [Project 1-111] Unisim Transformation Summary:
+  A total of 1410 instances were transformed.
+  DSP48E2 => DSP48E2 (DSP_ALU, DSP_A_B_DATA, DSP_C_DATA, DSP_MULTIPLIER, DSP_M_DATA, DSP_OUTPUT, DSP_PREADD, DSP_PREADD_DATA): 4 instances
+  IBUF => IBUF (IBUFCTRL, INBUF): 3 instances
+  IBUFDS => IBUFDS (DIFFINBUF, IBUFCTRL): 1 instance 
+  RAM16X1D => RAM32X1D (RAMD32(x2)): 35 instances
+  RAM16X1S => RAM32X1S (RAMS32): 224 instances
+  RAM256X1S => RAM256X1S (MUXF7(x2), MUXF8, RAMS64E(x4)): 8 instances
+  RAM32M => RAM32M (RAMD32(x6), RAMS32(x2)): 41 instances
+  RAM32M16 => RAM32M16 (RAMD32(x14), RAMS32(x2)): 154 instances
+  RAM32X1D => RAM32X1D (RAMD32(x2)): 13 instances
+  RAM64M => RAM64M (RAMD64E(x4)): 241 instances
+  RAM64M8 => RAM64M8 (RAMD64E(x8)): 554 instances
+  RAM64X1D => RAM64X1D (RAMD64E(x2)): 132 instances
+
+INFO: [Project 1-604] Checkpoint was created with Vivado v2025.2 (64-bit) build 6299465
+WARNING: [Vivado 12-23575] Critical violations of the methodology design rules detected. Critical violations may contribute to timing failures or cause functional issues in hardware. Run report_methodology for more information.
+open_checkpoint: Time (s): cpu = 00:01:24 ; elapsed = 00:01:12 . Memory (MB): peak = 4152.191 ; gain = 3839.738
+# set fh [open $OUT w]
+# puts $fh "# P1BUILD0x2B directed STA (post-route dcp)  [clock format [clock seconds]]"
+# puts $fh "# dcp = $DCP"
+get_timing_paths: Time (s): cpu = 00:01:01 ; elapsed = 00:00:33 . Memory (MB): peak = 4199.094 ; gain = 46.902
+# set gp [get_timing_paths -delay_type max -max_paths 1 -sort_by slack]
+# puts $fh "# GLOBAL worst_setup_slack = [get_property SLACK $gp]"
+# if {[llength $gp]} {
+#     puts $fh "# GLOBAL start = [get_property STARTPOINT_PIN $gp]"
+#     puts $fh "# GLOBAL end   = [get_property ENDPOINT_PIN $gp]"
+# }
+# set dp_paths {}
+# catch {
+#     set dp_paths [get_timing_paths -group g_hw.clk_out0 -delay_type max -max_paths 10 -sort_by slack]
+# }
+# puts $fh "\n# --- DP group (g_hw.clk_out0) top10 by slack ---"
+# set i 0
+# foreach p $dp_paths {
+#     incr i
+#     puts $fh [format "DP%02d slack=%s  %s -> %s" $i [get_property SLACK $p] [get_property STARTPOINT_PIN $p] [get_property ENDPOINT_PIN $p]]
+# }
+# set fams {
+#   u_snap_p7bdp/hold_b_reg
+#   pcs0_ferr_sr
+#   pcs0_bad_sr
+#   pcs0_badv_sr
+#   pcs0_errv_sr
+#   pcs0_erv_sr
+#   pcs0_vcc_sr
+#   pcs0_fifo_sr
+#   los1_sr
+#   los2_sr
+#   los1_evt
+#   los2_evt
+#   las_prim_cnt
+#   pcs0_ferr_evt
+#   pcs0_bad_evt
+#   pcs0_erv_evt
+#   pcs0_vcc_cyc
+# }
+# puts $fh "\n# --- directed families: worst setup path FROM the family ---"
+# foreach f $fams {
+#     set cells [get_cells -hier -quiet -filter "NAME =~ *$f*"]
+#     if {![llength $cells]} { puts $fh [format "%-24s NO_CELL (0 matches)" $f] ; continue }
+#     set p {}
+#     catch { set p [get_timing_paths -from $cells -delay_type max -max_paths 1 -sort_by slack] }
+#     if {![llength $p]} { puts $fh [format "%-24s NO_PATH (cells=%d)" $f [llength $cells]] ; continue }
+#     puts $fh [format "%-24s cells=%-4d slack=%s  %s -> %s" $f [llength $cells] [get_property SLACK $p] [get_property STARTPOINT_PIN $p] [get_property ENDPOINT_PIN $p]]
+# }
+WARNING: [Timing 38-164] This design has multiple clocks. Inter clock paths are considered valid unless explicitly excluded by timing constraints such as set_clock_groups or set_false_path.
+# puts $fh "\n# --- directed families: worst setup path INTO the family (sink check) ---"
+# foreach f $fams {
+#     set cells [get_cells -hier -quiet -filter "NAME =~ *$f*"]
+#     if {![llength $cells]} { continue }
+#     set p {}
+#     catch { set p [get_timing_paths -to $cells -delay_type max -max_paths 1 -sort_by slack] }
+#     if {![llength $p]} { puts $fh [format "%-24s NO_PATH_IN (cells=%d)" $f [llength $cells]] ; continue }
+#     puts $fh [format "%-24s cells=%-4d slack=%s  %s -> %s" $f [llength $cells] [get_property SLACK $p] [get_property STARTPOINT_PIN $p] [get_property ENDPOINT_PIN $p]]
+# }
+# close $fh
+# puts "P1BUILD0x2B-STA done -> $OUT"
+P1BUILD0x2B-STA done -> D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_build_0x2B_20261018/gates/STA_DP_OBSERVE_0x2B.txt
+# exit
+INFO: [Common 17-206] Exiting Vivado at Sun Oct 18 04:57:35 2026...

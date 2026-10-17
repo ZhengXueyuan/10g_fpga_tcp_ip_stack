@@ -17,7 +17,7 @@
 | 2026-10-18 | `p9_dual_sfp_exit_identity_compare_20261018/README.md` | 分析 | CAM+1 vs A-1（裁 A-1） | `3c11c3bf` | **待报送** |
 | 2026-10-18 | `p9_dual_sfp_progress_20261018/README.md` | 进展 | P11 总览/进展/裁定 | 多提交 | **待报送** |
 | 2026-10-18 | `p9_dual_sfp_p1_impl_20261018/DESIGN_v5.md` + `REPORT.md` + `gates/` | 实施 | P1 实施完成：57 文件 +10041/−289（含 notes/gates）；G1a 106/0、G1 142/0、G4 29/0、G2 PASS_ALL、G5 4/4、G3 20/20 FROZEN；读侧 65/17/0 + 负控 4/4 有牙 | 本次提交 | **待报送** |
-| 2026-10-18+ | 构建 0x2B 报告 | 构建 | 时序/资源/门 | — | **待报送（完成后）** |
+| 2026-10-18 | `p9_build_0x2B_20261018/README_FOR_TL.md` + `build/READINGS_BID2B.txt` + `gates/` | 构建 | 0x2B：WNS +0.048 / WHS +0.010 / 0/0/0；位流 `7dd2ea33…2c23`；矩阵 21/21 FROZEN；读侧 52/0；p6e 155/0；backstop 未触发 | 本次提交 | **待报送** |
 | 2026-10-18+ | P1 板级报告 | 板级 | ch0 link/计数/LOS/超时 + ch1 回归 | — | **待报送（完成后）** |
 | 2026-10-18 | `p9_review_p1_impl_20261018/FINDINGS.md` | 审查 | P1 实施红队（阻断 0 / 高 2 / 中 7 / 低 9；读侧 2 高须板级前修） | 本次提交 | **待报送** |
 | 2026-10-18 | `p9_dual_sfp_p1_fix_20261018/FIX_REPORT.md` + `gates/` + DESIGN_v5 v5.1 | 修复 | 高 2/2、中 7/7、低 9/9；check_window 108/0、矩阵 21/21 FROZEN、G1 161/0、G5 7/7、读侧 bit7 负控 19/0 | 本次提交 | **待报送** |

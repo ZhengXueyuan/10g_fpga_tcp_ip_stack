@@ -1,0 +1,40 @@
+EXIT=0
+--- last 6 lines of _gate_console.log
+|   [PASS] G3d lane4+F4 recovery byte-exact   src= lane4 frame after the F4 window
+|   [PASS] 1 every RX SOP word full-aligned   src=eep[7]=1) - never checked before
+|   [PASS] 2 no bare SOP outside F4 windows   src=xcept deliberate F4 drop windows
+|   [PASS] 1 TERM word present (nonvacuous)   src=contract mac_rx_10g.v:16
+|   [PASS] 4 TERM-2 TERM six-tuple verbatim   src=0,tlast=1,tuser=0,tcrs=0,terr=1}
+| VERDICT = PASS
+---
+=== GATE biz_win : _proj_10g\notes\p7b_biz_win\run_gate_biz_win_check.bat    [env ]   [cwd D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\work_20261018_050140\biz_win]
+[P4GUARD OK] checkpaths: 4 paths inside d:\repo\xcku5pmini\udp_hls_10g
+[P4GUARD OK] manifestcheck run_gate_biz_win_check.bat: 2 files == manifest D:\repo\XCKU5PMini\udp_hls_10g\sim\p4gates\bizwinsrc.f
+[P4GUARD OK] scanlog: 10 files, 16 path tokens, 0 outside the repo
+EXIT=0
+--- last 6 lines of _gate_console.log
+| === A'. check_window.py --mutate declpatho : negative control, expect RC=1 ===
+| [NEGCTL OK] --mutate declpatho RC=1
+| ϵͳ�Ҳ���ָ�����ļ���
+| PASS_ALL  tb_biz_win: 40 项判据全过 (窗口 83 字)
+| TB_BIZ_WIN_PASS
+| BIZ_WIN_CHECK_PASS
+---
+--- revision fingerprint (after) ---
+[P4GATE] fingerprint written: D:\repo\XCKU5PMini\udp_hls_10g\sim\p4sim\P4_MATRIX_FINGERPRINT_20261018_050140_after.txt
+DIGEST_COMPILE = c24d6517dab5889c624a93cb8d96639be11b256125d880593ddca5128d429219
+FILES_COMPILE  = 241
+DIGEST_ALL     = 4af1b9cd9948dca8c2edca6b90575922afab1e4d064bba5f81a44530daa46acd
+FILES_ALL      = 308
+GIT_HEAD       = a3ac6db3
+--- freeze check ---
+BEFORE  DIGEST_COMPILE=c24d6517dab5889c624a93cb8d96639be11b256125d880593ddca5128d429219  FILES=241  DIGEST_ALL=4af1b9cd9948dca8c2edca6b90575922afab1e4d064bba5f81a44530daa46acd  HEAD=a3ac6db3
+AFTER   DIGEST_COMPILE=c24d6517dab5889c624a93cb8d96639be11b256125d880593ddca5128d429219  FILES=241  DIGEST_ALL=4af1b9cd9948dca8c2edca6b90575922afab1e4d064bba5f81a44530daa46acd  HEAD=a3ac6db3
+VERDICT: FROZEN -- all 308 hashed files byte-identical across the run; this log is bound to revision DIGEST_ALL(content)=3f3ba871763654814d3f25c810afdb15f500882a9a4e1161d20e6fde3b2e4869
+NOTE: the stored DIGEST_ALL in these files was produced by the pre-content-v1 scheme (it included size/mtime): before=4af1b9cd9948dca8c2edca6b90575922afab1e4d064bba5f81a44530daa46acd after=4af1b9cd9948dca8c2edca6b90575922afab1e4d064bba5f81a44530daa46acd
+NOTE: the verdict is content identity only -- file mtimes are recorded as metadata but are not part of it.
+--- summary ---
+gate filter : (none -- all 21)
+gates run   : 21 / 21
+gates failed: 0
+MATRIX DONE 2026/10/18 ����  5:30:50.25

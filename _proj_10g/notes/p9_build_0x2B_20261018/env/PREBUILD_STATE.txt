@@ -1,0 +1,39 @@
+P1BUILD0x2B-PREBUILD  (timestamp 2026-10-18 04:04 local)
+========================================================================
+HEAD              = a3ac6db3331d3bc8d644532ca38574219e92b847  (master)
+4ff38912 ancestor = YES  (git merge-base --is-ancestor)
+Tracked dirty     = board/build_p7b_ku5p.tcl ONLY (1 line: verilog_define
+                    appended SFP2_MODE_A=1; git diff --stat = 1 file, 1 ins, 1 del)
+
+BUILD ENTRY       = cmd //c 'board\run_build_p7b_ku5p.bat'
+                    (Git Bash; MSYS_NO_PATHCONV is NOT set / not combined with //c)
+BUILD SCRIPT      = board/build_p7b_ku5p.tcl
+WRAPPER IMPORTED  = ${script_dir}/wrapper_p4.v  with script_dir = <repo>/board
+  board/wrapper_p4.v sha256 = c45203e53580bf4f7077e154d8c8f51f2440fe842f1e31eea625740e31120ae4
+  (NOT USED) vivado_prj/p7b_ku5p_prj.srcs/sources_1/imports/board/wrapper_p4.v
+             sha256 = 214dac0964723f05f71153b6980bfed082a05940281e99064ba19ab410cafb71
+             (= 0x2A-era copy; build never reads it)
+
+GEOMETRY (source read)
+  BUILD_ID_V        = 32'h0000002B   (board/wrapper_p4.v:4824)
+  SNAP_NW_P6E       = 83            (board/wrapper_p4.v:3522; W0..W82)
+  UNIMPL            = 0x17C         (word 95 = 0x20+4*83+16)
+  MIR words         = 0x16C..0x178
+  SFP2 mode         = A (SFP2_MODE_A_DEF=1 via appended macro)
+
+PREVIOUS BUILD (provenance, pre-build archive source)
+  vivado_prj/p7b_ku5p_prj.runs/impl_1/wrapper_p4.bit
+  sha256 = aa44a0eda1604623eac951afc26b9f27d4798fc414a5eb9c7137ee47f9a2a3b6
+  size   = 15,431,261 B   mtime 2026-10-17 14:07  = 0x2A bitstream
+  0x2A build readings (p9_build_0x2A_20261017): WNS +0.039 / WHS +0.010 /
+  endpoints 0/0/0; placed 78,248 LUT / 75,360 FF / 348 BRAM / 1 URAM / 4 DSP / 6 GTYE4
+
+INPUT HASH SNAPSHOT
+  env/BUILD_INPUT_HASHES_BEFORE.txt = 222 files (explicit import list of
+  build_p7b_ku5p.tcl: HLS 173 .v + 3 .dat + rtl 27 + obs 7 + axi_regs +
+  mac 3 + board 4 + xdc 4). Prior 0x2A round used a 287-file universe whose
+  generator is not recorded; this round's snapshot is self-consistent
+  (BEFORE vs AFTER diff is the binding criterion).
+
+CONCURRENCY
+  tasklist vivado/xsim/grep => no process at 04:01 (EXIT=1, zero matches)

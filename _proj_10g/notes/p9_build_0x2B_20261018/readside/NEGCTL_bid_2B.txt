@@ -1,0 +1,51 @@
+NEGCTL 破坏件 (临时副本, 仓内原件不动): C:\Users\zhxue\AppData\Local\Temp\readside_negctl_8hud_ata\j6_r6fix.sh
+NEGCTL 做法: 把 _proj_10g/notes/p7b_affinity/j6_r6fix.sh 的 EXPECT_BID 改成 0x00000009 (≠ 目标 0x0000002B)
+OK   _proj_pcie/p6e_snap_check.sh                         NW             = 83                     期望 83   SNAP_WORDS=\$\{SNAP_WORDS:-(\d
+OK   _proj_pcie/p6e_snap_check.sh                         BID            = 0x0000002B             期望 0x0000002B   EXPECT_BID=\$\{EXPECT_BID:-(0x
+OK   _proj_pcie/p7b_biz/p7b_snap.sh                       NW             = 83                     期望 83   NW=\$\{NW:-(\d+)\}
+OK   _proj_pcie/p7b_biz/p7b_snap.sh                       BID            = 0x0000002B             期望 0x0000002B   EXPECT_BID=\$\{EXPECT_BID:-(0x
+OK   _proj_pcie/p7b_biz/p7b_snap.sh                       BID            = 0x2B                   期望 0x0000002B   现役 = \d+ 字 / BID (0x[0-9A-Fa-f
+OK   _proj_pcie/p7b_gate4_accept.sh                       NW             = 83                     期望 83   SNAP_WORDS=\$\{SNAP_WORDS:-(\d
+OK   _proj_pcie/p7b_gate4_accept.sh                       BID            = 0x0000002B             期望 0x0000002B   EXPECT_BID=\$\{EXPECT_BID:-(0x
+OK   _proj_pcie/p7b_gate4_selftest.sh                     NW             = 83                     期望 83   SW=\$\{SNAP_WORDS:-(\d+)\}
+OK   _proj_pcie/p7b_gate4_selftest.sh                     BID            = 0x0000002B             期望 0x0000002B   FAKE_BID:-?(0x[0-9A-Fa-f]+)
+OK   _proj_pcie/p7b_gate4_selftest.sh                     BID            = 0x2B                   期望 0x0000002B   现役 = \*\*(0x[0-9A-Fa-f]+)\*\*
+OK   _proj_pcie/p6e_snap_selftest_fix2.sh                 BID            = 0x0000002B             期望 0x0000002B   FAKE_BID:-?(0x[0-9A-Fa-f]+)
+OK   _proj_pcie/p7b_gate4_negctrl.sh                      BID            = 0x0000002B             期望 0x0000002B   echo \"BID (0x[0-9A-Fa-f]+)\"
+OK   _proj_pcie/p7b_gate4_negctrl.sh                      NW             = 83                     期望 83   for \(\( i = 0; i < (\d+); i\+
+OK   _proj_pcie/p7b_gate4_negctrl.sh                      NW             = 83                     期望 83   awk -v NW=(\d+)
+OK   _proj_pcie/p7b_gate4_negctrl.sh                      BID            = 0x2B                   期望 0x0000002B   几何: \*\*\d+ 字 \(W\d+\.\.W\d+\)
+OK   _proj_pcie/p7b_gate4_livefake.sh                     NW_key         = 83                     期望 含 83 档   bid = \{(\d+): "0x[0-9A-Fa-f]+
+OK   _proj_pcie/p7b_gate4_livefake.sh                     BID            = 0x0000002B             期望 0x0000002B   \}\.get\(nw, "(0x[0-9A-Fa-f]+)
+OK   _proj_pcie/p7b_gate4_livefake.sh                     BID            = 0x0000002B             期望 0x0000002B   bid = \{\d+: "(0x[0-9A-Fa-f]+)
+OK   _proj_10g/notes/p7b_gate4_3/final_state.sh           BID            = 0x0000002B             期望 0x0000002B   EXPECT_BID=\$\{EXPECT_BID:-(0x
+OK   _proj_10g/notes/p7b_gate4_3/final_state.sh           UNIMPL         = 0x17C                  期望 0x17C   UNIMPL=\$\(rd (0x[0-9A-Fa-f]+)
+OK   _proj_10g/notes/p7b_affinity/j6_r6fix.sh             NW             = 83                     期望 83   (?m)^NW=\$\{NW:-(\d+)\}
+FAIL _proj_10g/notes/p7b_affinity/j6_r6fix.sh             BID            = 0x00000009             期望 0x0000002B   (?m)^EXPECT_BID=\$\{EXPECT_BID
+OK   _proj_10g/notes/p7b_affinity/j6_r6fix.sh             TIER_TOP       = 0x0000002B,NW=83 (共 22 档) 期望 0x0000002B,NW=83   "(\d+)\|(0x[0-9A-Fa-f]+)\|
+OK   _proj_10g/notes/p7b_biz_tcpreg/tcpreg_j6.sh          NW             = 83                     期望 83   (?m)^NW=\$\{NW:-(\d+)\}
+OK   _proj_10g/notes/p7b_biz_tcpreg/tcpreg_j6.sh          BID            = 0x0000002B             期望 0x0000002B   (?m)^EXPECT_BID=\$\{EXPECT_BID
+OK   _proj_10g/notes/p7b_biz_tcpreg/tcpreg_j6.sh          TIER_TOP       = 0x0000002B,NW=83 (共 22 档) 期望 0x0000002B,NW=83   "(\d+)\|(0x[0-9A-Fa-f]+)\|
+OK   _proj_10g/notes/p7b_gate4_criteria/gen_inputs.py     NW             = 83                     期望 83   NW_FIX = (\d+)
+OK   _proj_10g/notes/p7b_gate4_criteria/gen_inputs.py     BID            = 0x0000002B             期望 0x0000002B   BID_FIX = (0x[0-9A-Fa-f]+)
+OK   _proj_10g/notes/p7b_gate4_criteria/gen_inputs.py     BID            = 0x2B                   期望 0x0000002B   几何 = \*\*\d+ 字 / BID (0x[0-9A-
+OK   _proj_10g/notes/p7b_gate4_criteria/gen_inputs.py     BID            = 0x2B                   期望 0x0000002B   本夹具现 = \*\*\d+ 字 / BID (0x[0-9
+OK   _proj_10g/notes/p7b_gate4_criteria/gen_inputs.py     BID            = 0x2B                   期望 0x0000002B   → \*\*\d+ 字/(0x[0-9A-Fa-f]+) \
+OK   _proj_10g/notes/p7b_biz_win/tb_biz_win.v             NW             = 83                     期望 83   localparam integer NW = (\d+)
+OK   _proj_10g/notes/p7b_biz_win/tb_biz_win.v             BID            = 32'h0000002B           期望 0x0000002B   chk\("1b BUILD_ID", v, 32\'h([
+OK   sim/p6e_pcie/tb_p6e_pcie_counters.v                  BID            = 32'h0000002B           期望 0x0000002B   (?m)^\s*u_dut\.u_pcie_xdma\.ax
+OK   sim/p6e_pcie/tb_p6e_pcie_wrapper.v                   BID            = 32'h0000002B           期望 0x0000002B   (?m)^\s*u_dut\.u_pcie_xdma\.ax
+OK   sim/p6e_pcie/tb_p6e_pcie_wrapper.v                   UNIMPL         = 17C                    期望 0x17C   axil_read\(32'h([0-9A-Fa-f]+),
+OK   sim/p6e_pcie/tb_p6e_pcie_wrapper.v                   UNIMPL         = 0x17C                  期望 0x17C   (?m)^\s*chk\(\"9  (?:未实现地址 |un
+OK   _proj_10g/p7b_chain/sim/tb_p7b_chain.v               UNIMPL         = 17C                    期望 0x17C   axil_read\(32'h([0-9A-Fa-f]+),
+OK   _proj_10g/p7b_chain/sim/tb_p7b_chain.v               UNIMPL         = 0x17C                  期望 0x17C   (?m)^\s*chk\(\"7b (0x[0-9A-Fa-
+OK   _proj_10g/p7b_chain/sim/tb_p7b_chain.v               NW             = 83                     期望 83   (?m)^\s{10,}\"axi_regs decode;
+OK   _proj_10g/notes/p7b_biz_win/run_tb_biz_win.bat       NW             = 83                     期望 83   findstr /C:\"SNAP_NW_P6E = (\d
+OK   _proj_10g/notes/p7b_biz_win/run_xvlog_wrapper.bat    NW             = 83                     期望 83   findstr /C:\"SNAP_NW_P6E = (\d
+OK   sim/p5wu_p1p2/run_xvlog_wrapper63.bat                NW             = 83                     期望 83   findstr /C:\"SNAP_NW_P6E = (\d
+OK   _proj_10g/notes/p7b_a3_negctl_20261010/step0_selfcheck.sh BID            = 0x2B                   期望 0x0000002B   缺省档 \(NW=\d+ / 0x[0-9A-Fa-f]+ 
+OK   _proj_10g/notes/p7b_a3_negctl_20261010/step0_selfcheck.sh BID            = 0x2B                   期望 0x0000002B   默认档 \(NW=\d+ / 0x[0-9A-Fa-f]+ 
+OK   _proj_10g/notes/p7b_biz_win/check_window.py          派生式             {'nnew_top': 17, 'ntx': 1, 'nnew': 14}   nnew_top + ntx + nnew == NW - 51 (W51..W(NW-1) 的分解; 70-51=19)
+NEGCTL 目标断言: _proj_10g/notes/p7b_affinity/j6_r6fix.sh[BID] ⇒ ✅ 在 FAIL 名单里
+NEGCTL_VERDICT 有牙 (断言确实变红 (共 1 条 FAIL, 含目标 _proj_10g/notes/p7b_affinity/j6_r6fix.sh[BID])) ⇒ 真实运行会 FAIL 并非零退出
+NEGCTL_EXIT=1

@@ -1,0 +1,88 @@
+
+****** Vivado v2025.2 (64-bit)
+  **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+  **** Start of session at: Sun Oct 18 04:59:44 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source {D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p9_build_0x2B_20261018\gates\sta_followup_0x2B.tcl}
+# set here [file dirname [file normalize [info script]]]
+# set R [file normalize [file join $here ".." ".." ".." ".."]]
+# set DCP "$R/vivado_prj/p7b_ku5p_prj.runs/impl_1/wrapper_p4_routed.dcp"
+# set OUT "$here/STA_FOLLOWUP_0x2B.txt"
+# open_checkpoint $DCP
+Command: open_checkpoint D:/repo/XCKU5PMini/udp_hls_10g/vivado_prj/p7b_ku5p_prj.runs/impl_1/wrapper_p4_routed.dcp
+
+Starting open_checkpoint Task
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.025 . Memory (MB): peak = 327.887 ; gain = 6.410
+INFO: [Device 21-403] Loading part xcku5p-ffvb676-1-e
+Netlist sorting complete. Time (s): cpu = 00:00:01 ; elapsed = 00:00:01 . Memory (MB): peak = 1688.191 ; gain = 0.000
+INFO: [Netlist 29-17] Analyzing 8066 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 1 CPU seconds
+INFO: [Project 1-479] Netlist was created with Vivado 2025.2
+INFO: [Project 1-570] Preparing netlist for logic optimization
+Read ShapeDB Complete: Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.236 . Memory (MB): peak = 1899.223 ; gain = 34.281
+INFO: [Timing 38-478] Restoring timing data from binary archive.
+INFO: [Timing 38-479] Binary timing data restore complete.
+INFO: [Project 1-856] Restoring constraints from binary archive.
+INFO: [Constraints 18-5170] The checkpoint was created with non-default parameter values which do not match the current Vivado settings.  Mismatching parameters are:
+  general.maxThreads
+INFO: [Project 1-853] Binary constraint restore complete.
+INFO: [Designutils 20-5722] Start Reading Physical Databases.
+Reading placement.
+Read Netlist Cache: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.126 . Memory (MB): peak = 4148.879 ; gain = 0.000
+Reading placer database...
+Read Device Cache: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.028 . Memory (MB): peak = 4148.879 ; gain = 0.000
+Read PlaceDB: Time (s): cpu = 00:00:05 ; elapsed = 00:00:04 . Memory (MB): peak = 4148.879 ; gain = 0.000
+Read PulsedLatchDB: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 4148.879 ; gain = 0.000
+Reading routing.
+Read RouteStorage: Time (s): cpu = 00:00:02 ; elapsed = 00:00:02 . Memory (MB): peak = 4148.879 ; gain = 0.000
+Read Physdb Files: Time (s): cpu = 00:00:07 ; elapsed = 00:00:06 . Memory (MB): peak = 4148.879 ; gain = 0.000
+Restored from archive | CPU: 8.000000 secs | Memory: 0.000000 MB |
+Finished XDEF File Restore: Time (s): cpu = 00:00:08 ; elapsed = 00:00:06 . Memory (MB): peak = 4148.879 ; gain = 0.000
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.058 . Memory (MB): peak = 4148.879 ; gain = 0.000
+INFO: [Project 1-111] Unisim Transformation Summary:
+  A total of 1410 instances were transformed.
+  DSP48E2 => DSP48E2 (DSP_ALU, DSP_A_B_DATA, DSP_C_DATA, DSP_MULTIPLIER, DSP_M_DATA, DSP_OUTPUT, DSP_PREADD, DSP_PREADD_DATA): 4 instances
+  IBUF => IBUF (IBUFCTRL, INBUF): 3 instances
+  IBUFDS => IBUFDS (DIFFINBUF, IBUFCTRL): 1 instance 
+  RAM16X1D => RAM32X1D (RAMD32(x2)): 35 instances
+  RAM16X1S => RAM32X1S (RAMS32): 224 instances
+  RAM256X1S => RAM256X1S (MUXF7(x2), MUXF8, RAMS64E(x4)): 8 instances
+  RAM32M => RAM32M (RAMD32(x6), RAMS32(x2)): 41 instances
+  RAM32M16 => RAM32M16 (RAMD32(x14), RAMS32(x2)): 154 instances
+  RAM32X1D => RAM32X1D (RAMD32(x2)): 13 instances
+  RAM64M => RAM64M (RAMD64E(x4)): 241 instances
+  RAM64M8 => RAM64M8 (RAMD64E(x8)): 554 instances
+  RAM64X1D => RAM64X1D (RAMD64E(x2)): 132 instances
+
+INFO: [Project 1-604] Checkpoint was created with Vivado v2025.2 (64-bit) build 6299465
+WARNING: [Vivado 12-23575] Critical violations of the methodology design rules detected. Critical violations may contribute to timing failures or cause functional issues in hardware. Run report_methodology for more information.
+open_checkpoint: Time (s): cpu = 00:01:23 ; elapsed = 00:01:12 . Memory (MB): peak = 4148.879 ; gain = 3837.980
+# set fh [open $OUT w]
+# puts $fh "# P1BUILD0x2B STA follow-up [clock format [clock seconds]]"
+# set cells [get_cells -hier -quiet -filter "NAME =~ *u_snap_p7bdp/hold_b_reg*"]
+# puts $fh "# hold_b cells = [llength $cells]"
+# set p {}
+# catch { set p [get_timing_paths -from $cells -delay_type max -max_paths 1 -sort_by slack] }
+WARNING: [Timing 38-164] This design has multiple clocks. Inter clock paths are considered valid unless explicitly excluded by timing constraints such as set_clock_groups or set_false_path.
+get_timing_paths: Time (s): cpu = 00:00:59 ; elapsed = 00:00:31 . Memory (MB): peak = 4199.383 ; gain = 50.504
+# if {[llength $p]} {
+#     puts $fh "# hold_b FROM: SLACK=<[get_property SLACK $p]> START=<[get_property STARTPOINT_PIN $p]> END=<[get_property ENDPOINT_PIN $p]>"
+# }
+# set topf "$here/TOP200_0x2B.rpt"
+# report_timing -delay_type max -max_paths 200 -sort_by slack -file $topf
+INFO: [Timing 38-78] ReportTimingParams: -max_paths 200 -nworst 1 -delay_type max -sort_by slack.
+# set txt [read [open $topf r]]
+# puts $fh "\n# top200 scan for ch0 families (occurrences):"
+# foreach f {u_snap_p7bdp pcs0_ferr pcs0_bad pcs0_badv pcs0_erv pcs0_vcc pcs0_fifo los1_sr los2_sr los1_evt los2_evt pcs0_ferr_evt pcs0_bad_evt pcs0_erv_evt pcs0_vcc_cyc} {
+#     puts $fh [format "%-16s %d" $f [regexp -all -- $f $txt]]
+# }
+# close $fh
+# puts "P1BUILD0x2B-STA-FOLLOWUP done -> $OUT"
+P1BUILD0x2B-STA-FOLLOWUP done -> D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p9_build_0x2B_20261018/gates/STA_FOLLOWUP_0x2B.txt
+# exit
+INFO: [Common 17-206] Exiting Vivado at Sun Oct 18 05:01:33 2026...

@@ -1,0 +1,30 @@
+P1BUILD0x2B clock interaction: rows involving rxoutclk/gtrefclk
+NEW BUILD (0x2B) rows:
+  FROM=g_hw.clk_out0                  TO=rxoutclk_out[0]_3              0 | 10 | Ignored | Asynchronous Groups
+  FROM=pcie_axi_aclk                  TO=rxoutclk_out[0]_2              0 | 3 | Ignored | Asynchronous Groups
+  FROM=pcie_axi_aclk                  TO=rxoutclk_out[0]_3              0 | 6 | Ignored | Asynchronous Groups
+  FROM=rxoutclk_out[0]_2              TO=g_hw.clk_out0                  0 | 13 | Ignored | Asynchronous Groups
+  FROM=rxoutclk_out[0]_2              TO=pcie_axi_aclk                  0 | 129 | Ignored | Asynchronous Groups
+  FROM=rxoutclk_out[0]_2              TO=rxoutclk_out[0]_2              5270 | 6.40 | Clean | Partial False Path
+  FROM=rxoutclk_out[0]_2              TO=sys_clk_100                    0 | 4 | Ignored | Asynchronous Groups
+  FROM=rxoutclk_out[0]_3              TO=g_hw.clk_out0                  0 | 364 | Ignored | Asynchronous Groups
+  FROM=rxoutclk_out[0]_3              TO=pcie_axi_aclk                  0 | 507 | Ignored | Asynchronous Groups
+  FROM=rxoutclk_out[0]_3              TO=rxoutclk_out[0]_3              10987 | 6.40 | Clean | Partial False Path
+  FROM=rxoutclk_out[0]_3              TO=sys_clk_100                    0 | 4 | Ignored | Asynchronous Groups
+  FROM=sys_clk_100                    TO=rxoutclk_out[0]_2              0 | 5 | Ignored | Asynchronous Groups
+  FROM=sys_clk_100                    TO=rxoutclk_out[0]_3              0 | 5 | Ignored | Asynchronous Groups
+  FROM=txoutclk_out[0]_3              TO=rxoutclk_out[0]_3              64 | 6.40 | No Common Node | Timed (unsafe)
+
+0x2A ARCHIVE rows:
+  FROM=g_hw.clk_out0                  TO=rxoutclk_out[0]_1              0 | 10 | Ignored | Asynchronous Groups
+  FROM=pcie_axi_aclk                  TO=rxoutclk_out[0]_1              0 | 6 | Ignored | Asynchronous Groups
+  FROM=rxoutclk_out[0]                TO=g_hw.clk_out0                  0 | 1 | Ignored | Asynchronous Groups
+  FROM=rxoutclk_out[0]                TO=rxoutclk_out[0]                3448 | 6.40 | Clean | Partial False Path
+  FROM=rxoutclk_out[0]                TO=sys_clk_100                    0 | 4 | Ignored | Asynchronous Groups
+  FROM=rxoutclk_out[0]_1              TO=g_hw.clk_out0                  0 | 366 | Ignored | Asynchronous Groups
+  FROM=rxoutclk_out[0]_1              TO=pcie_axi_aclk                  0 | 507 | Ignored | Asynchronous Groups
+  FROM=rxoutclk_out[0]_1              TO=rxoutclk_out[0]_1              10987 | 6.40 | Clean | Partial False Path
+  FROM=rxoutclk_out[0]_1              TO=sys_clk_100                    0 | 4 | Ignored | Asynchronous Groups
+  FROM=sys_clk_100                    TO=rxoutclk_out[0]                0 | 5 | Ignored | Asynchronous Groups
+  FROM=sys_clk_100                    TO=rxoutclk_out[0]_1              0 | 5 | Ignored | Asynchronous Groups
+  FROM=txoutclk_out[0]_1              TO=rxoutclk_out[0]_1              64 | 6.40 | No Common Node | Timed (unsafe)
