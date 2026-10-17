@@ -1,0 +1,3 @@
+TB_RESULT FAIL U9B errs=1 (stat=1 wr0=1 cam=1 down=1)
+CHECK FAIL: U9B orphan delivery must not collide with to_push
+GATE_RESULT M9 scen=18 expect=FAIL got=FAIL

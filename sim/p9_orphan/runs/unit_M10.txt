@@ -1,0 +1,4 @@
+TB_RESULT FAIL U12 errs=2 (stat=1 wr0=1 cam=1 down=1)
+CHECK FAIL: U12 live zero-window (periodic acks) must not fire
+CHECK FAIL: U12 no recovery
+GATE_RESULT M10 scen=15 expect=FAIL got=FAIL

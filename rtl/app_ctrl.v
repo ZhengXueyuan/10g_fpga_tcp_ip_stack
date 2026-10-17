@@ -302,6 +302,24 @@ module app_ctrl #(
     // "两个语义无关的宏被绑成一根线"的坑 (对抗审查 F1); 且 TB 一次 xelab
     // 就能同时跑两臂 (同激励、同波形), 比两个 checkout 的对照更强。
     parameter        WU_LEGACY = 1'b0,
+    //=========================================================================
+    // p9 orphan fix (2026-10-17): 孤儿会话/槽泄漏回收 (设计件 v4, 附录 B 权威)
+    //   ORPHAN_EN          : 0 = 本附录全部逻辑不存在 (零回归; ev_down_i≡ev_down)
+    //   ORPHAN_LIM         : 模式 A 阈值 (tick 数; 8 位饱和)
+    //   ORPHAN_TICK_BITS   : 模式 A tick = scan_round 低 N 位为 0 (默认 18 ⇒ 429.4967 ms)
+    //   ORPHAN_ZW_EN       : 模式 B (零窗死对端) 使能; 仅 ORPHAN_EN=1 时有效
+    //                        (外层胜出: 01 = 全关, 等价 00)
+    //   ORPHAN_ZW_LIM      : 模式 B 阈值 (默认 105 x 1.718 s = 180.39 s)
+    //   ORPHAN_ZW_TICK_BITS: 模式 B 专用 tick (默认 20 ⇒ 1.718 s)
+    // ⚠️ ORPHAN_EN=0 时所有新输出恒 0, ev_down_i/ev_slot_i 与原始事件逐位相同
+    //    (既有 8-9 个直接例化本模块的 TB 不接新输入也不会把 Z 传进事件块).
+    //=========================================================================
+    parameter        ORPHAN_EN = 1'b0,
+    parameter [7:0]  ORPHAN_LIM = 8'd144,
+    parameter integer ORPHAN_TICK_BITS = 18,
+    parameter        ORPHAN_ZW_EN = 1'b0,
+    parameter [7:0]  ORPHAN_ZW_LIM = 8'd105,
+    parameter integer ORPHAN_ZW_TICK_BITS = 20,
     // P5c-T3 G2: 关闭超时阈值 (单位 = 该槽被扫描到的轮次; 见文件头换算 —
     // 生产值 195313 轮 = 400ms = 4xRTO @125MHz)。18 位 (195313 < 2^18)。
     // ⚠️ P6b: 消费者搬到 156.25MHz 数据面域 ⇒ 维持同一墙钟需 ×1.25 = 244141 轮。
@@ -354,6 +372,18 @@ module app_ctrl #(
     // P5c-T3 G3: tcp_tx_frame.o_rst_sent (abort fence) — abort 后 app 不该再看到
     // tx_ready; 上升沿同时是"abort 完成"的触发 (⇒ 走 fc 通道写 state=0)
     input  wire [15:0] rst_sent,
+    // ---- p9 orphan fix: 失联判据输入 (全部来自现役线; 见设计件 §3.2) ----
+    input  wire        retx_active,     // tcp_tx_frame.o_retx_active
+    input  wire [3:0]  retx_id,         // tcp_tx_frame.o_retx_id
+    input  wire        una_adv,         // tcp_rx snd_una 推进授权 (upd_sel==2)
+    input  wire [3:0]  una_adv_id,      // 上述授权的槽号 (= rx_upd_id)
+    input  wire        ack_obs,         // tcp_rx.ack_obs (仅 TCP_TX_OVL 支置位)
+    input  wire [3:0]  ack_obs_id,      // tcp_rx.ack_obs_id
+    input  wire        scfg_busy,       // slow_cfg_adp 记录进行中 (CAM 清 issue 门)
+    // ---- p9 orphan fix: 回收输出 (wrapper 做 CAM 写 mux, scfg 优先) ----
+    output wire        orphan_cam_clr,  // 1 拍脉冲: 清 orphan_cam_slot 的五字段
+    output wire [3:0]  orphan_cam_slot,
+    output reg  [31:0] stat_orphan,     // 孤儿回收提交数 (快照 W75)
     // ---- 事件脉冲转发 (app_pattern 用; 与事件 FIFO 推送同拍) ----
     output reg         o_ev_up,
     output reg         o_ev_down,
@@ -544,6 +574,31 @@ module app_ctrl #(
     reg  [15:0] c_snd_wnd [0:15];
     reg  [31:0] scan_round;          // 扫描心跳 (每 16 次采集 +1)
 
+    //=========================================================================
+    // p9 orphan fix: 状态 (ORPHAN_EN=0 ⇒ 全部保持复位值, 综合折叠为常数)
+    //=========================================================================
+    reg  [7:0]  orph_cnt    [0:15];  // 模式 A: 每槽停滞 tick 数 (8 位饱和)
+    reg  [7:0]  orph_zw_cnt [0:15];  // 模式 B: 每槽无 ACK 的 ZW tick 数 (8 位饱和)
+    reg  [15:0] orph_saw;            // 本停滞区间内见过本槽 retx 会话 (逐拍置位)
+    reg  [3:0]  orph_slot;           // 正在回收的槽
+    reg         orph_state_req;      // 已挂出 state=0 写 (等 fc gnt)
+    reg         orph_cam_req;        // 待清 CAM (等 state_done + !scfg_busy)
+    reg         orph_state_done;     // state=0 的 fc gnt 已落地 (寄存器)
+    reg         orph_wait_cam;       // CAM 清脉冲已发, 等 clr 回落
+    reg         orph_notify_pend;    // state+CAM 都完成, 等 orph_down_r 投递拍
+    reg         orph_down_r;         // 投递脉冲 (寄存器; 严格 1 拍)
+    reg         orphan_cam_clr_r;    // CAM 清请求 (寄存器; 1 拍)
+    // ORPHAN_EN 门控 (设计纪律: 关断时 ev_down_i≡ev_down / ev_slot_i≡ev_slot;
+    // 未接新输入的老 TB 也不会把 Z 传播进事件块)
+    wire        orph_down_i = ORPHAN_EN && orph_down_r;
+    wire        ev_down_i   = ev_down | orph_down_i;
+    wire [3:0]  ev_slot_i   = orph_down_i ? orph_slot : ev_slot;
+    // N3: 全局忙门 (只串行化 FSM, 不丢计数)
+    wire        orph_busy   = orph_state_req || orph_cam_req || orph_wait_cam ||
+                              orph_notify_pend || orph_down_i;
+    assign      orphan_cam_clr  = ORPHAN_EN && orphan_cam_clr_r;
+    assign      orphan_cam_slot = orph_slot;
+
     // ---- app_tx_ready: ESTAB && 在飞 < min(snd_wnd, WIN_CAP) && !fin_req
     //      && !fin_sent && !rst_req && !rst_sent (P5a 用轮扫注册值;
     //      精门 = tcp_tx_frame 的 win_open) ----
@@ -695,8 +750,10 @@ module app_ctrl #(
     // 消费者 (将来的 CPU 事件读口) 会漏掉第二个事件。故上一拍有事件 (ev1_v) 或上
     // 一拍刚投递过 (to_pushed_r) 时顺延一拍 ⇒ o_ev_down 恒为**孤立 1 拍脉冲**。
     // (现有真消费者 app_pattern 用"电平 + 槽号比较", 不受影响; 这是契约加固。)
+    // p9 orphan fix (F8): 投递门补 !orph_down_i —— 防止 to_push 的下一拍与
+    // 孤儿通知连续两拍 o_ev_down (两个都是寄存器项 ⇒ 不构成组合环, N5).
     wire       to_push   = (|to_pend) && !(ev_up || ev_down) && !ev1_v &&
-                           !to_pushed_r;
+                           !to_pushed_r && !orph_down_i;
 
     // ---- P5c-T3 G3: state=0 写请求 (st_pend) 并入**同一个** fc 请求寄存器 ----
     // 互斥 (TL 要求: 同一槽既有 pending 的窗口写、又要写 state): 本模块只有一个
@@ -711,8 +768,22 @@ module app_ctrl #(
     wire       fc_is_st = st_pend[fc_sel5[3:0]];   // 选中槽 = state 写?
     // 装载条件: 当前无挂起请求且有新请求 (本拍选择)。装载后 id/val 冻结到 gnt —
     // 写口与本模块的"清位"用**同一个** fc_id_r ⇒ 写的连接与清的位永远一致。
-    wire       fc_load = !fc_v && fc_new;
-    assign fc_upd_wr  = fc_v;                     // 电平: 保持到 fc_gnt
+    // p9/F2 补强: 同槽事件拍**连请求装载也禁止** —— 事件块在同一拍清 st_pend,
+    //   若本拍仍按旧 st_pend 装载 fc_v, 下一拍 (事件已回落) 该写仍会落地
+    //   (设计件 F2 的"请求撤销"要这一条才闭合). 作用域同样在 ORPHAN_EN 内.
+    wire       fc_load_blk = ORPHAN_EN &&
+                             ((ev_up   && (ev_slot == fc_sel5[3:0])) ||
+                              (ev_down && (ev_slot == fc_sel5[3:0])));
+    wire       fc_load = !fc_v && fc_new && !fc_load_blk;
+    // ---- p9/F2: 同槽事件拍不得让 fc 写落地 ----
+    // ev_up 是 wscale 写的**后一拍**寄存器输出 (slow_cfg_adp.v:187-197), 该拍
+    // scfg_upd_wr=0 / sel_fc 可开 ⇒ 没有这道门, 挂着的 state=0 写会落在新会话
+    // ADD 最后一拍**之后** (新连接静默死). 同拍抑制写 = 请求被事件块撤销.
+    // 作用域 = ORPHAN_EN 内 (F13: ORPHAN_EN=0 ⇒ 门旁路 ⇒ U10' 逐位零回归).
+    // ev_down 一并挡 (DEL 自己的 state=0 由 scfg 落地, fc 的重复写无意义).
+    assign fc_upd_wr  = fc_v && (!ORPHAN_EN ||
+                        (!(ev_up  && (ev_slot   == fc_id_r)) &&
+                         !(ev_down && (ev_slot   == fc_id_r))));  // 电平: 保持到 fc_gnt
     assign fc_upd_id  = fc_id_r;
     assign fc_upd_sel = fc_sel_r;                 // 3 = rcv_wnd / 5 = state (T3)
     assign fc_upd_val = fc_val_r;
@@ -833,10 +904,59 @@ module app_ctrl #(
     //  拍 T   : 采样守卫 (ev_up/ev_down 同槽 ⇒ 本拍不采样, 见下 always)
     //  拍 T+1 : 上拍事件 (ev1) 不可能同槽 (守卫已挡); 只需查当拍
     //  拍 T+2 : 查当拍 + 上拍 (ev1)
-    wire        ev_blk   = ev_up || ev_down;
-    wire        hit_b    =  ev_blk && (ev_slot == pa_sid);
-    wire        hit_c    = (ev_blk && (ev_slot == pb_sid)) ||
+    wire        ev_blk   = ev_up || ev_down_i;   // p9: 孤儿通知同槽时也要让位
+    wire        hit_b    =  ev_blk && (ev_slot_i == pa_sid);
+    wire        hit_c    = (ev_blk && (ev_slot_i == pb_sid)) ||
                            (ev1_v && (ev1_slot == pb_sid));
+
+    //=========================================================================
+    // p9 orphan fix: 判据组合量 / FSM 组合量 (设计件附录 B §1..§6)
+    //   scan_gate = scan_tick && !init_pend && !(本拍同槽事件)
+    //   inflight  = snd_nxt - snd_una;  cap_eff = min(snd_wnd, WIN_CAP)
+    //   win_closed= 在飞非空且 >= cap_eff (带 <2^31 回绕守卫, 有意超集)
+    //   work      = 有未决数据 || 本槽重传会话进行中 (F5: retx 只是**必要见证**)
+    //=========================================================================
+    wire        orph_scan_gate = scan_tick && !init_pend &&
+                                 !(ev_blk && (ev_slot_i == scan_id));
+    wire [31:0] orph_inflight  = rc_snd_nxt - rc_snd_una;
+    wire [15:0] orph_cap_eff   = (rc_snd_wnd < WIN_CAP) ? rc_snd_wnd : WIN_CAP;
+    wire        orph_win_closed= (orph_inflight < 32'h8000_0000) &&
+                                 (orph_inflight >= {16'b0, orph_cap_eff});
+    wire        orph_work      = (rc_snd_nxt != rc_snd_una) ||
+                                 (retx_active && (retx_id == scan_id));
+    wire        orph_accrueA   = orph_scan_gate &&
+                                 (rc_state == ST_ESTAB) && (rc_snd_wnd != 16'd0) &&
+                                 orph_work &&
+                                 !fin_sent[scan_id] && !rst_sent[scan_id] &&
+                                 !st_done[scan_id] && !to_fired[scan_id];
+    wire        orph_tick      = (scan_round[ORPHAN_TICK_BITS-1:0] == 0);
+    // 模式 B 全块 = 常数折叠 (ORPHAN_ZW_EN=0 ⇒ accrueB/fireB 恒 0, 计数块不存在)
+    wire        orph_zw_tick   = ORPHAN_ZW_EN &&
+                                 (scan_round[ORPHAN_ZW_TICK_BITS-1:0] == 0);
+    wire        orph_accrueB   = ORPHAN_ZW_EN && orph_scan_gate &&
+                                 (rc_state == ST_ESTAB) && (rc_snd_wnd == 16'd0) &&
+                                 (rc_snd_nxt != rc_snd_una) &&
+                                 !fin_sent[scan_id] && !rst_sent[scan_id] &&
+                                 !st_done[scan_id] && !to_fired[scan_id];
+    wire        orph_fireA     = ORPHAN_EN && orph_scan_gate && orph_accrueA &&
+                                 orph_saw[scan_id] &&
+                                 (orph_cnt[scan_id] >= ORPHAN_LIM) &&
+                                 (orph_win_closed || (retx_active && (retx_id == scan_id))) &&
+                                 !orph_busy;
+    wire        orph_fireB     = ORPHAN_ZW_EN && orph_scan_gate && orph_accrueB &&
+                                 (orph_zw_cnt[scan_id] >= ORPHAN_ZW_LIM) &&
+                                 !orph_busy;
+    wire        orph_fire      = orph_fireA || orph_fireB;
+    // FSM 组合量 (附录 B §6)
+    wire        orph_ready     = orph_notify_pend;             // v4 定义 (N5)
+    wire        orph_abort_comb= (ev_up && (ev_slot == orph_slot)) ||
+                                 (ev_down_i && (ev_slot_i == orph_slot)) ||
+                                 fin_sent[orph_slot] || rst_sent[orph_slot];
+    wire        orph_active    = orph_state_req || orph_cam_req ||
+                                 orph_wait_cam || orph_notify_pend;
+    wire        orph_cam_clr_done = orph_wait_cam && !orphan_cam_clr_r;
+    wire        orph_deliver_gate = orph_ready && !ev_up && !ev_down_i &&
+                                    !to_push && !ev1_v && !to_pushed_r;
 
     // ---- P5c 关闭超时活性判据 (见文件头 "P5c 关闭超时活性判据" 一节) ----
     // act_now = 本槽自上次扫描以来 rcv_nxt 有推进 = 对端有新数据到达 = 连接有进展。
@@ -877,7 +997,9 @@ module app_ctrl #(
     // 破缺 ⇒ 后续连接要么收不了数据, 要么能超发到物理缓冲之外)。to_fire 已含
     // !ev_blk ⇒ 两者结构性互斥, 同一个表达式在两条路径上都写同一个值 ✓
     // (ev_down 时 ret_slot_q = winq[ev_slot], 与 P5b 原式逐位一致 ⇒ 零行为变化)。
-    wire [15:0] ret_slot_q = ev_down ? winq[ev_slot] : winq[scan_id];
+    // p9 orphan fix (F8): 归还槽号必须走 ev_slot_i (孤儿通知也要归还**该槽**配额;
+    // 漏这一处 ⇒ 归还错槽 = 池记账毒化)
+    wire [15:0] ret_slot_q = ev_down_i ? winq[ev_slot_i] : winq[scan_id];
     wire [17:0] p_sum_x    = {1'b0, pool} + {1'b0, ret_slot_q};
     wire [16:0] pool_ret_x = (p_sum_x > {1'b0, WIN_POOL}) ? {1'b0, WIN_POOL}
                                                         : p_sum_x[16:0];
@@ -910,12 +1032,19 @@ module app_ctrl #(
             pb_v <= 1'b0; pb_sid <= 4'd0; pb_wscan <= 16'd0; pb_rwnd <= 16'd0;
             pb_state <= 4'd0;
             ev1_v <= 1'b0; ev1_slot <= 4'd0;
+            // p9 orphan fix: 复位 (ORPHAN_EN=0 ⇒ 常量折叠)
+            orph_saw <= 16'd0; orph_slot <= 4'd0;
+            orph_state_req <= 1'b0; orph_cam_req <= 1'b0; orph_state_done <= 1'b0;
+            orph_wait_cam <= 1'b0; orph_notify_pend <= 1'b0; orph_down_r <= 1'b0;
+            orphan_cam_clr_r <= 1'b0; stat_orphan <= 32'd0;
             for (wi = 0; wi < 16; wi = wi + 1) begin
                 c_state[wi] <= 4'd0; c_snd_nxt[wi] <= 32'd0; c_snd_una[wi] <= 32'd0;
                 c_rcv_nxt[wi] <= 32'd0; c_rcv_wnd[wi] <= 16'd0; c_snd_wnd[wi] <= 16'd0;
                 redge[wi] <= 32'd0; winq[wi] <= 16'd0; wu_mark[wi] <= 16'd0;
                 fc_wq[wi] <= 16'd0;
                 fin_to[wi] <= 18'd0;          // P5c-T3 G2: 关闭超时计数
+                orph_cnt[wi] <= 8'd0;         // p9 orphan fix
+                orph_zw_cnt[wi] <= 8'd0;
             end
         end else begin
             // 每拍默认清零 (脉冲型寄存器铁律)
@@ -923,8 +1052,8 @@ module app_ctrl #(
             o_ev_up   <= 1'b0;
             o_ev_down <= 1'b0;
             tick_cnt  <= tick_cnt + 4'd1;
-            ev1_v     <= ev_up || ev_down;     // 事件撞车跟踪 (下一拍的流水线让位)
-            ev1_slot  <= ev_slot;
+            ev1_v     <= ev_up || ev_down_i;   // 事件撞车跟踪 (下一拍的流水线让位)
+            ev1_slot  <= ev_slot_i;
             // P0 流水线: item only lives one beat per stage — 拍 T 由扫描块置 1
             // (在文件里更靠后, 故同拍覆盖本默认值), 其余拍必须落 0, 否则 stage B/C
             // 会拿陈旧 pa_*/pb_* 每拍重放 (C15 补授/ fc / wu 会连拍狂发)。
@@ -969,8 +1098,8 @@ module app_ctrl #(
                 init_pend <= 1'b0;
             end
 
-            // ---- 事件 (源脉冲) ----
-            if (ev_up || ev_down) begin
+            // ---- 事件 (源脉冲; p9: ev_down_i 含孤儿回收通知) ----
+            if (ev_up || ev_down_i) begin
                 if (ev_full) stat_ev_drop <= stat_ev_drop + 32'd1;
                 if (ev_up) begin
                     stat_ev_up <= stat_ev_up + 32'd1;
@@ -1017,39 +1146,44 @@ module app_ctrl #(
                     to_fired[ev_slot] <= 1'b0;
                     fin_to[ev_slot]   <= 18'd0;
                 end else begin
+                    // p9: 本支同时服务真 DEL (ev_down) 与孤儿回收通知 (orph_down_i)。
+                    //     所有槽号一律用 ev_slot_i (= 事件槽 / orphan_slot) —— F8
+                    //     use-point 清单: 归还、winq、wu/fc/st/to/fin 清理全部在内。
                     stat_ev_down <= stat_ev_down + 32'd1;
                     o_ev_down    <= 1'b1;
-                    o_ev_slot    <= ev_slot;
+                    o_ev_slot    <= ev_slot_i;
                     // CONN_DOWN: 清该连接的关闭/中止请求 (同时关闭不重复发 FIN)
-                    fin_req[ev_slot] <= 1'b0;
-                    rst_req[ev_slot] <= 1'b0;
+                    fin_req[ev_slot_i] <= 1'b0;
+                    rst_req[ev_slot_i] <= 1'b0;
                     // ---- C4: 配额归还 (饱和加, 封顶 WIN_POOL) ----
                     // winq 清 0 后归还量 = 0 ⇒ 重复 ev_down 天然不 double-free;
                     // 封顶只是防御 (池上界 = WIN_POOL 由构造保证)。
                     // 注意: 归还的是**配额**, 不是物理占用 (占用不释放 — 见 C14)。
                     // P5c-T3: 归还表达式 = pool_ret_x (与超时/abort 收尾同一个;
                     // ev_down 时两者逐位一致 ⇒ 行为不变, 但同拍双写变得不可能不一致)
-                    pool          <= pool_ret_x;
-                    winq[ev_slot] <= 16'd0;
+                    pool              <= pool_ret_x;
+                    winq[ev_slot_i]   <= 16'd0;
                     // C1: redge **保持不变** (不要写 0)。写 0 在 rcv_nxt >= 2^31
                     // (约 50% 的对端 ISS) 会被序比较 sdelta = $signed(redge_n - 0)
                     // 判为"未来值"(负) 而永久留存 ⇒ W 恒 0 ⇒ 死锁。同槽重连由
                     // ev_up 的 init 拍重设, state != ESTAB 期间扫描不消费 redge。
-                    wu_mark[ev_slot] <= 16'd0;
-                    wu_zero[ev_slot] <= 1'b0;
-                    wu_pend[ev_slot] <= 1'b0;
-                    wu_act[ev_slot]  <= 1'b0;   // P7b-WU P2: 会话结束即清 (同族)
+                    wu_mark[ev_slot_i] <= 16'd0;
+                    wu_zero[ev_slot_i] <= 1'b0;
+                    wu_pend[ev_slot_i] <= 1'b0;
+                    wu_act[ev_slot_i]  <= 1'b0;   // P7b-WU P2: 会话结束即清 (同族)
 
                     // C5 尾: 必须清 fc_pend[c] — 陈旧 fc 写会落在新会话 ADD 之后
                     // (同类事件型状态清理, 见 CLAUDE.md 坑 9)
-                    fc_pend[ev_slot] <= 1'b0;
-                    if (fc_v && (fc_id_r == ev_slot)) fc_v <= 1'b0;
+                    fc_pend[ev_slot_i] <= 1'b0;
+                    if (fc_v && (fc_id_r == ev_slot_i)) fc_v <= 1'b0;
                     // P5c-T3 G3: 同理清 st_pend/计数 (拆连后不得再对该槽写 state;
                     // 计数条件 state==ESTAB 已天然为假, 这里顺手归零保持不变量)
-                    st_pend[ev_slot]  <= 1'b0;
-                    to_pend[ev_slot]  <= 1'b0;
-                    to_fired[ev_slot] <= 1'b0;
-                    fin_to[ev_slot]   <= 18'd0;
+                    // ⚠️ p9/F8: st_done **不清** (只在 ev_up 清) —— 回收后保留到下次
+                    //    建连, 防重复点火.
+                    st_pend[ev_slot_i]  <= 1'b0;
+                    to_pend[ev_slot_i]  <= 1'b0;
+                    to_fired[ev_slot_i] <= 1'b0;
+                    fin_to[ev_slot_i]   <= 18'd0;
                 end
             end
 
@@ -1074,7 +1208,7 @@ module app_ctrl #(
             // 会覆盖事件块的清理/授权 (旧版: winq 走增量补授而非 C14-① 的授予预留,
             // wu_zero 被清 0 覆盖等)。ev_down 本可依赖 `state != ESTAB` 天然为假,
             // 但 redge 更新/位图清理并不看 state, 故一并让位 (跳过一拍采样无害)。
-            if (scan_tick && !init_pend && !(ev_blk && (ev_slot == scan_id))) begin
+            if (scan_tick && !init_pend && !(ev_blk && (ev_slot_i == scan_id))) begin
                 scan_id <= scan_id + 4'd1;
                 if (scan_id == 4'd15) scan_round <= scan_round + 32'd1;
                 c_state  [scan_id] <= rc_state;
@@ -1306,6 +1440,113 @@ module app_ctrl #(
                         end
                     end
                 end
+            end
+
+            // =============================================================
+            // p9 orphan fix: 计数 + 回收 FSM (设计件附录 B §1..§7)
+            //   ORPHAN_EN=0 ⇒ 整块不存在 (全部寄存器保持复位 0).
+            // =============================================================
+            if (ORPHAN_EN) begin : g_orph
+                // ---- 1. 逐拍见证: 本槽见过重传会话 (不靠扫描采样, F5) ----
+                if (retx_active) orph_saw[retx_id] <= 1'b1;
+
+                // ---- 2. 计数 (模式 A): 清零优先; 同拍清零+计数时 clr 赢 ----
+                if (una_adv) begin
+                    orph_cnt[una_adv_id] <= 8'd0;
+                    orph_saw[una_adv_id] <= 1'b0;
+                end
+                if (orph_scan_gate) begin
+                    if (!orph_accrueA || (una_adv && (una_adv_id == scan_id)))
+                        orph_cnt[scan_id] <= 8'd0;
+                    else if (orph_tick)
+                        orph_cnt[scan_id] <= (orph_cnt[scan_id] == 8'hFF) ?
+                                             8'hFF : orph_cnt[scan_id] + 8'd1;
+                    if (!orph_accrueA) orph_saw[scan_id] <= 1'b0;
+                end
+
+                // ---- 3. 计数 (模式 B) —— 全块包 ORPHAN_ZW_EN (V4-2/V4-6:
+                //        =0 ⇒ 不计数、不清零、不点火; 寄存器被综合掉) ----
+                if (ORPHAN_ZW_EN) begin : g_orph_zw
+                    if (ack_obs) orph_zw_cnt[ack_obs_id] <= 8'd0;
+                    if (orph_scan_gate) begin
+                        if (!orph_accrueB || (ack_obs && (ack_obs_id == scan_id)))
+                            orph_zw_cnt[scan_id] <= 8'd0;
+                        else if (orph_zw_tick)
+                            orph_zw_cnt[scan_id] <= (orph_zw_cnt[scan_id] == 8'hFF) ?
+                                                    8'hFF : orph_zw_cnt[scan_id] + 8'd1;
+                    end
+                end
+
+                // ---- 4. 事件同槽清零 (物理放在计数块之后 ⇒ 清赢, V4-3) ----
+                if (ev_up || ev_down_i) begin
+                    orph_cnt[ev_slot_i] <= 8'd0;
+                    orph_saw[ev_slot_i] <= 1'b0;
+                    if (ORPHAN_ZW_EN) orph_zw_cnt[ev_slot_i] <= 8'd0;
+                end
+
+                // ---- 5. FSM 脉冲默认值 (脉冲契约: 非置位拍恒 0) ----
+                orphan_cam_clr_r <= 1'b0;
+                orph_down_r      <= 1'b0;
+
+                if (orph_abort_comb && orph_active) begin
+                    // 中止: 清全部 pending, 不发通知 (等待期同槽 ev_up/ev_down/
+                    // fin_sent/rst_sent 上升 ⇒ 槽已被新会话/删除接管)
+                    orph_state_req   <= 1'b0;
+                    orph_cam_req     <= 1'b0;
+                    orph_state_done  <= 1'b0;
+                    orph_wait_cam    <= 1'b0;
+                    orph_notify_pend <= 1'b0;
+                    orph_down_r      <= 1'b0;
+                    orphan_cam_clr_r <= 1'b0;
+                    orph_cnt[orph_slot] <= 8'd0;
+                    orph_saw[orph_slot] <= 1'b0;
+                    if (ORPHAN_ZW_EN) orph_zw_cnt[orph_slot] <= 8'd0;
+                end
+                else if (orph_fire) begin
+                    // fire 拍: 只挂 state 写 + CAM 请求; 不写 pool、不发 o_ev_down
+                    st_pend[scan_id] <= 1'b1;
+                    st_done[scan_id] <= 1'b1;
+                    orph_slot        <= scan_id;
+                    orph_state_req   <= 1'b1;
+                    orph_cam_req     <= 1'b1;
+                    orph_state_done  <= 1'b0;
+                    orph_wait_cam    <= 1'b0;
+                    orph_notify_pend <= 1'b0;
+                    orph_down_r      <= 1'b0;
+                    orphan_cam_clr_r <= 1'b0;
+                    orph_cnt[scan_id] <= 8'd0;
+                    orph_saw[scan_id] <= 1'b0;
+                    if (ORPHAN_ZW_EN) orph_zw_cnt[scan_id] <= 8'd0;
+                end
+                else begin
+                    // (a) fc gnt: state=0 已在本拍落地 ⇒ 下一拍 state_done=1
+                    if (fc_gnt && (fc_sel_r == 3'd5) && (fc_id_r == orph_slot)) begin
+                        orph_state_req  <= 1'b0;
+                        orph_state_done <= 1'b1;
+                    end
+                    // (b) CAM 清 issue: 必须在 state_done 之后 (F9: 零 CAM 窗口内
+                    //     start_data 仍可启动 ⇒ cam_rd_* 全 0 ⇒ 线上出 0 MAC/IP/port)
+                    if (orph_cam_req && orph_state_done && !scfg_busy &&
+                        !orph_abort_comb) begin
+                        orphan_cam_clr_r <= 1'b1;   // 1 拍; CAM 写在本拍结束沿落地
+                        orph_cam_req     <= 1'b0;
+                        orph_wait_cam    <= 1'b1;
+                    end
+                    // (c) wait_cam → notify_pend 同沿交接 (N3: 拆两拍 ⇒ busy 1 拍
+                    //     空档 ⇒ 第二槽乘虚改写 orph_slot ⇒ 第一槽半回收)
+                    if (orph_cam_clr_done) begin
+                        orph_wait_cam    <= 1'b0;
+                        orph_notify_pend <= 1'b1;
+                    end
+                    // (d) 通知投递: orph_ready = notify_pend; 同沿清 ⇒ down_r 严格 1 拍
+                    if (orph_deliver_gate) begin
+                        orph_down_r      <= 1'b1;
+                        orph_notify_pend <= 1'b0;
+                    end
+                end
+
+                // ---- 6. 提交计数 (只在投递拍; 32 位自然回卷 mod 2^32) ----
+                if (orph_down_r) stat_orphan <= stat_orphan + 32'd1;
             end
 
             // ---- C5: fc 应答 (清请求位 + 请求寄存器出空 + round-robin 推进) ----

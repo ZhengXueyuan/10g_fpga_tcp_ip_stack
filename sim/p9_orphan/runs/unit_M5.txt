@@ -1,0 +1,5 @@
+TB_RESULT FAIL U6 errs=3 (stat=1 wr0=1 cam=1 down=1)
+CHECK FAIL: U6 post-fire: ev_up must abort (no orphan commit)
+CHECK FAIL: U6 post-fire: no CAM clear
+CHECK FAIL: U6 post-fire: no orphan o_ev_down
+GATE_RESULT M5 scen=7 expect=FAIL got=FAIL

@@ -135,7 +135,25 @@
 //   + 4 RXT 行, ~1.5s; led_d1 恒亮即行在发)。
 //=============================================================================
 
-module wrapper_p4 (
+module wrapper_p4 #(
+    //=========================================================================
+    // p9 orphan fix (2026-10-17): 孤儿会话/槽泄漏回收参数 (设计件 v4 §5)
+    //   ORPHAN_EN_5   : 默认 1 = 板构建启用; p5wrapper 基线门显式传 0 (N12)
+    //   ORPHAN_ZW_EN_5: 默认由 `ifdef TCP_TX_OVL 推导 (ack_obs 只在 OVL 支置位,
+    //                   tcp_rx.v:617-626; N2/N10). 非 OVL 构建默认 0.
+    //   ⚠️ ORPHAN_ZW_EN_5=1 而 TCP_TX_OVL 未定义 ⇒ 见下方 elaboration 硬门.
+    //=========================================================================
+    parameter        ORPHAN_EN_5 = 1'b1,
+    parameter [7:0]  ORPHAN_LIM_5 = 8'd144,
+    parameter integer ORPHAN_TICK_BITS_5 = 18,
+`ifdef TCP_TX_OVL
+    parameter        ORPHAN_ZW_EN_5 = 1'b1,
+`else
+    parameter        ORPHAN_ZW_EN_5 = 1'b0,
+`endif
+    parameter [7:0]  ORPHAN_ZW_LIM_5 = 8'd105,
+    parameter integer ORPHAN_ZW_TICK_BITS_5 = 20
+) (
     input           reset_n,
 `ifndef DEV_USP
     input           fpga_gclk,     // K7 板 50MHz 晶振 -> MMCM -> 200MHz IDELAYCTRL 参考钟
@@ -204,6 +222,23 @@ module wrapper_p4 (
     input           sys_clk_n            // U25
 `endif
 );
+    //=========================================================================
+    // p9 orphan fix / N2 结构防呆 (构建期硬门):
+    //   `ack_obs` 只在 tcp_rx 的 `ifdef TCP_TX_OVL 支置位 (tcp_rx.v:617-626);
+    //   若非 OVL 构建却打开 Mode B ⇒ ack_obs 恒 0 ⇒ 180.39 s 后误杀活零窗对端。
+    //   本 generate 在违规组合下实例化一个不存在的模块 ⇒ elaboration 硬失败
+    //   (Vivado synthesize / xelab 都会拒绝), 不会静默交付。
+    //=========================================================================
+`ifdef TCP_TX_OVL
+    localparam ACK_OBS_AVAILABLE = 1'b1;
+`else
+    localparam ACK_OBS_AVAILABLE = 1'b0;
+`endif
+    generate
+        if (ORPHAN_EN_5 && ORPHAN_ZW_EN_5 && !ACK_OBS_AVAILABLE) begin : g_orph_zw_guard
+            ORPHAN_ZW_EN_REQUIRES_TCP_TX_OVL u_orphan_zw_guard();
+        end
+    endgenerate
 
     // --- P5 app 接口构建开关 (默认关 = 现状 echo 数据面, 逐位不变) -------------
     // APP_MODE 定义时: 数据面接 app (AXIS 收发 + 寄存器控制), 且
@@ -1040,6 +1075,30 @@ module wrapper_p4 (
     // (app_ctrl 不存在) ⇒ 仅空置, 与上面 tx_stat_ack_w 同惯例。声明必须在
     // u_app_ctrl / u_tcp_tx 两个实例之前 (P5a 教训: 用前必须声明)。
     wire [15:0] tx_rst_sent;
+    //=========================================================================
+    // p9 orphan fix (2026-10-17): **前置声明** (坑 #24)
+    //   下列线网原先声明在 u_app_ctrl 例化 (下方 ~1279) **之后**, 而 orphan
+    //   修复后 u_app_ctrl 要消费它们 ⇒ 必须前置. 不前置 = Verilog 隐式 1 位网
+    //   ⇒ 4/16 位总线静默截断 (xvlog 不报, 只有 xelab 10-3091 能抓).
+    //=========================================================================
+    wire        rx_upd_wr, rx_upd_gnt;
+    wire [3:0]  rx_upd_id;
+    wire [2:0]  rx_upd_sel;
+    wire        rx_ack_obs;
+    wire [3:0]  rx_ack_obs_id;
+    wire        tx_retx_active;
+    wire [3:0]  tx_retx_id_o;
+    wire        scfg_busy;
+    wire        orphan_cam_clr;
+    wire [3:0]  orphan_cam_slot;
+    wire        una_adv;
+    // una_adv = tcp_rx 授权推进 snd_una 的拍 (upd_sel=2 = ack 推进)
+    assign      una_adv = rx_upd_gnt && (rx_upd_sel == 3'd2);
+`ifndef APP_MODE
+    // 非 APP 构建: u_app_ctrl 不存在 ⇒ 孤儿清 CAM 口恒 0 (mux 不得读 Z)
+    assign      orphan_cam_clr  = 1'b0;
+    assign      orphan_cam_slot = 4'd0;
+`endif
 `ifdef APP_MODE
     // P5: app RX 缓冲占用 (echo frame_fifo 字节数; 17 位 = 8192 字 x 8)
     wire [16:0] app_rx_occ = {(eco_dbg_fifo_wptr - eco_dbg_fifo_rptr), 3'b0};
@@ -1059,6 +1118,7 @@ module wrapper_p4 (
     wire [16:0] app_pool;
     wire [31:0] app_stat_wu, app_stat_pool_exh;
     wire [31:0] app_stat_slot_reuse;   // C18 观测 (未接状态行; 寄存器读 0x9E 可见)
+    wire [31:0] app_stat_orphan;       // p9: 孤儿回收提交数 (快照 W75)
 `endif
     // tcb 组合读口 C (app_ctrl 轮扫源; 默认模式恒读 0 号条目, 无副作用)
     wire [3:0]  rc_id;
@@ -1276,7 +1336,16 @@ module wrapper_p4 (
         .m_ready        (app2_tready)
     );
 
-    app_ctrl #(.WIN_CAP(WIN_CAP_5)) u_app_ctrl (
+    app_ctrl #(
+        .WIN_CAP(WIN_CAP_5),
+        // p9 orphan fix: 6 参数 (板构建默认启用; p5wrapper 基线门显式 0/0)
+        .ORPHAN_EN(ORPHAN_EN_5),
+        .ORPHAN_LIM(ORPHAN_LIM_5),
+        .ORPHAN_TICK_BITS(ORPHAN_TICK_BITS_5),
+        .ORPHAN_ZW_EN(ORPHAN_ZW_EN_5),
+        .ORPHAN_ZW_LIM(ORPHAN_ZW_LIM_5),
+        .ORPHAN_ZW_TICK_BITS(ORPHAN_ZW_TICK_BITS_5)
+    ) u_app_ctrl (
         .clk            (dp_clk),
         .rst_n          (dp_rst_n),
         .ev_up          (scfg_ev_up),
@@ -1296,6 +1365,17 @@ module wrapper_p4 (
         .fin_sent       (app_fin_sent),
         // P5c-T3 G3: RST 已发出 (abort fence) — 非 ESTAB/未发 RST 时为 0
         .rst_sent       (tx_rst_sent),
+        // p9 orphan fix: 失联判据输入 + 回收输出
+        .retx_active    (tx_retx_active),
+        .retx_id        (tx_retx_id_o),
+        .una_adv        (una_adv),
+        .una_adv_id     (rx_upd_id),
+        .ack_obs        (rx_ack_obs),
+        .ack_obs_id     (rx_ack_obs_id),
+        .scfg_busy      (scfg_busy),
+        .orphan_cam_clr (orphan_cam_clr),
+        .orphan_cam_slot(orphan_cam_slot),
+        .stat_orphan    (app_stat_orphan),
         .o_ev_up        (app_ev_up),
         .o_ev_down      (app_ev_down),
         .o_ev_slot      (app_ev_slot),
@@ -1758,7 +1838,7 @@ module wrapper_p4 (
     // P4d-fix: tcp_tx_frame 回卷会话高水位/活性 -> tcp_rx ack_ok 上界
     // (纯线束: 会话期 ack 上界 = retx_hi 而非回卷后 snd_nxt, 见 tcp_rx 注释)
     wire [31:0] tx_retx_hi;
-    wire        tx_retx_active;
+    // tx_retx_active: p9 前置声明 (见 u_app_ctrl 之前的线网块)
     wire [3:0]  rb_id;
     wire [31:0] rb_rcv_nxt, rb_snd_nxt, rb_snd_una;
     wire [15:0] rb_rcv_wnd, rb_snd_wnd;
@@ -1779,9 +1859,7 @@ module wrapper_p4 (
     wire [2:0]  tcb_sel;
     wire [31:0] tcb_val;
 
-    wire        rx_upd_wr, rx_upd_gnt;
-    wire [3:0]  rx_upd_id;
-    wire [2:0]  rx_upd_sel;
+    // rx_upd_wr/gnt/id/sel: p9 前置声明 (见 u_app_ctrl 之前的线网块)
     wire [31:0] rx_upd_val;
     wire        tx_upd_wr;
     wire [3:0]  tx_upd_id;
@@ -1826,8 +1904,7 @@ module wrapper_p4 (
     wire [31:0] cam_rd_sip, cam_rd_dip;
     wire [15:0] cam_rd_sport, cam_rd_dport;
     // ⭐ r6 (L-A, 2026-10-08): 对端 ACK 观测 (tcp_rx) -> ack_seen 位图 (下方 u_tcp_tx 门)
-    wire        rx_ack_obs;
-    wire [3:0]  rx_ack_obs_id;
+    // rx_ack_obs/rx_ack_obs_id: p9 前置声明 (见 u_app_ctrl 之前的线网块)
 
     tcp_rx u_tcp_rx (
         // P5d H-fix: 接受裕度按 ESTAB 数动态缩 (推导见上面的 H-fix 块)。
@@ -1978,16 +2055,27 @@ module wrapper_p4 (
         .m_ready        (eco2_tready)
     );
 
+    // ---- p9 orphan fix: CAM 写 mux (scfg 优先; 孤儿清 = 该槽五字段全 0) ----
+    //   issue 门已保证 scfg_busy 期间不发 orphan_cam_clr, 这里的 scfg 优先是
+    //   第二道防线 (同拍碰撞时 CAM 内容必须是 scfg 的新值, 不能是清 0)。
+    wire        cam_cfg_wr_mux   = scfg_cam_wr | orphan_cam_clr;
+    wire [3:0]  cam_cfg_addr_mux = scfg_cam_wr ? scfg_cam_addr : orphan_cam_slot;
+    wire [31:0] cam_cfg_sip_mux  = scfg_cam_wr ? scfg_cam_sip   : 32'd0;
+    wire [31:0] cam_cfg_dip_mux  = scfg_cam_wr ? scfg_cam_dip   : 32'd0;
+    wire [15:0] cam_cfg_sport_mux= scfg_cam_wr ? scfg_cam_sport : 16'd0;
+    wire [15:0] cam_cfg_dport_mux= scfg_cam_wr ? scfg_cam_dport : 16'd0;
+    wire [47:0] cam_cfg_dmac_mux = scfg_cam_wr ? scfg_cam_dmac  : 48'd0;
+
     tcp_cam u_cam (
         .clk            (dp_clk),
         .rst_n          (dp_rst_n),
-        .cfg_wr         (scfg_cam_wr),
-        .cfg_addr       (scfg_cam_addr),
-        .cfg_sip        (scfg_cam_sip),
-        .cfg_dip        (scfg_cam_dip),
-        .cfg_sport      (scfg_cam_sport),
-        .cfg_dport      (scfg_cam_dport),
-        .cfg_dmac       (scfg_cam_dmac),
+        .cfg_wr         (cam_cfg_wr_mux),
+        .cfg_addr       (cam_cfg_addr_mux),
+        .cfg_sip        (cam_cfg_sip_mux),
+        .cfg_dip        (cam_cfg_dip_mux),
+        .cfg_sport      (cam_cfg_sport_mux),
+        .cfg_dport      (cam_cfg_dport_mux),
+        .cfg_dmac       (cam_cfg_dmac_mux),
         .q_sip          (cam_q_sip),
         .q_dip          (cam_q_dip),
         .q_sport        (cam_q_sport),
@@ -2097,6 +2185,7 @@ module wrapper_p4 (
         .cfg_gnt        (scfg_gnt),
         .stat_add       (scfg_stat_add),
         .stat_del       (scfg_stat_del),
+        .o_busy         (scfg_busy),      // p9: 记录进行中 (CAM 清 issue 门)
         // P5: 连接事件源 (纯加输出; 默认模式无消费者)
         .ev_up          (scfg_ev_up),
         .ev_down        (scfg_ev_down),
@@ -2129,7 +2218,7 @@ module wrapper_p4 (
     // P5: FIN/RST 请求源 (APP_MODE = app_ctrl; 默认 = 恒 0, P4 行为不变)
     wire [15:0] tx_fin_req, tx_rst_req, tx_fin_sent;
     wire [31:0] tx_stat_drop_len, tx_stat_fin, tx_stat_rst;
-    wire [3:0]  tx_retx_id_o;
+    // tx_retx_id_o: p9 前置声明 (见 u_app_ctrl 之前的线网块)
     // P5b: wu 通道 (默认构建 = 常量 0 ⇒ 逐位等价; APP_MODE = app_ctrl)
     wire        app_wu_req_t, app_wu_gnt_t;
     wire [3:0]  app_wu_id_t;
@@ -2182,7 +2271,9 @@ module wrapper_p4 (
     //   · 0x1C 版此处为 `1'b0` 的"可证惰性"论证 (静态检查零例外 + arm B 逐字同) 见
     //     `_proj_10g/notes/p7b_build_0x1C/REPORT.md` (历史)。
     //   · 回退点 = 这一处改回 `1'b0` (参数默认值 = `1'b0`, 见 `rtl/tcp_tx_frame.v:299`)。
-    tcp_tx_frame #(.RING_CAP(WIN_CAP_5), .PERSIST_EN(1'b0)) u_tcp_tx (
+    // ⛔ 2026-10-17 p9 实施轮: 还原 `.PERSIST_EN(1'b1)` —— HEAD 是 0x29 拆刀态
+    //   (persist 关 = 幽灵配置); 不还原就交付一个"零窗完全静默"的位流.
+    tcp_tx_frame #(.RING_CAP(WIN_CAP_5), .PERSIST_EN(1'b1)) u_tcp_tx (
         .clk            (dp_clk),
         .rst_n          (dp_rst_n),
         .s_axis_tdata   (txin_tdata),
@@ -3293,7 +3384,14 @@ module wrapper_p4 (
     //   ⚠️ 三处地址常量同改 (本构建轮口径): 本文件注释 / `sim/p6e_pcie/tb_p6e_pcie_wrapper.v`
     //   (已同批改) / `check_window.py` + `tb_biz_win.v` (登记, 属后续轮) —— 读侧链式同步
     //   (`apply_readside_bid1c.py`) 归构建轮。
-    localparam SNAP_NW_P6E = 75;        // 总字数 W0..W74 (未实现地址 = 0x15C = word 87)
+    // ⭐ p9 orphan fix (2026-10-17): 75 → **76** (W75 = `app_ctrl.stat_orphan`,
+    //   孤儿回收提交数; 落 0x14C, 进 p7bdp 束槽 35). MIR 四寄存器由
+    //   `axi_regs.SNAP_LAST_IDX = 8 + SNAP_NW - 1` **自动下移** (不要写死):
+    //   MIR_STATUS=0x150 / DATA=0x154 / CTRL=0x158 / DMA_CNT=0x15C;
+    //   **未实现地址 = 0x160** (word 88).
+    //   预算复算: 76 ≤ 119 ✓; {snap_idx,5'b0} 最大 = (76-1)<<5 = 2400 < 4096 ✓;
+    //   `snap_idx = r_word[6:0]-8` 最大 67 ⇒ 7 位 ✓ (回绕红线仍 ≥0x200).
+    localparam SNAP_NW_P6E = 76;        // 总字数 W0..W75 (未实现地址 = 0x160 = word 88)
     // ⭐ P7B-GAP9-TX (2026-10-10): 63 → **65** (W63/W64 = app_pattern 的两个停滞计数器)。
     //   预算复算: 65 ≤ 119 (7 位译码上限) ✓; 未实现地址 = 0x20+4*65 = **0x124** (word 73, 真正未实现);
     //   `{snap_idx,5'b0}` 最大 = (65-1)<<5 = 2048 < 4096 ⇒ `axi_regs.snap_base` 仍是 [11:0] (**不动**);
@@ -3314,7 +3412,7 @@ module wrapper_p4 (
     localparam SNAP_DP_NW  = 22;        // DP 束字数 (b 域 = dp_clk)
     // P7b 三条新束的字数 (与上面同源: 装配段 `snap_dout_all` 的项数必须与之对账)
     localparam SNAP_P7BFE_NW = 3;       // W36..W38 (b 域 = gmii_clk)
-    localparam SNAP_P7BDP_NW = 35;      // W39/W40, W45..W50 + W51..W60 (BIZ) + W61/W62 (WU)
+    localparam SNAP_P7BDP_NW = 36;      // W39/W40, W45..W50 + W51..W60 (BIZ) + W61/W62 (WU)
                                         //   + **W63/W64 (P7B-GAP9-TX 的两个停滞计数器)**
                                         //   + **W66 (构建 E: tcp_tx_frame.stat_winstall)**
                                         //   + **W67/W68/W69 (构建 F: 三个纯观测仪器 —— 板帽侧
@@ -3675,7 +3773,7 @@ module wrapper_p4 (
     //    端口的拼接上在 xsim 里**读回 z** (本门实测: seen 全 1 而
     //    dout 全 z) —— 这种错只有逐字读回的门能抓。
     wire [95:0]  p7bfe_dout;    // [2:0] → 槽 0/1/2
-    wire [SNAP_P7BDP_NW*32-1:0] p7bdp_dout;  // [0..34] → 槽 0..34 (BIZ 12→16; WU 16→24; GAP9-TX 24→26; 构建 E 26→27; 构建 F 27→30; M1 30→31; **P9 E12 31→35**)
+    wire [SNAP_P7BDP_NW*32-1:0] p7bdp_dout;  // [0..35] → 槽 0..35 (…; P9 E12 31→35; **p9 orphan W75 = 槽 35**)
     wire [SNAP_TX_NW*32-1:0] txsnap_dout;  // [4:0] → 槽 0..4 (槽 4 = W65; P7B-A7-LINE)
     wire        p7bfe_valid, p7bdp_valid, txsnap_valid;
     wire        p7bfe_busy,  p7bdp_busy,  txsnap_busy;
@@ -4038,6 +4136,7 @@ module wrapper_p4 (
     wire [31:0] biz_w72 = app_sw_req;              // 槽 32 → W72 收尾请求数 (ev_same_act)
     wire [31:0] biz_w73 = app_sw_apply;            // 槽 33 → W73 换流应用数 (sw_apply)
     wire [31:0] biz_w74 = app_up_pend;             // 槽 34 → W74 A3 登记数 (ev_other_act)
+    wire [31:0] biz_w75 = app_stat_orphan;         // 槽 35 → W75 p9 孤儿回收提交数
 `else
     // 非 APP_MODE 构建: u_app_ctrl 不存在 ⇒ 常量占位 (装配出来恒 0, 是预期的)
     wire [31:0] biz_w61 = 32'd0;
@@ -4048,6 +4147,7 @@ module wrapper_p4 (
     wire [31:0] biz_w72 = 32'd0;
     wire [31:0] biz_w73 = 32'd0;
     wire [31:0] biz_w74 = 32'd0;
+    wire [31:0] biz_w75 = 32'd0;   // p9 orphan fix (app_ctrl 不存在 ⇒ 常量)
 `endif
     // ⚠️ **6 个源全是 dp 域寄存器输出** ⇒ 满足 snap_cdc 的前提 (din_b 只在 clk_b 沿变化);
     //    源与**槽号**的对应关系写在名字里 (`biz_w<字>`), 装配处不再数拼接 —— 这是刻意的:
@@ -4105,6 +4205,7 @@ module wrapper_p4 (
     assign p7bdp_din[32*32 +: 32] = biz_w72;   // 槽 32 → W72 app_pattern.stat_sw_req (P9 E12)
     assign p7bdp_din[33*32 +: 32] = biz_w73;   // 槽 33 → W73 app_pattern.stat_sw_apply (P9 E12)
     assign p7bdp_din[34*32 +: 32] = biz_w74;   // 槽 34 → W74 app_pattern.stat_up_pend (P9 E12)
+    assign p7bdp_din[35*32 +: 32] = biz_w75;   // 槽 35 → W75 app_ctrl.stat_orphan (p9 orphan fix; dp 域寄存器输出)
 
     snap_cdc #(.W(32), .NW(SNAP_P7BFE_NW)) u_snap_p7bfe (
         .clk_a(pcie_axi_aclk), .rst_n(pcie_axi_aresetn), .req_a(snap_req),
@@ -4151,7 +4252,7 @@ module wrapper_p4 (
     //   ⭐ 构建 F: 新增 W67/W68/W69 落在**最上面** (= MSB 端); 旧 67 项逐项未动。
     //   ⭐ 构建 E: 新增 W66 落在**最上面** (= MSB 端); 旧 66 项逐项未动。
     //   ⚠️ 这条总线是 axi 域的组合量, 源全是 snap_cdc 的 `dout_a` 寄存器 ⇒ 采集沿稳定。
-    //   ⚠️ 非 P7B 构建里三条新束的 din 全是常量 ⇒ 后 **39** 个字读回恒 0
+    //   ⚠️ 非 P7B 构建里三条新束的 din 全是常量 ⇒ 后 **40** 个字读回恒 0
     //      (3 + (35-4) + 5 = 39; 预期, 不是缺陷 —— 原注写 27 是 24 槽时代的口径, 就地订正
     //       + 构建 E 把 26→27 槽 ⇒ 30→31 + 构建 F 把 27→30 槽 ⇒ 33→34 + M1 把 30→31 槽 ⇒ 34→35
     //       + **P9 E12 把 31→35 槽 ⇒ 38→39**);
@@ -4160,6 +4261,7 @@ module wrapper_p4 (
     //   ⚠️ **新增项一律写在最上面 (= 向量 MSB 端 = 最高槽号)**: 这样 W0..W50 的槽号
     //      逐项不动 (已入库的板级读数不受影响)。写错位置 = 全体旧字平移 = 假读数。
     wire [SNAP_NW_P6E*32-1:0] snap_dout_all = {
+        p7bdp_dout[35*32 +: 32],   // W75 app_ctrl.stat_orphan (孤儿回收提交数; p9 orphan fix; 槽 35)
         p7bdp_dout[34*32 +: 32],   // W74 app_pattern.stat_up_pend (A3 登记数; P9 E12; 槽 34)
         p7bdp_dout[33*32 +: 32],   // W73 app_pattern.stat_sw_apply (换流应用数; P9 E12; 槽 33)
         p7bdp_dout[32*32 +: 32],   // W72 app_pattern.stat_sw_req (收尾请求数; P9 E12; 槽 32)
@@ -4374,7 +4476,7 @@ module wrapper_p4 (
 
     axi_regs #(
         .MAGIC_V    (32'h50360001),
-        .BUILD_ID_V (32'h00000029),     // ⚠️ 每次改动自增 (前置闸读这一项认位流; PERSIST_EN 拆刀（persist＝关；0x28 内容）= 0x29)
+        .BUILD_ID_V (32'h0000002A),     // ⚠️ 每次改动自增 (前置闸读这一项认位流; p9 孤儿修复 + persist 还原 = 0x2A)
                                         //   ⭐ 本轮构建 (2026-10-15): **0x27 → 0x28** = **E12 观测计数器**
                                         //      (换流门四计数器: `stat_up_ev` / `stat_sw_req` /
                                         //       `stat_sw_apply` / `stat_up_pend` —— `rtl/app_pattern.v`
@@ -4855,7 +4957,7 @@ module wrapper_p4 (
                                         //        设计件 = `_proj_10g/notes/P7B_LONGSEND_DESIGN.md`。
                                         //        ⚠️ 本构建 `done` 恒 0 / `close_req` 不置位 (常量关死);
                                         //        板级"还在发"只能看 W51/W52 在涨 (active 不在快照里)。
-        .SNAP_NW    (SNAP_NW_P6E)       // 75 = 14+22 (snap_seq) + 3+(35-4)+5 (P7b 三束; 构建 F 27→30; M1 30→31; P9 E12 31→35)
+        .SNAP_NW    (SNAP_NW_P6E)       // 76 = 14+22 (snap_seq) + 3+(36-4)+5 (P7b 三束; 构建 F 27→30; M1 30→31; P9 E12 31→35; p9 orphan 35→36)
                                         //   ⚠️ 2026-10-10 (构建 F): 70 = 14+22 + 3+(30-4) + 5
                                         //      (P7B-GAP9-TX 24→26; 构建 E 26→27; 构建 F 27→30)。
                                         //   ⚠️ 2026-10-15 (P9 E12): 75 = 14+22 + 3+(35-4) + 5

@@ -1,0 +1,4 @@
+TB_RESULT FAIL U5 errs=2 (stat=1 wr0=1 cam=1 down=1)
+CHECK FAIL: U5a replay (nxt==una, retx) must fire via retx witness
+CHECK FAIL: U5a recovery landed
+GATE_RESULT M3 scen=5 expect=FAIL got=FAIL

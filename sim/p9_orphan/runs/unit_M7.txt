@@ -1,0 +1,5 @@
+TB_RESULT FAIL U7 errs=3 (stat=1 wr0=1 cam=0 down=1)
+CHECK FAIL: U7 CAM clear before notify
+CHECK FAIL: U7 notify strictly after CAM clear
+CHECK FAIL: U7 notify strictly after state_done
+GATE_RESULT M7 scen=10 expect=FAIL got=FAIL

@@ -1,0 +1,4 @@
+TB_RESULT FAIL U3 errs=2 (stat=1 wr0=1 cam=1 down=1)
+CHECK FAIL: U3 zero-window must not fire Mode A
+CHECK FAIL: U3 no side effects
+GATE_RESULT M2 scen=3 expect=FAIL got=FAIL

@@ -1,0 +1,5 @@
+TB_RESULT FAIL U2 errs=3 (stat=0 wr0=1 cam=0 down=0)
+CHECK FAIL: U2 exactly 1 orphan commit
+CHECK FAIL: U2 exactly 1 CAM clear
+CHECK FAIL: U2 exactly 1 o_ev_down on slot0
+GATE_RESULT M6 scen=2 expect=FAIL got=FAIL

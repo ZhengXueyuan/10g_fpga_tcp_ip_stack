@@ -1,0 +1,5 @@
+TB_RESULT FAIL U6c errs=3 (stat=1 wr0=1 cam=1 down=1)
+CHECK FAIL: U6c(a): no CAM clear before orph_state_done
+CHECK FAIL: U6c(b): no CAM clear while scfg_busy
+CHECK FAIL: U6c(b): cam clear never while busy
+GATE_RESULT M11 scen=9 expect=FAIL got=FAIL

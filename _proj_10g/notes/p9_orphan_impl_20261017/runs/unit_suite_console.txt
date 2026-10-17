@@ -1,0 +1,35 @@
+==== p9 orphan unit suite ====
+GATE_RESULT U1 scen=1 expect=PASS got=PASS
+GATE_RESULT U2 scen=2 expect=PASS got=PASS
+GATE_RESULT U3 scen=3 expect=PASS got=PASS
+GATE_RESULT U4 scen=4 expect=PASS got=PASS
+GATE_RESULT U5 scen=5 expect=PASS got=PASS
+GATE_RESULT U5b scen=6 expect=PASS got=PASS
+GATE_RESULT U6 scen=7 expect=PASS got=PASS
+GATE_RESULT U6b scen=8 expect=PASS got=PASS
+GATE_RESULT U6c scen=9 expect=PASS got=PASS
+GATE_RESULT U7 scen=10 expect=PASS got=PASS
+GATE_RESULT U8 scen=11 expect=PASS got=PASS
+GATE_RESULT U9 scen=12 expect=PASS got=PASS
+GATE_RESULT U10 scen=13 expect=PASS got=PASS
+GATE_RESULT U11 scen=14 expect=PASS got=PASS
+GATE_RESULT U12 scen=15 expect=PASS got=PASS
+GATE_RESULT U12b scen=16 expect=PASS got=PASS
+GATE_RESULT U10P scen=17 expect=PASS got=PASS
+GATE_RESULT U9B scen=18 expect=PASS got=PASS
+GATE_RESULT M1 scen=1 expect=FAIL got=FAIL
+GATE_RESULT M2 scen=3 expect=FAIL got=FAIL
+GATE_RESULT M3 scen=5 expect=FAIL got=FAIL
+GATE_RESULT M4 scen=4 expect=FAIL got=FAIL
+GATE_RESULT M5 scen=7 expect=FAIL got=FAIL
+GATE_RESULT M6 scen=2 expect=FAIL got=FAIL
+GATE_RESULT M7 scen=10 expect=FAIL got=FAIL
+GATE_RESULT M8 scen=2 expect=FAIL got=FAIL
+GATE_RESULT M9 scen=18 expect=FAIL got=FAIL
+GATE_RESULT M10 scen=15 expect=FAIL got=FAIL
+GATE_RESULT M11 scen=9 expect=FAIL got=FAIL
+GATE_RESULT M12 scen=8 expect=FAIL got=FAIL
+GATE_RESULT M13 scen=2 expect=FAIL got=FAIL
+GATE_RESULT M14 scen=8 expect=FAIL got=FAIL
+SUITE_DONE fails=0 
+SUITE_RC=0

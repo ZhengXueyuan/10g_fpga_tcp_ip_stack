@@ -1,0 +1,6 @@
+TB_RESULT FAIL U1 errs=4 (stat=1 wr0=1 cam=1 down=1)
+CHECK FAIL: U1 stat_orphan must be 0 (healthy progress)
+CHECK FAIL: U1 no state write
+CHECK FAIL: U1 no CAM clear
+CHECK FAIL: U1 ev_down_i mismatch
+GATE_RESULT M1 scen=1 expect=FAIL got=FAIL

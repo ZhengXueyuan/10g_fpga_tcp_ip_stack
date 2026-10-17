@@ -39,6 +39,12 @@ module slow_cfg_adp (
     input  wire        cfg_gnt,
     output reg  [31:0] stat_add,
     output reg  [31:0] stat_del,
+    // ---- p9 orphan fix (F16): 记录进行中忙标志 ----
+    //   = (state != S_RECV) || !f_empty || (wcnt != 3'd0)
+    //   覆盖 S_CAM/S_TCB/S_TCB_LAST 与 FIFO 非空、部分记录 (wcnt) 三态;
+    //   app_ctrl 的 CAM 清 issue 门用它 (scfg 优先: 记录期间绝不清 CAM)。
+    //   纯组合输出, 无新状态、无行为改动。
+    output wire        o_busy,
     // ---- P5: 连接事件源 (app_ctrl 消费) ----
     // ev_up/ev_down = 1 拍脉冲 (ADD 收尾授权拍 / DEL state=0 授权拍);
     // ev_slot/peer_ip/peer_port/peer_mac 在 S_CAM 锁存 (w1/w3/w4 下条记录即被
@@ -60,6 +66,8 @@ module slow_cfg_adp (
     wire        f_empty, f_full;
     wire        f_rd = (state == S_RECV) && !f_empty;
     assign s_axis_tready = !f_full;
+    // p9 orphan fix (F16): 记录进行中 (含 FIFO 非空 / 部分记录 wcnt != 0)
+    assign o_busy = (state != S_RECV) || !f_empty || (wcnt != 3'd0);
 
     fifo_sync #(.W(32), .D(16), .AW(4)) u_fifo (
         .clk(clk), .rst_n(rst_n),

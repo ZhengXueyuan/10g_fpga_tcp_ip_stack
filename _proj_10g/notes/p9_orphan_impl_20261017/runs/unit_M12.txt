@@ -1,0 +1,5 @@
+TB_RESULT FAIL U6b errs=3 (stat=2 wr0=1 cam=2 down=2)
+CHECK FAIL: U6b adjacent: both slots must complete (stat=2)
+CHECK FAIL: U6b adjacent: each slot 1 CAM clear
+CHECK FAIL: U6b adjacent: both o_ev_down
+GATE_RESULT M12 scen=8 expect=FAIL got=FAIL

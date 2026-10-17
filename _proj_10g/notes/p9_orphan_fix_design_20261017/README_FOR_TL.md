@@ -33,6 +33,15 @@
 
 ---
 
+## v4.1（2026-10-17 实施期补充，TL 亲记）
+
+- **F1（实施轮发现：孤儿回收后 `active=0` 不可达）**：`tcp_tx_frame.s_axis_tready` 的 S_IDLE 子句要求 `wnd_open`（`rtl/tcp_tx_frame.v:674/:1880`；`wnd_open = state==ESTAB && inflight < min(snd_wnd,WIN_CAP)`）⇒ 回收写 state=0 后，app 的收尾字**永远进不去** ⇒ `closing` 保持到下一次 ADD（**已实测自愈**：新 ADD 后 active=1/closing=0/重新发帧）。**TL 裁定 = 选项①：接受"下一次 ADD 自愈"** —— 核心回收（state/CAM/配额）已落地、无线上危害；**板级臂把"下一次 ADD 自愈"列为正式观测项**；**选项②（tcp_tx_frame S_IDLE 对 0 载荷收尾字放宽 `wnd_open`）登记为后续候选**（动核心帧器 + 全局 WNS 余量 1.02% ⇒ 不与本刀捆绑；若板级发现 closing 卡死有实际危害再单开）。
+- **F2（实施补强，v5 正式修订时并入 §3.6）**：`fc_upd_wr` 组合门之外，实施补了 `fc_load_blk`（事件拍不装载 `fc_v` 的"请求撤销"必要条件，`rtl/app_ctrl.v:774`）。
+- **F7（登记未修）**：投递门在 A 拍 / 事件块 A+1 消费；若 `ev_up` 恰落 A+1 ⇒ 孤儿 DOWN 的 pool/winq 归还与 `o_ev_down` 丢失（核心 state/CAM 已落地；配额由下次 ADD 的 C18 归还）。未构造臂。
+- **新门入册 = 暂缓**（依赖轮目录 frozen 锚 + 13 个文本锚点变异体；锚点固化到 `tb/frozen/` + 独立 manifest 后按 `swc` 先例入册）。**wrapper 级 ORPHAN_EN=0 逐位对比臂未做**（单元级 U10' 已做，4207 拍 0 mismatch）。
+
+---
+
 ## 修订版 v3（2026-10-17，按 FINDINGS_V2 N1–N15）—— 逐条闭项表（**历史；与 v4 冲突处按 v4 块读**）
 
 > 被审件 = v2（636 行，`8658c373`）；复评件 = `p9_review_orphan_fix_design_20261017/FINDINGS_V2.md`（N1–N15，TL 全采纳）。

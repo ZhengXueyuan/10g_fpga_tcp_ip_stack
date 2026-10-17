@@ -31,7 +31,12 @@ module tb_p5_wrapper;
     wire       led_d0, led_d1, led_d2, led_d3;
     wire       uart_txd;
 
-    wrapper_p4 u_dut (
+    // p9 orphan fix 基线臂 (N12): 显式 0/0 = 保旧 p5wrapper 基线 (不重基线).
+    //   ORPHAN_EN_5=0 ⇒ 新增逻辑全部常数折叠, ev_down_i≡ev_down / ev_slot_i≡ev_slot.
+    wrapper_p4 #(
+        .ORPHAN_EN_5    (1'b0),
+        .ORPHAN_ZW_EN_5 (1'b0)
+    ) u_dut (
         .reset_n     (reset_n),
         .fpga_gclk   (fpga_gclk),
         .phy1_rxc    (phy1_rxc),

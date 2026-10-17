@@ -1,0 +1,4 @@
+TB_RESULT FAIL U4 errs=2 (stat=1 wr0=1 cam=1 down=1)
+CHECK FAIL: U4c saw=1 small inflight no active retx must not fire
+CHECK FAIL: U4c no recovery
+GATE_RESULT M4 scen=4 expect=FAIL got=FAIL
