@@ -8,9 +8,10 @@ echo "=== 1. 板侧最终读数 (PCIe 观测窗口**仍然活着**) ==="
 $T/reg_rw $D 0x18 w 0x1 >/dev/null 2>&1
 for i in $(seq 1 400); do s=$(rd 0x1c); [ -n "$s" ] && [ $(( s & 2 )) -ne 0 ] && break; sleep 0.002; done
 BID=$(rd 0x04)
-echo "MAGIC=$(rd 0x00) BID=$BID MARKER=$(rd 0x14) UNIMPL=$(rd 0x190) gen=$(( (s >> 16) & 0xffff ))"
+echo "MAGIC=$(rd 0x00) BID=$BID MARKER=$(rd 0x14) UNIMPL=$(rd 0x184) gen=$(( (s >> 16) & 0xffff ))"
 # ⚠️ UNIMPL 地址跟窗口宽度走 (公式 = 0x20+4*NW+16; M1 起快照末字后接 MIR 四字):
-#    **88 字 (P11 P2-甲, 2026-10-18 起) ⇒ 0x190** (word 100); 83 字 (P11 P1) ⇒ 0x17C
+#    **85 字 (0x2D backstop-2, 2026-10-18 起) ⇒ 0x184** (word 97); 88 字 (0x2D 首跑/0x2C) ⇒ 0x190
+#    (原句保留: 88 字 = P11 P2-甲 起); 83 字 (P11 P1) ⇒ 0x17C
 #    76 字 (p9 孤儿修复) = 0x160 (word 88); 75 字 (P9 E12) = 0x15C (word 87);
 #    71 字 (M1, 2026-10-11 起) = 0x14C (word 83); 70 字 (构建 F 起) = 0x138 (word 78);
 #    67 字 (构建 E) = 0x12C (word 75); 66 字 (构建 D) = 0x128 (word 74); 65 字 = 0x124 (word 73);
@@ -30,7 +31,7 @@ BID_N=$(printf '%s' "$BID" | tr 'A-F' 'a-f')
 #    现默认 = **0x17** (构建 C 65 字; 源码 `board/wrapper_p4.v` 的 `BUILD_ID_V = 32'h00000017`);
 #    读旧位流: `EXPECT_BID=0x0000000a bash final_state.sh` (Stage C 63 字) / `0x00000009` (Build 2)。
 #    判据语义不变 (仍是"读回值必须 == 期望值"), 只是期望值可注入。
-EXPECT_BID=${EXPECT_BID:-0x0000002D}   # ⛔ 2026-10-18 P11 F-21 修复 (88 字); 原 0x2C = P2-甲未烧板 / 0x2B = P11 P1 / 0x2A = p9 孤儿修复
+EXPECT_BID=${EXPECT_BID:-0x0000002D}   # ⛔ 2026-10-18 P11 F-21 修复 / 0x2D backstop-2 (85 字); 原 0x2C = P2-甲未烧板 / 0x2B = P11 P1 / 0x2A = p9 孤儿修复
 EXPECT_BID_N=$(printf '%s' "$EXPECT_BID" | tr 'A-F' 'a-f')
 if [ "$BID_N" != "$EXPECT_BID_N" ]; then
   echo "  [ABORT] BID=$BID != $EXPECT_BID (大小写归一后 $BID_N) ⇒ **板上不是本脚本期望的位流** (构建 C = 0x17 / 65 字); 下面 W61/W62 若为 0xffffffff 是 SLVERR(读失败) 不是数据"

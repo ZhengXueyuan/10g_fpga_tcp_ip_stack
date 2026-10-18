@@ -1,0 +1,5 @@
+[ok] [1] snap_dout_all 顶部 2 项 = ['p7bdp_dout[40*32 +: 32]', 'p7bdp_dout[39*32 +: 32]']
+[ok] [2] 无 w8x_snap (code hits=0) / 无 assign w8x_snap=w8x_dp (hits=0)
+[ok] [3] p7bdp_din[39..40] = w83_dp/w84_dp (缺 无)
+[ok] [4] N-10 tie-off: zero_hits={83: 2, 84: 2} (期望 83/84 各 2)
+SNAP_TOP5_STATIC_PASS (source=D:/repo/XCKU5PMini/udp_hls_10g\board\wrapper_p4.v)

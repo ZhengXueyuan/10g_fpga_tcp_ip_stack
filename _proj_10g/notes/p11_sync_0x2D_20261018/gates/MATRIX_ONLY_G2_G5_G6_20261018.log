@@ -1,0 +1,26 @@
+[P4GUARD OK] root=d:\repo\xcku5pmini\udp_hls_10g self=d:\repo\xcku5pmini\udp_hls_10g manifests=12
+GATE chain SKIPPED -- not selected by /only g2_rx_merge2+g5_tcp_srcip+g6_p11_dual
+GATE burst200 SKIPPED -- not selected by /only g2_rx_merge2+g5_tcp_srcip+g6_p11_dual
+GATE trunc50 SKIPPED -- not selected by /only g2_rx_merge2+g5_tcp_srcip+g6_p11_dual
+GATE trunc100 SKIPPED -- not selected by /only g2_rx_merge2+g5_tcp_srcip+g6_p11_dual
+GATE halfdrop SKIPPED -- not selected by /only g2_rx_merge2+g5_tcp_srcip+g6_p11_dual
+GATE txdrop50 SKIPPED -- not selected by /only g2_rx_merge2+g5_tcp_srcip+g6_p11_dual
+GATE gate4096 SKIPPED -- not selected by /only g2_rx_merge2+g5_tcp_srcip+g6_p11_dual
+GATE dupstorm SKIPPED -- not selected by /only g2_rx_merge2+g5_tcp_srcip+g6_p11_dual
+GATE pcackoob SKIPPED -- not selected by /only g2_rx_merge2+g5_tcp_srcip+g6_p11_dual
+GATE vlanchain SKIPPED -- not selected by /only g2_rx_merge2+g5_tcp_srcip+g6_p11_dual
+GATE vlanburst SKIPPED -- not selected by /only g2_rx_merge2+g5_tcp_srcip+g6_p11_dual
+GATE stallgate SKIPPED -- not selected by /only g2_rx_merge2+g5_tcp_srcip+g6_p11_dual
+GATE unit_retx SKIPPED -- not selected by /only g2_rx_merge2+g5_tcp_srcip+g6_p11_dual
+GATE unit_fifo SKIPPED -- not selected by /only g2_rx_merge2+g5_tcp_srcip+g6_p11_dual
+GATE unit_vlan SKIPPED -- not selected by /only g2_rx_merge2+g5_tcp_srcip+g6_p11_dual
+GATE unit_uart SKIPPED -- not selected by /only g2_rx_merge2+g5_tcp_srcip+g6_p11_dual
+GATE p5_wrapper SKIPPED -- not selected by /only g2_rx_merge2+g5_tcp_srcip+g6_p11_dual
+GATE f3_resync SKIPPED -- not selected by /only g2_rx_merge2+g5_tcp_srcip+g6_p11_dual
+GATE swc SKIPPED -- not selected by /only g2_rx_merge2+g5_tcp_srcip+g6_p11_dual
+GATE p7b_chain SKIPPED -- not selected by /only g2_rx_merge2+g5_tcp_srcip+g6_p11_dual
+GATE biz_win SKIPPED -- not selected by /only g2_rx_merge2+g5_tcp_srcip+g6_p11_dual
+GATE g2_rx_merge2 EXIT=0
+GATE g5_tcp_srcip EXIT=0
+GATE g6_p11_dual EXIT=0
+---- summary ----

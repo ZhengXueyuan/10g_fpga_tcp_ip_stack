@@ -114,7 +114,8 @@ case "\$A" in
   0X160) V=0x00000000;;                                       # W80 ch0_rx_bytes
   0X164) V=0x00000000;;                                       # W81 ch0_rx_crc_err
   0X168) V=0x00000000;;                                       # W82 ch0_rx_drop                                       # W75 app_ctrl.stat_orphan (76 字起; p9 孤儿修复)
-  0X17C) V=0xffffffff;;                                       # 未实现地址 (76 字; = 0x20+4*SW+16)
+  0X184) V=0xffffffff;;                                       # 未实现地址 (0x2D backstop-2: 85 字; = 0x20+4*SW+16)
+                                                              # (0X17C 现在是 MIR_CTRL 真字 ⇒ 由默认 0 覆盖)
   *)    V=0x00000000;;
 esac
 echo "Read 32-bit from address \$A : \$V"

@@ -22,7 +22,8 @@ check_window.py -- P7B-BIZ 快照窗口的**静态结构核对** (不需要 IP, 
      ⚠️ 2026-10-18 P1FIX: 原 oracle 是 `git show HEAD:...` —— 提交后 HEAD 已是新树,
      该判据**空转**(HEAD 48 项 vs 新表 48 项 => 新增 0 项)。冻结锚不随 HEAD 漂移。
   5  * 新增项落在**最上面**(MSB), 且槽号 <-> 字号的映射与 `p7bdp_din` / `ch0snap_din` 的
-     显式 assign 一致 (P11 P1: 顶端 4 项是 ch0 束槽 3..0, 其下才是 p7bdp 槽 38..26)
+     显式 assign 一致 (0x2D backstop-2: 顶端 2 项 = p7bdp 槽 40..39 = W84/W83; 其下 4 项是
+     ch0 束槽 3..0, 再下才是 p7bdp 槽 38..26)
   6  `p7bdp_din` 的驱动项数 = SNAP_P7BDP_NW (generate 12 项 + 显式 assign 6 项)
   7  * 装配里出现的**每个标识符都已声明且声明在使用之前** (xvlog 对隐式网沉默)
   8  译码位宽 vs 回绕红线: `ar_word` 装得下 `(0x20+4*NW)>>2`; `snap_base` 装得下 `(NW-1)<<5`
@@ -272,11 +273,16 @@ def main():
     #      (本门 2026-10-18 实测红的就是这里: 旧期望把 17 项全按 p7bdp 生成。)
     #   ⭐ P11 P2-甲 (2026-10-18): 顶端再插 5 项 —— **W87..W83 = p7bdp 槽 43..39**
     #      (din 侧仍是 `w87_dp..w83_dp`), 其下才是 P1 的 ch0 束 4 项 + p7bdp 槽 38..26 (13 项)。
+    #   ⛔ 0x2D backstop-2 (2026-10-18): **W85/W86/W87 已删** ⇒ 顶端只剩 **W84/W83 = 槽 40..39**
+    #      (din 侧 `w84_dp/w83_dp`); 下方 P1 的 4+13 项逐项未动。
     #   ⛔ P11 F-21 修复 (2026-10-18): 0x2C 的装配曾把顶端 5 项直连 `w8x_snap = w8x_dp`
     #      (裸多比特 CDC; 布后 hold_b 槽 39..43 = 0)。**现行装配 = 只读 `p7bdp_dout[43..39]`**
     #      ⇒ 本判据的期望必须是 p7bdp 槽 43..39 (原写 `w%d_snap` = 0x2C 的缺陷形态, 已订正)。
-    nnew_top = 22                             # W87..W66 (p7bdp 43..39 = 5 + ch0 槽 3..0 = 4 + p7bdp 38..26 = 13)
-    np11_top = 5                              # 本轮新增的 p7bdp 槽 43..39 项数
+    #   ⛔ 0x2D backstop-2 (2026-10-18): W85/W86/W87 已删 ⇒ 顶端只保留 **W84/W83**
+    #      (p7bdp 槽 40..39 = 2 项); 其下仍是 P1 的 ch0 束 4 项 + p7bdp 槽 38..26 (13 项)
+    #      ⇒ 顶端段合计 2 + 4 + 13 = **19 项** (原 22)。
+    nnew_top = 19                             # W84..W66 (p7bdp 40..39 = 2 + ch0 槽 3..0 = 4 + p7bdp 38..26 = 13)
+    np11_top = 2                              # 本轮保留的 p7bdp 槽 40..39 项数 (W84/W83)
     nch0_top = 4                              # 顶端 ch0 束项数 (= SNAP_CH0_NW, W82..W79)
     ntx = 1                                   # 其后的 tx 束项数 (W65)
     nnew = 14                                 # W64..W51 (槽 25..12) —— 历史段
@@ -286,8 +292,8 @@ def main():
                 ["p7bdp_dout[%d*32 +: 32]" % (pdp - 1 - np11_top - i)
                  for i in range(nnew_top - np11_top - nch0_top)])
     ck(topn == want_top,
-       "5a 最上面 %d 项 = W%d..W%d 的 p7bdp 槽 %s + ch0 槽 %s + p7bdp 槽 %s (P11 F-21)"
-       % (nnew_top, 87, 87 - np11_top + 1,
+       "5a 最上面 %d 项 = W%d..W%d 的 p7bdp 槽 %s + ch0 槽 %s + p7bdp 槽 %s (P11 F-21 / 0x2D backstop-2)"
+       % (nnew_top, 84, 84 - np11_top + 1,
           "/".join("%d" % (pdp - 1 - i) for i in range(np11_top)),
           "/".join("%d" % (ch0 - 1 - i) for i in range(nch0_top)),
           "/".join("%d" % (pdp - 1 - np11_top - i) for i in range(nnew_top - np11_top - nch0_top))),
@@ -336,12 +342,10 @@ def main():
         got = ch0_din_items[din_idx] if din_idx < len(ch0_din_items) else "<缺项>"
         ck(got == src_name, "5c 槽号映射 W%d (ch0 束 din)" % k,
            "(ch0snap_din 第 %d 项 = '%s', 期望 '%s')" % (din_idx, got[:40], src_name))
-    # W83..W87: p7bdp 槽 39..43, RHS = 本轮新增的 5 条具名线
-    for k, slot, src_name in ((83, 39, "w83_dp"), (84, 40, "w84_dp"),
-                              (85, 41, "w85_dp"), (86, 42, "w86_dp"),
-                              (87, 43, "w87_dp")):
+    # W83/W84: p7bdp 槽 39/40, RHS = 两条具名线 (0x2D backstop-2 保留; W85..W87 已删, 不再断言)
+    for k, slot, src_name in ((83, 39, "w83_dp"), (84, 40, "w84_dp")):
         pat = r"assign\s+p7bdp_din\[%d\*32\s*\+\:\s*32\]\s*=\s*%s\s*;" % (slot, src_name)
-        ck(re.search(pat, src0) is not None, "5c 槽号映射 W%d (P11 P2-甲)" % k,
+        ck(re.search(pat, src0) is not None, "5c 槽号映射 W%d (P11 P2-甲 / 0x2D 保留)" % k,
            "(p7bdp_din[%d*32 +: 32] = %s)" % (slot, src_name))
     # 5d: W65 的**跨文件一致性** (端口 ↔ 接线 ↔ 束槽). 防两种半成品:
     #     "端口加了但没接快照字" (被综合整条优化掉) 与 "只在 wrapper 接、`mac_tx_10g`

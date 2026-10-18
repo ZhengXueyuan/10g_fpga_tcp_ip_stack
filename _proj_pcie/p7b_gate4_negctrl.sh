@@ -28,7 +28,8 @@ DBYTES=$((DGOOD*1518))      # Δbytes
 BGOOD=1375                  # 基线 (背景) 起点
 
 # ---- 造一块**规范**快照文本 ---------------------------------------------------
-# 几何: **88 字 (W0..W87)** —— P11 F-21 修复 (2026-10-18, BID=0x2D / 未实现 0x190);
+# 几何: **85 字 (W0..W84)** —— 0x2D backstop-2 (2026-10-18, BID=0x2D / 未实现 0x184);
+#       (原句: "88 字 (W0..W87) —— P11 F-21 修复 (2026-10-18, BID=0x2D / 未实现 0x190)" = 历史代, 逐字保留于下)
 #       (原句: "76 字 (W0..W75) —— p9 孤儿修复 (2026-10-17, BID=0x2A / 未实现 0x160)" = 历史代, 逐字保留于下)
 #       (原句: "75 字 (W0..W74) —— 0x29 拆刀 (2026-10-17, BID=0x29 / 未实现 0x15C)" = 历史代, 逐字保留于下)
 #       (原句: "75 字 (W0..W74) —— P9 E12 观测计数器 (2026-10-15, BID=0x28 / 未实现 0x15C)" = 历史代, 逐字保留于下)
@@ -77,8 +78,8 @@ gen_snap(){  # gen_snap <文件> <第一块|第二块|洪泛A|洪泛B>
                 20000000 151800000 0 0x2000100C $vcc 0 0 0 0 0 0 0 0 0 $w50
                 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
                 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-                0 0 0 0 0)   # W51..W87 (M1: W70 = app_rx_mirror.drop_bytes; E12: W71..W74 = 换流门四观测计数器; p9 孤儿修复: W75 = app_ctrl.stat_orphan; P11 P2-甲: W83..W87 = 双口 TX 帧/classify/ovf/MAC TX)
-    local i; for (( i = 0; i < 88; i++ )); do printf 'W%d 0x%X\n' "$i" "${V[$i]}"; done
+                0 0)   # W51..W84 (0x2D backstop-2: W85..W87 已删)
+    local i; for (( i = 0; i < 85; i++ )); do printf 'W%d 0x%X\n' "$i" "${V[$i]}"; done
     echo "UNIMPL 0xffffffff"
     echo SNAP_END
   } > "$f"
@@ -154,7 +155,7 @@ run_case oldwindow 2 "窗口不完整: 缺 W36" "$S/s1.txt,$S/m_36word.txt" "$NI
 # 地址错一位: 每个 W<i> 里装的是 word i+1 的值 (末字回绕成 W0) —— 守恒律必然破
 awk '/^W[0-9]+ /{ split($1,a,"W"); idx=a[2]; val[idx]=$2; n++; next } { print }' "$S/s1.txt" > "$S/m_off_a.txt"
 awk '/^W[0-9]+ /{ split($1,a,"W"); idx=a[2]; val[idx]=$2; n++; next } { print }' "$S/s2.txt" > "$S/m_off_b.txt"
-shift1(){ awk -v NW=88 '/^W[0-9]+ /{ split($1,a,"W"); idx=a[2]+1; if(idx>NW-1) idx=0; printf "W%d %s\n", idx, $2; next } { print }' "$1" > "$2"; }
+shift1(){ awk -v NW=85 '/^W[0-9]+ /{ split($1,a,"W"); idx=a[2]+1; if(idx>NW-1) idx=0; printf "W%d %s\n", idx, $2; next } { print }' "$1" > "$2"; }
 shift1 "$S/s1.txt" "$S/m_off_a.txt"; shift1 "$S/s2.txt" "$S/m_off_b.txt"
 run_case offbyone 1 "B_CONS-a" "$S/m_off_a.txt,$S/m_off_b.txt" "$NIC"
 

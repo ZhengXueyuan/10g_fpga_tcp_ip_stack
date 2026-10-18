@@ -34,7 +34,7 @@ rm -rf "$W"; mkdir -p "$BIN"
 #   默认 63 = P7B-WU 二轮 (`board/wrapper_p4.v` 的 `SNAP_NW_P6E`); 跑 61 字旧位流: SNAP_WORDS=61。
 #   ⚠️ 上一版把 51 / 0xE8 / 0xEC **全写死在断言里** ⇒ 扩窗时"判据自己先红", 看着像
 #      "扩窗弄坏了工具"而不是"判据没跟上" (同族教训见 P7B_GATE4_CRITERIA_CLOSEOUT.md)。
-SW=${SNAP_WORDS:-88}
+SW=${SNAP_WORDS:-85}
 LAST_A=$(printf '0X%X' $(( 0x20 + 4*(SW-1) )))   # 末字地址  (65 ⇒ 0X120)
 if [ "$SW" -ge 71 ]; then                          # M1 起: 快照末字与未实现地址之间插了 4 个 MIR 字 (+16)
   UNIMPL_A=$(printf '0X%X' $(( 0x20 + 4*SW + 16 )))   # 未实现地址 (75 ⇒ 0X15C / 71 ⇒ 0X14C)
@@ -59,6 +59,8 @@ VCLK=$W/vclk; echo 1000 > "$VCLK"
 GENC=$W/gen; echo 7 > "$GENC"
 
 # ⚠️ 假字表的**尾段随几何走** (W61..W65 与"未实现地址"的坑位):
+#   SW ≥ 85 (2026-10-18 0x2D backstop-2 起) ⇒ 窗口末字 = W84 @0x170, MIR 四字 = 0x174..0x180,
+#     未实现地址 = **0x184**; W85..W87 **已删** (不在假字表里);
 #   SW ≥ 83 (2026-10-18 P11 P1 ch0 bring-up 起) ⇒ 0x150..0x168 也是窗口内的真字
 #     (W76..W82 = ch0 状态/事件/LOS/四计数), 且未实现地址 = 0x17C;
 #   SW ≥ 76 (2026-10-17 p9 孤儿修复起) ⇒ 0x14C 也是**窗口内的真字** (W75 = app_ctrl.stat_orphan),
@@ -107,6 +109,32 @@ if [ "$SW" -ge 88 ]; then
   0X178) V=0;;     # W86 ch0_fifo_ovf
   0X17C) V=0;;     # W87 ch0_mac_tx
   0X190) V=${FAKE_UNIMPL:-0xffffffff};;   # 未实现地址 (88 字; = 0x20+4*SW+16)'
+elif [ "$SW" -ge 85 ]; then
+  FAKE_TAIL='  0X114) V=1234;;  # W61 app_ctrl.stat_wu (次数; 非 0 才像真板)
+  0X118) V=0;;     # W62 app_ctrl.rx_occ_bytes (17 位 ⇒ 高位恒 0)
+  0X11C) V=0;;     # W63 app_pattern.stat_frmwait_cyc (停滞拍数; 0 = 无停顿)
+  0X120) V=0;;     # W64 app_pattern.stat_bp_cyc (背压拍数)
+  0X124) V=0;;     # W65 mac_tx_10g.stat_tx_idle (S_IDLE 拍数; 0 = 空载, 建 D 新增)
+  0X128) V=0;;     # W66 tcp_tx_frame.stat_winstall (窗口门停顿拍数, 建 E 新增)
+  0X12C) V=0;;     # W67 tcp_tx_frame.stat_winstall_cap (板帽侧等窗拍数, 建 F 新增)
+  0X130) V=0;;     # W68 tcp_rx.stat_ack_adv (推进 snd_una 的 ACK 次数, 建 F 新增)
+  0X134) V=0;;     # W69 tcp_tx_frame.o_win_at_winstall (等窗拍操作点锁存, 建 F 新增)
+  0X138) V=0;;     # W70 app_rx_mirror.drop_bytes (载荷镜像拒收字节数, M1 新增; 真字)
+  0X13C) V=0;;     # W71 app_pattern.stat_up_ev (换流门观测; P9 E12)
+  0X140) V=0;;     # W72 app_pattern.stat_sw_req (P9 E12)
+  0X144) V=0;;     # W73 app_pattern.stat_sw_apply (P9 E12)
+  0X148) V=0;;     # W74 app_pattern.stat_up_pend (P9 E12)
+  0X14C) V=0;;     # W75 app_ctrl.stat_orphan (孤儿回收计数; p9 孤儿修复)
+  0X150) V=0;;     # W76 ch0_pcs_status (P11 P1)
+  0X154) V=0;;     # W77 ch0_pcs_evt
+  0X158) V=0;;     # W78 ch0_los_mode
+  0X15C) V=0;;     # W79 ch0_rx_frames
+  0X160) V=0;;     # W80 ch0_rx_bytes
+  0X164) V=0;;     # W81 ch0_rx_crc_err
+  0X168) V=0;;     # W82 ch0_rx_drop
+  0X16C) V=0;;     # W83 tx_p0_frames (P11 P2-甲; 0x2D backstop-2 保留)
+  0X170) V=0;;     # W84 tx_p1_frames (保留)
+  0X184) V=${FAKE_UNIMPL:-0xffffffff};;   # 未实现地址 (85 字; = 0x20+4*SW+16; MIR 0x174..0x180)'
 elif [ "$SW" -ge 83 ]; then
   FAKE_TAIL='  0X114) V=1234;;  # W61 app_ctrl.stat_wu (次数; 非 0 才像真板)
   0X118) V=0;;     # W62 app_ctrl.rx_occ_bytes (17 位 ⇒ 高位恒 0)
@@ -238,7 +266,7 @@ V=0xffffffff
 case "\$A" in
   0X00) V=0x50360001;;
   # ⚠️ 假板子的 BID 必须与 p6e_snap_check.sh 的 EXPECT_BID **同代** (否则正例的判据 1.2 假 FAIL,
-  #    而"正例必须 0 FAIL"是本脚本的断言⑤)。现役 = **0x2D** (P11 F-21 修复 88 字; 原 0x2C = P2-甲未烧板 / 0x2B = P11 P1 ch0 bring-up 83 字 —— ⛔ 2026-10-15 同步轮: 原 0x27 = 换流门 R5 /
+  #    而"正例必须 0 FAIL"是本脚本的断言⑤)。现役 = **0x2D** (0x2D backstop-2 85 字; 原 0x2C = P2-甲未烧板 / 0x2B = P11 P1 ch0 bring-up 83 字 / 0x2D 首跑 88 字 —— ⛔ 2026-10-15 同步轮: 原 0x27 = 换流门 R5 /
   #    0x26 = RFC seq 修复 / 0x25 = F-3 修复 / 原句 = 现役 17 (构建 C 65 字) / 10 (P7b Stage C)); 跑旧口径时
   #    FAKE_BID=0x00000029 (0x29 拆刀; SNAP_WORDS=75) / 0x00000028 (P9 E12; 75) / 0x00000027 (换流门 R5; 71) / 0x00000026 (RFC seq 修复; 71) / 0x00000017 / 0x00000008。
   #    ⚠️ 注释里**不许出现反引号/$( )** —— 这是**无引号 heredoc**, 它们会被当场求值

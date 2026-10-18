@@ -1,9 +1,13 @@
 #!/bin/bash
-# p7b_snap.sh -- 板侧快照窗口取数器 (**现役 = 88 字 / BID 0x2D**; 标题原文 = "板侧 **63** 字
+# p7b_snap.sh -- 板侧快照窗口取数器 (**现役 = 85 字 / BID 0x2D**; 标题原文 = "板侧 **63** 字
 #   快照窗口的取数器 (P7b Stage C: BID=10 / SNAP_NW=63)" —— 那一代已过时, 见下逐代订正)
 #   ⭐ P11 P2-甲 (2026-10-18): **字长 83 → 88** (W83..W87 = 双口 TX 帧数/classify 总帧/ch0 FIFO ovf/ch0 MAC TX)
 #      + 身份 0x2B → **0x2C**; 未实现地址 **0x17C → 0x190**。
 #   ⭐ F-21 (2026-10-18): 身份 0x2C → **0x2D** (W83..W87 改经 p7bdp CDC; 字长/未实现地址不变)。
+#   ⛔ 0x2D backstop-2 (2026-10-18): **字长 88 → 85** —— 构建 backstop 删 W85/W86/W87
+#      (classify 总帧 / ch0 FIFO ovf / ch0 MAC TX); 保留 W83/W84。未实现地址 **0x190 → 0x184**
+#      (公式 `0x20+4*NW+16` 不变; MIR 四字随 NW 自动落到 0x174..0x180)。
+#      ⚠️ 读 0x2D 首跑/backstop-1 归档位流须显式 `NW=88 UNIMPL_ADDR=0x190` (或 `NW=86`... )。
 #   ⭐ P11 P1 ch0 bring-up (2026-10-18): **字长 76 → 83** (W76..W82 = ch0 PCS/LOS/计数)
 #      + 身份 0x2A → **0x2B**; 未实现地址 **0x160 → 0x17C** (公式 `0x20+4*NW+16` 不变)。
 #   ⭐ p9 孤儿修复 (2026-10-17): **字长 75 → 76** (W75 = `app_ctrl.stat_orphan` 孤儿回收计数)
@@ -85,8 +89,8 @@ D=/dev/xdma0_user
 #   ⚠️ **NW 上限 = 119** (读侧译码 7 位 ⇒ 字 0..127; 快照从字 8 起; 负对照需留 1 个空字)。
 #      红线随之从"≥ 0x100 回绕" 改成 **"绝不能挑 ≥ 0x200"**
 #      (0x200 在 7 位译码下回绕到 word 0 = MAGIC ⇒ 假 FAIL)。
-NW=${NW:-88}
-UNIMPL_ADDR=${UNIMPL_ADDR:-$(printf '0x%X' $(( 0x20 + 4*NW + 16 )))}   # 88 ⇒ 0x190 (P11 P2-甲 起; 83 ⇒ 0x17C (P11 P1); 76 ⇒ 0x160 (p9 孤儿修复); 75 ⇒ 0x15C (P9 E12); 71 ⇒ 0x14C (M1 期B); 70 字及更早 = 0x138/0x12C/0x124/0x11C/0x114/0xEC —— 读旧位流须显式覆盖)
+NW=${NW:-85}
+UNIMPL_ADDR=${UNIMPL_ADDR:-$(printf '0x%X' $(( 0x20 + 4*NW + 16 )))}   # 85 ⇒ 0x184 (0x2D backstop-2 起; 88 ⇒ 0x190 (0x2D 首跑/0x2C); 83 ⇒ 0x17C (P11 P1); 76 ⇒ 0x160 (p9 孤儿修复); 75 ⇒ 0x15C (P9 E12); 71 ⇒ 0x14C (M1 期B); 70 字及更早 = 0x138/0x12C/0x124/0x11C/0x114/0xEC —— 读旧位流须显式覆盖)
 EXPECT_BID=${EXPECT_BID:-0x0000002D}
 # ⛔ 2026-10-07 Stage C: 原默认值 = 0x00000009 (P7B-WU 二轮 = 9)。
 # ⛔ 2026-10-10 (构建 C 门同步轮): 再上一代的默认 = **0x0000000A** (Stage C 63 字) ——
@@ -186,8 +190,8 @@ declare -A NAME=(
 [79]=ch0_rx_frames      [80]=ch0_rx_bytes       [81]=ch0_rx_crc_err
 [82]=ch0_rx_drop
 # ⭐ P11 P2-甲 (2026-10-18): W83..W87 (p7bdp 槽 39..43; b 域 = dp_clk)
-[83]=tx_p0_frames   [84]=tx_p1_frames   [85]=cls_frames
-[86]=ch0_fifo_ovf   [87]=ch0_mac_tx
+# ⛔ 0x2D backstop-2 (2026-10-18): W85/W86/W87 已删 (不可读) ⇒ 只保留 W83/W84。
+[83]=tx_p0_frames   [84]=tx_p1_frames
 )
 
 id_check(){

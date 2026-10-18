@@ -69,8 +69,8 @@ EXPECT_BID=${EXPECT_BID:-0x0000002D}       # ⛔ 2026-10-18 P11 F-21 修复: 原
 #    ⚠️ **未实现地址必须存在**: 它撑起读侧 SLVERR 负对照 (判据 6)。译码 7 位
 #       (`_proj_pcie/rtl/axi_regs.v`) ⇒ 地址每 512 字节才回绕,
 #       `0x11C` (word 71) 真正未实现 ✓ (上限 119 字); 红线 = **绝不能挑 ≥0x200**。
-SNAP_WORDS=${SNAP_WORDS:-88}
-UNIMPL_ADDR=${UNIMPL_ADDR:-$(printf '0x%X' $(( 0x20 + 4*SNAP_WORDS + 16 )))}   # 88 ⇒ 0x190 (P11 P2-甲 起; 83 ⇒ 0x17C (P11 P1); 76 ⇒ 0x160 (p9 孤儿修复); 75 ⇒ 0x15C (P9 E12); 71 ⇒ 0x14C (M1 期B); 70 字及更早 = 0x138/0x12C/0x124/0x11C/0xEC —— 读旧位流须显式覆盖)
+SNAP_WORDS=${SNAP_WORDS:-85}
+UNIMPL_ADDR=${UNIMPL_ADDR:-$(printf '0x%X' $(( 0x20 + 4*SNAP_WORDS + 16 )))}   # 85 ⇒ 0x184 (0x2D backstop-2 起; 88 ⇒ 0x190 (0x2D 首跑/0x2C); 83 ⇒ 0x17C (P11 P1); 76 ⇒ 0x160 (p9 孤儿修复); 75 ⇒ 0x15C (P9 E12); 71 ⇒ 0x14C (M1 期B); 70 字及更早 = 0x138/0x12C/0x124/0x11C/0xEC —— 读旧位流须显式覆盖)
 snap_addr(){ printf '0x%X' $(( 0x20 + 4*$1 )); }                          # word 号 → 字节地址
 # W5 (前端域自由计数) 的**标称频率随构建而变** —— 它是判据的"期望值", 不跟上就是假 FAIL:
 #   · **P7B_10G 构建** (本脚本默认几何 63 字 / EXPECT_BID=10 —— ⛔ Stage C: 原句 = 9): 前端域 = PCS 的 CDR **恢复钟**
@@ -353,7 +353,7 @@ WLABEL=(
  "app_bp_cyc         (app_pattern 背压拍数)"
  # ---- 构建 D/E/F (2026-10-10) 新增 5 字 (66 → 67 → 70 字窗口) ----
  #    ⚠️ 名字**同源** = `_proj_pcie/p7b_biz/p7b_snap.sh` 的 `NAME[]`([65]..[69]);
- #       真值源 = `board/wrapper_p4.v` 的装配段注释。表长必须 == SNAP_WORDS (88),
+ #       真值源 = `board/wrapper_p4.v` 的装配段注释。表长必须 == SNAP_WORDS (85),
  #       否则循环把它们打成 `<无标签>` (2026-10-10 加固轮: 本表原只到 W64; M1 再补 W70;
  #       P9 E12 再补 W71..W74 —— 四个换流门观测计数器; p9 孤儿修复 再补 W75;
 #       P11 P1 再补 W76..W82 —— ch0 J7 状态/事件/LOS + RX 四计数)。
@@ -379,11 +379,10 @@ WLABEL=(
  "ch0_rx_crc_err     (ch0 MAC 口径 FCS 错帧数)"
  "ch0_rx_drop        (ch0 MAC 口径整帧丢)"
  # ---- P11 P2-甲 (2026-10-18) 新增 5 字 (83 → 88 字窗口; 双口数据面 + 双板 IP) ----
+ #   ⛔ 0x2D backstop-2 (2026-10-18): 删 W85/W86/W87 (classify 总帧 / ch0 FIFO ovf /
+ #      ch0 MAC TX) ⇒ 窗口 85 字, 顶端只剩 W84/W83。标签项也删除 (表长必须 == 85)。
  "w83_tx_p0_frames  (TX port0/ch1 帧数; arb 输出 tlast)"
- "w84_tx_p1_frames  (TX port1/ch0 帧数; arb 输出 tlast)"
- "w85_cls_frames    (rx_classify 总帧数 fast+slow, [31:0] 截断)"
- "w86_ch0_fifo_ovf  ({ch0 RX cdc ovf(16), ch0 txcdc ovf(16)} 饱和)"
- "w87_ch0_mac_tx    ({ch0 MAC abort(16), frames(16)} 饱和; 低半仅活动指示)" )
+ "w84_tx_p1_frames  (TX port1/ch0 帧数; arb 输出 tlast)" )
 for (( i = 0; i < SNAP_WORDS; i++ )); do
   v=$(rd "$(snap_addr $i)")
   W[$i]=$v

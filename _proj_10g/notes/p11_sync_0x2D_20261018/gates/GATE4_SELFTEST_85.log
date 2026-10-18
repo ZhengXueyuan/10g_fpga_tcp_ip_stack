@@ -1,0 +1,26 @@
+########## p6e_snap_check.sh 修复自证 (假板子) 2026-10-18 20:40:37 ##########
+— 缺陷①的静态证据: 旧的**手抄 44 项地址表**必须已从源码消失 —
+  [OK  ] 旧手抄地址表已消失  已消失
+  [OK  ] 源码里已按 SNAP_WORDS 派生 命中 'snap_addr(){'
+— 正例: 0X184 回 0xffffffff (期望: 6.1 PASS, 整脚本 0 FAIL) —
+  [OK  ] 正例 6.1 不得 FAIL       未出现 '[FAIL] 6.1'
+  [OK  ] 正例 6.1 PASS              命中 '[PASS] 6.1'
+  [OK  ] 正例 汇总 0 FAIL         命中 'FAIL=0'
+  [OK  ] 正例 5.-1 ch0 束本代 PASS 命中 '[PASS] 5.-1'
+  [OK  ] 正例退出码              0
+  [OK  ] 正例读过末字地址 0X170 命中 /^0X170$/
+  [OK  ] 正例读过未实现地址 0X184 命中 /^0X184$/
+  [OK  ] section5 地址序列 (85 个, 0x20..0X170 连续不重复) 106553ff
+  [OK  ] section5 序列长度        85
+  [OK  ] section5 表里印出 W84    命中 'W84  0x170'
+  [OK  ] section5 表格行数        85
+— 负对照: 0X184 回真数据 (期望: 6.1 FAIL, 退出码非 0) —
+  [OK  ] 负对照 6.1 FAIL           命中 '[FAIL] 6.1'
+  [OK  ] 负对照退出码非 0      OK
+— 负对照: SNAP_STATUS[7]=1 (ch0 束本代陈旧) (期望: 5.-1 FAIL + stale 告警 + 退出码非 0) —
+  [OK  ] 负对照 stale 5.-1 FAIL    命中 '[FAIL] 5.-1'
+  [OK  ] 负对照 stale 告警行    命中 'SNAP_STATUS[7]=1'
+  [OK  ] 负对照 stale W79 旁告警 命中 'W79 stale=1'
+  [OK  ] 负对照 stale 退出码非 0 OK
+
+########## 自证汇总: OK=19 BAD=0 ##########
