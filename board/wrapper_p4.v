@@ -1185,7 +1185,7 @@ module wrapper_p4 #(
     //          模块默认仍 0 (关) ⇒ 其它例化/默认构建零行为变化。
     //   F-19: rst_n 改用板级 `reset_n` —— 与两路输入 FIFO 的 rd 侧同源; 原 dp_rst_n
     //         在 MMCM 失锁重锁时会清 merge 而不清 FIFO 指针 (F-3 同类的新实例)。
-    rx_merge2 #(.STRICT(1'b0), .TO_CYCLES(16'hFFFF)) u_rx_merge (
+    rx_merge2 #(.STRICT(1'b0), .TO_CYCLES(4096)) u_rx_merge (
         .clk(dp_clk), .rst_n(reset_n),
         .p0_tdata(rx_p0_tdata), .p0_tkeep(rx_p0_tkeep), .p0_tvalid(rx_p0_tvalid),
         .p0_tready(rx_p0_tready), .p0_tlast(rx_p0_tlast), .p0_tuser(rx_p0_tuser),

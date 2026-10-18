@@ -1,0 +1,3 @@
+Error: [Unisim RAMB36E2-11] Memory Collision at time 1.000 ns.
+A simultaneous WRITE on port B (0040) and READ on port A (0000) occured.
+The WRITE was successful but the READ may be corrupted. Instance: tb_p11_dual.u_dut.u_other.u_ff.gen_mem[0].u_main

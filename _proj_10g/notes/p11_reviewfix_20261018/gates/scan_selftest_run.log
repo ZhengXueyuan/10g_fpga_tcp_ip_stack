@@ -1,0 +1,9 @@
+XSIM_ERROR_SCAN log=scan_selftest_bad.log mode=none lines=3 allowed=0 violations=1
+XSIM_ERROR_SCAN FAIL line=2: Error: [VRFC 10-2989] some undeclared thing
+XSIM_ERROR_SCAN log=scan_selftest_wronginst.log mode=slowport lines=2 allowed=0 violations=1
+XSIM_ERROR_SCAN FAIL line=1: Memory Collision Error on RAMB36E1 : tb_slow_tx_port.u_other.u_wf.gen_mem[0].u_main.gen_sdp.gen_wide.INT_RAMB_SDP.chk_for_col_msg at simulation time 1.000 ns.
+XSIM_ERROR_SCAN log=scan_selftest_e2wrong.log mode=p11dual lines=3 allowed=0 violations=1
+XSIM_ERROR_SCAN FAIL line=1: Error: [Unisim RAMB36E2-11] Memory Collision at time 1.000 ns.
+SCAN_NEGCTL_BAD_OK(rc=1 as expected)
+SCAN_NEGCTL_WRONGINST_OK(rc=1 as expected)
+SCAN_NEGCTL_E2WRONG_OK(rc=1 as expected)

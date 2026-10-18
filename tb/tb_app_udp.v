@@ -346,6 +346,22 @@ module tb_app_udp;
         end
     end
 
+    // ---- P11 review-fix F-7 (2026-10-18): NEGATIVE CONTROL for the X/Z assertion ----
+    //   -testplusarg XZNEG: after reset + 200 clk, force u_cfg.o_port to Z for 10 clk.
+    //   The assertion above MUST fire ([FAIL] P11 H-1 ...) and the final gate line
+    //   MUST be FAIL. A green run here means the runtime X/Z check has no teeth.
+    initial begin : xz_negctl
+        if ($test$plusargs("XZNEG")) begin
+            wait (rst_n);
+            repeat (200) @(posedge clk);
+            $display("[NEGCTL] F-7: forcing u_cfg.o_port = 1'bz (expect X/Z assertion RED)");
+            force u_cfg.o_port = 1'bz;
+            repeat (10) @(posedge clk);
+            release u_cfg.o_port;
+            $display("[NEGCTL] F-7: released force");
+        end
+    end
+
     udp_tx_frame u_tx (
         .clk(clk), .rst_n(rst_n),
         .s_axis_tdata(utx_td), .s_axis_tkeep(utx_tk), .s_axis_tvalid(utx_tv),

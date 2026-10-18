@@ -1,0 +1,62 @@
+#-----------------------------------------------------------
+# xsim v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Sun Oct 18 14:49:33 2026
+# Process ID         : 28340
+# Current directory  : D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/p11_dual/sim
+# Command line       : xsim.exe -log xsim_p11dual.log -mode tcl -source {xsim.dir/tb_p11_dual/xsim_script.tcl}
+# Log file           : D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/p11_dual/sim/xsim_p11dual.log
+# Journal file       : D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/p11_dual/sim\xsim.jou
+# Running On         : xyz-intel
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26300
+# Processor Detail   : Intel(R) Core(TM) Ultra 7 265K
+# CPU Frequency      : 3878 MHz
+# CPU Physical cores : 20
+# CPU Logical cores  : 20
+# Host memory        : 68053 MB
+# Swap memory        : 4294 MB
+# Total Virtual      : 72348 MB
+# Available Virtual  : 37682 MB
+#-----------------------------------------------------------
+source xsim.dir/tb_p11_dual/xsim_script.tcl
+# xsim {tb_p11_dual} -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+==== TB_P11_DUAL ====
+  [ ok ] C: maccnt_sync dst never shows a mixed value
+  [ ok ] C: bare-2FF mutant DOES show mixed values (negative control has teeth)
+  [ ok ] C-live: dst tracks src to exact values 1..4 within <=32 dst cycles
+  [ ok ] C-live: src frozen at 4 => dst stays exactly 4 for >=120 dst cycles
+  [info] ramp  MUT: expected 5 not seen
+  [info] ramp  MUT: expected 6 not seen
+  [info] ramp  MUT: expected 7 not seen
+  [info] ramp  MUT: expected 8 not seen
+  [ ok ] C-mut: dst forced to constant 0 => liveness criterion goes RED
+Error: [Unisim RAMB36E2-11] Memory Collision at time 6748.801 ns.
+A simultaneous WRITE on port B (0040) and READ on port A (0000) occured.
+The WRITE was successful but the READ may be corrupted. Instance: tb_p11_dual.u_dut.u_slow_rx.u_ff.gen_mem[0].u_main
+  [ ok ] A: ch1 TX carries an IPv4 frame after SYN to IP_A
+  [ ok ] A: ch0 TX is silent (no cross-port TX)
+  [ ok ] A: TCP flags = SYN|ACK on ch1
+  [ ok ] A: SYN-ACK source IP = IP_A (192.168.100.2)
+  [ ok ] B1: tx_* port=1 appears on ch0 TX
+  [ ok ] B1: tx_* port=1 does NOT appear on ch1 TX
+  [ ok ] B2: utx2_* port=0 appears on ch1 TX
+  [ ok ] B2: utx2_* port=0 does NOT appear on ch0 TX
+  [ ok ] B3: stx_* port=1 appears on ch0 TX
+  [ ok ] B3: stx_* port=1 does NOT appear on ch1 TX
+  [ ok ] B: W84 (ch0 TX frames) +2
+  [ ok ] B: W83 (ch1 TX frames) +1
+  [ ok ] D: udp_tx_cfg o_src_ip = IP_B after an IP_B learning frame
+  [ ok ] D: udp_tx_cfg o_port = 1 for IP_B
+  [ ok ] D: udp_tx_cfg o_src_ip = IP_A after an IP_A learning frame
+  [ ok ] D: udp_tx_cfg o_port = 0 for IP_A
+P11_DUAL TB PASS
+$finish called at time : 1294409600 ps : File "D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/p11_dual/sim/tb_p11_dual.v" Line 475
+run: Time (s): cpu = 00:00:00 ; elapsed = 00:00:38 . Memory (MB): peak = 244.277 ; gain = 0.000
+exit
+INFO: xsimkernel Simulation Memory Usage: 117072 KB (Peak: 117072 KB), Simulation CPU Usage: 37999 ms
+INFO: [Common 17-206] Exiting xsim at Sun Oct 18 14:50:13 2026...

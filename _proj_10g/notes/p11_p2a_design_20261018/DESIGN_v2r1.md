@@ -28,7 +28,7 @@
 | **H-5**（`tb_p7b_chain.v` 硬编码 0x2B 几何） | 把 `tb_p7b_chain.v` 加入 G9 几何更新清单；G1 改称“**编辑后回归**”；构建前置核 `grep -n "0x17C reads 0" tb_p7b_chain.v` 为空（旧未实现断言必须消失）。**反向核对（地址算术）**：追加字只落末端，**W79..W82 地址不变（仍 0x15C..0x168）**；新几何 = W83 0x16C / W84 0x170 / W85 0x174 / W86 0x178 / W87 0x17C / MIR 0x180..0x18C / UNIMPL 0x190。FINDINGS 与派单把 W79..W82 写成 0x16C..0x178 是错的（见 §0.2-2）。**【v2.1 修订注 N-5/N-10/N-14】G9 增补 4 个 `_proj_pcie` 读侧工具默认值与 `apply_readside` 0x2C 阶段；非 DUAL 的 W83/W84/W86/W87 tie-off 见 §2.7；W79 标签口径见 §5.2 G9。** | §5.2 G9/G1 / §5.3 |
 | **H-6**（G6 若 `force txsrc_*` 则 A-1 TX 全链无行为门） | G6 分两臂：**真实生产者臂**（驱动 `txin_*`/`app2_*` 或三个 demux 输入 `tx_*`/`utx2_*`/`stx_*`，走 `tcp_tx_frame`/`udp_tx_frame`/`slow_tx_adp`）与 **HLS 真实握手臂**（M-13）；`force txsrc_*` 只保留为 MAC 接线臂。断言每口 W83/W84、每帧 `o_port` 与帧头源 IP 一致、跨口不串；`force` 臂单独记结果。 | §5.2 G6 |
 | **H-7**（观测仅 3 字偏离“开发期全量”） | **显式报用户**（§6.1 D12 登记为偏离）。v2 加 **5 个便宜分口观测字**：W83/W84（每口 TX 帧）、W85（classify 总帧）、**W86 = `{ch0_rxcdc_ovf_dp[15:0], ch0_txcdc_ovf[15:0]}`（16 位饱和，RX 侧经事件镜像到 dp）**、**W87 = `{ch0_mac_tx_abort_dp[15:0], ch0_mac_tx_frames_dp[15:0]}`（16 位饱和，经事件镜像到 dp）**；几何 **NW 88**、MIR `0x180..0x18C`、UNIMPL `0x190`。**per-port merge 帧/丢帧不另加字**：入口已有 W79/W0、出口有 W85，merge 无内部丢帧路径，上游溢出由 W82/W4 与 W86/W38 覆盖（理由见 §3.4）。**【v2.1 修订注 N-12】W87[15:0] 在 10G 正常速率下 ~82 ms 饱和 ⇒ 只作“有活动”指示，不作精确帧数；见 §3.4。** | §3.4 / §3.5 / §6.1 D12 |
-| **H-8**（P2-2 缺回卷与 pre-FIFO 修正） | P2-2 对账式改写：`ΔW83/ΔW84` 为 **32 位 @156.25 MHz ⇒ 27.487 s 回卷**；**差值一律 mod 2³²、记 raw + k**；窗 `<27 s` 或分窗。修正项：ch1 `Δpeer_p1 ≤ ΔW83` 且 `ΔW83 − Δpeer_p1 ≤ ΔW45(字) + ΔW21(帧)`；ch0 同理用 **W86 低 16 位 / W87 高 16 位**（饱和计数，饱和后只记“≥0xFFFF”）；`port_rx_*` 写“**跨系统口径**”（L-6）。ch0 abort 在 v2 已由 W87 可观测（v1 的“未观测到”由此关闭）。**【v2.1 修订注 N-7】上界假设“窗末已静默”必须显式化：取窗前静默 ≥N_QUIET，或加第三修正项 `INFLIGHT_MAX_FRAMES`；见 §5.1 P2-2。** | §5.1 P2-2 / §3.4 |
+| **H-8**（P2-2 缺回卷与 pre-FIFO 修正） | P2-2 对账式改写：`ΔW83/ΔW84` 为 **32 位 @156.25 MHz ⇒ 27.487 s 回卷**；**差值一律 mod 2³²、记 raw + k**；窗 `<27 s` 或分窗。修正项：ch1 `Δpeer_p1 ≤ ΔW83` 且 `ΔW83 − Δpeer_p1 ≤ ΔW45(字) + ΔW21(帧)`（**【v2.1-errata F-4】`ΔW45(字)` 项已删**：它是 AXIS 反压拍数、非丢字数；现行式见 §5.1 P2-2）；ch0 同理用 **W86 低 16 位 / W87 高 16 位**（饱和计数，饱和后只记“≥0xFFFF”）；`port_rx_*` 写“**跨系统口径**”（L-6）。ch0 abort 在 v2 已由 W87 可观测（v1 的“未观测到”由此关闭）。**【v2.1 修订注 N-7】上界假设“窗末已静默”必须显式化：取窗前静默 ≥N_QUIET，或加第三修正项 `INFLIGHT_MAX_FRAMES`；见 §5.1 P2-2。** | §5.1 P2-2 / §3.4 |
 | **M-1**（HLS `cfg_write` 签名/调用点、`local_ip` 保留语义） | 采纳：`cfg_write` 增 `uint32_t local_ip` 参数（`w[2]=local_ip`）；签名 `:165-181`；调用点 `:609/637/663/677/699/721` 全改，**DEL 传 0、两个 ADD 传 `c.local_ip`**；`tcp_conn_t` 加 `local_ip`；`tcp_find(port, ip, local_ip)`；RST 循环 `:631-645` 加 `local_ip == ip_rx.dst_ip`；`local_ip` 与 `peer_ip/peer_port` **同寿**（RTO 释放槽保留，新连接覆盖）；G8 加 RST-to-released-slot 用例。 | §4.2 / §5.2 G8 |
 | **M-2**（canonical HLS 默认构建也接受 IP_B） | 采纳并显式化：**一个 canonical netlist**（`-DBOARD_IP_DUAL=1`）被所有构建共用 ⇒ 默认单口构建的 HLS **也接受 IP_B**（`dst=IP_B` 的 ARP/ICMP/UDP/TCP 会应答）。对 `dst=IP0` 的回包与旧网表**功能等价**（G8 csim 逐字节）；对 `dst=IP1` 的额外接受是设计意图。若要位级不变只能走双输出目录（不选，登记为备选）。G8 加“dual 接受 IP_B / legacy 丢弃 IP_B”两二进制 csim。 | §4.4 / §5.1 P2-9 / §5.2 G8 |
 | **M-3**（HLS 在矩阵指纹之外） | **反向核对**：`p4gate.py:498-535` **已经把 HLS 网表 `.v/.dat`（`paths.txt` 的 `HLS=` 路径）纳入指纹** ⇒ “22/22 FROZEN 不绑定 HLS 字节”不成立；真正缺的是 **HLS 源与 `run_hls.tcl`**。v2：`paths.txt` 的 `FINGERPRINT_GLOBS` 追加 `hls\src\*.cpp;hls\src\*.h;hls\run_hls.tcl`；构建/门日志各记 `HLS_NET_HASH`（网表目录 sha256）与 `HLS_SRC_HASH`。 | §5.2 G10 / §5.3 |
@@ -99,7 +99,7 @@
 | **N-4** | 中 | §3.4 / §5.3 / §8 | 新增 **`rtl/maccnt_sync.v`**（4 相 toggle/ack 事件镜像，禁止裸 2FF 多比特）；加入 `P7B_ADD_DATAPATH`（或 `P7B_ADD_DUAL`）、`P7B_MODULE_RESOLVED`、`p11dual_src.f`、`p7bchain_src.f`（若该门编 DUAL 支）、G10 manifest 与 §8 变更表；W87 用一个 64 位实例（frames+abort 同采样）。 |
 | **N-5** | 中 | §5.2 G9 / §5.3 / §8 | G9 显式列出 **4 个读侧工具**（`p6e_snap_check.sh`、`p7b_snap.sh`、`p7b_gate4_negctrl.sh`、`apply_readside_bid1c.py` 新阶段 0x2C）的默认值/标签同步；0x2C = **NW 88 / UNIMPL 0x190 / W83..W87 标签**；加“缺省赋值行 grep”自检门（历史注释行列入例外清单）。 |
 | **N-6** | 中 | §2.3 | 逐用途表第 3 行默认体改为**组合读 `cam_rd_dip`**（`PER_CONN_SRC_IP ? cam_rd_dip : cfg_src_ip`），**明确禁止 `lip_r`**；OVL 用新 `ctrl_lip`（`start_ack` 沿锁存，`start_ack+1` 装载校验和）；补 CAM 字段语义（`rd_sip` = 对端 IP / `rd_dip` = 本地 IP）。 |
-| **N-7** | 低 | §5.1 P2-2 | `ΔW83 − Δpeer ≤ ΔW45 + ΔW21` 增加前件：**取窗前连接关闭/静默 ≥N_QUIET**（连续两次快照 `ΔW83=0`，间隔 ≥1 ms；建议再等 ≥2×txcdc 深度/MAC 帧长对应的 tx 拍）；不能静默时登记第三修正项 **`INFLIGHT_MAX_FRAMES = 33`**（256/8 + 1，保守纸面）。 |
+| **N-7** | 低 | §5.1 P2-2 | `ΔW83 − Δpeer ≤ ΔW45 + ΔW21`（**【v2.1-errata F-4】`ΔW45` 项已删**）增加前件：**取窗前连接关闭/静默 ≥N_QUIET**（连续两次快照 `ΔW83=0`，间隔 ≥1 ms；建议再等 ≥2×txcdc 深度/MAC 帧长对应的 tx 拍）；不能静默时登记第三修正项 **`INFLIGHT_MAX_FRAMES = 33`**（256/8 + 1，保守纸面）。 |
 | **N-8** | 低 | §4.6 | `ip -n <ns> exec ethtool ...` 非法 ⇒ **`ip netns exec <ns> ethtool -C ...`**；`ip -n <ns> addr/link/route/neigh` 合法，保留；`sysctl` 明确在 ns 内执行。 |
 | **N-9** | 低 | §5.2 G7 | G7 增加静态断言：wrapper 文本 **`.STRICT(1'b0)` 命中且 `.STRICT(1'b1)` 0 命中**（`rx_merge2` 实例不得传 1）；失败 = G7 硬失败。 |
 | **N-10** | 中 | §2.7 / §3.4 / §3.5 / §5.2 G9 | 非 DUAL 构建的 **W83/W84/W86/W87 = 0、W85 仍真**（`snap_dout_all` 顶部 5 项按 `ifdef` 给常量）；G9 对 `tb_p7b_chain` 加非 DUAL 断言（W83/W84/W86/W87 ≡ 0，W85 跟随 classify）。 |
@@ -116,10 +116,10 @@
 |---|---|---|
 | §2.7（`PER_PORT=0` ⇒ 提取逻辑不例化） | **D-6 / F-11** | 已按此实现：提取寄存器/更新块整体进 `generate if (PER_PORT)`；单口零寄存器 |
 | §3.2 第 5 条（merge 接 `dp_rst_n`） | **F-19** | 现接板级 `reset_n`（与两路 FIFO rd 侧同源；防 MMCM 失锁时 merge 与 FIFO 指针不同代） |
-| §3.2 / §6.3（无半帧看门狗） | **F-2** | `rx_merge2` 新增 `TO_CYCLES`（wrapper 传 4096）；**需用户追认**（附录 E §E-2） |
+| §3.2 / §6.3（无半帧看门狗） | **F-2** | `rx_merge2` 新增 `TO_CYCLES`；**最终值 = 4096（用户 2026-10-18 裁定；0xFFFF 已否）**，wrapper 那行由 TL 统一改（附录 E §E-2） |
 | §3.4（`maccnt_sync` 采样节流 = 每 256 拍） | **D-12 / F-18** | 已实现：源域 8 位自由计数 rollover ⇒ 每 256 源拍一个 `src_tick` |
-| §3.4 / §5.1 P2-2（W86 “应恒 0” / `sat16(ovf)` 修正项） | **D-1 / D-2 / F-4** | W86 = **AXIS 反压拍数**（不是丢字）；P2-2 删掉该修正项，改用 W82/W4 MAC drop |
-| §5.2 G1 行（`VRFC 10-3645` + `$isunknown`） | **D-5 / F-7** | 已实现：G5/G6 bat 定向断言 + `tb_app_udp.v` 运行期 `$isunknown(o_port/cfg_sync)` |
+| §3.4 / §5.1 P2-2（W86 “应恒 0” / `sat16(ovf)` 修正项） | **D-1 / D-2 / F-4** | W86 与 ch1 的 `ΔW45(字)` **同语义 = AXIS 反压拍数**（不是丢字，且会饱和）；P2-2 删掉两侧字级修正项（ch0 用 W82 MAC drop / ch1 用 W21 MAC abort），只留 `INFLIGHT_MAX_FRAMES`；W86 只作健康指示 |
+| §5.2 G1 行（`VRFC 10-3645` + X/Z 运行期断言） | **D-5 / F-7** | 已实现：G5/G6 bat 定向断言 + `tb_app_udp.v` 运行期 `is_xz1(o_port)` / `is_xz1(cfg_sync)`（Verilog-2001 下 `$isunknown` 不可用；实现函数名 `is_xz1`） |
 | §5.2 G2 行 | — | 已实现（含 N-13 负控）；另加 **F-2 看门狗臂**（p1 半帧 ⇒ stat_abort 增、p0 帧仍出） |
 | §5.2 G3 行（“端口反转变异红”） | **D-9 / F-12** | 已实现**真变异**：第二份 `tx_demux2` 把 d0/d1 交叉接线，同一判据必红 |
 | §5.2 G6 行（maccnt 活性 / 每帧 `o_port` 与源 IP 一致） | **D-3 / D-7 / F-3 / F-13** | maccnt 改斜坡追踪+冻结+强制常 0 变异；UDP 侧新增臂 D（`peer_my_ip` ⇒ `o_src_ip/o_port`） |
@@ -330,7 +330,7 @@ wire cfg_sync = (o_dst_mac == peer_mac_r) && (o_dst_ip == peer_ip_r) &&
   - `tb/tb_udp_rx.v:55`（udp_rx）
   - `tb/tb_udp_echo.v:51`（udp_rx）
 - `udp_rx`/`udp_split` 走参数后**没有新输入口**，只需 TB 不覆盖参数（默认 0/0xFFFFFFFF）。
-- 断言：G1 在 xelab 日志上查 `VRFC 10-3645` 与 `peer_my_ip` **同一行**（`findstr "peer_my_ip" xelab.log | findstr "VRFC 10-3645"`）为空；G2/G5 运行时把 `peer_my_ip` 钉常量并断言 `o_port !== 1'bx`、`cfg_sync` 无 X（用 `$isunknown`）。
+- 断言：G1 在 xelab 日志上查 `VRFC 10-3645` 与 `peer_my_ip` **同一行**（`findstr "peer_my_ip" xelab.log | findstr "VRFC 10-3645"`）为空；G2/G5 运行时把 `peer_my_ip` 钉常量并断言 `o_port !== 1'bx`、`cfg_sync` 无 X（用 `$isunknown`）。**【v2.1-errata D-5/F-7】实现用本地函数 `is_xz1`（`(v!==0)&&(v!==1)`）** —— 本 TB 以 Verilog-2001 编译，`$isunknown` 不可用；现行口径见 §N.1 与附录 E D-5。
 
 ### 2.5 慢路径出口端口：`slow_tx_adp` 源 IP 提取 + side FIFO
 
@@ -715,9 +715,9 @@ ip netns exec nsb ethtool -C enp1s0f0np0 adaptive-rx off rx-usecs 0
 | # | 判据 | 仪器/负对照 |
 |---|---|---|
 | P2-1 | **单口零回归（编辑后）**：双口位流只插 J8，TCP 连续流向 IP_A；**主口径 = 板内 `ΔW43/ΔW20` fps + `ΔW51/ΔW52`**，与 0x2B 同会话 A/B；预登记 **≤0.5% 结构性差值**（merge 1 拍仲裁）；`mism_bytes=0`/`stall=0`。**`W84 Δ=0` 必须与 `ΔW83>0` + 对端 p1 NIC 配对**，且 P2-2 提供“W84 能动”的正控（否则 `W84=0` 是空判据） | 板侧 W51/W52/W54/W55 + W83/W84；对端 p1 NIC；`PIN_CPU=` 见证 |
-| P2-2 | **A-1 出口正确（H-8 + N-1 + N-7 修订）**：<br>**阶段 I 身份**：p1→IP_A、p0→IP_B **各自**建连（顺序），每条的 SYN-ACK 只在该口出现、源 IP = 该连接本地 IP；对端口无该帧。<br>**阶段 II 数据（逐口顺序）**：第一条关闭并确认板侧 DEL/CONN_DOWN 后，**等 ≥1 个池归还扫描周期（≥10 ms）**；第二条建连后，用**双 1 字节探针 + pcap 抓 fast-path 纯 ACK**判池归还（N-1 全流程见 §4.5）：两帧 `tcp.win==0` ⇒ 未归还；两帧 `>0` ⇒ 已归还；**帧源必须用 flags/seq/ack + 滚动 `ip.id` 判别**（HLS 的 IP ID 恒 0；值恰好 0xC000 不构成证据）；**无 fast-path ACK ⇒ “零窗/无响应不可分（未判定）”，不得判已归还**。`ss -ti` 只在已抓到 fast-path ACK 后作二次核对（`snd_wnd` 必须等于该 ACK 的 `tcp.win`）。**“建连后立刻读 `snd_wnd`” = 无效见证**。每口 `mism_bytes=0`。<br>**阶段 III 同时**：仅作登记（选项 a 下第二条可能零窗；不判失败）。<br>**对账（mod 2³² + raw+k；N-7）**：ch1 `Δpeer_p1 ≤ ΔW83` 且 `ΔW83 − Δpeer_p1 ≤ ΔW45(字) + ΔW21(帧) + INFLIGHT_MAX_FRAMES`；ch0 `Δpeer_p0 ≤ ΔW84` 且 `ΔW84 − Δpeer_p0 ≤ sat16(ch0_mac_tx_abort)(帧，W87[31:16]) + INFLIGHT_MAX_FRAMES`（**【v2.1-errata F-4/D-2】删掉 `sat16(ch0_txcdc_ovf)` 字级修正项** —— W86 低半是“AXIS 反压拍数”不是丢字数，且会饱和 ⇒ 原式是恒真的松上界；ch0 丢帧由 MAC `stat_drop`（W82）计）；窗 <27.487 s 或记回卷 k。**取窗前必须静默**：连接关闭/停流后，连续两次快照（间隔 ≥1 ms）`ΔW83=ΔW84=0`；若做不到，必须登记第三修正项 **`INFLIGHT_MAX_FRAMES = 33`**（纸面：txcdc 256 字 / 最小帧 8 字 + 1 帧在 MAC/线上；保守上界）。`port_rx_*` = **跨系统口径**（L-6） | 两条独立链（板 RTL 计数 vs 对端内核/NIC）；pcap 两口；`app_ctrl 0x97/0x9A`（仅 sim/G6/G8） |
+| P2-2 | **A-1 出口正确（H-8 + N-1 + N-7 修订）**：<br>**阶段 I 身份**：p1→IP_A、p0→IP_B **各自**建连（顺序），每条的 SYN-ACK 只在该口出现、源 IP = 该连接本地 IP；对端口无该帧。<br>**阶段 II 数据（逐口顺序）**：第一条关闭并确认板侧 DEL/CONN_DOWN 后，**等 ≥1 个池归还扫描周期（≥10 ms）**；第二条建连后，用**双 1 字节探针 + pcap 抓 fast-path 纯 ACK**判池归还（N-1 全流程见 §4.5）：两帧 `tcp.win==0` ⇒ 未归还；两帧 `>0` ⇒ 已归还；**帧源必须用 flags/seq/ack + 滚动 `ip.id` 判别**（HLS 的 IP ID 恒 0；值恰好 0xC000 不构成证据）；**无 fast-path ACK ⇒ “零窗/无响应不可分（未判定）”，不得判已归还**。`ss -ti` 只在已抓到 fast-path ACK 后作二次核对（`snd_wnd` 必须等于该 ACK 的 `tcp.win`）。**“建连后立刻读 `snd_wnd`” = 无效见证**。每口 `mism_bytes=0`。<br>**阶段 III 同时**：仅作登记（选项 a 下第二条可能零窗；不判失败）。<br>**对账（mod 2³² + raw+k；N-7）**：ch1 `Δpeer_p1 ≤ ΔW83` 且 `ΔW83 − Δpeer_p1 ≤ ΔW21(帧) + INFLIGHT_MAX_FRAMES`（**【v2.1-errata F-4】删掉 `ΔW45(字)` 修正项** —— `u_txcdc.ovf_cnt` 与 W86 同语义 = **AXIS 反压拍数**（`fifo_async.ovf_pulse = wr_en && full`，生产者保持 tvalid ⇒ 字下拍重试、不丢），不是丢字数且会饱和 ⇒ 原式是恒真的松上界；ch1 丢帧由 MAC `stat_abort`（W21）计）；ch0 `Δpeer_p0 ≤ ΔW84` 且 `ΔW84 − Δpeer_p0 ≤ sat16(ch0_mac_tx_abort)(帧，W87[31:16]) + INFLIGHT_MAX_FRAMES`（**【v2.1-errata F-4/D-2】删掉 `sat16(ch0_txcdc_ovf)` 字级修正项** —— W86 低半是“AXIS 反压拍数”不是丢字数，且会饱和 ⇒ 原式是恒真的松上界；ch0 丢帧由 MAC `stat_drop`（W82）计）；窗 <27.487 s 或记回卷 k。**取窗前必须静默**：连接关闭/停流后，连续两次快照（间隔 ≥1 ms）`ΔW83=ΔW84=0`；若做不到，必须登记第三修正项 **`INFLIGHT_MAX_FRAMES = 33`**（纸面：txcdc 256 字 / 最小帧 8 字 + 1 帧在 MAC/线上；保守上界）。`port_rx_*` = **跨系统口径**（L-6） | 两条独立链（板 RTL 计数 vs 对端内核/NIC）；pcap 两口；`app_ctrl 0x97/0x9A`（仅 sim/G6/G8） |
 | P2-3 | **构造性错口负对照（H-2 修订）**：静态邻居就位；判据拆 ① 身份（p1 对 IP_B 的 ARP who-has 无应答）与 ② 出口（p1 pcap 见 SYN + p0 pcap 见 SYN-ACK 且 dst MAC=p1 MAC + p1 收不到 SYN-ACK）；反向 p0→IP_A 对称。不做静态邻居 ⇒ 只写“ARP 层隔离” | netns + 静态邻居；两 ns pcap；板 W83/W84 |
-| P2-4 | **RX 合并公平/守恒（M-6 + N-14 修订）**：两口同时灌 ≥ 聚合容量时，`ΔW79`（ch0 好帧，**语义 = 被 merge 输入 FIFO 接受的好帧数**，`tready = ~ch0_fifo_full`）与 `ΔW0`（ch1 MAC 帧）**都前进**；两侧 drop（W82/W4）可读；公平份额 ≈ 各 50%。**守恒只在干净窗判**：`ΔW81=ΔW82=ΔW4=0` 且无 TERM 时 `ΔW85 == ΔW79 + ΔW0`；否则残差 = 坏帧+TERM（不可分观测），只记不判。**FIFO 满造成的 ch0 丢帧进 W82（MAC `stat_drop`），不进 W79**；`ch0_rxcdc_ovf`（W86 高半）在 `tready=~full` 门控下应恒 0（安全网）。W85 为 `[31:0]` 截断和。单元门严格优先负对照必须红；板级 pcap（两口） | 单元门 STRICT 负控（G2）；板级 W79/W0/W82/W4/W85/W86 |
+| P2-4 | **RX 合并公平/守恒（M-6 + N-14 修订）**：两口同时灌 ≥ 聚合容量时，`ΔW79`（ch0 好帧，**语义 = 被 merge 输入 FIFO 接受的好帧数**，`tready = ~ch0_fifo_full`）与 `ΔW0`（ch1 MAC 帧）**都前进**；两侧 drop（W82/W4）可读；公平份额 ≈ 各 50%。**守恒只在干净窗判**：`ΔW81=ΔW82=ΔW4=0` 且无 TERM 时 `ΔW85 == ΔW79 + ΔW0`；否则残差 = 坏帧+TERM（不可分观测），只记不判。**FIFO 满造成的 ch0 丢帧进 W82（MAC `stat_drop`），不进 W79**；`ch0_rxcdc_ovf`（W86 高半）在 `tready=~full` 门控下应恒 0（安全网）（**【v2.1-errata F-4/D-1】该“应恒 0”残句不成立** —— W86 = **AXIS 反压拍数**（不是丢字数），正常反压即增长并饱和；只作健康指示，不作丢帧判据；见附录 E E-1/D-1）。W85 为 `[31:0]` 截断和。单元门严格优先负对照必须红；板级 pcap（两口） | 单元门 STRICT 负控（G2）；板级 W79/W0/W82/W4/W85/W86 |
 | P2-5 | **慢路径每口身份**：p0 对 IP_B 发 ARP/ICMP/UDP echo ⇒ 回包**只**在 p0 出现且源 IP=IP_B；p1 对 IP_A 同理。**加长时阻塞用例**（H-3）：`slow_tx_adp.m_axis_tready=0`，提交 60 个最小帧（480 字），断言 `side_level==committed`/`side_ovf==0`，放行后逐帧端口正确 | 对端两 ns pcap/NIC；G4 单元门 |
 | P2-6 | **UDP app 每口（L-7 修订）**：从 IP_B 学 peer 后 app UDP TX 只从 ch0 出；从 IP_A 学后翻转。**主判据 = 每口 pcap**；板侧用 2 s 窗：`ΔW84 ≥ N_app`、`ΔW83 ≤ background_max + 容差`（HELLO/ARP 背景率预取，慢路径由 W7 计）；登记残差 | 板 W8/W9/W83/W84 + 两口 pcap |
 | P2-7 | **单口隔离负对照**：`0x08` bit0=1（J7 TX_DIS）⇒ IP_B 连接停、IP_A 连接继续；bit1=1 反之 | P1 S-3 已证 bit0；bit1 需复跑 |
@@ -731,7 +731,7 @@ ip netns exec nsb ethtool -C enp1s0f0np0 adaptive-rx off rx-usecs 0
 
 | 门 | 新/改 | 内容 |
 |---|---|---|
-| **G1 基线回归（改称“编辑后回归”）** | 现有 21 门 | 不是“零编辑”：`tb_p7b_chain.v` 几何编辑（G9）+ H-1 的 9 个 TB 接常量。预期 21 门全绿；指纹漂移逐条解释。加“新端口无 Z”断言（`VRFC 10-3645`+`peer_my_ip` 联合查 + 运行时 `$isunknown`）。**另加 N-2 自检**：无 `DUAL_SFP_A` 与有 `DUAL_SFP_A` 两种 elab 日志里 `VRFC 10-2989`/`not declared`/`8-36` 均 0 命中。 |
+| **G1 基线回归（改称“编辑后回归”）** | 现有 21 门 | 不是“零编辑”：`tb_p7b_chain.v` 几何编辑（G9）+ H-1 的 9 个 TB 接常量。预期 21 门全绿；指纹漂移逐条解释。加“新端口无 Z”断言（`VRFC 10-3645`+`peer_my_ip` 联合查 + 运行时 `$isunknown`；**【v2.1-errata D-5/F-7】实现函数名 = `is_xz1`**）。**另加 N-2 自检**：无 `DUAL_SFP_A` 与有 `DUAL_SFP_A` 两种 elab 日志里 `VRFC 10-2989`/`not declared`/`8-36` 均 0 命中。 |
 | **G2 `rx_merge2` 单元** | **新**（注册进矩阵） | `_proj_10g/p11_dual/sim/tb_rx_merge2.v`：单口工作保持 / 双口逐帧 RR 交替 / 帧原子性 / 随机反压 / 复位 / **STRICT=1 且 DEPTH=4 的负控**。**【v2.1 N-13 改写】负控必须同时满足：① 高优先口**持有一个有效帧**且 `tready=0` 持续 ≥N 拍（N 建议 ≥16）；② 低优先口**持续注入 ≥2 个最大帧**；③ 断言低优先口 `tready` 持续 0 且其 `ovf` 增长。只给低优先口注入而不给高优先口有效帧 ⇒ 工作保持的 `STRICT=1` 仍会服务低优先口，负控无牙。** 正臂断言 `stat_frames0/1` 逐帧交替。**另加 `.STRICT` 常量断言（或放 G7，见 N-9）**。 |
 | **G3 `tx_demux2`+每口 arb 单元** | 新（独立门） | `tb_tx_split.v`：三口端口位分流 / 帧原子性 / 口内 TCP>UDP>HLS / **帧内 `s_port` 变化必须被 `stat_port_change` 抓到且不跨口分裂** / 端口反转变异红 |
 | **G4 `slow_tx_adp` 端口提取单元** | 新（独立门） | `tb_slow_tx_port.v`：IPv4/ARP/短帧/无 VLAN；**错偏移变异必须红**；**H-3 长阻塞用例 + `SIDE_DEPTH=16` 溢出负控**（`side_ovf>0` 且 `side_level!=committed`）；**L-10 VLAN TPID 负控**（0x8100/0x88A8 ⇒ `vlan_seen` sticky、`o_port=0`） |
@@ -954,7 +954,7 @@ grep -nE 'awk -v NW=83' _proj_pcie/p7b_gate4_negctrl.sh
 | **D-2** | **判据改写（已落正文 §5.1 P2-2）** | 对账式 **删掉 `sat16(ch0_txcdc_ovf)` 字级修正项**；ch0 丢帧只认 **MAC `stat_drop`（W82）**。替代的两条硬约束：① **取窗前静默**（连续两次快照间隔 ≥1 ms 且 `ΔW83=ΔW84=0`）；② 做不到静默时登记 **`INFLIGHT_MAX_FRAMES = 33`**（纸面，保守）。W86 只作健康指示。 |
 | **D-3** | **已实施** | G6 臂 C 改**斜坡追踪**：`dst_val` 必须在 ≤32 个目的域拍内追到精确中间值 (1..4)；`src_val` 冻结 ≥120 拍时 `dst_val` **逐拍不变**；另加 **`dst_val` 强制常 0 的变异臂**（同一活性判据必红）。裸 2FF 负控保留。 |
 | **D-4** | **已实施（清单补全）** | N-5 读侧清单从 4 文件补到 **20 文件**：j6/tcpreg 的 **GEOM_TIERS 顶端 88 档** + 6 个 gate4/夹具（accept/selftest/livefake/negctrl/final_state/gen_inputs）+ 3 个 TB（`tb_p7b_chain`/`tb_p6e_pcie_{counters,wrapper}`）+ `p6e_snap_selftest_fix2.sh` + 两个 biz_win 脚本。0x2C 阶段 = **显式增量 43 处**（F-5）。 |
-| **D-5** | **已实施** | G5 与 G6 bat 各加 `findstr "peer_my_ip" \| findstr "VRFC 10-3645"` 为空的定向断言；`tb/tb_app_udp.v` 加运行期 `$isunknown(u_cfg.o_port)` / `$isunknown(u_cfg.cfg_sync)`（首次命中即 `[FAIL]` 并计入 errs）。 |
+| **D-5** | **已实施** | G5 与 G6 bat 各加 `findstr "peer_my_ip" \| findstr "VRFC 10-3645"` 为空的定向断言；`tb/tb_app_udp.v` 加运行期 `is_xz1(u_cfg.o_port)` / `is_xz1(u_cfg.cfg_sync)`（Verilog-2001 下 `$isunknown` 不可用，用 `(v!==0)&&(v!==1)` 的本地函数 `is_xz1`；首次命中即 `[FAIL]` 并计入 errs）。 |
 | **D-6** | **已实施** | `rtl/slow_tx_adp.v`：提取寄存器（`bpos/src_sr/etype_r/src_ip_lat/ip_seen/vlan_seen`）与更新块整体进 `generate if (PER_PORT)`；`PER_PORT=0` 支 `ext_side_push=1'b0`，**零寄存器/零锥**。G4 重跑验证行为不变。 |
 | **D-7** | **已实施（部分口径）** | TCP/慢路径每帧源 IP 一致性 = G5/G4 单元级；**UDP 侧** = G6 新臂 D（真 wrapper 的 `u_udp_tx_cfg`：学习帧 `peer_my_ip=IP_B` ⇒ `o_src_ip=IP_B`/`o_port=1`；改 IP_A ⇒ 反向）。⚠️ 臂 D 用**force 学习口**而不是“真 IPv4/UDP 帧走 `udp_tx_frame`”（后者要 HLS/慢路径参与，成本高且本缺陷形态是 mux 取值，force 足以判别）；该选择登记为实施级偏离。 |
 | **D-8** | **已实施** | `board/build_p7b_ku5p.tcl`：`HLS_SRC_HASH`（`hls/src/*.cpp\|*.h` + `run_hls.tcl`）与 `HLS_NET_HASH`（`verilog/*.v` + `*.dat`）逐文件 sha256 + 合并 sha256，全部打印归档（PowerShell Get-FileHash；拿不到 = `P7B_VERDICT=HLS_HASH_FAIL` 硬失败）；synth 后 `synth_1/runme.log` 的 `black box\|8-3491` 必须 **0 命中**（`P7B_BLACKBOX_LOG_HITS=0`），否则 exit 1。`IS_BLACKBOX` 保留为辅助。 |
@@ -966,12 +966,12 @@ grep -nE 'awk -v NW=83' _proj_pcie/p7b_gate4_negctrl.sh
 
 ### E-2 F-2 半帧看门狗（设计修订项；**需用户追认**）
 
-- **实现**：`rtl/rx_merge2.v` 加 `parameter TO_CYCLES = 0`（0 = 关）。语义 = `busy && !sel_tvalid` 连续 ≥`TO_CYCLES` 拍 ⇒ 释放 `busy`、`stat_abort+1`、**不产生帧计数**。wrapper 实例传 **4096**（≈26 µs @156.25 MHz；> 一个最大帧 190 字 + 余量）。
+- **实现**：`rtl/rx_merge2.v` 加 `parameter TO_CYCLES = 0`（0 = 关）。语义 = `busy && !sel_tvalid` 连续 ≥`TO_CYCLES` 拍 ⇒ 释放 `busy`、`stat_abort+1`、**不产生帧计数**。wrapper 实例传 **4096**（≈26.2 µs @156.25 MHz；≈21.5× 一个最大帧 ≈1.21 µs）。**【最终值裁定 2026-10-18】`TO_CYCLES = 4096`（用户裁定；`0xFFFF` 方案已否 —— 4096 已足够，0xFFFF 只放大停钟黑窗 16×）；wrapper 那一行由 TL 在 review-fix 收口后统一改，本轮未改。**
 - **为什么需要**：上游 `mac_rx_10g` 只在“新 `/S/` 碎片”或“FIFO 满”时产生 `TERM`；链路断开/停钟/PCS 中途复位时，已推入输入 FIFO 的半帧没有后续字、也没有 `TERM` ⇒ `busy` 永久为 1 ⇒ **另一口 RX 被连坐锁死**（只能复位恢复）。P2 相对 P1 的**新跨口耦合**。
 - **复位域（F-19）**：`u_rx_merge` 的 `rst_n` 由 `dp_rst_n` 改为板级 **`reset_n`** —— 与两路输入 FIFO 的 `rd_rst_n` 同源。理由：MMCM 失锁重锁（F-3）时 merge 会清而 FIFO 指针不清 ⇒ 从半帧开始；改同源后二者同代复位。成本 = 0（纯连线改动），风险 = 无（merge 无 MMCM 依赖）。
-- **残余（必须如实登记）**：超时释放后，该半帧已消费的拍不会再回卷；输入 FIFO 里剩余的字会在下一轮仲裁里被当作“无 tlast 的流”排出（不构成帧、不计帧）。下游 `vlan_strip` 在 DP 构建 `RESYNC_EN=1` 会等到下一个 SOP 才放行 ⇒ 另一口的首帧不受污染（**该论证依赖 `RESYNC_EN=1`**；单域/非 DP 构建不例化 merge，不适用）。
+- **残余（必须如实登记）**：超时释放后，该半帧已消费的拍不会再回卷；输入 FIFO 里剩余的字会在下一轮仲裁里被当作“无 tlast 的流”排出（不构成帧、不计帧）。下游 `vlan_strip` 在 DP 构建 `RESYNC_EN=1` 会等到下一个 SOP 才放行 ⇒ 另一口的首帧不受污染（**该论证依赖 `RESYNC_EN=1`**；**merge 例化只受 `DUAL_SFP_A` 门控** —— `DUAL_SFP_A ∧ ¬DP_156MHZ` 被 `DUAL_SFP_A_REQUIRES_DP_156MHZ` 硬门拒绝（`board/wrapper_p4.v:310`，模块名故意不存在 ⇒ xelab 失败）、不在构建矩阵 ⇒ `RESYNC_EN=1` 前提在本构建集合内成立）。
 - **门**：G2 新臂 G —— p1 注入 4 拍**不发 tlast**、静默 ≥16 拍（门内用 `TO_CYCLES=16` 的第三实例）⇒ 断言 `stat_abort>0`、`stat_frames1==0`、**p0 的两帧仍出来**（`tl_w==2`）、`stat_frames0==2`。
-- **⚠️ 需用户追认**：这是设计件 §3.2/§6.3 之外**新增的 RTL 行为**（虽默认关、常量折叠零代价），且 `stat_abort` 未进快照（板级不可见）⇒ 由用户裁定是否接受该修订；不追认时的回退 = `.TO_CYCLES(0)`（一行）+ 设计件登记“停钟楔死只能复位”。
+- **✅ 用户已裁定（2026-10-18）**：接受该修订，**最终阈值 = `4096`**（`0xFFFF` 方案已否：4096 已是最大帧的 21.5×，0xFFFF 只把停钟口连坐黑窗放大 16×）。这是设计件 §3.2/§6.3 之外**新增的 RTL 行为**（模块默认关、常量折叠零代价），且 `stat_abort` 未进快照（板级不可见）。残留回退口径 = `.TO_CYCLES(0)`（一行）+ 设计件登记“停钟楔死只能复位”。⚠️ wrapper 的 `.TO_CYCLES` 一行**由 TL 统一改**（review-fix 轮未改）。
 
 ### E-3 F-4 板级 B-6 负对照建议（W86 语义）
 
@@ -1014,9 +1014,12 @@ grep -nE 'awk -v NW=83' _proj_pcie/p7b_gate4_negctrl.sh
      `P7B_SNAP_TOP5_FANOUT_BAD` + exit 1。
 4. **BID**：`BUILD_ID_V = 32'h0000002D`（甲重建；**0x2C 位流从未烧板**）；**乙顺延 0x2E**（本文件与
    `P7B_OPEN_ITEMS.md` §0-72 同步登记）。
-5. **F-2 `TO_CYCLES`**：用户 2026-10-18 已批「下一构建用 `16'hFFFF`」⇒ wrapper 实例
-   `.TO_CYCLES(16'hFFFF)`（65535 拍 ≈ 419 µs @156.25 MHz）；`rtl/rx_merge2.v` **模块默认仍 0**（关），
-   其它例化/默认构建零行为变化；回退 = 改回 `.TO_CYCLES(4096)` 或 `.TO_CYCLES(0)`（一行）。
+5. **F-2 `TO_CYCLES`（最终值 = 4096）**：用户 **2026-10-18 裁定 `TO_CYCLES = 4096`**；**0xFFFF 方案已否**
+   （理由 = 4096 拍 ≈26.2 µs 已是最大帧（190 字 ≈1.21 µs）的 **21.5×**、误触发风险已可忽略；
+   0xFFFF 只把停钟口的连坐黑窗放大 **16×**（≈419 µs、约多丢 345 帧 / ~524 KB），无收益证据）。
+   `rtl/rx_merge2.v` **模块默认仍 0**（关），其它例化/默认构建零行为变化；
+   ⛔ **`board/wrapper_p4.v` 的 `.TO_CYCLES` 一行由 TL 在 review-fix 收口后统一改为 `4096`**
+   （review-fix 轮**未改**该值，避免与 TL 的文件改动交集）；回退 = `.TO_CYCLES(0)`（一行）。
 6. **读侧**：BID 0x2C → 0x2D 的**显式增量**（26 处 / 15 文件；几何不变 88 字 / `0x190`）；
    `apply_readside_bid1c.py --assert --bid 0x2D` = 0 fail；从 0x2C 树重放 = **20/20 逐字节相同**。
 

@@ -180,6 +180,7 @@ module tb_udp_tx_guard;
     udp_tx_cfg u_cfg (
         .clk(clk), .rst_n(rst_n),
         .peer_wr(peer_wr), .peer_mac(peer_mac), .peer_ip(peer_ip),
+        .peer_my_ip(32'h0),   // P11 K-1: 单口 TB; PER_CONN_SRC_IP=0(默认) 下不参与 mux 语义
         .frame_busy(u_busy),
         .cfg_my_mac(MY_MAC), .cfg_my_ip(MY_IP),
         .cfg_my_port(MY_PORT), .cfg_dst_port(DST_PORT), .cfg_csum_en(1'b1),

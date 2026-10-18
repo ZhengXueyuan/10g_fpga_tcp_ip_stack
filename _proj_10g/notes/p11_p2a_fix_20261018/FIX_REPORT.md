@@ -141,3 +141,29 @@ REM 行里的中文/emoji（如 `⚠️`）在 cmd 的 OEM 代码页下被拆成
 `f1_assert_2c.log` · `f5_rehearse_2c_apply.log` · `f5_byte_compare.txt` · `f5_rehearse_main.log` · `f5_negctl.log` · `f6_f20_static_lines.txt` · `f7_tb_app_udp_pos.log` · `f17_hls_baseline.txt` · `g2_xsim_run.log` · `g3_xsim_split.log` · `g4_xsim_slowport.log` · `g5_run.log` · `g6_run.log` · `g6_xvlog_p11dual.log` · `g6_xelab_p11dual.log` · `g6_xsim_p11dual.log` · `g7_elab_run.log` · `matrix_p4dfix.log` · `matrix_run.log`。
 
 > 原始 log 被 `.gitignore` 的 `*.log` 忽略 ⇒ 已显式复制进 `gates/`。
+
+---
+
+## 8. v1.1 订正（kimi 回灌，2026-10-18 review-fix 轮）
+
+> 本节**不改写上文原文**（原文按当时口径读）；凡下文与上文冲突处，以本节为准。
+> 本轮的改动落点、门读数与矩阵结果 = `_proj_10g/notes/p11_reviewfix_20261018/FIX_REPORT.md`。
+
+1. **§4 指纹覆盖声明方向写反（订正）** —— 原文「矩阵指纹 globs **不含** `tb/tb_app_udp.v`、`_proj_10g/p11_dual/sim/tb_tx_split.v`、`mk_mut_srcip.py` 之外的 fix 脚本」把 `tb_tx_split.v` 说到了"不含"一侧，实际相反。
+   现核（`sim/p4sim/P4_MATRIX_FINGERPRINT_20261018_111917_before.txt`）：`_proj_10g/p11_dual/sim/tb_tx_split.v` **在指纹内**（修改清单 + SHA256 各 1 行，共 2 命中）；`mk_mut_srcip.py` 与 `run_tb_*.bat` 也在内（`p11_dual\sim\tb_*.v` / `run_*.bat` globs）。
+   **不在**指纹内的只有：`tb/tb_app_udp.v`（顶层 `tb\` 不在任何 glob）、`_proj_10g/p11_dual/sim/scan_xsim_errors.py`（本轮新增，`.py` 仅 `mk_mut_srcip.py` 单列）、`board/build_p7b_ku5p.tcl` 与 `board/run_build_p7b_ku5p.bat`。
+2. **§2/§3 两处时刻矛盾（订正）** ——
+   ① F-1 行写 `gates/f1_assert_2c.log`，`11:37:40`；文件 mtime = **10:37:40**（§3 的 `10:37` 正确，§2 是小时笔误）。
+   ② §3 G6 行把两个文件并成一行时只给了一个时刻：`11:05:54` 是 `g6_run.log`（独立跑包装日志）mtime，`11:06:31` 是 `g6_xsim_p11dual.log`（xsim 本体）mtime —— 两者都对、指向不同文件，不是同一事件的矛盾；引用时须带文件名。
+3. **`gates/f6_f20_static_lines.txt` 引文陈旧（已重取）** —— 旧文件引自 ASCII 清理前的 `run_build_p7b_ku5p.bat`（模块缺失检查无 `/B`、行号 63–81）；已按**当前树**重新生成（2026-10-18），行号现为 tcl 36–470 / bat 63–87，并补入 F-21 的 `P7B_SNAP_TOP5_*` 硬门与 `/B` 锚定的模块检查（现 bat:77）。
+4. **`gates/g5_run.log` 的 4 处"幽灵命令"（披露）** —— 该归档件含 4 处 `'…' 不是内部或外部命令` + `系统找不到文件`（每处 2 行）。原因 = **中间版 bat 的 REM 行含中文/emoji，在 cmd 的 OEM(GBK) 代码页下被拆包执行**（§6.5 同族）。
+   时间序：这些行属于 08:24 绿跑后、写死前的中间版 bat；D-13 归档时保留了原始输出。**它不影响判决**：每臂的 `SRCIP ovl/def/mut/mutn6 OK` 与最终 `SRCIP_GATE_PASS` 都在幽灵行之后正常打印，门判决读 TB 终止行。
+   本轮重跑（ASCII 化后的 bat）同一门：`g5_run.log` 中该族**0 命中**（`grep -c '不是内部或外部命令'` = 0），见 `p11_reviewfix_20261018/gates/g5_console.log`。归档件保留不清理（作为 bat 编码坑的实证）。
+5. **F-17 "逐字节相同"降级** —— 原句应为「**归一化后 diff 为空**」：`gates/f17_hls_baseline.txt` 自己的小节标题就是 `## diff vs base_out (normalized)`。worktree（`D:/repo/XCKU5PMini/_p11_wt_2c`）**已删除**、`base_out.txt` 与三臂产物不在现树 ⇒ **无法复验逐字节相同**；可复核的只剩该文件里的源/二进制 sha256 与失败行集合。**结论方向不变**（3 条失败在改前树即存在），但证据强度按"归一化后相同（不可复验）"读。
+6. **`$isunknown` 术语（订正）** —— 实现里是本地函数 **`is_xz1`**（`(v!==0)&&(v!==1)`；Verilog-2001 下 `$isunknown` 不可用）。已在 `DESIGN_v2r1.md` §N.1、§3.x 断言行、§5.2 G1 行、附录 E D-5 就地加注；本报告 §1.2 原本就写的是 `is_xz1`，无需改。
+7. **G7/G8 门编号（统一）** —— 以设计件 §5.2 为准：**G7 = elaboration 13 组合**、**G8 = HLS 双 IP（csim 两二进制 + `tb_hls_dual_ip`）**。
+   原文两处把 `tb_app_udp`（P5E 门）叫成 `G7(tb_app_udp)`/`G8(tb_app_udp)` —— 订正为 **"P5E `tb_app_udp` 门（非 G8）"**；**G8 本轮未跑**（纪律禁止 HLS 重构/构建，只有 F-17 的三臂 csim 基线复现）。
+8. **F-7 X/Z 运行期断言补负控（已补，证据在案）** —— 在 `tb/tb_app_udp.v` 加 `-testplusarg XZNEG`：复位后 200 拍 `force u_cfg.o_port = 1'bz` 保持 10 拍。`run_tb_app_udp.bat xzneg` → `[FAIL] P11 H-1: X/Z on u_cfg.o_port or u_cfg.cfg_sync` 精确触发、末行 `P5E UDP APP GATE: FAIL errs=10`、包装器打印 `XZNEG_NEGCTL_OK`、RC=0（期望红）。
+   正臂同轮复跑：`P5E UDP APP GATE: OK (rx_frames=10 rx_bytes=13305 tx_frames=25 drop_len=1 drop_ovf=5 split=15 pat_bad=0)`。
+   原件 = `p11_reviewfix_20261018/gates/{app_udp_xzneg_console.log,xsim_ua_xzneg.log,app_udp_pos_console.log}`。
+9. **F-2 阈值终裁（2026-10-18）** —— 用户裁定 **`TO_CYCLES = 4096`**（0xFFFF 方案已否：4096 已是最大帧 21.5×，0xFFFF 只把停钟黑窗放大 16×）。⚠️ 本报告 §1.1/§5-3 写的"下一构建 0x2D 传 `16'hFFFF`"按本条读；**当前树 `board/wrapper_p4.v` 仍是 `16'hFFFF`（review-fix 轮未改），该一行由 TL 收口后统一改为 `4096` 再构建**。设计件 §E-2/E-5 与 `P7B_OPEN_ITEMS.md` §0-68 已同步。

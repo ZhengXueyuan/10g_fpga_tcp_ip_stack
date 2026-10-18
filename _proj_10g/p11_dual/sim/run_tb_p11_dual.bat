@@ -49,26 +49,16 @@ REM   Targeted joint assertion: VRFC 10-3645 is noisy on clean designs, so it on
 REM   when the SAME LINE names peer_my_ip (project note: bare 10-3645 has many benign hits).
 findstr /C:"peer_my_ip" xelab_p11dual.log | findstr /C:"VRFC 10-3645" >NUL && (echo PEER_MY_IP-UNCONNECTED-FAIL & findstr /C:"peer_my_ip" xelab_p11dual.log & exit /b 1)
 call %XV%\xsim.bat tb_p11_dual -runall -log xsim_p11dual.log > NUL 2>&1 || (type xsim_p11dual.log & exit /b 1)
-REM ---- F-14: simulation-model errors are hard failures; the ONLY allowed exception is
-REM   the documented benign RAMB36E2-11 bypass collision in u_slow_rx.u_ff:
-REM   frame_fifo same-address write+read (WRITE_FIRST) => DOA X for one cycle, memory survives, masked by bypass_r,
-REM   never leaks (rtl/frame_fifo.v header "cycle semantics" bullet; the unisim model compares *_last
-REM   addresses but prints the current ones => the printed 0040/0000 are one cycle after the collision).
-findstr /I /C:"Critical" xsim_p11dual.log >NUL && (echo XSIM-CRITICAL-FAIL & findstr /I /C:"Critical" xsim_p11dual.log & exit /b 1)
-REM   NOTE: do NOT use find /c /v "": it HANGS on this machine (find.exe waits on stdin; 2026-10-18).
-REM     Use "negative filter + file size" to test non-empty instead.
-findstr /C:"Error:" xsim_p11dual.log > err_lines.tmp
-findstr /C:"Error:" xsim_p11dual.log | findstr /V /C:"Unisim RAMB36E2-11" > err_bad.tmp
-for %%A in (err_bad.tmp) do if %%~zA GTR 0 (
-  echo XSIM-ERROR-FAIL & type err_bad.tmp & exit /b 1
-)
-findstr /C:"Error: [Unisim RAMB36E2-11]" xsim_p11dual.log >NUL && (
-  findstr /C:"Instance:" xsim_p11dual.log | findstr /V /C:"Instance: tb_p11_dual.u_dut.u_slow_rx.u_ff" > err_inst.tmp
-  for %%A in (err_inst.tmp) do if %%~zA GTR 0 (
-    echo RAMB36E2-11-INSTANCE-UNEXPECTED & type err_inst.tmp & exit /b 1
-  )
-  echo XSIM_BENIGN_RAMB36E2_11 observed at u_slow_rx.u_ff -- documented bypass collision
-)
+REM ---- F-14 / P11 review-fix (2026-10-18): unified simulator-error hard gate ----
+REM   The ONLY allowed exception is the documented benign RAMB36E2-11 bypass
+REM   collision in tb_p11_dual.u_dut.u_slow_rx.u_ff.gen_mem[0].u_main:
+REM   frame_fifo same-address write (port B) + read (port A) => DOA X for one
+REM   cycle, memory survives, masked by bypass_r, never leaks (rtl/frame_fifo.v
+REM   header "cycle semantics" bullet; the unisim model compares *_last
+REM   addresses but prints the current ones => the printed 0040/0000 are one
+REM   cycle after the collision).  Any other Error/Critical/Unisim/Memory
+REM   Collision/Address Overlap in the log = hard failure.
+"%PY%" "%REPO_ROOT%\_proj_10g\p11_dual\sim\scan_xsim_errors.py" --log xsim_p11dual.log --mode p11dual || (echo XSIM-ERROR-GATE-FAIL & exit /b 1)
 findstr /C:"[FAIL]" /C:"P11_DUAL TB" xsim_p11dual.log
 findstr /C:"P11_DUAL TB PASS" xsim_p11dual.log >nul || exit /b 1
 exit /b 0

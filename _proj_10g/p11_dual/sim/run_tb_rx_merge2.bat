@@ -12,6 +12,8 @@ call %XV%\xvlog.bat -work xil_defaultlib ^
 call %XV%\xelab.bat -debug typical xil_defaultlib.tb_rx_merge2 -s tb_rx_merge2 -log xelab_run.log > NUL 2>&1 || (type xelab_run.log & exit /b 1)
 findstr /I /C:"Synth 8-11241" /C:"undeclared symbol" /C:"VRFC 10-3091] actual bit length 1 differs from formal bit length" /C:"VRFC 10-2989" /C:"implicitly declared" xelab_run.log >NUL && (echo IMPLICIT-DECL-FAIL-XELAB & findstr /I /C:"Synth 8-11241" /C:"undeclared symbol" /C:"VRFC 10-3091] actual bit length 1 differs from formal bit length" /C:"VRFC 10-2989" /C:"implicitly declared" xelab_run.log & exit /b 1)
 call %XV%\xsim.bat tb_rx_merge2 -runall -log xsim_run.log > NUL 2>&1 || (type xsim_run.log & exit /b 1)
+REM ---- P11 review-fix (2026-10-18): unified simulator-error hard gate (no whitelist) ----
+"%PY%" "%REPO_ROOT%\_proj_10g\p11_dual\sim\scan_xsim_errors.py" --log xsim_run.log --mode none || (echo XSIM-ERROR-GATE-FAIL & exit /b 1)
 findstr /C:"[FAIL]" /C:"RX_MERGE2 TB" xsim_run.log
 findstr /C:"RX_MERGE2 TB PASS" xsim_run.log >nul || exit /b 1
 exit /b 0

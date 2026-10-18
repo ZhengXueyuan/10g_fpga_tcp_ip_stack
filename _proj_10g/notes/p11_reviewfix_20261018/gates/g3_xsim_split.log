@@ -1,0 +1,43 @@
+#-----------------------------------------------------------
+# xsim v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Sun Oct 18 14:49:02 2026
+# Process ID         : 32036
+# Current directory  : D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/p11_dual/sim
+# Command line       : xsim.exe -log xsim_split.log -mode tcl -source {xsim.dir/tb_tx_split/xsim_script.tcl}
+# Log file           : D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/p11_dual/sim/xsim_split.log
+# Journal file       : D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/p11_dual/sim\xsim.jou
+# Running On         : xyz-intel
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26300
+# Processor Detail   : Intel(R) Core(TM) Ultra 7 265K
+# CPU Frequency      : 3878 MHz
+# CPU Physical cores : 20
+# CPU Logical cores  : 20
+# Host memory        : 68053 MB
+# Swap memory        : 4294 MB
+# Total Virtual      : 72348 MB
+# Available Virtual  : 37665 MB
+#-----------------------------------------------------------
+source xsim.dir/tb_tx_split/xsim_script.tcl
+# xsim {tb_tx_split} -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+==== TB_TX_SPLIT ====
+  [ ok ] A: 2 frames on port0, 1 frame on port1
+  [ ok ] A: port0 frame1 beats in order
+  [ ok ] A: port1 frame beats in order
+  [ ok ] A: stat_frames0=2 stat_frames1=1
+  [ ok ] A: port1 frame carries the port-1 tag
+  [ ok ] B: whole frame stays on latched port 0 (no split)
+  [ ok ] B: stat_port_change caught the mid-frame flip
+  [ ok ] C: per-port priority TCP(A) > UDP(B) > HLS(C)
+  [ ok ] D: normal wiring: port-0 frame only on d0 (4 beats)
+  [ ok ] D-mut: crossed d0/d1 wiring makes the same criterion RED (real mutation)
+  [ ok ] D-mut: the inverted instance really put the port-0 frame on i1
+TX_SPLIT TB PASS
+$finish called at time : 365 ns : File "D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/p11_dual/sim/tb_tx_split.v" Line 178
+exit
+INFO: [Common 17-206] Exiting xsim at Sun Oct 18 14:49:04 2026...

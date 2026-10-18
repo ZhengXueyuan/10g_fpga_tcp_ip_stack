@@ -1928,3 +1928,26 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - **文档**：`DESIGN_v2r1` 附录 **E-5**（派单写 E-4，E-4 已被占用，如实改号）；`OPEN_ITEMS` §0-72；`P7B_BIZ_WINDOW.md` 原停在 83 字/0x2B 且无 W83..W87 行，已补 5 行 + CDC 注 + 0x190。
 - **未测照录**：0x2D 构建/综合/时序/资源/布后门正读数；板级 W83..W87 相干性与 `TO_CYCLES` 触发；0x2C 裸 CDC 是否真读出过位混（未上板，未观测到 ≠ 不存在）；F-21 时序代价（约 320 FF 复活）；`f3_resync` 瞬态根因。
 - **下一棒 = review-fix 轮**（kimi 6 项：F-4 对称性/`ΔW45`、F-2 附录 E 残句、K-1、中 1 G4 RAMB 门、低 8 文档、0x2C 收集器）→ 0x2D 构建（`TO_CYCLES` 值待用户确认）→ 板级 P2。
+
+## §10-144 2026-10-18 17:0x：**TO_CYCLES 最终裁定 = 4096**（用户「回 4096」；0xFFFF 方案撤销）
+- **理由**：4096 拍 = 26.2 µs @156.25 MHz = 最大帧时间（~1.21 µs / ~190 拍）的 **21.5×**，误触发风险已可忽略；0xFFFF（419.4 µs）无实测收益，只把停钟口的跨口黑窗放大 16×（约 21 帧/~32 KB → 345 帧/~524 KB）。kimi 下批审查点（阈值偏离 4096）由此关闭。
+- **落点**：review-fix agent 在 `OPEN_ITEMS` §0-68 与 `DESIGN_v2r1` 附录 E 写最终值 4096（已发消息）；**`board/wrapper_p4.v` 的 `.TO_CYCLES(16'hFFFF)` → `.TO_CYCLES(4096)` 由 TL 在 review-fix 收口后统一改**（避免与 agent 文件交集），改后跑 G2/G6（wrapper 级）再提交；0x2D 构建用 4096。
+- **回退面**：一行；模块参数默认仍 0（关），只有 wrapper 显式传值。
+
+## §10-145 2026-10-18 17:1x：**kimi 人读层 README 修复已入 master**（`da70b2ac`，作者 ZhengXueyuan，2026-10-18 15:24）—— **remote = local 已核**；下次提交自然在其上，无需单独处理
+- 内容：`README.md` 恢复「协议功能全景」节（表格化：协议 × 分层 × 实现位置 × 范围与状态；`docs/modules.md` §7 对根 README 该节的引用重新生效），+16 行，仅 `README.md`。
+- 审查队列已登记为 Tier A「已审（kimi 自行落笔；remote=local 已核）」。
+- review-fix 轮仍在跑（其工作树改动未提交）；最终提交将以 `da70b2ac` 为父，TO_CYCLES=4096 一行在收口后由 TL 改，随后一并推送。
+
+## §10-146 2026-10-18 17:4x：**kimi 审查回灌 review-fix 轮收口**（`p11_reviewfix_20261018/FIX_REPORT.md` + `gates/` 42 件）—— 6 组全部处置；矩阵 24/24（0xFFFF 时点）；**G4 碰撞实际 9 条（非 10，G4 9 + G6 1 = 10）**；TL 已改 TO_CYCLES=4096 并重跑矩阵
+- **F-4 对称性**：P2-2 ch1 `ΔW45(字)` 已删（与 ch0 `sat16(ovf)` 同语义 = AXIS 反压拍数、非丢字、会饱和）；ch1 现行式 = `ΔW21(帧) + INFLIGHT_MAX_FRAMES`；P2-4 "W86 高半应恒 0" 已加 errata 指针；H-8/N-7/§N.1 同步；`OPEN_ITEMS` §0-69 标用户已确认、§0-68 写 4096（0xFFFF 已否 + 理由）。
+- **F-2 附录 E**：`:972` 改为"merge 例化只受 `DUAL_SFP_A` 门控；`DUAL_SFP_A ∧ ¬DP_156MHZ` 被硬门拒绝、不在构建矩阵"；源码 `wrapper_p4.v:310` + G7 c11 签名核对。
+- **K-1**：`tb/tb_udp_tx_guard.v:183` 补 `.peer_my_ip(32'h0)`；门 `P5E-T2 GUARD GATE: OK` RC=0。
+- **中 1（G4 RAMB）**：**计数订正 = G4 9 条（`u_dut.u_wf` 8 + `u_small.u_wf` 1），G6 1 条；kimi 的"G4 10"是两日志合计**。逐例判定 = `frame_fifo` SDP bypass 同址碰撞、良性（`bypass = wr_ok && (rptr_n==wptr)`、写成功、DOA 被 `bypass_r/din_r` 掩掉）；BYPDBG 监视器给出 **9 个 bypass 事件 ↔ 9 条碰撞（≤0.4 ns 量化差）、每例 `wptr==rptr`、计数 8/1 精确**；`unit_fifo` `PASS_ALL`。统一硬门 `scan_xsim_errors.py` 接入 G2/G3/G4/G6；3 条合成负控 RC=1；四门重跑 G2/G3 `allowed=0`、G4 `allowed=9`、G6 `allowed=1`，全 RC=0。
+- **低 8**：①指纹方向订正（`tb_tx_split.v` 确在指纹内）②时刻订正（F-1=10:37:40；G6 11:05:54/11:06:31 分属两文件）③`f6_f20_static_lines.txt` 当前树重生成 ④`g5_run.log` 4 处幽灵命令披露（重跑 0 命中）⑤F-17 降为"归一化后相同、不可复验" ⑥`$isunknown`→`is_xz1` 加注 ⑦G7/G8 编号统一 ⑧**F-7 X/Z 负控有牙**：`force u_cfg.o_port=1'bz` ⇒ `[FAIL] P11 H-1: X/Z…` + `GATE: FAIL errs=10`，包装器 `XZNEG_NEGCTL_OK`。
+- **0x2C 收集器**：只扫 `synth_1/runme.log`（回退排除 `#` 行）；重跑 **`black box = 0 / 8-3491 = 0`**；位流 sha 复核 `e92f588b…d6be` 一致。
+- **矩阵（review-fix 时点，wrapper 仍 0xFFFF）**：24/24 EXIT=0、gates failed 0、FROZEN 341 文件、content DIGEST `84c9a337…09780`、14:54:08–15:24:15；**BEFORE HEAD=98fa8e1c / AFTER HEAD=da70b2ac**（kimi README 提交在跑动中进入；content DIGEST before=after，FROZEN 绑定内容而非 HEAD）。
+- **两条如实登记**：`elab_gate_out.txt` 是 08:52 陈旧件（12 组合、c8 无 `SFP2_MODE_A`）⇒ TL 已改名 `elab_gate_out.STALE_0852.txt`；权威 = stdout/矩阵（13 组合）。`scan_xsim_errors.py` / `tb_app_udp.v` / `run_tb_app_udp.bat` / `tb_udp_tx_guard.v` / `run_tb_udp_tx_guard.bat` **原不在矩阵指纹** ⇒ TL 已把它们加进 `sim/p4gates/paths.txt` 的 `FINGERPRINT_GLOBS`（用 `_proj_10g\p11_dual\sim\*.py` + 4 个显式路径）。
+- **TL 收口动作（已做）**：`board/wrapper_p4.v:1188` `.TO_CYCLES(16'hFFFF)` → **`4096`**；陈旧 elab 件改名；paths.txt 补指纹；**全矩阵重跑完成 = 24/24 EXIT=0、gates failed 0、FROZEN 346 文件**（新增 5 个指纹件）、content DIGEST **`bde7cd76…2e08`**、BEFORE HEAD=`da70b2ac` / AFTER HEAD=`0b9b7c89`、15:57:31；BEFORE/AFTER 的 legacy digest 同值 `b518ceae…81e5` ⇒ 跑动期间内容未变。
+- **kimi README 追加两条**（`25c11d02`「数据通路（数据流一览）」/ `0b9b7c89` 纵向流程图）—— **作者 ZhengXueyuan，remote=local 已核（origin/master=`0b9b7c89`）**；矩阵内容指纹 before=after，未触及被指纹文件。
+- **未测照录**：0x2D 构建/综合/时序/布后门正读数；板级 W83..W87 与看门狗触发；`scan_xsim_errors.py` 的合成负控不覆盖真实 RTL 错误。

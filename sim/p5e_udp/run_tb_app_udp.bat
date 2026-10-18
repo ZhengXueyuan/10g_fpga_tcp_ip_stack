@@ -43,6 +43,10 @@ REM (reproduces the T2 config where UDP can never learn a peer).
 REM EXPECTED RESULT: gate FAILS (exit 1). A pass here means the positive
 REM criteria are not actually gated by learn-on-RX => zero discriminating power.
 if /i "%MODE%"=="neglearn" set TPA=-testplusarg NEGLEARN
+REM xzneg (P11 review-fix F-7 negative control): force u_cfg.o_port to Z for
+REM 10 clk after reset+200 clk. EXPECTED RESULT: the runtime X/Z assertion fires,
+REM [FAIL] P11 H-1 appears and the gate line is FAIL. Green here = no teeth.
+if /i "%MODE%"=="xzneg" set TPA=-testplusarg XZNEG
 
 if exist xsim.dir rmdir /s /q xsim.dir
 call %XV%\xvlog.bat -work xil_defaultlib ^
@@ -60,6 +64,15 @@ call %XV%\xelab.bat -debug typical -L unisims_ver xil_defaultlib.tb_app_udp xil_
 findstr /I /C:"Synth 8-11241" /C:"undeclared symbol" /C:"VRFC 10-3091] actual bit length 1 differs from formal bit length" /C:"VRFC 10-2989" /C:"implicitly declared" xelab_ua.log > NUL
 if not errorlevel 1 (echo ERROR: implicit wire declaration in xelab: & findstr /I /C:"Synth 8-11241" /C:"undeclared symbol" /C:"VRFC 10-3091] actual bit length 1 differs from formal bit length" /C:"VRFC 10-2989" /C:"implicitly declared" xelab_ua.log & exit /b 1)
 call %XV%\xsim.bat tb_app_udp -runall %TPA% -log xsim_ua_%MODE%.log > NUL 2>&1 || (type xsim_ua_%MODE%.log & exit /b 1)
+
+REM ---- P11 review-fix F-7: negative control verdict (expected RED) ----
+if /i "%MODE%"=="xzneg" (
+  findstr /C:"P11 H-1: X/Z" xsim_ua_%MODE%.log >NUL || (echo XZNEG-ASSERTION-NOT-FIRED & exit /b 1)
+  findstr /C:"P5E UDP APP GATE: OK" xsim_ua_%MODE%.log >NUL && (echo XZNEG-UNEXPECTED-PASS & exit /b 1)
+  findstr /C:"P5E UDP APP GATE: FAIL" xsim_ua_%MODE%.log >NUL || (echo XZNEG-NO-FAIL-LINE & exit /b 1)
+  echo XZNEG_NEGCTL_OK -- runtime X/Z assertion fired and gate went RED
+  exit /b 0
+)
 
 findstr /C:"P5E UDP APP GATE: OK" xsim_ua_%MODE%.log > NUL
 if errorlevel 1 (echo ---- FAIL detail [%MODE%]: & findstr /C:"FAIL" xsim_ua_%MODE%.log & exit /b 1)

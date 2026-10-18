@@ -1,0 +1,5 @@
+[P4GUARD OK] root=d:\repo\xcku5pmini\udp_hls_10g self=d:\repo\xcku5pmini\udp_hls_10g manifests=12
+XSIM_ERROR_SCAN log=xsim_slowport.log mode=slowport lines=79 allowed=9 violations=0
+XSIM_BENIGN_E1_RAMB36E1 count=9 -- frame_fifo SDP bypass same-address (rtl/frame_fifo.v; masked by bypass_r)
+SLOW_TX_PORT TB PASS
+SLOW_TX_PORT_GATE_PASS

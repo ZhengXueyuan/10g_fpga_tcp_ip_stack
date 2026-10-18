@@ -1,5 +1,8 @@
-# F-6/F-20 static key lines (build script not executed this round)
-## build_p7b_ku5p.tcl
+# F-6/F-20 static key lines -- REGENERATED 2026-10-18 (kimi review-fix)
+# Re-extracted from the CURRENT files (the previous copy quoted the pre-ASCII-cleanup
+# bat: line numbers and the module-missing check differed; the check is now /B-anchored).
+# Build script still NOT executed in this round. Line numbers are 1-based, current tree.
+## board/build_p7b_ku5p.tcl
 36:proc p7b_ps_sha256 {f} {
 49:        set h [p7b_ps_sha256 $f]
 50:        puts "P7B_HASH_FILE $h $f"
@@ -15,18 +18,28 @@
 363:            if {$bb_hits <= 20} { puts "P7B_BLACKBOX_LOG_HIT $line" }
 368:puts "P7B_BLACKBOX_LOG_HITS = $bb_hits"
 370:    puts "P7B_VERDICT = BLACKBOX_LOG_HIT"
-420:puts "P7B_VERDICT = OK"
+400:#   失败 = `P7B_SNAP_TOP5_CDC_MISSING` / `P7B_SNAP_TOP5_FANOUT_BAD` + exit 1。
+401:sec "P7B_SNAP_TOP5_CDC"
+412:    puts "P7B_SNAP_TOP5_SLOT slot=$s bits=$lo..$hi cells=$nc"
+416:    puts "P7B_SNAP_TOP5_CDC_MISSING slots_with_zero_cells=$top5_bad"
+419:puts "P7B_SNAP_TOP5_SLOTS_OK = 5"
+422:    puts "P7B_SNAP_TOP5_FANOUT_BAD pin_not_found tx_p0_frames_r_reg\[0\]/Q"
+435:puts "P7B_SNAP_TOP5_FANOUT tx_p0_frames_r_reg\[0\]/Q loads=[llength $f_loads] hold_b=$f_hb snap_din=$f_sd"
+437:    puts "P7B_SNAP_TOP5_FANOUT_BAD hold_b=$f_hb snap_din=$f_sd"
+440:puts "P7B_SNAP_TOP5_FANOUT_OK"
+470:puts "P7B_VERDICT = OK"
 
-## run_build_p7b_ku5p.bat
+## board/run_build_p7b_ku5p.bat
 63:set "VRC=%ERRORLEVEL%"
-68:REM   成功 = ① rc==0 **且** ② 日志里 `P7B_VERDICT = OK` **且** ③ 四个已知失败文本一个都不在。
 69:set "TRIP=0"
 70:findstr /I /C:"12-4739" p7b_ku5p_stdout.txt >NUL && (echo DROPPED-CONSTRAINT-FAIL & findstr /I /C:"12-4739" p7b_ku5p_stdout.txt & set "TRIP=1")
 71:findstr /I /C:"Synth 8-11241" /C:"undeclared symbol" /C:"VRFC 10-3091] actual bit length 1 differs from formal bit length" /C:"VRFC 10-2989" /C:"implicitly declared" p7b_ku5p_stdout.txt >NUL && (echo IMPLICIT-NET-FAIL & findstr /I /C:"Synth 8-11241" /C:"undeclared symbol" /C:"VRFC 10-3091] actual bit length 1 differs from formal bit length" /C:"VRFC 10-2989" /C:"implicitly declared" p7b_ku5p_stdout.txt & set "TRIP=1")
 72:findstr /I /C:"NSTD-1" /C:"UCIO-1" /C:"AVAL-326" /C:"Opt 31-155" /C:"Opt 31-67" /C:"Route 35-7" p7b_ku5p_stdout.txt >NUL && (echo DRC-KEY-FAIL & findstr /I /C:"NSTD-1" /C:"UCIO-1" /C:"AVAL-326" /C:"Opt 31-155" /C:"Opt 31-67" /C:"Route 35-7" p7b_ku5p_stdout.txt & set "TRIP=1")
 73:findstr /B /C:"P7B_VERDICT = SYNTH_FAIL" /C:"P7B_VERDICT = HLS_HASH_FAIL" /C:"P7B_VERDICT = BLACKBOX_LOG_HIT" /C:"P7B_VERDICT = BITSTREAM_MISSING" p7b_ku5p_stdout.txt >NUL && (echo P7B-VERDICT-FAIL & findstr /B /C:"P7B_VERDICT = SYNTH_FAIL" /C:"P7B_VERDICT = HLS_HASH_FAIL" /C:"P7B_VERDICT = BLACKBOX_LOG_HIT" /C:"P7B_VERDICT = BITSTREAM_MISSING" p7b_ku5p_stdout.txt & set "TRIP=1")
-74:findstr /C:"P7B_MODULE_MISSING_OR_BLACKBOX" p7b_ku5p_stdout.txt >NUL && (echo P7B-MODULE-MISSING-OR-BLACKBOX & set "TRIP=1")
-75:findstr /B /C:"P7B_VERDICT = OK" p7b_ku5p_stdout.txt >NUL || (echo P7B-VERDICT-OK-MISSING & set "TRIP=1")
-76:if not "%VRC%"=="0" (echo BUILD-RC-FAIL=%VRC% & set "TRIP=1")
-79:findstr /B /C:"HLS_SRC_HASH" /C:"HLS_NET_HASH" /C:"P7B_BLACKBOX_LOG_HITS" /C:"P7B_MODULE_RESOLVED" /C:"P7B_BLACKBOX_COUNT" /C:"P7B_WNS" /C:"P7B_WHS" /C:"P7B_WPWS" /C:"P7B_BIT_EXISTS" /C:"P7B_VERDICT" /C:"P7B_CONVERGED_AT_ROUND" /C:"P7B_IS_LOCKED_POSTGEN" /C:"P7B DONE" p7b_ku5p_stdout.txt
-81:if not "%TRIP%"=="0" (echo BUILD-GATE-FAIL & exit /b 1)
+77:findstr /B /C:"P7B_MODULE_MISSING_OR_BLACKBOX" p7b_ku5p_stdout.txt >NUL && (echo P7B-MODULE-MISSING-OR-BLACKBOX & set "TRIP=1")
+79:findstr /B /C:"P7B_SNAP_TOP5_CDC_MISSING" /C:"P7B_SNAP_TOP5_FANOUT_BAD" p7b_ku5p_stdout.txt >NUL && (echo P7B-SNAP-TOP5-CDC-FAIL & findstr /B /C:"P7B_SNAP_TOP5_CDC_MISSING" /C:"P7B_SNAP_TOP5_FANOUT_BAD" p7b_ku5p_stdout.txt & set "TRIP=1")
+80:findstr /B /C:"P7B_VERDICT = OK" p7b_ku5p_stdout.txt >NUL || (echo P7B-VERDICT-OK-MISSING & set "TRIP=1")
+81:if not "%VRC%"=="0" (echo BUILD-RC-FAIL=%VRC% & set "TRIP=1")
+84:findstr /B /C:"HLS_SRC_HASH" /C:"HLS_NET_HASH" /C:"P7B_BLACKBOX_LOG_HITS" /C:"P7B_MODULE_RESOLVED" /C:"P7B_BLACKBOX_COUNT" /C:"P7B_WNS" /C:"P7B_WHS" /C:"P7B_WPWS" /C:"P7B_BIT_EXISTS" /C:"P7B_VERDICT" /C:"P7B_CONVERGED_AT_ROUND" /C:"P7B_IS_LOCKED_POSTGEN" /C:"P7B DONE" p7b_ku5p_stdout.txt
+85:findstr /B /C:"P7B_SNAP_TOP5_" p7b_ku5p_stdout.txt
+87:if not "%TRIP%"=="0" (echo BUILD-GATE-FAIL & exit /b 1)

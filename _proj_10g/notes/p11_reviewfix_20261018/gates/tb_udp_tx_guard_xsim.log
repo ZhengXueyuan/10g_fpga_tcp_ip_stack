@@ -1,0 +1,45 @@
+#-----------------------------------------------------------
+# xsim v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Sun Oct 18 14:48:46 2026
+# Process ID         : 27188
+# Current directory  : D:/repo/XCKU5PMini/udp_hls_10g/sim/p5e_t2
+# Command line       : xsim.exe -log xsim_g.log -mode tcl -source {xsim.dir/tb_udp_tx_guard/xsim_script.tcl}
+# Log file           : D:/repo/XCKU5PMini/udp_hls_10g/sim/p5e_t2/xsim_g.log
+# Journal file       : D:/repo/XCKU5PMini/udp_hls_10g/sim/p5e_t2\xsim.jou
+# Running On         : xyz-intel
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26300
+# Processor Detail   : Intel(R) Core(TM) Ultra 7 265K
+# CPU Frequency      : 3878 MHz
+# CPU Physical cores : 20
+# CPU Logical cores  : 20
+# Host memory        : 68053 MB
+# Swap memory        : 4294 MB
+# Total Virtual      : 72348 MB
+# Available Virtual  : 37686 MB
+#-----------------------------------------------------------
+source xsim.dir/tb_udp_tx_guard/xsim_script.tcl
+# xsim {tb_udp_tx_guard} -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+P5E-T2 GUARD: 拍流 927 拍, 期望上线 6 帧
+  帧 0: len=74 (期望 74) dst_mac=112233445566 dst_ip=c0a86401
+    [dbg] ip_csum=315d udp_csum=aff0 区域折叠和=ffff
+  帧 1: len=1542 (期望 1542) dst_mac=112233445566 dst_ip=c0a86401
+    [dbg] ip_csum=2ba0 udp_csum=d99d 区域折叠和=ffff
+  帧 2: len=106 (期望 106) dst_mac=112233445566 dst_ip=c0a86401
+    [dbg] ip_csum=3139 udp_csum=65f6 区域折叠和=ffff
+  帧 3: len=142 (期望 142) dst_mac=112233445566 dst_ip=c0a86401
+    [dbg] ip_csum=3114 udp_csum=7742 区域折叠和=ffff
+  帧 4: len=142 (期望 142) dst_mac=aabbccddeeff dst_ip=c0a8647f
+    [dbg] ip_csum=3095 udp_csum=cd1a 区域折叠和=ffff
+  帧 5: len=42 (期望 42) dst_mac=aabbccddeeff dst_ip=c0a8647f
+    [dbg] ip_csum=30f8 udp_csum=76e9 区域折叠和=ffff
+    [dbg] neg: nqi=256 s_ready=0 fifo_full=1 state=0 nfifo_occ=256
+P5E-T2 GUARD GATE: OK (frames=6 drop_len=2 deny=2 neg_fifo_occ=256 neg_sready=0)
+$finish called at time : 48684 ns : File "D:/repo/XCKU5PMini/udp_hls_10g/tb/tb_udp_tx_guard.v" Line 464
+exit
+INFO: [Common 17-206] Exiting xsim at Sun Oct 18 14:48:48 2026...

@@ -97,11 +97,25 @@ for ln in so.splitlines():
                       "P7B_VERDICT", "P7B_CONVERGED_AT_ROUND", "P7B_IS_LOCKED_POSTGEN",
                       "P7B_XDMA_VERDICT", "P7B_NFILES", "P7B DONE")):
         out.append(ln)
-out.append("# --- hard gate hits (whole stdout) ---")
+# --- hard gate hits ---------------------------------------------------------
+# 2026-10-18 review-fix (kimi): the old code scanned the WHOLE board stdout, so
+# the Tcl source echo line
+#     #         if {[regexp -nocase {black box|8-3491} $line]} {
+# counted as a "hit" (black box=1 / 8-3491=1) although the real gate line said
+# P7B_BLACKBOX_LOG_HITS = 0.  Scan ONLY the synth log; if it is unavailable,
+# fall back to the board stdout with '#'-prefixed (source-echo) lines excluded.
+syn_log_p = os.path.join(SYN, "runme.log")
+if os.path.exists(syn_log_p):
+    hg_text = io.open(syn_log_p, encoding="utf-8", errors="replace").read()
+    hg_src = "synth_1/runme.log"
+else:
+    hg_text = "\n".join(ln for ln in so.splitlines() if not ln.lstrip().startswith("#"))
+    hg_src = "board stdout (lines starting with '#' excluded = source echo excluded)"
+out.append("# --- hard gate hits (%s) ---" % hg_src)
 for key in ("12-4739", "Synth 8-11241", "undeclared symbol",
             "VRFC 10-3091] actual bit length 1 differs from formal bit length",
             "VRFC 10-2989", "implicitly declared", "black box", "8-3491"):
-    out.append("%s = %d" % (key, so.lower().count(key.lower()) if key in ("black box",) else so.count(key)))
+    out.append("%s = %d" % (key, hg_text.lower().count(key.lower()) if key in ("black box",) else hg_text.count(key)))
 out.append("# --- three failure endpoint classes (timing summary tail) ---")
 tsl = tsum.splitlines()
 for i, ln in enumerate(tsl):

@@ -57,6 +57,28 @@ module tb_slow_tx_port;
         .o_port(o_port_s), .stat_side_ovf(sfo_s_unused), .side_level(lvl_s)
     );
 
+    // ---- P11 review-fix (2026-10-18): frame_fifo SDP bypass monitor (diagnostic) ----
+    //   `bypass = wr_ok && (rptr_n == wptr)` is the ONLY cycle in frame_fifo in
+    //   which the RAM write address and the read-capture address coincide.
+    //   Count it per instance; with -testplusarg BYPDBG also dump each event so
+    //   the 9 unisim "Memory Collision Error on RAMB36E1" events can be mapped
+    //   1:1 to real bypass cycles (model compares addra_reg vs ADDRB).
+    reg     byp_dbg;
+    integer byp_dut = 0, byp_small = 0;
+    initial byp_dbg = $test$plusargs("BYPDBG");
+    always @(posedge clk) begin
+        if (rst_n && u_dut.u_wf.bypass) begin
+            byp_dut <= byp_dut + 1;
+            if (byp_dbg) $display("[BYPASS] u_dut.u_wf   t=%0t wptr=%0d rptr=%0d",
+                                  $time, u_dut.u_wf.wptr, u_dut.u_wf.rptr);
+        end
+        if (rst_n && u_small.u_wf.bypass) begin
+            byp_small <= byp_small + 1;
+            if (byp_dbg) $display("[BYPASS] u_small.u_wf t=%0t wptr=%0d rptr=%0d",
+                                  $time, u_small.u_wf.wptr, u_small.u_wf.rptr);
+        end
+    end
+
     // 输出侧记录每帧 o_port (帧首拍)
     always @(posedge clk) begin
         if (m_tv && m_tr && m_tl) begin
@@ -171,6 +193,7 @@ module tb_slow_tx_port;
         chk(u_small.side_level != u_small.committed, "G: side_level != committed (invariant violated as expected)");
         m_tr = 1'b1; m_tr_s = 1'b1;
 
+        $display("BYPASS_COUNT u_dut.u_wf=%0d u_small.u_wf=%0d", byp_dut, byp_small);
         if (errs==0) $display("SLOW_TX_PORT TB PASS");
         else         $display("SLOW_TX_PORT TB FAIL errs=%0d", errs);
         $finish;
