@@ -3,10 +3,18 @@
 // retx_pool_shared.v — P11 P3 (C4): 共享 8 槽 TCP 重传环 (128 tile)
 //=============================================================================
 // 设计件 §4.7: 8 x retx_ram #(.N(1)) + per-slot owner mux。
-//   · 每槽只有一个属主口 (`slot_port[slot]`, 建连时由 slow_cfg_demux 写入),
-//     连接存活期内不迁移 ⇒ 每槽 1 写 + 1 读, 无同槽双写。
+//   · 每槽只有一个属主口。属主 = `grant_port[slot]` —— **来自 win_pool_mgr**
+//     (ev_up 时更新), **不是** slow_cfg_demux 的 `slot_port`。
+//     ⭐ H-2 (P3 修复轮): `slow_cfg_demux` 在 ADD 路由拍就翻转 `slot_port`,
+//     早于旧口 TCB 拆除完成; 若用它会在这个窗口里把旧口的 retx 读写判成
+//     非属主 ⇒ 旧口重传读陈旧数据/写被丢弃。`grant_port` 在 ev_up 时更新:
+//     旧口在 ev_up 前仍属主, 新口 ev_up 后接管。
+//     `slot_port` 只用于 cfg DEL 路由 (慢路径), 不进本模块。
 //   · 两口访问不同槽天然并行; 同槽访问在 owner 守卫下**结构性不可能**
 //     (非属主访问被丢弃并计 stat_retx_owner_mismatch —— 不损坏数据)。
+//   · 非属主**读**的 r_data 输出清零 (M-2/H-2: 不给下游陈旧数据; 旧实装
+//     会把该槽 RAM 的旧内容送出去)。authorization 在**发起读的那一拍**采样,
+//     与 2 拍读延迟同管道对齐。
 //   · slot >= 8 的访问被丢弃并计 stat_slot_oor (cfg demux 已在上游守卫)。
 //
 // 读延迟: 与 retx_ram 相同 (rd_en 拍后 2 拍出数)。本模块在入口寄存读者槽号
@@ -17,8 +25,8 @@
 module retx_pool_shared (
     input  wire        clk,
     input  wire        rst_n,
-    // ---- 槽属主映射 (1 = port1/ch0; 0 = port0/ch1) ----
-    input  wire [7:0]  slot_port,
+    // ---- 槽属主映射 (1 = port1/ch0; 0 = port0/ch1) —— win_pool_mgr.o_grant_port ----
+    input  wire [7:0]  grant_port,
     // ---- port0 引擎 (tcp_tx_frame #0 的 EXTERNAL_RETX 端口) ----
     input  wire        wr_en0,
     input  wire [3:0]  w_conn0,
@@ -45,18 +53,30 @@ module retx_pool_shared (
 );
     genvar gi;
 
-    // 读者槽号延迟 (与 retx_ram 的 2 拍读延迟对齐)
+    // 读者槽号 / 读授权延迟 (与 retx_ram 的 2 拍读延迟对齐)
     reg  [3:0] rd0_slot_d1, rd0_slot_d2;
     reg  [3:0] rd1_slot_d1, rd1_slot_d2;
+    reg        rd0_ok_d1, rd0_ok_d2;
+    reg        rd1_ok_d1, rd1_ok_d2;
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             rd0_slot_d1 <= 4'd0; rd0_slot_d2 <= 4'd0;
             rd1_slot_d1 <= 4'd0; rd1_slot_d2 <= 4'd0;
+            rd0_ok_d1 <= 1'b0; rd0_ok_d2 <= 1'b0;
+            rd1_ok_d1 <= 1'b0; rd1_ok_d2 <= 1'b0;
         end else begin
-            if (rd_en0) rd0_slot_d1 <= r_conn0;
-            if (rd_en1) rd1_slot_d1 <= r_conn1;
+            if (rd_en0) begin
+                rd0_slot_d1 <= r_conn0;
+                rd0_ok_d1   <= (r_conn0 < 4'd8) && (grant_port[r_conn0] == 1'b0);
+            end
+            if (rd_en1) begin
+                rd1_slot_d1 <= r_conn1;
+                rd1_ok_d1   <= (r_conn1 < 4'd8) && (grant_port[r_conn1] == 1'b1);
+            end
             rd0_slot_d2 <= rd0_slot_d1;
             rd1_slot_d2 <= rd1_slot_d1;
+            rd0_ok_d2   <= rd0_ok_d1;
+            rd1_ok_d2   <= rd1_ok_d1;
         end
     end
 
@@ -64,11 +84,11 @@ module retx_pool_shared (
     wire [63:0] s_rdata [0:7];
     generate
         for (gi = 0; gi < 8; gi = gi + 1) begin : g_slot
-            wire       wr0_ok = wr_en0 && (w_conn0 == gi[3:0]) && (slot_port[gi] == 1'b0);
-            wire       wr1_ok = wr_en1 && (w_conn1 == gi[3:0]) && (slot_port[gi] == 1'b1);
-            wire       rd0_ok = rd_en0 && (r_conn0 == gi[3:0]) && (slot_port[gi] == 1'b0);
-            wire       rd1_ok = rd_en1 && (r_conn1 == gi[3:0]) && (slot_port[gi] == 1'b1);
-            // wr0_ok 与 wr1_ok 互斥 (slot_port 只有一位) ⇒ 无需写仲裁
+            wire       wr0_ok = wr_en0 && (w_conn0 == gi[3:0]) && (grant_port[gi] == 1'b0);
+            wire       wr1_ok = wr_en1 && (w_conn1 == gi[3:0]) && (grant_port[gi] == 1'b1);
+            wire       rd0_ok = rd_en0 && (r_conn0 == gi[3:0]) && (grant_port[gi] == 1'b0);
+            wire       rd1_ok = rd_en1 && (r_conn1 == gi[3:0]) && (grant_port[gi] == 1'b1);
+            // wr0_ok 与 wr1_ok 互斥 (grant_port 只有一位) ⇒ 无需写仲裁
             wire       wr_s   = wr0_ok | wr1_ok;
             wire [15:0] wseq_s = wr0_ok ? w_seq0 : w_seq1;
             wire [63:0] wdat_s = wr0_ok ? w_data0 : w_data1;
@@ -85,7 +105,7 @@ module retx_pool_shared (
         end
     endgenerate
 
-    // 出数选择 (按 2 拍前的读者槽号)
+    // 出数选择 (按 2 拍前的读者槽号); 非授权读输出 0 (不给陈旧数据)
     reg [63:0] rd0_mux, rd1_mux;
     integer mi;
     always @(*) begin
@@ -96,18 +116,18 @@ module retx_pool_shared (
             if (rd1_slot_d2 == mi[3:0]) rd1_mux = s_rdata[mi];
         end
     end
-    assign r_data0 = rd0_mux;
-    assign r_data1 = rd1_mux;
+    assign r_data0 = rd0_ok_d2 ? rd0_mux : 64'd0;
+    assign r_data1 = rd1_ok_d2 ? rd1_mux : 64'd0;
 
     // ---- 守卫与观测 ----
     wire wr0_oor = wr_en0 && (w_conn0 >= 4'd8);
     wire wr1_oor = wr_en1 && (w_conn1 >= 4'd8);
     wire rd0_oor = rd_en0 && (r_conn0 >= 4'd8);
     wire rd1_oor = rd_en1 && (r_conn1 >= 4'd8);
-    wire wr0_mis = wr_en0 && (w_conn0 < 4'd8) && (slot_port[w_conn0] != 1'b0);
-    wire wr1_mis = wr_en1 && (w_conn1 < 4'd8) && (slot_port[w_conn1] != 1'b1);
-    wire rd0_mis = rd_en0 && (r_conn0 < 4'd8) && (slot_port[r_conn0] != 1'b0);
-    wire rd1_mis = rd_en1 && (r_conn1 < 4'd8) && (slot_port[r_conn1] != 1'b1);
+    wire wr0_mis = wr_en0 && (w_conn0 < 4'd8) && (grant_port[w_conn0] != 1'b0);
+    wire wr1_mis = wr_en1 && (w_conn1 < 4'd8) && (grant_port[w_conn1] != 1'b1);
+    wire rd0_mis = rd_en0 && (r_conn0 < 4'd8) && (grant_port[r_conn0] != 1'b0);
+    wire rd1_mis = rd_en1 && (r_conn1 < 4'd8) && (grant_port[r_conn1] != 1'b1);
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin

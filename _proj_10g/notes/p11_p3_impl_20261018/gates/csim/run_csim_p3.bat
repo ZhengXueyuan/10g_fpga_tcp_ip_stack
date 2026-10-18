@@ -8,6 +8,7 @@ set REPO=%~dp0..\..\..\..\..\
 pushd "%REPO%"
 set VCV="C:\Program Files\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvars64.bat"
 set HLSINC=C:\AMDDesignTools\2025.2\Vitis\include
+if not defined PY set "PY=C:\Users\zhxue\anaconda3\python.exe"
 set MAX=%1
 if "%MAX%"=="" set MAX=8
 set DUAL=%2
@@ -24,8 +25,11 @@ if errorlevel 1 (
 )
 "%HERE%csim_max%MAX%_dual%DUAL%.exe" > "%HERE%out_max%MAX%_dual%DUAL%.txt" 2>&1
 set RC=%ERRORLEVEL%
-echo [CSIM %MAX%/%DUAL%] RC=%RC%
+echo [CSIM %MAX%/%DUAL%] RC=%RC% (expected 1: 3 baseline XFAILs)
 findstr /C:"P11_SUMMARY" "%HERE%out_max%MAX%_dual%DUAL%.txt"
 findstr /C:"FAIL:" "%HERE%out_max%MAX%_dual%DUAL%.txt"
+REM M-2: criterion = FAIL set == 3 P2 baseline XFAILs (unexpected => nonzero).
+"%PY%" "%HERE%check_csim.py" --out "%HERE%out_max%MAX%_dual%DUAL%.txt"
+set CK=%ERRORLEVEL%
 popd
-exit /b %RC%
+exit /b %CK%

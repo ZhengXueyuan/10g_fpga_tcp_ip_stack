@@ -8,9 +8,13 @@ call "%~dp0..\..\..\..\..\sim\p4gates\p4env.bat" || exit /b 1
 set "ROOT=%REPO_ROOT%"
 if not "%P4_WORKDIR%"=="" (cd /d "%P4_WORKDIR%") else (cd /d %~dp0)
 "%PY%" "%P4GATE_PY%" checkpaths --root "%ROOT%" --path "%CD%" --quiet || exit /b 1
-set "DEFS=-d P7B_10G -d P7B_SIM_NOPCS -d PCIE_OBS -d DEV_USP -d APP_MODE -d DP_156MHZ -d P6B_SIM_CLKGEN -d UDP_TX_OVL -d TCP_TX_OVL -d SFP2_MODE_A -d DUAL_SFP_A -d P11_DUAL -d P11_CFG_C4 -d P11_CFG_ENFORCE"
-dir /b /s "%ROOT%\hls\slowstack_prj\solution1\syn\verilog\*.v" > hls_c4.f
-copy /y "%HLS%\*.dat" . >nul 2>&1
+set "DEFS=-d P7B_10G -d P7B_SIM_NOPCS -d PCIE_OBS -d DEV_USP -d APP_MODE -d DP_156MHZ -d P6B_SIM_CLKGEN -d UDP_TX_OVL -d TCP_TX_OVL -d SFP2_MODE_A -d DUAL_SFP_A -d P11_DUAL -d P11_CFG_C4 -d P11_CFG_ENFORCE -d P11_HLS_ADV_WND"
+REM H-4: P3 archived netlist (MAX=8 + i_tcp_adv_wnd) + P11_HLS_ADV_WND (pairing hard check).
+set "HLS3=%ROOT%\_proj_10g\notes\p11_p3_build_20261019\hls_archive_p3_dual_ip_max8"
+if not exist "%HLS3%\udp_echo.v" (echo P11_HLS_P3_ARCHIVE_MISSING & echo P11_C4_ELAB FAIL & exit /b 1)
+findstr /C:"i_tcp_adv_wnd" "%HLS3%\udp_echo.v" >nul || (echo P11_HLS_PORT_MISSING & echo P11_C4_ELAB FAIL & exit /b 1)
+dir /b /s "%HLS3%\*.v" > hls_c4.f
+copy /y "%HLS3%\*.dat" . >nul 2>&1
 call %XV%\xvlog.bat -sv -work xpm "%XV%\..\data\ip\xpm\xpm_memory\hdl\xpm_memory.sv" > xvlog_xpm_c4.log 2>&1 || (type xvlog_xpm_c4.log & exit /b 1)
 call %XV%\xvlog.bat -work xil_defaultlib %DEFS% -i %ROOT%\rtl -i %ROOT%\board ^
   %ROOT%\rtl\app_ctrl.v %ROOT%\rtl\app_pattern.v %ROOT%\rtl\app_rx_mirror.v ^

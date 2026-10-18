@@ -4,12 +4,15 @@ cd /d %~dp0
 call "%~dp0..\..\..\..\..\sim\p4gates\p4env.bat" || exit /b 1
 set "ROOT=%REPO_ROOT%"
 set "APC=%ROOT%\rtl\app_ctrl.v"
+set "WPM=%ROOT%\rtl\win_pool_mgr.v"
 set "TAG=def"
 if not "%~1"=="" set "APC=%~1"
-if not "%~1"=="" set "TAG=mut"
+REM   arg2 (optional) = win_pool_mgr mutant (P3 fix: M-5/H-1 churn negctl)
+if not "%~2"=="" set "WPM=%~2"
+if not "%~1%%~2"=="" set "TAG=mut"
 if not "%P4_WORKDIR%"=="" (cd /d "%P4_WORKDIR%") else (cd /d %~dp0)
 "%PY%" "%P4GATE_PY%" checkpaths --root "%ROOT%" --path "%CD%" --quiet || exit /b 1
-call %XV%\xvlog.bat -work xil_defaultlib "%ROOT%\rtl\fifo_sync.v" "%ROOT%\rtl\win_pool_mgr.v" > xvlog_churn_%TAG%.log 2>&1 || (type xvlog_churn_%TAG%.log & exit /b 1)
+call %XV%\xvlog.bat -work xil_defaultlib "%ROOT%\rtl\fifo_sync.v" "%WPM%" > xvlog_churn_%TAG%.log 2>&1 || (type xvlog_churn_%TAG%.log & exit /b 1)
 if "%~1"=="" (
   call %XV%\xvlog.bat -work xil_defaultlib "%ROOT%\rtl\app_ctrl.v" >> xvlog_churn_%TAG%.log 2>&1 || (type xvlog_churn_%TAG%.log & exit /b 1)
 ) else (

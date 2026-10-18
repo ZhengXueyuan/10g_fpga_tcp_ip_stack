@@ -1,11 +1,12 @@
 @echo off
-REM G-P3-1 负控: 三个变异件必须让单元门变红.
+REM (non-ascii note removed; see FIX_REPORT)
+REM   c18/pcap/dup = existing; c18owner/stale = H-1 owner; m5single runs via churn negctl.
 setlocal
 cd /d %~dp0
 call "%~dp0..\..\..\..\..\sim\p4gates\p4env.bat" || exit /b 1
 "%PY%" "%~dp0mk_mut_wpm.py" || exit /b 1
 set "BAD=0"
-for %%M in (c18 pcap dup) do (
+for %%M in (c18 pcap dup c18owner stale) do (
   call "%~dp0run_tb_win_pool_mgr.bat" "%~dp0mut\win_pool_mgr_%%M.v" > "%~dp0negctl_wpm_%%M.log" 2>&1
   if errorlevel 1 (
     echo [NEGCTL OK] mutant %%M rejected

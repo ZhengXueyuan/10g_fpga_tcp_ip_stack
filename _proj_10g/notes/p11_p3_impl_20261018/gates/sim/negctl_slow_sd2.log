@@ -1,0 +1,38 @@
+[P4GUARD OK] root=d:\repo\xcku5pmini\udp_hls_10g self=d:\repo\xcku5pmini\udp_hls_10g manifests=21
+#-----------------------------------------------------------
+# xsim v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Mon Oct 19 03:39:45 2026
+# Process ID         : 36348
+# Current directory  : D:/repo/XCKU5PMini/udp_hls_10g/sim/p4gates/work_20261019_030550/p11_negctl_slow
+# Command line       : xsim.exe -log xsim_sd2.log -mode tcl -source {xsim.dir/tb_sd2/xsim_script.tcl}
+# Log file           : D:/repo/XCKU5PMini/udp_hls_10g/sim/p4gates/work_20261019_030550/p11_negctl_slow/xsim_sd2.log
+# Journal file       : D:/repo/XCKU5PMini/udp_hls_10g/sim/p4gates/work_20261019_030550/p11_negctl_slow\xsim.jou
+# Running On         : xyz-intel
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26300
+# Processor Detail   : Intel(R) Core(TM) Ultra 7 265K
+# CPU Frequency      : 3878 MHz
+# CPU Physical cores : 20
+# CPU Logical cores  : 20
+# Host memory        : 68053 MB
+# Swap memory        : 4294 MB
+# Total Virtual      : 72348 MB
+# Available Virtual  : 33661 MB
+#-----------------------------------------------------------
+source xsim.dir/tb_sd2/xsim_script.tcl
+# xsim {tb_sd2} -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+=== G-P3-4 slow_demux2 ===
+ FAIL:  port change stays on latched d0
+ FAIL: D second port1 frame completes
+ FAIL: D frames0 = 2 (0x10,0x30)
+ FAIL: D frames1 = 2 (0x20,0x40)
+ FAIL: D tlast routed with each frame
+SLOW_DEMUX2 TB FAIL errors=5
+$finish called at time : 290 ns : File "D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_p3_impl_20261018/gates/sim/tb_slow_demux2.v" Line 81
+exit
+INFO: [Common 17-206] Exiting xsim at Mon Oct 19 03:39:47 2026...

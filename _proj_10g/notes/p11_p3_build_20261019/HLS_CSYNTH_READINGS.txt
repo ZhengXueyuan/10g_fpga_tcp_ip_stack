@@ -1,0 +1,17 @@
+# P3 HLS csynth（2026-10-19 01:50）—— 只 csynth，未构建 Vivado
+- 入口：`cmd //c 'hls\run_hls.bat'`（Vitis HLS 2025.2；part xc7k325tffg676-2；target 125 MHz / 8.00 ns）
+- cflags：`-DBOARD_IP_DUAL=1 -DMAX_TCP_CONN=8`（`hls/run_hls.tcl:14`）
+- 结果：exit 0；`All loop constraints were satisfied`；`Estimated Fmax: 156.92 MHz`（clock 6.373 ns / target 8.00，uncertainty 2.16）
+- 网表：`hls/slowstack_prj/solution1/syn/verilog/` = **176** 个 `.v`+`.dat`；`udp_echo.v` sha256 = `38767094ab8c855d8e757d5e962187a44cb313acb67d2f75a15bdf957b780538`
+- 新端口：`input [15:0] i_tcp_adv_wnd`（`udp_echo.v:28/:98`；`:4004 tcp_adv_wnd_cur <= i_tcp_adv_wnd`）
+- 归档：`hls_archive_p3_dual_ip_max8/`（网表 + `udp_echo_csynth.rpt` + `SHA256SUMS.txt`）；P2 网表归档 = `hls_archive_p2_dual_ip_max3/`（175 文件）
+
+## Utilization（csynth 估算，非 placed）
+| 版本 | BRAM_18K | DSP | FF | LUT | URAM |
+|---|---|---|---|---|---|
+| P2 (MAX=3) | 43 | 4 | 22,571 | 50,341 | 0 |
+| **P3 (MAX=8)** | **49** | **4** | **28,636** | **54,660** | **0** |
+| Δ | **+6** | 0 | **+6,065** | **+4,319** | 0 |
+
+- ⚠️ 设计 §8.3 注 4 的 HLS 纸面增量 = +2–4k LUT / +2–4k FF / +2–4 BRAM；**实际 csynth 估算超出**（FF +6.1k、BRAM +6 18K ≈ +3 RAMB36），LUT +4.3k 在上沿外。**placed 读数待构建**；不得把 csynth 估算当 placed。
+- P2 归档对照文件：`_proj_10g/notes/p11_build_0x2C_20261018/hls/udp_echo_csynth.rpt`（MAX=3）。

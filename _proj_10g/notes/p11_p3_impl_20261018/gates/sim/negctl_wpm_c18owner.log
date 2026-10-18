@@ -1,0 +1,50 @@
+[P4GUARD OK] root=d:\repo\xcku5pmini\udp_hls_10g self=d:\repo\xcku5pmini\udp_hls_10g manifests=21
+#-----------------------------------------------------------
+# xsim v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Mon Oct 19 03:37:48 2026
+# Process ID         : 26476
+# Current directory  : D:/repo/XCKU5PMini/udp_hls_10g/sim/p4gates/work_20261019_030550/p11_negctl_wpm
+# Command line       : xsim.exe -log xsim_wpm_mut.log -mode tcl -source {xsim.dir/tb_wpm_mut/xsim_script.tcl}
+# Log file           : D:/repo/XCKU5PMini/udp_hls_10g/sim/p4gates/work_20261019_030550/p11_negctl_wpm/xsim_wpm_mut.log
+# Journal file       : D:/repo/XCKU5PMini/udp_hls_10g/sim/p4gates/work_20261019_030550/p11_negctl_wpm\xsim.jou
+# Running On         : xyz-intel
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26300
+# Processor Detail   : Intel(R) Core(TM) Ultra 7 265K
+# CPU Frequency      : 3878 MHz
+# CPU Physical cores : 20
+# CPU Logical cores  : 20
+# Host memory        : 68053 MB
+# Swap memory        : 4294 MB
+# Total Virtual      : 72348 MB
+# Available Virtual  : 33727 MB
+#-----------------------------------------------------------
+source xsim.dir/tb_wpm_mut/xsim_script.tcl
+# xsim {tb_wpm_mut} -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+=== G-P3-1 win_pool_mgr ===
+ FAIL: SUM port_win == SUM winq (pool=15000 pw0=03000 pw1=03000 gp=f1)
+ FAIL: ld deducted from grant port (p0) (pool=15000 pw0=03000 pw1=03000 gp=f1)
+ FAIL: G stat_c18_cross_port = 1 (pool=15000 pw0=03000 pw1=03000 gp=f1)
+ FAIL: SUM port_win == SUM winq (pool=15000 pw0=03000 pw1=03000 gp=f1)
+ FAIL: G no port_win underflow (pool=15000 pw0=03000 pw1=03000 gp=f1)
+ FAIL: SUM port_win == SUM winq (pool=18000 pw0=03000 pw1=00000 gp=f1)
+ FAIL: _win underflow (after owner rel) (pool=18000 pw0=03000 pw1=00000 gp=f1)
+ FAIL: SUM port_win == SUM winq (pool=17000 pw0=04000 pw1=00000 gp=f0)
+ FAIL: SUM port_win == SUM winq (pool=18000 pw0=03000 pw1=00000 gp=f0)
+ FAIL: SUM port_win == SUM winq (pool=15000 pw0=06000 pw1=00000 gp=f8)
+ FAIL: SUM port_win == SUM winq (pool=15000 pw0=06000 pw1=00000 gp=f8)
+ FAIL: SUM port_win == SUM winq (pool=15000 pw0=06000 pw1=00000 gp=f8)
+ FAIL: SUM port_win == SUM winq (pool=03000 pw0=18000 pw1=00000 gp=00)
+ FAIL: J 8+0 pool empty (pool=03000 pw0=18000 pw1=00000 gp=00)
+ FAIL: SUM port_win == SUM winq (pool=00000 pw0=15000 pw1=06000 gp=c0)
+ FAIL: J 6+2 distribution (pool=00000 pw0=15000 pw1=06000 gp=c0)
+ FAIL: SUM port_win == SUM winq (pool=18000 pw0=03000 pw1=00000 gp=c0)
+WIN_POOL_MGR TB FAIL errors=17
+$finish called at time : 4709 ns : File "D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_p3_impl_20261018/gates/sim/tb_win_pool_mgr.v" Line 299
+exit
+INFO: [Common 17-206] Exiting xsim at Mon Oct 19 03:37:50 2026...

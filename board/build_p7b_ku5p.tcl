@@ -24,8 +24,81 @@ set gquad        Quad_X0Y1        ;# quad 225 = channels X0Y4..X0Y7 (SFP A / SFP
 
 set script_dir [file dirname [file normalize [info script]]]
 set root_dir   [file dirname $script_dir]
-set hls_dir    ${root_dir}/hls/slowstack_prj/solution1/syn/verilog
 set mac_dir    ${root_dir}/_proj_10g/p7b_mac/rtl
+
+# ---- P11 P3 (H-4/M-14): 配置 + HLS 网表变体配对 (硬门) -----------------------
+#   环境变量:
+#     P11_CFG          = c1 | c2 | c3 | c4       (默认 c3 = 本脚本历史档)
+#     P11_HLS_VARIANT  = c1 | p2_dual_max3 | p3_dual_max8
+#                        (默认按配置: c1->c1, c3->p2_dual_max3, c4->p3_dual_max8)
+#   ⚠️ 这是一道**构建前硬门**: 网表/宏不配对 (C3 拿 P3 网表、C4 拿 P2 网表)
+#      不是"能跑但有偏差", 而是 SYN-ACK 窗口 0/X 或通告 48KB vs 实配额 12KB
+#      的静默错。失败 = `P7B_VERDICT = <原因>` + exit 1 (不创建工程)。
+source [file join $script_dir p11_build_cfg.tcl]
+
+set P11_CFG "c3"
+if {[info exists ::env(P11_CFG)] && ($::env(P11_CFG) ne "")} {
+    set P11_CFG [string tolower $::env(P11_CFG)]
+}
+set P11_DEFS [list APP_MODE=1 DEV_USP=1 PCIE_OBS=1 DP_156MHZ=1 P7B_10G=1 \
+                   UDP_TX_OVL=1 TCP_TX_OVL=1]
+set P11_CONFIG_NAME ""
+switch -- $P11_CFG {
+    c1 {
+        lappend P11_DEFS P11_CFG_C1=1 P11_CFG_ENFORCE=1
+        set P11_CONFIG_NAME "single"
+    }
+    c2 {
+        lappend P11_DEFS P11_CFG_C2=1 P11_CFG_ENFORCE=1 SFP2_MODE_B=1
+        set P11_CONFIG_NAME "mirror"
+    }
+    c3 {
+        lappend P11_DEFS P11_CFG_C3=1 P11_CFG_ENFORCE=1 SFP2_MODE_A=1 DUAL_SFP_A=1
+        set P11_CONFIG_NAME "shared"
+    }
+    c4 {
+        lappend P11_DEFS P11_CFG_C4=1 P11_CFG_ENFORCE=1 SFP2_MODE_A=1 DUAL_SFP_A=1 P11_DUAL=1
+        set P11_CONFIG_NAME "dual"
+    }
+    default {
+        puts "P11_CONFIG_INPUT = <$P11_CFG>"
+        puts "P7B_VERDICT = P11_CFG_UNKNOWN"
+        exit 1
+    }
+}
+set P11_IS_DUAL [expr {[lsearch -exact $P11_DEFS "P11_DUAL=1"] >= 0}]
+if {$P11_IS_DUAL} { lappend P11_DEFS P11_HLS_ADV_WND=1 }
+
+set CFG_HLS_VARIANT ""
+if {[info exists ::env(P11_HLS_VARIANT)] && ($::env(P11_HLS_VARIANT) ne "")} {
+    set CFG_HLS_VARIANT $::env(P11_HLS_VARIANT)
+} else {
+    set CFG_HLS_VARIANT [p11_default_variant $P11_CFG]
+}
+set hls_dir [p11_hls_variant_dir $root_dir $CFG_HLS_VARIANT]
+if {$hls_dir eq ""} {
+    puts "P11_HLS_VARIANT_INPUT = <$CFG_HLS_VARIANT>"
+    puts "P7B_VERDICT = P11_HLS_VARIANT_UNKNOWN"
+    exit 1
+}
+if {![file exists [file join $hls_dir udp_echo.v]]} {
+    puts "P11_HLS_DIR_MISSING = $hls_dir"
+    puts "P7B_VERDICT = P11_HLS_NETLIST_MISSING"
+    exit 1
+}
+set P11_ADV_HITS [p11_adv_wnd_hits $hls_dir]
+set P11_CFG_CHK [p11_build_cfg_check $P11_DEFS $P11_ADV_HITS]
+puts "P11_CFG_INPUT  = $P11_CFG (env) ; HLS_VARIANT = $CFG_HLS_VARIANT"
+puts "P11_CONFIG     = [lindex $P11_CFG_CHK 2] ($P11_CONFIG_NAME)"
+puts "P11_HLS_DIR    = $hls_dir"
+puts "P11_HLS_ADV_WND_HITS = $P11_ADV_HITS (P11_DUAL=$P11_IS_DUAL)"
+puts "P7B_VERILOG_DEFINE_LIST = $P11_DEFS"
+if {[lindex $P11_CFG_CHK 0] != 1} {
+    puts "P11_CFG_PAIRING_FAIL = [lindex $P11_CFG_CHK 1]"
+    puts "P7B_VERDICT = [lindex $P11_CFG_CHK 1]"
+    exit 1
+}
+puts "P11_CFG_PAIRING = OK"
 
 proc sec {s} { puts "\nP7B >>>>>>>>>> $s" }
 catch {set_param general.maxThreads 8}
@@ -327,10 +400,10 @@ set_property used_in_synthesis false [get_files ${script_dir}/ku5p_p7b_cdc.xdc]
 #      **默认分支**里, 逐行 diff = 恰那 8 行（`_proj_10g/notes/P7B_STAGEC_TX_REGRESSION.md` §环境事实 2）
 #      ⇒ "关掉宏就回到 HEAD 的逐字行为"这句**对 `tcp_tx_frame.v` 已作废**。
 #   `TIMING`/面积读数由本次构建收口（设计件 §5-2 的估计 = 无实测背书）。
-# P11 P3 (2026-10-19): 四配置选择 (设计件 §2.1). 本档 = C3 cfg_shared (0x2D).
-# C4 构建: 把 P11_CFG_C3=1 换成 P11_CFG_C4=1 并追加 P11_DUAL=1 (+ P11_HLS_ADV_WND=1
-# 仅当 HLS 网表已用 P3 cflags 重综合; 归档网表没有 i_tcp_adv_wnd 端口).
-set_property verilog_define {APP_MODE=1 DEV_USP=1 PCIE_OBS=1 DP_156MHZ=1 P7B_10G=1 UDP_TX_OVL=1 TCP_TX_OVL=1 SFP2_MODE_A=1 DUAL_SFP_A=1 P11_CFG_C3=1 P11_CFG_ENFORCE=1} [current_fileset]
+# P11 P3 (2026-10-19): 四配置选择 (设计件 §2.1). 默认 = C3 cfg_shared (0x2D).
+#   C4 构建 = `P11_CFG=c4` (⇒ P11_CFG_C4 + P11_DUAL + P11_HLS_ADV_WND, P3 网表)。
+#   HLS 网表/宏配对已在脚本开头硬判 (H-4); 这里只落宏。
+set_property verilog_define $P11_DEFS [current_fileset]
 puts "P7B_VERILOG_DEFINE = [get_property verilog_define [current_fileset]]"
 set_property top $top_module [current_fileset]
 update_compile_order -fileset sources_1
@@ -470,6 +543,20 @@ report_utilization    -file ${script_dir}/p7b_ku5p_util.rpt
 report_drc            -file ${script_dir}/p7b_ku5p_drc.rpt
 report_clock_interaction -file ${script_dir}/p7b_ku5p_clkinteract.rpt
 # 关键读数显式打印 (bat 里 grep) —— 不让"报告存在"冒充"读数已看"
+# ---- P11 P3 (M-13): frame_fifo 32 片选定向 STA (登记; 构建轮执行观察) --------
+#   C4 的每口 tcp_echo = frame_fifo D=16384/AW=14 ⇒ NB=D/512=32 片选,
+#   main_sel 32 路 OR + 边存 16384x9; 设计件的 +27–30k LUT 估计**未显式计**
+#   第一口 64→128KB 的 +1.1–2.2k LUT。构建轮必须:
+#     ① 核对 placed LUT/BRAM 与设计件 §6 的纸面包络;
+#     ② 对每个 frame_fifo 实例做定向 STA (例如
+#        `report_timing -max_paths 10 -through [get_pins -hier <inst>/*/C]`,
+#        或按实例内 main_sel/addr 网定向 `-from/-to`), 而不是只看 top-N。
+#   本脚本只**枚举实例名** (构建日志留证); 定向报告在构建轮按上面命令执行。
+sec "P11_FRAME_FIFO_STA"
+set ff_cells [get_cells -hier -quiet -filter {REF_NAME =~ frame_fifo}]
+puts "P11_FRAME_FIFO_STA_CELLS = [llength $ff_cells]"
+foreach c $ff_cells { puts "P11_FRAME_FIFO_STA_CELL $c" }
+
 set wns   [get_property SLACK [get_timing_paths -delay_type max]]
 set whs   [get_property SLACK [get_timing_paths -delay_type min]]
 puts "P7B_WNS = $wns"

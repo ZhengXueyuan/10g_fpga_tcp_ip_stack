@@ -1,0 +1,14 @@
+[P4GUARD OK] root=d:\repo\xcku5pmini\udp_hls_10g self=d:\repo\xcku5pmini\udp_hls_10g manifests=21
+P11_P3FIX_RULE retx owner port is grant_port              OK
+P11_P3FIX_RULE wrapper wires o_grant_port -> grant_port   OK
+P11_P3FIX_RULE slow_merge2 reset = dp_rst_n (M-9)         OK
+P11_P3FIX_RULE P11_DUAL requires DUAL_SFP_A               OK
+P11_P3FIX_RULE P11_DUAL requires P7B_10G                  OK
+P11_P3FIX_RULE P11_DUAL requires DP_156MHZ                OK
+P11_P3FIX_RULE P11_DUAL requires APP_MODE                 OK
+P11_P3FIX_RULE P11_DUAL requires SFP2_MODE_A              OK
+P11_P3FIX_RULE retx non-owner read returns 0              OK
+P11_P3FIX_RULE wpm grant_port ownership                   OK
+P11_P3FIX_RULE wpm stale rel instrumentation              OK
+P11_P3FIX_RULE wpm underflow instrumentation              OK
+P11_P3FIX_STATIC PASS

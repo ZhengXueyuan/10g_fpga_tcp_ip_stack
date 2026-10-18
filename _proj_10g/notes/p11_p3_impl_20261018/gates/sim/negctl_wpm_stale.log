@@ -1,0 +1,55 @@
+[P4GUARD OK] root=d:\repo\xcku5pmini\udp_hls_10g self=d:\repo\xcku5pmini\udp_hls_10g manifests=21
+#-----------------------------------------------------------
+# xsim v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Mon Oct 19 03:37:54 2026
+# Process ID         : 29460
+# Current directory  : D:/repo/XCKU5PMini/udp_hls_10g/sim/p4gates/work_20261019_030550/p11_negctl_wpm
+# Command line       : xsim.exe -log xsim_wpm_mut.log -mode tcl -source {xsim.dir/tb_wpm_mut/xsim_script.tcl}
+# Log file           : D:/repo/XCKU5PMini/udp_hls_10g/sim/p4gates/work_20261019_030550/p11_negctl_wpm/xsim_wpm_mut.log
+# Journal file       : D:/repo/XCKU5PMini/udp_hls_10g/sim/p4gates/work_20261019_030550/p11_negctl_wpm\xsim.jou
+# Running On         : xyz-intel
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26300
+# Processor Detail   : Intel(R) Core(TM) Ultra 7 265K
+# CPU Frequency      : 3878 MHz
+# CPU Physical cores : 20
+# CPU Logical cores  : 20
+# Host memory        : 68053 MB
+# Swap memory        : 4294 MB
+# Total Virtual      : 72348 MB
+# Available Virtual  : 33884 MB
+#-----------------------------------------------------------
+source xsim.dir/tb_wpm_mut/xsim_script.tcl
+# xsim {tb_wpm_mut} -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+=== G-P3-1 win_pool_mgr ===
+ FAIL: port0_win <= port_cap (pool=18000 pw0=1d000 pw1=03000 gp=f0)
+ FAIL: G pre: p0 owns slot0 (pool=18000 pw0=1d000 pw1=03000 gp=f0)
+ FAIL: port0_win <= port_cap (pool=15000 pw0=1d000 pw1=06000 gp=f1)
+ FAIL: ld deducted from grant port (p0) (pool=15000 pw0=1d000 pw1=06000 gp=f1)
+ FAIL: G new quota on p1 (pool=15000 pw0=1d000 pw1=06000 gp=f1)
+ FAIL: G stat_c18_cross_port = 1 (pool=15000 pw0=1d000 pw1=06000 gp=f1)
+ FAIL: port0_win <= port_cap (pool=18000 pw0=1a000 pw1=06000 gp=f1)
+ FAIL:  stale rel did NOT eat new quota (pool=18000 pw0=1a000 pw1=06000 gp=f1)
+ FAIL: le rel did NOT touch p1 port_win (pool=18000 pw0=1a000 pw1=06000 gp=f1)
+ FAIL: port0_win <= port_cap (pool=18000 pw0=1a000 pw1=06000 gp=f1)
+ FAIL: port0_win <= port_cap (pool=18000 pw0=1a000 pw1=06000 gp=f0)
+ FAIL: H g = pool - occ = 0x1000 (pool=18000 pw0=1a000 pw1=06000 gp=f0)
+ FAIL: port0_win <= port_cap (pool=18000 pw0=1a000 pw1=06000 gp=f0)
+ FAIL: port0_win <= port_cap (pool=15000 pw0=1a000 pw1=09000 gp=f8)
+ FAIL: H p0 granted full (occ0=0) (pool=15000 pw0=1a000 pw1=09000 gp=f8)
+ FAIL: H p1 zero grant (occ1 eats pool) (pool=15000 pw0=1a000 pw1=09000 gp=f8)
+ FAIL: I rel and grant both processed (pool=17000 pw0=18000 pw1=09000 gp=f8)
+ FAIL: I same-slot C18 net grant (pool=17000 pw0=18000 pw1=09000 gp=f8)
+ FAIL: J 8+0 pool empty (pool=17000 pw0=18000 pw1=09000 gp=00)
+ FAIL: J 8+0 all on port0 (pool=17000 pw0=18000 pw1=09000 gp=00)
+ FAIL: J 6+2 distribution (pool=11000 pw0=18000 pw1=0f000 gp=c0)
+ FAIL: J 6+2 pool empty (pool=11000 pw0=18000 pw1=0f000 gp=c0)
+WIN_POOL_MGR TB FAIL errors=22
+$finish called at time : 4709 ns : File "D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_p3_impl_20261018/gates/sim/tb_win_pool_mgr.v" Line 299
+exit
+INFO: [Common 17-206] Exiting xsim at Mon Oct 19 03:37:56 2026...

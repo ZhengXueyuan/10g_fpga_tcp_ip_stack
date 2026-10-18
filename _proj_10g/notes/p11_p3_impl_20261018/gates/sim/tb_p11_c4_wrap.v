@@ -8,11 +8,13 @@
 //     A. ch0 注入 ARP request (target IP_B) => 回包只出现在 ch0 TX (port1 全链:
 //        ch0 RX -> vlan -> classify -> udp_split2 -> slow_merge2 -> 单份 HLS
 //        -> slow_tx_adp -> slow_demux2(按源 IP=IP_B) -> arb1 -> mac_tx_ch0)。
+//        ✅ P3 修复轮 (M-1): 本门改用 **P3/P2 双 IP 网表 + P11_HLS_ADV_WND**,
+//        IP_B 必须应答 (归档旧日志 `reply idx=13`; 旧报告"单 IP 不应答"是
+//        网表/宏配对错误 —— 见 H-4)。本臂现在是**硬判据** (idx>=0/opcode=2/SPA=IP_B)。
 //     B. ch1 注入 ARP request (target IP_A) => 回包只出现在 ch1 TX。
 //     C. ch0 注入 SYN (dst IP_B) => SYN-ACK 只出现在 ch0 TX (源 IP=IP_B)。
 //     D. ch1 注入 SYN (dst IP_A) => SYN-ACK 只出现在 ch1 TX。
-//   注: HLS 是**单份双 IP** (归档网表是单 IP ⇒ 本门用 IP_A/IP_B 中当前网表
-//       支持的 IP; 单 IP 网表下臂 A/C 的 IP_B 应答 = 未测, 由构建轮 P3 网表补)。
+//   注: 每个臂都要求**对端无该回包** (跨口隔离)。
 //=============================================================================
 module tb_p11_c4_wrap;
     reg reset_n = 1'b0;
@@ -244,13 +246,32 @@ module tb_p11_c4_wrap;
         end
         chk(find_eth(0, 16'h0806) < 0, "B no ARP reply on ch0 (cross-port isolation)");
 
-        // ---- 臂 A: ARP -> IP_B on ch0 (单 IP 归档网表: 预期无回包 => 未测) ----
+        // ---- 臂 A: ARP -> IP_B on ch0 (双 IP 网表: 必须应答) ----
         clear_caps();
         build_arp(IP_B); pack_xgmii_into(0);
         wait_tx(4000);
         idx = find_eth(0, 16'h0806);
-        // 单 IP 网表下 IP_B 不识别; 双 IP P3 网表 (构建轮) 才应答。
-        $display("  [info] A ARP/IP_B on ch0 reply idx=%0d (单 IP 归档网表 => 构建轮复测)", idx);
+        chk(idx >= 0, "A ARP reply for IP_B present on ch0");
+        if (idx >= 0) begin
+            chk(cb(0, idx+8+6)==0 && cb(0, idx+8+7)==2, "A ARP opcode=reply");
+            chk(cb(0, idx+8+14)==192 && cb(0, idx+8+15)==168 &&
+                cb(0, idx+8+16)==100 && cb(0, idx+8+17)==4, "A ARP SPA = IP_B");
+        end
+        chk(find_eth(1, 16'h0806) < 0, "A no ARP reply on ch1 (cross-port isolation)");
+
+        // ---- 臂 C: SYN -> IP_B on ch0 ----
+        clear_caps();
+        build_syn(IP_B); pack_xgmii_into(0);
+        wait_tx(6000);
+        idx = find_eth(0, 16'h0800);
+        chk(idx >= 0, "C SYN-ACK for IP_B present on ch0");
+        if (idx >= 0) begin
+            chk(cb(0, idx+17)==6, "C IP proto = TCP");
+            chk((cb(0, idx+8+20+13) & 8'h12) == 8'h12, "C TCP flags = SYN|ACK");
+            chk(cb(0, idx+20)==192 && cb(0, idx+21)==168 &&
+                cb(0, idx+22)==100 && cb(0, idx+23)==4, "C SYN-ACK src IP = IP_B");
+        end
+        chk(find_eth(1, 16'h0800) < 0, "C no SYN-ACK on ch1 (cross-port isolation)");
 
         // ---- 臂 D: SYN -> IP_A on ch1 ----
         clear_caps();

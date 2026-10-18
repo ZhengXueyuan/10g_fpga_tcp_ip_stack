@@ -2050,3 +2050,15 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - **H-4** HLS 网表与 `P11_HLS_ADV_WND` 无配对硬门、该分支从未编译；**H-5** EXT=0 回归无归档证据；**M-1** C4 wrap arm A 日志 `reply idx=13` 与报告相反、arm C 未跑。
 - **矩阵内容绑定独立复算 382/382（missing/mismatch 0）**；HLS 175/175 与归档一致；报告 `e4367d75` 是 compare 重算、存储 `DIGEST_ALL=851d1343`（M-11 叙事订正）。
 - **修复轮已派**（H-1..H-5 + M-1/2/3/4/5/6/8/10/12/14；M-9/11/13 及低项按时间）：只改源+门，不构建/不上板。下一步 = 修复 → TL 抽核 → 构建 0x2F（若时间）/7 点交接。
+
+## §10-158 2026-10-19 03:4x：**P3 实施修复轮收口（H-1..H-5 全修；M 13/14 有处置；矩阵 41/41 FROZEN）** —— 构建前第二轮门槛已过
+- **H-1**：`win_pool_mgr` 增 `grant_port[7:0]`；C18 old 从授出端口扣（饱和）；rel 只接受属主口，跨口迟到 rel 忽略并计 `stat_rel_stale_port`；`stat_c18_cross_port`/`stat_port_win_underflow`；churn 5c 跨口复用+延迟 rel；wpm 负控 5/5。
+- **H-2**：`retx_pool_shared` owner 改 `grant_port`（ev_up 更新）；非属主读 `r_data=0`；TB 臂 F（翻转前旧口正常/翻转后读 0/新口接管）+ `staleowner` 负控。
+- **H-3**：wrapper 增 `acc_margin_eff1`（`a2_estab_cnt`），`u_tcp_rx2` 接 1；128KB 预算重算：N×ACC ≤ 26,934，8×3328=26,624（余 310 B）；旧共用 4096 ⇒ 136,906（超 5,834）；静态门 7/7 + 负控 1/1 + `P11_ACC_MARGIN_SELFCHK OK n8=3328`。
+- **H-4/M-14**：新 `board/p11_build_cfg.tcl` + build tcl 变体（c1/p2/p3）+ `i_tcp_adv_wnd` 双向硬判 + ENFORCE/恰一个 C；`P11_HLS_ADV_HITS c1=0 p2=0 p3=3`；`P11_BUILDCFG_GATE PASS`（6 负控）；C4 elab/wrap 改 P3 归档+宏。
+- **H-5**：EXT=0 三臂重跑归档（`h5_*`）+ `p11_ext0` 入矩阵。
+- **M**：M-1（arm A 硬判/arm C/Error 硬门）、M-2（csim 基线集合机器判据）、M-3/M-4/M-5/M-6/M-8/M-9/M-10/M-11/M-12/M-13/M-14 全有处置；**M-7 未做**；L-1 已修，L-2..L-13 未做。
+- **额外修掉矩阵基础设施缺陷**：P4/P5 门指向 live HLS（被 P3 网表覆盖）⇒ 改钉 P2 归档；三个硬编码门同步；`-only chain` 恢复 `P4 CHAIN OK`。
+- **矩阵 41/41 / 0 failed / FROZEN**（400 文件；content `4f549789…`；`GIT_HEAD=27513627` = 审查提交，代码基线 `cdd24667` + 本轮未提交工作树）。
+- **未跑**：Vivado synth/impl/位流/时序/资源；板级。**方法限制**：H-1 迟到 rel 用 `force` 注入；H-2 集成靠 churn 5c；M-5 无独立 app_ctrl 单元 TB；M-9 无 MMCM 重锁行为门；M-13 未执行。
+- **下一棒**：提交修复轮（含 P2/P3/C1 HLS 归档）→ 0x2F 构建（C4 + P3 变体 + BID 0x2F + 合同 2 或 8）→ 视时间；7 点收工。

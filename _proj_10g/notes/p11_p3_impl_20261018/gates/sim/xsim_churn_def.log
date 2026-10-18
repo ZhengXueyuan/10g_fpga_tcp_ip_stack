@@ -3,8 +3,8 @@
 # SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
 # IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
 # SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
-# Start of session at: Mon Oct 19 00:01:20 2026
-# Process ID         : 25168
+# Start of session at: Mon Oct 19 02:07:00 2026
+# Process ID         : 7084
 # Current directory  : D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_p3_impl_20261018/gates/sim
 # Command line       : xsim.exe -log xsim_churn_def.log -mode tcl -source {xsim.dir/tb_churn_def/xsim_script.tcl}
 # Log file           : D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_p3_impl_20261018/gates/sim/xsim_churn_def.log
@@ -19,7 +19,7 @@
 # Host memory        : 68053 MB
 # Swap memory        : 4294 MB
 # Total Virtual      : 72348 MB
-# Available Virtual  : 33461 MB
+# Available Virtual  : 34007 MB
 #-----------------------------------------------------------
 source xsim.dir/tb_churn_def/xsim_script.tcl
 # xsim {tb_churn_def} -autoloadwcfg -runall
@@ -27,6 +27,6 @@ Time resolution is 1 ps
 run -all
 === G-P3-1b churn ===
 P3_CHURN TB PASS
-$finish called at time : 26920 ns : File "D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_p3_impl_20261018/gates/sim/tb_p3_churn.v" Line 339
+$finish called at time : 30920 ns : File "D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_p3_impl_20261018/gates/sim/tb_p3_churn.v" Line 431
 exit
-INFO: [Common 17-206] Exiting xsim at Mon Oct 19 00:01:22 2026...
+INFO: [Common 17-206] Exiting xsim at Mon Oct 19 02:07:02 2026...

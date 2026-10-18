@@ -1,15 +1,15 @@
-[P4GUARD OK] root=d:\repo\xcku5pmini\udp_hls_10g self=d:\repo\xcku5pmini\udp_hls_10g manifests=22
+[P4GUARD OK] root=d:\repo\xcku5pmini\udp_hls_10g self=d:\repo\xcku5pmini\udp_hls_10g manifests=21
 #-----------------------------------------------------------
 # xsim v2025.2 (64-bit)
 # SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
 # IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
 # SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
-# Start of session at: Mon Oct 19 00:15:39 2026
-# Process ID         : 35448
-# Current directory  : D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_p3_impl_20261018/gates/sim
+# Start of session at: Mon Oct 19 03:37:36 2026
+# Process ID         : 38864
+# Current directory  : D:/repo/XCKU5PMini/udp_hls_10g/sim/p4gates/work_20261019_030550/p11_negctl_wpm
 # Command line       : xsim.exe -log xsim_wpm_mut.log -mode tcl -source {xsim.dir/tb_wpm_mut/xsim_script.tcl}
-# Log file           : D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_p3_impl_20261018/gates/sim/xsim_wpm_mut.log
-# Journal file       : D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_p3_impl_20261018/gates/sim\xsim.jou
+# Log file           : D:/repo/XCKU5PMini/udp_hls_10g/sim/p4gates/work_20261019_030550/p11_negctl_wpm/xsim_wpm_mut.log
+# Journal file       : D:/repo/XCKU5PMini/udp_hls_10g/sim/p4gates/work_20261019_030550/p11_negctl_wpm\xsim.jou
 # Running On         : xyz-intel
 # Platform           : Windows Server 2016 or Windows 10
 # Operating System   : 26300
@@ -20,17 +20,19 @@
 # Host memory        : 68053 MB
 # Swap memory        : 4294 MB
 # Total Virtual      : 72348 MB
-# Available Virtual  : 34308 MB
+# Available Virtual  : 33743 MB
 #-----------------------------------------------------------
 source xsim.dir/tb_wpm_mut/xsim_script.tcl
 # xsim {tb_wpm_mut} -autoloadwcfg -runall
 Time resolution is 1 ps
 run -all
 === G-P3-1 win_pool_mgr ===
- FAIL: port0_win <= port_cap (pool=12000 pw0=06000 pw1=00000)
- FAIL: C port0 capped at 0x4000 (pool=12000 pw0=06000 pw1=00000)
- FAIL: D both ports granted (pool=0f000 pw0=06000 pw1=03000)
-WIN_POOL_MGR TB FAIL errors=3
-$finish called at time : 879 ns : File "D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_p3_impl_20261018/gates/sim/tb_win_pool_mgr.v" Line 160
+ FAIL: port0_win <= port_cap (pool=12000 pw0=06000 pw1=00000 gp=f0)
+ FAIL: C port0 capped at 0x4000 (pool=12000 pw0=06000 pw1=00000 gp=f0)
+ FAIL: C grant_zero counted (pool=0f000 pw0=09000 pw1=00000 gp=f0)
+ FAIL: D both ports granted (pool=0f000 pw0=06000 pw1=03000 gp=f0)
+ FAIL: t counter accumulated (C=1, H=2) (pool=00000 pw0=18000 pw1=00000 gp=00)
+WIN_POOL_MGR TB FAIL errors=5
+$finish called at time : 4709 ns : File "D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_p3_impl_20261018/gates/sim/tb_win_pool_mgr.v" Line 299
 exit
-INFO: [Common 17-206] Exiting xsim at Mon Oct 19 00:15:41 2026...
+INFO: [Common 17-206] Exiting xsim at Mon Oct 19 03:37:38 2026...

@@ -38,7 +38,11 @@ set RTL=%REPO_ROOT%\rtl
 set TB=%REPO_ROOT%\tb
 set BD=%REPO_ROOT%\board
 set TOOL=%REPO_ROOT%\tools
-set HLS=%REPO_ROOT%\hls\slowstack_prj\solution1\syn\verilog
+REM 2026-10-19 P3 fix (H-4 gate-side): pin the archived P2 dual-IP MAX=3
+REM netlist. The live solution1 is mutable and was re-run with P3 cflags
+REM (MAX=8 + i_tcp_adv_wnd); this TB's udp_echo instantiation has no such port.
+set HLS=%REPO_ROOT%\_proj_10g\notes\p11_p3_build_20261019\hls_archive_p2_dual_ip_max3
+if not exist %HLS%\udp_echo.v (echo P11_HLS_P2_ARCHIVE_MISSING & exit /b 1)
 
 if exist resp_p5_wrapper.memh del /q resp_p5_wrapper.memh
 copy /y %HLS%\*.dat . >nul

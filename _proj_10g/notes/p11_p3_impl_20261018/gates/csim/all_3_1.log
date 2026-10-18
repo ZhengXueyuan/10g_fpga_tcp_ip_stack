@@ -1,0 +1,9 @@
+[CSIM 3/1] RC=1 (expected 1: 3 baseline XFAILs)
+P11_SUMMARY passed=72 failed=3
+ FAIL: got SYN-ACK
+ FAIL: all 2000 echo bytes received
+ FAIL: got SYN-ACK
+CSIM_BASELINE out=D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p11_p3_impl_20261018\gates\csim\out_max3_dual1.txt passed=72 failed=3 fail_lines=3
+CSIM_FAIL_ITEM all 2000 echo bytes received             got=1 baseline=1
+CSIM_FAIL_ITEM got SYN-ACK                              got=2 baseline=2
+CSIM_BASELINE_OK (3/3 = P2 baseline XFAIL set)

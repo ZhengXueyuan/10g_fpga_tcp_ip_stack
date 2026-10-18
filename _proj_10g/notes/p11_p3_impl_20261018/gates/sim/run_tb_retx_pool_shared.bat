@@ -7,6 +7,8 @@ set "ROOT=%REPO_ROOT%"
 set "DUT=%ROOT%\rtl\retx_pool_shared.v"
 set "TAG=def"
 if not "%~1"=="" set "DUT=%~1"
+REM   arg2 (optional) = second mutant copy (write/read owner gates; caller must merge)
+REM   because two module definitions would collide).
 if not "%~1"=="" set "TAG=mut"
 if not "%P4_WORKDIR%"=="" (cd /d "%P4_WORKDIR%") else (cd /d %~dp0)
 "%PY%" "%P4GATE_PY%" checkpaths --root "%ROOT%" --path "%CD%" --quiet || exit /b 1

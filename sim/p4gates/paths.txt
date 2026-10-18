@@ -20,7 +20,14 @@ BOARD=board
 TOOLS=tools
 
 # --- HLS slow-path netlist handed to xsim (must match hls_files.f content) ---
-HLS=hls\slowstack_prj\solution1\syn\verilog
+# HLS netlist for the resident sim matrix = the **archived P2 dual-IP MAX=3**
+# netlist (175 files), NOT the mutable live build output `hls/slowstack_prj/...`.
+# 2026-10-19 P3 fix round: live solution1 was re-run with P3 cflags (MAX=8 +
+# i_tcp_adv_wnd). Existing P4/P5 TBs do not have that port => an unconnected
+# input (Z/X) and the default `chain` gate went red. H-4's pairing rule applied
+# to gates: sim gates are pinned to the P2 archive; C4 gates use the P3 archive
+# explicitly (run_elab_c4 / run_tb_p11_c4_wrap + -d P11_HLS_ADV_WND).
+HLS=_proj_10g\notes\p11_p3_build_20261019\hls_archive_p2_dual_ip_max3
 
 # --- this tool dir + the matrix output dir ---
 GATES=sim\p4gates
@@ -59,7 +66,7 @@ REQUIRED_DIRS=hls\slowstack_prj\solution1\syn\verilog;rtl;tb
 #     decides the compiled bytes).  The gate's TB / frozen pre-edit DUT /
 #     mutant sources are in the compile set via swcg_src.f; swcg_src.f itself
 #     is covered by sim\p4gates\*.f.
-FINGERPRINT_GLOBS=tools\gen_stim_p4_chain.py;tools\gen_stim_tcp_chain.py;tools\gen_stim_p5_app.py;sim\p4gates\*.py;sim\p4gates\*.bat;sim\p4gates\*.txt;sim\p4gates\*.f;sim\p4sim\run_tb_*.bat;sim\p4sim\run_matrix_p4dfix.sh;sim\p5sim\run_tb_*.bat;sim\retxsim\run_*.bat;sim\retxsim2\run_*.bat;sim\vlansim\run_*.bat;sim\tbgate\run_*.bat;sim\f3_resync\run_*.bat;sim\f3_resync\mut\mk_mut_f3.py;sim\p9_swc_gate\run_*.bat;sim\p9_swc_gate\mk_mut_swc.py;_proj_10g\p7b_chain\sim\run_*.bat;_proj_10g\p7b_chain\sim\tb_*.v;_proj_10g\p7b_chain\sim\*.py;_proj_10g\notes\p7b_biz_win\*.py;_proj_10g\notes\p7b_biz_win\run_*.bat;_proj_10g\notes\p7b_biz_win\tb_*.v;_proj_10g\p11_dual\sim\run_*.bat;_proj_10g\p11_dual\sim\tb_*.v;_proj_10g\p11_dual\sim\*.py;tb\tb_app_udp.v;tb\tb_udp_tx_guard.v;sim\p5e_udp\run_tb_app_udp.bat;sim\p5e_t2\run_tb_udp_tx_guard.bat;hls\src\*.cpp;hls\src\*.h;hls\run_hls.tcl;_proj_10g\notes\p11_p3_impl_20261018\gates\sim\run_*.bat;_proj_10g\notes\p11_p3_impl_20261018\gates\sim\tb_*.v;_proj_10g\notes\p11_p3_impl_20261018\gates\sim\*.py
+FINGERPRINT_GLOBS=tools\gen_stim_p4_chain.py;tools\gen_stim_tcp_chain.py;tools\gen_stim_p5_app.py;sim\p4gates\*.py;sim\p4gates\*.bat;sim\p4gates\*.txt;sim\p4gates\*.f;sim\p4sim\run_tb_*.bat;sim\p4sim\run_matrix_p4dfix.sh;sim\p5sim\run_tb_*.bat;sim\retxsim\run_*.bat;sim\retxsim2\run_*.bat;sim\vlansim\run_*.bat;sim\tbgate\run_*.bat;sim\f3_resync\run_*.bat;sim\f3_resync\mut\mk_mut_f3.py;sim\p9_swc_gate\run_*.bat;sim\p9_swc_gate\mk_mut_swc.py;_proj_10g\p7b_chain\sim\run_*.bat;_proj_10g\p7b_chain\sim\tb_*.v;_proj_10g\p7b_chain\sim\*.py;_proj_10g\notes\p7b_biz_win\*.py;_proj_10g\notes\p7b_biz_win\run_*.bat;_proj_10g\notes\p7b_biz_win\tb_*.v;_proj_10g\p11_dual\sim\run_*.bat;_proj_10g\p11_dual\sim\tb_*.v;_proj_10g\p11_dual\sim\*.py;tb\tb_app_udp.v;tb\tb_udp_tx_guard.v;sim\p5e_udp\run_tb_app_udp.bat;sim\p5e_t2\run_tb_udp_tx_guard.bat;hls\src\*.cpp;hls\src\*.h;hls\run_hls.tcl;_proj_10g\notes\p11_p3_impl_20261018\gates\sim\run_*.bat;_proj_10g\notes\p11_p3_impl_20261018\gates\sim\tb_*.v;_proj_10g\notes\p11_p3_impl_20261018\gates\sim\*.py;hls\tb\*.cpp;hls\tb\*.h;board\p11_build_cfg.tcl;board\build_p7b_ku5p.tcl;_proj_10g\notes\p11_p3_impl_20261018\gates\csim\*.bat;_proj_10g\notes\p11_p3_impl_20261018\gates\csim\*.py;_proj_10g\notes\p11_p3_fix_20261019\gates\sim\*.bat;_proj_10g\notes\p11_p3_fix_20261019\gates\tcl\*.tcl;_proj_10g\notes\p11_p3_fix_20261019\gates\tcl\*.bat
 
 # --- toolchain locations (NOT repository paths; one place for all of them) ---
 PY=C:\Users\zhxue\anaconda3\python.exe

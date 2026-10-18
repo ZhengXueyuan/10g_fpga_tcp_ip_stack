@@ -11,7 +11,12 @@ if not "%P4_WORKDIR%"=="" (cd /d "%P4_WORKDIR%") else (cd /d %~dp0)
 "%PY%" "%P4GATE_PY%" checkpaths --root "%ROOT%" --path "%CD%" --quiet || exit /b 1
 "%PY%" "%P4GATE_PY%" checkpaths --root "%ROOT%" --manifest "%GATES%\p11dual_src.f" --path "%CD%" --quiet || exit /b 1
 set "DEFS=-d P7B_10G -d P7B_SIM_NOPCS -d PCIE_OBS -d DEV_USP -d APP_MODE -d DP_156MHZ -d P6B_SIM_CLKGEN -d UDP_TX_OVL -d TCP_TX_OVL -d SFP2_MODE_A -d DUAL_SFP_A"
-dir /b /s "%ROOT%\hls\slowstack_prj\solution1\syn\verilog\*.v" > hls_p11dual.f
+REM 2026-10-19 P3 fix (H-4 gate-side): pin the archived P2 netlist. Live
+REM   solution1 was re-run with P3 cflags (MAX=8 + i_tcp_adv_wnd) and this TB's
+REM   udp_echo instantiation has no such port => Z/X and g6 went red.
+set "HLSA=%ROOT%\_proj_10g\notes\p11_p3_build_20261019\hls_archive_p2_dual_ip_max3"
+if not exist "%HLSA%\udp_echo.v" (echo P11_HLS_P2_ARCHIVE_MISSING & exit /b 1)
+dir /b /s "%HLSA%\*.v" > hls_p11dual.f
 REM HLS netlist ROM images: without these xsim warns "cannot be opened" and the
 REM HLS MAC emits garbage preamble/src-MAC (P4 chain bats copy them too).
 copy /y "%HLS%\*.dat" . >nul 2>&1

@@ -15,6 +15,9 @@ REM 门在 xvlog 先硬失败 (更宽的同义门); 负控期望该**预占**签
 call :run "C4+ModeB" "%BASE% -d P11_CFG_C4 -d DUAL_SFP_A -d SFP2_MODE_B -d P11_DUAL" "DUAL_SFP_A_AND_SFP2_MODE_B_CONFLICT"
 call :run "C3+C4"    "%BASE% -d P11_CFG_C3 -d P11_CFG_C4 -d P11_CFG_ENFORCE -d DUAL_SFP_A -d SFP2_MODE_A -d P11_DUAL" "P11_CFG_SELECT_ONE"
 call :run "P11+ModeB" "%BASE% -d P11_DUAL -d SFP2_MODE_B" "P11_DUAL_AND_SFP2_MODE_B_CONFLICT"
+REM M-10: P11_DUAL 的独立前置门 (不依赖 P11_CFG_ENFORCE)
+call :run "P11-noDual"  "%BASE% -d P11_DUAL -d SFP2_MODE_A" "P11_DUAL_REQUIRES_DUAL_SFP_A"
+call :run "P11-noSFP2A" "%BASE% -d P11_DUAL -d DUAL_SFP_A"  "P11_DUAL_REQUIRES_SFP2_MODE_A"
 if "%BAD%"=="1" exit /b 1
 echo CFG_NEGCTL_PASS
 exit /b 0

@@ -45,11 +45,14 @@ if errorlevel 1 (echo SNAP_TOP5_STATIC_GATE_FAIL & exit /b 1)
 REM Provenance: every log must carry which RTL set it compiled (P7B_CHAIN_COVERAGE 2026-09-30).
 echo [RTL] WRAP=%WRAP%
 echo [RTL] MACD=%MACD%
-REM  HLS netlist: generated -f list (173 files). Kept OUT of the literal
-REM  cross-check below on purpose (manifestcheck only parses .v tokens on the
-REM  xvlog line; inlining 173 generated names would make the manifest rot on
-REM  every HLS rebuild). HLS inputs are pinned by the hls tree itself.
-dir /b /s "%ROOT%\hls\slowstack_prj\solution1\syn\verilog\*.v" > hls_p7bchain.f
+REM  HLS netlist: generated -f list. Kept OUT of the literal cross-check below
+REM  on purpose (manifestcheck only parses .v tokens on the xvlog line).
+REM  2026-10-19 P3 fix (H-4 gate-side): pin the archived P2 netlist (175 files).
+REM  Live solution1 is mutable (was re-run with P3 cflags: MAX=8 + adv_wnd
+REM  port) and this TB does not connect that port => Z/X.
+set "HLSA=%ROOT%\_proj_10g\notes\p11_p3_build_20261019\hls_archive_p2_dual_ip_max3"
+if not exist "%HLSA%\udp_echo.v" (echo P11_HLS_P2_ARCHIVE_MISSING & exit /b 1)
+dir /b /s "%HLSA%\*.v" > hls_p7bchain.f
 REM 2026-10-18 gate debt: rtl/mir_uram_fifo.v instantiates xpm_memory_sdpram
 REM (URAM buffer, in the tree since 0x24) => register xpm into a local library
 REM and elaborate with -L xpm, exactly as sim/p6e_pcie/run_tb_p6e_pcie.bat does.

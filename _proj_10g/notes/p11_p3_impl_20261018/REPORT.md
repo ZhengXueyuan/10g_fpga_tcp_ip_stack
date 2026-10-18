@@ -104,12 +104,19 @@ RTL：
 - `P11_C4_WRAP TB PASS`：
   - 臂 B：ch1 注入 ARP request（target IP_A）⇒ 回包只出现在 **ch1** TX（ARP opcode=2、SPA=IP_A）；**ch0 无该回包**（跨口隔离）。
   - 臂 D：ch1 注入 SYN（dst IP_A）⇒ **ch1** TX 出 SYN-ACK（proto=6、flags SYN|ACK、src IP=IP_A）。
-  - 臂 A（信息）：ch0 注入 ARP target IP_B ⇒ 归档**单 IP** HLS 网表不应答（`reply idx=-1`）⇒ **IP_B 的 port1 功能应答 = 未测**（构建轮用 P3 双 IP 网表复测）。
+  - 臂 A：ch0 注入 ARP target IP_B ⇒ **应答在 ch0**（ARP opcode=2、SPA=IP_B；ch1 无回包）。
+    ⛔ **2026-10-19 订正（P3 修复轮 M-1）**：原文写"归档**单 IP** HLS 网表不应答（`reply idx=-1`）"**与归档日志相反** ——
+    `logs/p11_c4_wrap_xsim_c4w.txt:39` 逐字 `reply idx=13`（P2 双 IP 网表本来就应答 IP_B）。旧门 arm A 只有
+    `$display`、无 `chk`，所以该错误没被拦住。本轮已：① arm A 改为硬判据（idx>=0/opcode=2/SPA=IP_B）；
+    ② 补 arm C（ch0 SYN/IP_B ⇒ SYN-ACK，源 IP=IP_B，ch1 无回包）；③ 门改用 **P3 归档网表 + `P11_HLS_ADV_WND`**
+    （H-4，配对硬判）；④ 加 `Error:/Critical/Unisim` 硬门（`scan_xsim_errors.py --mode c4wrap`，唯一允许
+    `u_slow_rx.u_ff` 的 RAMB36E2-11 bypass 碰撞）与 `P11_ACC_MARGIN_SELFCHK OK` 断言。读数见
+    `p11_p3_fix_20261019/FIX_REPORT.md`。
 - C1/C3 回归门仍绿（矩阵 `p5_wrapper` 与 `g6_p11_dual` 在本轮全矩阵里重跑，见 §7）。
 
 ### 2.8 G-P3-7 elaboration 组合（矩阵 `p11_c4_elab` + 负控驱动）
 - 正控：`P11_C4_ELAB PASS`（C4 全宏集：P7B_10G/PCIE_OBS/DP_156MHZ/APP_MODE/P6B_SIM_CLKGEN/UDP_TX_OVL/TCP_TX_OVL/SFP2_MODE_A/DUAL_SFP_A/P11_DUAL/P11_CFG_C4/P11_CFG_ENFORCE；implicit/xvlog-ERROR 硬门 0）。
-- 负控（`run_negctl_cfg_c4.bat`）：9/9 被拒（`CFG_NEGCTL_PASS`）：
+- 负控（`run_negctl_cfg_c4.bat`）：9/9 被拒（`CFG_NEGCTL_PASS`；⛔ **2026-10-19 P3 修复轮 M-10 追加 2 条 ⇒ 现 11/11**：`P11-noDual` / `P11-noSFP2A` 分别被 `P11_DUAL_REQUIRES_DUAL_SFP_A` / `P11_DUAL_REQUIRES_SFP2_MODE_A` 拒绝）：
   - 0-select → `P11_CFG_SELECT_ONE`
   - C1+DUAL → `P11_CFG_C1_CONFLICTS_SECOND_PORT`
   - C2 缺 MODE_B → `P11_CFG_C2_REQUIRES_MODE_B`
@@ -194,7 +201,8 @@ RTL：
 - `GIT_HEAD = 90307cd1`
 - 日志：`sim/p4sim/matrix_p4dfix.log`；逐门 log 已按 `.txt` 归档到 `gates/logs/`。
 
-历史（如实）：本报告轮内跑了两次全矩阵。**第一次 = 31/32**，唯一红 = `biz_win`：`check_window.py` 的 5c 判据仍钉历史 W79 源名 `ch0_rx_frames`，而 C4 引入了 `ch0_w79_frames`（P3 的 W79 语义变更，设计件 §7.1 已登记）。修正 = 判据接受两个源名（C4/C3），随后 `biz_win`/`p5_wrapper`/`g6_p11_dual` 单跑全绿；**第二次全矩阵 = 32/32 FROZEN**（上列读数）。两次的 `DIGEST_ALL` 不同（第一次 `851d1343…` = checker 修正**前**的修订；第二次 `e4367d75…` = 最终修订）—— 指纹变化与 `check_window.py` 的编辑一致（该文件在 FINGERPRINT_GLOBS 内）。
+历史（如实）：本报告轮内跑了两次全矩阵。**第一次 = 31/32**，唯一红 = `biz_win`：`check_window.py` 的 5c 判据仍钉历史 W79 源名 `ch0_rx_frames`，而 C4 引入了 `ch0_w79_frames`（P3 的 W79 语义变更，设计件 §7.1 已登记）。修正 = 判据接受两个源名（C4/C3），随后 `biz_win`/`p5_wrapper`/`g6_p11_dual` 单跑全绿；**第二次全矩阵 = 32/32 FROZEN**（上列读数）。
+⛔ **2026-10-19 订正（P3 修复轮 M-11）**：原文"两次的 `DIGEST_ALL` 不同（第一次 `851d1343…`=修正前；第二次 `e4367d75…`=最终修订）"把**同一份最终修订的两个读数**误写成两次运行。事实 = `sim/p4sim/matrix_p4dfix.log` **存储**的 `DIGEST_ALL(content) = 851d1343…`（382 条记录对 HEAD 全一致：missing 0 / mismatch 0）；`e4367d75…` 是 `p4gate.py` 的 `compare` 子命令**按路径排序重算**得到的同一内容摘要（根路径正/反斜杠写法影响字符串，故与存储值不同）。⇒ 正确写法 = "存储 `851d1343`；compare 重算 `e4367d75`"，不是"两个修订"。`check_window.py` 的编辑只解释第一次→第二次**矩阵运行**的差异，与这两个摘要的关系无关。
 
 逐门独有串（本轮）：`P11_C4_ELAB PASS` · `WIN_POOL_MGR TB PASS` · `RETX_POOL_SHARED TB PASS` · `SLOW_MERGE2 TB PASS` · `SLOW_DEMUX2 TB PASS` · `SLOW_CFG_DEMUX TB PASS` · `P3_CHURN TB PASS` · `P11_C4_WRAP TB PASS` · 既有 `P4 CHAIN OK` / `BURST OK` / `P5 WRAPPER OK` / `P7B WU GATE PASS` / `RX_MERGE2 TB PASS` / `SRCIP_GATE_PASS` / `P11_DUAL TB PASS` / `TB_BIZ_WIN_PASS` 等全绿。
 

@@ -1,0 +1,145 @@
+
+****** Vivado v2025.2 (64-bit)
+  **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+  **** Start of session at: Mon Oct 19 03:40:35 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source {D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p11_p3_impl_20261018\gates\tcl\run_p11_buildcfg_gate.tcl}
+# set script_dir [file dirname [file normalize [info script]]]
+# set root_dir   [file dirname [file dirname [file dirname [file dirname $script_dir]]]]
+# set root_dir [file normalize [file join $script_dir .. .. .. .. ..]]
+# source [file join $root_dir board p11_build_cfg.tcl]
+## proc p11_build_cfg_check {defs adv_hits} {
+##     set cn 0
+##     set cfg ""
+##     foreach {nm tag} {P11_CFG_C1 c1 P11_CFG_C2 c2 P11_CFG_C3 c3 P11_CFG_C4 c4} {
+##         if {[lsearch -exact $defs "${nm}=1"] >= 0} { incr cn; set cfg $tag }
+##     }
+##     set enf  [expr {[lsearch -exact $defs "P11_CFG_ENFORCE=1"] >= 0}]
+##     set dual [expr {[lsearch -exact $defs "P11_DUAL=1"] >= 0}]
+##     set advw [expr {[lsearch -exact $defs "P11_HLS_ADV_WND=1"] >= 0}]
+##     if {!$enf}                    { return [list 0 P11_CFG_ENFORCE_MISSING       $cfg $dual $advw] }
+##     if {$cn != 1}                 { return [list 0 P11_CFG_SELECT_ONE            $cfg $dual $advw] }
+##     if {$dual && $adv_hits <= 0}  { return [list 0 P11_HLS_PORT_MISSING           $cfg $dual $advw] }
+##     if {$dual && !$advw}          { return [list 0 P11_HLS_ADV_WND_MACRO_MISSING $cfg $dual $advw] }
+##     if {!$dual && $adv_hits > 0}  { return [list 0 P11_HLS_PORT_UNEXPECTED        $cfg $dual $advw] }
+##     if {!$dual && $advw}          { return [list 0 P11_HLS_ADV_WND_MACRO_UNEXPECTED $cfg $dual $advw] }
+##     return [list 1 OK $cfg $dual $advw]
+## }
+## proc p11_hls_variant_dir {root variant} {
+##     switch -- $variant {
+##         c1 {
+##             return [file join $root _proj_10g notes p11_build_0x2C_20261018 hls_archive_single_ip]
+##         }
+##         p2_dual_max3 {
+##             return [file join $root _proj_10g notes p11_p3_build_20261019 hls_archive_p2_dual_ip_max3]
+##         }
+##         p3_dual_max8 {
+##             return [file join $root _proj_10g notes p11_p3_build_20261019 hls_archive_p3_dual_ip_max8]
+##         }
+##         default { return "" }
+##     }
+## }
+## proc p11_default_variant {cfg} {
+##     switch -- $cfg {
+##         c1      { return "c1" }
+##         c2      { return "c1" }        ;# 乙模式业务口�? IP 网表; 乙轮�?, 暂挂 c1
+##         c3      { return "p2_dual_max3" }
+##         c4      { return "p3_dual_max8" }
+##         default { return "" }
+##     }
+## }
+## proc p11_adv_wnd_hits {hls_dir} {
+##     set f [file join $hls_dir udp_echo.v]
+##     if {![file exists $f]} { return -1 }
+##     set fh [open $f r]
+##     set txt [read $fh]
+##     close $fh
+##     return [regexp -all {i_tcp_adv_wnd} $txt]
+## }
+# set fails 0
+# proc chk {cond name} {
+#     global fails
+#     if {$cond} { puts "P11_BUILDCFG_RULE $name OK" } else { puts "P11_BUILDCFG_RULE $name FAIL"; incr fails }
+# }
+# set base [list APP_MODE=1 DEV_USP=1 PCIE_OBS=1 DP_156MHZ=1 P7B_10G=1 UDP_TX_OVL=1 TCP_TX_OVL=1]
+# set d1 [p11_hls_variant_dir $root_dir c1]
+# set d2 [p11_hls_variant_dir $root_dir p2_dual_max3]
+# set d3 [p11_hls_variant_dir $root_dir p3_dual_max8]
+# chk [file exists [file join $d1 udp_echo.v]] "c1 archive exists"
+P11_BUILDCFG_RULE c1 archive exists OK
+# chk [file exists [file join $d2 udp_echo.v]] "p2 archive exists"
+P11_BUILDCFG_RULE p2 archive exists OK
+# chk [file exists [file join $d3 udp_echo.v]] "p3 archive exists"
+P11_BUILDCFG_RULE p3 archive exists OK
+# set h1 [p11_adv_wnd_hits $d1]
+# set h2 [p11_adv_wnd_hits $d2]
+# set h3 [p11_adv_wnd_hits $d3]
+# puts "P11_HLS_ADV_HITS c1=$h1 p2=$h2 p3=$h3"
+P11_HLS_ADV_HITS c1=0 p2=0 p3=3
+# chk [expr {$h1 == 0}] "c1 has no i_tcp_adv_wnd"
+P11_BUILDCFG_RULE c1 has no i_tcp_adv_wnd OK
+# chk [expr {$h2 == 0}] "p2 has no i_tcp_adv_wnd"
+P11_BUILDCFG_RULE p2 has no i_tcp_adv_wnd OK
+# chk [expr {$h3 > 0}]  "p3 has i_tcp_adv_wnd"
+P11_BUILDCFG_RULE p3 has i_tcp_adv_wnd OK
+# chk [expr {[p11_hls_variant_dir $root_dir bogus] eq ""}] "unknown variant -> empty"
+P11_BUILDCFG_RULE unknown variant -> empty OK
+# set defs_c3 [concat $base [list P11_CFG_C3=1 P11_CFG_ENFORCE=1 SFP2_MODE_A=1 DUAL_SFP_A=1]]
+# set defs_c4 [concat $base [list P11_CFG_C4=1 P11_CFG_ENFORCE=1 SFP2_MODE_A=1 DUAL_SFP_A=1 P11_DUAL=1 P11_HLS_ADV_WND=1]]
+# set r3 [p11_build_cfg_check $defs_c3 $h2]
+# set r4 [p11_build_cfg_check $defs_c4 $h3]
+# puts "P11_BUILDCFG_POS c3=[lindex $r3 1] config=[lindex $r3 2] ; c4=[lindex $r4 1] config=[lindex $r4 2]"
+P11_BUILDCFG_POS c3=OK config=c3 ; c4=OK config=c4
+# chk [expr {[lindex $r3 0] == 1 && [lindex $r3 2] eq "c3"}] "positive c3+p2"
+P11_BUILDCFG_RULE positive c3+p2 OK
+# chk [expr {[lindex $r4 0] == 1 && [lindex $r4 2] eq "c4"}] "positive c4+p3"
+P11_BUILDCFG_RULE positive c4+p3 OK
+# proc neg {name defs hits want} {
+#     global fails
+#     set r [p11_build_cfg_check $defs $hits]
+#     set got [lindex $r 1]
+#     if {[lindex $r 0] == 0 && $got eq $want} {
+#         puts "P11_BUILDCFG_NEG $name -> $got OK"
+#     } else {
+#         puts "P11_BUILDCFG_NEG $name -> got=<$got> want=<$want> FAIL"
+#         incr fails
+#     }
+# }
+# neg "no-enforce"      [concat $base [list P11_CFG_C3=1]]                          0 P11_CFG_ENFORCE_MISSING
+P11_BUILDCFG_NEG no-enforce -> P11_CFG_ENFORCE_MISSING OK
+# neg "two-C"           [concat $base [list P11_CFG_C3=1 P11_CFG_C4=1 P11_CFG_ENFORCE=1]] 0 P11_CFG_SELECT_ONE
+P11_BUILDCFG_NEG two-C -> P11_CFG_SELECT_ONE OK
+# neg "dual-no-macro"   [concat $base [list P11_CFG_C4=1 P11_CFG_ENFORCE=1 P11_DUAL=1]] 3 P11_HLS_ADV_WND_MACRO_MISSING
+P11_BUILDCFG_NEG dual-no-macro -> P11_HLS_ADV_WND_MACRO_MISSING OK
+# neg "dual-p2-net"     [concat $base [list P11_CFG_C4=1 P11_CFG_ENFORCE=1 P11_DUAL=1 P11_HLS_ADV_WND=1]] 0 P11_HLS_PORT_MISSING
+P11_BUILDCFG_NEG dual-p2-net -> P11_HLS_PORT_MISSING OK
+# neg "nondual-p3-net"  [concat $base [list P11_CFG_C3=1 P11_CFG_ENFORCE=1]]         3 P11_HLS_PORT_UNEXPECTED
+P11_BUILDCFG_NEG nondual-p3-net -> P11_HLS_PORT_UNEXPECTED OK
+# neg "nondual-macro"   [concat $base [list P11_CFG_C3=1 P11_CFG_ENFORCE=1 P11_HLS_ADV_WND=1]] 0 P11_HLS_ADV_WND_MACRO_UNEXPECTED
+P11_BUILDCFG_NEG nondual-macro -> P11_HLS_ADV_WND_MACRO_UNEXPECTED OK
+# set bt [file join $root_dir board build_p7b_ku5p.tcl]
+# set txt ""
+# if {[file exists $bt]} { set fh [open $bt r]; set txt [read $fh]; close $fh }
+# chk [expr {[string first "p11_build_cfg.tcl" $txt] >= 0}] "build tcl sources p11_build_cfg.tcl"
+P11_BUILDCFG_RULE build tcl sources p11_build_cfg.tcl OK
+# chk [expr {[string first "p11_build_cfg_check" $txt] >= 0}] "build tcl calls pairing check"
+P11_BUILDCFG_RULE build tcl calls pairing check OK
+# chk [expr {[string first "P11_CFG_PAIRING" $txt] >= 0}] "build tcl prints P11_CFG_PAIRING"
+P11_BUILDCFG_RULE build tcl prints P11_CFG_PAIRING OK
+# chk [expr {[string first "P11_CONFIG" $txt] >= 0}] "build tcl prints P11_CONFIG"
+P11_BUILDCFG_RULE build tcl prints P11_CONFIG OK
+# chk [expr {[string first "set_property verilog_define \$P11_DEFS" $txt] >= 0}] "build tcl uses computed defines"
+P11_BUILDCFG_RULE build tcl uses computed defines OK
+# if {$fails == 0} {
+#     puts "P11_BUILDCFG_GATE PASS"
+#     exit 0
+# } else {
+#     puts "P11_BUILDCFG_GATE FAIL fails=$fails"
+#     exit 1
+# }
+P11_BUILDCFG_GATE PASS
+INFO: [Common 17-206] Exiting Vivado at Mon Oct 19 03:40:37 2026...

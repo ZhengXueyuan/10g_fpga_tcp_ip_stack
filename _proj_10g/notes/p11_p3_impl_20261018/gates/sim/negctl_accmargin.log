@@ -1,0 +1,10 @@
+[P4GUARD OK] root=d:\repo\xcku5pmini\udp_hls_10g self=d:\repo\xcku5pmini\udp_hls_10g manifests=21
+P11_ACC_MARGIN_RULE port0 ACC_MARGIN(acc_margin_eff)              OK
+P11_ACC_MARGIN_RULE port1 ACC_MARGIN(acc_margin_eff1)             FAIL
+P11_ACC_MARGIN_RULE acc_margin_eff1 uses port1 ESTAB count        OK
+P11_ACC_MARGIN_RULE acc_margin_n1 derives from a2_estab_cnt       OK
+P11_ACC_MARGIN_RULE 128KB budget documented (131072)              OK
+P11_ACC_MARGIN_RULE 8+0 residual 26934/310B documented            OK
+P11_ACC_MARGIN_RULE runtime self-check present                    OK
+P11_ACC_MARGIN_GATE mut rules=7 fail=1
+P11_ACC_MARGIN_GATE FAIL

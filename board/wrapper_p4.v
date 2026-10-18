@@ -406,6 +406,44 @@ module wrapper_p4 #(
         end
     endgenerate
 
+    //=========================================================================
+    // P11 P3 修复轮 (M-10): `P11_DUAL` 的独立前置硬门。
+    //   旧问题: `P11_DUAL` 只在 `P11_CFG_ENFORCE=1` 时被 P11_CFG_C4 的检查
+    //   间接约束; 若新构建脚本忘写 `P11_CFG_*`/ENFORCE, 只定义 P11_DUAL 会
+    //   **静默落 legacy 分支** (第二口数据面被 `ifdef P11_DUAL` 打开, 但
+    //   慢路径/时钟域前提不成立)。这里把 5 条前提写成独立的具名 elaboration
+    //   硬门 (未定义模块 ⇒ xelab 失败), 不依赖 P11_CFG_ENFORCE。
+    //=========================================================================
+`ifdef P11_DUAL
+    generate
+`ifndef DUAL_SFP_A
+        if (1'b1) begin : g_p11dual_requires_dual
+            P11_DUAL_REQUIRES_DUAL_SFP_A u_p11dual_requires_dual();
+        end
+`endif
+`ifndef P7B_10G
+        if (1'b1) begin : g_p11dual_requires_p7b
+            P11_DUAL_REQUIRES_P7B_10G u_p11dual_requires_p7b();
+        end
+`endif
+`ifndef DP_156MHZ
+        if (1'b1) begin : g_p11dual_requires_dp
+            P11_DUAL_REQUIRES_DP_156MHZ u_p11dual_requires_dp();
+        end
+`endif
+`ifndef APP_MODE
+        if (1'b1) begin : g_p11dual_requires_app
+            P11_DUAL_REQUIRES_APP_MODE u_p11dual_requires_app();
+        end
+`endif
+`ifndef SFP2_MODE_A
+        if (1'b1) begin : g_p11dual_requires_sfp2a
+            P11_DUAL_REQUIRES_SFP2_MODE_A u_p11dual_requires_sfp2a();
+        end
+`endif
+    endgenerate
+`endif
+
     // ---- P11 P3: C4 合同常量 (一个 bitstream 一个合同) ----
     //   默认 8 连接 x 12KB (0x3000); 2 连接 2x10G 演示构建把 EXPECTED 改 2
     //   (wq_cap = 96KB/2 = 48KB = 0xC000)。host 配额寄存器不在 P3 范围。
@@ -1588,18 +1626,29 @@ module wrapper_p4 #(
     //   独立断言 + 负向对照; 本行是 tools/gen_stim_p5_adv.py 的 check_phys_margin
     //   文本解析目标, 勿删勿改数值 —— 它明令"解析失败 = FAIL"且不在允许改动清单内)。
     //
-    // [为什么] N 条连接共享**同一个** 64KB 零拷贝 frame_fifo (tcp_echo) ⇒ 物理界:
-    //     Σwinq + N*ACC_MARGIN + Δ(2816) + U(1518) + SEG_MAX(1500) <= 65536
+    // [为什么] N 条连接共享**同一个**零拷贝 frame_fifo (tcp_echo) ⇒ 物理界:
+    //     Σwinq + N*ACC_MARGIN + Δ(2816) + U(1518) + SEG_MAX(1500) <= FIFO 字节数
     //   各项来源:
-    //     Σwinq    <= WIN_POOL = 49152  (D4 分池后由构造保证, 见 app_ctrl 的 wq_cap_r)
+    //     Σwinq    <= 该口的预配额之和 (P3 C4: 共享池 96KB, 单口上限 96KB)
     //     Δ = 2816 = ackq 深 x 每 ACK 帧拍数 x 到达率 (规格 C1b 的 1G Δ 上界)
     //     U = 1518 = 未判定帧 (54 + 1460 + 4)
     //     SEG_MAX = 1500 = 一个段可整段被接受 (win_ok 只看段起始 seq ⇒ 越界量 <= plen-1)
-    //   ⇒ N*ACC_MARGIN <= 65536 - 49152 - 2816 - 1518 - 1500 = **10550**
-    //   ⇒ ACC_MARGIN <= 10550/N:  N=1/2/3 ⇒ 10550 / 5275 / **3516**
-    //   (旧实现硬传 4096: N=3 时 3*4096 = 12288 > 10550 ⇒ 超 **1738 B** ⇒ frame_fifo
-    //    满 ⇒ 上游 mac_rx 丢整帧 = 破坏 P5b "零丢字节" 承诺。旧门没有一条能抓:
-    //    adv multi 只有 2 条连接且 conn1 winq=0 的注入是脚本无条件灌的 150B。)
+    //
+    //   [64KB 时代 (单口默认构建)] FIFO = 65536:
+    //     N*ACC_MARGIN <= 65536 - 49152 - 2816 - 1518 - 1500 = **10550**
+    //     ⇒ ACC_MARGIN <= 10550/N:  N=1/2/3 ⇒ 10550 / 5275 / **3516**
+    //     (旧实现硬传 4096: N=3 时 3*4096 = 12288 > 10550 ⇒ 超 **1738 B**)
+    //
+    //   [P3 C4: 每口 128KB echo (rtl/tcp_echo.v D=16384/AW=14), 池 96KB]
+    //     FIFO = 131072; Σwinq(单口) <= 96KB = 98304
+    //     ⇒ N*ACC_MARGIN <= 131072 - 98304 - 5834 = **26934**
+    //     ⇒ 上表 (N<=2: 4096 / N=3: 3516 / N>=4: 3328) 在 N 到 8 时仍成立:
+    //       8*3328 = 26624 <= 26934 (余 **310 B**) —— 但**前提是 margin 用本口的
+    //       ESTAB 数**. 旧实装 port1 的 tcp_rx2 共用 port0 的 app_estab_cnt:
+    //       8+0 分布下 port0 ESTAB=0 ⇒ margin=4096 ⇒ 8*4096 = 32768 > 26934,
+    //       物理预算 136,906 B > 131,072 B (超 5,834 B) ⇒ frame_fifo 溢出丢帧。
+    //       ⇒ P3 修复轮 (H-3): port0 用 acc_margin_eff  (app_estab_cnt),
+    //          port1 用 acc_margin_eff1 (a2_estab_cnt), 各自独立。
     //
     // [下界钳位] ACC_MARGIN >= 3328 = Δ(2816) + 512 余量。低于它 = 接受界覆盖不了
     //   通告漂移 ⇒ 对端按旧右沿合法发出的段被判窗外 ⇒ 静默丢弃 + 等 200ms RTO
@@ -1631,6 +1680,31 @@ module wrapper_p4 #(
         if (!dp_rst_n) acc_margin_eff <= 16'd4096;   // 复位 = N<=2 值 (零回归)
         else           acc_margin_eff <= acc_margin_of(acc_margin_n);
     end
+
+`ifdef P11_DUAL
+    // ---- P3 (H-3): port1 的接受裕度必须用**本口**的 ESTAB 数 ----
+    //   a2_estab_cnt 由 u_app_ctrl2.dbg_estab_cnt 驱动 (C4 支), 这里提前声明
+    //   (u_tcp_rx2 例化在 u_app_ctrl2 之前; xvlog 要求先声明后用)。
+    wire [15:0] a2_estab_cnt;
+    wire [4:0]  acc_margin_n1  = (a2_estab_cnt[4:0] == 5'd0) ? 5'd1 : a2_estab_cnt[4:0];
+    reg  [15:0] acc_margin_eff1;
+    always @(posedge dp_clk or negedge dp_rst_n) begin
+        if (!dp_rst_n) acc_margin_eff1 <= 16'd4096;  // 复位 = N<=2 值 (零回归)
+        else           acc_margin_eff1 <= acc_margin_of(acc_margin_n1);
+    end
+    // 表自检 (仿真期): 8+0 分布 (port0 ESTAB=0) 下 port1 的 margin 必须 = 3328。
+    //   构建门 (gates/sim/run_accmargin_gate.bat) 断言本行 + 端口接法文本。
+    //   (只用 $display: 综合器对 initial/$error 的支持不一; 门判据 = 必须出现 OK 行,
+    //    表错时只打 FAIL ⇒ 门 findstr 失败, 同样是硬失败且无综合风险)
+    initial begin
+        if (acc_margin_of(5'd8) != 16'd3328)
+            $display("P11_ACC_MARGIN_SELFCHK FAIL n8=%0d (want 3328)",
+                     acc_margin_of(5'd8));
+        else
+            $display("P11_ACC_MARGIN_SELFCHK OK n0=%0d n1=%0d n8=%0d",
+                     acc_margin_of(5'd0), acc_margin_of(5'd1), acc_margin_of(5'd8));
+    end
+`endif
 
     // ⛔<< 警告 (对抗审查轮加, 2026-10-09 P7B-LONGFLOW): **TX_BYTES 必须保持无符号** >>
     //   `rtl/app_pattern.v:619` 的 `seg_len <= (TX_BYTES > {20'b0, TX_SEGSZ}) ? TX_SEGSZ : TX_BYTES[11:0]`
@@ -2933,7 +3007,7 @@ module wrapper_p4 #(
     wire        cam2_q_hit;
     wire [3:0]  cam2_q_id;
     tcp_rx u_tcp_rx2 (
-        .ACC_MARGIN     (acc_margin_eff),
+        .ACC_MARGIN     (acc_margin_eff1),   // P3 H-3: 本口 ESTAB 数 (port0 用 acc_margin_eff)
         .clk            (dp_clk),
         .rst_n          (dp_rst_n),
         .s_axis_tdata   (f2_tdata), .s_axis_tkeep(f2_tkeep),
@@ -3113,7 +3187,7 @@ module wrapper_p4 #(
     wire [3:0]  a2_quota_rel_slot;
     wire [3:0]  a2_c0_state;
     wire [31:0] a2_c0_snd_nxt, a2_c0_snd_una, a2_c0_rcv_nxt;
-    wire [15:0] a2_c0_rcv_wnd, a2_estab_cnt, a2_ev_cnt;
+    wire [15:0] a2_c0_rcv_wnd, a2_ev_cnt;   // a2_estab_cnt: 已在 ACC_MARGIN 段提前声明
     wire [31:0] a2_ev_drop, a2_stat_wu, a2_stat_pool_exh, a2_stat_slot_reuse;
     wire        a2_una_adv = rx2_upd_gnt && (rx2_upd_sel == 3'd2);
     app_ctrl #(
@@ -3598,8 +3672,11 @@ module wrapper_p4 #(
     // ---- 慢路径 2:1 merge (port0/port1 的 udp_split 透传口 -> 单份 HLS) ----
     wire [63:0] smrg_tdata; wire [7:0] smrg_tkeep;
     wire        smrg_tvalid, smrg_tready, smrg_tlast, smrg_tuser, smrg_tcrs, smrg_terr;
+    // M-9: rst_n 用 dp_rst_n (与上游 udp_split / slow_rx_adp 同源) —— 旧实装
+    //   用 reset_n (软复位), MMCM 重锁/软复位时 merge 会保留 busy/sel ⇒ 半帧进
+    //   HLS。同源后与上游一起复位。登记为设计件 F-19 的修复 (不再是例外)。
     slow_merge2 #(.STRICT(1'b0), .TO_CYCLES(4096)) u_slow_merge (
-        .clk(dp_clk), .rst_n(reset_n),
+        .clk(dp_clk), .rst_n(dp_rst_n),
         .p0_tdata(srx_tdata), .p0_tkeep(srx_tkeep), .p0_tvalid(srx_tvalid),
         .p0_tready(srx_tready), .p0_tlast(srx_tlast), .p0_tuser(srx_tuser),
         .p0_tcrs(srx_tcrs), .p0_terr(srx_terr),
@@ -3652,6 +3729,8 @@ module wrapper_p4 #(
     // ---- 共享窗口信用池 (96KB 单池; 两套 app_ctrl 只读) ----
     wire [16:0] pool_dbg, pw0_dbg, pw1_dbg;
     wire [31:0] pool_grant_zero, pool_slot_reuse, pool_rel_dup, pool_slot_oor;
+    wire [31:0] pool_c18_cross, pool_pw_under;
+    wire [7:0]  wp_grant_port;      // H-2: 槽属主 = manager 的授出口 (ev_up 时更新)
     win_pool_mgr #(.WIN_POOL(WIN_POOL_5), .PORT_CAP(PORT_CAP_5)) u_win_pool (
         .clk(dp_clk), .rst_n(dp_rst_n),
         .ev_up0(scfg_ev_up), .ev_up_slot0(scfg_ev_slot),
@@ -3664,15 +3743,20 @@ module wrapper_p4 #(
         .winq_rd_id0b(app_winq_rd_id_ev), .winq_rd0b(app_winq_rd_ev),
         .winq_rd_id1(a2_winq_rd_id), .winq_rd1(a2_winq_rd),
         .winq_rd_id1b(a2_winq_rd_id_ev), .winq_rd1b(a2_winq_rd_ev),
+        .o_grant_port(wp_grant_port),
         .dbg_pool(pool_dbg), .dbg_port_win0(pw0_dbg), .dbg_port_win1(pw1_dbg),
         .stat_grant_zero(pool_grant_zero), .stat_slot_reuse(pool_slot_reuse),
-        .stat_rel_dup(pool_rel_dup), .stat_slot_oor(pool_slot_oor)
+        .stat_rel_dup(pool_rel_dup), .stat_slot_oor(pool_slot_oor),
+        .stat_c18_cross_port(pool_c18_cross),
+        .stat_port_win_underflow(pool_pw_under)
     );
 
-    // ---- 共享 8 槽重传环 (128 tile; 每槽属主口 = cfg_slot_port) ----
+    // ---- 共享 8 槽重传环 (128 tile; 每槽属主口 = manager 的 grant_port) ----
+    //   ⚠️ H-2: 不用 cfg_slot_port —— 它在 ADD 路由拍就翻转, 早于旧口 TCB 拆除;
+    //   用 grant_port 则旧口在 ev_up 前仍是属主、新口 ev_up 后接管。
     wire [31:0] retx_owner_mismatch, retx_slot_oor;
     retx_pool_shared u_retx_pool (
-        .clk(dp_clk), .rst_n(dp_rst_n), .slot_port(cfg_slot_port),
+        .clk(dp_clk), .rst_n(dp_rst_n), .grant_port(wp_grant_port),
         .wr_en0(tx_ext_wr_en), .w_conn0(tx_ext_w_conn), .w_seq0(tx_ext_w_seq),
         .w_data0(tx_ext_w_data), .w_n0(tx_ext_w_n),
         .rd_en0(tx_ext_rd_en), .r_conn0(tx_ext_r_conn), .r_seq0(tx_ext_r_seq),

@@ -284,6 +284,17 @@ call :gate p11_slow_demux2 _proj_10g\notes\p11_p3_impl_20261018\gates\sim\run_tb
 call :gate p11_slow_cfg_demux _proj_10g\notes\p11_p3_impl_20261018\gates\sim\run_tb_slow_cfg_demux.bat p11scd_src.f - -
 call :gate p11_churn    _proj_10g\notes\p11_p3_impl_20261018\gates\sim\run_tb_p3_churn.bat          p11churn_src.f  - -
 call :gate p11_c4_wrap  _proj_10g\notes\p11_p3_impl_20261018\gates\sim\run_tb_p11_c4_wrap.bat      p11c4w_src.f    - -
+REM ---- P3 fix round (2026-10-19): negative controls + H-5/ACC_MARGIN/build-cfg ----
+REM   Manifests are empty (these bats only delegate; no xvlog of their own).
+call :gate p11_negctl_wpm   _proj_10g\notes\p11_p3_impl_20261018\gates\sim\run_negctl_wpm.bat        p11negctl_src.f - -
+call :gate p11_negctl_churn _proj_10g\notes\p11_p3_impl_20261018\gates\sim\run_negctl_churn.bat      p11negctl_src.f - -
+call :gate p11_negctl_cfg   _proj_10g\notes\p11_p3_impl_20261018\gates\sim\run_negctl_cfg_c4.bat     p11negctl_src.f - -
+call :gate p11_negctl_slow  _proj_10g\notes\p11_p3_impl_20261018\gates\sim\run_negctl_slow.bat       p11negctl_src.f - -
+call :gate p11_negctl_p3fix _proj_10g\notes\p11_p3_impl_20261018\gates\sim\run_negctl_p3fix.bat      p11negctl_src.f - -
+call :gate p11_static       _proj_10g\notes\p11_p3_impl_20261018\gates\sim\run_p3fix_static_gate.bat   p11negctl_src.f - -
+call :gate p11_accmargin    _proj_10g\notes\p11_p3_impl_20261018\gates\sim\run_negctl_accmargin.bat  p11negctl_src.f - -
+call :gate p11_buildcfg     _proj_10g\notes\p11_p3_impl_20261018\gates\tcl\run_p11_buildcfg_gate.bat p11negctl_src.f - -
+call :gate p11_ext0         _proj_10g\notes\p11_p3_fix_20261019\gates\sim\run_p3_ext0_regress.bat     p11negctl_src.f - -
 
 call :log "--- revision fingerprint (after) ---"
 "%PY%" "%P4GATE_PY%" fingerprint --root "%REPO_ROOT%" --out "%FP_AFTER%" --label after >>"%MATRIX_LOG%" 2>&1

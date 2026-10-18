@@ -3,8 +3,8 @@
 # SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
 # IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
 # SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
-# Start of session at: Sun Oct 18 23:57:34 2026
-# Process ID         : 28384
+# Start of session at: Mon Oct 19 02:13:23 2026
+# Process ID         : 32156
 # Current directory  : D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_p3_impl_20261018/gates/sim
 # Command line       : xsim.exe -log xsim_sd2.log -mode tcl -source {xsim.dir/tb_sd2/xsim_script.tcl}
 # Log file           : D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_p3_impl_20261018/gates/sim/xsim_sd2.log
@@ -19,14 +19,19 @@
 # Host memory        : 68053 MB
 # Swap memory        : 4294 MB
 # Total Virtual      : 72348 MB
-# Available Virtual  : 35032 MB
+# Available Virtual  : 33692 MB
 #-----------------------------------------------------------
 source xsim.dir/tb_sd2/xsim_script.tcl
 # xsim {tb_sd2} -autoloadwcfg -runall
 Time resolution is 1 ps
 run -all
 === G-P3-4 slow_demux2 ===
-SLOW_DEMUX2 TB PASS
+ FAIL:  port change stays on latched d0
+ FAIL: D second port1 frame completes
+ FAIL: D frames0 = 2 (0x10,0x30)
+ FAIL: D frames1 = 2 (0x20,0x40)
+ FAIL: D tlast routed with each frame
+SLOW_DEMUX2 TB FAIL errors=5
 $finish called at time : 290 ns : File "D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_p3_impl_20261018/gates/sim/tb_slow_demux2.v" Line 81
 exit
-INFO: [Common 17-206] Exiting xsim at Sun Oct 18 23:57:36 2026...
+INFO: [Common 17-206] Exiting xsim at Mon Oct 19 02:13:25 2026...

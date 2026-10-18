@@ -19,6 +19,9 @@ Modes
               Instance line is tb_p11_dual.u_dut.u_slow_rx.u_ff.gen_mem[0].u_main
               AND whose continuation line is the simultaneous WRITE/B vs
               READ/A form.  Anything else = fail.
+  c4wrap    : same as p11dual but the instance is
+              tb_p11_c4_wrap.u_dut.u_slow_rx.u_ff.gen_mem[0].u_main
+              (P3 C4 wrapper gate, M-1).
 
 Exit codes: 0 = clean (or only whitelisted lines), 1 = violation / bad usage.
 The verdict keywords printed here are the gate's own evidence lines; this
@@ -52,8 +55,9 @@ E1_CONT_RE = re.compile(
 P11DUAL_INSTANCE = "tb_p11_dual.u_dut.u_slow_rx.u_ff.gen_mem[0].u_main"
 E2_CONT_RE = re.compile(
     r"^A simultaneous WRITE on port B .* and READ on port A .*$")
+C4WRAP_INSTANCE = "tb_p11_c4_wrap.u_dut.u_slow_rx.u_ff.gen_mem[0].u_main"
 
-ALLOWED = {"slowport": 0, "p11dual": 0}
+ALLOWED = {"slowport": 0, "p11dual": 0, "c4wrap": 0}
 
 
 def scan(log_path, mode, verbose=False):
@@ -82,14 +86,15 @@ def scan(log_path, mode, verbose=False):
                     allowed += 1
                     if verbose:
                         print("XSIM_BENIGN_E1 %s" % inst)
-        elif mode == "p11dual":
+        elif mode in ("p11dual", "c4wrap"):
             cont1 = nxt                                    # "A simultaneous WRITE ..."
             cont2 = lines[i + 2] if i + 2 < len(lines) else ""   # "Instance: ..."
-            if E2_RE.match(line) and E2_CONT_RE.match(cont1) and P11DUAL_INSTANCE in cont2:
+            want = P11DUAL_INSTANCE if mode == "p11dual" else C4WRAP_INSTANCE
+            if E2_RE.match(line) and E2_CONT_RE.match(cont1) and want in cont2:
                 ok = True
                 allowed += 1
                 if verbose:
-                    print("XSIM_BENIGN_E2 %s" % P11DUAL_INSTANCE)
+                    print("XSIM_BENIGN_E2 %s" % want)
         if not ok:
             violations.append((i + 1, line.rstrip()))
 
@@ -102,7 +107,7 @@ def scan(log_path, mode, verbose=False):
     if mode == "slowport" and allowed:
         print("XSIM_BENIGN_E1_RAMB36E1 count=%d -- frame_fifo SDP bypass same-address "
               "(rtl/frame_fifo.v; masked by bypass_r)" % allowed)
-    if mode == "p11dual" and allowed:
+    if mode in ("p11dual", "c4wrap") and allowed:
         print("XSIM_BENIGN_E2_RAMB36E2 count=%d at u_slow_rx.u_ff -- documented "
               "bypass collision" % allowed)
     return 0
@@ -111,7 +116,7 @@ def scan(log_path, mode, verbose=False):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--log", required=True)
-    ap.add_argument("--mode", required=True, choices=("none", "slowport", "p11dual"))
+    ap.add_argument("--mode", required=True, choices=("none", "slowport", "p11dual", "c4wrap"))
     ap.add_argument("--verbose", action="store_true")
     a = ap.parse_args()
     return scan(a.log, a.mode, a.verbose)

@@ -1,0 +1,629 @@
+
+
+================================================================
+== Vitis HLS Report for 'udp_echo'
+================================================================
+* Date:           Mon Oct 19 01:50:18 2026
+
+* Version:        2025.2 (Build 6295257 on Nov 14 2025)
+* Project:        slowstack_prj
+* Solution:       solution1 (Vivado IP Flow Target)
+* Product family: kintex7
+* Target device:  xc7k325t-ffg676-2
+
+
+================================================================
+== Performance Estimates
+================================================================
++ Timing: 
+    * Summary: 
+    +--------+---------+----------+------------+
+    |  Clock |  Target | Estimated| Uncertainty|
+    +--------+---------+----------+------------+
+    |ap_clk  |  8.00 ns|  6.373 ns|     2.16 ns|
+    +--------+---------+----------+------------+
+
++ Latency: 
+    * Summary: 
+    +---------+---------+----------+----------+-----+-----+---------+
+    |  Latency (cycles) |  Latency (absolute) |  Interval | Pipeline|
+    |   min   |   max   |    min   |    max   | min | max |   Type  |
+    +---------+---------+----------+----------+-----+-----+---------+
+    |        ?|        ?|         ?|         ?|    ?|    ?|       no|
+    +---------+---------+----------+----------+-----+-----+---------+
+
+    + Detail: 
+        * Instance: 
+        +------------------------------------------------+------------------------------------+---------+---------+-----------+-----------+-----+-----+-------------------+
+        |                                                |                                    |  Latency (cycles) |   Latency (absolute)  |  Interval |      Pipeline     |
+        |                    Instance                    |               Module               |   min   |   max   |    min    |    max    | min | max |        Type       |
+        +------------------------------------------------+------------------------------------+---------+---------+-----------+-----------+-----+-----+-------------------+
+        |grp_mac_rx_process_fu_1778                      |mac_rx_process                      |        1|        1|   8.000 ns|   8.000 ns|    1|    1|                 no|
+        |grp_mac_tx_process_fu_1809                      |mac_tx_process                      |        1|       14|   8.000 ns|   0.112 us|    1|   14|                 no|
+        |grp_udp_echo_Pipeline_VITIS_LOOP_169_1_fu_1848  |udp_echo_Pipeline_VITIS_LOOP_169_1  |        2|      402|  16.000 ns|   3.216 us|    0|    0|  loop pipeline stp|
+        |grp_udp_echo_Pipeline_VITIS_LOOP_170_2_fu_1857  |udp_echo_Pipeline_VITIS_LOOP_170_2  |        2|     1025|  16.000 ns|   8.200 us|    0|    0|  loop pipeline stp|
+        |grp_ip_rx_process_fu_1865                       |ip_rx_process                       |        ?|        ?|          ?|          ?|    ?|    ?|                 no|
+        |grp_arp_rx_process_fu_1872                      |arp_rx_process                      |       37|      582|   0.296 us|   4.656 us|   37|  582|                 no|
+        |grp_udp_echo_Pipeline_VITIS_LOOP_39_1_fu_1905   |udp_echo_Pipeline_VITIS_LOOP_39_1   |        4|        4|  32.000 ns|  32.000 ns|    0|    0|  loop pipeline stp|
+        |grp_udp_echo_Pipeline_VITIS_LOOP_205_3_fu_1917  |udp_echo_Pipeline_VITIS_LOOP_205_3  |        2|    16386|  16.000 ns|   0.131 ms|    0|    0|  loop pipeline stp|
+        |grp_tcp_rx_process_fu_1926                      |tcp_rx_process                      |        ?|        ?|          ?|          ?|    ?|    ?|                 no|
+        |grp_igmp_rx_process_fu_2022                     |igmp_rx_process                     |        ?|        ?|          ?|          ?|    ?|    ?|                 no|
+        |grp_icmp_rx_process_fu_2042                     |icmp_rx_process                     |        ?|        ?|          ?|          ?|    ?|    ?|                 no|
+        |grp_dhcp_tx_process_fu_2078                     |dhcp_tx_process                     |        ?|        ?|          ?|          ?|    ?|    ?|                 no|
+        |grp_udp_tx_process_fu_2105                      |udp_tx_process                      |        ?|        ?|          ?|          ?|    ?|    ?|                 no|
+        |grp_tcp_send_1_fu_2158                          |tcp_send_1                          |        ?|        ?|          ?|          ?|    ?|    ?|                 no|
+        |grp_tcp_send_fu_2220                            |tcp_send                            |        ?|        ?|          ?|          ?|    ?|    ?|                 no|
+        |grp_stats_event_fu_2275                         |stats_event                         |        0|        0|       0 ns|       0 ns|    0|    0|                 no|
+        |grp_stats_report_fu_2301                        |stats_report                        |        ?|        ?|          ?|          ?|    ?|    ?|                 no|
+        +------------------------------------------------+------------------------------------+---------+---------+-----------+-----------+-----+-----+-------------------+
+
+        * Loop: 
+        N/A
+
+
+
+================================================================
+== Utilization Estimates
+================================================================
+* Summary: 
++-----------------+---------+-----+--------+--------+-----+
+|       Name      | BRAM_18K| DSP |   FF   |   LUT  | URAM|
++-----------------+---------+-----+--------+--------+-----+
+|DSP              |        -|    -|       -|       -|    -|
+|Expression       |        -|    -|       0|     507|    -|
+|FIFO             |        2|    -|     161|      78|    -|
+|Instance         |       18|    4|   15072|   46111|    0|
+|Memory           |       29|    -|   11352|    4305|    0|
+|Multiplexer      |        -|    -|       0|    3659|    -|
+|Register         |        -|    -|    2051|       -|    -|
++-----------------+---------+-----+--------+--------+-----+
+|Total            |       49|    4|   28636|   54660|    0|
++-----------------+---------+-----+--------+--------+-----+
+|Available        |      890|  840|  407600|  203800|    0|
++-----------------+---------+-----+--------+--------+-----+
+|Utilization (%)  |        5|   ~0|       7|      26|    0|
++-----------------+---------+-----+--------+--------+-----+
+
++ Detail: 
+    * Instance: 
+    +------------------------------------------------+------------------------------------+---------+----+------+-------+-----+
+    |                    Instance                    |               Module               | BRAM_18K| DSP|  FF  |  LUT  | URAM|
+    +------------------------------------------------+------------------------------------+---------+----+------+-------+-----+
+    |grp_arp_rx_process_fu_1872                      |arp_rx_process                      |        0|   0|   410|   2805|    0|
+    |grp_dhcp_tx_process_fu_2078                     |dhcp_tx_process                     |        0|   0|   612|   4226|    0|
+    |grp_icmp_rx_process_fu_2042                     |icmp_rx_process                     |        2|   0|  1006|   3766|    0|
+    |grp_igmp_rx_process_fu_2022                     |igmp_rx_process                     |        0|   0|   291|   1379|    0|
+    |grp_ip_rx_process_fu_1865                       |ip_rx_process                       |        0|   0|   418|    883|    0|
+    |grp_mac_rx_process_fu_1778                      |mac_rx_process                      |        0|   0|   561|   1066|    0|
+    |grp_mac_tx_process_fu_1809                      |mac_tx_process                      |        0|   0|   397|   1187|    0|
+    |grp_stats_event_fu_2275                         |stats_event                         |        0|   0|     0|    336|    0|
+    |grp_stats_report_fu_2301                        |stats_report                        |        0|   4|  4637|   5891|    0|
+    |grp_tcp_rx_process_fu_1926                      |tcp_rx_process                      |       11|   0|  3335|  12647|    0|
+    |grp_tcp_send_fu_2220                            |tcp_send                            |        2|   0|   968|   3551|    0|
+    |grp_tcp_send_1_fu_2158                          |tcp_send_1                          |        3|   0|  1312|   4226|    0|
+    |grp_udp_echo_Pipeline_VITIS_LOOP_169_1_fu_1848  |udp_echo_Pipeline_VITIS_LOOP_169_1  |        0|   0|    21|     81|    0|
+    |grp_udp_echo_Pipeline_VITIS_LOOP_170_2_fu_1857  |udp_echo_Pipeline_VITIS_LOOP_170_2  |        0|   0|    13|     83|    0|
+    |grp_udp_echo_Pipeline_VITIS_LOOP_205_3_fu_1917  |udp_echo_Pipeline_VITIS_LOOP_205_3  |        0|   0|    28|    115|    0|
+    |grp_udp_echo_Pipeline_VITIS_LOOP_39_1_fu_1905   |udp_echo_Pipeline_VITIS_LOOP_39_1   |        0|   0|    54|    128|    0|
+    |grp_udp_tx_process_fu_2105                      |udp_tx_process                      |        0|   0|  1009|   3741|    0|
+    +------------------------------------------------+------------------------------------+---------+----+------+-------+-----+
+    |Total                                           |                                    |       18|   4| 15072|  46111|    0|
+    +------------------------------------------------+------------------------------------+---------+----+------+-------+-----+
+
+    * DSP: 
+    N/A
+
+    * Memory: 
+    +----------------------------+---------------------------------------------------+---------+------+------+-----+------+-----+------+-------------+
+    |           Memory           |                       Module                      | BRAM_18K|  FF  |  LUT | URAM| Words| Bits| Banks| W*Bits*Banks|
+    +----------------------------+---------------------------------------------------+---------+------+------+-----+------+-----+------+-------------+
+    |buffer_r_U                  |buffer_r_RAM_2P_BRAM_1R1W                          |        2|   768|   288|    0|   768|   32|     1|        24576|
+    |frame_buf_U                 |frame_buf_RAM_AUTO_1R1W                            |        2|   400|   149|    0|   400|   32|     1|        12800|
+    |l1_age_U                    |l1_age_RAM_AUTO_1R1W                               |        0|    14|     9|    0|     8|    3|     1|           24|
+    |l1_cache_ip_U               |l1_cache_ip_RAM_AUTO_1R1W                          |        0|    40|    12|    0|     8|   32|     1|          256|
+    |l1_cache_mac_U              |l1_cache_mac_RAM_AUTO_1R1W                         |        0|    56|    14|    0|     8|   48|     1|          384|
+    |l1_cache_valid_U            |l1_cache_valid_RAM_AUTO_1R1W                       |        0|    10|     9|    0|     8|    1|     1|            8|
+    |l2_table_ip_U               |l2_table_ip_RAM_2P_BRAM_1R1W                       |        1|   256|    96|    0|   256|   32|     1|         8192|
+    |l2_table_mac_U              |l2_table_mac_RAM_2P_BRAM_1R1W                      |        2|   256|    96|    0|   256|   48|     1|        12288|
+    |l2_table_valid_U            |l2_table_valid_RAM_2P_BRAM_1R1W                    |        1|   256|    96|    0|   256|    1|     1|          256|
+    |tcp_conn_local_ip_U         |tcp_conn_local_ip_RAM_2P_BRAM_1R1W                 |        2|     8|     8|    0|     8|   31|     1|          248|
+    |tcp_conn_peer_ip_U          |tcp_conn_peer_ip_RAM_2P_BRAM_1R1W                  |        2|     8|     8|    0|     8|   32|     1|          256|
+    |tcp_conn_flight_size_U      |tcp_conn_peer_ip_RAM_2P_BRAM_1R1W                  |        2|     8|     8|    0|     8|   32|     1|          256|
+    |tcp_conn_peer_port_U        |tcp_conn_peer_port_RAM_2P_BRAM_1R1W                |        1|     8|     8|    0|     8|   16|     1|          128|
+    |tcp_conn_retrans_pending_U  |tcp_conn_retrans_pending_RAM_2P_BRAM_1R1W          |        1|     8|     8|    0|     8|    1|     1|            8|
+    |tcp_conn_state_U            |tcp_conn_state_RAM_2P_BRAM_1R1W                    |        1|     8|     8|    0|     8|    3|     1|           24|
+    |tcp_conn_seq_U              |tcp_rx_process_tcp_conn_cwnd_RAM_2P_BRAM_1R1W      |        1|     8|     8|    0|     8|   32|     1|          256|
+    |tcp_conn_peer_seq_U         |tcp_rx_process_tcp_conn_cwnd_RAM_2P_BRAM_1R1W      |        1|     8|     8|    0|     8|   32|     1|          256|
+    |tcp_conn_rto_timer_U        |tcp_rx_process_tcp_conn_cwnd_RAM_2P_BRAM_1R1W      |        1|     8|     8|    0|     8|   32|     1|          256|
+    |tcp_conn_retrans_len_U      |tcp_rx_process_tcp_conn_peer_mss_RAM_2P_BRAM_1R1W  |        1|     8|     8|    0|     8|   16|     1|          128|
+    |tcp_send_bufs_U             |tcp_send_bufs_RAM_2P_BRAM_1R1W                     |        4|  4608|  1728|    0|  4608|    8|     1|        36864|
+    |tcp_retrans_buf_U           |tcp_send_bufs_RAM_2P_BRAM_1R1W                     |        4|  4608|  1728|    0|  4608|    8|     1|        36864|
+    +----------------------------+---------------------------------------------------+---------+------+------+-----+------+-----+------+-------------+
+    |Total                       |                                                   |       29| 11352|  4305|    0| 11264|  472|    21|       134328|
+    +----------------------------+---------------------------------------------------+---------+------+------+-----+------+-----+------+-------------+
+
+    * FIFO: 
+    +-------------------+---------+-----+----+-----+------+-----+---------+
+    |        Name       | BRAM_18K|  FF | LUT| URAM| Depth| Bits| Size:D*B|
+    +-------------------+---------+-----+----+-----+------+-----+---------+
+    |frame_fifo_fifo_U  |        2|  161|   0|    -|   512|   32|    16384|
+    +-------------------+---------+-----+----+-----+------+-----+---------+
+    |Total              |        2|  161|   0|    0|   512|   32|    16384|
+    +-------------------+---------+-----+----+-----+------+-----+---------+
+
+    * Expression: 
+    +----------------------------------------------+----------+----+---+----+------------+------------+
+    |                 Variable Name                | Operation| DSP| FF| LUT| Bitwidth P0| Bitwidth P1|
+    +----------------------------------------------+----------+----+---+----+------------+------------+
+    |add_ln134_fu_2445_p2                          |         +|   0|  0|  39|          32|           1|
+    |add_ln205_1_fu_2640_p2                        |         +|   0|  0|  23|          16|          16|
+    |add_ln205_2_fu_2650_p2                        |         +|   0|  0|  24|          17|           2|
+    |add_ln205_fu_2630_p2                          |         +|   0|  0|  16|           9|           5|
+    |add_ln291_fu_2967_p2                          |         +|   0|  0|  23|          16|           5|
+    |add_ln400_fu_2835_p2                          |         +|   0|  0|  39|          32|           2|
+    |add_ln410_fu_2780_p2                          |         +|   0|  0|  23|          16|          16|
+    |rem_fu_2741_p2                                |         -|   0|  0|  23|          16|          16|
+    |and_ln291_fu_2952_p2                          |       and|   0|  0|   2|           1|           1|
+    |ap_block_state17_on_subcall_done              |       and|   0|  0|   2|           1|           1|
+    |ap_block_state32_on_subcall_done              |       and|   0|  0|   2|           1|           1|
+    |ap_block_state34_on_subcall_done              |       and|   0|  0|   2|           1|           1|
+    |ap_block_state38_on_subcall_done              |       and|   0|  0|   2|           1|           1|
+    |ap_block_state42_on_subcall_done              |       and|   0|  0|   2|           1|           1|
+    |ap_predicate_op200_call_state17               |       and|   0|  0|   2|           1|           1|
+    |ap_predicate_op319_call_state34               |       and|   0|  0|   2|           1|           1|
+    |ap_predicate_op326_call_state38               |       and|   0|  0|   2|           1|           1|
+    |ap_predicate_op350_call_state42               |       and|   0|  0|   2|           1|           1|
+    |ap_predicate_pred1598_state11                 |       and|   0|  0|   2|           1|           1|
+    |grp_mac_tx_process_fu_1809_tx_stream_TREADY   |       and|   0|  0|   2|           1|           1|
+    |grp_stats_report_fu_2301_msg_TREADY           |       and|   0|  0|   2|           1|           1|
+    |icmp_ln133_fu_2434_p2                         |      icmp|   0|  0|  11|           3|           1|
+    |icmp_ln135_fu_2450_p2                         |      icmp|   0|  0|  39|          32|          27|
+    |icmp_ln168_fu_2487_p2                         |      icmp|   0|  0|  17|          10|           9|
+    |icmp_ln286_fu_2907_p2                         |      icmp|   0|  0|  11|           3|           3|
+    |icmp_ln401_fu_2829_p2                         |      icmp|   0|  0|  23|          16|           1|
+    |icmp_ln406_fu_2735_p2                         |      icmp|   0|  0|  23|          16|          16|
+    |icmp_ln408_fu_2751_p2                         |      icmp|   0|  0|  23|          16|          10|
+    |icmp_ln411_fu_2796_p2                         |      icmp|   0|  0|  23|          16|          16|
+    |icmp_ln53_fu_2612_p2                          |      icmp|   0|  0|  23|          16|          13|
+    |led_d0                                        |      icmp|   0|  0|  11|           3|           3|
+    |ap_block_state21_on_subcall_done              |        or|   0|  0|   2|           1|           1|
+    |ap_block_state47                              |        or|   0|  0|   2|           1|           1|
+    |ap_block_state7_on_subcall_done               |        or|   0|  0|   2|           1|           1|
+    |ap_predicate_pred2913_state21                 |        or|   0|  0|   2|           1|           1|
+    |buffer_r_we1                                  |        or|   0|  0|   2|           1|           1|
+    |grp_tcp_rx_process_fu_1926_cfg_stream_TREADY  |        or|   0|  0|   2|           1|           1|
+    |or_ln133_fu_2440_p2                           |        or|   0|  0|   2|           1|           1|
+    |or_ln235_fu_2708_p2                           |        or|   0|  0|   2|           1|           1|
+    |or_ln257_fu_2853_p2                           |        or|   0|  0|   2|           1|           1|
+    |or_ln286_fu_2913_p2                           |        or|   0|  0|   2|           1|           1|
+    |or_ln289_fu_2934_p2                           |        or|   0|  0|   2|           1|           1|
+    |or_ln291_fu_2946_p2                           |        or|   0|  0|   2|           1|           1|
+    |tcp_conn_seq_we1                              |        or|   0|  0|   2|           1|           1|
+    |chunk_fu_2757_p3                              |    select|   0|  0|  10|           1|          10|
+    |i_8_fu_2492_p3                                |    select|   0|  0|   9|           1|           8|
+    |select_ln219_fu_2666_p3                       |    select|   0|  0|  16|           1|          16|
+    |xor_ln257_fu_2847_p2                          |       xor|   0|  0|   2|           1|           2|
+    |xor_ln289_fu_2929_p2                          |       xor|   0|  0|   2|           1|           2|
+    |xor_ln291_fu_2940_p2                          |       xor|   0|  0|   2|           1|           2|
+    +----------------------------------------------+----------+----+---+----+------------+------------+
+    |Total                                         |          |   0|  0| 507|         317|         228|
+    +----------------------------------------------+----------+----+---+----+------------+------------+
+
+    * Multiplexer: 
+    +---------------------------------------------------+-----+-----------+-----+-----------+
+    |                        Name                       | LUT | Input Size| Bits| Total Bits|
+    +---------------------------------------------------+-----+-----------+-----+-----------+
+    |ap_NS_fsm                                          |  209|         48|    1|         48|
+    |ap_phi_mux_data_received_flag_6_phi_fu_742_p18     |    9|          2|    1|          2|
+    |ap_phi_mux_data_received_loc_6_phi_fu_809_p18      |    9|          2|    1|          2|
+    |ap_phi_mux_data_received_new_6_phi_fu_776_p18      |    9|          2|    1|          2|
+    |ap_phi_mux_rx_dst_ip_loc_6_phi_fu_1135_p18         |    9|          2|   32|         64|
+    |ap_phi_mux_rx_dst_ip_new_6_phi_fu_1103_p18         |    9|          2|   32|         64|
+    |ap_phi_mux_rx_ip_len_loc_6_phi_fu_940_p18          |    9|          2|   16|         32|
+    |ap_phi_mux_rx_ip_len_new_6_phi_fu_908_p18          |    9|          2|   16|         32|
+    |ap_phi_mux_rx_src_ip_loc_6_phi_fu_1070_p18         |    9|          2|   32|         64|
+    |ap_phi_mux_rx_src_ip_new_6_phi_fu_1038_p18         |    9|          2|   32|         64|
+    |ap_phi_mux_rx_src_port_loc_6_phi_fu_1005_p18       |    9|          2|   16|         32|
+    |ap_phi_mux_rx_src_port_new_6_phi_fu_973_p18        |    9|          2|   16|         32|
+    |ap_phi_mux_rx_udp_len_loc_6_phi_fu_875_p18         |    9|          2|   16|         32|
+    |ap_phi_mux_rx_udp_len_new_6_phi_fu_843_p18         |    9|          2|   16|         32|
+    |ap_phi_mux_tcp_proc_pending_flag_7_phi_fu_1740_p6  |    9|          2|    1|          2|
+    |ap_phi_mux_tcp_proc_pending_new_5_phi_fu_1169_p18  |    9|          2|    1|          2|
+    |ap_phi_mux_tcp_proc_pending_new_7_phi_fu_1754_p6   |    9|          2|    1|          2|
+    |ap_phi_mux_tcp_proc_smac_flag_5_phi_fu_1203_p18    |    9|          2|    1|          2|
+    |ap_phi_mux_tcp_proc_smac_loc_5_phi_fu_1269_p18     |    9|          2|   48|         96|
+    |ap_phi_mux_tcp_proc_smac_new_5_phi_fu_1237_p18     |    9|          2|   48|         96|
+    |arp_rx                                             |    9|          2|   32|         64|
+    |buffer_r_address0                                  |   17|          4|   10|         40|
+    |buffer_r_address1                                  |   41|         10|   10|        100|
+    |buffer_r_address1_local                            |   25|          6|   10|         60|
+    |buffer_r_ce0                                       |   17|          4|    1|          4|
+    |buffer_r_ce1                                       |   41|         10|    1|         10|
+    |buffer_r_d1                                        |   41|         10|   32|        320|
+    |buffer_r_d1_local                                  |   25|          6|   32|        192|
+    |buffer_r_we1                                       |   41|         10|    1|         10|
+    |cfg_stream_TDATA_int_regslice                      |    9|          2|   32|         64|
+    |cfg_stream_TVALID_int_regslice                     |    9|          2|    1|          2|
+    |data_received_flag_6_reg_739                       |    9|          2|    1|          2|
+    |data_received_flag_7_reg_1298                      |    9|          2|    1|          2|
+    |data_received_flag_8_reg_1701                      |   13|          3|    1|          3|
+    |data_received_loc_0_reg_571                        |    9|          2|    1|          2|
+    |data_received_loc_6_reg_806                        |    9|          2|    1|          2|
+    |data_received_loc_7_reg_1335                       |    9|          2|    1|          2|
+    |data_received_new_7_reg_1316                       |    9|          2|    1|          2|
+    |data_received_new_8_reg_1719                       |   13|          3|    1|          3|
+    |dhcp_delay_new_2_reg_721                           |    9|          2|   32|         64|
+    |dhcp_ev                                            |    9|          2|   32|         64|
+    |dhcp_flag                                          |    9|          2|    1|          2|
+    |dhcp_start_loc_2_reg_683                           |   13|          3|    1|          3|
+    |dhcp_state                                         |    9|          2|    3|          6|
+    |dhcp_timer                                         |    9|          2|   32|         64|
+    |dhcp_xid                                           |    9|          2|   29|         58|
+    |empty_101_reg_1663                                 |   13|          3|   16|         48|
+    |frame_buf_address0                                 |   37|          9|    9|         81|
+    |frame_buf_ce0                                      |   37|          9|    1|          9|
+    |frame_buf_ce1                                      |    9|          2|    1|          2|
+    |frame_buf_we0                                      |    9|          2|    1|          2|
+    |frame_fifo_read                                    |   13|          3|    1|          3|
+    |frame_fifo_write                                   |    9|          2|    1|          2|
+    |grp_stats_event_fu_2275_ev                         |   21|          5|    3|         15|
+    |grp_stats_event_fu_2275_len                        |   17|          4|   16|         64|
+    |grp_tcp_rx_process_fu_1926_ip_rx_dst_ip_val        |   13|          3|   32|         96|
+    |grp_tcp_rx_process_fu_1926_ip_rx_protocol_val      |   13|          3|    2|          6|
+    |grp_tcp_rx_process_fu_1926_ip_rx_src_ip_val        |   13|          3|   32|         96|
+    |grp_tcp_rx_process_fu_1926_ip_rx_total_len_val     |   13|          3|   16|         48|
+    |grp_tcp_rx_process_fu_1926_ip_rx_valid_val         |   13|          3|    1|          3|
+    |grp_tcp_rx_process_fu_1926_rx_smac                 |   13|          3|   48|        144|
+    |grp_tcp_send_1_fu_2158_cid                         |   13|          3|    4|         12|
+    |grp_tcp_send_1_fu_2158_idx                         |   13|          3|   16|         48|
+    |grp_tcp_send_1_fu_2158_pay_len                     |   13|          3|   16|         48|
+    |grp_tcp_send_1_fu_2158_payload_offset              |   13|          3|    4|         12|
+    |grp_tcp_send_1_fu_2158_payload_q0                  |   13|          3|    8|         24|
+    |grp_tcp_send_fu_2220_flags                         |   17|          4|    5|         20|
+    |icmp_rx                                            |    9|          2|   32|         64|
+    |l1_age_address0                                    |   29|          7|    3|         21|
+    |l1_age_address1                                    |   29|          7|    3|         21|
+    |l1_age_ce0                                         |   29|          7|    1|          7|
+    |l1_age_ce1                                         |   29|          7|    1|          7|
+    |l1_age_d0                                          |   29|          7|    3|         21|
+    |l1_age_d1                                          |   29|          7|    3|         21|
+    |l1_age_we0                                         |   29|          7|    1|          7|
+    |l1_age_we1                                         |   29|          7|    1|          7|
+    |l1_cache_ip_address0                               |   33|          8|    3|         24|
+    |l1_cache_ip_ce0                                    |   33|          8|    1|          8|
+    |l1_cache_ip_d0                                     |   29|          7|   32|        224|
+    |l1_cache_ip_we0                                    |   29|          7|    1|          7|
+    |l1_cache_mac_address0                              |   33|          8|    3|         24|
+    |l1_cache_mac_ce0                                   |   33|          8|    1|          8|
+    |l1_cache_mac_d0                                    |   29|          7|   48|        336|
+    |l1_cache_mac_we0                                   |   29|          7|    1|          7|
+    |l1_cache_valid_address0                            |   33|          8|    3|         24|
+    |l1_cache_valid_address1                            |   29|          7|    3|         21|
+    |l1_cache_valid_ce0                                 |   33|          8|    1|          8|
+    |l1_cache_valid_ce1                                 |   29|          7|    1|          7|
+    |l1_cache_valid_d1                                  |   29|          7|    1|          7|
+    |l1_cache_valid_we0                                 |    9|          2|    1|          2|
+    |l1_cache_valid_we1                                 |   29|          7|    1|          7|
+    |l2_table_ip_address0                               |   25|          6|    8|         48|
+    |l2_table_ip_address1                               |   29|          7|    8|         56|
+    |l2_table_ip_ce0                                    |   25|          6|    1|          6|
+    |l2_table_ip_ce1                                    |   29|          7|    1|          7|
+    |l2_table_ip_d1                                     |   29|          7|   32|        224|
+    |l2_table_ip_we1                                    |   29|          7|    1|          7|
+    |l2_table_mac_address0                              |   25|          6|    8|         48|
+    |l2_table_mac_address1                              |   29|          7|    8|         56|
+    |l2_table_mac_ce0                                   |   25|          6|    1|          6|
+    |l2_table_mac_ce1                                   |   29|          7|    1|          7|
+    |l2_table_mac_d1                                    |   29|          7|   48|        336|
+    |l2_table_mac_we1                                   |   29|          7|    1|          7|
+    |l2_table_valid_address0                            |   29|          7|    8|         56|
+    |l2_table_valid_address1                            |   29|          7|    8|         56|
+    |l2_table_valid_ce0                                 |   29|          7|    1|          7|
+    |l2_table_valid_ce1                                 |   29|          7|    1|          7|
+    |l2_table_valid_d1                                  |   29|          7|    1|          7|
+    |l2_table_valid_we1                                 |   29|          7|    1|          7|
+    |msg_stream_TDATA_int_regslice                      |    9|          2|   16|         32|
+    |phi_ln284_reg_1683                                 |    9|          2|   16|         32|
+    |rx_byte                                            |    9|          2|   32|         64|
+    |rx_dst_ip_loc_0_reg_651                            |    9|          2|   32|         64|
+    |rx_dst_ip_loc_6_reg_1132                           |    9|          2|   32|         64|
+    |rx_dst_ip_loc_7_reg_1515                           |    9|          2|   32|         64|
+    |rx_dst_ip_new_6_reg_1099                           |    9|          2|   32|         64|
+    |rx_dst_ip_new_7_reg_1497                           |    9|          2|   32|         64|
+    |rx_ip_len_loc_0_reg_603                            |    9|          2|   16|         32|
+    |rx_ip_len_loc_6_reg_937                            |    9|          2|   16|         32|
+    |rx_ip_len_loc_7_reg_1407                           |    9|          2|   16|         32|
+    |rx_ip_len_new_6_reg_904                            |    9|          2|   16|         32|
+    |rx_ip_len_new_7_reg_1389                           |    9|          2|   16|         32|
+    |rx_pkt                                             |    9|          2|   32|         64|
+    |rx_src_ip_loc_0_reg_635                            |    9|          2|   32|         64|
+    |rx_src_ip_loc_6_reg_1067                           |    9|          2|   32|         64|
+    |rx_src_ip_loc_7_reg_1479                           |    9|          2|   32|         64|
+    |rx_src_ip_new_6_reg_1034                           |    9|          2|   32|         64|
+    |rx_src_ip_new_7_reg_1461                           |    9|          2|   32|         64|
+    |rx_src_port_loc_0_reg_619                          |    9|          2|   16|         32|
+    |rx_src_port_loc_6_reg_1002                         |    9|          2|   16|         32|
+    |rx_src_port_loc_7_reg_1443                         |    9|          2|   16|         32|
+    |rx_src_port_new_6_reg_969                          |    9|          2|   16|         32|
+    |rx_src_port_new_7_reg_1425                         |    9|          2|   16|         32|
+    |rx_stream_TREADY_int_regslice                      |    9|          2|    1|          2|
+    |rx_udp_len_loc_0_reg_587                           |    9|          2|   16|         32|
+    |rx_udp_len_loc_6_reg_872                           |    9|          2|   16|         32|
+    |rx_udp_len_loc_7_reg_1371                          |    9|          2|   16|         32|
+    |rx_udp_len_new_6_reg_839                           |    9|          2|   16|         32|
+    |rx_udp_len_new_7_reg_1353                          |    9|          2|   16|         32|
+    |tcp_conn_flight_size_address0                      |   17|          4|    3|         12|
+    |tcp_conn_flight_size_address1                      |   17|          4|    3|         12|
+    |tcp_conn_flight_size_ce0                           |   17|          4|    1|          4|
+    |tcp_conn_flight_size_ce1                           |   17|          4|    1|          4|
+    |tcp_conn_flight_size_d1                            |   17|          4|   32|        128|
+    |tcp_conn_flight_size_we1                           |   17|          4|    1|          4|
+    |tcp_conn_local_ip_address0                         |   17|          4|    3|         12|
+    |tcp_conn_local_ip_ce0                              |   17|          4|    1|          4|
+    |tcp_conn_local_ip_ce1                              |    9|          2|    1|          2|
+    |tcp_conn_local_ip_we1                              |    9|          2|    1|          2|
+    |tcp_conn_peer_ip_address0                          |   17|          4|    3|         12|
+    |tcp_conn_peer_ip_ce0                               |   17|          4|    1|          4|
+    |tcp_conn_peer_ip_ce1                               |    9|          2|    1|          2|
+    |tcp_conn_peer_ip_we1                               |    9|          2|    1|          2|
+    |tcp_conn_peer_port_address0                        |   17|          4|    3|         12|
+    |tcp_conn_peer_port_ce0                             |   17|          4|    1|          4|
+    |tcp_conn_peer_port_ce1                             |    9|          2|    1|          2|
+    |tcp_conn_peer_port_we1                             |    9|          2|    1|          2|
+    |tcp_conn_peer_seq_address0                         |   17|          4|    3|         12|
+    |tcp_conn_peer_seq_ce0                              |   17|          4|    1|          4|
+    |tcp_conn_peer_seq_ce1                              |    9|          2|    1|          2|
+    |tcp_conn_peer_seq_we1                              |    9|          2|    1|          2|
+    |tcp_conn_retrans_len_address1                      |   17|          4|    3|         12|
+    |tcp_conn_retrans_len_ce1                           |   17|          4|    1|          4|
+    |tcp_conn_retrans_len_d1                            |   17|          4|   16|         64|
+    |tcp_conn_retrans_len_we1                           |   17|          4|    1|          4|
+    |tcp_conn_retrans_pending_address1                  |   17|          4|    3|         12|
+    |tcp_conn_retrans_pending_ce0                       |    9|          2|    1|          2|
+    |tcp_conn_retrans_pending_ce1                       |   17|          4|    1|          4|
+    |tcp_conn_retrans_pending_d1                        |   17|          4|    1|          4|
+    |tcp_conn_retrans_pending_we1                       |   17|          4|    1|          4|
+    |tcp_conn_rto_timer_address1                        |   17|          4|    3|         12|
+    |tcp_conn_rto_timer_ce0                             |    9|          2|    1|          2|
+    |tcp_conn_rto_timer_ce1                             |   17|          4|    1|          4|
+    |tcp_conn_rto_timer_d1                              |   17|          4|   32|        128|
+    |tcp_conn_rto_timer_we1                             |   17|          4|    1|          4|
+    |tcp_conn_seq_address0                              |   17|          4|    3|         12|
+    |tcp_conn_seq_address1                              |   17|          4|    3|         12|
+    |tcp_conn_seq_ce0                                   |   17|          4|    1|          4|
+    |tcp_conn_seq_ce1                                   |   17|          4|    1|          4|
+    |tcp_conn_seq_d1                                    |   17|          4|   32|        128|
+    |tcp_conn_seq_we1                                   |   17|          4|    1|          4|
+    |tcp_conn_state_address0                            |    9|          2|    3|          6|
+    |tcp_conn_state_ce0                                 |    9|          2|    1|          2|
+    |tcp_conn_state_ce1                                 |    9|          2|    1|          2|
+    |tcp_conn_state_we1                                 |    9|          2|    1|          2|
+    |tcp_proc_pending_flag_6_reg_1533                   |    9|          2|    1|          2|
+    |tcp_proc_pending_flag_7_reg_1737                   |    9|          2|    1|          2|
+    |tcp_proc_pending_loc_0_reg_535                     |    9|          2|    1|          2|
+    |tcp_proc_pending_loc_6_reg_1571                    |   13|          3|    1|          3|
+    |tcp_proc_pending_new_6_reg_1552                    |    9|          2|    1|          2|
+    |tcp_proc_pending_new_7_reg_1751                    |    9|          2|    1|          2|
+    |tcp_proc_smac_flag_5_reg_1199                      |    9|          2|    1|          2|
+    |tcp_proc_smac_flag_6_reg_1590                      |    9|          2|    1|          2|
+    |tcp_proc_smac_loc_0_reg_667                        |    9|          2|   48|         96|
+    |tcp_proc_smac_loc_5_reg_1266                       |    9|          2|   48|         96|
+    |tcp_proc_smac_loc_6_reg_1625                       |    9|          2|   48|         96|
+    |tcp_proc_smac_new_5_reg_1233                       |    9|          2|   48|         96|
+    |tcp_proc_smac_new_6_reg_1607                       |    9|          2|   48|         96|
+    |tcp_q_len                                          |    9|          2|   16|         32|
+    |tcp_q_off                                          |   13|          3|   16|         48|
+    |tcp_retrans_buf_ce0                                |    9|          2|    1|          2|
+    |tcp_retrans_buf_ce1                                |    9|          2|    1|          2|
+    |tcp_retrans_buf_we1                                |    9|          2|    1|          2|
+    |tcp_retrans_due                                    |    9|          2|    1|          2|
+    |tcp_send_bufs_ce0                                  |    9|          2|    1|          2|
+    |tcp_send_bufs_ce1                                  |    9|          2|    1|          2|
+    |tcp_send_bufs_we1                                  |    9|          2|    1|          2|
+    |tx_byte                                            |    9|          2|   32|         64|
+    |tx_pkt                                             |    9|          2|   32|         64|
+    |tx_req_buf_addr                                    |   33|          8|   10|         80|
+    |tx_req_buf_len                                     |   33|          8|   16|        128|
+    |tx_req_dst_mac                                     |   33|          8|   48|        384|
+    |tx_req_ethertype                                   |   33|          8|   12|         96|
+    |tx_req_request                                     |   41|         10|    1|         10|
+    |tx_stream_TDATA_int_regslice                       |    9|          2|   16|         32|
+    +---------------------------------------------------+-----+-----------+-----+-----------+
+    |Total                                              | 3659|        857| 2437|       7911|
+    +---------------------------------------------------+-----+-----------+-----+-----------+
+
+    * Register: 
+    +-------------------------------------------------------------+----+----+-----+-----------+
+    |                             Name                            | FF | LUT| Bits| Const Bits|
+    +-------------------------------------------------------------+----+----+-----+-----------+
+    |ap_CS_fsm                                                    |  47|   0|   47|          0|
+    |ap_predicate_pred1481_state21                                |   1|   0|    1|          0|
+    |ap_predicate_pred1484_state21                                |   1|   0|    1|          0|
+    |ap_predicate_pred1532_state11                                |   1|   0|    1|          0|
+    |ap_predicate_pred1595_state11                                |   1|   0|    1|          0|
+    |ap_predicate_pred1598_state11                                |   1|   0|    1|          0|
+    |ap_predicate_pred2913_state21                                |   1|   0|    1|          0|
+    |arp_rx                                                       |  32|   0|   32|          0|
+    |cfg_stream_TDATA_reg                                         |  32|   0|   32|          0|
+    |data_received                                                |   1|   0|    1|          0|
+    |data_received_flag_0_reg_551                                 |   1|   0|    1|          0|
+    |data_received_flag_6_reg_739                                 |   1|   0|    1|          0|
+    |data_received_flag_7_reg_1298                                |   1|   0|    1|          0|
+    |data_received_flag_8_reg_1701                                |   1|   0|    1|          0|
+    |data_received_loc_0_reg_571                                  |   1|   0|    1|          0|
+    |data_received_loc_6_reg_806                                  |   1|   0|    1|          0|
+    |data_received_loc_7_reg_1335                                 |   1|   0|    1|          0|
+    |data_received_new_6_reg_772                                  |   1|   0|    1|          0|
+    |data_received_new_7_reg_1316                                 |   1|   0|    1|          0|
+    |data_received_new_8_reg_1719                                 |   1|   0|    1|          0|
+    |dhcp_delay                                                   |  32|   0|   32|          0|
+    |dhcp_delay_flag_2_reg_702                                    |   1|   0|    1|          0|
+    |dhcp_delay_new_2_reg_721                                     |  32|   0|   32|          0|
+    |dhcp_ev                                                      |  32|   0|   32|          0|
+    |dhcp_flag                                                    |   1|   0|    1|          0|
+    |dhcp_reported                                                |   1|   0|    1|          0|
+    |dhcp_reported_flag_0_reg_1765                                |   1|   0|    1|          0|
+    |dhcp_start                                                   |   1|   0|    1|          0|
+    |dhcp_start_load_reg_3063                                     |   1|   0|    1|          0|
+    |dhcp_start_loc_2_reg_683                                     |   1|   0|    1|          0|
+    |dhcp_state                                                   |   3|   0|    3|          0|
+    |dhcp_timer                                                   |  32|   0|   32|          0|
+    |dhcp_xid                                                     |  29|   0|   29|          0|
+    |do_process_013_reg_1643                                      |   1|   0|    1|          0|
+    |empty_101_reg_1663                                           |  16|   0|   16|          0|
+    |grp_arp_rx_process_fu_1872_ap_start_reg                      |   1|   0|    1|          0|
+    |grp_dhcp_tx_process_fu_2078_ap_start_reg                     |   1|   0|    1|          0|
+    |grp_icmp_rx_process_fu_2042_ap_start_reg                     |   1|   0|    1|          0|
+    |grp_igmp_rx_process_fu_2022_ap_start_reg                     |   1|   0|    1|          0|
+    |grp_ip_rx_process_fu_1865_ap_start_reg                       |   1|   0|    1|          0|
+    |grp_mac_rx_process_fu_1778_ap_start_reg                      |   1|   0|    1|          0|
+    |grp_mac_tx_process_fu_1809_ap_start_reg                      |   1|   0|    1|          0|
+    |grp_stats_report_fu_2301_ap_start_reg                        |   1|   0|    1|          0|
+    |grp_tcp_rx_process_fu_1926_ap_start_reg                      |   1|   0|    1|          0|
+    |grp_tcp_send_1_fu_2158_ap_start_reg                          |   1|   0|    1|          0|
+    |grp_tcp_send_fu_2220_ap_start_reg                            |   1|   0|    1|          0|
+    |grp_udp_echo_Pipeline_VITIS_LOOP_169_1_fu_1848_ap_start_reg  |   1|   0|    1|          0|
+    |grp_udp_echo_Pipeline_VITIS_LOOP_170_2_fu_1857_ap_start_reg  |   1|   0|    1|          0|
+    |grp_udp_echo_Pipeline_VITIS_LOOP_205_3_fu_1917_ap_start_reg  |   1|   0|    1|          0|
+    |grp_udp_echo_Pipeline_VITIS_LOOP_39_1_fu_1905_ap_start_reg   |   1|   0|    1|          0|
+    |grp_udp_tx_process_fu_2105_ap_start_reg                      |   1|   0|    1|          0|
+    |i_8_reg_3117                                                 |   9|   0|    9|          0|
+    |icmp_ln401_reg_3260                                          |   1|   0|    1|          0|
+    |icmp_ln411_reg_3230                                          |   1|   0|    1|          0|
+    |icmp_ln53_reg_3170                                           |   1|   0|    1|          0|
+    |icmp_rx                                                      |  32|   0|   32|          0|
+    |init_done                                                    |   1|   0|    1|          0|
+    |init_done_load_reg_3072                                      |   1|   0|    1|          0|
+    |ip_rx_dst_ip_reg_3135                                        |  32|   0|   32|          0|
+    |ip_rx_protocol_reg_3123                                      |   8|   0|    8|          0|
+    |ip_rx_src_ip_reg_3127                                        |  32|   0|   32|          0|
+    |ip_rx_total_len_reg_3144                                     |  16|   0|   16|          0|
+    |ip_rx_valid_reg_3153                                         |   1|   0|    1|          0|
+    |last_tx                                                      |   1|   0|    1|          0|
+    |mac_rx_ethertype_reg_3087                                    |  16|   0|   16|          0|
+    |mac_rx_nwords_reg_3104                                       |  10|   0|   10|          0|
+    |mac_rx_src_mac_reg_3093                                      |  48|   0|   48|          0|
+    |mac_rx_valid_reg_3100                                        |   1|   0|    1|          0|
+    |mac_tx_busy_reg_3111                                         |   1|   0|    1|          0|
+    |msg_stream_TDATA_reg                                         |  16|   0|   16|          0|
+    |or_ln235_reg_3188                                            |   1|   0|    1|          0|
+    |or_ln257_reg_3269                                            |   1|   0|    1|          0|
+    |phi_ln284_reg_1683                                           |  16|   0|   16|          0|
+    |reset_n_read_reg_2987                                        |   1|   0|    1|          0|
+    |rx_byte                                                      |  32|   0|   32|          0|
+    |rx_dst_ip                                                    |  32|   0|   32|          0|
+    |rx_dst_ip_loc_0_reg_651                                      |  32|   0|   32|          0|
+    |rx_dst_ip_loc_6_reg_1132                                     |  32|   0|   32|          0|
+    |rx_dst_ip_loc_7_reg_1515                                     |  32|   0|   32|          0|
+    |rx_dst_ip_new_6_reg_1099                                     |  32|   0|   32|          0|
+    |rx_dst_ip_new_7_reg_1497                                     |  32|   0|   32|          0|
+    |rx_ip_len                                                    |  16|   0|   16|          0|
+    |rx_ip_len_loc_0_reg_603                                      |  16|   0|   16|          0|
+    |rx_ip_len_loc_6_reg_937                                      |  16|   0|   16|          0|
+    |rx_ip_len_loc_7_reg_1407                                     |  16|   0|   16|          0|
+    |rx_ip_len_new_6_reg_904                                      |  16|   0|   16|          0|
+    |rx_ip_len_new_7_reg_1389                                     |  16|   0|   16|          0|
+    |rx_pkt                                                       |  32|   0|   32|          0|
+    |rx_src_ip                                                    |  32|   0|   32|          0|
+    |rx_src_ip_loc_0_reg_635                                      |  32|   0|   32|          0|
+    |rx_src_ip_loc_6_reg_1067                                     |  32|   0|   32|          0|
+    |rx_src_ip_loc_7_reg_1479                                     |  32|   0|   32|          0|
+    |rx_src_ip_new_6_reg_1034                                     |  32|   0|   32|          0|
+    |rx_src_ip_new_7_reg_1461                                     |  32|   0|   32|          0|
+    |rx_src_port                                                  |  16|   0|   16|          0|
+    |rx_src_port_loc_0_reg_619                                    |  16|   0|   16|          0|
+    |rx_src_port_loc_6_reg_1002                                   |  16|   0|   16|          0|
+    |rx_src_port_loc_7_reg_1443                                   |  16|   0|   16|          0|
+    |rx_src_port_new_6_reg_969                                    |  16|   0|   16|          0|
+    |rx_src_port_new_7_reg_1425                                   |  16|   0|   16|          0|
+    |rx_udp_len                                                   |  16|   0|   16|          0|
+    |rx_udp_len_loc_0_reg_587                                     |  16|   0|   16|          0|
+    |rx_udp_len_loc_6_reg_872                                     |  16|   0|   16|          0|
+    |rx_udp_len_loc_7_reg_1371                                    |  16|   0|   16|          0|
+    |rx_udp_len_new_6_reg_839                                     |  16|   0|   16|          0|
+    |rx_udp_len_new_7_reg_1353                                    |  16|   0|   16|          0|
+    |tcp_adv_wnd_cur                                              |  16|   0|   16|          0|
+    |tcp_conn_retrans_len_load_reg_3255                           |  16|   0|   16|          0|
+    |tcp_conn_seq_addr_reg_3249                                   |   3|   0|    3|          0|
+    |tcp_conn_seq_load_reg_3264                                   |  32|   0|   32|          0|
+    |tcp_conn_state_load_reg_3240                                 |   3|   0|    3|          0|
+    |tcp_proc_ip_dst_ip                                           |  32|   0|   32|          0|
+    |tcp_proc_ip_protocol                                         |   1|   0|    2|          1|
+    |tcp_proc_ip_src_ip                                           |  32|   0|   32|          0|
+    |tcp_proc_ip_total_len                                        |  16|   0|   16|          0|
+    |tcp_proc_ip_valid                                            |   1|   0|    1|          0|
+    |tcp_proc_pending                                             |   1|   0|    1|          0|
+    |tcp_proc_pending_flag_6_reg_1533                             |   1|   0|    1|          0|
+    |tcp_proc_pending_flag_7_reg_1737                             |   1|   0|    1|          0|
+    |tcp_proc_pending_loc_0_reg_535                               |   1|   0|    1|          0|
+    |tcp_proc_pending_loc_6_reg_1571                              |   1|   0|    1|          0|
+    |tcp_proc_pending_new_5_reg_1164                              |   1|   0|    1|          0|
+    |tcp_proc_pending_new_6_reg_1552                              |   1|   0|    1|          0|
+    |tcp_proc_pending_new_7_reg_1751                              |   1|   0|    1|          0|
+    |tcp_proc_smac                                                |  48|   0|   48|          0|
+    |tcp_proc_smac_flag_5_reg_1199                                |   1|   0|    1|          0|
+    |tcp_proc_smac_flag_6_reg_1590                                |   1|   0|    1|          0|
+    |tcp_proc_smac_loc_0_reg_667                                  |  48|   0|   48|          0|
+    |tcp_proc_smac_loc_5_reg_1266                                 |  48|   0|   48|          0|
+    |tcp_proc_smac_loc_6_reg_1625                                 |  48|   0|   48|          0|
+    |tcp_proc_smac_new_5_reg_1233                                 |  48|   0|   48|          0|
+    |tcp_proc_smac_new_6_reg_1607                                 |  48|   0|   48|          0|
+    |tcp_q_cid                                                    |   4|   0|    4|          0|
+    |tcp_q_len                                                    |  16|   0|   16|          0|
+    |tcp_q_off                                                    |  16|   0|   16|          0|
+    |tcp_q_off_load_reg_3214                                      |  16|   0|   16|          0|
+    |tcp_retrans_cid                                              |   3|   0|    3|          0|
+    |tcp_retrans_due                                              |   1|   0|    1|          0|
+    |tcp_retrans_due_load_reg_3196                                |   1|   0|    1|          0|
+    |trunc_ln_reg_3174                                            |  15|   0|   15|          0|
+    |tx_byte                                                      |  32|   0|   32|          0|
+    |tx_pkt                                                       |  32|   0|   32|          0|
+    |tx_req_buf_addr                                              |  10|   0|   10|          0|
+    |tx_req_buf_len                                               |  16|   0|   16|          0|
+    |tx_req_dst_mac                                               |  48|   0|   48|          0|
+    |tx_req_ethertype                                             |  12|   0|   12|          0|
+    |tx_req_request                                               |   1|   0|    1|          0|
+    |tx_req_request_load_2_reg_3192                               |   1|   0|    1|          0|
+    |tx_req_request_load_3_reg_3273                               |   1|   0|    1|          0|
+    |tx_req_request_load_reg_3184                                 |   1|   0|    1|          0|
+    |tx_stream_TDATA_reg                                          |  16|   0|   16|          0|
+    |udp_rx_length_reg_3164                                       |  16|   0|   16|          0|
+    |udp_rx_src_port_reg_3158                                     |  16|   0|   16|          0|
+    |zext_ln395_reg_3234                                          |   3|   0|    4|          1|
+    |zext_ln396_reg_3203                                          |   3|   0|   64|         61|
+    |zext_ln408_reg_3222                                          |  10|   0|   16|          6|
+    +-------------------------------------------------------------+----+----+-----+-----------+
+    |Total                                                        |2051|   0| 2120|         69|
+    +-------------------------------------------------------------+----+----+-----+-----------+
+
+
+
+================================================================
+== Interface
+================================================================
+* Summary: 
++-------------------+-----+-----+--------------+---------------+--------------+
+|     RTL Ports     | Dir | Bits|   Protocol   | Source Object |    C Type    |
++-------------------+-----+-----+--------------+---------------+--------------+
+|ap_clk             |   in|    1|  ap_ctrl_none|       udp_echo|  return value|
+|ap_rst_n           |   in|    1|  ap_ctrl_none|       udp_echo|  return value|
+|reset_n            |   in|    1|       ap_none|        reset_n|        scalar|
+|rx_stream_TDATA    |   in|   16|          axis|      rx_stream|       pointer|
+|rx_stream_TVALID   |   in|    1|          axis|      rx_stream|       pointer|
+|rx_stream_TREADY   |  out|    1|          axis|      rx_stream|       pointer|
+|tx_stream_TDATA    |  out|   16|          axis|      tx_stream|       pointer|
+|tx_stream_TVALID   |  out|    1|          axis|      tx_stream|       pointer|
+|tx_stream_TREADY   |   in|    1|          axis|      tx_stream|       pointer|
+|msg_stream_TDATA   |  out|   16|          axis|     msg_stream|       pointer|
+|msg_stream_TVALID  |  out|    1|          axis|     msg_stream|       pointer|
+|msg_stream_TREADY  |   in|    1|          axis|     msg_stream|       pointer|
+|cfg_stream_TDATA   |  out|   32|          axis|     cfg_stream|       pointer|
+|cfg_stream_TVALID  |  out|    1|          axis|     cfg_stream|       pointer|
+|cfg_stream_TREADY  |   in|    1|          axis|     cfg_stream|       pointer|
+|i_tcp_adv_wnd      |   in|   16|       ap_none|  i_tcp_adv_wnd|        scalar|
+|led_d0             |  out|    1|       ap_none|         led_d0|       pointer|
+|led_d1             |  out|    1|       ap_none|         led_d1|       pointer|
+|led_d2             |  out|    1|       ap_none|         led_d2|       pointer|
+|led_d3             |  out|    1|       ap_none|         led_d3|       pointer|
++-------------------+-----+-----+--------------+---------------+--------------+
+

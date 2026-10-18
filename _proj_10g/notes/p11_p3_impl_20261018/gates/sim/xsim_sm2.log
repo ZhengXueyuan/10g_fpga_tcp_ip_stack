@@ -3,8 +3,8 @@
 # SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
 # IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
 # SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
-# Start of session at: Sun Oct 18 23:57:14 2026
-# Process ID         : 31148
+# Start of session at: Mon Oct 19 02:13:18 2026
+# Process ID         : 38468
 # Current directory  : D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_p3_impl_20261018/gates/sim
 # Command line       : xsim.exe -log xsim_sm2.log -mode tcl -source {xsim.dir/tb_sm2/xsim_script.tcl}
 # Log file           : D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_p3_impl_20261018/gates/sim/xsim_sm2.log
@@ -19,14 +19,18 @@
 # Host memory        : 68053 MB
 # Swap memory        : 4294 MB
 # Total Virtual      : 72348 MB
-# Available Virtual  : 35120 MB
+# Available Virtual  : 33911 MB
 #-----------------------------------------------------------
 source xsim.dir/tb_sm2/xsim_script.tcl
 # xsim {tb_sm2} -autoloadwcfg -runall
 Time resolution is 1 ps
 run -all
 === G-P3-4 slow_merge2 ===
-SLOW_MERGE2 TB PASS
+ FAIL: omicity (id stable within frame)
+ FAIL: omicity (id stable within frame)
+ FAIL: omicity (id stable within frame)
+ FAIL: omicity (id stable within frame)
+SLOW_MERGE2 TB FAIL errors=4
 $finish called at time : 350 ns : File "D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_p3_impl_20261018/gates/sim/tb_slow_merge2.v" Line 109
 exit
-INFO: [Common 17-206] Exiting xsim at Sun Oct 18 23:57:15 2026...
+INFO: [Common 17-206] Exiting xsim at Mon Oct 19 02:13:20 2026...
