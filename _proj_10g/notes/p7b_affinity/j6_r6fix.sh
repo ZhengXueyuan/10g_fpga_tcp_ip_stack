@@ -73,12 +73,13 @@ cd /tmp/p7b_biz || exit 9
 #      是 "要求 NW=63 + EXPECT_BID=0x0000000A" (与实际默认 0x11 自相矛盾 —— 一句话两处过时)。
 #      现在: 档表是唯一来源, 失败提示与档位元数据都由它派生。
 NW=${NW:-88}
-EXPECT_BID=${EXPECT_BID:-0x0000002C}   # 2026-10-18 P11 P2-甲 双口+双 IP (88 字; 原 0x2B = P11 P1 / 0x2A = p9 孤儿修复 / 0x29 = 0x29 拆刀)
+EXPECT_BID=${EXPECT_BID:-0x0000002D}   # 2026-10-18 P11 F-21 修复 (88 字; 原 0x2C = P2-甲未烧板 / 0x2B = P11 P1 / 0x2A = p9 孤儿修复 / 0x29 = 0x29 拆刀)
 export NW EXPECT_BID        # ⚠️ 必须 export: 取数器 p7b_snap.sh 读的是**它自己的环境**
 # 十六进制**大小写归一** (只用于比较, 打印仍用原样; 判据语义零改动 —— 先例 = 下面 geom_gate 块)
 norm(){ printf "%s" "$1" | tr "A-F" "a-f"; }
 # 档表格式: "NW|BID|WEXTRA|说明"  (WEXTRA 空 = t0/t1 字表退回 5 53 54)
 GEOM_TIERS=(
+  "88|0x0000002D|61 62|P11 F-21 修复 (2026-10-18) 88 字 / BID 0x2D (W83..W87 改经 p7bdp CDC; 几何同 0x2C: W83/W84 = 每口 TX 帧数 / W85 = classify 总帧 / W86 = ch0 FIFO ovf / W87 = ch0 MAC TX; 未实现地址 0x190)"
   "88|0x0000002C|61 62|P11 P2-甲 双口+双 IP (2026-10-18) 88 字 / BID 0x2C (双 SFP+ 数据面接入: W83/W84 = 每口 TX 帧数 / W85 = classify 总帧 / W86 = ch0 FIFO ovf / W87 = ch0 MAC TX; **几何变**: 83 -> 88 字, 未实现地址 0x17C -> 0x190)"
   "83|0x0000002B|61 62|P11 P1 ch0 bring-up (2026-10-18) 83 字 / BID 0x2B (ch0 J7 RX MAC + 76-bit tap + sink; W76 = ch0 PCS 状态 / W77 = ch0 PCS 事件 / W78 = LOS+模式 / W79..W82 = ch0 好帧/载荷字节/FCS 错/丢帧; **几何变**: 76 -> 83 字, 未实现地址 0x160 -> 0x17C)"
   "76|0x0000002A|61 62|p9 孤儿修复 (2026-10-17) 76 字 / BID 0x2A (孤儿会话/槽回收: app_ctrl 三因子失联判据 + 回收通知; slow_cfg_adp o_busy; W75 = app_ctrl.stat_orphan; **几何变**: 75 -> 76 字, 未实现地址 0x15C -> 0x160)"

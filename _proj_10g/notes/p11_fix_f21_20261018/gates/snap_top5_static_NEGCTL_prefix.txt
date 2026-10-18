@@ -1,0 +1,6 @@
+[FAIL] [1] snap_dout_all 顶部 5 项 = ['w87_snap', 'w86_snap', 'w85_snap', 'w84_snap', 'w83_snap']
+      期望 = ['p7bdp_dout[43*32 +: 32]', 'p7bdp_dout[42*32 +: 32]', 'p7bdp_dout[41*32 +: 32]', 'p7bdp_dout[40*32 +: 32]', 'p7bdp_dout[39*32 +: 32]']
+[FAIL] [2] 无 w8x_snap (code hits=25) / 无 assign w8x_snap=w8x_dp (hits=6)
+[ok] [3] p7bdp_din[39..43] = w83_dp..w87_dp (缺 无)
+[ok] [4] N-10 tie-off: zero_hits={83: 2, 84: 2, 86: 2, 87: 2} w85_true_hits=3 (期望 2/2/2/2 与 3)
+SNAP_TOP5_STATIC_FAIL (top5,direct-wire)

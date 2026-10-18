@@ -14,7 +14,9 @@
      ⑩ `0x25`（**F-3 修复** / **BID-only**, 几何同 ④⑤⑥⑦⑧⑨）/
      ⑪ `0x26`（**RFC seq 修复** / **BID-only**, 几何同 ④⑤⑥⑦⑧⑨⑩）/
      ⑫ `0x27`（**换流门 R5 修复** / **BID-only**, 几何同 ④⑤⑥⑦⑧⑨⑩⑪）/
-     ⑬ `0x28`（**P9 E12 观测计数器** / **BID + 几何**: 71→75 字 / 0x14C→0x15C）——
+     ⑬ `0x28`（**P9 E12 观测计数器** / **BID + 几何**: 71→75 字 / 0x14C→0x15C）/
+     ⭐ 后续阶段 (2026-10-17/18): ⑭ `0x29` / ⑮ `0x2A` / ⑯ `0x2B` / ⑰ `0x2C` / ⑱ `0x2D`
+     （⑱ = P11 F-21 修复; **BID-only**, 几何同 ⑰ = 88 字 / 0x190）——
      **权威阶段表 = 文件中部 `STAGES = [...]`**
      （每个阶段各自的说明块在 `EDITS_xx` 定义处）。
 
@@ -837,6 +839,94 @@ LF_AFTER_2C = [
 
 # 目标 BID ⇒ 阶段链 (链上每阶段的 old 侧 = 上一阶段的 new 侧)。
 # ⚠️ 列表对象身份共享 ⇒ 这里的引用能看见后面的 append (定义顺序无关)。
+# ===========================================================================
+# 阶段 ⑱ (0x2C -> 0x2D, P11 F-21 修复 + 用户批准的 TO_CYCLES=0xFFFF)
+#   **BID-only**: 几何不变 (88 字 / 未实现 0x190)。唯一变化 = `BUILD_ID_V` 0x2C -> 0x2D
+#   (0x2C 位流从未烧板; 乙顺延 0x2E) + 两个 j6 台架的 GEOM_TIERS 顶端**新增**一行。
+#   生成器 = `_proj_10g/notes/p11_fix_f21_20261018/gen_edits_2d.py` (逐行显式增量;
+#   历史注释逐字保留; 只改被 DEFAULT_SPECS 断言的**现役代自述**行)。
+#   ⚠️ 插入型 edit (GEOM_TIERS) 的 old 侧在 new 里逐字保留 ⇒ 旧档不消失是设计 (全局 #91)。
+EDITS_2D = [
+    ('_proj_10g/notes/p7b_a3_negctl_20261010/step0_selfcheck.sh',
+     '#     (i)  缺省档 (NW=88 / 0x190 / BID 0x2C) 对 D **响亮失败** (且失败点只在 BID = 档位错, 不是板错);',
+     '#     (i)  缺省档 (NW=88 / 0x190 / BID 0x2D) 对 D **响亮失败** (且失败点只在 BID = 档位错, 不是板错);', 1),
+    ('_proj_10g/notes/p7b_a3_negctl_20261010/step0_selfcheck.sh',
+     'echo "### C-a) 默认档 (NW=88 / 0x190 / BID 0x2C) —— 对 D 位流: 期望 ID_FAIL 且失败点=身份不符 (BID 0x18 != 0x2C)"',
+     'echo "### C-a) 默认档 (NW=88 / 0x190 / BID 0x2D) —— 对 D 位流: 期望 ID_FAIL 且失败点=身份不符 (BID 0x18 != 0x2D)"', 1),
+    ('_proj_10g/notes/p7b_affinity/j6_r6fix.sh',
+     'EXPECT_BID=${EXPECT_BID:-0x0000002C}   # 2026-10-18 P11 P2-甲 双口+双 IP (88 字; 原 0x2B = P11 P1 / 0x2A = p9 孤儿修复 / 0x29 = 0x29 拆刀)',
+     'EXPECT_BID=${EXPECT_BID:-0x0000002D}   # 2026-10-18 P11 F-21 修复 (88 字; 原 0x2C = P2-甲未烧板 / 0x2B = P11 P1 / 0x2A = p9 孤儿修复 / 0x29 = 0x29 拆刀)', 1),
+    ('_proj_10g/notes/p7b_affinity/j6_r6fix.sh',
+     '  "88|0x0000002C|61 62|P11 P2-甲 双口+双 IP (2026-10-18) 88 字 / BID 0x2C (双 SFP+ 数据面接入: W83/W84 = 每口 TX 帧数 / W85 = classify 总帧 / W86 = ch0 FIFO ovf / W87 = ch0 MAC TX; **几何变**: 83 -> 88 字, 未实现地址 0x17C -> 0x190)"',
+     '  "88|0x0000002D|61 62|P11 F-21 修复 (2026-10-18) 88 字 / BID 0x2D (W83..W87 改经 p7bdp CDC; 几何同 0x2C: W83/W84 = 每口 TX 帧数 / W85 = classify 总帧 / W86 = ch0 FIFO ovf / W87 = ch0 MAC TX; 未实现地址 0x190)"\n  "88|0x0000002C|61 62|P11 P2-甲 双口+双 IP (2026-10-18) 88 字 / BID 0x2C (双 SFP+ 数据面接入: W83/W84 = 每口 TX 帧数 / W85 = classify 总帧 / W86 = ch0 FIFO ovf / W87 = ch0 MAC TX; **几何变**: 83 -> 88 字, 未实现地址 0x17C -> 0x190)"', 1),
+    ('_proj_10g/notes/p7b_biz_tcpreg/tcpreg_j6.sh',
+     'EXPECT_BID=${EXPECT_BID:-0x0000002C}   # 2026-10-18 P11 P2-甲 双口+双 IP (88 字; 原 0x2B = P11 P1 / 0x2A = p9 孤儿修复 / 0x29 = 0x29 拆刀)',
+     'EXPECT_BID=${EXPECT_BID:-0x0000002D}   # 2026-10-18 P11 F-21 修复 (88 字; 原 0x2C = P2-甲未烧板 / 0x2B = P11 P1 / 0x2A = p9 孤儿修复 / 0x29 = 0x29 拆刀)', 1),
+    ('_proj_10g/notes/p7b_biz_tcpreg/tcpreg_j6.sh',
+     '  "88|0x0000002C|61 62|P11 P2-甲 双口+双 IP (2026-10-18) 88 字 / BID 0x2C (双 SFP+ 数据面接入: W83/W84 = 每口 TX 帧数 / W85 = classify 总帧 / W86 = ch0 FIFO ovf / W87 = ch0 MAC TX; **几何变**: 83 -> 88 字, 未实现地址 0x17C -> 0x190)"',
+     '  "88|0x0000002D|61 62|P11 F-21 修复 (2026-10-18) 88 字 / BID 0x2D (W83..W87 改经 p7bdp CDC; 几何同 0x2C: W83/W84 = 每口 TX 帧数 / W85 = classify 总帧 / W86 = ch0 FIFO ovf / W87 = ch0 MAC TX; 未实现地址 0x190)"\n  "88|0x0000002C|61 62|P11 P2-甲 双口+双 IP (2026-10-18) 88 字 / BID 0x2C (双 SFP+ 数据面接入: W83/W84 = 每口 TX 帧数 / W85 = classify 总帧 / W86 = ch0 FIFO ovf / W87 = ch0 MAC TX; **几何变**: 83 -> 88 字, 未实现地址 0x17C -> 0x190)"', 1),
+    ('_proj_10g/notes/p7b_biz_win/tb_biz_win.v',
+     "    axi_regs #(.MAGIC_V(32'h50360001), .BUILD_ID_V(32'h0000002C), .SNAP_NW(NW)) u_dut (",
+     "    axi_regs #(.MAGIC_V(32'h50360001), .BUILD_ID_V(32'h0000002D), .SNAP_NW(NW)) u_dut (", 1),
+    ('_proj_10g/notes/p7b_biz_win/tb_biz_win.v',
+     '        axil_rd(32\'h04, v, resp); chk("1b BUILD_ID", v, 32\'h0000002C);',
+     '        axil_rd(32\'h04, v, resp); chk("1b BUILD_ID", v, 32\'h0000002D);', 1),
+    ('_proj_10g/notes/p7b_gate4_3/final_state.sh',
+     'EXPECT_BID=${EXPECT_BID:-0x0000002C}   # ⛔ 2026-10-18 P11 P2-甲 双口+双 IP (88 字); 原 0x2B = P11 P1 / 0x2A = p9 孤儿修复',
+     'EXPECT_BID=${EXPECT_BID:-0x0000002D}   # ⛔ 2026-10-18 P11 F-21 修复 (88 字); 原 0x2C = P2-甲未烧板 / 0x2B = P11 P1 / 0x2A = p9 孤儿修复', 1),
+    ('_proj_10g/notes/p7b_gate4_criteria/gen_inputs.py',
+     '         ⚠️ 几何 = **88 字 / BID 0x2C** (P11 P2-甲 双口+双 IP, 2026-10-18 同步轮从 83 字/BID 0x2B 同步)',
+     '         ⚠️ 几何 = **88 字 / BID 0x2D** (P11 F-21 修复, 2026-10-18 同步轮从 0x2C 同步; 几何同 0x2C)', 1),
+    ('_proj_10g/notes/p7b_gate4_criteria/gen_inputs.py',
+     '# 现应读作 "不同代 ⇒ 假红": 本夹具现 = **88 字 / BID 0x2C**, accept 默认也已是 88 字 / BID 0x2C',
+     '# 现应读作 "不同代 ⇒ 假红": 本夹具现 = **88 字 / BID 0x2D**, accept 默认也已是 88 字 / BID 0x2D', 1),
+    ('_proj_10g/notes/p7b_gate4_criteria/gen_inputs.py',
+     '→ **88 字/0x2C (P11 P2-甲 双口+双 IP, 未实现地址 0x17C → 0x190)**。',
+     '→ **88 字/0x2D (P11 F-21 修复, 几何同 0x2C, 未实现地址 0x190)**。', 1),
+    ('_proj_10g/notes/p7b_gate4_criteria/gen_inputs.py',
+     'BID_FIX = 0x0000002C       # 位流身份 (P11 P2-甲 双口+双 IP) —— ⛔ 2026-10-18: 原值 0x0000002B (P11 P1)',
+     'BID_FIX = 0x0000002D       # 位流身份 (P11 F-21 修复) —— ⛔ 2026-10-18: 原值 0x2C (P2-甲未烧板) / 0x2B (P11 P1)', 1),
+    ('_proj_pcie/p6e_snap_check.sh',
+     'EXPECT_BID=${EXPECT_BID:-0x0000002C}       # ⛔ 2026-10-18 P11 P2-甲 双口+双 IP: 原默认 0x2B (P11 P1 ch0 bring-up) / 0x2A (p9 孤儿修复) / 0x29 (0x29 拆刀) / 0x28 (P9 E12) / 0x0A (Stage C)',
+     'EXPECT_BID=${EXPECT_BID:-0x0000002D}       # ⛔ 2026-10-18 P11 F-21 修复: 原默认 0x2C (P2-甲未烧板) / 0x2B (P11 P1 ch0 bring-up) / 0x2A (p9 孤儿修复) / 0x29 (0x29 拆刀) / 0x28 (P9 E12) / 0x0A (Stage C)', 1),
+    ('_proj_pcie/p6e_snap_selftest_fix2.sh',
+     '  0X04) V=\\${FAKE_BID:-0x0000002C};;   # P11 P2-甲 双口+双 IP = 0x2C (⛔ 原 0x2B = P11 P1 / 0x2A = p9 孤儿修复 / 0x29 = 0x29 拆刀 / 0x28 = P9 E12 / 0x0A = Stage C);',
+     '  0X04) V=\\${FAKE_BID:-0x0000002D};;   # P11 F-21 修复 = 0x2D (⛔ 原 0x2C = P2-甲未烧板 / 0x2B = P11 P1 / 0x2A = p9 孤儿修复 / 0x29 = 0x29 拆刀 / 0x28 = P9 E12 / 0x0A = Stage C);', 1),
+    ('_proj_pcie/p7b_biz/p7b_snap.sh',
+     '# p7b_snap.sh -- 板侧快照窗口取数器 (**现役 = 88 字 / BID 0x2C**; 标题原文 = "板侧 **63** 字',
+     '# p7b_snap.sh -- 板侧快照窗口取数器 (**现役 = 88 字 / BID 0x2D**; 标题原文 = "板侧 **63** 字', 1),
+    ('_proj_pcie/p7b_biz/p7b_snap.sh',
+     'EXPECT_BID=${EXPECT_BID:-0x0000002C}',
+     'EXPECT_BID=${EXPECT_BID:-0x0000002D}', 1),
+    ('_proj_pcie/p7b_biz/p7b_snap.sh',
+     '#      + 身份 0x2B → **0x2C**; 未实现地址 **0x17C → 0x190**。',
+     '#      + 身份 0x2B → **0x2C**; 未实现地址 **0x17C → 0x190**。\n#   ⭐ F-21 (2026-10-18): 身份 0x2C → **0x2D** (W83..W87 改经 p7bdp CDC; 字长/未实现地址不变)。', 1),
+    ('_proj_pcie/p7b_gate4_accept.sh',
+     'EXPECT_BID=${EXPECT_BID:-0x0000002C}      # P11 P2-甲 双口+双 IP = 0x2C (源码 board/wrapper_p4.v 的 BUILD_ID_V; 原 0x2B = P11 P1 / 0x2A = p9 孤儿修复 / 0x29 = 0x29 拆刀 / 0x28 = P9 E12)',
+     'EXPECT_BID=${EXPECT_BID:-0x0000002D}      # P11 F-21 修复 = 0x2D (源码 board/wrapper_p4.v 的 BUILD_ID_V; 原 0x2C = P2-甲未烧板 / 0x2B = P11 P1 / 0x2A = p9 孤儿修复 / 0x29 = 0x29 拆刀 / 0x28 = P9 E12)', 1),
+    ('_proj_pcie/p7b_gate4_selftest.sh',
+     '现役 = **0x2C** (P11 P2-甲 双口+双 IP 88 字; 原 0x2B = P11 P1 ch0 bring-up 83 字 ——',
+     '现役 = **0x2D** (P11 F-21 修复 88 字; 原 0x2C = P2-甲未烧板 / 0x2B = P11 P1 ch0 bring-up 83 字 ——', 1),
+    ('_proj_pcie/p7b_gate4_selftest.sh',
+     '  0X04) V=\\${FAKE_BID:-0x0000002C};;',
+     '  0X04) V=\\${FAKE_BID:-0x0000002D};;', 1),
+    ('_proj_pcie/p7b_gate4_negctrl.sh',
+     '# 几何: **88 字 (W0..W87)** —— P11 P2-甲 双口+双 IP (2026-10-18, BID=0x2C / 未实现 0x190);',
+     '# 几何: **88 字 (W0..W87)** —— P11 F-21 修复 (2026-10-18, BID=0x2D / 未实现 0x190);', 1),
+    ('_proj_pcie/p7b_gate4_negctrl.sh',
+     '    echo "MAGIC 0x50360001"; echo "BID 0x0000002C"; echo "MARKER 0xdeadbeef"   # P11 P2-甲 双口+双 IP: 原 0x2B = P11 P1 / 0x2A = p9 孤儿修复 / 0x29 = 0x29 拆刀 / 0x28 = P9 E12 / 0x27 = 换流门 R5 / 0x26 = RFC seq 修复 / 0x25 = F-3 修复',
+     '    echo "MAGIC 0x50360001"; echo "BID 0x0000002D"; echo "MARKER 0xdeadbeef"   # P11 F-21 修复: 原 0x2C = P2-甲未烧板 / 0x2B = P11 P1 / 0x2A = p9 孤儿修复 / 0x29 = 0x29 拆刀 / 0x28 = P9 E12 / 0x27 = 换流门 R5 / 0x26 = RFC seq 修复 / 0x25 = F-3 修复', 1),
+    ('_proj_pcie/p7b_gate4_livefake.sh',
+     '    bid = {88: "0x0000002C", 83: "0x0000002B", 76: "0x0000002A", 75: "0x00000029", 71: "0x00000027", 70: "0x0000001E", 67: "0x00000019", 66: "0x00000018", 65: "0x00000017", 63: "0x0000000A", 61: "0x00000008", 51: "0x00000007"}.get(nw, "0x0000002C")',
+     '    bid = {88: "0x0000002D", 83: "0x0000002B", 76: "0x0000002A", 75: "0x00000029", 71: "0x00000027", 70: "0x0000001E", 67: "0x00000019", 66: "0x00000018", 65: "0x00000017", 63: "0x0000000A", 61: "0x00000008", 51: "0x00000007"}.get(nw, "0x0000002D")', 1),
+    ('sim/p6e_pcie/tb_p6e_pcie_counters.v',
+     '        u_dut.u_pcie_xdma.axil_read(32\'h04, v); chk("0b BUILD_ID (P11 P2-甲 88-word = 0x2C; 原 83-word=0x2B / 75-word=0x29 / 0x28 / 63-word=9)", v, 32\'h0000002C);',
+     '        u_dut.u_pcie_xdma.axil_read(32\'h04, v); chk("0b BUILD_ID (P11 F-21 88-word = 0x2D; 原 0x2C / 83-word=0x2B / 75-word=0x29 / 0x28 / 63-word=9)", v, 32\'h0000002D);', 1),
+    ('sim/p6e_pcie/tb_p6e_pcie_wrapper.v',
+     '        u_dut.u_pcie_xdma.axil_read(32\'h04, v); chk("2  BUILD_ID (P11 P2-甲 双口+双 IP 构建 = 0x2C)", v, 32\'h0000002C);',
+     '        u_dut.u_pcie_xdma.axil_read(32\'h04, v); chk("2  BUILD_ID (P11 F-21 修复 构建 = 0x2D)", v, 32\'h0000002D);', 1),
+]
+
 STAGES = [("0x0000001C", EDITS_1C, "缺陷刀 (2026-10-11)", 70, 0x138),
           ("0x0000001D", EDITS_1D, "persist 刀 (2026-10-11)", 70, 0x138),
           ("0x0000001E", EDITS_1E, "snd_wnd 守卫 (2026-10-11)", 70, 0x138),
@@ -853,7 +943,8 @@ STAGES = [("0x0000001C", EDITS_1C, "缺陷刀 (2026-10-11)", 70, 0x138),
           ("0x00000029", EDITS_29, "0x29 拆刀 (persist 关; 2026-10-17)", 75, 0x15C),
           ("0x0000002A", EDITS_2A, "p9 孤儿修复 (2026-10-17)", 76, 0x160),
           ("0x0000002B", EDITS_2B, "P11 P1 ch0 bring-up (2026-10-18)", 83, 0x17C),
-          ("0x0000002C", EDITS_2C, "P11 P2-甲 双口 + 双 IP (2026-10-18)", 88, 0x190)]
+          ("0x0000002C", EDITS_2C, "P11 P2-甲 双口 + 双 IP (2026-10-18)", 88, 0x190),
+          ("0x0000002D", EDITS_2D, "P11 F-21 修复 + 0x2D (2026-10-18; BID-only)", 88, 0x190)]
 #   ⚠️ 每个阶段带**自己的**几何 (nw, unimpl): 0x1F 起 M1 把快照扩到 71 字并在快照末字后插 4 个
 #      MIR 字 (0x13C/0x140/0x144/0x148) ⇒ 未实现地址 = **0x20 + 4*NW + 16** = 0x14C (不再等于 0x20+4*NW)。
 #      ⇒ 断言按**目标代**的几何比, 不按现读 wrapper (它可能已在更后的代上)。
@@ -2778,6 +2869,9 @@ ALLOW = [
     # —— 现役 (在飞/已同步) ——
     (r"^_proj_10g/notes/p7b_readside_bid1c_20261011/",
      "现役: 本轮预建脚本 (old-side 字符串是**补丁左值**, 必须留旧值; ⚠️ 目录原名 p7b_build0x1C, 因与 p7b_build_0x1C 撞名被 TL 改名 2026-10-11)"),
+    (r"^_proj_10g/notes/p11_fix_f21_20261018/",
+     "现役: P11 F-21 修复轮 (生成器 `gen_edits_2d.py` / 生成的 `EDITS_2D_block.py` 的 old/new "
+     "两侧逐字含 0x2C/0x2D —— 它们是**补丁左值**, 必须留旧值; 轮目录的 gates/报告不是读侧默认值)"),
     (r"^_proj_10g/notes/p7b_defect_board_20261011/",
      "现役: 缺陷刀板级轮 (在飞; ⚠️ S-0 臂**刻意**用 0x1A = 绑定构建 F 位流, 不是漏同步)"),
     (r"^_proj_10g/notes/p7b_persist_board_20261011/",

@@ -36,6 +36,11 @@ if not "%P7B_MUT%"=="" set "WRAP=%P7B_MUT%\wrapper_p4.v"
 if not "%P7B_MUT%"=="" set "MACD=%P7B_MUT%"
 if not exist "%WRAP%" (echo [PATHGUARD FAIL] no wrapper_p4.v & exit /b 1)
 if not exist "%MACD%\mac_rx_10g.v" (echo [PATHGUARD FAIL] no mac_rx_10g.v in %MACD% & exit /b 1)
+REM ---- P11 F-21 static structure gate (source level, BEFORE compiling) ------
+REM   W83..W87 must read p7bdp_dout[43..39] (coherent CDC), never w8x_snap.
+REM   Teeth were verified on the pre-fix HEAD wrapper (see the fix-round report).
+"%PY%" "%ROOT%\_proj_10g\p7b_chain\sim\check_snap_top5_wired.py" --root "%ROOT%"
+if errorlevel 1 (echo SNAP_TOP5_STATIC_GATE_FAIL & exit /b 1)
 REM Provenance: every log must carry which RTL set it compiled (P7B_CHAIN_COVERAGE 2026-09-30).
 echo [RTL] WRAP=%WRAP%
 echo [RTL] MACD=%MACD%

@@ -1,0 +1,157 @@
+[P4GUARD OK] root=d:\repo\xcku5pmini\udp_hls_10g self=d:\repo\xcku5pmini\udp_hls_10g manifests=12
+[ok] [1] snap_dout_all é¡¶éƒ¨ 5 é¡¹ = ['p7bdp_dout[43*32 +: 32]', 'p7bdp_dout[42*32 +: 32]', 'p7bdp_dout[41*32 +: 32]', 'p7bdp_dout[40*32 +: 32]', 'p7bdp_dout[39*32 +: 32]']
+[ok] [2] æ—  w8x_snap (code hits=0) / æ—  assign w8x_snap=w8x_dp (hits=0)
+[ok] [3] p7bdp_din[39..43] = w83_dp..w87_dp (ç¼º æ— )
+[ok] [4] N-10 tie-off: zero_hits={83: 2, 84: 2, 86: 2, 87: 2} w85_true_hits=3 (æœŸæœ› 2/2/2/2 ä¸Ž 3)
+SNAP_TOP5_STATIC_PASS (source=D:\repo\XCKU5PMini\udp_hls_10g\board\wrapper_p4.v)
+[RTL] WRAP=D:\repo\XCKU5PMini\udp_hls_10g\board\wrapper_p4.v
+[RTL] MACD=D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\p7b_mac\rtl
+  [PASS] 0a crc32_std(123456789)=CBF43926   src=.3 check vector (zlib=~internal)
+  [PASS] 0b residue == DEBB20E3   src=rule: 0xDEBB20E3, not 0xC704DD7B
+  [PASS] 0c stub link released   src=stim precond
+  [PASS] 0d SFP2 TX_DIS low   src=P7B_GATE1 5.8
+  [PASS] 1a RX delivered >=1 frame   src=stim precond (nonvacuous)
+  [PASS] 1b RX first byte==content[0]   src=injected bytes + GATE1 C.2
+  [PASS] 1c RX 1st byte!=lane7 byte   src=neg: 8 distinct bytes
+  [PASS] 2a min frame -> 60 bytes   src=802.3 Cl.4.4 / injected
+  [PASS] 2b max frame -> 1514 bytes   src=802.3 Cl.4.4 / injected
+  [PASS] 2c Sum popc conservation   src=contract: bytes==injected
+  [PASS] rame byte-exact (first/mid/last)   src=d byte array vs delivered buffer
+  [PASS] rame byte-exact (first/mid/last)   src=d byte array vs delivered buffer
+  [PASS] 2d 63+65 -> 128 bytes   src=derived: 63+65
+  [PASS] 2e frames==2 no merge   src=contract: 1 TLAST/frame
+  [PASS] 2h 63B frame byte-exact   src=d byte array vs delivered buffer
+  [PASS] 2i 65B frame byte-exact   src=d byte array vs delivered buffer
+  [PASS] lf-test (1-byte off => mismatch)   src=ve control: comparator has teeth
+  [PASS] 3a good FCS crc_err same   src=inj FCS == TB CRC32
+  [PASS] 3b good FCS -> 64 bytes   src=contract: tcrs=1
+  [PASS] 3c bad FCS crc_err +1   src=inj: FCS = 0x00000000
+  [PASS] 3d bad FCS still delivered   src=contract: crc is a flag
+  [PASS] 3e /E/ -> rx_er_words +   src=inj /E/ at content byte 10
+  [PASS] 3f stat_fifo_ovf==0   src=mac_rx_10g: structural 0
+  [PASS] 4a b2b x3 -> 3 frames   src=derived: 3 frames, no IFG
+  [PASS] 4b b2b x3 -> 180 bytes   src=derived: 3x60
+  [PASS] 5a F4 drops recorded   src=40x1514B, 16w FIFO, tready=0
+  [PASS] 5b F4 TERM word seen   src=TERM tuple verbatim
+  [PASS] 5c no frame > 1514B   src=derived: max content 1514
+  [PASS] 5d F4 drop count > 0   src=nst a 16-word FIFO with tready=0
+  [PASS] 5e recovery byte-exact   src=derived: 64B, first=PAT[0]
+  [PASS] 6a TX 1 wire frame   src=derived: 1 tlast frame
+  [PASS] 6b TX /S/ at lane0   src=vendor :995/:1147 + GATE1 C.4
+  [PASS] 6c TX preamble word   src=vendor :995 literal + c=8'h01
+  [PASS] 6d TX wf preamble   src=vendor :995 literal (55x6+D5)
+  [PASS] 6e TX content lane order   src=act: tdata[63:56]=0x88 is byte 0
+  [PASS] 6f TX w2 lane order   src=a[63:56]=0xAA .. tdata[7:0]=0x44
+  [PASS] 7 W36 rx_words   src=forced producer node
+  [PASS] 7 W37 rx_pay_bytes   src=forced producer node
+  [PASS] 7 W38 rxcdc.ovf_cnt   src=forced producer node
+  [PASS] 7 W39[2] block_lock   src=forced producer bit
+  [PASS] 7 W39[4] hi_ber   src=forced producer bit
+  [PASS] 7 W41 stat_flush_words   src=forced producer node
+  [PASS] 7 W42 stat_flush_done   src=forced producer node
+  [PASS] 7 W43 stat_tx_words   src=forced producer node
+  [PASS] 7 W44 stat_tx_ctrl_char   src=forced producer node
+  [PASS] 7 W45 txcdc.ovf_cnt   src=forced producer node
+  [PASS] 7 W46 cls dbg_stat_ovf   src=forced producer node
+  [PASS] 7 W47 cls route_ovf   src=forced producer node
+  [PASS] 7 W48 cls stall_in   src=forced producer node
+  [PASS] 7 W49 cls dbg_occ   src=forced producer node
+  [PASS] 7 W50 tx_clk_act   src=forced producer node
+  [PASS] P1 W76 ch0 status   src=_ber/rerr); bit30 ch0_sig masked
+  [PASS] P1 W77 ch0 events   src=forced pcs0 event counters
+  [PASS] P1 W78 LOS+mode   src=unters/levels; A mode => bit31=0
+  [PASS] P1 W79 ch0 frames   src=forced ch0 sink counter
+  [PASS] P1 W80 ch0 bytes   src=forced ch0 sink counter
+  [PASS] P1 W81 ch0 crc_err   src=forced mac_rx_ch0.stat_crc_err
+  [PASS] P1 W82 ch0 drop   src=forced mac_rx_ch0.stat_drop
+  [PASS] t0 frames = 0 (non-DUAL tie-off)   src=W83 @0x16C
+  [PASS] t1 frames = 0 (non-DUAL tie-off)   src=W84 @0x170
+  [PASS] P11 W85 classify total frames   src=:0] ÿÿÿŸÿÿ,ÿÿÿ¤ÿÿÿæÿÿÿ»ÿÿÿ½ÿÿ¨)
+  [PASS]  FIFO ovf = 0 (non-DUAL tie-off)   src=W86 @0x178
+  [PASS] h0 MAC TX = 0 (non-DUAL tie-off)   src=W87 @0x17C
+  [PASS] P11 MIR_STATUS @0x180   src=block auto-shifted by SNAP_NW=88
+  [PASS] 7b 0x190 reads 0 no wrap   src= 0x20+4*88+1ÿÿÿåÿŸ 8ÿÿÿ­—/0x17C)
+  [PASS] P1-1a W76 block_lock (real)   src=stub ch0 defaults link-up
+  [PASS] P1-1b W76 hi_ber=0 (real)   src=stub ch0 hi_ber default 0
+  [PASS] c W78 los1 level=1 (initial pin)   src=TB sfp1_rx_los initial = 1
+  [PASS] P1-1d W78 mode=A (bit31=0)   src=SFP2_MODE_B not defined
+  [PASS] P1-2a dW79 == 3   src=3 injected good frames
+  [PASS] P1-2b dW80 == 300   src=3 x 100 content bytes
+  [PASS] P1-2c dW81 == 0   src=good FCS => no crc_err
+  [PASS] P1-2d dW82 == 0   src=no drops at 1 word/cycle
+  [PASS]  => dW81 == 1 (MAC stat_crc_err)   src=injected FCS = 0x00000000
+  [PASS]  W79/W80 flat (not a good frame)   src=d frame = tlast && tcrs && !terr
+  [PASS] 82 flat (delivered, not dropped)   src=rame drop is a different counter
+  [PASS]  => W79/W80 flat (terr excluded)   src=good frame requires !terr
+  [PASS] FCS stays clean by construction)   src= /E/ byte is in the TB's CRC too
+  [PASS] elivered with terr, not dropped)   src=lags the frame, does not drop it
+  [PASS] 31:24] += ~N (sync latency only)   src= cycles; 3FF sync + release tail
+  [PASS] -2h bad update: W77[23:16] += ~N   src=e level; 3FF sync + release tail
+  [PASS] -2h errv update: W77[15:8] += ~N   src=r_valid; 3FF sync + release tail
+  [PASS] on: W77[31:24] == 0xFF (no wrap)   src=rating counter, not free-running
+  [PASS] e-runs (mod 256): dW77[7:0] != 0   src=es high mod 256 (not saturating)
+  [PASS] 1-3a tready=0: W79 does not rise   src=count point = sink delivery
+  [PASS] 0: W82 rises (whole-frame drops)   src=words against a 16-word MAC FIFO
+  [PASS] lling edge: level=0 and no event   src=OS edge definition = rising only
+  [PASS] ge: level=1 and exactly +1 event   src=one 0->1 edge = +1
+  [PASS] en1: SNAP_STATUS[7]=1 and busy=0   src=sy must NOT include ch0snap_busy
+  [PASS] : W76 still readable (dp bundle)   src=dle unaffected by ch0 clock stop
+  [PASS] en2: SNAP_STATUS[7]=1 and busy=0   src=sy => armed=0 => immediate stale
+  [PASS] _STATUS[7]=0 after clock restart   src=completes once rx_clk_out_0 runs
+  [PASS] P1-6a ch0 TX data constant   src=0 TX MAC; copy of p7b_ch0_idle_d
+  [PASS] P1-6b ch0 TX control constant   src=all lanes /I/
+  [PASS] X1a one frame on the wire   src=derived: 1 injected tlast frame
+  [PASS]  is complete (60B content + FCS)   src=ed: content byte-exact + FCS len
+  [PASS] X1a no ghost   src=derived: classification
+  [PASS] b bubble -> exactly 1 wire frame   src=tarvation aborts the frame (F-2)
+  [PASS] t (prefix of the injected frame)   src=derived: prefix compare
+  [PASS] nced (rest of the frame flushed)   src=ping (NOT the primary criterion)
+  [PASS] X1b no ghost   src=derived: classification
+  [PASS] X2 two frames back-to-back   src=derived: 2 injected tlast frames
+  [PASS]  both frames complete/byte-exact   src=rived: per-frame content compare
+  [PASS] exactly 2 wire frames (runt + B)   src=d: 1 aborted runt + 1 complete B
+  [PASS] 0 is a runt (strict prefix of A)   src=ed: prefix compare vs injected A
+  [PASS] X3 frame1 is B byte-exact   src=ved: complete-frame compare vs B
+  [PASS] X3 no ghost at all   src=derived: classification
+  [PASS] exactly 1 wire frame (runt only)   src=hen the aborted one has no TLAST
+  [PASS] at frame is a runt (prefix of A)   src=ed: prefix compare vs injected A
+  [PASS] X4 no ghost   src=derived: classification
+  [PASS] X4 flush counters advanced   src=ping (NOT the primary criterion)
+  [PASS] X4 no B on the wire   src=F2X11c: every frame scanned
+  [PASS] X5a pad frame complete+padFCS   src=F2X11: on-wire len + crc32
+  [PASS] ur own RX (REGISTERED DEFECT #1)   src=added frame; see [DEFECT-REG #1]
+  [PASS] : TB-FCS frame passes our own RX   src=o crc_err for a TB-computed FCS)
+  [PASS] , DUT-TX frame passes our own RX   src= TB FCS for the same 68B content
+  [PASS] ad-covered FCS passes our own RX   src=n: RX accepts the standard scope
+  [PASS] flagged crc_err (discrimination)   src=scope => RX wants the pad inside
+  [PASS] X6a 20B wire complete+padFCS   src=F2X11: on-wire len + crc32
+  [PASS] X6a 20B RX tcrs=1 len=60   src=F2X11: self TX->RX contract
+  [PASS] X6a 20B RX bytes==content+pad   src=F2X11: content + zero pad
+  [PASS] X6b 42B wire complete+padFCS   src=F2X11: on-wire len + crc32
+  [PASS] X6b 42B RX tcrs=1 len=60   src=F2X11: self TX->RX contract
+  [PASS] X6b 42B RX bytes==content+pad   src=F2X11: content + zero pad
+  [PASS] X6c 54B wire complete+padFCS   src=F2X11: on-wire len + crc32
+  [PASS] X6c 54B RX tcrs=1 len=60   src=F2X11: self TX->RX contract
+  [PASS] X6c 54B RX bytes==content+pad   src=F2X11: content + zero pad
+  [PASS] G1.0 lane4 content 60 byte-exact   src= delivered buffer (lane4 rebase)
+  [PASS] G1.1 lane4 content 61 byte-exact   src= delivered buffer (lane4 rebase)
+  [PASS] G1.2 lane4 content 62 byte-exact   src= delivered buffer (lane4 rebase)
+  [PASS] G1.3 lane4 content 63 byte-exact   src= delivered buffer (lane4 rebase)
+  [PASS] G1.4 lane4 content 64 byte-exact   src= delivered buffer (lane4 rebase)
+  [PASS] G1.5 lane4 content 65 byte-exact   src= delivered buffer (lane4 rebase)
+  [PASS] G1.6 lane4 content 66 byte-exact   src= delivered buffer (lane4 rebase)
+  [PASS] G1.7 lane4 content 67 byte-exact   src= delivered buffer (lane4 rebase)
+  [PASS]  8 frames / 508 bytes / no ghost   src=derived: sum(60..67) = 508
+  [PASS] ane4 sweep covers /T/ lanes 0..7   src=ted XGMII words), content 60..67
+  [PASS] 4 back-to-back: exactly 2 frames   src=derived: 2 injected lane4 frames
+  [PASS] e4 back-to-back: both byte-exact   src=t: cross-frame half-word handoff
+  [PASS]  lane4 back-to-back: 61+62 bytes   src=derived: 61+62
+  [PASS] G3a lane4+F4: drops recorded   src=against a 16-word FIFO, tready=0
+  [PASS] e4+F4: TERM closing word emitted   src=borted frame leaves no bare tail
+  [PASS] +F4: no new mis-aligned SOP word   src=ry delivered SOP word stays full
+  [PASS] G3d lane4+F4 recovery byte-exact   src= lane4 frame after the F4 window
+  [PASS] 1 every RX SOP word full-aligned   src=eep[7]=1) - never checked before
+  [PASS] 2 no bare SOP outside F4 windows   src=xcept deliberate F4 drop windows
+  [PASS] 1 TERM word present (nonvacuous)   src=contract mac_rx_10g.v:16
+  [PASS] 4 TERM-2 TERM six-tuple verbatim   src=0,tlast=1,tuser=0,tcrs=0,terr=1}
+VERDICT = PASS

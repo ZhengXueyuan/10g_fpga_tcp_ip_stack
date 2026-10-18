@@ -1,0 +1,9 @@
+slot=39 bits=1248..1279 cells=0
+slot=40 bits=1280..1311 cells=0
+slot=41 bits=1312..1343 cells=0
+slot=42 bits=1344..1375 cells=0
+slot=43 bits=1376..1407 cells=0
+tx_p0_frames_r_reg[0]/Q pins=1
+  LOAD tx_p0_frames_r[0]_i_3/I0
+  LOAD u_pcie_regs/snap_din[2422]
+LOADCOUNT hold_b=0 snap_din=1 (0x2C expected: hold_b=0 snap_din>=1)

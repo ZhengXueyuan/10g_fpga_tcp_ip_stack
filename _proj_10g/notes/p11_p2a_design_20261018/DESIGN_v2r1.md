@@ -986,3 +986,39 @@ grep -nE 'awk -v NW=83' _proj_pcie/p7b_gate4_negctrl.sh
 3. **HLS csynth / 双 IP 网表、Vivado 构建/综合/实现、板级 W83..W87**：**本轮仍未跑**（纪律禁止构建/上板）；所有时序/资源/板级结论仍为未测。
 4. **`tb_p11_dual` 臂 A 仍只用 IP_A**（现役 HLS 网表是单 IP）⇒ IP_B 的 HLS 握手留构建轮（重综合后）。
 5. **`INFLIGHT_MAX_FRAMES = 33` 是纸面保守值**（txcdc 256 字 / 最小帧 8 字 + 1 帧在 MAC/线上），未实测。
+
+### E-5 F-21（W83..W87 绕过 `snap_cdc`）—— 修复实施登记（2026-10-18）
+
+> ⚠️ **编号说明**：派单写作「附录 E 加 E-4 F-21」，但本文件 **E-4 已被「实施级偏离与未测」占用** ⇒
+> 本条编号 **E-5**（核到不符如实登记，不覆盖既有编号）。本节 = **实施记录**，不是 PASS/FAIL 裁定。
+
+**现象（0x2C 构建布后实测，非推断）**：`_proj_10g/notes/p11_build_0x2C_20261018/README_FOR_TL.md` §5 +
+`gates/{SNAP_PROBE,FANOUT_PROBE}_0x2C.txt`：
+- `u_snap_p7bdp/hold_b_reg` 布后 982 个寄存器、最大位号 1239 ⇒ **槽 39..43（W83..W87）各 0 个**；
+- `tx_p0_frames_r_reg[0]/Q` 的全部负载 = 自身反馈 + `u_pcie_regs/snap_din[2422]` ⇒ **裸多比特 CDC**
+  （多比特计数器两位可能在不同拍到达 ⇒ 读出"从未存在过的中间值"）；
+- 源码定位：`board/wrapper_p4.v` 顶层 `w8x_snap = w8x_dp` 直驱 `snap_dout_all`，而 `p7bdp_din[39..43]` 是死逻辑。
+
+**修法（已实施，未构建）**：
+1. `board/wrapper_p4.v`：`snap_dout_all` 顶部 5 项改为 `p7bdp_dout[43*32 +: 32] … [39*32 +: 32]`；
+   删除 `ifdef DUAL_SFP_A` / `else` 两支的 `w8x_snap` 直连块。
+2. **N-10 语义不变**：非 DUAL 构建的 `w83_dp/w84_dp/w86_dp/w87_dp = 32'd0`、`w85_dp` 仍真
+   ⇒ 仍经 `p7bdp_din[39..43] → u_snap_p7bdp → p7bdp_dout[43..39]` 进快照（只是多走一次 CDC）。
+3. **两层结构门**：
+   - 静态（源码面，已挂进 `run_tb_p7b_chain.bat`，24 门矩阵内）：
+     `_proj_10g/p7b_chain/sim/check_snap_top5_wired.py` —— 断言顶部 5 项 = `p7bdp_dout[43..39]`、
+     无 `w8x_snap` / 无 `assign w8x_snap = w8x_dp`、`p7bdp_din[39..43]` 五条线在位、N-10 tie-off 仍在。
+   - 布后（构建轮执行）：`board/build_p7b_ku5p.tcl` 的 `P7B_SNAP_TOP5_CDC` 段 ——
+     `u_snap_p7bdp/hold_b_reg[1248..1407]` 每槽至少 1 个寄存器；`tx_p0_frames_r_reg[0]/Q` 扇出含
+     `u_snap_p7bdp/hold_b_reg`、不含 `u_pcie_regs/snap_din`；失败 = `P7B_SNAP_TOP5_CDC_MISSING` /
+     `P7B_SNAP_TOP5_FANOUT_BAD` + exit 1。
+4. **BID**：`BUILD_ID_V = 32'h0000002D`（甲重建；**0x2C 位流从未烧板**）；**乙顺延 0x2E**（本文件与
+   `P7B_OPEN_ITEMS.md` §0-72 同步登记）。
+5. **F-2 `TO_CYCLES`**：用户 2026-10-18 已批「下一构建用 `16'hFFFF`」⇒ wrapper 实例
+   `.TO_CYCLES(16'hFFFF)`（65535 拍 ≈ 419 µs @156.25 MHz）；`rtl/rx_merge2.v` **模块默认仍 0**（关），
+   其它例化/默认构建零行为变化；回退 = 改回 `.TO_CYCLES(4096)` 或 `.TO_CYCLES(0)`（一行）。
+6. **读侧**：BID 0x2C → 0x2D 的**显式增量**（26 处 / 15 文件；几何不变 88 字 / `0x190`）；
+   `apply_readside_bid1c.py --assert --bid 0x2D` = 0 fail；从 0x2C 树重放 = **20/20 逐字节相同**。
+
+**未测（不许当已答）**：重建 0x2D 的综合/实现/时序、布后门的两条实际读数、板级 W83..W87 相干性；
+以及"裸 CDC 是否真的读出过位混" —— **未观测到 ≠ 不存在**（0x2C 从未上板）。

@@ -1180,10 +1180,12 @@ module wrapper_p4 #(
     // ---- P11 P2-甲: ch0/ch1 帧级合并 (工作保持 RR; STRICT 硬接 0) ----
     //   输出直接替换现役 rx_* 总线 (vlan_strip / rx_classify 零改动)。
     //   每帧末 1 拍重仲裁气泡 (大帧 ~0.5%, 最小帧 8 字 ~11%); merge 无内部丢帧路径。
-    //   F-2: TO_CYCLES=4096 半帧看门狗 (停钟/半帧不再连坐另一口; stat_abort 只给门)。
+    //   F-2: TO_CYCLES 半帧看门狗 (停钟/半帧不再连坐另一口; stat_abort 只给门)。
+    //        ⭐ 2026-10-18 用户批准: 下一构建 (0x2D) 阈值 = 16'hFFFF (65535 拍 ≈ 419 µs @156.25MHz);
+    //          模块默认仍 0 (关) ⇒ 其它例化/默认构建零行为变化。
     //   F-19: rst_n 改用板级 `reset_n` —— 与两路输入 FIFO 的 rd 侧同源; 原 dp_rst_n
     //         在 MMCM 失锁重锁时会清 merge 而不清 FIFO 指针 (F-3 同类的新实例)。
-    rx_merge2 #(.STRICT(1'b0), .TO_CYCLES(4096)) u_rx_merge (
+    rx_merge2 #(.STRICT(1'b0), .TO_CYCLES(16'hFFFF)) u_rx_merge (
         .clk(dp_clk), .rst_n(reset_n),
         .p0_tdata(rx_p0_tdata), .p0_tkeep(rx_p0_tkeep), .p0_tvalid(rx_p0_tvalid),
         .p0_tready(rx_p0_tready), .p0_tlast(rx_p0_tlast), .p0_tuser(rx_p0_tuser),
@@ -5031,29 +5033,19 @@ module wrapper_p4 #(
     //      逐项不动 (已入库的板级读数不受影响)。写错位置 = 全体旧字平移 = 假读数。
     // P11 P2-甲 (N-10): 顶端 5 字的 tie-off 先选源 (避免在拼接里放 ifdef —
     // check_window.py 的装配项解析要求拼接体是纯项列表)。
-`ifdef DUAL_SFP_A
-    wire [32-1:0] w87_snap; wire [32-1:0] w86_snap; wire [32-1:0] w85_snap;
-    wire [32-1:0] w84_snap; wire [32-1:0] w83_snap;
-    assign w87_snap = w87_dp;
-    assign w86_snap = w86_dp;
-    assign w85_snap = w85_dp;
-    assign w84_snap = w84_dp;
-    assign w83_snap = w83_dp;
-`else
-    wire [32-1:0] w87_snap; wire [32-1:0] w86_snap; wire [32-1:0] w85_snap;
-    wire [32-1:0] w84_snap; wire [32-1:0] w83_snap;
-    assign w87_snap = 32'd0;   // N-10: 非 DUAL 构建 tie-off
-    assign w86_snap = 32'd0;
-    assign w85_snap = w85_dp;  // W85 仍真 (classify 总帧)
-    assign w84_snap = 32'd0;
-    assign w83_snap = 32'd0;
-`endif
+    // ⛔ P11 F-21 修复 (2026-10-18): 0x2C 曾在这里用 `w8x_snap = w8x_dp` **直连**进快照,
+    //    绕过 u_snap_p7bdp 的 CDC —— 多比特计数器裸跨域 (位混风险), 且 p7bdp 槽 39..43
+    //    成死逻辑 (布后 hold_b 槽 39..43 = 0 个寄存器)。现改为**只读 p7bdp_dout[43..39]**:
+    //    源 (DUAL 真值 / 非 DUAL 常量 tie-off) → p7bdp_din[39..43] → u_snap_p7bdp → dout。
+    //    N-10 语义不变: 非 DUAL 构建的 W83/W84/W86/W87 仍是常量 0、W85 仍真。
+    //    静态门 = `_proj_10g/p7b_chain/sim/check_snap_top5_wired.py` (p7b_chain 门首步);
+    //    布后门 = `board/build_p7b_ku5p.tcl` 的 P7B_SNAP_TOP5_CDC 段。
     wire [SNAP_NW_P6E*32-1:0] snap_dout_all = {
-        w87_snap,                  // W87 ch0 MAC TX {abort(16),frames(16)} 饱和 (P11)
-        w86_snap,                  // W86 ch0 FIFO ovf {rx(16),tx(16)} 饱和 (P11)
-        w85_snap,                  // W85 rx_classify 总帧数 (fast+slow, [31:0] 截断)
-        w84_snap,                  // W84 TX port1 (ch0) 帧数 (P11; 槽 40)
-        w83_snap,                  // W83 TX port0 (ch1) 帧数 (P11; 槽 39)
+        p7bdp_dout[43*32 +: 32],   // W87 ch0 MAC TX {abort(16),frames(16)} 饱和 (P11; 槽 43)
+        p7bdp_dout[42*32 +: 32],   // W86 ch0 FIFO ovf {rx(16),tx(16)} 饱和 (P11; 槽 42)
+        p7bdp_dout[41*32 +: 32],   // W85 rx_classify 总帧数 (fast+slow, [31:0] 截断; 槽 41)
+        p7bdp_dout[40*32 +: 32],   // W84 TX port1 (ch0) 帧数 (P11; 槽 40)
+        p7bdp_dout[39*32 +: 32],   // W83 TX port0 (ch1) 帧数 (P11; 槽 39)
         ch0snap_dout[3*32 +: 32],  // W82 ch0 RX 丢帧数 (mac_rx_ch0.stat_drop; P1; 槽 3)
         ch0snap_dout[2*32 +: 32],  // W81 ch0 RX FCS 错帧数 (mac_rx_ch0.stat_crc_err; P1; 槽 2)
         ch0snap_dout[1*32 +: 32],  // W80 ch0 RX 好帧载荷字节 (Σpopc(tkeep) 仅好帧; P1; 槽 1)
@@ -5276,7 +5268,7 @@ module wrapper_p4 #(
 
     axi_regs #(
         .MAGIC_V    (32'h50360001),
-        .BUILD_ID_V (32'h0000002C),   // P11 P2-甲 双口 + 双 IP (乙顺延 0x2D)     // ⚠️ 每次改动自增 (前置闸读这一项认位流; P1 = ch0 bring-up + W76..W82 = 0x2B)
+        .BUILD_ID_V (32'h0000002D),   // P11 F-21 修复 + P2-甲 双口 + 双 IP (0x2C 从未烧板; 乙顺延 0x2E)     // ⚠️ 每次改动自增 (前置闸读这一项认位流; P1 = ch0 bring-up + W76..W82 = 0x2B)
                                         //   ⭐ 本轮构建 (2026-10-15): **0x27 → 0x28** = **E12 观测计数器**
                                         //      (换流门四计数器: `stat_up_ev` / `stat_sw_req` /
                                         //       `stat_sw_apply` / `stat_up_pend` —— `rtl/app_pattern.v`

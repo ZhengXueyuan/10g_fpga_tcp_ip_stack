@@ -58,7 +58,7 @@ module tb_biz_win;
     reg  [2:0]  fe_state   = 3'b101;      // → SNAP_STATUS[5:3]
     reg         locked_axi = 1'b1;        // → SNAP_STATUS[6]
 
-    axi_regs #(.MAGIC_V(32'h50360001), .BUILD_ID_V(32'h0000002C), .SNAP_NW(NW)) u_dut (
+    axi_regs #(.MAGIC_V(32'h50360001), .BUILD_ID_V(32'h0000002D), .SNAP_NW(NW)) u_dut (
         .clk(clk), .rst_n(rst_n),
         .s_axil_awaddr(awaddr), .s_axil_awprot(awprot), .s_axil_awvalid(awvalid), .s_axil_awready(awready),
         .s_axil_wdata(wdata), .s_axil_wstrb(wstrb), .s_axil_wvalid(wvalid), .s_axil_wready(wready),
@@ -155,7 +155,7 @@ module tb_biz_win;
 
         // ---- 判据 1: 身份 (前置闸读的那两项) ----
         axil_rd(32'h00, v, resp); chk("1a MAGIC", v, 32'h50360001);
-        axil_rd(32'h04, v, resp); chk("1b BUILD_ID", v, 32'h0000002C);
+        axil_rd(32'h04, v, resp); chk("1b BUILD_ID", v, 32'h0000002D);
         axil_rd(32'h14, v, resp); chk("1c MARKER (地址译码)", v, 32'hDEADBEEF);
 
         // ---- 判据 2: 触发 + 注入一束**逐字唯一**的数据 ----

@@ -388,6 +388,56 @@ foreach c [concat $c1 $c2 $c3] {
 }
 puts "P7B_BLACKBOX_COUNT $bb"
 if {$n1 < 1 || $n2 < 1 || $n3 < 1 || $bb != 0} { puts "P7B_MODULE_MISSING_OR_BLACKBOX" ; exit 1 }
+
+# ---- P11 F-21: W83..W87 must pass through u_snap_p7bdp's coherent CDC ----
+#   0x2C 构建的布后实测: `snap_dout_all` 顶部 5 项走 `w8x_snap = w8x_dp` 直连 ⇒
+#   p7bdp 槽 39..43 成死逻辑 (`hold_b_reg[1248..1407]` = 0 个寄存器),
+#   `tx_p0_frames_r_reg[0]/Q` 直接进 `u_pcie_regs/snap_din` (裸多比特 CDC)。
+#   本段是**布后结构门** (open_run synth_1 = 综合网表; 构建轮执行):
+#     ① 槽 39..43 (位 1248..1407) 每个槽至少 1 个 hold_b 寄存器;
+#     ② `tx_p0_frames_r_reg[0]/Q` 的负载里**必须**有 u_snap_p7bdp/hold_b,
+#        且**不得**有 u_pcie_regs/snap_din。
+#   失败 = `P7B_SNAP_TOP5_CDC_MISSING` / `P7B_SNAP_TOP5_FANOUT_BAD` + exit 1。
+sec "P7B_SNAP_TOP5_CDC"
+set top5_bad 0
+for {set s 39} {$s <= 43} {incr s} {
+    set lo [expr {$s * 32}]
+    set hi [expr {$s * 32 + 31}]
+    set nc 0
+    for {set b $lo} {$b <= $hi} {incr b} {
+        if {[llength [get_cells -hier -quiet -filter "NAME == u_snap_p7bdp/hold_b_reg\[$b\]"]] > 0} {
+            incr nc
+        }
+    }
+    puts "P7B_SNAP_TOP5_SLOT slot=$s bits=$lo..$hi cells=$nc"
+    if {$nc < 1} { incr top5_bad }
+}
+if {$top5_bad != 0} {
+    puts "P7B_SNAP_TOP5_CDC_MISSING slots_with_zero_cells=$top5_bad"
+    exit 1
+}
+puts "P7B_SNAP_TOP5_SLOTS_OK = 5"
+set f_pin [get_pins -quiet -filter "NAME == tx_p0_frames_r_reg\[0\]/Q"]
+if {[llength $f_pin] != 1} {
+    puts "P7B_SNAP_TOP5_FANOUT_BAD pin_not_found tx_p0_frames_r_reg\[0\]/Q"
+    exit 1
+}
+set f_nets [get_nets -quiet -of_objects $f_pin]
+set f_loads {}
+foreach n $f_nets { set f_loads [concat $f_loads [get_pins -quiet -of_objects $n -filter {DIRECTION == IN}]] }
+set f_hb 0
+set f_sd 0
+foreach l $f_loads {
+    set ln [get_property NAME $l]
+    if {[string match "*u_snap_p7bdp/hold_b_reg*" $ln]} { incr f_hb }
+    if {[string match "*u_pcie_regs/snap_din*" $ln]}    { incr f_sd }
+}
+puts "P7B_SNAP_TOP5_FANOUT tx_p0_frames_r_reg\[0\]/Q loads=[llength $f_loads] hold_b=$f_hb snap_din=$f_sd"
+if {$f_hb < 1 || $f_sd != 0} {
+    puts "P7B_SNAP_TOP5_FANOUT_BAD hold_b=$f_hb snap_din=$f_sd"
+    exit 1
+}
+puts "P7B_SNAP_TOP5_FANOUT_OK"
 close_design
 
 sec "P7B_IMPL"

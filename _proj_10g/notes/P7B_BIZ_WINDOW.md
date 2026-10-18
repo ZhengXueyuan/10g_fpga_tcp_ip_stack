@@ -9,6 +9,17 @@
 
 ---
 
+> ### ⭐ **2026-10-18 更新（P11 P2-甲 + F-21 修复）：目标窗口 = 88 字 / BID 0x2D**
+> **W83..W87 = 双口 TX / 分类 / ovf 五字**（加在 **MSB 端**，旧字逐项未动）：
+> `W83` TX port0（ch1）帧数 · `W84` TX port1（ch0）帧数 · `W85` `rx_classify` 总帧数
+> （fast+slow，33 位和显式截断）· `W86` ch0 FIFO ovf（16+16 饱和；**AXIS 反压拍数**，不是丢字数）·
+> `W87` ch0 MAC TX `{abort,frames}`（16+16 饱和；低半只作活动指示）。
+> **F-21 修复**：0x2C 构建曾把 W83..W87 以 `w8x_snap = w8x_dp` **直连**进快照（裸多比特 CDC；
+> 布后 `hold_b` 槽 39..43 = 0 个寄存器）；现改为经 `u_snap_p7bdp` 的 CDC
+> （`p7bdp_din[39..43] → hold_b → dout`）。`BUILD_ID_V 0x2C → 0x2D`（0x2C 从未烧板）。
+> 几何不变：**88 字 / 未实现地址 0x190**；MIR 四址 `0x180..0x18C`。
+> ⚠️ 源码已改、**未构建/未上板**；位流 = 下一轮（甲 0x2D；乙顺延 0x2E）。
+>
 > ### ⭐ **2026-10-18 更新（P11 / P1 ch0 bring-up）：目标窗口 = 83 字 / BID 0x2B**
 > **W76..W82 = ch0（J7/SFP A）状态/事件/LOS + RX 四计数**（加在 **MSB 端**，旧字逐项未动）：
 > `W76` ch0 PCS 状态束 · `W77` ch0 PCS 事件束（ferr/bad/erv 饱和 + vcc 自由计数 mod 256）·
@@ -42,7 +53,7 @@
 
 ---
 
-## 1. 现役槽位表（**完整**；地址 = `0x20 + 4*W`；**目标 = 83 字 / BID 0x2B / 未实现 0x17C**（源码已改、待构建）；76 字 = p9 孤儿修复 / 61 字 = BIZ 轮 / 63 字 = WU 轮为历史代）
+## 1. 现役槽位表（**完整**；地址 = `0x20 + 4*W`；**目标 = 88 字 / BID 0x2D / 未实现 0x190**（F-21 修复，源码已改、待构建）；88 字/BID 0x2C = P2-甲（未烧板）/ 83 字 = P11 P1 / 76 字 = p9 孤儿修复 / 61 字 = BIZ 轮 / 63 字 = WU 轮为历史代）
 
 | 字 | 地址 | 槽 | 信号（真值源） | 域 | 用途 / 判据 |
 |---|---|---|---|---|---|
@@ -78,10 +89,16 @@
 | **W80** | `0x160` | ch0[1] | `ch0_rx_bytes` | `rx_clk_out_0` | ⭐ **P11 P1**：好帧载荷字节 `Σpopc(tkeep)`（坏帧不计）；`W80 + 4×W79 = 线上字节`（好帧口径） |
 | **W81** | `0x164` | ch0[2] | `mac_rx_ch0.stat_crc_err` | `rx_clk_out_0` | ⭐ **P11 P1**：MAC 口径 FCS 错帧数（推入时按 `!res_ok` 计） |
 | **W82** | `0x168` | ch0[3] | `mac_rx_ch0.stat_drop` | `rx_clk_out_0` | ⭐ **P11 P1**：MAC 口径整帧丢（空间/碎片/零长）；⚠️ `W79+W81+W82` 不是“收到帧总数” |
+| **W83** | `0x16C` | dp[39] | 每口 arb 输出 `tx_p0_frames` | dp_clk | ⭐ **P11 P2-甲 (0x2D 目标)**：TX port0（ch1）帧数（`tvalid && tready && tlast`）；32 位自由回卷（27.487 s @156.25 MHz） |
+| **W84** | `0x170` | dp[40] | `tx_p1_frames` | dp_clk | ⭐ **P11 P2-甲**：TX port1（ch0）帧数；同上 |
+| **W85** | `0x174` | dp[41] | `({1'b0,cls_stat_fast} + {1'b0,cls_stat_slow})[31:0]` | dp_clk | ⭐ **P11 P2-甲**：`rx_classify` 总帧数（fast+slow；33 位和显式截断，L-5） |
+| **W86** | `0x178` | dp[42] | `{sat16(ch0_rxcdc_ovf_dp), sat16(txcdc1_ovf_cnt)}` | dp_clk | ⭐ **P11 P2-甲**：ch0 FIFO ovf 两半 16 位饱和；⚠️ **= AXIS 反压拍数，不是丢字数**（E-1/D-1）；高半经 `u_maccnt_ch0rx`（4 相 toggle/ack）镜像到 dp（F-18：每 256 源拍采样） |
+| **W87** | `0x17C` | dp[43] | `{sat16(ch0_tx_abort_dp), sat16(ch0_tx_frames_dp)}` | dp_clk | ⭐ **P11 P2-甲**：ch0 MAC TX `{abort,frames}` 16 位饱和；经 `u_maccnt_ch0tx`（W=64 同拍采样）镜像；低半仅“有活动”指示（N-12: ~82 ms 饱和） |
+- ⭐ **F-21 (2026-10-18)**：W83..W87 在 `snap_dout_all` 里必须读 `p7bdp_dout[43..39]`（= `u_snap_p7bdp.hold_b` 相干锁存）；**禁止** `w8x_snap = w8x_dp` 直连（0x2C 构建的形态 = 裸多比特 CDC，布后 hold_b 槽 39..43 = 0 个寄存器）。静态门 = `_proj_10g/p7b_chain/sim/check_snap_top5_wired.py`；布后门 = `board/build_p7b_ku5p.tcl` 的 `P7B_SNAP_TOP5_CDC`。
 
-- **未实现地址 = `0x17C`**（= `0x20 + 4*83 + 16`，word 95；**P11 P1 0x2B 目标**）⇒ 读回 `0xffffffff`（SLVERR 负对照）。
+- **未实现地址 = `0x190`**（= `0x20 + 4*88 + 16`，word 100；**P11 P2-甲 / F-21 0x2D 目标**）⇒ 读回 `0xffffffff`（SLVERR 负对照）。
   ⚠️ 逐代回溯（2026-10-18 P1FIX 去重：原文件此处两段连续重复，语义相同）:
-  `0x160`（76 字/p9 孤儿修复 0x2A）· `0x15C`（75 字/P9 E12 0x28；0x29 同几何）· `0x14C`（71 字/M1）· `0x138`（70 字/构建 F）·
+  `0x190`（88 字/P11 P2-甲 + F-21 0x2D）· `0x17C`（83 字/P11 P1 0x2B）· `0x160`（76 字/p9 孤儿修复 0x2A）· `0x15C`（75 字/P9 E12 0x28；0x29 同几何）· `0x14C`（71 字/M1）· `0x138`（70 字/构建 F）·
   `0x12C`（67 字/构建 E）· `0x128`（66 字/构建 D）· `0x124`（65 字/构建 C）· `0x11C`（63 字/WU 轮）·
   `0x114`（61 字/BIZ 轮）· `0xEC`（51 字/RATE 轮）—— **旧值现在全是窗口内的真字**（读它们得真数据, 不是 SLVERR）。
   ⚠️ M1 起公式 = `0x20 + 4*NW + 16`（快照末字后接 MIR_STATUS/DATA/CTRL/DMA_CNT 四字）。

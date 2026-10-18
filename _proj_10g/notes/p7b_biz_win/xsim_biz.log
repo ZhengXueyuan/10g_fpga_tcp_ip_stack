@@ -3,8 +3,8 @@
 # SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
 # IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
 # SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
-# Start of session at: Sun Oct 18 03:02:52 2026
-# Process ID         : 9276
+# Start of session at: Sun Oct 18 14:04:33 2026
+# Process ID         : 10660
 # Current directory  : D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p7b_biz_win
 # Command line       : xsim.exe -log xsim_biz.log -mode tcl -source {xsim.dir/tb_biz_win/xsim_script.tcl}
 # Log file           : D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p7b_biz_win/xsim_biz.log
@@ -19,22 +19,22 @@
 # Host memory        : 68053 MB
 # Swap memory        : 4294 MB
 # Total Virtual      : 72348 MB
-# Available Virtual  : 37751 MB
+# Available Virtual  : 36054 MB
 #-----------------------------------------------------------
 source xsim.dir/tb_biz_win/xsim_script.tcl
 # xsim {tb_biz_win} -autoloadwcfg -runall
 Time resolution is 1 ps
 run -all
-=== tb_biz_win: P7B-BIZ å¿«ç…§çª—å£é€å­—è¯»å›é—¨ (SNAP_NW=83) ===
+=== tb_biz_win: P7B-BIZ å¿«ç…§çª—å£é€å­—è¯»å›é—¨ (SNAP_NW=88) ===
   [PASS] 1a MAGIC = 50360001
-  [PASS] 1b BUILD_ID = 0000002b
+  [PASS] 1b BUILD_ID = 0000002d
   [PASS] 1c MARKEÿÿÿåÿÿÿÿÿÿ‘ÿÿ) = deadbeef
   [PASS] 2a geÿÿÿÿÿÿ½ = 1 = 00000001
   [PASS] 2b donÿÿÿ½ÿÿÿ· = 00000001
   [PASS] 2c [15:7] ÿÿÿåÿÿÿ…ÿÿÿº = 00000000
-  [PASS] 3 W0..W82 å…± 83 å­—é€å­—ä¸€ä¸€å¯¹åº” (æ— é”™ä½/æ— å›ç»•)
+  [PASS] 3 W0..W87 å…± 88 å­—é€å­—ä¸€ä¸€å¯¹åº” (æ— é”™ä½/æ— å›ç»•)
   [PASS] ÿÿÿåÿÿÿ¡» 0 ÿÿ’ ÿÿÿæÿ® 3ÿÿÿ‰ÿÿ™) = 00000000
-  [PASS] (NW-1) = 0x138 @NW=7ÿÿÿèÿÿÿ¾ÿÿÿ° = b17b0052
+  [PASS] (NW-1) = 0x138 @NW=7ÿÿÿèÿÿÿ¾ÿÿÿ° = b17b0057
   [PASS] 5bÿÿÿ«ÿÿ— rresp = OKAY rresp=00
   [PASS] 20+4*NW+16 = 0x160 @NW=7ÿÿÿåÿ 0 = 00000000
   [PASS] ÿÿÿœÿÿÿÿÿÿåÿÿÿ€ rresp = SLVERR rresp=10
@@ -67,7 +67,7 @@ run -all
   [PASS] ÿÿÿåÿ™ MIR_CTRL=0xB rresp = OKAY rresp=00
   [PASS] en=1/src_sel=0 (ÿÿ© bit1 toggle) = 00000005
 ----------------------------------------------------------
-PASS_ALL  tb_biz_win: 40 é¡¹åˆ¤æ®å…¨è¿‡ (çª—å£ 83 å­—)
-$finish called at time : 4655 ns : File "D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p7b_biz_win/tb_biz_win.v" Line 299
+PASS_ALL  tb_biz_win: 40 é¡¹åˆ¤æ®å…¨è¿‡ (çª—å£ 88 å­—)
+$finish called at time : 4855 ns : File "D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p7b_biz_win/tb_biz_win.v" Line 299
 exit
-INFO: [Common 17-206] Exiting xsim at Sun Oct 18 03:02:54 2026...
+INFO: [Common 17-206] Exiting xsim at Sun Oct 18 14:04:35 2026...

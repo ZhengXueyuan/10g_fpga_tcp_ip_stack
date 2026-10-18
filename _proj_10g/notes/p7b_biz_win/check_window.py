@@ -271,20 +271,24 @@ def main():
     #      顶端是 10 项纯 p7bdp; P1 在其上插了 7 项 (4 ch0 + 3 p7bdp) ⇒ 17 项。
     #      (本门 2026-10-18 实测红的就是这里: 旧期望把 17 项全按 p7bdp 生成。)
     #   ⭐ P11 P2-甲 (2026-10-18): 顶端再插 5 项 —— **W87..W83 = p7bdp 槽 43..39**
-    #      (`w87_dp..w83_dp`), 其下才是 P1 的 ch0 束 4 项 + p7bdp 槽 38..26 (13 项)。
+    #      (din 侧仍是 `w87_dp..w83_dp`), 其下才是 P1 的 ch0 束 4 项 + p7bdp 槽 38..26 (13 项)。
+    #   ⛔ P11 F-21 修复 (2026-10-18): 0x2C 的装配曾把顶端 5 项直连 `w8x_snap = w8x_dp`
+    #      (裸多比特 CDC; 布后 hold_b 槽 39..43 = 0)。**现行装配 = 只读 `p7bdp_dout[43..39]`**
+    #      ⇒ 本判据的期望必须是 p7bdp 槽 43..39 (原写 `w%d_snap` = 0x2C 的缺陷形态, 已订正)。
     nnew_top = 22                             # W87..W66 (p7bdp 43..39 = 5 + ch0 槽 3..0 = 4 + p7bdp 38..26 = 13)
     np11_top = 5                              # 本轮新增的 p7bdp 槽 43..39 项数
     nch0_top = 4                              # 顶端 ch0 束项数 (= SNAP_CH0_NW, W82..W79)
     ntx = 1                                   # 其后的 tx 束项数 (W65)
     nnew = 14                                 # W64..W51 (槽 25..12) —— 历史段
     topn = [code_of(x) for x in items[0:nnew_top]]
-    want_top = (["w%d_snap" % (87 - i) for i in range(np11_top)] +
+    want_top = (["p7bdp_dout[%d*32 +: 32]" % (pdp - 1 - i) for i in range(np11_top)] +
                 ["ch0snap_dout[%d*32 +: 32]" % (ch0 - 1 - i) for i in range(nch0_top)] +
                 ["p7bdp_dout[%d*32 +: 32]" % (pdp - 1 - np11_top - i)
                  for i in range(nnew_top - np11_top - nch0_top)])
     ck(topn == want_top,
-       "5a 最上面 %d 项 = W%d..W%d snap + ch0 槽 %s + p7bdp 槽 %s (P11 P2-甲)"
+       "5a 最上面 %d 项 = W%d..W%d 的 p7bdp 槽 %s + ch0 槽 %s + p7bdp 槽 %s (P11 F-21)"
        % (nnew_top, 87, 87 - np11_top + 1,
+          "/".join("%d" % (pdp - 1 - i) for i in range(np11_top)),
           "/".join("%d" % (ch0 - 1 - i) for i in range(nch0_top)),
           "/".join("%d" % (pdp - 1 - np11_top - i) for i in range(nnew_top - np11_top - nch0_top))),
        "(实际 %s, 期望 %s)" % (topn, want_top))

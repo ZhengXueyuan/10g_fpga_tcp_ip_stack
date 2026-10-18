@@ -1890,3 +1890,41 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
   - 修法：`snap_dout_all` 顶部 5 项改用 `p7bdp_dout[43..39]`，删除 `w8x_snap` 直连；加**结构门**（静态：顶部 5 项必须读 `p7bdp_dout`；布后：`tx_p0_frames_r_reg` 扇出必须含 `u_snap_p7bdp/hold_b_reg`、不得直连 `snap_din`）；重建取证。
 - **决策（TL，登记待用户追认）**：① 板级轮**暂缓**，先修 F-21 + 重建 **0x2D**（首个 0x2C 位流从未烧板；按"每次构建 bump BID"纪律重建必须换号；乙顺延 **0x2E**，读侧 BID 0x2C→0x2D、几何 88 不变）；② 用户已批的 **F-2 阈值 0xFFFF** 作为同一新输入进 0x2D（参数常量、时序中性；回退一行）；③ 构建 bat 的 `/B` 锚定同轮修。
 - **下一棒 = F-21 修复轮**（wrapper 布线 + 结构门 + bat 锚定 + TO_CYCLES 0xFFFF）→ TL 抽核 → 重建 0x2D → 板级 P2。
+
+## §10-140 2026-10-18 14:0x：**kimi-tl 前两轮审查回传登记**（用户手动报送；回传内容 = 本方修复轮摘要的复述：`FIX_REPORT.md` + `gates/`、`DESIGN_v2r1` §N.1+附录 E、`OPEN_ITEMS` §0-68..§0-71、台账 §10-138；**无新增 FINDINGS/裁定词**）
+- **审查队列状态**：上述四件由"待报送"改为"**已审（无新增 FINDINGS；F-2/F-4 待裁）**"；构建轮新增件（`p11_build_0x2C` README/gates、`OPEN_ITEMS` §0-72/§0-73、台账 §10-139）仍为**待报送**（下一批）。
+- **两项待裁状态**：**F-2 = 用户已批**（下一构建 0x2D 用 `TO_CYCLES(16'hFFFF)`；0x2C 的 4096 位流不烧板）；**F-4 = 用户已确认「按新口径」（2026-10-18）** —— 删除 `sat16(ovf)` 字级修正项、W86 只作健康指示，改用「取窗前静默 + `INFLIGHT_MAX_FRAMES=33` + W82/W4 MAC drop」；设计附录 E §E-3 已按此落笔，待修复轮收口后在 `OPEN_ITEMS` §0-69 标注"已确认"（避免与在飞 agent 争文件）。
+- **附注**：用户转述件中的 `AISX` 为 `AXIS` 笔误；不影响语义。若 kimi 另有逐条意见，待用户转达后按"需修/协调"三态回填。
+
+## §10-141 2026-10-18 15:0x：**kimi 修复轮全量审查（合并版）回填** —— 四大核心声称独立复算全部成立；新发现 **中 1 + 低 8**；0x2C 构建硬门矛盾 = **Tcl 源码回显假阳性（已定位）**；待修项并入下一轮（F-21 修复轮收口后）
+- **独立复算成立**：读侧重放 **20/20 MATCH**（审查员自算 20 文件 sha256，现磁盘 = HEAD 树）· 矩阵 **24/24 FROZEN**（逐门 EXIT + 5 哈希复算）· HLS 3 条基线失败 = 改前树既有（worktree 源哈希按 CRLF 从 `1c3cc7da` 复算 5/5 命中）· F-1..F-20 + D-1..D-13 逐条 git diff 有落点、逐门转录一致、时刻链自洽。
+- **新发现（需修，下一轮）**：
+  - **中 1：G4 的 10 条 `RAMB36E1 Memory Collision` 无门无判定** —— `gates/g4_xsim_slowport.log` 的 `u_wf/u_small.u_wf`（`frame_fifo` SDP `INT_RAMB_SDP.chk_for_col_msg`，182–3990 ns 周期性）与 G6 被赦免的 `u_slow_rx.u_ff` 是不同实例；F-14 的 Error/Unisim 硬门只加到 G6。**修法 = 统一 G2/G3/G4/G6 的 Error/Critical/Unisim 硬门 + 对 `frame_fifo` 同址 RDW bypass 逐例判定（或修 TB 激励）**。
+  - **低 8（文档/门）**：① FIX_REPORT §4 指纹覆盖声明方向写反（`tb_tx_split.v` 实际在指纹内）；② §2/§3 两处时刻矛盾；③ `f6_f20_static_lines.txt` 引文出自 ASCII 清理前版本；④ `g5_run.log` 4 行"幽灵命令"（中间版 bat 中文 REM GBK 拆包）需披露时间序；⑤ F-17 "逐字节相同"降为"归一化后相同"（worktree 已删）；⑥ `$isunknown` 术语误（实现是 `is_xz1`）；⑦ G7/G8 门编号两章不一致；⑧ F-7 的 X/Z 运行期断言**无负控实证**（只跑正臂）—— 本轮唯一新空判据点。
+- **待修清单（用户已裁 + 审查新增）**：
+  1. **F-4 对称性**：P2-2 的 ch1 `ΔW45(字)` 与 ch0 `sat16(ovf)` 同语义（`u_txcdc.ovf_cnt` = 反压拍数）⇒ **同删**或声明"上界仅静默窗使用"；P2-4 的"W86 高半应恒 0"残句补 errata 指针。
+  2. **F-2 附录 E 残句**：`DESIGN_v2r1:972` "单域/非 DP 构建不例化 merge"与源码不符 ⇒ 改为"merge 例化只受 `DUAL_SFP_A` 门控；`DUAL_SFP_A ∧ ¬DP_156MHZ` 被硬门拒绝、不在构建矩阵"。
+  3. **K-1**：`tb/tb_udp_tx_guard.v:180` 的 `udp_tx_cfg u_cfg` 漏接 `peer_my_ip`（唯一未接的 active 点）⇒ 接 `32'h0`。
+  4. 中 1（G4 门 + 逐例判定）+ 低 8 文档项。
+  5. **0x2C 构建硬门矛盾**：`READINGS_BID2C.txt:32` 的 `black box=1 / 8-3491=1` = `board/p7b_ku5p_stdout.txt:3683` 的 **Tcl 源码回显行**（`# if {[regexp -nocase {black box|8-3491} $line]}`），**不是 synth 日志命中**；真门 `P7B_BLACKBOX_LOG_HITS = 0`（`:3691`）。⇒ 修 `_collect_build_0x2C.py` 排除 `#` 行或只扫 `synth_1/runme.log`；bat 的 `P7B-MODULE-MISSING` rc=1 同源（F-21 轮已改 `/B`）。**0x2C 位流不上板**（本就要换 0x2D）。
+- **处置**：以上并入 **F-21 修复轮收口后的 review-fix 轮**（避免与在飞 agent 争 `DESIGN_v2r1`/`OPEN_ITEMS`/bat/build tcl）；修完再重建 0x2D → 板级。F-4/F-2 用户裁定已记录。
+
+## §10-142 2026-10-18 16:0x：**kimi 确认版回填 + TO_CYCLES 0xFFFF 量化复核** —— 0x2C 黑盒销项条件成立；F-2 附录 E 订正获亲核；**0xFFFF = 419.4 µs（kimi 笔误写 ms）**，工程上建议回 4096
+- **kimi 亲核确认**：① `board/p7b_ku5p_stdout.txt:3683` 的 `# if {[regexp -nocase {black box|8-3491} $line]}` = Tcl 源码回显；真门 `:3691 = P7B_BLACKBOX_LOG_HITS 0` ⇒ 0x2C 无真实黑盒，销项条件 = 收集器只扫 synth 日志/排除 `#` 行并重跑 0/0；② `wrapper_p4.v:310` 有命名错误实例 `DUAL_SFP_A_REQUIRES_DP_156MHZ u_dual_requires_dp()`、elab bat `:128/:151` 列为 XFAIL 签名 ⇒ F-2 附录 E 订正文本与源码相符；③ 待修项排队方式无异议（F-21 收口 → review-fix 六项 → 重建 0x2D → 板级）。
+- **TO_CYCLES 复核（kimi 下批审查点）**：
+  - 值属实：F-21 轮按要求把 wrapper 传参改为 `16'hFFFF`（**用户 2026-10-18 已批**；非 agent 擅改）。**单位订正 = 419.4 µs @156.25 MHz，不是 419 ms**（kimi 转述笔误 1000×）。
+  - 量化：`TO_CYCLES` 数的是 `busy && !sel_tvalid`（被选口无字）的连续拍数。正常帧内字间隔上限 = 一个最大帧的接收时间 ≈ **1518 B × 8 / 10 Gbps = 1.21 µs ≈ 190 拍**（FIFO 已预填时更短）。
+    - **4096 拍 = 26.2 µs ≈ 21.5× 最大帧** ⇒ 误触发风险已可忽略；
+    - **65535 拍 = 419.4 µs ≈ 345× 最大帧** ⇒ 误触发余量再大 16×，但**停钟口的连坐黑窗从 ~26 µs 拉到 ~419 µs**；按 10G/1518 B 估，另一口多丢约 **345 帧 / ~524 KB**（4096 时约 21 帧 / ~32 KB）。
+  - 0x2C 构建（4096）**无板级读数、watchdog 从未触发**；G2 的合成半帧臂只证明功能，不区分阈值。**没有实测到 >26 µs 的合法帧内间隔** ⇒ 0xFFFF 无收益证据。
+  - **建议 = 回到 4096**（一行）；若坚持 0xFFFF，需给"合法帧内间隔可 >26 µs"的实测/设计依据。待用户确认后由 review-fix 轮落定。
+
+## §10-143 2026-10-18 16:3x：**F-21 修复轮收口**（`p11_fix_f21_20261018/FIX_REPORT.md` + `gates/`）—— W83..W87 改走 `p7bdp_dout[43..39]`；两层结构门有牙；BID 0x2D；读侧 0x2D 重放 20/20；**新发现 F-22 = `check_window.py` 判据 5a 曾把 0x2C 缺陷形态锁死**
+- **A1 wrapper**：`snap_dout_all` 顶部 5 项改读 `p7bdp_dout[43..39]`（`wrapper_p4.v:5044-5048`）；删除两支 `w8x_snap` 直连；N-10 tie-off 仍走 `w8x_dp → p7bdp_din[39..43] → CDC`。**A3** `BUILD_ID_V=0x2D`（0x2C 从未烧板；乙顺延 0x2E）。**A4** `.TO_CYCLES(16'hFFFF)`（用户已批；TL 已建议回 4096，待用户一句话；构建前可一行改）。**A5** bat 的模块缺失检查改 `/B` 锚定 + SNAP 硬门。
+- **两层结构门（有牙证据）**：静态正例 `SNAP_TOP5_STATIC_PASS`；**静态负对照（HEAD 0x2C wrapper）= `SNAP_TOP5_STATIC_FAIL (top5,direct-wire)` RC=1、`w8x_snap` code hits=25**；布后负对照（0x2C synth checkpoint，只读 open_checkpoint）槽 39..43 `cells=0`、`tx_p0_frames_r_reg[0]/Q → hold_b=0 / snap_din=1` ⇒ Tcl 对象名可解析、门可红。0x2D 布后正读数待构建轮。
+- **读侧 0x2D**：`apply_readside_bid1c.py` 阶段 ⑱ **26 处 / 15 文件**（BID-only）；两个 j6 台架 `GEOM_TIERS` 顶端加 `"88|0x0000002D|..."`；`--assert --bid 0x2D` = 0 fail；从 0x2C worktree 重放与现磁盘 **20/20 逐字节相同**（`gates/replay_byte_compare.txt`）。
+- ⛔ **F-22（新，中）：`check_window.py` 判据 5a 曾把 0x2C 的缺陷形态锁死** —— 原期望 `w87_snap..w83_snap`（即直连 `w8x_dp` 的裸 CDC 形态）⇒ 矩阵/门会**认可缺陷装配**。已改为期望 `p7bdp_dout[43..39]`（修后 `biz_win` PASS=113 / FAIL=0）。**教训：判据文档里写的是"应走 p7bdp"，判据代码却断言了直连形态** —— 结构门必须由"正确装配"而不是"当前装配"生成。
+- **门/矩阵**：G2/G3/G4/G5（两变异臂）/G6（W83+1/W84+2 经 CDC 仍 ok）/G7（13 组合）全过；**24 门矩阵 = 24 跑 / 23 EXIT=0 / 1 红 = `f3_resync`（M2 臂 NO-RUN + 残留 `xsimk.exe`）**；杀残留后同一门 standalone PASS。**未重跑整矩阵凑 24/24**（纪律）；`VERDICT: FROZEN` 仅表示 341 文件内容一致，**不等于 23/24 全绿**。
+- **文档**：`DESIGN_v2r1` 附录 **E-5**（派单写 E-4，E-4 已被占用，如实改号）；`OPEN_ITEMS` §0-72；`P7B_BIZ_WINDOW.md` 原停在 83 字/0x2B 且无 W83..W87 行，已补 5 行 + CDC 注 + 0x190。
+- **未测照录**：0x2D 构建/综合/时序/资源/布后门正读数；板级 W83..W87 相干性与 `TO_CYCLES` 触发；0x2C 裸 CDC 是否真读出过位混（未上板，未观测到 ≠ 不存在）；F-21 时序代价（约 320 FF 复活）；`f3_resync` 瞬态根因。
+- **下一棒 = review-fix 轮**（kimi 6 项：F-4 对称性/`ΔW45`、F-2 附录 E 残句、K-1、中 1 G4 RAMB 门、低 8 文档、0x2C 收集器）→ 0x2D 构建（`TO_CYCLES` 值待用户确认）→ 板级 P2。
