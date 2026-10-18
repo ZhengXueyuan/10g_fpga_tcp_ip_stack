@@ -4,12 +4,12 @@
 # SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
 # IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
 # SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
-# Start of session at: Mon Oct 19 03:39:35 2026
-# Process ID         : 32456
-# Current directory  : D:/repo/XCKU5PMini/udp_hls_10g/sim/p4gates/work_20261019_030550/p11_negctl_slow
+# Start of session at: Mon Oct 19 04:19:17 2026
+# Process ID         : 24800
+# Current directory  : D:/repo/XCKU5PMini/udp_hls_10g/sim/p4gates/work_20261019_034527/p11_negctl_slow
 # Command line       : xsim.exe -log xsim_scd.log -mode tcl -source {xsim.dir/tb_scd/xsim_script.tcl}
-# Log file           : D:/repo/XCKU5PMini/udp_hls_10g/sim/p4gates/work_20261019_030550/p11_negctl_slow/xsim_scd.log
-# Journal file       : D:/repo/XCKU5PMini/udp_hls_10g/sim/p4gates/work_20261019_030550/p11_negctl_slow\xsim.jou
+# Log file           : D:/repo/XCKU5PMini/udp_hls_10g/sim/p4gates/work_20261019_034527/p11_negctl_slow/xsim_scd.log
+# Journal file       : D:/repo/XCKU5PMini/udp_hls_10g/sim/p4gates/work_20261019_034527/p11_negctl_slow\xsim.jou
 # Running On         : xyz-intel
 # Platform           : Windows Server 2016 or Windows 10
 # Operating System   : 26300
@@ -20,7 +20,7 @@
 # Host memory        : 68053 MB
 # Swap memory        : 4294 MB
 # Total Virtual      : 72348 MB
-# Available Virtual  : 33649 MB
+# Available Virtual  : 33914 MB
 #-----------------------------------------------------------
 source xsim.dir/tb_scd/xsim_script.tcl
 # xsim {tb_scd} -autoloadwcfg -runall
@@ -31,4 +31,4 @@ run -all
 SLOW_CFG_DEMUX TB FAIL errors=1
 $finish called at time : 1870 ns : File "D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_p3_impl_20261018/gates/sim/tb_slow_cfg_demux.v" Line 119
 exit
-INFO: [Common 17-206] Exiting xsim at Mon Oct 19 03:39:36 2026...
+INFO: [Common 17-206] Exiting xsim at Mon Oct 19 04:19:19 2026...

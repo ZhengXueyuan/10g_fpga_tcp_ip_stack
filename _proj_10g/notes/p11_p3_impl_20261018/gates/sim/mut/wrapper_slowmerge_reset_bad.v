@@ -445,9 +445,10 @@ module wrapper_p4 #(
 `endif
 
     // ---- P11 P3: C4 合同常量 (一个 bitstream 一个合同) ----
-    //   默认 8 连接 x 12KB (0x3000); 2 连接 2x10G 演示构建把 EXPECTED 改 2
-    //   (wq_cap = 96KB/2 = 48KB = 0xC000)。host 配额寄存器不在 P3 范围。
-    localparam integer P11_EXPECTED_CONNS = 8;
+    //   0x2F 构建 = 2 连接合同 (wq_cap = 96KB/2 = 48KB = 0xC000; 2×10G 主判据);
+    //   8 连接合同 (8×12KB = 0x3000) 为 0x30 构建 (多连接 app 交付后)。
+    //   host 配额寄存器不在 P3 范围。
+    localparam integer P11_EXPECTED_CONNS = 2;
     localparam [16:0]  WIN_POOL_5   = 17'h18000;                    // 96KB 单共享池
     localparam [15:0]  WQ_CAP_5     = WIN_POOL_5 / P11_EXPECTED_CONNS; // 0x3000
     localparam [16:0]  PORT_CAP_5   = 17'h18000;                    // 每口上限 = 全池
@@ -6254,7 +6255,7 @@ module wrapper_p4 #(
 
     axi_regs #(
         .MAGIC_V    (32'h50360001),
-        .BUILD_ID_V (32'h0000002D),   // P11 F-21 修复 + P2-甲 双口 + 双 IP (0x2C 从未烧板; 乙顺延 0x2E)     // ⚠️ 每次改动自增 (前置闸读这一项认位流; P1 = ch0 bring-up + W76..W82 = 0x2B)
+        .BUILD_ID_V (32'h0000002F),   // P11 P3 C4 双栈 2×10G (合同 2; 0x2E 留乙)     // ⚠️ 每次改动自增 (前置闸读这一项认位流; P1 = ch0 bring-up + W76..W82 = 0x2B)
                                         //   ⭐ 本轮构建 (2026-10-15): **0x27 → 0x28** = **E12 观测计数器**
                                         //      (换流门四计数器: `stat_up_ev` / `stat_sw_req` /
                                         //       `stat_sw_apply` / `stat_up_pend` —— `rtl/app_pattern.v`

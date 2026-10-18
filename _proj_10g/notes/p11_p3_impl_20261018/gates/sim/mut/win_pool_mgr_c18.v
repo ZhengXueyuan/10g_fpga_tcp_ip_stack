@@ -33,8 +33,8 @@
 // 归还 (rel, 来自 app_ctrl 的**统一释放** o_quota_rel/o_quota_rel_slot —
 //   覆盖 外部 DEL / 孤儿回收 / 关闭超时 / abort+state=0 四条路径):
 //     pool       <= pool + winq[slot]
-//     port_win[grant_port[slot]] <= port_win[grant_port[slot]] - winq[slot] (饱和)
-//     winq[slot] <= 0
+//     **仅属主口**: 若事件口 != grant_port[slot] ⇒ 忽略 (计 stat_rel_stale_port)
+//     否则 port_win[slot 的授出口] <= ... - winq[slot]; winq[slot] <= 0
 //   同一槽重复 rel 幂等 (winq 已是 0 ⇒ 加 0); 非幂等事件计 stat_rel_dup。
 //   ⚠️ rel **不**清 grant_port: 跨口复用时 grant_port 已指向新口。
 //
