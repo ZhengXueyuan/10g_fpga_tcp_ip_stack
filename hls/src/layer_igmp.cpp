@@ -118,8 +118,11 @@ static void igmp_rx_process(
         ip_hdr[8] = 1;     // TTL=1 (multicast)
         ip_hdr[9] = IP_PROTO_IGMP;
         ip_hdr[10] = 0x00; ip_hdr[11] = 0x00;
-        ip_hdr[12] = BOARD_IP_BYTE0; ip_hdr[13] = BOARD_IP_BYTE1;
-        ip_hdr[14] = BOARD_IP_BYTE2; ip_hdr[15] = BOARD_IP_BYTE3;
+        // P11: 组播查询的应答源 IP 跟随请求目的 IP (L-11: 该路径当前不可达,
+        // 本改为死代码一致性改; 广播/组播 dst 经 board_src_ip 映射回 IP0)
+        uint32_t igmp_src_ip = board_src_ip((uint32_t)ip_rx.dst_ip);
+        ip_hdr[12] = (igmp_src_ip >> 24) & 0xFF; ip_hdr[13] = (igmp_src_ip >> 16) & 0xFF;
+        ip_hdr[14] = (igmp_src_ip >> 8) & 0xFF;  ip_hdr[15] = igmp_src_ip & 0xFF;
         // Destination: multicast group address
         ip_hdr[16] = BOARD_MCAST_BYTE0; ip_hdr[17] = BOARD_MCAST_BYTE1;
         ip_hdr[18] = BOARD_MCAST_BYTE2; ip_hdr[19] = BOARD_MCAST_BYTE3;

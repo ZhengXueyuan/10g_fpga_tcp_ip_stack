@@ -10,7 +10,13 @@
 //       -> frame_fifo (整帧字缓冲, commit@tlast) -> AXIS 字流 -> tx_arb。
 // 整帧字缓冲后才对 tx_arb 可见: 字节产生速率 (<=1B/拍, 带空洞) 远低于字消费
 // 速率 (8B/拍), 不整帧缓冲会让 mac_tx_64 欠载中止。
-module slow_tx_adp (
+module slow_tx_adp #(
+    // P11 P2-甲: 1 = 从帧内容提取源 IP/ARP SPA 选出口端口位 (side FIFO);
+    //             0 = 原行为 (o_port=0, side FIFO 不例化)
+    parameter        PER_PORT = 1'b0,
+    parameter [31:0] IP_B     = 32'hFFFFFFFF,
+    parameter        SIDE_DEPTH = 128     // 1 位 x SIDE_DEPTH (纸面: 64 帧上限的 2x)
+) (
     input  wire        clk,
     input  wire        rst_n,
     // HLS udp_echo tx_stream (TDATA = {6'b0, TLAST, byte})
@@ -27,7 +33,11 @@ module slow_tx_adp (
     output reg  [31:0] stat_purge,     // 前导非法/fifo 满回卷帧数
     // P7B-latent (2026-09-30): 字 FIFO 拒写次数 —— **结构上恒 0** (契约见 fifo_sync.v
     // 头注释与 frame_fifo.v 的 full_next 注释)。非 0 = 有已计入的字被静默丢弃。
-    output reg  [31:0] stat_fifo_ovf    // u_wf 拒写次数 (恒 0; 非 0 = 静默丢失)
+    output reg  [31:0] stat_fifo_ovf,   // u_wf 拒写次数 (恒 0; 非 0 = 静默丢失)
+    // ---- P11 P2-甲: 每帧出口端口位 (帧内稳定; PER_PORT=0 恒 0) ----
+    output wire        o_port,
+    output reg  [31:0] stat_side_ovf,   // side FIFO 拒 push 次数 (正臂恒 0; 负控用)
+    output wire [7:0]  side_level       // side FIFO 占用 (== committed 是硬不变式)
 );
     // ---------------- HLS -> 9bit 字节 FIFO ----------------
     // FWFT 契约 (铁律 #4): rd 必须与消费同拍 (组合), 寄存器化 rd 会让同一字节
@@ -54,6 +64,16 @@ module slow_tx_adp (
     reg        abort;
     reg [7:0]  committed;
     reg        commit_pulse;
+
+    // ---- P11 P2-甲: 源 IP / VLAN 提取 (PER_PORT=1 时活) ----
+    reg  [5:0]  bpos;         // 帧内内容字节索引 (饱和 63)
+    reg  [39:0] src_sr;       // 内容字节移位窗 (最近 5 字节)
+    reg  [15:0] etype_r;      // 帧字节 12..13 (以太类型)
+    reg  [31:0] src_ip_lat;   // IPv4 源 IP / ARP SPA
+    reg         ip_seen;      // 本帧已识别源 IP
+    reg         vlan_seen;    // 本帧出现 0x8100/0x88A8 (L-10; sticky 到帧末)
+    reg         side_push;    // 提交拍: 本帧出口位
+    reg         play_port;    // 正在播放帧的端口位
 
     // 输出播放器状态
     // committed 语义: 提交未开播的帧数; O_IDLE 开播拍即 -1 (不等播完) —
@@ -99,6 +119,58 @@ module slow_tx_adp (
 
     wire start_play = (ostate == O_IDLE) && (committed != 8'd0) && !wf_empty;
 
+    // ---- P11 P2-甲: side FIFO (1 位 x SIDE_DEPTH) + 端口位输出 ----
+    // 写口: commit_pulse 拍把本帧 (ip_seen && !vlan_seen && src_ip_lat==IP_B) 入队;
+    // 读口: start_play 拍弹出到 play_port (与 committed 同步, 每帧恰一次)。
+    // side_level == committed 是硬不变式 (只在 PER_PORT=1 检查)。
+    assign o_port = PER_PORT ? play_port : 1'b0;
+
+    generate
+    if (PER_PORT) begin : g_side
+        localparam SW = $clog2(SIDE_DEPTH);
+        reg        side_mem [0:SIDE_DEPTH-1];
+        reg [SW-1:0] s_wr, s_rd;
+        reg [SW:0]   s_level;
+        wire side_empty = (s_level == 0);
+        wire side_full  = (s_level == SIDE_DEPTH);
+        wire side_do_push = commit_pulse && !side_full;
+        wire side_do_pop  = start_play && !side_empty;
+
+        assign side_level = s_level[7:0];
+
+        always @(posedge clk or negedge rst_n) begin
+            if (!rst_n) begin
+                s_wr <= {SW{1'b0}}; s_rd <= {SW{1'b0}}; s_level <= 0;
+                play_port <= 1'b0; stat_side_ovf <= 32'd0;
+            end else begin
+                if (side_do_push) side_mem[s_wr] <= side_push;
+                if (side_do_pop)  play_port <= side_mem[s_rd];
+                if (side_do_push && !side_do_pop) s_level <= s_level + 1'b1;
+                else if (!side_do_push && side_do_pop) s_level <= s_level - 1'b1;
+                if (side_do_push) begin
+                    s_wr <= s_wr + 1'b1;
+                end
+                // P11 P2-甲 (G4 negative control): 计"提交拍侧表已满、端口位被丢"的次数。
+                // ⛔ 原写法把 `if (side_full)` 嵌在 `if (side_do_push)` 里，而
+                //    `side_do_push = commit_pulse && !side_full` ⇒ 该分支**结构性不可达**
+                //    ⇒ `stat_side_ovf` 恒 0（G4 的 SIDE_DEPTH=16 负控把它抓了出来）。
+                if (commit_pulse && side_full)
+                    stat_side_ovf <= stat_side_ovf + 32'd1;
+                if (side_do_pop) s_rd <= s_rd + 1'b1;
+            end
+        end
+    end else begin : g_noside
+        assign side_level = 8'd0;
+        always @(posedge clk or negedge rst_n) begin
+            if (!rst_n) begin
+                play_port <= 1'b0; stat_side_ovf <= 32'd0;
+            end else begin
+                play_port <= 1'b0; stat_side_ovf <= 32'd0;
+            end
+        end
+    end
+    endgenerate
+
     wire [7:0] in_b    = i_dout[7:0];
     wire       in_last = i_dout[8];
     // 组合 rd: T_PRE/T_DATA/T_PURGE 每拍消费当前字节 (T_IDLE 留住帧首字节待判)
@@ -112,6 +184,9 @@ module slow_tx_adp (
             wf_wr <= 1'b0; wf_snap <= 1'b0; wf_rlbk <= 1'b0;
             wf_din <= 73'd0; commit_pulse <= 1'b0;
             stat_frames <= 0; stat_purge <= 0;
+            bpos <= 6'd0; src_sr <= 40'd0; etype_r <= 16'd0;
+            src_ip_lat <= 32'd0; ip_seen <= 1'b0; vlan_seen <= 1'b0;
+            side_push <= 1'b0;
         end else begin
             wf_wr <= 1'b0; wf_snap <= 1'b0; wf_rlbk <= 1'b0;
             commit_pulse <= 1'b0;
@@ -128,12 +203,33 @@ module slow_tx_adp (
                     end else if (in_b == 8'hD5 && skip_cnt >= 4'd4) begin
                         hc   <= 3'd0; pc <= 4'd0; pw <= 64'd0;
                         abort <= 1'b0;
+                        // P11: 每帧开始清提取状态 (0x55/D5 已跳过 ⇒ 下一拍 = 内容字节 0)
+                        bpos <= 6'd0; src_sr <= 40'd0; etype_r <= 16'd0;
+                        ip_seen <= 1'b0; vlan_seen <= 1'b0;
                         tstate <= T_DATA;
                     end else begin
                         tstate <= T_PURGE;     // 前导非法: 吞到 tlast 回卷
                     end
                 end
                 T_DATA: if (!i_empty) begin
+                    // ---- P11: 内容字节索引 + 源 IP/ARP SPA 提取 (零稳态代价:
+                    //      与既有字节流水同拍, 只在 bpos 命中时锁存) ----
+                    if (bpos != 6'd63) bpos <= bpos + 6'd1;
+                    src_sr <= {src_sr[31:0], in_b};
+                    if (bpos == 6'd13) begin
+                        etype_r <= {src_sr[7:0], in_b};             // 帧字节 12..13
+                        if (({src_sr[7:0], in_b} == 16'h8100) ||
+                            ({src_sr[7:0], in_b} == 16'h88A8))
+                            vlan_seen <= 1'b1;                      // L-10: 强制 o_port=0
+                    end
+                    if (bpos == 6'd29 && etype_r == 16'h0800) begin
+                        src_ip_lat <= {src_sr[23:0], in_b};         // IPv4 源 IP
+                        ip_seen    <= 1'b1;
+                    end
+                    if (bpos == 6'd31 && etype_r == 16'h0806) begin
+                        src_ip_lat <= {src_sr[23:0], in_b};         // ARP SPA
+                        ip_seen    <= 1'b1;
+                    end
                     // 4 字节回持: 满 4 后每来 1 字节, 最老字节毕业进打包器。
                     // in_last 拍毕业字节直接合成末字 (tlast 必须落在帧的最后一个字)。
                     // ⚠️ 空间门用 `wf_full_next` (下一拍满), **不是** `wf_full` ——
@@ -179,6 +275,7 @@ module slow_tx_adp (
                         // "commit 了但末字进不去" 这种静默态结构性不存在。
                         if (hc == 3'd4 && !abort && !wf_full_next) begin
                             commit_pulse <= 1'b1;
+                            side_push    <= ip_seen && !vlan_seen && (src_ip_lat == IP_B);
                             stat_frames  <= stat_frames + 1;
                         end else begin
                             wf_rlbk    <= 1'b1;      // 退化帧 (内容 <1 字) 或写坏

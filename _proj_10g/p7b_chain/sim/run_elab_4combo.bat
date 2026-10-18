@@ -37,42 +37,53 @@ echo %ROOT%\_proj_10g\p7b_mac\rtl\mac_tx_10g.v >> elab_files.f
 echo %ROOT%\sim\p6e_pcie\xdma_0_sim_stub.v >> elab_files.f
 call %XV%\xvlog.bat -work xil_defaultlib "%XV%\..\data\verilog\src\glbl.v" > xvlog_glbl.log 2>&1 || (type xvlog_glbl.log & exit /b 1)
 
-set "COMMON=-d DEV_USP -d APP_MODE -d DP_156MHZ -d P6B_SIM_CLKGEN -d UDP_TX_OVL -d TCP_TX_OVL"
+REM ---- P11 P2-甲: DEFS 逐组合**显式构造** (不在 COMMON 上做字符串减法) ----
+set "B=-d DEV_USP -d APP_MODE -d DP_156MHZ -d P6B_SIM_CLKGEN -d UDP_TX_OVL -d TCP_TX_OVL"
+set "P7=-d P7B_10G -d P7B_SIM_NOPCS"
+set "PCS=-d PCIE_OBS"
+set "S0=-d SFP2_MODE_A"
+set "S1=-d SFP2_MODE_B"
+set "DU=-d DUAL_SFP_A"
 set "FAILS=0"
 
-call :one c1 1 1 ""              ok
-call :one c2 0 1 ""              ok
-call :one c3 1 0 ""              ok
-call :one c4 0 0 ""              ok
-REM ---- SFP2 mode coverage (FINDINGS mid-6) ---------------------------------
-REM   NOTE: xvlog's define syntax is `-d NAME` (presence = defined). It does NOT
-REM   accept `-d NAME=VALUE` -- measured 2026-10-18: `-d SFP2_MODE_A=1` makes
-REM   xvlog treat `1` as a file and fail with "Can not find file: 1". The board
-REM   build uses `verilog_define SFP2_MODE_A=1` (synth_design syntax); the RTL
-REM   only tests `ifdef`, so `-d SFP2_MODE_A` is the exact equivalent here.
-call :one c5 1 1 "-d SFP2_MODE_A"              ok
-call :one c6 1 1 "-d SFP2_MODE_A -d SFP2_MODE_B" fail
-call :one c7 0 1 "-d SFP2_MODE_B"              fail
+call :one c1 "%B% %P7% %PCS%"                ok
+call :one c2 "%B% %PCS%"                     ok
+call :one c3 "%B% %P7%"                      ok
+call :one c4 "%B%"                           ok
+call :one c5 "%B% %P7% %PCS% %S0%"           ok
+call :one c6 "%B% %P7% %PCS% %S0% %S1%"      fail
+call :one c7 "%B% %PCS% %S1%"                fail
+REM ---- P11 P2-甲 DUAL coverage: c8 positive control + c9..c12 four hard gates
+call :one c8  "%B% %P7% %PCS% %DU%"          ok
+call :one c9  "%B% %DU%"                     fail
+call :one c10 "%B% %P7% %PCS% %DU% %S1%"     fail
+call :one c11 "-d DEV_USP -d APP_MODE -d P6B_SIM_CLKGEN -d UDP_TX_OVL -d TCP_TX_OVL %P7% %PCS% %DU%" fail
+call :one c12 "-d DEV_USP -d DP_156MHZ -d P6B_SIM_CLKGEN -d UDP_TX_OVL -d TCP_TX_OVL %P7% %PCS% %DU%" fail
 
-echo ELAB_COMBO_FAILS=%FAILS% (7 combos: 4 macro + 3 SFP2 mode)
+REM ---- N-9: .STRICT 静态断言 (rx_merge2 实例必须硬接 0) ----
+set "S0C=0"
+"%PY%" -c "s=open(r'%ROOT%/board/wrapper_p4.v',encoding='utf-8',errors='replace').read();print(s.count('.STRICT(1'+chr(39)+'b0)'))" > strict0.tmp
+set /p S0C=<strict0.tmp
+set "S1C=0"
+"%PY%" -c "s=open(r'%ROOT%/board/wrapper_p4.v',encoding='utf-8',errors='replace').read();print(s.count('.STRICT(1'+chr(39)+'b1)'))" > strict1.tmp
+set /p S1C=<strict1.tmp
+echo [ELAB STRICT] count_0=%S0C% count_1=%S1C% (expect 1 / 0)
+if not "%S0C%"=="1" (echo [ELAB STRICT] FAIL count_STRICT0_NE_1 & set /a FAILS+=1)
+if not "%S1C%"=="0" (echo [ELAB STRICT] FAIL count_STRICT1_NE_0 & set /a FAILS+=1)
+
+echo ELAB_COMBO_FAILS=%FAILS% (12 combos: 4 macro + 3 SFP2 mode + 1 DUAL positive + 4 DUAL hard gates)
 if not "%FAILS%"=="0" exit /b 1
 echo ELAB_4COMBO_PASS
 exit /b 0
 
 REM ---------------------------------------------------------------------------
-REM :one TAG P7B PCIE EXTRA EXPECT(ok|fail)
+REM :one TAG DEFS EXPECT(ok|fail)
 REM ---------------------------------------------------------------------------
 :one
 set "TAG=%~1"
-set "P7B=%~2"
-set "PCIE=%~3"
-set "EXTRA=%~4"
-set "EXPECT=%~5"
+set "DEFS=%~2"
+set "EXPECT=%~3"
 if "%EXPECT%"=="" set "EXPECT=ok"
-set "DEFS=%COMMON%"
-if "%P7B%"=="1"  set "DEFS=%DEFS% -d P7B_10G -d P7B_SIM_NOPCS"
-if "%PCIE%"=="1" set "DEFS=%DEFS% -d PCIE_OBS"
-if not "%EXTRA%"=="" set "DEFS=%DEFS% %EXTRA%"
 if exist "xsim_%TAG%" rmdir /s /q "xsim_%TAG%"
 del /q "xvlog_%TAG%.log" "xelab_%TAG%.log" 2>nul
 call %XV%\xvlog.bat -work xil_defaultlib %DEFS% -i %ROOT%\rtl -i %ROOT%\board -f elab_files.f > "xvlog_%TAG%.log" 2>&1
@@ -88,14 +99,14 @@ if /i "%EXPECT%"=="fail" (
   set /a FAILS+=1
   exit /b 0
 )
-echo [ELAB %TAG%] P7B=%P7B% PCIE=%PCIE% EXTRA=[%EXTRA%] OK
+echo [ELAB %TAG%] DEFS=[%DEFS%] OK
 exit /b 0
 
 :one_xvlog_fail
 if /i "%EXPECT%"=="fail" (
   echo [ELAB %TAG%] EXPECTED-FAIL OK at xvlog
-  findstr /I /C:"SFP2_MODE_A_AND_B_CONFLICT" /C:"SFP2_MODE_B_REQUIRES_P7B_10G" "xvlog_%TAG%.log"
-  findstr /I /C:"SFP2_MODE_A_AND_B_CONFLICT" /C:"SFP2_MODE_B_REQUIRES_P7B_10G" "xvlog_%TAG%.log" >NUL || (echo [ELAB %TAG%] SIG-MISSING & set /a FAILS+=1)
+  findstr /I /C:"SFP2_MODE_A_AND_B_CONFLICT" /C:"SFP2_MODE_B_REQUIRES_P7B_10G" /C:"DUAL_SFP_A_REQUIRES_P7B_10G" /C:"DUAL_SFP_A_AND_SFP2_MODE_B_CONFLICT" /C:"DUAL_SFP_A_REQUIRES_DP_156MHZ" /C:"DUAL_SFP_A_REQUIRES_APP_MODE" "xvlog_%TAG%.log"
+  findstr /I /C:"SFP2_MODE_A_AND_B_CONFLICT" /C:"SFP2_MODE_B_REQUIRES_P7B_10G" /C:"DUAL_SFP_A_REQUIRES_P7B_10G" /C:"DUAL_SFP_A_AND_SFP2_MODE_B_CONFLICT" /C:"DUAL_SFP_A_REQUIRES_DP_156MHZ" /C:"DUAL_SFP_A_REQUIRES_APP_MODE" "xvlog_%TAG%.log" >NUL || (echo [ELAB %TAG%] SIG-MISSING & set /a FAILS+=1)
   exit /b 0
 )
 echo [ELAB %TAG%] XVLOG_FAIL
@@ -117,8 +128,8 @@ exit /b 0
 :one_xelab_fail
 if /i "%EXPECT%"=="fail" (
   echo [ELAB %TAG%] EXPECTED-FAIL OK at xelab
-  findstr /I /C:"SFP2_MODE_A_AND_B_CONFLICT" /C:"SFP2_MODE_B_REQUIRES_P7B_10G" "xelab_%TAG%.log"
-  findstr /I /C:"SFP2_MODE_A_AND_B_CONFLICT" /C:"SFP2_MODE_B_REQUIRES_P7B_10G" "xelab_%TAG%.log" >NUL || (echo [ELAB %TAG%] SIG-MISSING & set /a FAILS+=1)
+  findstr /I /C:"SFP2_MODE_A_AND_B_CONFLICT" /C:"SFP2_MODE_B_REQUIRES_P7B_10G" /C:"DUAL_SFP_A_REQUIRES_P7B_10G" /C:"DUAL_SFP_A_AND_SFP2_MODE_B_CONFLICT" /C:"DUAL_SFP_A_REQUIRES_DP_156MHZ" /C:"DUAL_SFP_A_REQUIRES_APP_MODE" "xelab_%TAG%.log"
+  findstr /I /C:"SFP2_MODE_A_AND_B_CONFLICT" /C:"SFP2_MODE_B_REQUIRES_P7B_10G" /C:"DUAL_SFP_A_REQUIRES_P7B_10G" /C:"DUAL_SFP_A_AND_SFP2_MODE_B_CONFLICT" /C:"DUAL_SFP_A_REQUIRES_DP_156MHZ" /C:"DUAL_SFP_A_REQUIRES_APP_MODE" "xelab_%TAG%.log" >NUL || (echo [ELAB %TAG%] SIG-MISSING & set /a FAILS+=1)
   exit /b 0
 )
 echo [ELAB %TAG%] XELAB_FAIL

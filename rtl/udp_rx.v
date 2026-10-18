@@ -12,7 +12,11 @@
 // tcrs 在 TLAST 拍才知道, cut-through 不可回撤 -> 末拍 tuser[0]=crc_ok 标记, 下游自决。
 // 背压: 载荷期组合直通 (s_ready = m_ready || 输出空闲), 上游 mac_rx_64 的 8 深 FIFO
 // 满时按帧原子丢弃 (其 stat_drop 计数) — 本模块不丢帧只停流。
-module udp_rx (
+module udp_rx #(
+    // P11 P2-甲: 双板 IP 接受 (编译期参数, 不新增输入端口 —— 既有直接例化点零改动)
+    parameter DUAL_IP = 1'b0,
+    parameter [31:0] IP_B = 32'hFFFFFFFF
+) (
     input  wire        clk,
     input  wire        rst_n,
     // 来自 mac_rx_64
@@ -39,6 +43,7 @@ module udp_rx (
     output wire [31:0] meta_src_ip,
     output wire [15:0] meta_src_port,
     output wire [15:0] meta_len,       // 载荷字节数 = udp_len - 8
+    output reg  [31:0] meta_dst_ip,    // P11: 本帧 IP 目的地址 (w4 接受拍锁存)
     // 配置
     input  wire [31:0] cfg_dst_ip,
     input  wire        cfg_multi_en,   // dst_ip[31:28]==4'hE 即接受
@@ -177,8 +182,10 @@ module udp_rx (
     wire [19:0] ipc_sum10 = ipc_s9 + {4'b0, s_axis_tdata[63:48]};
     wire        ipcsum_ok = (fold16x(ipc_sum10) == 16'hFFFF);
     // 组播过滤与单播精确匹配并存 (cfg_multi_en 只额外放行组播, 不关闭单播)
+    wire [31:0] cur_dst_ip = {w3_r[15:0], s_axis_tdata[63:48]};
     wire        ip_match  = ((cfg_multi_en && (w3_r[15:12] == 4'hE)) ||
-                             ({w3_r[15:0], s_axis_tdata[63:48]} == cfg_dst_ip));
+                             (cur_dst_ip == cfg_dst_ip) ||
+                             (DUAL_IP && (cur_dst_ip == IP_B)));
     wire        port_match = cfg_port_any ||
                              (s_axis_tdata[31:16] == cfg_port0) ||
                              (s_axis_tdata[31:16] == cfg_port1) ||
@@ -217,6 +224,7 @@ module udp_rx (
             state <= S_HDR; wcnt <= 0; matched <= 0;
             w1_lo <= 0; w2_r <= 0; w3_r <= 0; ipc_s9 <= 0;
             mac_lo <= 0; mac_hi <= 0; src_ip_r <= 0; src_port_r <= 0; meta_len_r <= 0;
+            meta_dst_ip <= 32'd0;
             hold <= 0; pcount <= 0;
             emit_v <= 0; emit_d <= 0; emit_k <= 0; emit_l <= 0; emit_u <= 0;
             tail_stage <= 0; tail_d <= 0; tail_k <= 0; tail_u <= 0;
@@ -289,6 +297,7 @@ module udp_rx (
                                         stat_drop_nonmatch <= stat_drop_nonmatch + 1;
                                     end else begin
                                         matched <= 1'b1;
+                                        meta_dst_ip <= cur_dst_ip;   // P11
                                         src_port_r <= s_axis_tdata[47:32];
                                         meta_len_r <= s_axis_tdata[15:0] - 16'd8;
                                         wcnt <= 6'd5;

@@ -162,6 +162,7 @@ module tb_app_udp_rate;
     udp_tx_cfg u_cfg (
         .clk(clk), .rst_n(rst_n),
         .peer_wr(peer_wr), .peer_mac(peer_mac), .peer_ip(peer_ip),
+        .peer_my_ip      (32'h0),   // P11: 单元 TB 单口
         .frame_busy(utx_busy),
         .cfg_my_mac(48'h000A3501FEC0), .cfg_my_ip(32'hC0A86402),
         .cfg_my_port(16'h1F91), .cfg_dst_port(16'h1F91), .cfg_csum_en(1'b1),

@@ -1,0 +1,74 @@
+[P4GUARD OK] root=d:\repo\xcku5pmini\udp_hls_10g self=d:\repo\xcku5pmini\udp_hls_10g manifests=12
+MK_MUT_SRCIP_OK subs=6 out=D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\p11_dual\sim\mut\tcp_tx_frame_mut.v
+  [FAIL] IP src == expected (per-connection)
+  [FAIL] IP header checksum valid
+  [FAIL] TCP checksum valid (pseudo-header src = connection IP)
+  [FAIL] TCP flags as expected
+  [FAIL] IP src == expected (per-connection)
+  [FAIL] IP header checksum valid
+  [FAIL] TCP checksum valid (pseudo-header src = connection IP)
+  [FAIL] TCP flags as expected
+  [FAIL] o_port = 0 for IP_A data frame
+  [FAIL] IP src == expected (per-connection)
+  [FAIL] IP header checksum valid
+  [FAIL] TCP checksum valid (pseudo-header src = connection IP)
+  [FAIL] TCP flags as expected
+  [FAIL] stat_ack incremented
+  [FAIL] IP src == expected (per-connection)
+  [FAIL] IP header checksum valid
+  [FAIL] TCP checksum valid (pseudo-header src = connection IP)
+  [FAIL] TCP flags as expected
+  [FAIL] o_port = 0 for IP_A SYN-ACK
+  [FAIL] replay frame emitted
+  [FAIL] TCP flags as expected
+SRCIP TB FAIL errs=21
+SRCIP ovl UNEXPECTED-PASS 
+  [FAIL] IP src == expected (per-connection)
+  [FAIL] IP header checksum valid
+  [FAIL] TCP checksum valid (pseudo-header src = connection IP)
+  [FAIL] TCP flags as expected
+  [FAIL] IP src == expected (per-connection)
+  [FAIL] IP header checksum valid
+  [FAIL] TCP checksum valid (pseudo-header src = connection IP)
+  [FAIL] TCP flags as expected
+  [FAIL] o_port = 0 for IP_A data frame
+  [FAIL] IP src == expected (per-connection)
+  [FAIL] IP header checksum valid
+  [FAIL] TCP checksum valid (pseudo-header src = connection IP)
+  [FAIL] TCP flags as expected
+  [FAIL] stat_ack incremented
+  [FAIL] IP src == expected (per-connection)
+  [FAIL] IP header checksum valid
+  [FAIL] TCP checksum valid (pseudo-header src = connection IP)
+  [FAIL] TCP flags as expected
+  [FAIL] o_port = 0 for IP_A SYN-ACK
+  [FAIL] replay frame emitted
+  [FAIL] TCP flags as expected
+SRCIP TB FAIL errs=21
+SRCIP def UNEXPECTED-PASS 
+  [FAIL] IP src == expected (per-connection)
+  [FAIL] IP header checksum valid
+  [FAIL] TCP checksum valid (pseudo-header src = connection IP)
+  [FAIL] TCP flags as expected
+  [FAIL] IP src == expected (per-connection)
+  [FAIL] IP header checksum valid
+  [FAIL] TCP checksum valid (pseudo-header src = connection IP)
+  [FAIL] TCP flags as expected
+  [FAIL] o_port = 0 for IP_A data frame
+  [FAIL] IP src == expected (per-connection)
+  [FAIL] IP header checksum valid
+  [FAIL] TCP checksum valid (pseudo-header src = connection IP)
+  [FAIL] TCP flags as expected
+  [FAIL] stat_ack incremented
+  [FAIL] IP src == expected (per-connection)
+  [FAIL] IP header checksum valid
+  [FAIL] TCP checksum valid (pseudo-header src = connection IP)
+  [FAIL] TCP flags as expected
+  [FAIL] o_port = 0 for IP_A SYN-ACK
+  [FAIL] replay frame emitted
+  [FAIL] IP src == expected (per-connection)
+  [FAIL] TCP checksum valid (pseudo-header src = connection IP)
+  [FAIL] TCP flags as expected
+SRCIP TB FAIL errs=23
+SRCIP mut UNEXPECTED-PASS 
+SRCIP_GATE_FAIL

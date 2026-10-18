@@ -210,6 +210,8 @@ module tb_integ_app_tx;
 
     tcp_tx_frame u_dut (
         .clk(clk), .rst_n(rst_n),
+        .cam_rd_dip   (32'h0),   // P11: 单元 TB 单口 (PER_CONN_SRC_IP=0)
+        .cam_rd_port  (1'b0),
         .s_axis_tdata(app_m_tdata), .s_axis_tkeep(app_m_tkeep),
         .s_axis_tvalid(app_m_tvalid), .s_axis_tready(tx_s_tready),
         .s_axis_tlast(app_m_tlast), .s_axis_tid(app_m_tid),

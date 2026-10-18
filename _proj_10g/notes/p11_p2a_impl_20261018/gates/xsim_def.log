@@ -1,0 +1,76 @@
+#-----------------------------------------------------------
+# xsim v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Sun Oct 18 08:24:57 2026
+# Process ID         : 33076
+# Current directory  : D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/p11_dual/sim
+# Command line       : xsim.exe -log xsim_def.log -mode tcl -source {xsim.dir/tb_srcip_def/xsim_script.tcl}
+# Log file           : D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/p11_dual/sim/xsim_def.log
+# Journal file       : D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/p11_dual/sim\xsim.jou
+# Running On         : xyz-intel
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26300
+# Processor Detail   : Intel(R) Core(TM) Ultra 7 265K
+# CPU Frequency      : 3878 MHz
+# CPU Physical cores : 20
+# CPU Logical cores  : 20
+# Host memory        : 68053 MB
+# Swap memory        : 4294 MB
+# Total Virtual      : 72348 MB
+# Available Virtual  : 36365 MB
+#-----------------------------------------------------------
+source xsim.dir/tb_srcip_def/xsim_script.tcl
+# xsim {tb_srcip_def} -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+==== TB_TCP_TX_SRCIP (OVL=0) ====
+  [ ok ] frame length >= 54
+  [ ok ] IP src == expected (per-connection)
+  [ ok ] Ethernet src MAC = cfg_src_mac
+  [ ok ] IP header checksum valid
+  [ ok ] TCP checksum valid (pseudo-header src = connection IP)
+  [ ok ] TCP flags as expected
+  [ ok ] o_port = 1 for IP_B data frame
+  [ ok ] frame length >= 54
+  [ ok ] IP src == expected (per-connection)
+  [ ok ] Ethernet src MAC = cfg_src_mac
+  [ ok ] IP header checksum valid
+  [ ok ] TCP checksum valid (pseudo-header src = connection IP)
+  [ ok ] TCP flags as expected
+  [ ok ] o_port = 0 for IP_A data frame
+  [ ok ] frame length >= 54
+  [ ok ] IP src == expected (per-connection)
+  [ ok ] Ethernet src MAC = cfg_src_mac
+  [ ok ] IP header checksum valid
+  [ ok ] TCP checksum valid (pseudo-header src = connection IP)
+  [ ok ] TCP flags as expected
+  [ ok ] o_port = 1 for IP_B SYN-ACK
+  [ ok ] stat_ack incremented
+  [ ok ] frame length >= 54
+  [ ok ] IP src == expected (per-connection)
+  [ ok ] Ethernet src MAC = cfg_src_mac
+  [ ok ] IP header checksum valid
+  [ ok ] TCP checksum valid (pseudo-header src = connection IP)
+  [ ok ] TCP flags as expected
+  [ ok ] o_port = 0 for IP_A SYN-ACK
+  [ ok ] frame length >= 54
+  [ ok ] IP src == expected (per-connection)
+  [ ok ] Ethernet src MAC = cfg_src_mac
+  [ ok ] IP header checksum valid
+  [ ok ] TCP checksum valid (pseudo-header src = connection IP)
+  [ ok ] TCP flags as expected
+  [ ok ] o_port = 1 for IP_B replay frame
+  [ ok ] M-12: observed at least one tvalid&&!tready stall (o_port stable)
+  [ ok ] frame length >= 54
+  [ ok ] IP src == expected (per-connection)
+  [ ok ] Ethernet src MAC = cfg_src_mac
+  [ ok ] IP header checksum valid
+  [ ok ] TCP checksum valid (pseudo-header src = connection IP)
+  [ ok ] TCP flags as expected
+frames_captured=7 ack=2 stat_frames=7 stat_ack=2
+SRCIP TB PASS
+$finish called at time : 16073600 ps : File "D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/p11_dual/sim/tb_tcp_tx_srcip.v" Line 325
+exit
+INFO: [Common 17-206] Exiting xsim at Sun Oct 18 08:24:59 2026...

@@ -684,6 +684,64 @@ E16('_proj_10g/notes/p7b_biz_win/check_window.py',
   '"5a 最上面 %d 项 = %s (p7bdp 束槽 %s; p9 孤儿修复)"',
   '"5a 最上面 %d 项 = %s (p7bdp 束槽 %s; P11 P1)"', 1)
 
+# ===========================================================================
+# 阶段 ⑰ (0x2B -> 0x2C, P11 P2-甲 双口 + 双 IP)
+#   生成方式 = **机械变换** EDITS_2B 的新侧 (那正是 0x2B 树的文本) + 标签补充:
+#     几何 83 -> 88 / BID 0x2B -> 0x2C / 未实现 0x17C -> 0x190。
+#   ⚠️ 只替换**明确 token**; 不做宽泛的 "83" 替换 (历史代数字必须保留)。
+# ===========================================================================
+EDITS_2C = []
+
+
+def _to_2c(t):
+    t = t.replace('76 -> 83 字', '76 -> 83 字 (P11 P1) / 83 -> 88 字 (P11 P2-甲)')
+    t = t.replace('P11 P1 ch0 bring-up', 'P11 P2-甲 双口 + 双 IP')
+    t = t.replace('P11 P1', 'P11 P2-甲')
+    t = t.replace('0x0000002B', '0x0000002C')
+    t = t.replace('0x17C', '0x190').replace('0X17C', '0X190')
+    t = t.replace('W0..W82', 'W0..W87')
+    t = t.replace('W51..W82', 'W51..W87')
+    t = t.replace('W82..W76', 'W87..W76')
+    t = t.replace('NW=${NW:-83}', 'NW=${NW:-88}')
+    t = t.replace('NW=83 ', 'NW=88 ')
+    t = t.replace('i < 83', 'i < 88')
+    t = t.replace('SNAP_WORDS:-83', 'SNAP_WORDS:-88')
+    t = t.replace('SNAP_WORDS (83)', 'SNAP_WORDS (88)')
+    t = t.replace('NW_FIX = 83', 'NW_FIX = 88')
+    t = t.replace('83|0x0000002C', '88|0x0000002C')
+    t = t.replace('83 字', '88 字')
+    t = t.replace('(83 字', '(88 字')
+    t = t.replace('≥ 83', '≥ 88')
+    t = t.replace('-ge 83', '-ge 88')
+    t = t.replace('nnew_top = 17', 'nnew_top = 22')
+    return t
+
+
+for _rel, _old, _new, _n in EDITS_2B:
+    EDITS_2C.append((_rel, _new, _to_2c(_new), _n))
+
+# ---- 标签补充: W83..W87 (两处 WLABEL 表) ----
+_p7 = '_proj_pcie/p7b_biz/p7b_snap.sh'
+for _i, (_rel, _old, _new, _n) in enumerate(EDITS_2C):
+    if _rel == _p7 and 'ch0_rx_drop' in _new and '[82]' in _new:
+        EDITS_2C[_i] = (_rel, _old,
+                        _new.replace('[82]=ch0_rx_drop\n)',
+                                     '[82]=ch0_rx_drop\n'
+                                     '[83]=tx_p0_frames   [84]=tx_p1_frames   [85]=cls_frames\n'
+                                     '[86]=ch0_fifo_ovf   [87]=ch0_mac_tx\n)'), _n)
+_p6 = '_proj_pcie/p6e_snap_check.sh'
+for _i, (_rel, _old, _new, _n) in enumerate(EDITS_2C):
+    if _rel == _p6 and 'ch0_rx_drop' in _new and 'ch0 MAC' in _new:
+        EDITS_2C[_i] = (_rel, _old,
+                        _new.replace(' "ch0_rx_drop        (ch0 MAC 口径整帧丢)" )',
+                                     ' "ch0_rx_drop        (ch0 MAC 口径整帧丢)"\n'
+                                     ' "w83_tx_p0_frames  (TX port0/ch1 帧数; arb 输出 tlast)"\n'
+                                     ' "w84_tx_p1_frames  (TX port1/ch0 帧数; arb 输出 tlast)"\n'
+                                     ' "w85_cls_frames    (rx_classify 总帧数 fast+slow, [31:0] 截断)"\n'
+                                     ' "w86_ch0_fifo_ovf  ({ch0 RX cdc ovf(16), ch0 txcdc ovf(16)} 饱和)"\n'
+                                     ' "w87_ch0_mac_tx    ({ch0 MAC abort(16), frames(16)} 饱和)" )'), _n)
+
+
 # 目标 BID ⇒ 阶段链 (链上每阶段的 old 侧 = 上一阶段的 new 侧)。
 # ⚠️ 列表对象身份共享 ⇒ 这里的引用能看见后面的 append (定义顺序无关)。
 STAGES = [("0x0000001C", EDITS_1C, "缺陷刀 (2026-10-11)", 70, 0x138),
@@ -701,7 +759,8 @@ STAGES = [("0x0000001C", EDITS_1C, "缺陷刀 (2026-10-11)", 70, 0x138),
           ("0x00000028", EDITS_28, "P9 E12 观测计数器 (2026-10-15)", 75, 0x15C),
           ("0x00000029", EDITS_29, "0x29 拆刀 (persist 关; 2026-10-17)", 75, 0x15C),
           ("0x0000002A", EDITS_2A, "p9 孤儿修复 (2026-10-17)", 76, 0x160),
-          ("0x0000002B", EDITS_2B, "P11 P1 ch0 bring-up (2026-10-18)", 83, 0x17C)]
+          ("0x0000002B", EDITS_2B, "P11 P1 ch0 bring-up (2026-10-18)", 83, 0x17C),
+          ("0x0000002C", EDITS_2C, "P11 P2-甲 双口 + 双 IP (2026-10-18)", 88, 0x190)]
 #   ⚠️ 每个阶段带**自己的**几何 (nw, unimpl): 0x1F 起 M1 把快照扩到 71 字并在快照末字后插 4 个
 #      MIR 字 (0x13C/0x140/0x144/0x148) ⇒ 未实现地址 = **0x20 + 4*NW + 16** = 0x14C (不再等于 0x20+4*NW)。
 #      ⇒ 断言按**目标代**的几何比, 不按现读 wrapper (它可能已在更后的代上)。

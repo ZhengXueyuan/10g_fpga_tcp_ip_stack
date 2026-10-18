@@ -13,12 +13,14 @@ D:\repo\XCKU5PMini\udp_hls_10g\rtl\crc32_8b.v
 D:\repo\XCKU5PMini\udp_hls_10g\rtl\fifo_async.v
 D:\repo\XCKU5PMini\udp_hls_10g\rtl\fifo_sync.v
 D:\repo\XCKU5PMini\udp_hls_10g\rtl\frame_fifo.v
+D:\repo\XCKU5PMini\udp_hls_10g\rtl\maccnt_sync.v
 D:\repo\XCKU5PMini\udp_hls_10g\rtl\mac_rx_64.v
 D:\repo\XCKU5PMini\udp_hls_10g\rtl\mac_tx_64.v
 D:\repo\XCKU5PMini\udp_hls_10g\rtl\mir_dma_ring.v
 D:\repo\XCKU5PMini\udp_hls_10g\rtl\mir_uram_fifo.v
 D:\repo\XCKU5PMini\udp_hls_10g\rtl\retx_ram.v
 D:\repo\XCKU5PMini\udp_hls_10g\rtl\rx_classify.v
+D:\repo\XCKU5PMini\udp_hls_10g\rtl\rx_merge2.v
 D:\repo\XCKU5PMini\udp_hls_10g\rtl\slow_cfg_adp.v
 D:\repo\XCKU5PMini\udp_hls_10g\rtl\slow_rx_adp.v
 D:\repo\XCKU5PMini\udp_hls_10g\rtl\slow_tx_adp.v
@@ -31,6 +33,7 @@ D:\repo\XCKU5PMini\udp_hls_10g\rtl\tcp_rx.v
 D:\repo\XCKU5PMini\udp_hls_10g\rtl\tcp_synp.v
 D:\repo\XCKU5PMini\udp_hls_10g\rtl\tcp_tx_frame.v
 D:\repo\XCKU5PMini\udp_hls_10g\rtl\tx_arb.v
+D:\repo\XCKU5PMini\udp_hls_10g\rtl\tx_demux2.v
 D:\repo\XCKU5PMini\udp_hls_10g\rtl\udp_echo.v
 D:\repo\XCKU5PMini\udp_hls_10g\rtl\udp_rx.v
 D:\repo\XCKU5PMini\udp_hls_10g\rtl\udp_split.v

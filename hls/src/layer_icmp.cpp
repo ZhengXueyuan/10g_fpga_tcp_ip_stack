@@ -138,9 +138,10 @@ static void icmp_rx_process(
         ip_hdr[8] = 128;   // TTL
         ip_hdr[9] = IP_PROTO_ICMP;
         ip_hdr[10] = 0x00; ip_hdr[11] = 0x00; // checksum placeholder
-        // src = board IP
-        ip_hdr[12] = BOARD_IP_BYTE0; ip_hdr[13] = BOARD_IP_BYTE1;
-        ip_hdr[14] = BOARD_IP_BYTE2; ip_hdr[15] = BOARD_IP_BYTE3;
+        // src = board IP that the request was addressed to (P11: IP_A or IP_B)
+        uint32_t icmp_src_ip = board_src_ip((uint32_t)ip_rx.dst_ip);
+        ip_hdr[12] = (icmp_src_ip >> 24) & 0xFF; ip_hdr[13] = (icmp_src_ip >> 16) & 0xFF;
+        ip_hdr[14] = (icmp_src_ip >> 8) & 0xFF;  ip_hdr[15] = icmp_src_ip & 0xFF;
         // dst = sender's IP (from IP layer)
         ip_hdr[16] = (ip_rx.src_ip >> 24) & 0xFF;
         ip_hdr[17] = (ip_rx.src_ip >> 16) & 0xFF;

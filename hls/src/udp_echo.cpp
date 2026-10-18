@@ -70,6 +70,7 @@ void udp_echo(
     static uint16_t rx_ip_len     = 0;
     static uint16_t rx_src_port   = 0;
     static ap_uint<32> rx_src_ip  = 0;
+    static ap_uint<32> rx_dst_ip  = 0;   // P11: 本帧目的 IP (回包源 IP 身份)
     static bool     init_done     = false;
 
     // P4b: TCP 控制帧延迟处理。tcp_send 直写共享 TX 区 (TX_UDP_BASE),
@@ -101,6 +102,7 @@ void udp_echo(
         rx_ip_len      = 0;
         rx_src_port    = 0;
         rx_src_ip      = 0;
+        rx_dst_ip      = 0;
         init_done      = false;
         tcp_proc_pending = false;
         tcp_proc_smac   = 0;
@@ -204,6 +206,7 @@ void udp_echo(
                             rx_ip_len     = ip_rx.total_len;
                             rx_src_port   = udp_rx.src_port;
                             rx_src_ip     = ip_rx.src_ip;
+                            rx_dst_ip     = ip_rx.dst_ip;
                         }
                     }
                 }
@@ -226,7 +229,8 @@ void udp_echo(
     // frame mid-send.
     if (!tx_req.request && !mac_tx_busy) {
         udp_tx_process(reset_n, buffer, tx_req, NULL,
-                       data_received, rx_udp_len, rx_ip_len, rx_src_port, rx_src_ip);
+                       data_received, rx_udp_len, rx_ip_len, rx_src_port, rx_src_ip,
+                       rx_dst_ip);
         data_received = false;
     }
 

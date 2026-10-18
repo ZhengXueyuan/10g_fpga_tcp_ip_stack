@@ -778,6 +778,8 @@ module tb_p4_chain;
 
     tcp_tx_frame u_tx (
         .clk(clk), .rst_n(rst_n),
+        .cam_rd_dip   (32'h0),   // P11: 单元 TB 单口 (PER_CONN_SRC_IP=0)
+        .cam_rd_port  (1'b0),
         .s_axis_tdata(eco2_tdata), .s_axis_tkeep(eco2_tkeep),
         .s_axis_tvalid(eco2_tvalid), .s_axis_tready(eco2_tready), .s_axis_tlast(eco2_tlast),
         .s_axis_tid(eco2_tid),

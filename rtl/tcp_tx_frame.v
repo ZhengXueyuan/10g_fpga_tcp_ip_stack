@@ -124,9 +124,16 @@ module tcp_tx_frame (
     input  wire [31:0] cam_rd_sip,     // 对端 IP = 发送帧 dst IP (dip 字段是本地 IP!)
     input  wire [15:0] cam_rd_sport,   // 对端端口 = 发送 dst_port
     input  wire [15:0] cam_rd_dport,   // 本地端口 = 发送 src_port
+    // P11 P2-甲: 该连接的本地 IP (tcp_cam.rd_dip; 见 tcp_cam.v:26-27 字段语义)
+    input  wire [31:0] cam_rd_dip,
+    // P11 P2-甲: 该连接的端口位 (1 = ch0/J7 = IP_B; 0 = ch1/J8 = IP_A)
+    input  wire        cam_rd_port,
     // 配置
     input  wire [47:0] cfg_src_mac,
     input  wire [31:0] cfg_src_ip,
+    // ---- P11 P2-甲: 本帧出口端口位 (帧内稳定, 送 TX demux; 复位 0) ----
+    // PER_CONN_SRC_IP=0 ⇒ 恒 0 (原行为); =1 ⇒ 按本帧连接的 CAM 端口位
+    output reg         o_port,
     // 帧字流输出 (接 mac_tx_64)
     output reg  [63:0] m_axis_tdata,
     output reg  [7:0]  m_axis_tkeep,
@@ -239,6 +246,10 @@ module tcp_tx_frame (
     // 永不溢出。窗帽与在飞差均 32 位计算, 全 4GB 序列空间回绕正确
     // (帽 0xBFFE << 64K, 无 16 位化边角; ⚠️ 现役帽 = 0xF000, 见上面 B8 订正块)。
     parameter [15:0]  RING_CAP = 16'hBFFE; // 窗口门控帽 (ring 容量的收紧版, 见上)
+    // P11 P2-甲: 源 IP / 出口端口位按连接 (CAM) 取。
+    //   0 = 原行为 (cfg_src_ip / o_port=0; 常量折叠 ⇒ 行为等价, 不是"网表逐位相同");
+    //   1 = IP 头源 IP / IP 校验和 / TCP 伪头种子改用 cam_rd_dip, o_port 用 cam_rd_port。
+    parameter         PER_CONN_SRC_IP = 1'b0;
     // P5 长度守卫上界 (app 契约: 一帧 = 一个 TCP 段 ≤1460B; 这里放到 1500 留
     // 余量)。超过即整帧中止 (不写 FIFO/ring/csum, 不收帧, tlast 拍回 S_IDLE
     // 并冲洗已写入的字节 + stat_drop_len++)。上界必须 < 载荷 FIFO 容量
@@ -393,12 +404,13 @@ module tcp_tx_frame (
         input [15:0] tlen;
         input [15:0] idc;
         input [31:0] dip;
+        input [31:0] sip;    // P11: 源 IP (取代 cfg_src_ip)
         reg [19:0] s;
         reg [16:0] f1;
         begin
             s = {4'b0, 16'h4500} + {4'b0, tlen} + {4'b0, idc} + {4'b0, 16'h0000} +
-                {4'b0, 16'h4006} + {4'b0, 16'h0000} + {4'b0, cfg_src_ip[31:16]} +
-                {4'b0, cfg_src_ip[15:0]} + {4'b0, dip[31:16]} + {4'b0, dip[15:0]};
+                {4'b0, 16'h4006} + {4'b0, 16'h0000} + {4'b0, sip[31:16]} +
+                {4'b0, sip[15:0]} + {4'b0, dip[31:16]} + {4'b0, dip[15:0]};
             f1 = s[15:0] + {12'b0, s[19:16]};
             ip_csum_calc = ~(f1[15:0] + {15'b0, f1[16]});
         end
@@ -461,7 +473,8 @@ module tcp_tx_frame (
 
     // ---- 每 bank 帧上下文 (304 bit × 2) ----
     reg  [1:0]  bank_rdy;
-    reg  [31:0] f_seq[0:1], f_ack[0:1], f_dip[0:1];
+    reg  [31:0] f_seq[0:1], f_ack[0:1], f_dip[0:1], f_lip[0:1];   // P11: f_lip = 本地 IP
+    reg         f_port[0:1];                                      // P11: 端口位
     reg  [15:0] f_wnd[0:1], f_doff[0:1], f_sport[0:1], f_dport[0:1], f_idcap[0:1],
                 f_tcplen[0:1], f_totlen[0:1], f_ipcsum[0:1], f_tcpcsum[0:1];
     reg  [11:0] f_plen[0:1];
@@ -474,6 +487,8 @@ module tcp_tx_frame (
     reg  [3:0]  ctrl_id;
     reg  [2:0]  ctrl_is;          // {rst, fin, syn} (纯 ACK = 0 ⇒ 不占 seq)
     reg  [31:0] ctrl_seq, ctrl_ack, ctrl_dip;
+    reg  [31:0] ctrl_lip;         // P11: 控制帧本地 IP (start_ack 沿锁存)
+    reg         ctrl_port;        // P11: 控制帧端口位
     reg  [15:0] ctrl_wnd, ctrl_doff, ctrl_sport, ctrl_dport, ctrl_idcap,
                 ctrl_ipcsum, ctrl_tcpcsum;
     reg  [47:0] ctrl_dmac;
@@ -814,7 +829,10 @@ module tcp_tx_frame (
     wire [31:0] w_tap_seq   = start_data ? rb_snd_nxt : tap_seq;
 
     // ---- 校验和 (唯一实例; 控制帧不占它) ----
-    wire [31:0] csum_init_val = {4'b0, cfg_src_ip[31:16]} + {4'b0, cfg_src_ip[15:0]} +
+    // P11 P2-甲: 伪头源 IP 必须与 csum_init 同拍可用 ⇒ 组合读 cam_rd_dip
+    // (start_data/ring_start 拍 rb_id 已 mux 到该连接; tcp_cam 读口是组合的)
+    wire [31:0] csum_sip = PER_CONN_SRC_IP ? cam_rd_dip : cfg_src_ip;
+    wire [31:0] csum_init_val = {4'b0, csum_sip[31:16]} + {4'b0, csum_sip[15:0]} +
                                 {4'b0, cam_rd_sip[31:16]} + {4'b0, cam_rd_sip[15:0]} +
                                 32'h0006;
     wire        csum_init = start_data || ring_start;
@@ -871,7 +889,10 @@ module tcp_tx_frame (
     wire [31:0] ctrl_ack_now  = (probe_sel || aq_fin || aq_rst) ? rb_rcv_nxt : ackq_dout[31:0];
     wire [15:0] ctrl_doff_now = {8'h50, aq_syn ? 8'h12 : aq_fin ? 8'h11 :
                                  aq_rst ? 8'h14 : 8'h10};
-    wire [31:0] csum_init_ctrl = {4'b0, cfg_src_ip[31:16]} + {4'b0, cfg_src_ip[15:0]} +
+    // P11 P2-甲 (N-6/OVL): 控制帧伪头源 IP 用 start_ack 沿锁存的 ctrl_lip;
+    // 本树只在 start_ack+1 装载校验和 (R-1) ⇒ 该拍 ctrl_lip 已稳定。
+    wire [31:0] csum_sip_ctrl = PER_CONN_SRC_IP ? ctrl_lip : cfg_src_ip;
+    wire [31:0] csum_init_ctrl = {4'b0, csum_sip_ctrl[31:16]} + {4'b0, csum_sip_ctrl[15:0]} +
                                  {4'b0, ctrl_dip[31:16]} + {4'b0, ctrl_dip[15:0]} +
                                  32'h0006;
     // ⭐ P7B-PERSIST §2.5-⑦ / §2.1「TCP 伪头长度项」: **第 3 处长度**。
@@ -898,7 +919,8 @@ module tcp_tx_frame (
     //   (使能 `start_ack_d1`), 而 `ctrl_probe` 在 start_ack 拍装载 ⇒ 该拍已稳定 ✓
     //   (⛔ 不能用 `tx_is_probe`: 它是**帧入口**装载, 到 T_HDR 才有效, 装载拍上未必对)。
     wire [15:0] ctrl_ipcsum_now  = ip_csum_calc(ctrl_probe ? 16'd41 : 16'd40,
-                                                ctrl_idcap, ctrl_dip);
+                                                ctrl_idcap, ctrl_dip,
+                                                PER_CONN_SRC_IP ? ctrl_lip : cfg_src_ip);
 
     // ---- TX 引擎: 头字段来源 mux (控制槽 vs bank) ----
     wire        h_ctrl    = tx_is_ctrl;
@@ -911,6 +933,7 @@ module tcp_tx_frame (
     wire [15:0] h_ipcsum  = h_ctrl ? ctrl_ipcsum  : f_ipcsum[tx_bank];
     wire [15:0] h_tcpcsum = h_ctrl ? ctrl_tcpcsum : f_tcpcsum[tx_bank];
     wire [31:0] h_dip     = h_ctrl ? ctrl_dip     : f_dip[tx_bank];
+    wire [31:0] h_lip     = h_ctrl ? ctrl_lip     : f_lip[tx_bank];   // P11: 源 IP
     wire [15:0] h_sport   = h_ctrl ? ctrl_sport   : f_sport[tx_bank];
     wire [15:0] h_dport   = h_ctrl ? ctrl_dport   : f_dport[tx_bank];
     wire [31:0] h_seq     = h_ctrl ? ctrl_seq     : f_seq[tx_bank];
@@ -919,6 +942,14 @@ module tcp_tx_frame (
     wire [15:0] h_wnd     = h_ctrl ? ctrl_wnd     : f_wnd[tx_bank];
     wire [47:0] h_dmac    = h_ctrl ? ctrl_dmac    : f_dmac[tx_bank];
     wire        nxt_bank  = ~tx_bank;
+
+    // P11 P2-甲: 出口端口位。帧内 tx_is_ctrl/tx_bank 冻结 ⇒ 反压期间稳定 (M-12)。
+    // TX FSM 的 T_IDLE -> T_HDR 状态跳 + 首拍寄存使本寄存器在首拍前 1 拍更新。
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) o_port <= 1'b0;
+        else if (PER_CONN_SRC_IP) o_port <= h_ctrl ? ctrl_port : f_port[tx_bank];
+        else o_port <= 1'b0;
+    end
 
     // ---- TX 读口 (bank) 与 RX 冲洗读口 (两 bank 恒不同: 见 P7B_STAGEC_TX.md) ----
     wire        pay_load = (tx_state == T_PAY) && (m_axis_tready || !m_axis_tvalid);
@@ -1022,6 +1053,8 @@ module tcp_tx_frame (
             f_seq[0] <= 32'd0; f_seq[1] <= 32'd0;
             f_ack[0] <= 32'd0; f_ack[1] <= 32'd0;
             f_dip[0] <= 32'd0; f_dip[1] <= 32'd0;
+            f_lip[0] <= 32'd0; f_lip[1] <= 32'd0;      // P11
+            f_port[0] <= 1'b0; f_port[1] <= 1'b0;      // P11
             f_wnd[0] <= 16'd0; f_wnd[1] <= 16'd0;
             f_doff[0] <= 16'd0; f_doff[1] <= 16'd0;
             f_sport[0] <= 16'd0; f_sport[1] <= 16'd0;
@@ -1036,6 +1069,7 @@ module tcp_tx_frame (
             f_dmac[0] <= 48'd0; f_dmac[1] <= 48'd0;
             ctrl_slot_busy <= 1'b0; ctrl_tx_pend <= 1'b0; ctrl_id <= 4'd0;
             ctrl_is <= 3'd0; ctrl_seq <= 32'd0; ctrl_ack <= 32'd0; ctrl_dip <= 32'd0;
+            ctrl_lip <= 32'd0; ctrl_port <= 1'b0;      // P11
             ctrl_wnd <= 16'd0; ctrl_doff <= 16'd0; ctrl_sport <= 16'd0;
             ctrl_dport <= 16'd0; ctrl_idcap <= 16'd0; ctrl_ipcsum <= 16'd0;
             ctrl_tcpcsum <= 16'd0; ctrl_dmac <= 48'd0;
@@ -1204,6 +1238,8 @@ module tcp_tx_frame (
                         f_doff[rx_bank]   <= 16'h5018;   // 数据帧 PSH+ACK
                         f_dmac[rx_bank]   <= cam_rd_dmac;
                         f_dip[rx_bank]    <= cam_rd_sip;
+                        f_lip[rx_bank]    <= PER_CONN_SRC_IP ? cam_rd_dip : cfg_src_ip;
+                        f_port[rx_bank]   <= PER_CONN_SRC_IP ? cam_rd_port : 1'b0;
                         f_sport[rx_bank]  <= cam_rd_dport;
                         f_dport[rx_bank]  <= cam_rd_sport;
                         f_idcap[rx_bank]  <= id_r;
@@ -1322,6 +1358,8 @@ module tcp_tx_frame (
                     ctrl_wnd       <= rb_rcv_wnd;
                     ctrl_dmac      <= cam_rd_dmac;
                     ctrl_dip       <= cam_rd_sip;
+                    ctrl_lip       <= PER_CONN_SRC_IP ? cam_rd_dip : cfg_src_ip;
+                    ctrl_port      <= PER_CONN_SRC_IP ? cam_rd_port : 1'b0;
                     ctrl_sport     <= cam_rd_dport;
                     ctrl_dport     <= cam_rd_sport;
                     ctrl_idcap     <= id_r;
@@ -1353,6 +1391,8 @@ module tcp_tx_frame (
                         f_doff[rx_bank]  <= 16'h5018;   // 数据帧 PSH+ACK
                         f_dmac[rx_bank]  <= cam_rd_dmac;
                         f_dip[rx_bank]   <= cam_rd_sip;
+                        f_lip[rx_bank]   <= PER_CONN_SRC_IP ? cam_rd_dip : cfg_src_ip;
+                        f_port[rx_bank]  <= PER_CONN_SRC_IP ? cam_rd_port : 1'b0;
                         f_sport[rx_bank] <= cam_rd_dport;
                         f_dport[rx_bank] <= cam_rd_sport;
                         f_idcap[rx_bank] <= id_r;
@@ -1394,7 +1434,7 @@ module tcp_tx_frame (
                 if (fin_cnt == 3'd4) begin
                     f_tcpcsum[rx_bank] <= csum_valid ? csum : 16'h0;
                     f_ipcsum[rx_bank]  <= ip_csum_calc(f_totlen[rx_bank], f_idcap[rx_bank],
-                                                       f_dip[rx_bank]);
+                                                       f_dip[rx_bank], f_lip[rx_bank]);
                     bank_rdy[rx_bank]  <= 1'b1;      // 交棒给 TX 引擎
                     rx_bank            <= ~rx_bank;
                     rx_state           <= RX_IDLE;
@@ -1437,7 +1477,7 @@ module tcp_tx_frame (
                         3'd0: m_axis_tdata <= {h_dmac, cfg_src_mac[47:32]};
                         3'd1: m_axis_tdata <= {cfg_src_mac[31:0], 16'h0800, 8'h45, 8'h00};
                         3'd2: m_axis_tdata <= {h_totlen, h_idcap, 16'h0000, 8'h40, 8'h06};
-                        3'd3: m_axis_tdata <= {h_ipcsum, cfg_src_ip, h_dip[31:16]};
+                        3'd3: m_axis_tdata <= {h_ipcsum, h_lip, h_dip[31:16]};
                         3'd4: m_axis_tdata <= {h_dip[15:0], h_sport, h_dport, h_seq[31:16]};
                         default: m_axis_tdata <= {h_seq[15:0], h_ack, h_doff};
                     endcase
@@ -1601,6 +1641,8 @@ module tcp_tx_frame (
     reg  [47:0] dmac_r;
     reg  [31:0] dip_r;
     reg  [15:0] sport_r, dport_r;
+    reg  [31:0] lip_r;                    // P11: 本帧本地 IP (帧首锁存)
+    reg         port_r;                   // P11: 本帧端口位
     // ---- P4b-7 重传状态 (retx 空闲时全部静止, 零行为影响) ----
     reg         retx_active;              // 重传会话进行中 (ring 帧源仲裁门)
     reg  [3:0]  retx_id_r;                // 会话连接
@@ -1624,6 +1666,13 @@ module tcp_tx_frame (
     reg  [31:0] snd_una_prev [0:15];      // 上次 svc 拍的 snd_una (进展比对基)
     reg  [3:0]  epoch [0:15];             // 连续 svc 无进展会话计数 (封顶 15)
     integer     ri;
+
+    // P11 P2-甲: 出口端口位 (帧首锁存后到帧末稳定; PER_CONN_SRC_IP=0 恒 0)
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) o_port <= 1'b0;
+        else if (PER_CONN_SRC_IP) o_port <= port_r;
+        else o_port <= 1'b0;
+    end
 
     // ---- P4d-fix 会话状态线束输出 (纯 assign, 与内部逻辑零耦合) ----
     assign o_retx_hi     = retx_hi;
@@ -2001,12 +2050,13 @@ module tcp_tx_frame (
         input [15:0] tlen;
         input [15:0] idc;
         input [31:0] dip;
+        input [31:0] sip;    // P11: 源 IP (调用点在帧首锁存之后 ≥1 拍)
         reg [19:0] s;
         reg [16:0] f1;
         begin
             s = {4'b0, 16'h4500} + {4'b0, tlen} + {4'b0, idc} + {4'b0, 16'h0000} +
-                {4'b0, 16'h4006} + {4'b0, 16'h0000} + {4'b0, cfg_src_ip[31:16]} +
-                {4'b0, cfg_src_ip[15:0]} + {4'b0, dip[31:16]} + {4'b0, dip[15:0]};
+                {4'b0, 16'h4006} + {4'b0, 16'h0000} + {4'b0, sip[31:16]} +
+                {4'b0, sip[15:0]} + {4'b0, dip[31:16]} + {4'b0, dip[15:0]};
             f1 = s[15:0] + {12'b0, s[19:16]};
             ip_csum_calc = ~(f1[15:0] + {15'b0, f1[16]});
         end
@@ -2019,7 +2069,10 @@ module tcp_tx_frame (
     // S_IDLE 的 flush 与 ring 覆盖语义兜掉 (见 flush_pend / wr_tap 注释)。
     wire        len_over = (plen_n > PLEN_MAX);
     // 校验和伪头初值: dst IP 用组合读回 (dip_r 本拍才锁存)
-    wire [31:0] csum_init_val = {4'b0, cfg_src_ip[31:16]} + {4'b0, cfg_src_ip[15:0]} +
+    // P11 P2-甲 (N-6): 源 IP 也必须组合读 cam_rd_dip —— csum_init 含 start_ack,
+    // 而 lip_r 在同一沿才锁存; 用 lip_r 会让 SYN-ACK 伪头源 IP 静默用上一连接的值。
+    wire [31:0] csum_sip = PER_CONN_SRC_IP ? cam_rd_dip : cfg_src_ip;
+    wire [31:0] csum_init_val = {4'b0, csum_sip[31:16]} + {4'b0, csum_sip[15:0]} +
                                 {4'b0, cam_rd_sip[31:16]} + {4'b0, cam_rd_sip[15:0]} +
                                 32'h0006;
     wire        csum_init = start_ack || start_data || ring_start;
@@ -2139,6 +2192,7 @@ module tcp_tx_frame (
             fin_sent_r <= 16'h0; rst_sent_r <= 16'h0; fin_retx_pend <= 16'h0;
             seq_r <= 0; ack_r <= 0; wnd_r <= 0; doff_flags_r <= 0;
             dmac_r <= 0; dip_r <= 0; sport_r <= 0; dport_r <= 0;
+            lip_r <= 0; port_r <= 1'b0;       // P11
             m_axis_tdata <= 0; m_axis_tkeep <= 0; m_axis_tvalid <= 0; m_axis_tlast <= 0;
             stat_frames <= 0; stat_bytes <= 0; stat_ack <= 0; stat_ack_drop <= 0;
             stat_eend <= 0; stat_tlast_in <= 0;
@@ -2282,6 +2336,8 @@ module tcp_tx_frame (
                             doff_flags_r <= 16'h5018;   // 数据帧 PSH+ACK
                             dmac_r <= cam_rd_dmac;
                             dip_r <= cam_rd_sip;       // 对端 IP
+                            lip_r <= PER_CONN_SRC_IP ? cam_rd_dip : cfg_src_ip;
+                            port_r <= PER_CONN_SRC_IP ? cam_rd_port : 1'b0;
                             sport_r <= cam_rd_dport;   // 本地端口
                             dport_r <= cam_rd_sport;   // 对端端口
                             id_cap <= id_r;
@@ -2409,6 +2465,8 @@ module tcp_tx_frame (
                                          aq_rst ? 8'h14 : 8'h10};
                         dmac_r <= cam_rd_dmac;
                         dip_r <= cam_rd_sip;       // 对端 IP
+                        lip_r <= PER_CONN_SRC_IP ? cam_rd_dip : cfg_src_ip;
+                        port_r <= PER_CONN_SRC_IP ? cam_rd_port : 1'b0;
                         sport_r <= cam_rd_dport;   // 本地端口
                         dport_r <= cam_rd_sport;   // 对端端口
                         id_cap <= id_r;
@@ -2460,7 +2518,7 @@ module tcp_tx_frame (
                 end
                 S_WAIT: begin
                     if (wait_cnt == 3'd0)
-                        ip_csum_r <= ip_csum_calc(total_len_r, id_cap, dip_r);
+                        ip_csum_r <= ip_csum_calc(total_len_r, id_cap, dip_r, lip_r);
                     if (wait_cnt == 3'd4) begin
                         tcp_csum_r <= csum_valid ? csum : 16'h0;
                         state <= S_HDR; hcnt <= 3'd0;
@@ -2478,7 +2536,7 @@ module tcp_tx_frame (
                             3'd0: m_axis_tdata <= {dmac_r, cfg_src_mac[47:32]};
                             3'd1: m_axis_tdata <= {cfg_src_mac[31:0], 16'h0800, 8'h45, 8'h00};
                             3'd2: m_axis_tdata <= {total_len_r, id_cap, 16'h0000, 8'h40, 8'h06};
-                            3'd3: m_axis_tdata <= {ip_csum_r, cfg_src_ip, dip_r[31:16]};
+                            3'd3: m_axis_tdata <= {ip_csum_r, lip_r, dip_r[31:16]};
                             3'd4: m_axis_tdata <= {dip_r[15:0], sport_r, dport_r, seq_r[31:16]};
                             default: m_axis_tdata <= {seq_r[15:0], ack_r, doff_flags_r};
                         endcase

@@ -780,6 +780,274 @@ void test_vlan_qinq() {
     if(n>0){CHECK(cap[20]==0x08&&cap[21]==0x00,"EtherType=IPv4");int pl=50;CHECK(cap[pl]=='Q'&&cap[pl+1]=='i',"payload");}
 }
 
+
+//=============================================================================
+// P11 P2-甲 (G8): 双板 IP / 回源 / 单口等价 csim 用例
+//=============================================================================
+// 约定: 所有 feed() 帧含 8B 前导 (7x55 + D5); capture() 原样返回 (含前导)。
+// 捕获辅助: 只接受满足谓词的完整帧 (其它帧整帧丢弃后继续找)。
+static int capture_if(bool (*pred)(const uint8_t*,int), uint8_t*buf, int max) {
+    for (int f=0; f<24; f++) {
+        int n = capture(buf, max);
+        if (n < 0) return -1;
+        if (pred(buf,n)) return n;
+    }
+    return -1;
+}
+static bool pred_arp(const uint8_t*c,int n){ return n>42 && c[20]==0x08 && c[21]==0x06; }
+static bool pred_udp_echo(const uint8_t*c,int n){ return n>50 && c[20]==0x08 && c[21]==0x00 && c[31]==17 && c[42]==0x1F && c[43]==0x90 && c[44]==0x30 && c[45]==0x39; }
+static bool pred_icmp(const uint8_t*c,int n){ return n>50 && c[20]==0x08 && c[21]==0x00 && c[31]==1; }
+static bool pred_synack(const uint8_t*c,int n){ return n>60 && c[20]==0x08 && c[21]==0x00 && c[31]==6 && (c[55]&0x12)==0x12; }
+
+// 清空 cfg 记录流; 返回读到的 32 位字数 (每记录 8 字)。
+static int drain_cfg(uint32_t *rec, int maxw) {
+    int n=0;
+    while(!g_cfg.empty()) { ap_uint<32> v=g_cfg.read(); if(rec && n<maxw) rec[n]=v.to_uint(); n++; }
+    return n;
+}
+
+// 组 IP 头 (20B, 校验和已填), 返回头起始偏移; idx 前进 20。
+static int put_ip_hdr(uint8_t*p,int &idx,uint32_t sip,uint32_t dip,uint8_t proto,uint16_t tot){
+    int is=idx;
+    p[idx++]=0x45;p[idx++]=0x00;p[idx++]=(tot>>8)&0xFF;p[idx++]=tot&0xFF;
+    p[idx++]=0x00;p[idx++]=0x11;p[idx++]=0x40;p[idx++]=0x00;
+    p[idx++]=64;p[idx++]=proto;p[idx++]=0x00;p[idx++]=0x00;
+    p[idx++]=(sip>>24)&0xFF;p[idx++]=(sip>>16)&0xFF;p[idx++]=(sip>>8)&0xFF;p[idx++]=sip&0xFF;
+    p[idx++]=(dip>>24)&0xFF;p[idx++]=(dip>>16)&0xFF;p[idx++]=(dip>>8)&0xFF;p[idx++]=dip&0xFF;
+    uint16_t w[10];for(int i=0;i<10;i++)w[i]=((uint16_t)p[is+i*2]<<8)|p[is+i*2+1];
+    uint16_t c=ones_complement_checksum(w,10);p[is+10]=(c>>8)&0xFF;p[is+11]=c&0xFF;
+    return is;
+}
+
+// 组以太网帧头 (前导 + dst/src MAC + ethertype); idx 指向载荷。
+static void put_eth(uint8_t*p,int &idx,uint64_t dmac,uint64_t smac,uint16_t et){
+    for(int i=0;i<7;i++)p[idx++]=0x55;p[idx++]=0xD5;
+    for(int i=5;i>=0;i--)p[idx++]=(dmac>>(i*8))&0xFF;
+    for(int i=5;i>=0;i--)p[idx++]=(smac>>(i*8))&0xFF;
+    p[idx++]=(et>>8)&0xFF;p[idx++]=(et)&0xFF;
+}
+static uint64_t smac_101(void){ return 0x101112131415ULL; }
+
+// ARP request: spa/tpa; 返回帧长。
+static int build_arp_req(uint8_t*f,uint32_t spa,uint32_t tpa,uint64_t sha){
+    int idx=0; put_eth(f,idx,0xFFFFFFFFFFFFULL,sha,0x0806);
+    f[idx++]=0x00;f[idx++]=0x01;f[idx++]=0x08;f[idx++]=0x00;f[idx++]=6;f[idx++]=4;
+    f[idx++]=0x00;f[idx++]=0x01;
+    for(int i=5;i>=0;i--)f[idx++]=(sha>>(i*8))&0xFF;
+    f[idx++]=(spa>>24)&0xFF;f[idx++]=(spa>>16)&0xFF;f[idx++]=(spa>>8)&0xFF;f[idx++]=spa&0xFF;
+    for(int i=0;i<6;i++)f[idx++]=0x00;
+    f[idx++]=(tpa>>24)&0xFF;f[idx++]=(tpa>>16)&0xFF;f[idx++]=(tpa>>8)&0xFF;f[idx++]=tpa&0xFF;
+    return idx;
+}
+// ICMP echo request: 返回帧长。
+static int build_icmp_req(uint8_t*f,uint32_t sip,uint32_t dip,uint8_t tag){
+    int idx=0; put_eth(f,idx,0x000A3501FEC0ULL,smac_101(),0x0800);
+    put_ip_hdr(f,idx,sip,dip,1,20+8+4);
+    int cs=idx;
+    f[idx++]=8;f[idx++]=0;f[idx++]=0;f[idx++]=0;f[idx++]=0;f[idx++]=1;f[idx++]=0;f[idx++]=1;
+    f[idx++]='p';f[idx++]='i';f[idx++]='n';f[idx++]=tag;
+    uint32_t s=0;for(int i=0;i<6;i++)s+=((uint16_t)f[cs+i*2]<<8)|f[cs+i*2+1];while(s>>16)s=(s&0xFFFF)+(s>>16);
+    f[cs+2]=((~s)>>8)&0xFF;f[cs+3]=(~s)&0xFF;
+    return idx;
+}
+// UDP echo request (src port -> 8080): 返回帧长。
+static int build_udp_req(uint8_t*f,uint32_t sip,uint32_t dip,uint16_t sport,const char*pl){
+    int idx=0; put_eth(f,idx,0x000A3501FEC0ULL,smac_101(),0x0800);
+    int plen=(int)strlen(pl);
+    put_ip_hdr(f,idx,sip,dip,17,(uint16_t)(20+8+plen));
+    f[idx++]=(sport>>8)&0xFF;f[idx++]=(sport)&0xFF;f[idx++]=0x1F;f[idx++]=0x90;
+    uint16_t ul=8+plen;f[idx++]=(ul>>8)&0xFF;f[idx++]=ul&0xFF;
+    f[idx++]=0;f[idx++]=0;
+    for(int i=0;i<plen;i++)f[idx++]=pl[i];
+    return idx;
+}
+// TCP SYN: 返回帧长。
+static int build_syn(uint8_t*f,uint32_t sip,uint32_t dip,uint16_t sport,uint32_t seq){
+    int idx=0; put_eth(f,idx,0x000A3501FEC0ULL,smac_101(),0x0800);
+    put_ip_hdr(f,idx,sip,dip,6,40);
+    int ts=idx;
+    f[idx++]=(sport>>8)&0xFF;f[idx++]=sport&0xFF;f[idx++]=0x1F;f[idx++]=0x90;
+    f[idx++]=(seq>>24)&0xFF;f[idx++]=(seq>>16)&0xFF;f[idx++]=(seq>>8)&0xFF;f[idx++]=seq&0xFF;
+    f[idx++]=0;f[idx++]=0;f[idx++]=0;f[idx++]=0;
+    f[idx++]=0x50;f[idx++]=0x02;f[idx++]=0x20;f[idx++]=0x00;
+    f[idx++]=0;f[idx++]=0;f[idx++]=0;f[idx++]=0;
+    uint32_t s=6+20;s+=(sip>>16)&0xFFFF;s+=sip&0xFFFF;s+=(dip>>16)&0xFFFF;s+=dip&0xFFFF;
+    for(int i=0;i<19;i+=2)s+=((uint16_t)f[ts+i]<<8)|f[ts+i+1];
+    while(s>>16)s=(s&0xFFFF)+(s>>16);
+    uint16_t tc=(uint16_t)(~s);f[ts+16]=(tc>>8)&0xFF;f[ts+17]=tc&0xFF;
+    return idx;
+}
+// RST: 返回帧长。
+static int build_rst(uint8_t*f,uint32_t sip,uint32_t dip,uint16_t sport,uint32_t seq){
+    int idx=0; put_eth(f,idx,0x000A3501FEC0ULL,smac_101(),0x0800);
+    put_ip_hdr(f,idx,sip,dip,6,40);
+    int ts=idx;
+    f[idx++]=(sport>>8)&0xFF;f[idx++]=sport&0xFF;f[idx++]=0x1F;f[idx++]=0x90;
+    f[idx++]=(seq>>24)&0xFF;f[idx++]=(seq>>16)&0xFF;f[idx++]=(seq>>8)&0xFF;f[idx++]=seq&0xFF;
+    f[idx++]=0;f[idx++]=0;f[idx++]=0;f[idx++]=0;
+    f[idx++]=0x50;f[idx++]=0x04;f[idx++]=0x00;f[idx++]=0x00;
+    f[idx++]=0;f[idx++]=0;f[idx++]=0;f[idx++]=0;
+    uint32_t s=6+20;s+=(sip>>16)&0xFFFF;s+=sip&0xFFFF;s+=(dip>>16)&0xFFFF;s+=dip&0xFFFF;
+    for(int i=0;i<19;i+=2)s+=((uint16_t)f[ts+i]<<8)|f[ts+i+1];
+    while(s>>16)s=(s&0xFFFF)+(s>>16);
+    uint16_t tc=(uint16_t)(~s);f[ts+16]=(tc>>8)&0xFF;f[ts+17]=tc&0xFF;
+    return idx;
+}
+
+#define IP_A_U32 (0xC0A86402u)
+#define IP_B_U32 (0xC0A86404u)
+
+// ---- G8-1: ARP / ICMP / UDP 到 IP_B (dual 接受 / legacy 丢弃) ----
+static void test_p11_ipb_arp_icmp_udp(void){
+    TEST("P11 IP_B accept (ARP/ICMP/UDP)");
+    drain(); for(int i=0;i<5;i++)udp_echo(false,g_rx,g_tx,g_msg,led_d0,led_d1,led_d2,led_d3); drain();
+    uint8_t f[128]; int n;
+    n=build_arp_req(f,0xC0A86465u,IP_B_U32,smac_101()); feed(f,n);
+    uint8_t cap[256];
+    int m=capture_if(pred_arp,cap,256);
+#if BOARD_IP_DUAL
+    CHECK(m>0,"ARP reply for IP_B (dual)");
+    if(m>0){
+        CHECK(cap[22+6]==0&&cap[22+7]==2,"ARP opcode=reply");
+        CHECK(cap[36]==192&&cap[37]==168&&cap[38]==100&&cap[39]==4,"ARP reply SPA = IP_B");
+        CHECK(cap[46]==192&&cap[47]==168&&cap[48]==100&&cap[49]==0x65,"ARP reply TPA = requester");
+    }
+#else
+    CHECK(m<0,"ARP reply for IP_B suppressed (legacy)");
+#endif
+    n=build_icmp_req(f,0xC0A86465u,IP_B_U32,0x11); feed(f,n);
+    m=capture_if(pred_icmp,cap,256);
+#if BOARD_IP_DUAL
+    CHECK(m>0,"ICMP reply for IP_B (dual)");
+    if(m>0){
+        CHECK(cap[42]==0,"ICMP echo reply type=0");
+        CHECK(cap[34]==192&&cap[35]==168&&cap[36]==100&&cap[37]==4,"ICMP reply src IP=IP_B");
+    }
+#else
+    CHECK(m<0,"ICMP reply for IP_B suppressed (legacy)");
+#endif
+    n=build_udp_req(f,0xC0A86465u,IP_B_U32,0x3039,"P11B"); feed(f,n);
+    m=capture_if(pred_udp_echo,cap,256);
+#if BOARD_IP_DUAL
+    CHECK(m>0,"UDP echo reply for IP_B (dual)");
+    if(m>0){
+        CHECK(cap[34]==192&&cap[35]==168&&cap[36]==100&&cap[37]==4,"UDP reply src IP=IP_B");
+        CHECK(cap[50]=='P'&&cap[51]=='1'&&cap[52]=='1'&&cap[53]=='B',"UDP reply payload");
+    }
+#else
+    CHECK(m<0,"UDP echo reply for IP_B suppressed (legacy)");
+#endif
+    for(int i=0;i<20;i++){udp_echo(true,g_rx,g_tx,g_msg,led_d0,led_d1,led_d2,led_d3);while(!g_tx.empty())g_tx.read(dummy);}
+}
+
+// ---- G8-2: 广播 -> 源 IP = IP_A (两种构建同行为) ----
+static void test_p11_broadcast_src(void){
+    TEST("P11 broadcast reply source = IP_A");
+    drain(); for(int i=0;i<5;i++)udp_echo(false,g_rx,g_tx,g_msg,led_d0,led_d1,led_d2,led_d3); drain();
+    uint8_t f[128]; int n=build_icmp_req(f,0xC0A86465u,0xFFFFFFFFu,0x22); feed(f,n);
+    uint8_t cap[256]; int m=capture_if(pred_icmp,cap,256);
+    CHECK(m>0,"broadcast ICMP reply present");
+    if(m>0) CHECK(cap[34]==192&&cap[35]==168&&cap[36]==100&&cap[37]==2,"broadcast reply src IP = IP_A");
+    for(int i=0;i<20;i++){udp_echo(true,g_rx,g_tx,g_msg,led_d0,led_d1,led_d2,led_d3);while(!g_tx.empty())g_tx.read(dummy);}
+}
+
+// ---- G8-3: TCP 同 peer 双 IP 分离 + cfg local_ip ----
+static void test_p11_tcp_dual(void){
+    TEST("P11 TCP dual-IP separation + cfg local_ip");
+    drain(); for(int i=0;i<5;i++)udp_echo(false,g_rx,g_tx,g_msg,led_d0,led_d1,led_d2,led_d3); drain();
+    drain_cfg(NULL,0);
+    uint8_t f[128],cap[256]; int n,m;
+    n=build_syn(f,0xC0A86465u,IP_B_U32,23456,0x20000000u); feed(f,n);
+    m=capture_if(pred_synack,cap,256);
+#if BOARD_IP_DUAL
+    CHECK(m>0,"SYN-ACK for IP_B (dual)");
+    if(m>0){
+        CHECK(cap[34]==192&&cap[35]==168&&cap[36]==100&&cap[37]==4,"SYN-ACK src IP = IP_B");
+        CHECK(cap[38]==192&&cap[39]==168&&cap[40]==100&&cap[41]==0x65,"SYN-ACK dst IP = peer .101");
+        CHECK(cap[42]==0x1F&&cap[43]==0x90,"SYN-ACK src port 8080");
+        CHECK(cap[44]==(23456>>8)&&cap[45]==(23456&0xFF),"SYN-ACK dst port = peer port");
+    }
+    uint32_t rec[64]; int w=drain_cfg(rec,64);
+    CHECK(w>=8,"cfg ADD record written");
+    if(w>=8) CHECK(rec[2]==IP_B_U32,"cfg ADD w2 (local_ip) = IP_B");
+    n=build_syn(f,0xC0A86465u,IP_A_U32,23456,0x30000000u); feed(f,n);
+    m=capture_if(pred_synack,cap,256);
+    CHECK(m>0,"SYN-ACK for IP_A (same 4-tuple except local IP)");
+    if(m>0) CHECK(cap[34]==192&&cap[35]==168&&cap[36]==100&&cap[37]==2,"second SYN-ACK src IP = IP_A (no collision)");
+    w=drain_cfg(rec,64);
+    CHECK(w>=8,"second cfg ADD record written");
+    if(w>=8) CHECK(rec[2]==IP_A_U32,"second cfg ADD w2 (local_ip) = IP_A");
+#else
+    CHECK(m<0,"SYN to IP_B suppressed (legacy)");
+    uint32_t rec[64]; int w=drain_cfg(rec,64);
+    CHECK(w==0,"no cfg record for IP_B SYN (legacy)");
+#endif
+    for(int i=0;i<40;i++){udp_echo(true,g_rx,g_tx,g_msg,led_d0,led_d1,led_d2,led_d3);while(!g_tx.empty())g_tx.read(dummy);}
+}
+
+// ---- G8-4: IP_A 回包签名 (两二进制必须逐字节相同; 由 run 脚本比较) ----
+static void test_p11_ip_a_signature(void){
+    TEST("P11 IP_A reply signatures (dual vs legacy byte-equal)");
+    drain(); for(int i=0;i<5;i++)udp_echo(false,g_rx,g_tx,g_msg,led_d0,led_d1,led_d2,led_d3); drain();
+    uint8_t f[128],cap[256]; int n,m;
+    struct { const char* tag; int len; uint32_t crc; } sig[4];
+    n=build_arp_req(f,0xC0A86465u,IP_A_U32,smac_101()); feed(f,n);
+    m=capture_if(pred_arp,cap,256);
+    { uint32_t c=0xFFFFFFFF; for(int i=8;i<m-4;i++)c=crc32_byte(cap[i],c); sig[0].tag="ARP";sig[0].len=m;sig[0].crc=(m>0)?(c^0xFFFFFFFF):0; CHECK(m>0,"ARP reply IP_A"); }
+    n=build_icmp_req(f,0xC0A86465u,IP_A_U32,0x33); feed(f,n);
+    m=capture_if(pred_icmp,cap,256);
+    { uint32_t c=0xFFFFFFFF; for(int i=8;i<m-4;i++)c=crc32_byte(cap[i],c); sig[1].tag="ICMP";sig[1].len=m;sig[1].crc=(m>0)?(c^0xFFFFFFFF):0; CHECK(m>0,"ICMP reply IP_A"); }
+    n=build_udp_req(f,0xC0A86465u,IP_A_U32,0x3039,"P11A"); feed(f,n);
+    m=capture_if(pred_udp_echo,cap,256);
+    { uint32_t c=0xFFFFFFFF; for(int i=8;i<m-4;i++)c=crc32_byte(cap[i],c); sig[2].tag="UDP";sig[2].len=m;sig[2].crc=(m>0)?(c^0xFFFFFFFF):0; CHECK(m>0,"UDP echo reply IP_A"); }
+    n=build_syn(f,0xC0A86465u,IP_A_U32,23457,0x40000000u); feed(f,n);
+    m=capture_if(pred_synack,cap,256);
+    { uint32_t c=0xFFFFFFFF; for(int i=8;i<m-4;i++)c=crc32_byte(cap[i],c); sig[3].tag="SYNACK";sig[3].len=m;sig[3].crc=(m>0)?(c^0xFFFFFFFF):0; CHECK(m>0,"SYN-ACK IP_A"); }
+    for(int i=0;i<4;i++) printf("P11SIG %s len=%d crc=%08X\n",sig[i].tag,sig[i].len,sig[i].crc);
+    for(int i=0;i<40;i++){udp_echo(true,g_rx,g_tx,g_msg,led_d0,led_d1,led_d2,led_d3);while(!g_tx.empty())g_tx.read(dummy);}
+}
+
+#if ACTIVE_CONNECT
+#if defined(TCP_STATE_PROBE)
+extern uint8_t tcp_state_probe(uint16_t port, uint32_t ip, uint32_t local_ip);
+#endif
+// ---- G8-5 (M-1): RTO 释放槽保留 local_ip; 对端 RST 命中并 CFG_DEL ----
+// 只在 -DACTIVE_CONNECT=1 -DTCP_RTO_MIN=<small> 的 csim 臂里编/跑 (默认构建的
+// tcp_rx_process 只在 TCP 帧到达时被调用, 空闲 RTO 不推进 — 见 udp_echo.cpp
+// 的 P1-2 注释)。本用例因此作为 G8 的第三个二进制臂。
+static void test_p11_rst_released_slot(void){
+    TEST("P11 RST-to-released-slot (local_ip retention)");
+    drain(); for(int i=0;i<5;i++)udp_echo(false,g_rx,g_tx,g_msg,led_d0,led_d1,led_d2,led_d3); drain();
+    drain_cfg(NULL,0);
+    uint8_t f[128]; int n;
+    n=build_syn(f,0xC0A86465u,IP_B_U32,23458,0x50000000u); feed(f,n);
+    uint32_t rec[64]; int w=drain_cfg(rec,64);
+    CHECK(w>=8,"cfg ADD for IP_B connection");
+    if(w>=8) CHECK(rec[2]==IP_B_U32,"ADD w2 = IP_B");
+    // 推进空闲拍让 T_SYN_RCVD 的 RTO 超限释放槽位 (保留 peer/local IP)
+    for(int i=0;i<(TCP_RTO_MIN*3/2+200);i++){
+        udp_echo(true,g_rx,g_tx,g_msg,led_d0,led_d1,led_d2,led_d3);
+        while(!g_tx.empty())g_tx.read(dummy);
+        while(!g_cfg.empty())(void)g_cfg.read();
+    }
+#if defined(TCP_STATE_PROBE)
+    // 直接见证: 槽已释放 (T_FREE=0) 而 peer/local IP 仍可按四元组找回
+    CHECK(tcp_state_probe(23458,0xC0A86465u,IP_B_U32)==0,"slot released to T_FREE after RTO");
+#endif
+    // 对端从 .101 发 RST -> IP_B (同一四元组): 必须命中释放槽并写 CFG_DEL
+    n=build_rst(f,0xC0A86465u,IP_B_U32,23458,0x60000000u); feed(f,n);
+    for(int i=0;i<20;i++){udp_echo(true,g_rx,g_tx,g_msg,led_d0,led_d1,led_d2,led_d3);while(!g_tx.empty())g_tx.read(dummy);}
+    w=drain_cfg(rec,64);
+    CHECK(w>=8,"CFG_DEL written for RST to released slot");
+    if(w>=8) CHECK(((rec[0]>>8)&0xFF)==1,"cfg cmd = DEL");
+    // 负对照: 同一 RST 发到 IP_A (local_ip 不匹配) ⇒ 不得产生 DEL
+    n=build_rst(f,0xC0A86465u,IP_A_U32,23458,0x60000001u); feed(f,n);
+    for(int i=0;i<20;i++){udp_echo(true,g_rx,g_tx,g_msg,led_d0,led_d1,led_d2,led_d3);while(!g_tx.empty())g_tx.read(dummy);}
+    w=drain_cfg(rec,64);
+    CHECK(w==0,"RST with wrong local_ip produces no DEL (negative control)");
+}
+#endif
+
 int main() {
     test_crc();
     test_reset();
@@ -797,5 +1065,13 @@ int main() {
     test_tcp_syn();
     test_tcp_echo_536();
     test_dhcp_discover();
+    test_p11_ipb_arp_icmp_udp();
+    test_p11_broadcast_src();
+    test_p11_tcp_dual();
+    test_p11_ip_a_signature();
+#if ACTIVE_CONNECT
+    test_p11_rst_released_slot();
+#endif
+    printf("P11_SUMMARY passed=%d failed=%d\n",passed,failed);
     return failed>0?1:0;
 }

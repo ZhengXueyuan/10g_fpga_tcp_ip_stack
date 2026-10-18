@@ -72,12 +72,11 @@ static void ip_rx_process(
     uint16_t computed = ones_complement_checksum(words, 10);
     ip_rx.checksum_ok = (computed == 0);
 
-    // Check destination IP
-    uint32_t board_ip = (BOARD_IP_BYTE0 << 24) | (BOARD_IP_BYTE1 << 16) |
-                        (BOARD_IP_BYTE2 << 8) | BOARD_IP_BYTE3;
+    // Check destination IP (P11 P2-甲: board_ip_match accepts IP_A; with
+    // BOARD_IP_DUAL=1 it also accepts IP_B = 192.168.100.4)
     uint32_t broadcast_ip = 0xFFFFFFFF;
 
-    if (ip_rx.dst_ip == board_ip || ip_rx.dst_ip == broadcast_ip) {
+    if (board_ip_match(ip_rx.dst_ip) || ip_rx.dst_ip == broadcast_ip) {
         ip_rx.valid = ip_rx.checksum_ok;
         ip_rx.buf_base = mac_rx.buf_base;   // propagate buffer region to next layer
     }

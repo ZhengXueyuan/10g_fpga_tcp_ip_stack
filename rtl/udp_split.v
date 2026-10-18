@@ -154,6 +154,9 @@ module udp_split #(
     // 排除端口 (0 = 关闭排除)。默认 8080 = HLS udp_echo 端口 (侦察 R6):
     // 使 "cfg_port_any=1 全收" 这类 app 配置也不会抢走 HLS 的 echo 帧。
     parameter [15:0] EXCL_PORT = 16'd8080,
+    // P11 P2-甲: 双板 IP 接受 (透传给 udp_rx; 不新增输入端口)
+    parameter        DUAL_IP   = 1'b0,
+    parameter [31:0] IP_B      = 32'hFFFFFFFF,
     parameter        PRE_AW    = 4,     // 预取 FIFO 深 16
     parameter        PB_AW     = 5,     // 透传暂存深 32
     parameter        DESC_AW   = 6,     // 帧描述符深 64
@@ -211,6 +214,7 @@ module udp_split #(
     output wire [31:0] meta_src_ip,      // = udp_rx.meta_src_ip  (对端 IP)
     output wire [15:0] meta_src_port,    // = udp_rx.meta_src_port(对端端口)
     output wire [15:0] meta_len,         // = udp_rx.meta_len (本帧载荷字节数)
+    output wire [31:0] meta_dst_ip,      // P11: = udp_rx.meta_dst_ip (本帧目的 IP)
     // ---- 过滤配置 (语义同 udp_rx; 排除端口由 EXCL_PORT 参数下发) ----
     input  wire [31:0] cfg_dst_ip,
     input  wire        cfg_multi_en,
@@ -338,6 +342,7 @@ module udp_split #(
     wire        u_m_v, u_m_l;
     wire [1:0]  u_m_u;
     wire        u_fend, u_ferr, u_meta_valid;
+    wire [31:0] u_meta_dst_ip;      // P11
     wire [47:0] u_meta_src_mac;
     wire [31:0] u_meta_src_ip;
     wire [15:0] u_meta_src_port, u_meta_len;
@@ -429,7 +434,7 @@ module udp_split #(
     // ② UDP 支: udp_rx (P1 验证过的模块, 零改动复用)
     //    m_axis_tready 恒 1 ⇒ 它永不反压上游 (关键约束的结构性保证)
     //=========================================================================
-    udp_rx u_udp_rx (
+    udp_rx #(.DUAL_IP(DUAL_IP), .IP_B(IP_B)) u_udp_rx (
         .clk(clk), .rst_n(rst_n),
         .s_axis_tdata(f_d), .s_axis_tkeep(f_k),
         .s_axis_tvalid(!pre_empty), .s_axis_tready(u_rx_tready),
@@ -443,6 +448,7 @@ module udp_split #(
         .meta_valid(u_meta_valid),
         .meta_src_mac(u_meta_src_mac), .meta_src_ip(u_meta_src_ip),
         .meta_src_port(u_meta_src_port), .meta_len(u_meta_len),
+        .meta_dst_ip(u_meta_dst_ip),
         .cfg_dst_ip(cfg_dst_ip), .cfg_multi_en(cfg_multi_en),
         .cfg_port0(u_cfg_port0), .cfg_port1(u_cfg_port1),
         .cfg_port2(u_cfg_port2), .cfg_port3(u_cfg_port3),
@@ -747,6 +753,7 @@ module udp_split #(
     assign meta_src_ip   = u_meta_src_ip;
     assign meta_src_port = u_meta_src_port;
     assign meta_len      = u_meta_len;
+    assign meta_dst_ip   = u_meta_dst_ip;   // P11
 
 `ifdef RXP_DIAG
     //=========================================================================

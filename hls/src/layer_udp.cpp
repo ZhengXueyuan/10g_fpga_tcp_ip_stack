@@ -88,7 +88,8 @@ static void udp_tx_process(
     uint16_t      rx_data_len,      // request UDP length (8 + payload)
     uint16_t      rx_ip_total_len,  // request IP total length
     uint16_t      rx_src_port,      // request source port (echo destination)
-    ap_uint<32>   rx_src_ip         // request source IP (echo destination)
+    ap_uint<32>   rx_src_ip,        // request source IP (echo destination)
+    ap_uint<32>   rx_dst_ip         // request destination IP (= our identity; P11)
 ) {
     static uint32_t time_cnt    = 0;
     static uint16_t tx_data_len = DEFAULT_UDP_LENGTH;
@@ -138,6 +139,9 @@ static void udp_tx_process(
     // Echo replies go back to the REQUEST's source IP; the periodic HELLO
     // goes to the fixed default destination (192.168.100.1).
     uint32_t dst_ip = echo_sent ? (uint32_t)rx_src_ip : 0xC0A86401;
+    // P11 P2-甲: reply source identity follows the request's destination IP
+    // (IP_A or IP_B); HELLO has no request and always uses IP0.
+    uint32_t src_ip = echo_sent ? board_src_ip((uint32_t)rx_dst_ip) : board_ip0_u32();
     mac_addr_t dst_mac = 0xFFFFFFFFFFFFULL;   // default: broadcast
     bool use_unicast = false;
 
@@ -165,8 +169,8 @@ static void udp_tx_process(
     ipudp_hdr[6] = 0x40; ipudp_hdr[7] = 0x00;
     ipudp_hdr[8] = 128; ipudp_hdr[9] = IP_PROTO_UDP;
     ipudp_hdr[10] = 0x00; ipudp_hdr[11] = 0x00;
-    ipudp_hdr[12] = BOARD_IP_BYTE0; ipudp_hdr[13] = BOARD_IP_BYTE1;
-    ipudp_hdr[14] = BOARD_IP_BYTE2; ipudp_hdr[15] = BOARD_IP_BYTE3;
+    ipudp_hdr[12] = (src_ip >> 24) & 0xFF; ipudp_hdr[13] = (src_ip >> 16) & 0xFF;
+    ipudp_hdr[14] = (src_ip >> 8) & 0xFF;  ipudp_hdr[15] = src_ip & 0xFF;
     ipudp_hdr[16] = (dst_ip >> 24) & 0xFF; ipudp_hdr[17] = (dst_ip >> 16) & 0xFF;
     ipudp_hdr[18] = (dst_ip >> 8) & 0xFF;  ipudp_hdr[19] = dst_ip & 0xFF;
     ipudp_hdr[20] = (UDP_PORT >> 8) & 0xFF; ipudp_hdr[21] = UDP_PORT & 0xFF;

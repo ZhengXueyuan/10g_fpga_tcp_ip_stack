@@ -437,6 +437,8 @@ module tb_p5_adv;
 
     tcp_tx_frame u_tx (
         .clk(clk), .rst_n(rst_n),
+        .cam_rd_dip   (32'h0),   // P11: 单元 TB 单口 (PER_CONN_SRC_IP=0)
+        .cam_rd_port  (1'b0),
         .s_axis_tdata(app2_tdata), .s_axis_tkeep(app2_tkeep),
         .s_axis_tvalid(app2_tvalid), .s_axis_tready(app2_tready),
         .s_axis_tlast(app2_tlast), .s_axis_tid(app2_tid),

@@ -570,6 +570,8 @@ module tb_tcp_tx_ovl;
                    .PERSIST_EN(TB_PERSIST_EN), .PS_BASE(TB_PS_BASE),
                    .PS_MAX(TB_PS_MAX)) u_dut (   // 构建 F: 与 u_tcb.WIN_CAP 同值
         .clk(clk), .rst_n(rst_n),
+        .cam_rd_dip   (32'h0),   // P11: 单元 TB 单口 (PER_CONN_SRC_IP=0)
+        .cam_rd_port  (1'b0),
         .s_axis_tdata(s_tdata), .s_axis_tkeep(s_tkeep), .s_axis_tvalid(s_tvalid),
         .s_axis_tready(s_tready), .s_axis_tlast(s_tlast), .s_axis_tid(s_tid),
         .ack_req(ack_req), .ack_id(ack_id), .ack_val(ack_val), .ack_syn(ack_syn),

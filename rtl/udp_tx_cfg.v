@@ -59,13 +59,19 @@
 //   tid/tkeep/tlast/tdata 逐位透传。位宽/时序与既有 AXIS 级一致 (坑 4: 无寄存器化
 //   的 rd/valid 变形)。
 //=============================================================================
-module udp_tx_cfg (
+module udp_tx_cfg #(
+    // P11 P2-甲: 1 = 源 IP/端口位按 peer 学习帧的目的 IP 取 (双口);
+    //             0 = 原行为 (cfg_my_ip / o_port=0)
+    parameter PER_CONN_SRC_IP = 1'b0,
+    parameter [31:0] IP_B = 32'hFFFFFFFF
+) (
     input  wire        clk,
     input  wire        rst_n,
     // ---- peer 表写口 (RX 学习事件; 单表项 = 单对端会话语义) ----
     input  wire        peer_wr,      // 一拍脉冲, 写 {peer_mac, peer_ip} 并置有效
     input  wire [47:0] peer_mac,
     input  wire [31:0] peer_ip,
+    input  wire [31:0] peer_my_ip,   // P11: 学习帧的目的 IP (= 本板该口的身份)
     // ---- 下游帧器状态: 1 = udp_tx_frame 非空闲 (帧在收或在发) ----
     // 冻结窗口必须盖到"帧头已发出"为止: cfg 在下游被两个时刻采样 (帧首拍的
     // init_val + S_HDR/TLAST 拍的帧头字节), 所以窗口 = 首拍 ... 下游回 S_RECV。
@@ -95,6 +101,7 @@ module udp_tx_cfg (
     output reg  [47:0] o_src_mac,
     output reg  [31:0] o_src_ip,
     output reg  [15:0] o_src_port,
+    output reg         o_port,        // P11: 本帧出口端口位 (帧内冻结; 复位 0)
     output reg         o_csum_en,
     // ---- 门控 / 统计 ----
     output wire        o_ready,        // peer 表有效 (→ app_udp_tx_ready)
@@ -105,6 +112,7 @@ module udp_tx_cfg (
     reg        peer_v;                 // 表项有效位 (复位 0 = 默认不发送)
     reg [47:0] peer_mac_r;
     reg [31:0] peer_ip_r;
+    reg [31:0] peer_my_ip_r;   // P11: 该 peer 学习帧的目的 IP
     reg        first_r;                // 下一被接受拍 = 帧首拍
     reg        deny_r;                 // 上一拍 deny (上升沿计数用)
 
@@ -121,10 +129,15 @@ module udp_tx_cfg (
     // 启动同步门: o_* 必须已经等于源值 (刷新已落地) 才允许帧首拍进下游。
     // 否则会出现"刷新与帧首拍同一边沿"的采样歧义 (下游采到刷新前的旧值)。
     // 声明顺序: 本门在下面被 deny 引用 ⇒ 必须先声明 (xvlog 不容后置声明)。
+    // P11 (M-11): 比较"后 mux 期望值" —— PER_CONN_SRC_IP=0 时不比较 peer_my_ip
+    // (未接输入为 Z 会让 cfg_sync 恒 X ⇒ 单口 TX 全灭)
     wire cfg_sync = (o_dst_mac  == peer_mac_r)  && (o_dst_ip  == peer_ip_r) &&
                     (o_dst_port == cfg_dst_port) && (o_src_mac == cfg_my_mac) &&
-                    (o_src_ip  == cfg_my_ip)    && (o_src_port == cfg_my_port) &&
-                    (o_csum_en == cfg_csum_en);
+                    (o_src_port == cfg_my_port) &&
+                    (o_csum_en == cfg_csum_en) &&
+                    (PER_CONN_SRC_IP
+                       ? ((o_src_ip == peer_my_ip_r) && (o_port == (peer_my_ip_r == IP_B)))
+                       : ((o_src_ip == cfg_my_ip)   && (o_port == 1'b0)));
 
     // 帧首拍待发: 本拍就是某帧的第一拍 (first_r 在帧末拍后回 1)
     wire first_pend = s_axis_tvalid && first_r;
@@ -141,18 +154,20 @@ module udp_tx_cfg (
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            peer_v <= 1'b0; peer_mac_r <= 48'd0; peer_ip_r <= 32'd0;
+            peer_v <= 1'b0; peer_mac_r <= 48'd0; peer_ip_r <= 32'd0; peer_my_ip_r <= 32'd0;
             first_r <= 1'b1; deny_r <= 1'b0;
             o_dst_mac <= 48'd0; o_dst_ip <= 32'd0; o_dst_port <= 16'd0;
             o_src_mac <= 48'd0; o_src_ip <= 32'd0; o_src_port <= 16'd0;
+            o_port <= 1'b0;
             o_csum_en <= 1'b0;
             stat_frames <= 32'd0; stat_deny <= 32'd0;
         end else begin
             // peer 表写口 (RX 学习 / 将来 app 寄存器): 帧内写不影响本帧 (o_* 冻结)
             if (peer_wr) begin
-                peer_v     <= 1'b1;
-                peer_mac_r <= peer_mac;
-                peer_ip_r  <= peer_ip;
+                peer_v       <= 1'b1;
+                peer_mac_r   <= peer_mac;
+                peer_ip_r    <= peer_ip;
+                peer_my_ip_r <= peer_my_ip;   // P11
             end
             // ---- cfg 锁存: **空闲拍持续刷新, 帧内冻结** ----
             // ⚠️ 为什么不是"帧首拍同拍锁存": udp_tx_frame 在**帧首被接受的那个边沿**
@@ -167,8 +182,9 @@ module udp_tx_cfg (
                 o_dst_ip   <= peer_ip_r;
                 o_dst_port <= cfg_dst_port;
                 o_src_mac  <= cfg_my_mac;
-                o_src_ip   <= cfg_my_ip;
+                o_src_ip   <= PER_CONN_SRC_IP ? peer_my_ip_r : cfg_my_ip;
                 o_src_port <= cfg_my_port;
+                o_port     <= PER_CONN_SRC_IP ? (peer_my_ip_r == IP_B) : 1'b0;
                 o_csum_en  <= cfg_csum_en;
             end
             if (pass) first_r <= s_axis_tlast;   // 帧末拍后回到"下一拍是帧首"

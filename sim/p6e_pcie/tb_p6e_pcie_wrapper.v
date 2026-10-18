@@ -220,7 +220,7 @@ module tb_p6e_pcie_wrapper;
         //    `BUILD_ID_V = 32'h0000001E` (snd_wnd 守卫构建, 已收口); 本刀**不 bump BID**
         //    (bump 留给阶段二构建) ⇒ 该常量必须等于**当前树的**地图版本, 否则判据 2 结构性假红。
         //    ⚠️ 与下面判据 9 的地址是同一次"跟地图走"订正 (设计件 v2 §V5-A-2 点名两条)。
-        u_dut.u_pcie_xdma.axil_read(32'h04, v); chk("2  BUILD_ID (P1 ch0 + W76..W82 构建 = 0x2B)", v, 32'h0000002B);
+        u_dut.u_pcie_xdma.axil_read(32'h04, v); chk("2  BUILD_ID (P11 P2-甲 双口+双 IP 构建 = 0x2C)", v, 32'h0000002C);
         u_dut.u_pcie_xdma.axil_read(32'h14, v); chk("3  MARKER", v, 32'hDEADBEEF);
         // HW_STATUS 字段: [7:5]=msi_vec_w [4]=msi_enable [3]=user_lnk_up [2:0]=0
         u_dut.u_pcie_xdma.axil_read(32'h10, v);
@@ -450,11 +450,13 @@ module tb_p6e_pcie_wrapper;
         //    (`SNAP_NW_P6E = 75`; W71..W74 = 换流门 4 个观测计数器 @0x13C/0x140/0x144/0x148)。
         //    快照末字 W74 @0x148 ⇒ MIR 块 (由 `axi_regs.SNAP_LAST_IDX` 参数化推导) 整体下移到
         //    **0x14C/0x150/0x154/0x158** ⇒ 未实现地址 = 0x20+4*75+16 = **0x15C** (word 87)。
-        //    本文件同批改了 **全部** MIR 地址常量 (0x13C/0x140/0x144/0x148 → 0x14C/0x150/0x154/0x158;
+        // ⛔ 2026-10-18 (P11 P2-甲): 83 → **88 字** ⇒ 未实现地址 = 0x20+4*88+16 = **0x190**;
+//    MIR 四字 = 0x180/0x184/0x188/0x18C。
+//    本文件同批改了 **全部** MIR 地址常量 (0x13C/0x140/0x144/0x148 → 0x14C/0x150/0x154/0x158;
         //    共 73 处) —— 漏一处的症状 = 读到"另一个字的正确值"(假 PASS)。
         //    ⚠️ 红线不变 (7 位译码 ⇒ 绝不能挑 ≥0x200)。
-        u_dut.u_pcie_xdma.axil_read(32'h17C, v);
-        chk("9  unimpl 0x17C => rresp=SLVERR", {30'd0, u_dut.u_pcie_xdma.last_rresp}, 32'd2);
+        u_dut.u_pcie_xdma.axil_read(32'h190, v);
+        chk("9  unimpl 0x190 => rresp=SLVERR", {30'd0, u_dut.u_pcie_xdma.last_rresp}, 32'd2);
 
         // ⚠️ release 的层次名必须与上面 force 的目标**逐字一致** (坑 22: 名字不一致时
         //    xelab 直接报 "not declared under prefix"; 但漏 release 是**静默**的 —— 后续判据
@@ -546,15 +548,15 @@ module tb_p6e_pcie_wrapper;
         repeat (60) @(posedge u_dut.u_pcie_xdma.aclk);
         u_dut.u_pcie_xdma.axil_read(32'h16C, v);
         chk("M1-4a pre: level == 2", {16'd0, v[15:0]}, 32'd2);
-        for (mi_i = 0; mi_i < 83; mi_i = mi_i + 1) begin
+        for (mi_i = 0; mi_i < 88; mi_i = mi_i + 1) begin
             u_dut.u_pcie_xdma.axil_read(32'h20 + mi_i*4, v);
         end
         u_dut.u_pcie_xdma.axil_read(32'h16C, v);
         chk("M1-4b lvl unchanged == 2 (S1 tooth)", {16'd0, v[15:0]}, 32'd2);
         // M1-5: 判据 4 (地址负对照): 读 0x15C ⇒ SLVERR 且 level 不变
         //        (历史: 期 A 0x13C → 期 B 0x14C → **P9 E12 0x15C**)
-        u_dut.u_pcie_xdma.axil_read(32'h17C, v);
-        chk("M1-5a 0x17C rresp = SLVERR", {30'd0, u_dut.u_pcie_xdma.last_rresp}, 32'd2);
+        u_dut.u_pcie_xdma.axil_read(32'h190, v);
+        chk("M1-5a 0x190 rresp = SLVERR", {30'd0, u_dut.u_pcie_xdma.last_rresp}, 32'd2);
         u_dut.u_pcie_xdma.axil_read(32'h16C, v);
         chk("M1-5b lvl unchanged == 2", {16'd0, v[15:0]}, 32'd2);
         // M1-6: 判据 5: 写非白名单地址 (0x100 = 快照区) ⇒ SLVERR 且 level 不变

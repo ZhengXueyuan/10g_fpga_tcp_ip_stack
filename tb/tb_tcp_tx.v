@@ -74,6 +74,8 @@ module tb_tcp_tx;
 
     tcp_tx_frame dut (
         .clk(clk), .rst_n(rst_n),
+        .cam_rd_dip   (32'h0),   // P11: 单元 TB 单口 (PER_CONN_SRC_IP=0)
+        .cam_rd_port  (1'b0),
         .s_axis_tdata(tdata), .s_axis_tkeep(tkeep),
         .s_axis_tvalid(tvalid), .s_axis_tready(tready), .s_axis_tlast(tlast),
         .s_axis_tid(tid),

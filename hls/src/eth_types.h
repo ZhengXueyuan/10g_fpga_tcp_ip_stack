@@ -123,6 +123,52 @@ struct gmii_byte_t {
 // BOARD_IP = 192.168.100.2 (PC NIC = 192.168.100.1/24)
 
 //=============================================================================
+// P11 P2-甲: dual board IP (BOARD_IP_DUAL)
+//=============================================================================
+// IP_A = 192.168.100.2 = ch1/J8 (legacy single-port identity, unchanged)
+// IP_B = 192.168.100.4 = ch0/J7 (new second port)
+// BOARD_IP_DUAL=0 (default) keeps the exact single-IP acceptance behaviour;
+// =1 accepts both and selects the reply source IP from the request's dst IP.
+// One canonical netlist is built with BOARD_IP_DUAL=1 (hls/run_hls.tcl).
+#ifndef BOARD_IP_DUAL
+#define BOARD_IP_DUAL 0
+#endif
+#ifndef BOARD_IP1_BYTE0
+#define BOARD_IP1_BYTE0 192
+#define BOARD_IP1_BYTE1 168
+#define BOARD_IP1_BYTE2 100
+#define BOARD_IP1_BYTE3 4
+#endif
+
+static inline uint32_t board_ip0_u32(void) {
+    return ((uint32_t)BOARD_IP_BYTE0 << 24) | ((uint32_t)BOARD_IP_BYTE1 << 16) |
+           ((uint32_t)BOARD_IP_BYTE2 << 8)  |  (uint32_t)BOARD_IP_BYTE3;
+}
+static inline uint32_t board_ip1_u32(void) {
+    return ((uint32_t)BOARD_IP1_BYTE0 << 24) | ((uint32_t)BOARD_IP1_BYTE1 << 16) |
+           ((uint32_t)BOARD_IP1_BYTE2 << 8)  |  (uint32_t)BOARD_IP1_BYTE3;
+}
+// Destination-IP acceptance. Broadcast (0xFFFFFFFF) has no port identity and is
+// handled by callers (IPv4 layer) exactly as before.
+static inline bool board_ip_match(uint32_t dst) {
+#if BOARD_IP_DUAL
+    return (dst == board_ip0_u32()) || (dst == board_ip1_u32());
+#else
+    return dst == board_ip0_u32();
+#endif
+}
+// Reply source IP for a request addressed to `dst`. Broadcast/unknown dst maps
+// to IP0 (= legacy behaviour; dual-port broadcast degenerates to ch1/J8).
+static inline uint32_t board_src_ip(uint32_t dst) {
+#if BOARD_IP_DUAL
+    return (dst == board_ip1_u32()) ? board_ip1_u32() : board_ip0_u32();
+#else
+    (void)dst;
+    return board_ip0_u32();
+#endif
+}
+
+//=============================================================================
 // Frame size constants
 //=============================================================================
 #define MAC_HEADER_BYTES       14   // DstMAC(6) + SrcMAC(6) + EtherType(2)

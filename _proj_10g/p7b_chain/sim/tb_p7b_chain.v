@@ -1642,11 +1642,23 @@ module tb_p7b_chain;
         u_dut.u_pcie_xdma.axil_read(32'h160, v); chk("P1 W80 ch0 bytes",  v === 32'hA5A50080, "forced ch0 sink counter");
         u_dut.u_pcie_xdma.axil_read(32'h164, v); chk("P1 W81 ch0 crc_err", v === 32'hA5A50081, "forced mac_rx_ch0.stat_crc_err");
         u_dut.u_pcie_xdma.axil_read(32'h168, v); chk("P1 W82 ch0 drop",   v === 32'hA5A50082, "forced mac_rx_ch0.stat_drop");
-        u_dut.u_pcie_xdma.axil_read(32'h16C, v); chk("P1 MIR_STATUS @0x16C", v[22:19] === 4'd4, "MIR block auto-shifted by SNAP_NW=83");
+        // ---- P11 P2-甲: 几何 88 字 / 非 DUAL tie-off (N-10) ----
+        u_dut.u_pcie_xdma.axil_read(32'h16C, v);
+        chk("P11 W83 TX port0 frames = 0 (non-DUAL tie-off)", v === 32'h00000000, "W83 @0x16C");
+        u_dut.u_pcie_xdma.axil_read(32'h170, v);
+        chk("P11 W84 TX port1 frames = 0 (non-DUAL tie-off)", v === 32'h00000000, "W84 @0x170");
+        u_dut.u_pcie_xdma.axil_read(32'h174, v);
+        chk("P11 W85 classify total frames", v === (u_dut.cls_stat_fast + u_dut.cls_stat_slow),
+            "W85 = (fast+slow)[31:0] (真源, 两种构建都在)");
+        u_dut.u_pcie_xdma.axil_read(32'h178, v);
+        chk("P11 W86 ch0 FIFO ovf = 0 (non-DUAL tie-off)", v === 32'h00000000, "W86 @0x178");
         u_dut.u_pcie_xdma.axil_read(32'h17C, v);
-        chk("7b 0x17C reads 0 no wrap",
+        chk("P11 W87 ch0 MAC TX = 0 (non-DUAL tie-off)", v === 32'h00000000, "W87 @0x17C");
+        u_dut.u_pcie_xdma.axil_read(32'h180, v); chk("P11 MIR_STATUS @0x180", v[22:19] === 4'd4, "MIR block auto-shifted by SNAP_NW=88");
+        u_dut.u_pcie_xdma.axil_read(32'h190, v);
+        chk("P11 0x190 reads 0 no wrap",
             (v === 32'h00000000) && (u_dut.u_pcie_xdma.last_rresp === 2'd2),
-            "axi_regs decode; 83-word bound (P1 2026-10-18: 0x17C = 0x20+4*83+16; 原 76 字/0x160, 75 字/0x15C, 71 字/0x14C, 63 字/0x11C)");
+            "axi_regs decode; 88-word bound (P11 2026-10-18: 0x190 = 0x20+4*88+16; 原 83 字/0x17C)");
 
         // =============================================================
         // F2X-PATCH: F-2 归因实验 (窗口 = 快照基准, 判据 = 线上逐帧内容)

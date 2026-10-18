@@ -191,14 +191,18 @@ static void arp_rx_process(
 
     arp_update(arp_table, sender_ip, sender_mac);
 
-    uint32_t board_ip = (BOARD_IP_BYTE0<<24)|(BOARD_IP_BYTE1<<16)|(BOARD_IP_BYTE2<<8)|BOARD_IP_BYTE3;
-    if (opcode == ARP_REQUEST && target_ip == board_ip) {
+    // P11 P2-甲: accept a request addressed to either board IP; the reply SPA
+    // must be the identity that was asked for (target_ip), so the port mux in
+    // slow_tx_adp routes the reply out of the matching physical port.
+    uint32_t reply_spa = board_src_ip(target_ip);
+    if (opcode == ARP_REQUEST && board_ip_match(target_ip)) {
         uint8_t reply[28];
         reply[0]=0x00;reply[1]=0x01;reply[2]=0x08;reply[3]=0x00;reply[4]=6;reply[5]=4;
         reply[6]=0x00;reply[7]=0x02;
         reply[8]=BOARD_MAC_BYTE0;reply[9]=BOARD_MAC_BYTE1;reply[10]=BOARD_MAC_BYTE2;
         reply[11]=BOARD_MAC_BYTE3;reply[12]=BOARD_MAC_BYTE4;reply[13]=BOARD_MAC_BYTE5;
-        reply[14]=BOARD_IP_BYTE0;reply[15]=BOARD_IP_BYTE1;reply[16]=BOARD_IP_BYTE2;reply[17]=BOARD_IP_BYTE3;
+        reply[14]=(reply_spa>>24)&0xFF;reply[15]=(reply_spa>>16)&0xFF;
+        reply[16]=(reply_spa>>8)&0xFF;reply[17]=reply_spa&0xFF;
         reply[18]=arp_bytes[8];reply[19]=arp_bytes[9];reply[20]=arp_bytes[10];
         reply[21]=arp_bytes[11];reply[22]=arp_bytes[12];reply[23]=arp_bytes[13];
         reply[24]=arp_bytes[14];reply[25]=arp_bytes[15];reply[26]=arp_bytes[16];reply[27]=arp_bytes[17];

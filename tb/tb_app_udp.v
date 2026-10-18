@@ -313,6 +313,7 @@ module tb_app_udp;
         // **learn-on-RX**: 与 wrapper 同一驱动源 (udp_split.meta_*;
         // NEGLEARN 负对照时钉 0 = 复现 T2 的无学习源配置)
         .peer_wr(peer_wr_eff), .peer_mac(udp_meta_smac), .peer_ip(udp_meta_sip),
+        .peer_my_ip      (32'h0),   // P11: 单元 TB 单口
         .frame_busy(u_busy),
         .cfg_my_mac(MY_MAC), .cfg_my_ip(MY_IP),
         .cfg_my_port(APP_PORT), .cfg_dst_port(APP_PORT), .cfg_csum_en(1'b1),

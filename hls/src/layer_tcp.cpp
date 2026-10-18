@@ -98,6 +98,7 @@ struct tcp_conn_t {
     uint8_t  state;
     uint16_t peer_port;
     uint32_t peer_ip;
+    uint32_t local_ip;      // P11 P2-甲: 本连接本地 IP (IP_A/IP_B; 回包源 IP)
     uint32_t peer_window;   // advertised window (scaled)
     uint16_t peer_mss;       // peer's MSS from SYN option
     uint8_t  peer_wscale;    // peer's window scale shift
@@ -139,14 +140,27 @@ uint16_t tcp_slot_drop_count(){ return tcp_stat_no_slot; }
 //=============================================================================
 // Helpers
 //=============================================================================
-static int8_t tcp_find(uint16_t port, uint32_t ip) {
+static int8_t tcp_find(uint16_t port, uint32_t ip, uint32_t local_ip) {
     int8_t free=-1;
     for(int i=0;i<MAX_TCP_CONN;i++){
         #pragma HLS UNROLL
-        if(tcp_conn[i].state!=T_FREE&&tcp_conn[i].peer_port==port&&tcp_conn[i].peer_ip==ip)return i;
+        if(tcp_conn[i].state!=T_FREE&&tcp_conn[i].peer_port==port&&tcp_conn[i].peer_ip==ip&&
+           tcp_conn[i].local_ip==local_ip)return i;
         if(tcp_conn[i].state==T_FREE&&free<0)free=i;
     }return free;
 }
+
+//=============================================================================
+// 测试专用探针 (仅 csim G8 ACTIVE/RTO 臂; 不参与任何 HLS 构建)
+//   TCP_STATE_PROBE 未定义时零代码; 定义时返回同四元组槽的 state
+//   (T_FREE=0 / T_LISTEN=1 / T_SYN_RCVD=2 / ...), 0xFF = 无槽。
+//=============================================================================
+#if defined(ACTIVE_CONNECT) && defined(TCP_STATE_PROBE)
+uint8_t tcp_state_probe(uint16_t port, uint32_t ip, uint32_t local_ip){
+    int8_t c = tcp_find(port, ip, local_ip);
+    return (c >= 0) ? tcp_conn[c].state : 0xFF;
+}
+#endif
 
 //=============================================================================
 // P4b: 配置记录写 (cfg_stream, 8x32bit) — 握手/拆除结果推送给 fast path
@@ -163,7 +177,7 @@ static int8_t tcp_find(uint16_t port, uint32_t ip) {
 #define CFG_CMD_ADD 0
 #define CFG_CMD_DEL 1
 static void cfg_write(hls::stream<ap_uint<32> > &cfg_stream, uint8_t cmd,
-                      int8_t cid, uint32_t peer_ip, uint16_t peer_port,
+                      int8_t cid, uint32_t peer_ip, uint32_t local_ip, uint16_t peer_port,
                       uint64_t peer_mac, uint16_t peer_wnd, uint8_t wscale,
                       uint32_t rcv_nxt, uint32_t snd_nxt){
     ap_uint<32> w[8];
@@ -174,7 +188,7 @@ static void cfg_write(hls::stream<ap_uint<32> > &cfg_stream, uint8_t cmd,
         uint32_t pw=(uint32_t)peer_wnd<<wscale;
         uint16_t wnd16=(pw>0xFFFF)?0xFFFF:(uint16_t)pw;
         w[1]=peer_ip;
-        w[2]=(BOARD_IP_BYTE0<<24)|(BOARD_IP_BYTE1<<16)|(BOARD_IP_BYTE2<<8)|BOARD_IP_BYTE3;
+        w[2]=local_ip;   // P11 P2-甲: 该连接本地 IP (原为编译期 BOARD_IP)
         w[3]=((ap_uint<32>)peer_port<<16)|(ap_uint<32>)TCP_PORT_ECHO;
         w[4]=(ap_uint<32>)(peer_mac>>16);
         w[5]=((ap_uint<32>)(peer_mac&0xFFFF)<<16)|(ap_uint<32>)wnd16;
@@ -274,7 +288,7 @@ static void tcp_send(uint32_t *buf, mac_tx_req_t &tx_req, int8_t cid,
     // wire (segment shorter than the header claims -> malformed).
     bool has_opts=(flags&TCP_SYN)!=0;
     uint16_t total=(has_opts?TCP_MAX_HDR:TCP_HEADER_BYTES)+pay_len;
-    uint32_t sip=(BOARD_IP_BYTE0<<24)|(BOARD_IP_BYTE1<<16)|(BOARD_IP_BYTE2<<8)|BOARD_IP_BYTE3;
+    uint32_t sip=c.local_ip;   // P11 P2-甲: 源 IP 随连接 (IP_A 或 IP_B)
     // P4c: 我方通告窗 48K (0xC000) — 与 fast 侧 TCB rcv_wnd (slow_cfg_adp 常量
     // 0xC000) 及门控帽 RING_CAP 0xBFFE 同量纲; 48K < 64K 故不引入 WS
     // (P4b-6 死锁前科: WS=7 通告被放大 128 倍塞满管道, 见下 SYN 选项注释)。
@@ -289,7 +303,7 @@ static void tcp_send(uint32_t *buf, mac_tx_req_t &tx_req, int8_t cid,
     int ipb=TX_UDP_BASE;uint16_t ipt=20+total;uint8_t ip[20];
     ip[0]=0x45;ip[1]=0;ip[2]=(ipt>>8)&0xFF;ip[3]=ipt&0xFF;ip[4]=0;ip[5]=0;ip[6]=0x40;ip[7]=0;
     ip[8]=128;ip[9]=6;ip[10]=0;ip[11]=0;
-    ip[12]=BOARD_IP_BYTE0;ip[13]=BOARD_IP_BYTE1;ip[14]=BOARD_IP_BYTE2;ip[15]=BOARD_IP_BYTE3;
+    ip[12]=(sip>>24)&0xFF;ip[13]=(sip>>16)&0xFF;ip[14]=(sip>>8)&0xFF;ip[15]=sip&0xFF;
     ip[16]=(c.peer_ip>>24)&0xFF;ip[17]=(c.peer_ip>>16)&0xFF;ip[18]=(c.peer_ip>>8)&0xFF;ip[19]=c.peer_ip&0xFF;
     uint16_t iw[10];for(int i=0;i<10;i++)iw[i]=((uint16_t)ip[i*2]<<8)|ip[i*2+1];
     uint16_t ic=ones_complement_checksum(iw,10);ip[10]=(ic>>8)&0xFF;ip[11]=ic&0xFF;
@@ -429,6 +443,7 @@ static bool act_send_syn(uint32_t *buf, mac_tx_req_t &tx_req){
     tcp_conn_t &c=tcp_conn[cid];
     c.state=T_SYN_SENT;
     c.peer_ip=ACTIVE_IP;c.peer_port=ACTIVE_PORT;
+    c.local_ip=board_ip0_u32();   // P11: 主动连接固定从 IP_A/ch1 发起 (L-9)
     c.peer_window=0;c.peer_mss=TCP_MSS;c.peer_wscale=0;c.our_wscale=0;
     c.seq=ACTIVE_ISS;c.peer_seq=0;c.last_ack_recv=0;c.dup_ack_cnt=0;
     c.cwnd=TCP_MSS;c.ssthresh=65535;c.flight_size=0;
@@ -578,7 +593,7 @@ static void tcp_rx_process(bool rst, ip_rx_t &ip_rx, uint32_t *buf, mac_tx_req_t
     // segments, which the old TCP_MSS(460)-wide buffer silently dropped.
     uint8_t payload[TCP_RX_PAYLOAD];
     if(plen>0&&plen<=TCP_RX_PAYLOAD){int ps=tb+doff;for(int i=0;i<plen;i++){uint16_t wi=ps+(i>>2),bi=i&0x3;payload[i]=(frame_buf[wi]>>((3-bi)*8))&0xFF;}}
-    int8_t cid=tcp_find(sp,ip_rx.src_ip);
+    int8_t cid=tcp_find(sp,ip_rx.src_ip,ip_rx.dst_ip);
     // P5d-D6 签名 #4: 槽耗尽观测。tcp_find 返回 -1 = 既无同四元组槽也无空闲槽
     // ⇒ 新连接 SYN 被静默丢弃 (策略不变, 只计数; cid<0 时状态不可知, 故按
     // bare SYN 判 — 与下方建连入口同条件。计数寄存器见文件头声明)。
@@ -606,7 +621,7 @@ static void tcp_rx_process(bool rst, ip_rx_t &ip_rx, uint32_t *buf, mac_tx_req_t
     // 峰值占用远低于深度, 不引入稳态背压 (仅"帧同时到达"的极端排布才有 1~2
     // 拍瞬时 tready=0 — HLS 侧只是等一拍, 不丢记录)。
     if(cid>=0&&tcp_conn[cid].state!=T_FREE&&(flags&TCP_SYN)&&!(flags&TCP_ACK)){
-        cfg_write(cfg_stream,CFG_CMD_DEL,cid,0,0,0,0,0,0,0);
+        cfg_write(cfg_stream,CFG_CMD_DEL,cid,0,0,0,0,0,0,0,0);
         tcp_conn[cid].state=T_FREE;
         tcp_conn[cid].retrans_pending=false;
     }
@@ -631,10 +646,11 @@ static void tcp_rx_process(bool rst, ip_rx_t &ip_rx, uint32_t *buf, mac_tx_req_t
     if(flags&TCP_RST){
         for(int i=0;i<MAX_TCP_CONN;i++){
             #pragma HLS UNROLL
-            if(tcp_conn[i].peer_port==sp&&tcp_conn[i].peer_ip==ip_rx.src_ip){
+            if(tcp_conn[i].peer_port==sp&&tcp_conn[i].peer_ip==ip_rx.src_ip&&
+               tcp_conn[i].local_ip==ip_rx.dst_ip){
                 tcp_conn[i].state=T_FREE;
                 tcp_conn[i].retrans_pending=false;
-                cfg_write(cfg_stream,CFG_CMD_DEL,i,0,0,0,0,0,0,0);
+                cfg_write(cfg_stream,CFG_CMD_DEL,i,0,0,0,0,0,0,0,0);
                 return;
             }
         }
@@ -660,12 +676,14 @@ static void tcp_rx_process(bool rst, ip_rx_t &ip_rx, uint32_t *buf, mac_tx_req_t
                 // cfg 必须先于 tcp_send (P4b-6 死锁教训: 延迟处理路径的 cfg
                 // 接受谓词 = tx_req.request==0, SYN+ACK 先置 request 则 cfg
                 // 写入永不被接受)。
-                cfg_write(cfg_stream,CFG_CMD_ADD,cid,c.peer_ip,c.peer_port,
+                cfg_write(cfg_stream,CFG_CMD_ADD,cid,c.peer_ip,c.local_ip,c.peer_port,
                           rx_smac,wnd,c.peer_wscale,c.peer_seq,c.seq);
                 tcp_send(buf,tx_req,cid,TCP_ACK,NULL,0);   // 纯 ACK: seq=ISS+1
             }
             break;
-        case T_LISTEN:if(flags&TCP_SYN){c.peer_seq=seq+1;c.peer_ip=ip_rx.src_ip;c.peer_port=sp;c.state=T_SYN_RCVD;c.retry_cnt=0;
+        case T_LISTEN:if(flags&TCP_SYN){c.peer_seq=seq+1;c.peer_ip=ip_rx.src_ip;c.peer_port=sp;
+                c.local_ip=board_src_ip(ip_rx.dst_ip);   // P11: IP_A 或 IP_B (按请求目的 IP)
+                c.state=T_SYN_RCVD;c.retry_cnt=0;
                 // P4b: 乐观建连 — 把连接配置推给 fast path (CAM/TCB),
                 // 数据面直接可用。snd_nxt = ISS+1 (SYN 占一个序号,
                 // tcp_send 稍后推进 c.seq, 故此处显式 +1)。
@@ -674,7 +692,7 @@ static void tcp_rx_process(bool rst, ip_rx_t &ip_rx, uint32_t *buf, mac_tx_req_t
                 // 若 SYN+ACK 先置 request=1, 谓词死亡, cfg 写入永不被
                 // 接受 → 顶层 FSM 卡死在子调用 (xsim 实锤: 收 SYN 后
                 // 无 SYN+ACK 无 cfg, 板级 connect 超时)。
-                cfg_write(cfg_stream,CFG_CMD_ADD,cid,c.peer_ip,c.peer_port,
+                cfg_write(cfg_stream,CFG_CMD_ADD,cid,c.peer_ip,c.local_ip,c.peer_port,
                           rx_smac,wnd,c.peer_wscale,c.peer_seq,c.seq+1);
                 tcp_send(buf,tx_req,cid,TCP_SYN|TCP_ACK,NULL,0);}break;
         case T_SYN_RCVD:if((flags&TCP_ACK)&&ack==c.seq){c.retrans_pending=false;c.state=T_ESTABLISHED;c.rto_timer=0;c.retry_cnt=0;}
@@ -696,7 +714,7 @@ static void tcp_rx_process(bool rst, ip_rx_t &ip_rx, uint32_t *buf, mac_tx_req_t
             else if(flags&TCP_FIN){
                 c.peer_seq=seq+1;
                 // cfg 先于 tcp_send (延迟路径死锁, 见 T_LISTEN 注)
-                cfg_write(cfg_stream,CFG_CMD_DEL,cid,0,0,0,0,0,0,0);
+                cfg_write(cfg_stream,CFG_CMD_DEL,cid,0,0,0,0,0,0,0,0);
                 tcp_send(buf,tx_req,cid,TCP_FIN|TCP_ACK,NULL,0);
                 // 直接释放槽位: 最后 ACK 走 fast path, HLS 永远收不到 —
                 // 进 T_LAST_ACK 要等 4 个 RTO (~13s) 限次重传才释放,
@@ -718,7 +736,7 @@ static void tcp_rx_process(bool rst, ip_rx_t &ip_rx, uint32_t *buf, mac_tx_req_t
             if(flags&TCP_FIN){c.state=T_LAST_ACK;
                 // P4b: fast 侧拆除 (CFG_DEL); HLS 槽位等最后 ACK 释放。
                 // cfg 先于 tcp_send (延迟路径死锁, 见 T_LISTEN 注)
-                cfg_write(cfg_stream,CFG_CMD_DEL,cid,0,0,0,0,0,0,0);
+                cfg_write(cfg_stream,CFG_CMD_DEL,cid,0,0,0,0,0,0,0,0);
                 tcp_send(buf,tx_req,cid,TCP_FIN|TCP_ACK,NULL,0);}break;
         case T_LAST_ACK:if(flags&TCP_ACK){c.retrans_pending=false;c.state=T_FREE;}break;
     }

@@ -26,7 +26,7 @@ module tb_biz_win;
     // ⭐ M1 (2026-10-11): 70 -> 71 (= wrapper 的 SNAP_NW_P6E; 新末字 W70 = app_rx_mirror.drop_bytes)。
     //   ⚠️ 本 TB 的 NW 必须**跟住 wrapper 的地图** —— 它是『地址 <-> 字』这一半的单元门
     //   (另一半 = check_window.py 的装配静态核对)。
-    localparam integer NW = 83;  // = wrapper 的 SNAP_NW_P6E (P11 P1; 原 76 = p9 孤儿修复 / 75 = P9 E12 / 71 = M1)
+    localparam integer NW = 88;  // = wrapper 的 SNAP_NW_P6E (P11 P1; 原 76 = p9 孤儿修复 / 75 = P9 E12 / 71 = M1)
     // ⭐ p9 孤儿修复 (2026-10-17): MIR 地址**由 NW 派生** (不再写死; 每代自动跟随)
     localparam [31:0] MIR_STATUS_A = 32'h20 + NW*4;       // 0x150 @NW=76 (快照末字后第一格; +16 是 UNIMPL)
     localparam [31:0] MIR_DATA_A   = MIR_STATUS_A + 4;    // 0x154
@@ -58,7 +58,7 @@ module tb_biz_win;
     reg  [2:0]  fe_state   = 3'b101;      // → SNAP_STATUS[5:3]
     reg         locked_axi = 1'b1;        // → SNAP_STATUS[6]
 
-    axi_regs #(.MAGIC_V(32'h50360001), .BUILD_ID_V(32'h0000002B), .SNAP_NW(NW)) u_dut (
+    axi_regs #(.MAGIC_V(32'h50360001), .BUILD_ID_V(32'h0000002C), .SNAP_NW(NW)) u_dut (
         .clk(clk), .rst_n(rst_n),
         .s_axil_awaddr(awaddr), .s_axil_awprot(awprot), .s_axil_awvalid(awvalid), .s_axil_awready(awready),
         .s_axil_wdata(wdata), .s_axil_wstrb(wstrb), .s_axil_wvalid(wvalid), .s_axil_wready(wready),
@@ -155,7 +155,7 @@ module tb_biz_win;
 
         // ---- 判据 1: 身份 (前置闸读的那两项) ----
         axil_rd(32'h00, v, resp); chk("1a MAGIC", v, 32'h50360001);
-        axil_rd(32'h04, v, resp); chk("1b BUILD_ID", v, 32'h0000002B);
+        axil_rd(32'h04, v, resp); chk("1b BUILD_ID", v, 32'h0000002C);
         axil_rd(32'h14, v, resp); chk("1c MARKER (地址译码)", v, 32'hDEADBEEF);
 
         // ---- 判据 2: 触发 + 注入一束**逐字唯一**的数据 ----

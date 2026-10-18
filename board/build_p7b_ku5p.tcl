@@ -91,7 +91,7 @@ import_files -norecurse \
     ${root_dir}/rtl/udp_rx.v ${root_dir}/rtl/udp_split.v ${root_dir}/rtl/udp_tx_cfg.v \
     ${root_dir}/rtl/udp_tx_frame.v ${root_dir}/rtl/tx_arb.v ${root_dir}/rtl/app_ctrl.v \
     ${root_dir}/rtl/app_pattern.v ${root_dir}/rtl/app_udp_pattern.v \
-    ${root_dir}/rtl/app_status_uart.v
+    ${root_dir}/rtl/app_status_uart.v     ${root_dir}/rtl/rx_merge2.v ${root_dir}/rtl/tx_demux2.v ${root_dir}/rtl/maccnt_sync.v
 sec "P7B_ADD_OBS"
 import_files -norecurse ${root_dir}/rtl/snap_cdc.v ${root_dir}/_proj_pcie/rtl/axi_regs.v \
                          ${root_dir}/rtl/clk_gen_p6b.v ${root_dir}/rtl/fifo_async.v \
@@ -283,7 +283,7 @@ set_property used_in_synthesis false [get_files ${script_dir}/ku5p_p7b_cdc.xdc]
 #      **默认分支**里, 逐行 diff = 恰那 8 行（`_proj_10g/notes/P7B_STAGEC_TX_REGRESSION.md` §环境事实 2）
 #      ⇒ "关掉宏就回到 HEAD 的逐字行为"这句**对 `tcp_tx_frame.v` 已作废**。
 #   `TIMING`/面积读数由本次构建收口（设计件 §5-2 的估计 = 无实测背书）。
-set_property verilog_define {APP_MODE=1 DEV_USP=1 PCIE_OBS=1 DP_156MHZ=1 P7B_10G=1 UDP_TX_OVL=1 TCP_TX_OVL=1 SFP2_MODE_A=1} [current_fileset]
+set_property verilog_define {APP_MODE=1 DEV_USP=1 PCIE_OBS=1 DP_156MHZ=1 P7B_10G=1 UDP_TX_OVL=1 TCP_TX_OVL=1 SFP2_MODE_A=1 DUAL_SFP_A=1} [current_fileset]
 puts "P7B_VERILOG_DEFINE = [get_property verilog_define [current_fileset]]"
 set_property top $top_module [current_fileset]
 update_compile_order -fileset sources_1
@@ -301,6 +301,25 @@ if {![string match "100%*" [get_property PROGRESS [get_runs synth_1]]]} {
     puts "P7B_VERDICT = SYNTH_FAIL"
     exit 1
 }
+
+# ---- P11 P2-甲 (N-3/N-4): 新件模块解析硬门 ----
+#   cell-count 对黑盒**也**返回实例 ⇒ 只用计数判"已解析"是假门。必须查
+#   IS_BLACKBOX / report_black_boxes; 本活把两者都打出来, 任一黑盒 = 硬失败。
+#   失败形态先例: mir_uram_fifo 未导入 ⇒ 安静黑盒 (构建脚本注释 :105)。
+sec "P7B_MODULE_RESOLVE"
+open_run synth_1
+set c1 [get_cells -hier -quiet -filter {REF_NAME =~ rx_merge2}]
+set c2 [get_cells -hier -quiet -filter {REF_NAME =~ tx_demux2}]
+set c3 [get_cells -hier -quiet -filter {REF_NAME =~ maccnt_sync}]
+set n1 [llength $c1]; set n2 [llength $c2]; set n3 [llength $c3]
+puts "P7B_MODULE_RESOLVED rx_merge2=$n1 tx_demux2=$n2 maccnt_sync=$n3"
+set bb 0
+foreach c [concat $c1 $c2 $c3] {
+    if {[get_property IS_BLACKBOX $c]} { incr bb }
+}
+puts "P7B_BLACKBOX_COUNT $bb"
+if {$n1 < 1 || $n2 < 1 || $n3 < 1 || $bb != 0} { puts "P7B_MODULE_MISSING_OR_BLACKBOX" ; exit 1 }
+close_design
 
 sec "P7B_IMPL"
 set_property strategy Performance_ExtraTimingOpt [get_runs impl_1]

@@ -282,6 +282,45 @@ module wrapper_p4 #(
 `endif
     endgenerate
 
+    //=========================================================================
+    // P11 P2-甲: 双板 IP / 双 SFP 数据面 (DUAL_SFP_A)
+    //   IP_A = 192.168.100.2 = ch1/J8 = 端口位 0 (现役, 单口默认身份)
+    //   IP_B = 192.168.100.4 = ch0/J7 = 端口位 1 (新口)
+    //   ⚠️ IP_A_5/IP_B_5 必须在 ifdef 之外 (N-2): udp_split/udp_tx_cfg/
+    //      tcp_tx_frame/slow_tx_adp 的参数在两种宏态下都被引用。
+    //   硬门 (elaboration 失败, 照 g_orph_zw_guard / g_sfp2_mode_conflict 手法):
+    //      DUAL ∧ ¬P7B_10G / ∧SFP2_MODE_B / ∧¬DP_156MHZ / ∧¬APP_MODE
+    //=========================================================================
+    localparam [31:0] IP_A_5 = 32'hC0A86402;   // 192.168.100.2 = ch1/J8
+    localparam [31:0] IP_B_5 = 32'hC0A86404;   // 192.168.100.4 = ch0/J7
+`ifdef DUAL_SFP_A
+    localparam DUAL_SFP_A_DEF = 1'b1;
+`else
+    localparam DUAL_SFP_A_DEF = 1'b0;
+`endif
+    generate
+`ifdef DUAL_SFP_A
+`ifndef P7B_10G
+        if (1'b1) begin : g_dual_requires_p7b
+            DUAL_SFP_A_REQUIRES_P7B_10G u_dual_requires_p7b();
+        end
+`endif
+`ifndef DP_156MHZ
+        if (1'b1) begin : g_dual_requires_dp
+            DUAL_SFP_A_REQUIRES_DP_156MHZ u_dual_requires_dp();
+        end
+`endif
+`ifndef APP_MODE
+        if (1'b1) begin : g_dual_requires_app
+            DUAL_SFP_A_REQUIRES_APP_MODE u_dual_requires_app();
+        end
+`endif
+        if (SFP2_MODE_B_DEF) begin : g_dual_and_sfp2_b
+            DUAL_SFP_A_AND_SFP2_MODE_B_CONFLICT u_dual_and_sfp2_b();
+        end
+`endif
+    endgenerate
+
     // ---- P5: 窗口/ring 帽单一来源 (W5) ----
     // 三处必须同值: tcp_tx_frame.RING_CAP (ring 门控帽) = tcb.WIN_CAP (注册窗口
     // 门帽) = app_ctrl.WIN_CAP (app_tx_ready 的窗帽)。原先各自独立字面量,
@@ -636,6 +675,10 @@ module wrapper_p4 #(
     //   修法: 恢复为 `dont_touch` 寄存器 (值不变 = 合法 10GBASE-R idle,
     //   但核看到的是真网而非可被常量折叠的字面量 —— 同一类 LUT 还有
     //   另一条出错路径就是它)。
+`ifdef DUAL_SFP_A
+    // P11: ch0 TX 有了真 MAC (u_mac_tx_ch0) ⇒ 不再驱动常量 IDLE。
+    // L-2: 连"寄存器声明本身"一起包进 ifndef (避免 72 FF 空转), 不只是删 assign。
+`else
     (* dont_touch = "true" *) reg [63:0] p7b_ch0_idle_d;
     (* dont_touch = "true" *) reg [7:0]  p7b_ch0_idle_c;
     always @(posedge tx_mii_clk_0) begin
@@ -644,6 +687,7 @@ module wrapper_p4 #(
     end
     assign tx_mii_d_0 = p7b_ch0_idle_d;
     assign tx_mii_c_0 = p7b_ch0_idle_c;
+`endif
 
     // --- PCS 总复位 `sys_reset` (高有效) ------------------------------------
     // 配方逐行照抄闸 1 的实测版本 (P7B_GATE1 §B2, 那里 POR 释放后 ~10.5ms 两通道
@@ -697,6 +741,15 @@ module wrapper_p4 #(
         else          rstn_rx_sr_0 <= {rstn_rx_sr_0[1:0], 1'b1};
     end
     wire rx_mac_rst_n_0 = rstn_rx_sr_0[2] & ~pcs_user_rx_reset_0;
+`ifdef DUAL_SFP_A
+    // P11: ch0 TX MAC reset (照 ch1 纪律: tx_fe_clk_0 域 3 级同步 + 核 user_tx_reset_0 高有效)
+    (* ASYNC_REG = "TRUE" *) reg [2:0] rstn_tx_sr_0;
+    always @(posedge tx_fe_clk_0 or negedge reset_n) begin
+        if (!reset_n) rstn_tx_sr_0 <= 3'b000;
+        else          rstn_tx_sr_0 <= {rstn_tx_sr_0[1:0], 1'b1};
+    end
+    wire tx_mac_rst_n_0 = rstn_tx_sr_0[2] & ~pcs_user_tx_reset_0;
+`endif
 `endif
 
     // (SFP TX_DIS 的驱动在**后面**的 PCIE_OBS 段 —— 它用 `pcie_scratch` 做负对照,
@@ -882,6 +935,15 @@ module wrapper_p4 #(
     //    单域"的构建会在快照段报 undeclared (对抗审查 F1 那个组合)。
     wire [8:0]  rxcdc_occ_w;                 // u_rxcdc 写域可见占用 (W27 的来源; 见 §7.2 探针)
     wire [31:0] rxcdc_ovf_cnt;               // P7b: u_rxcdc 拒写计数 (**FE = wr_clk 域**)
+`ifdef DUAL_SFP_A
+    // P11 P2-甲: merge 的两路 dp 域输入 (p0 = ch1/u_rxcdc, p1 = ch0/u_rxcdc_ch0)
+    wire [63:0] rx_p0_tdata, ch0_dp_tdata;
+    wire [7:0]  rx_p0_tkeep, ch0_dp_tkeep;
+    wire        rx_p0_tvalid, rx_p0_tready, rx_p0_tlast, rx_p0_tuser, rx_p0_tcrs, rx_p0_terr;
+    wire        ch0_dp_tvalid, ch0_dp_tready, ch0_dp_tlast, ch0_dp_tuser, ch0_dp_tcrs, ch0_dp_terr;
+    wire        ch0_fifo_full, ch0_fifo_empty;
+    wire [31:0] ch0_rxcdc_ovf;               // ch0 RX FIFO 拒写 (gmii_clk_0 域; W86 高半源)
+`endif
     wire [63:0] rx_tdata;                    // DP 侧 (FIFO 输出 → vlan_strip)
     wire [7:0]  rx_tkeep;
     wire        rx_tvalid, rx_tready, rx_tlast, rx_tuser, rx_tcrs, rx_terr;
@@ -970,7 +1032,14 @@ module wrapper_p4 #(
         for (ch0_bi = 0; ch0_bi < 8; ch0_bi = ch0_bi + 1)
             ch0_bcnt = ch0_bcnt + {3'd0, ch0_rx_tkeep[ch0_bi]};
     end
+`ifdef DUAL_SFP_A
+    // P11 N-14: ch0 tap 变成 merge 输入 FIFO 的写侧 ⇒ tready = ~full
+    //   W79 语义随之 = "被 merge 输入 FIFO 接受的好帧数"; FIFO 满丢帧由 MAC
+    //   stat_drop (W82) 计。u_rxcdc_ch0.ovf_cnt(W86 高半) 在 tready 门控下应恒 0。
+    assign ch0_rx_tready = ~ch0_fifo_full;
+`else
     assign ch0_rx_tready = 1'b1;
+`endif
 
     // Sink counters (W79/W80). Good frame = tlast && tcrs && !terr (FINDINGS
     // mid-16: mac_rx_10g drives tcrs and terr independently). Bytes are
@@ -1010,6 +1079,20 @@ module wrapper_p4 #(
         .stat_drop          (ch0_stat_drop),
         .stat_bytes         (ch0_stat_bytes)
     );
+`ifdef DUAL_SFP_A
+    fifo_async #(.WIDTH(76), .DEPTH(256), .FWFT(1), .AW(8)) u_rxcdc_ch0 (
+        .wr_clk(gmii_clk_0), .wr_rst_n(reset_n), .wr_en(ch0_rx_tvalid),
+        .din({ch0_rx_tdata, ch0_rx_tkeep, ch0_rx_tuser, ch0_rx_tlast, ch0_rx_tcrs, ch0_rx_terr}),
+        .full(ch0_fifo_full),
+        .rd_clk(dp_clk),   .rd_rst_n(reset_n), .rd_en(ch0_dp_tready),
+        .dout({ch0_dp_tdata, ch0_dp_tkeep, ch0_dp_tuser, ch0_dp_tlast, ch0_dp_tcrs, ch0_dp_terr}),
+        .empty(ch0_fifo_empty),
+        .dbg_wbin(), .dbg_rbin(), .dbg_wgray(), .dbg_rgray(),
+        .dbg_occ_w(), .dbg_occ_r(),
+        .ovf_cnt(ch0_rxcdc_ovf)
+    );
+    assign ch0_dp_tvalid = ~ch0_fifo_empty;
+`endif
 `else
     mac_rx_64 u_mac_rx (
         .clk            (gmii_clk),
@@ -1055,8 +1138,14 @@ module wrapper_p4 #(
         .wr_clk(gmii_clk), .wr_rst_n(reset_n), .wr_en(rxsrc_tvalid),
         .din({rxsrc_tdata, rxsrc_tkeep, rxsrc_tuser, rxsrc_tlast, rxsrc_tcrs, rxsrc_terr}),
         .full(rx_fifo_full),
-        .rd_clk(dp_clk),   .rd_rst_n(reset_n), .rd_en(rx_tvalid && rx_tready),
+        .rd_clk(dp_clk),   .rd_rst_n(reset_n),
+`ifdef DUAL_SFP_A
+        .rd_en(rx_p0_tready),
+        .dout({rx_p0_tdata, rx_p0_tkeep, rx_p0_tuser, rx_p0_tlast, rx_p0_tcrs, rx_p0_terr}),
+`else
+        .rd_en(rx_tvalid && rx_tready),
         .dout({rx_tdata, rx_tkeep, rx_tuser, rx_tlast, rx_tcrs, rx_terr}),
+`endif
         .empty(rx_fifo_empty),
         .dbg_wbin(), .dbg_rbin(), .dbg_wgray(), .dbg_rgray(),
         .dbg_occ_w(rxcdc_occ_w), .dbg_occ_r(),
@@ -1064,7 +1153,10 @@ module wrapper_p4 #(
         .ovf_cnt(rxcdc_ovf_cnt)
     );
     assign rxsrc_tready = ~rx_fifo_full;   // FE 侧反压 (本地组合, 不跨域)
-    assign rx_tvalid    = ~rx_fifo_empty;  // FWFT: dout 就是头字
+    assign rx_p0_tvalid = ~rx_fifo_empty;  // FWFT: dout 就是头字
+`ifndef DUAL_SFP_A
+    assign rx_tvalid    = rx_p0_tvalid;
+`endif
 `else
     assign rx_tdata = rxsrc_tdata;         // 单域: 纯线名别名 (逐位不变)
     assign rx_tkeep = rxsrc_tkeep;
@@ -1078,6 +1170,25 @@ module wrapper_p4 #(
     assign rx_fifo_empty = 1'b0;
     assign rxcdc_occ_w   = 9'd0;
     assign rxcdc_ovf_cnt = 32'd0;      // 单域: 无此 FIFO (P7b 探针源恒 0)
+`endif
+
+`ifdef DUAL_SFP_A
+    // ---- P11 P2-甲: ch0/ch1 帧级合并 (工作保持 RR; STRICT 硬接 0) ----
+    //   输出直接替换现役 rx_* 总线 (vlan_strip / rx_classify 零改动)。
+    //   每帧末 1 拍重仲裁气泡 (大帧 ~0.5%, 最小帧 8 字 ~11%); merge 无内部丢帧路径。
+    rx_merge2 #(.STRICT(1'b0)) u_rx_merge (
+        .clk(dp_clk), .rst_n(dp_rst_n),
+        .p0_tdata(rx_p0_tdata), .p0_tkeep(rx_p0_tkeep), .p0_tvalid(rx_p0_tvalid),
+        .p0_tready(rx_p0_tready), .p0_tlast(rx_p0_tlast), .p0_tuser(rx_p0_tuser),
+        .p0_tcrs(rx_p0_tcrs), .p0_terr(rx_p0_terr),
+        .p1_tdata(ch0_dp_tdata), .p1_tkeep(ch0_dp_tkeep), .p1_tvalid(ch0_dp_tvalid),
+        .p1_tready(ch0_dp_tready), .p1_tlast(ch0_dp_tlast), .p1_tuser(ch0_dp_tuser),
+        .p1_tcrs(ch0_dp_tcrs), .p1_terr(ch0_dp_terr),
+        .m_tdata(rx_tdata), .m_tkeep(rx_tkeep), .m_tvalid(rx_tvalid),
+        .m_tready(rx_tready), .m_tlast(rx_tlast), .m_tuser(rx_tuser),
+        .m_tcrs(rx_tcrs), .m_terr(rx_terr),
+        .stat_frames0(), .stat_frames1(), .stat_out(), .stat_bubble()
+    );
 `endif
 
     // --- P4e VLAN 剥离 shim: mac_rx_64 → rx_classify 之间剥单层 802.1Q/1ad
@@ -1191,6 +1302,7 @@ module wrapper_p4 #(
     //      默认构建无消费者) ----
     wire [31:0] tx_stat_ack_w, tx_stat_ack_drop_w;
     wire [2:0]  tx_dbg_state;   // tcp_tx_frame FSM state (P4/P5 诊断共用)
+    wire        tx_port;        // P11: tcp_tx_frame.o_port (PER_CONN_SRC_IP=0 恒 0)
     // ---- P5c-T3 G3: abort fence 线束 (tcp_tx_frame.o_rst_sent -> app_ctrl) ----
     // **两种构建都声明**: u_tcp_tx 在两种构建里都例化 (它的 .o_rst_sent 必须接一
     // 根真网线 — 否则会隐式造出 1 位网线并丢掉高 15 位); 默认构建无消费者
@@ -1756,6 +1868,14 @@ module wrapper_p4 #(
     assign txin_tid    = eco2_tid;
     assign eco2_tready = txin_tready;
 `endif
+`ifndef APP_MODE
+    // P11 P2-甲: dp_src bundle references udpapp_* (W8..W13), declared only under
+    // APP_MODE. Without these constants the PCIE_OBS && !APP_MODE combination
+    // fails xvlog before any hard-gate module is reached (pre-existing hole).
+    wire [31:0] udpapp_tx_bytes = 32'd0, udpapp_tx_frames = 32'd0;
+    wire [31:0] udpapp_rx_bytes = 32'd0, udpapp_rx_frames = 32'd0;
+    wire [31:0] udpapp_rx_null = 32'd0, udpapp_mismatch = 32'd0;
+`endif
 
     wire [63:0] tx_tdata;
     wire [7:0]  tx_tkeep;
@@ -2188,6 +2308,23 @@ module wrapper_p4 #(
     wire [15:0] cam_cfg_dport_mux= scfg_cam_wr ? scfg_cam_dport : 16'd0;
     wire [47:0] cam_cfg_dmac_mux = scfg_cam_wr ? scfg_cam_dmac  : 48'd0;
 
+    // ---- P11 P2-甲: 16 槽端口位数组 (与 CAM 写 mux 同拍同址同源) ----
+    //   语义: 1 = 该连接的本地 IP == IP_B (ch0/J7)。同拍同址同源不变式:
+    //   写口与 u_cam 的 cfg_wr/addr/dip 完全同一组 mux 信号; 读口用 cam_rd_id
+    //   (L-1: 不写 rb_id, 避免未来 mux 改动分叉)。
+    //   复位 0 ⇒ 非 DUAL/未配置槽恒端口 0 (ch1, 安全口)。
+`ifdef DUAL_SFP_A
+    reg [15:0] cam_port_arr;
+    always @(posedge dp_clk or negedge dp_rst_n) begin
+        if (!dp_rst_n) cam_port_arr <= 16'd0;
+        else if (cam_cfg_wr_mux)
+            cam_port_arr[cam_cfg_addr_mux] <= (cam_cfg_dip_mux == IP_B_5);
+    end
+    wire cam_rd_port = cam_port_arr[cam_rd_id];
+`else
+    wire cam_rd_port = 1'b0;
+`endif
+
     tcp_cam u_cam (
         .clk            (dp_clk),
         .rst_n          (dp_rst_n),
@@ -2395,7 +2532,8 @@ module wrapper_p4 #(
     //   · 回退点 = 这一处改回 `1'b0` (参数默认值 = `1'b0`, 见 `rtl/tcp_tx_frame.v:299`)。
     // ⛔ 2026-10-17 p9 实施轮: 还原 `.PERSIST_EN(1'b1)` —— HEAD 是 0x29 拆刀态
     //   (persist 关 = 幽灵配置); 不还原就交付一个"零窗完全静默"的位流.
-    tcp_tx_frame #(.RING_CAP(WIN_CAP_5), .PERSIST_EN(1'b1)) u_tcp_tx (
+    tcp_tx_frame #(.RING_CAP(WIN_CAP_5), .PERSIST_EN(1'b1),
+                   .PER_CONN_SRC_IP(DUAL_SFP_A_DEF)) u_tcp_tx (
         .clk            (dp_clk),
         .rst_n          (dp_rst_n),
         .s_axis_tdata   (txin_tdata),
@@ -2449,13 +2587,17 @@ module wrapper_p4 #(
         .cam_rd_sip     (cam_rd_sip),
         .cam_rd_sport   (cam_rd_sport),
         .cam_rd_dport   (cam_rd_dport),
+        // P11 P2-甲: per-connection local IP + 端口位 (PER_CONN_SRC_IP=0 时被折叠)
+        .cam_rd_dip     (cam_rd_dip),
+        .cam_rd_port    (cam_rd_port),
         .cfg_src_mac    (48'h000A3501FEC0),  // 00:0A:35:01:FE:C0 (P4 统一 HLS MAC)
-        .cfg_src_ip     (32'hC0A86402),      // 192.168.100.2
+        .cfg_src_ip     (IP_A_5),            // 192.168.100.2 (同值; 单一常量源)
         .m_axis_tdata   (tx_tdata),
         .m_axis_tkeep   (tx_tkeep),
         .m_axis_tvalid  (tx_tvalid),
         .m_axis_tready  (tx_tready),
         .m_axis_tlast   (tx_tlast),
+        .o_port         (tx_port),          // P11: 本帧出口端口位 (TX demux)
         .stat_frames    (tx_stat_frames),
         .stat_bytes     (tx_stat_bytes),
         // P5b C9: ACK 计数补全 (板级病理定位缺观测: ACK 发没发/丢没丢)
@@ -2506,6 +2648,9 @@ module wrapper_p4 #(
     wire [7:0]  stx_tkeep;
     wire        stx_tvalid, stx_tready, stx_tlast;
     wire [31:0] stx_stat_frames, stx_stat_purge;
+    wire        stx_port;          // P11: slow_tx_adp.o_port
+    wire [31:0] stx_stat_side_ovf; // P11: side FIFO 拒 push (门观测)
+    wire [7:0]  stx_side_level;    // P11: side FIFO 占用 (== committed 不变式)
 
     // ---- P5e-T1: slow 路由出口 (classify.m_slow → slow_rx_adp) 重命名 ----
     // 默认构建 (未定义 APP_MODE): srx_* 是 s_* 的纯线名别名, s_tready 直接来自
@@ -2550,12 +2695,16 @@ module wrapper_p4 #(
     wire        udp_meta_valid;
     wire [47:0] udp_meta_src_mac;
     wire [31:0] udp_meta_src_ip;
+    wire [31:0] udp_meta_dst_ip;      // P11: 学习帧的目的 IP (本板该口身份)
     wire [15:0] udp_meta_src_port, udp_meta_len;
     wire        app_udp_rx_tready;   // app UDP RX 口反压 (→ udp_split.app_rx_tready)
     // UDP app 端口 (8080 留给 HLS udp_echo — 见 udp_split.EXCL_PORT=8080 的排除)
     // 声明在两个 APP_MODE 块之前: udp_split 例化与 udp_tx_cfg 例化都要用。
     localparam [15:0] UDP_APP_PORT = 16'h1F91;   // 8081
-    udp_split u_udp_split (
+    udp_split #(
+        .DUAL_IP (DUAL_SFP_A_DEF),   // P11
+        .IP_B    (IP_B_5)
+    ) u_udp_split (
         .clk            (dp_clk),
         .rst_n          (dp_rst_n),
         .s_axis_tdata   (s_tdata),
@@ -2589,7 +2738,8 @@ module wrapper_p4 #(
         .meta_src_ip    (udp_meta_src_ip),
         .meta_src_port  (udp_meta_src_port),
         .meta_len       (udp_meta_len),
-        .cfg_dst_ip     (32'hC0A86402),  // 192.168.100.2 = 本板 IP
+        .meta_dst_ip    (udp_meta_dst_ip),   // P11
+        .cfg_dst_ip     (IP_A_5),        // 192.168.100.2 = 本板 IP (单一常量源)
         .cfg_multi_en   (1'b0),
         .cfg_port0      (UDP_APP_PORT), .cfg_port1(16'hFFFF),
         .cfg_port2      (16'hFFFF),     .cfg_port3(16'hFFFF),
@@ -2729,7 +2879,11 @@ module wrapper_p4 #(
         .led_d3           ()
     );
 
-    slow_tx_adp u_slow_tx (
+    slow_tx_adp #(
+        .PER_PORT   (DUAL_SFP_A_DEF),   // P11
+        .IP_B       (IP_B_5),
+        .SIDE_DEPTH (128)
+    ) u_slow_tx (
         .clk            (dp_clk),
         .rst_n          (dp_rst_n),
         .hls_tx_tdata   (hls_tx_tdata),
@@ -2742,7 +2896,11 @@ module wrapper_p4 #(
         .m_axis_tlast   (stx_tlast),
         .stat_frames    (stx_stat_frames),
         .stat_purge     (stx_stat_purge),
-        .stat_fifo_ovf  (stx_stat_fifo_ovf)    // P7B-BIZ → W59
+        .stat_fifo_ovf  (stx_stat_fifo_ovf),   // P7B-BIZ → W59
+        // P11 P2-甲: 每帧出口端口位 + side FIFO 自检 (门观测, 不进快照)
+        .o_port         (stx_port),
+        .stat_side_ovf  (stx_stat_side_ovf),
+        .side_level     (stx_side_level)
     );
 
     // =====================================================================
@@ -2788,6 +2946,42 @@ module wrapper_p4 #(
 
     // shim → 帧器 → 合流器 内部线 + cfg 锁存线 + 统计
     wire [63:0] utx_tdata, utx2_tdata;
+    wire        utx_port;        // P11: udp_tx_cfg.o_port
+`ifdef DUAL_SFP_A
+    // ---- P11 P2-甲 (方案②): 三个生产者 demux + 每口一套两级 arb ----
+    //   p0 = ch1/J8 (现役), p1 = ch0/J7。生产者侧 o_port 帧内稳定 (M-12)。
+    wire [63:0] tx_p0_tdata,   tx_p1_tdata;
+    wire [7:0]  tx_p0_tkeep,   tx_p1_tkeep;
+    wire        tx_p0_tvalid,  tx_p1_tvalid;
+    wire        tx_p0_tready,  tx_p1_tready;
+    wire        tx_p0_tlast,   tx_p1_tlast;
+    wire [63:0] utx2_p0_tdata, utx2_p1_tdata;
+    wire [7:0]  utx2_p0_tkeep, utx2_p1_tkeep;
+    wire        utx2_p0_tvalid,utx2_p1_tvalid;
+    wire        utx2_p0_tready,utx2_p1_tready;
+    wire        utx2_p0_tlast, utx2_p1_tlast;
+    wire [63:0] stx_p0_tdata,  stx_p1_tdata;
+    wire [7:0]  stx_p0_tkeep,  stx_p1_tkeep;
+    wire        stx_p0_tvalid, stx_p1_tvalid;
+    wire        stx_p0_tready, stx_p1_tready;
+    wire        stx_p0_tlast,  stx_p1_tlast;
+    wire [63:0] mrg1_tdata;  wire [7:0] mrg1_tkeep;
+    wire        mrg1_tvalid, mrg1_tready, mrg1_tlast;
+    wire [63:0] txsrc1_tdata; wire [7:0] txsrc1_tkeep;
+    wire        txsrc1_tvalid, txsrc1_tready, txsrc1_tlast;
+    wire        tx1_fifo_full, tx1_fifo_empty;
+    wire [31:0] txcdc1_ovf_cnt;              // ch0 txcdc 拒写 (W86 低半)
+    wire [63:0] m_tx1_tdata; wire [7:0] m_tx1_tkeep;
+    wire        m_tx1_tvalid, m_tx1_tready, m_tx1_tlast;
+    wire [31:0] tx_p0_frames, tx_p1_frames;  // W83/W84 (arb 输出帧数)
+    wire [31:0] ch0_tx_mac_frames, ch0_tx_mac_abort;  // ch0 MAC TX (W87 源)
+    // W86/W87 跨域镜像线 (N-4; 必须在 p7bdp 槽 42/43 的使用点之前声明)
+    wire [31:0] ch0_rxcdc_ovf_dp;
+    wire [63:0] ch0_tx_cnt_dp;
+    wire [31:0] ch0_tx_frames_dp = ch0_tx_cnt_dp[31:0];
+    wire [31:0] ch0_tx_abort_dp  = ch0_tx_cnt_dp[63:32];
+    wire [63:0] ch0_tx_cnt_src   = {ch0_tx_mac_abort, ch0_tx_mac_frames};
+`endif
     wire [7:0]  utx_tkeep, utx2_tkeep;
     wire        utx_tvalid, utx_tready, utx_tlast;
     wire        utx2_tvalid, utx2_tready, utx2_tlast;
@@ -2862,7 +3056,10 @@ module wrapper_p4 #(
 `endif
     );
 
-    udp_tx_cfg u_udp_tx_cfg (
+    udp_tx_cfg #(
+        .PER_CONN_SRC_IP (DUAL_SFP_A_DEF),   // P11
+        .IP_B            (IP_B_5)
+    ) u_udp_tx_cfg (
         .clk            (dp_clk),
         .rst_n          (dp_rst_n),
         // 帧器"非空闲"回授: cfg 锁存必须冻结到帧头真正发出 (见 udp_tx_cfg 头注释)
@@ -2880,8 +3077,9 @@ module wrapper_p4 #(
         .peer_wr        (udp_meta_valid),
         .peer_mac       (udp_meta_src_mac),
         .peer_ip        (udp_meta_src_ip),
+        .peer_my_ip     (udp_meta_dst_ip),    // P11: 学习帧的目的 IP
         .cfg_my_mac     (48'h000A3501FEC0),   // P4 统一 MAC (同 tcp_tx_frame)
-        .cfg_my_ip      (32'hC0A86402),       // 192.168.100.2
+        .cfg_my_ip      (IP_A_5),             // 192.168.100.2 (单一常量源)
         .cfg_my_port    (UDP_APP_PORT),
         .cfg_dst_port   (UDP_APP_PORT),
         .cfg_csum_en    (1'b1),
@@ -2901,6 +3099,7 @@ module wrapper_p4 #(
         .o_src_mac      (utx_cfg_src_mac),
         .o_src_ip       (utx_cfg_src_ip),
         .o_src_port     (utx_cfg_src_port),
+        .o_port         (utx_port),           // P11: 本帧出口端口位 (TX demux)
         .o_csum_en      (utx_cfg_csum_en),
         .o_ready        (app_udp_tx_ready),
         .stat_frames    (utx_cfg_frames),
@@ -2933,6 +3132,68 @@ module wrapper_p4 #(
         .o_busy         (utx_busy)
     );
 
+`ifdef DUAL_SFP_A
+    // ---- P11: demux 前移 + 每口复制 arb 树 (tx_arb 源码零改动) ----
+    tx_demux2 u_demux_tcp (
+        .clk(dp_clk), .rst_n(dp_rst_n),
+        // ⚠️ 本 demux 必须接 tcp_tx_frame 的 **输出** (tx_*), 不是它的输入
+        //    (txin_* = app→tcp_tx_frame 的 AXIS)。2026-10-18 G6 首跑抓到本处
+        //    误接 txin_* ⇒ TCP 帧从未进 TX arb (W84 不动、线上无帧)。
+        .s_tdata(tx_tdata), .s_tkeep(tx_tkeep), .s_tvalid(tx_tvalid),
+        .s_tready(tx_tready), .s_tlast(tx_tlast), .s_port(tx_port),
+        .d0_tdata(tx_p0_tdata), .d0_tkeep(tx_p0_tkeep), .d0_tvalid(tx_p0_tvalid),
+        .d0_tready(tx_p0_tready), .d0_tlast(tx_p0_tlast),
+        .d1_tdata(tx_p1_tdata), .d1_tkeep(tx_p1_tkeep), .d1_tvalid(tx_p1_tvalid),
+        .d1_tready(tx_p1_tready), .d1_tlast(tx_p1_tlast),
+        .stat_port_change(), .stat_frames0(), .stat_frames1()
+    );
+    tx_demux2 u_demux_udp (
+        .clk(dp_clk), .rst_n(dp_rst_n),
+        .s_tdata(utx2_tdata), .s_tkeep(utx2_tkeep), .s_tvalid(utx2_tvalid),
+        .s_tready(utx2_tready), .s_tlast(utx2_tlast), .s_port(utx_port),
+        .d0_tdata(utx2_p0_tdata), .d0_tkeep(utx2_p0_tkeep), .d0_tvalid(utx2_p0_tvalid),
+        .d0_tready(utx2_p0_tready), .d0_tlast(utx2_p0_tlast),
+        .d1_tdata(utx2_p1_tdata), .d1_tkeep(utx2_p1_tkeep), .d1_tvalid(utx2_p1_tvalid),
+        .d1_tready(utx2_p1_tready), .d1_tlast(utx2_p1_tlast),
+        .stat_port_change(), .stat_frames0(), .stat_frames1()
+    );
+    tx_demux2 u_demux_slow (
+        .clk(dp_clk), .rst_n(dp_rst_n),
+        .s_tdata(stx_tdata), .s_tkeep(stx_tkeep), .s_tvalid(stx_tvalid),
+        .s_tready(stx_tready), .s_tlast(stx_tlast), .s_port(stx_port),
+        .d0_tdata(stx_p0_tdata), .d0_tkeep(stx_p0_tkeep), .d0_tvalid(stx_p0_tvalid),
+        .d0_tready(stx_p0_tready), .d0_tlast(stx_p0_tlast),
+        .d1_tdata(stx_p1_tdata), .d1_tkeep(stx_p1_tkeep), .d1_tvalid(stx_p1_tvalid),
+        .d1_tready(stx_p1_tready), .d1_tlast(stx_p1_tlast),
+        .stat_port_change(), .stat_frames0(), .stat_frames1()
+    );
+    // port0 (ch1) 的 UDP/HLS 合流
+    tx_arb u_tx_udp_arb (
+        .clk(dp_clk), .rst_n(dp_rst_n),
+        .s_fast_tdata(utx2_p0_tdata), .s_fast_tkeep(utx2_p0_tkeep),
+        .s_fast_tvalid(utx2_p0_tvalid), .s_fast_tready(utx2_p0_tready),
+        .s_fast_tlast(utx2_p0_tlast),
+        .s_slow_tdata(stx_p0_tdata), .s_slow_tkeep(stx_p0_tkeep),
+        .s_slow_tvalid(stx_p0_tvalid), .s_slow_tready(stx_p0_tready),
+        .s_slow_tlast(stx_p0_tlast),
+        .m_axis_tdata(mrg_tdata), .m_axis_tkeep(mrg_tkeep),
+        .m_axis_tvalid(mrg_tvalid), .m_axis_tready(mrg_tready),
+        .m_axis_tlast(mrg_tlast)
+    );
+    // port1 (ch0) 的 UDP/HLS 合流
+    tx_arb u_tx_udp_arb_p1 (
+        .clk(dp_clk), .rst_n(dp_rst_n),
+        .s_fast_tdata(utx2_p1_tdata), .s_fast_tkeep(utx2_p1_tkeep),
+        .s_fast_tvalid(utx2_p1_tvalid), .s_fast_tready(utx2_p1_tready),
+        .s_fast_tlast(utx2_p1_tlast),
+        .s_slow_tdata(stx_p1_tdata), .s_slow_tkeep(stx_p1_tkeep),
+        .s_slow_tvalid(stx_p1_tvalid), .s_slow_tready(stx_p1_tready),
+        .s_slow_tlast(stx_p1_tlast),
+        .m_axis_tdata(mrg1_tdata), .m_axis_tkeep(mrg1_tkeep),
+        .m_axis_tvalid(mrg1_tvalid), .m_axis_tready(mrg1_tready),
+        .m_axis_tlast(mrg1_tlast)
+    );
+`else
     tx_arb u_tx_udp_arb (
         .clk            (dp_clk),
         .rst_n          (dp_rst_n),
@@ -2952,6 +3213,7 @@ module wrapper_p4 #(
         .m_axis_tready  (mrg_tready),
         .m_axis_tlast   (mrg_tlast)
     );
+`endif
 `else
     // 默认构建: 合流 = 纯别名 (slow_tx_adp 直通 u_tx_arb.s_slow, 与 P4 逐位等价)
     assign mrg_tdata  = stx_tdata;
@@ -2984,6 +3246,33 @@ module wrapper_p4 #(
     wire [31:0] txcdc_ovf_cnt;               // P7b: u_txcdc 拒写计数 (**DP = wr_clk 域**)
     wire        m_tx_tvalid, m_tx_tready, m_tx_tlast;
 
+`ifdef DUAL_SFP_A
+    // P11: port0 = ch1 (现役链名 txsrc_*), port1 = ch0 (txsrc1_*)
+    tx_arb u_tx_arb (
+        .clk(dp_clk), .rst_n(dp_rst_n),
+        .s_fast_tdata(tx_p0_tdata), .s_fast_tkeep(tx_p0_tkeep),
+        .s_fast_tvalid(tx_p0_tvalid), .s_fast_tready(tx_p0_tready),
+        .s_fast_tlast(tx_p0_tlast),
+        .s_slow_tdata(mrg_tdata), .s_slow_tkeep(mrg_tkeep),
+        .s_slow_tvalid(mrg_tvalid), .s_slow_tready(mrg_tready),
+        .s_slow_tlast(mrg_tlast),
+        .m_axis_tdata(txsrc_tdata), .m_axis_tkeep(txsrc_tkeep),
+        .m_axis_tvalid(txsrc_tvalid), .m_axis_tready(txsrc_tready),
+        .m_axis_tlast(txsrc_tlast)
+    );
+    tx_arb u_tx_arb_p1 (
+        .clk(dp_clk), .rst_n(dp_rst_n),
+        .s_fast_tdata(tx_p1_tdata), .s_fast_tkeep(tx_p1_tkeep),
+        .s_fast_tvalid(tx_p1_tvalid), .s_fast_tready(tx_p1_tready),
+        .s_fast_tlast(tx_p1_tlast),
+        .s_slow_tdata(mrg1_tdata), .s_slow_tkeep(mrg1_tkeep),
+        .s_slow_tvalid(mrg1_tvalid), .s_slow_tready(mrg1_tready),
+        .s_slow_tlast(mrg1_tlast),
+        .m_axis_tdata(txsrc1_tdata), .m_axis_tkeep(txsrc1_tkeep),
+        .m_axis_tvalid(txsrc1_tvalid), .m_axis_tready(txsrc1_tready),
+        .m_axis_tlast(txsrc1_tlast)
+    );
+`else
     tx_arb u_tx_arb (
         .clk            (dp_clk),
         .rst_n          (dp_rst_n),
@@ -3003,6 +3292,7 @@ module wrapper_p4 #(
         .m_axis_tready  (txsrc_tready),
         .m_axis_tlast   (txsrc_tlast)
     );
+`endif
 
     // ---- P6b TX 异步 FIFO (W=73) ----
     // 深度硬下界 = 一个最大帧的字数 = ceil(1518/8) = 190 (agent_docs/P6B_SPEC §4.3): u_tx_arb 一次
@@ -3035,6 +3325,40 @@ module wrapper_p4 #(
     assign txcdc_ovf_cnt = 32'd0;      // 单域: 无此 FIFO (P7b 探针源恒 0)
 `endif
 
+`ifdef DUAL_SFP_A
+    // ---- P11: port1 (ch0) TX 异步 FIFO (写域 dp_clk, 读域 tx_fe_clk_0) ----
+    fifo_async #(.WIDTH(73), .DEPTH(256), .FWFT(1), .AW(8)) u_txcdc_ch0 (
+        .wr_clk(dp_clk),   .wr_rst_n(reset_n), .wr_en(txsrc1_tvalid),
+        .din({txsrc1_tdata, txsrc1_tkeep, txsrc1_tlast}), .full(tx1_fifo_full),
+        .rd_clk(tx_fe_clk_0), .rd_rst_n(reset_n), .rd_en(m_tx1_tvalid && m_tx1_tready),
+        .dout({m_tx1_tdata, m_tx1_tkeep, m_tx1_tlast}),   .empty(tx1_fifo_empty),
+        .dbg_wbin(), .dbg_rbin(), .dbg_wgray(), .dbg_rgray(),
+        .dbg_occ_w(), .dbg_occ_r(),
+        .ovf_cnt(txcdc1_ovf_cnt)
+    );
+    assign txsrc1_tready = ~tx1_fifo_full;
+    assign m_tx1_tvalid  = ~tx1_fifo_empty;
+
+    // W83/W84: 每口 arb 输出帧数 (整帧交给该口 FIFO; 32 位自由回卷)
+    reg [31:0] tx_p0_frames_r, tx_p1_frames_r;
+    always @(posedge dp_clk or negedge dp_rst_n) begin
+        if (!dp_rst_n) begin
+            tx_p0_frames_r <= 32'd0;
+            tx_p1_frames_r <= 32'd0;
+        end else begin
+            if (txsrc_tvalid  && txsrc_tready  && txsrc_tlast)
+                tx_p0_frames_r <= tx_p0_frames_r + 32'd1;
+            if (txsrc1_tvalid && txsrc1_tready && txsrc1_tlast)
+                tx_p1_frames_r <= tx_p1_frames_r + 32'd1;
+        end
+    end
+    assign tx_p0_frames = tx_p0_frames_r;
+    assign tx_p1_frames = tx_p1_frames_r;
+`else
+    assign tx_p0_frames = 32'd0;   // N-10: 非 DUAL 构建 W83/W84 常 0
+    assign tx_p1_frames = 32'd0;
+`endif
+
 `ifdef P7B_10G
     mac_tx_10g u_mac_tx (
         .clk            (tx_fe_clk),         // = PCS tx_mii_clk_1 (见上面的域别名)
@@ -3059,6 +3383,30 @@ module wrapper_p4 #(
         .dbg_tx_last_clen   (mtx_dbg_last_clen),
         .dbg_tx_state       (mtx_dbg_state)
     );
+`ifdef DUAL_SFP_A
+    // ---- P11: ch0 (J7/SFP A) TX MAC — 第二个 mac_tx_10g ----
+    mac_tx_10g u_mac_tx_ch0 (
+        .clk            (tx_fe_clk_0),
+        .rst_n          (tx_mac_rst_n_0),
+        .s_axis_tdata   (m_tx1_tdata),
+        .s_axis_tkeep   (m_tx1_tkeep),
+        .s_axis_tvalid  (m_tx1_tvalid),
+        .s_axis_tready  (m_tx1_tready),
+        .s_axis_tlast   (m_tx1_tlast),
+        .xgmii_txd      (tx_mii_d_0),
+        .xgmii_txc      (tx_mii_c_0),
+        .stat_frames    (ch0_tx_mac_frames),
+        .stat_abort     (ch0_tx_mac_abort),
+        .stat_flush_words  (),
+        .stat_flush_done   (),
+        .stat_tx_words     (),
+        .stat_tx_ctrl_char (),
+        .stat_tx_short     (),
+        .stat_tx_idle      (),
+        .dbg_tx_last_clen  (),
+        .dbg_tx_state      ()
+    );
+`endif
 `else
     mac_tx_64 u_mac_tx (
         .clk            (gmii_clk),
@@ -3519,7 +3867,12 @@ module wrapper_p4 #(
     //   **未实现地址 = 0x17C** (word 95; = 0x20+4*83+16);
     //   {snap_idx,5'b0} 最大 = (83-1)<<5 = 2624 < 4096 ⇒ snap_base [11:0] 不动;
     //   `snap_idx = r_word[6:0]-8` 最大 82 ⇒ 7 位 ✓ (回绕红线仍 ≥0x200).
-    localparam SNAP_NW_P6E = 83;        // 总字数 W0..W82 (未实现地址 = 0x17C = word 95)
+    // ⭐ P11 P2-甲 (2026-10-18): 83 → **88** (W83..W87 = 双口 TX 帧数/classify 总帧/
+    //   ch0 FIFO ovf/ch0 MAC TX). 预算复算: 88 ≤ 119 ✓; W82 @0x168; W83..W87 @0x16C..0x17C;
+    //   MIR 四字由 SNAP_LAST_IDX 自动下移 ⇒ MIR_STATUS/DATA/CTRL/DMA_CNT = 0x180/0x184/0x188/0x18C;
+    //   **未实现地址 = 0x190** (word 100); {snap_idx,5'b0} 最大 = (88-1)<<5 = 2784 < 4096 ✓;
+    //   snap_idx = r_word[6:0]-8 最大 87 ⇒ 7 位 ✓ (回绕红线仍 ≥0x200).
+    localparam SNAP_NW_P6E = 88;        // 总字数 W0..W87 (未实现地址 = 0x190 = word 100)
     // ⭐ P7B-GAP9-TX (2026-10-10): 63 → **65** (W63/W64 = app_pattern 的两个停滞计数器)。
     //   预算复算: 65 ≤ 119 (7 位译码上限) ✓; 未实现地址 = 0x20+4*65 = **0x124** (word 73, 真正未实现);
     //   `{snap_idx,5'b0}` 最大 = (65-1)<<5 = 2048 < 4096 ⇒ `axi_regs.snap_base` 仍是 [11:0] (**不动**);
@@ -3540,7 +3893,8 @@ module wrapper_p4 #(
     localparam SNAP_DP_NW  = 22;        // DP 束字数 (b 域 = dp_clk)
     // P7b 三条新束的字数 (与上面同源: 装配段 `snap_dout_all` 的项数必须与之对账)
     localparam SNAP_P7BFE_NW = 3;       // W36..W38 (b 域 = gmii_clk)
-    localparam SNAP_P7BDP_NW = 39;      // W39/W40, W45..W50 + W51..W60 (BIZ) + W61/W62 (WU)
+    localparam SNAP_P7BDP_NW = 44;      // P11: 39 → 44 (槽 39..43 = W83..W87)
+                                        // W39/W40, W45..W50 + W51..W60 (BIZ) + W61/W62 (WU)
                                         //   + **W63/W64 (P7B-GAP9-TX 的两个停滞计数器)**
                                         //   + **W66 (构建 E: tcp_tx_frame.stat_winstall)**
                                         //   + **W67/W68/W69 (构建 F: 三个纯观测仪器 —— 板帽侧
@@ -4453,6 +4807,41 @@ module wrapper_p4 #(
     assign p7bdp_din[36*32 +: 32] = ch0_pcs_status;  // 槽 36 → W76
     assign p7bdp_din[37*32 +: 32] = ch0_pcs_evt;     // 槽 37 → W77
     assign p7bdp_din[38*32 +: 32] = ch0_los_bundle;  // 槽 38 → W78
+    // ---- P11 P2-甲: 槽 39..43 = W83..W87 (全部 dp 域寄存器输出) ----
+    //   N-10: 非 DUAL 构建 W83/W84/W86/W87 = 常量 0; **W85 仍真** (classify 两构建都在)。
+    //   W85 = (cls_stat_fast + cls_stat_slow)[31:0] —— 显式 33 位和再截断 (L-5)。
+    function [15:0] sat16;   // W86/W87 的 16 位饱和 (饱和后只表示 "≥0xFFFF")
+        input [31:0] v;
+        begin
+            sat16 = (v > 32'h0000FFFF) ? 16'hFFFF : v[15:0];
+        end
+    endfunction
+`ifdef DUAL_SFP_A
+  `ifdef APP_MODE
+    wire [31:0] w83_dp = tx_p0_frames;                    // ch1 TX 帧数
+    wire [31:0] w84_dp = tx_p1_frames;                    // ch0 TX 帧数
+    wire [31:0] w85_dp = ({1'b0, cls_stat_fast} + {1'b0, cls_stat_slow}); // [31:0] 截断
+    wire [31:0] w86_dp = {sat16(ch0_rxcdc_ovf_dp), sat16(txcdc1_ovf_cnt)};
+    wire [31:0] w87_dp = {sat16(ch0_tx_abort_dp),  sat16(ch0_tx_frames_dp)};
+  `else
+    wire [31:0] w83_dp = 32'd0;
+    wire [31:0] w84_dp = 32'd0;
+    wire [31:0] w85_dp = ({1'b0, cls_stat_fast} + {1'b0, cls_stat_slow});
+    wire [31:0] w86_dp = 32'd0;
+    wire [31:0] w87_dp = 32'd0;
+  `endif
+`else
+    wire [31:0] w83_dp = 32'd0;
+    wire [31:0] w84_dp = 32'd0;
+    wire [31:0] w85_dp = ({1'b0, cls_stat_fast} + {1'b0, cls_stat_slow});
+    wire [31:0] w86_dp = 32'd0;
+    wire [31:0] w87_dp = 32'd0;
+`endif
+    assign p7bdp_din[39*32 +: 32] = w83_dp;   // 槽 39 → W83
+    assign p7bdp_din[40*32 +: 32] = w84_dp;   // 槽 40 → W84
+    assign p7bdp_din[41*32 +: 32] = w85_dp;   // 槽 41 → W85
+    assign p7bdp_din[42*32 +: 32] = w86_dp;   // 槽 42 → W86
+    assign p7bdp_din[43*32 +: 32] = w87_dp;   // 槽 43 → W87
 
     snap_cdc #(.W(32), .NW(SNAP_P7BFE_NW)) u_snap_p7bfe (
         .clk_a(pcie_axi_aclk), .rst_n(pcie_axi_aresetn), .req_a(snap_req),
@@ -4472,6 +4861,23 @@ module wrapper_p4 #(
         .dout_a(txsnap_dout),
         .valid_a(txsnap_valid), .clk_b(tx_fe_clk), .din_b(txsnap_din)
     );
+
+`ifdef DUAL_SFP_A
+    // ---- P11 P2-甲 (N-4): ch0 跨域计数镜像 (4 相 toggle/ack, 禁裸 2FF 多比特) ----
+    //   u_maccnt_ch0rx: ch0 RX FIFO 拒写 (gmii_clk_0) -> dp_clk
+    //   u_maccnt_ch0tx: ch0 MAC TX {abort,frames} (tx_fe_clk_0) -> dp_clk (同采样拍)
+    //   线名声明已上移到 DUAL TX 束 (p7bdp 槽 42/43 的使用点之前)。
+    maccnt_sync #(.W(32)) u_maccnt_ch0rx (
+        .src_clk(gmii_clk_0), .src_rst_n(rx_mac_rst_n_0),
+        .src_val(ch0_rxcdc_ovf), .src_tick(1'b1),
+        .dst_clk(dp_clk), .dst_rst_n(dp_rst_n), .dst_val(ch0_rxcdc_ovf_dp)
+    );
+    maccnt_sync #(.W(64)) u_maccnt_ch0tx (
+        .src_clk(tx_fe_clk_0), .src_rst_n(tx_mac_rst_n_0),
+        .src_val(ch0_tx_cnt_src), .src_tick(1'b1),
+        .dst_clk(dp_clk), .dst_rst_n(dp_rst_n), .dst_val(ch0_tx_cnt_dp)
+    );
+`endif
 
     // ---- P1: ch0 计数束 (W79..W82), b 域 = rx_clk_out_0 (ch0 CDR 恢复钟) ----
     //   ⚠️ 该钟在拔线/LOS 负对照时可能停 ⇒ 本束必须由下面的“汇合超时”兜住,
@@ -4598,7 +5004,31 @@ module wrapper_p4 #(
     //      (它们的源 = tcp_tx_frame, 在任何构建里都例化)。
     //   ⚠️ **新增项一律写在最上面 (= 向量 MSB 端 = 最高槽号)**: 这样 W0..W50 的槽号
     //      逐项不动 (已入库的板级读数不受影响)。写错位置 = 全体旧字平移 = 假读数。
+    // P11 P2-甲 (N-10): 顶端 5 字的 tie-off 先选源 (避免在拼接里放 ifdef —
+    // check_window.py 的装配项解析要求拼接体是纯项列表)。
+`ifdef DUAL_SFP_A
+    wire [32-1:0] w87_snap; wire [32-1:0] w86_snap; wire [32-1:0] w85_snap;
+    wire [32-1:0] w84_snap; wire [32-1:0] w83_snap;
+    assign w87_snap = w87_dp;
+    assign w86_snap = w86_dp;
+    assign w85_snap = w85_dp;
+    assign w84_snap = w84_dp;
+    assign w83_snap = w83_dp;
+`else
+    wire [32-1:0] w87_snap; wire [32-1:0] w86_snap; wire [32-1:0] w85_snap;
+    wire [32-1:0] w84_snap; wire [32-1:0] w83_snap;
+    assign w87_snap = 32'd0;   // N-10: 非 DUAL 构建 tie-off
+    assign w86_snap = 32'd0;
+    assign w85_snap = w85_dp;  // W85 仍真 (classify 总帧)
+    assign w84_snap = 32'd0;
+    assign w83_snap = 32'd0;
+`endif
     wire [SNAP_NW_P6E*32-1:0] snap_dout_all = {
+        w87_snap,                  // W87 ch0 MAC TX {abort(16),frames(16)} 饱和 (P11)
+        w86_snap,                  // W86 ch0 FIFO ovf {rx(16),tx(16)} 饱和 (P11)
+        w85_snap,                  // W85 rx_classify 总帧数 (fast+slow, [31:0] 截断)
+        w84_snap,                  // W84 TX port1 (ch0) 帧数 (P11; 槽 40)
+        w83_snap,                  // W83 TX port0 (ch1) 帧数 (P11; 槽 39)
         ch0snap_dout[3*32 +: 32],  // W82 ch0 RX 丢帧数 (mac_rx_ch0.stat_drop; P1; 槽 3)
         ch0snap_dout[2*32 +: 32],  // W81 ch0 RX FCS 错帧数 (mac_rx_ch0.stat_crc_err; P1; 槽 2)
         ch0snap_dout[1*32 +: 32],  // W80 ch0 RX 好帧载荷字节 (Σpopc(tkeep) 仅好帧; P1; 槽 1)
@@ -4821,7 +5251,7 @@ module wrapper_p4 #(
 
     axi_regs #(
         .MAGIC_V    (32'h50360001),
-        .BUILD_ID_V (32'h0000002B),     // ⚠️ 每次改动自增 (前置闸读这一项认位流; P1 = ch0 bring-up + W76..W82 = 0x2B)
+        .BUILD_ID_V (32'h0000002C),   // P11 P2-甲 双口 + 双 IP (乙顺延 0x2D)     // ⚠️ 每次改动自增 (前置闸读这一项认位流; P1 = ch0 bring-up + W76..W82 = 0x2B)
                                         //   ⭐ 本轮构建 (2026-10-15): **0x27 → 0x28** = **E12 观测计数器**
                                         //      (换流门四计数器: `stat_up_ev` / `stat_sw_req` /
                                         //       `stat_sw_apply` / `stat_up_pend` —— `rtl/app_pattern.v`

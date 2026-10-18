@@ -270,18 +270,23 @@ def main():
     #      (W82..W79), 其下才是 p7bdp 槽 38..26 (W78..W66)。上一代 (p9 孤儿修复)
     #      顶端是 10 项纯 p7bdp; P1 在其上插了 7 项 (4 ch0 + 3 p7bdp) ⇒ 17 项。
     #      (本门 2026-10-18 实测红的就是这里: 旧期望把 17 项全按 p7bdp 生成。)
-    nnew_top = 17                             # W82..W66 (ch0 槽 3..0 = 4 项 + p7bdp 槽 38..26 = 13 项)
+    #   ⭐ P11 P2-甲 (2026-10-18): 顶端再插 5 项 —— **W87..W83 = p7bdp 槽 43..39**
+    #      (`w87_dp..w83_dp`), 其下才是 P1 的 ch0 束 4 项 + p7bdp 槽 38..26 (13 项)。
+    nnew_top = 22                             # W87..W66 (p7bdp 43..39 = 5 + ch0 槽 3..0 = 4 + p7bdp 38..26 = 13)
+    np11_top = 5                              # 本轮新增的 p7bdp 槽 43..39 项数
     nch0_top = 4                              # 顶端 ch0 束项数 (= SNAP_CH0_NW, W82..W79)
     ntx = 1                                   # 其后的 tx 束项数 (W65)
     nnew = 14                                 # W64..W51 (槽 25..12) —— 历史段
     topn = [code_of(x) for x in items[0:nnew_top]]
-    want_top = (["ch0snap_dout[%d*32 +: 32]" % (ch0 - 1 - i) for i in range(nch0_top)] +
-                ["p7bdp_dout[%d*32 +: 32]" % (pdp - 1 - i)
-                 for i in range(nnew_top - nch0_top)])
+    want_top = (["w%d_snap" % (87 - i) for i in range(np11_top)] +
+                ["ch0snap_dout[%d*32 +: 32]" % (ch0 - 1 - i) for i in range(nch0_top)] +
+                ["p7bdp_dout[%d*32 +: 32]" % (pdp - 1 - np11_top - i)
+                 for i in range(nnew_top - np11_top - nch0_top)])
     ck(topn == want_top,
-       "5a 最上面 %d 项 = ch0 槽 %s + p7bdp 槽 %s (P11 P1)"
-       % (nnew_top, "/".join("%d" % (ch0 - 1 - i) for i in range(nch0_top)),
-          "/".join("%d" % (pdp - 1 - i) for i in range(nnew_top - nch0_top))),
+       "5a 最上面 %d 项 = W%d..W%d snap + ch0 槽 %s + p7bdp 槽 %s (P11 P2-甲)"
+       % (nnew_top, 87, 87 - np11_top + 1,
+          "/".join("%d" % (ch0 - 1 - i) for i in range(nch0_top)),
+          "/".join("%d" % (pdp - 1 - np11_top - i) for i in range(nnew_top - np11_top - nch0_top))),
        "(实际 %s, 期望 %s)" % (topn, want_top))
     top2 = code_of(items[nnew_top])
     want2 = "txsnap_dout[%d*32 +: 32]" % (tx - 1)
@@ -319,7 +324,7 @@ def main():
     ch0_map = ((79, 0, "ch0_rx_frames"), (80, 1, "ch0_rx_bytes"),
                (81, 2, "ch0_stat_crc_err"), (82, 3, "ch0_stat_drop"))
     for k, slot, src_name in ch0_map:
-        k2 = 82 - k
+        k2 = 82 - k + np11_top
         want_asm = "ch0snap_dout[%d*32 +: 32]" % slot
         ck(code_of(items[k2]) == want_asm, "5c 槽号映射 W%d (ch0 束装配)" % k,
            "(装配第 %d 项 = '%s', 期望 '%s')" % (k2, code_of(items[k2])[:40], want_asm))
@@ -327,6 +332,13 @@ def main():
         got = ch0_din_items[din_idx] if din_idx < len(ch0_din_items) else "<缺项>"
         ck(got == src_name, "5c 槽号映射 W%d (ch0 束 din)" % k,
            "(ch0snap_din 第 %d 项 = '%s', 期望 '%s')" % (din_idx, got[:40], src_name))
+    # W83..W87: p7bdp 槽 39..43, RHS = 本轮新增的 5 条具名线
+    for k, slot, src_name in ((83, 39, "w83_dp"), (84, 40, "w84_dp"),
+                              (85, 41, "w85_dp"), (86, 42, "w86_dp"),
+                              (87, 43, "w87_dp")):
+        pat = r"assign\s+p7bdp_din\[%d\*32\s*\+\:\s*32\]\s*=\s*%s\s*;" % (slot, src_name)
+        ck(re.search(pat, src0) is not None, "5c 槽号映射 W%d (P11 P2-甲)" % k,
+           "(p7bdp_din[%d*32 +: 32] = %s)" % (slot, src_name))
     # 5d: W65 的**跨文件一致性** (端口 ↔ 接线 ↔ 束槽). 防两种半成品:
     #     "端口加了但没接快照字" (被综合整条优化掉) 与 "只在 wrapper 接、`mac_tx_10g`
     #     没那个端口" (只有合体构建才报错); 另防"接进了错的槽" (最高槽必须是它)。
@@ -482,7 +494,8 @@ def main():
         ck(re.search(r"output\s+reg\s+\[31:0\]\s+stat_fifo_ovf", a2) is not None,
            "10 %s 有 `output reg [31:0] stat_fifo_ovf`" % mod)
         # 该模块的例化块内必须连到**同名线** (用模块名到下一个 `);` 之间的片段判)
-        mm = re.search(r"%s\s+u_\w+\s*\((.*?)\n\s*\);" % mod, src0, re.S)
+        # P11 P2-甲: 例化点可能带 #(...) 参数表 (slow_tx_adp/udp_tx_cfg 等)
+        mm = re.search(r"%s\s+(?:#\s*\(.*?\)\s*)?u_\w+\s*\((.*?)\n\s*\);" % mod, src0, re.S)
         ck(mm is not None and re.search(r"\.stat_fifo_ovf\s*\(\s*%s\s*\)" % wire, mm.group(1)) is not None,
            "10 %s.stat_fifo_ovf 接到 `%s` (不是接反)" % (mod, wire))
         ck(re.search(r"biz_w%d\s*=\s*%s" % (word, wire), src0) is not None,

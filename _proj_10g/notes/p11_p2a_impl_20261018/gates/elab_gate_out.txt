@@ -1,0 +1,22 @@
+[P4GUARD OK] root=d:\repo\xcku5pmini\udp_hls_10g self=d:\repo\xcku5pmini\udp_hls_10g manifests=12
+[ELAB c1] DEFS=[-d DEV_USP -d APP_MODE -d DP_156MHZ -d P6B_SIM_CLKGEN -d UDP_TX_OVL -d TCP_TX_OVL -d P7B_10G -d P7B_SIM_NOPCS -d PCIE_OBS] OK
+[ELAB c2] DEFS=[-d DEV_USP -d APP_MODE -d DP_156MHZ -d P6B_SIM_CLKGEN -d UDP_TX_OVL -d TCP_TX_OVL -d PCIE_OBS] OK
+[ELAB c3] DEFS=[-d DEV_USP -d APP_MODE -d DP_156MHZ -d P6B_SIM_CLKGEN -d UDP_TX_OVL -d TCP_TX_OVL -d P7B_10G -d P7B_SIM_NOPCS] OK
+[ELAB c4] DEFS=[-d DEV_USP -d APP_MODE -d DP_156MHZ -d P6B_SIM_CLKGEN -d UDP_TX_OVL -d TCP_TX_OVL] OK
+[ELAB c5] DEFS=[-d DEV_USP -d APP_MODE -d DP_156MHZ -d P6B_SIM_CLKGEN -d UDP_TX_OVL -d TCP_TX_OVL -d P7B_10G -d P7B_SIM_NOPCS -d PCIE_OBS -d SFP2_MODE_A] OK
+[ELAB c6] EXPECTED-FAIL OK at xelab
+ERROR: [VRFC 10-2063] Module <SFP2_MODE_A_AND_B_CONFLICT> not found while processing module instance <g_sfp2_mode_conflict.u_sfp2_mode_conflict> [D:/repo/XCKU5PMini/udp_hls_10g/board/wrapper_p4.v:276]
+[ELAB c7] EXPECTED-FAIL OK at xelab
+ERROR: [VRFC 10-2063] Module <SFP2_MODE_B_REQUIRES_P7B_10G> not found while processing module instance <g_sfp2_mode_b_requires_p7b.u_sfp2_mode_b_requires_p7b> [D:/repo/XCKU5PMini/udp_hls_10g/board/wrapper_p4.v:280]
+[ELAB c8] DEFS=[-d DEV_USP -d APP_MODE -d DP_156MHZ -d P6B_SIM_CLKGEN -d UDP_TX_OVL -d TCP_TX_OVL -d P7B_10G -d P7B_SIM_NOPCS -d PCIE_OBS -d DUAL_SFP_A] OK
+[ELAB c9] EXPECTED-FAIL OK at xelab
+ERROR: [VRFC 10-2063] Module <DUAL_SFP_A_REQUIRES_P7B_10G> not found while processing module instance <g_dual_requires_p7b.u_dual_requires_p7b> [D:/repo/XCKU5PMini/udp_hls_10g/board/wrapper_p4.v:305]
+[ELAB c10] EXPECTED-FAIL OK at xelab
+ERROR: [VRFC 10-2063] Module <DUAL_SFP_A_AND_SFP2_MODE_B_CONFLICT> not found while processing module instance <g_dual_and_sfp2_b.u_dual_and_sfp2_b> [D:/repo/XCKU5PMini/udp_hls_10g/board/wrapper_p4.v:319]
+[ELAB c11] EXPECTED-FAIL OK at xelab
+ERROR: [VRFC 10-2063] Module <DUAL_SFP_A_REQUIRES_DP_156MHZ> not found while processing module instance <g_dual_requires_dp.u_dual_requires_dp> [D:/repo/XCKU5PMini/udp_hls_10g/board/wrapper_p4.v:310]
+[ELAB c12] EXPECTED-FAIL OK at xelab
+ERROR: [VRFC 10-2063] Module <DUAL_SFP_A_REQUIRES_APP_MODE> not found while processing module instance <g_dual_requires_app.u_dual_requires_app> [D:/repo/XCKU5PMini/udp_hls_10g/board/wrapper_p4.v:315]
+[ELAB STRICT] count_0=1 count_1=0 (expect 1 / 0)
+ELAB_COMBO_FAILS=0 (12 combos: 4 macro + 3 SFP2 mode + 1 DUAL positive + 4 DUAL hard gates)
+ELAB_4COMBO_PASS

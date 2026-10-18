@@ -153,7 +153,7 @@ run_case oldwindow 2 "窗口不完整: 缺 W36" "$S/s1.txt,$S/m_36word.txt" "$NI
 # 地址错一位: 每个 W<i> 里装的是 word i+1 的值 (末字回绕成 W0) —— 守恒律必然破
 awk '/^W[0-9]+ /{ split($1,a,"W"); idx=a[2]; val[idx]=$2; n++; next } { print }' "$S/s1.txt" > "$S/m_off_a.txt"
 awk '/^W[0-9]+ /{ split($1,a,"W"); idx=a[2]; val[idx]=$2; n++; next } { print }' "$S/s2.txt" > "$S/m_off_b.txt"
-shift1(){ awk -v NW=83 '/^W[0-9]+ /{ split($1,a,"W"); idx=a[2]+1; if(idx>NW-1) idx=0; printf "W%d %s\n", idx, $2; next } { print }' "$1" > "$2"; }
+shift1(){ awk -v NW=88 '/^W[0-9]+ /{ split($1,a,"W"); idx=a[2]+1; if(idx>NW-1) idx=0; printf "W%d %s\n", idx, $2; next } { print }' "$1" > "$2"; }
 shift1 "$S/s1.txt" "$S/m_off_a.txt"; shift1 "$S/s2.txt" "$S/m_off_b.txt"
 run_case offbyone 1 "B_CONS-a" "$S/m_off_a.txt,$S/m_off_b.txt" "$NIC"
 

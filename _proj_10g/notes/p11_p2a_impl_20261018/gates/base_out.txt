@@ -1,0 +1,41 @@
+
+=== CRC32 ===
+
+=== Reset ===
+
+=== UDP default frame ===
+
+=== ARP Reply ===
+
+=== ICMP Echo ===
+
+=== IGMPv2 ===
+
+=== IGMPv1 ===
+
+=== IP checksum ===
+
+=== EtherType dispatch ===
+
+=== ARP active lookup ===
+ 74 bytes
+
+=== VLAN single tag (802.1Q) ===
+
+=== VLAN QinQ (802.1ad) ===
+
+=== UDP echo immediate + src-port ===
+
+=== TCP SYN -> SYN-ACK (handshake) ===
+ FAIL: got SYN-ACK
+
+=== TCP echo multi-MSS (2000B in 4 segments) ===
+recv_total=0
+ FAIL: all 2000 echo bytes received
+
+=== TCP echo 536B segment (Windows ignores MSS=460) ===
+ FAIL: got SYN-ACK
+
+=== DHCP Discover ===
+ 74 bytes
+INFO [HLS SIM]: The maximum depth reached by any hls::stream() instance in the design is 148

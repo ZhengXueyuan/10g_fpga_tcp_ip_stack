@@ -259,6 +259,16 @@ REM        (a checker that cannot go red is a toothless checker).
 REM     B. run_tb_biz_win.bat -> TB_BIZ_WIN_PASS (NW=83 per-word readback).
 REM   See _proj_10g/notes/p7b_biz_win/run_gate_biz_win_check.bat header.
 call :gate biz_win     _proj_10g\notes\p7b_biz_win\run_gate_biz_win_check.bat bizwinsrc.f -                  -
+REM ---- P11 P2-甲 (2026-10-18) three new gates (#23/#24/#25; 21 -> 24) --------
+REM   G2 rx_merge2 unit (RR / work-conserving / atomicity / STRICT=1 N-13 negctl).
+REM   G5 tcp_tx_frame per-conn source IP (OVL+default bodies, N-6, replay, mutant red).
+REM   G6 real wrapper + DUAL_SFP_A dual-port chain (HLS arm A = IP_A only; IP_B
+REM      needs the re-synthesised dual-IP HLS netlist => build round).
+REM   G3/G4 are standalone (not registered; registered debt per design M-5):
+REM      _proj_10g/p11_dual/sim/{tb_tx_split,tb_slow_tx_port}.v
+call :gate g2_rx_merge2 _proj_10g\p11_dual\sim\run_tb_rx_merge2.bat p11merge_src.f -                  -
+call :gate g5_tcp_srcip _proj_10g\p11_dual\sim\run_tb_tcp_tx_srcip.bat p11srcip_src.f -                -
+call :gate g6_p11_dual _proj_10g\p11_dual\sim\run_tb_p11_dual.bat p11dual_src.f -                     -
 
 call :log "--- revision fingerprint (after) ---"
 "%PY%" "%P4GATE_PY%" fingerprint --root "%REPO_ROOT%" --out "%FP_AFTER%" --label after >>"%MATRIX_LOG%" 2>&1
