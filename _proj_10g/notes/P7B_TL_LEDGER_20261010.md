@@ -2070,4 +2070,4 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - **资源（placed）**：LUT **122,366 (56.40%)** / FF **98,160 (22.62%)** / BRAM **109 (22.71%)** / URAM **17 (26.56%)** / DSP 4。**设计纸面 BRAM 267/395、URAM 1 不成立**（P3 HLS/128KB echo 映射到 URAM/分布式 RAM）；资源账待订正。
 - **构建轮修掉三个集成缺陷**（前两次失败原因）：① RTL 清单漏 5 个新件（`slow_cfg_demux` 首报 not found）；② C4 module-resolve 门误要求退役的 `rx_merge2/tx_demux2 ≥1`（改为 C4 预期 0 + 5 个 P3 新件 ≥1/无黑盒）；③ `p11_build_cfg.tcl` 的 `switch` 体内行内 `;#` 被 Tcl 解析成额外 pattern（删除注释，`P11_BUILDCFG_GATE PASS`）。
 - **已通过**：IP 收敛 2；P3 模块 5/5=1、blackbox 0；F-21 CDC 槽 39/40 OK + fanout OK；`P7B_BIT_EXISTS=1`。矩阵 41/41 FROZEN 在 `148a2f22`（Tcl 修复前；buildcfg 门单独重跑 PASS）。
-- **下一棒**：给 `o_quota_rel`/manager 事件-算术加 1–2 拍流水（首选）→ 定向 STA 预检 → 重建（新 BID，建议 0x30）；若仍不收敛退 M3（违背共享语义）；**0x2F 位流禁烧**。板仍 = 0x2D + `0x08=0` + carrier 1/1；未上板、QSPI 零写。
+- **下一棒**：**先补构建脚本时序硬门**（`P7B_VERDICT=OK` 只判位流存在，必须加 `WNS>0 ∧ 三类失败端点=0`；否则时序 FAIL 也会拿 OK）→ 给 `o_quota_rel`/manager 事件-算术加 1–2 拍流水（首选）→ 定向 STA 预检 → 重建（新 BID，建议 0x30）；若仍不收敛退 M3（违背共享语义）；**0x2F 位流禁烧**。板仍 = 0x2D + `0x08=0` + carrier 1/1；未上板、QSPI 零写。

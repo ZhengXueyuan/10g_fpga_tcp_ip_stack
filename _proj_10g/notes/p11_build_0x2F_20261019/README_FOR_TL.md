@@ -66,6 +66,7 @@ Logic Levels: 42 (CARRY8=14, LUT2/3/4/5/6, MUXF7=3)
 
 ## 6. 下一棒（按优先级）
 
+0. **先补构建脚本的时序硬门**：本轮 `P7B_VERDICT=OK` 只判位流存在，**不判 WNS/失败端点** ⇒ 时序 FAIL 的位流也拿到 OK。下一轮构建前必须把 `WNS>0 ∧ setup/hold/PW 失败端点=0` 写成 `P7B_VERDICT` 的前置条件（或 bat 的 `P7B-TIMING-GATE`），否则同形误判会复发。
 1. **给 release/grant 路径加流水**（首选）：`o_quota_rel` / `o_quota_rel_slot` 打 1 拍；`win_pool_mgr` 的事件捕获→算术→`pool/winq/port_win` 更新改成 1–2 拍流水（事件稀疏，延迟可接受）。目标：切断 `app_ctrl 扫描态 → port_win` 的组合链；重跑 `tb_win_pool_mgr` / `tb_p3_churn` 与定向 STA。
 2. 若流水后仍不收敛：退 **M3（每口 48KB，无共享 manager）**，明确违背用户"共享池"语义；或对 `o_quota_rel` 只做寄存、manager 侧保持组合（先量哪一段占 13.137ns）。
 3. **重建用新 BID（建议 0x30）**；0x2F 位流 `088948df…` **禁烧**。
