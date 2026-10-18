@@ -387,14 +387,23 @@ foreach c [concat $c1 $c2 $c3] {
     if {[get_property IS_BLACKBOX $c]} { incr bb }
 }
 puts "P7B_BLACKBOX_COUNT $bb"
-if {$n1 < 1 || $n2 < 1 || $n3 < 1 || $bb != 0} { puts "P7B_MODULE_MISSING_OR_BLACKBOX" ; exit 1 }
+# ⛔ P11 0x2D backstop-1 (2026-10-18): 预登记 backstop 第 1 档「删 W86/W87」删除了
+#    u_maccnt_ch0rx/u_maccnt_ch0tx 的唯一消费者 (p7bdp 槽 42/43) ⇒ 无负载实例会被
+#    综合剪掉 ⇒ maccnt_sync 实例数 = 0 是本档的**预期读数**, 不是黑盒/漏导入。
+#    本门仍硬性要求 rx_merge2/tx_demux2 ≥1 且所有实例 IS_BLACKBOX=0; maccnt_sync
+#    只作读数打印。⚠️ 若后续退档恢复 W86/W87, 必须把 `$n3 < 1` 条件加回。
+if {$n1 < 1 || $n2 < 1 || $bb != 0} { puts "P7B_MODULE_MISSING_OR_BLACKBOX" ; exit 1 }
 
-# ---- P11 F-21: W83..W87 must pass through u_snap_p7bdp's coherent CDC ----
+# ---- P11 F-21: W83/W84 must pass through u_snap_p7bdp's coherent CDC ----
 #   0x2C 构建的布后实测: `snap_dout_all` 顶部 5 项走 `w8x_snap = w8x_dp` 直连 ⇒
 #   p7bdp 槽 39..43 成死逻辑 (`hold_b_reg[1248..1407]` = 0 个寄存器),
 #   `tx_p0_frames_r_reg[0]/Q` 直接进 `u_pcie_regs/snap_din` (裸多比特 CDC)。
+#   ⛔ P11 0x2D backstop-1 (2026-10-18): W86/W87 已删 ⇒ 剩余槽集 = 39..41;
+#      ⛔ backstop-2: 再删 W85 ⇒ 剩余槽集 = 39..40 (位 1248..1311; 对应 W83/W84)。
+#      门**必须**按剩余槽集检查, 否则会因已删槽位不存在而假红。改动属新输入,
+#      已在 0x2D retry 报告登记。
 #   本段是**综合后 (post-synth) 结构门** (open_run synth_1 = 综合网表; 构建轮执行):
-#     ① 槽 39..43 (位 1248..1407) 每个槽至少 1 个 hold_b 寄存器;
+#     ① 槽 39..40 (位 1248..1311) 每个槽至少 1 个 hold_b 寄存器;
 #     ② `tx_p0_frames_r_reg[0]/Q` 的负载里**必须**有 u_snap_p7bdp/hold_b,
 #        且**不得**有 u_pcie_regs/snap_din (综合名) / snap_words_r (布局名)。
 #   ⚠️ 负载枚举必须 `get_pins -leaf`: 层次边界 pin
@@ -403,7 +412,7 @@ if {$n1 < 1 || $n2 < 1 || $n3 < 1 || $bb != 0} { puts "P7B_MODULE_MISSING_OR_BLA
 #   失败 = `P7B_SNAP_TOP5_CDC_MISSING` / `P7B_SNAP_TOP5_FANOUT_BAD` + exit 1。
 sec "P7B_SNAP_TOP5_CDC"
 set top5_bad 0
-for {set s 39} {$s <= 43} {incr s} {
+for {set s 39} {$s <= 40} {incr s} {
     set lo [expr {$s * 32}]
     set hi [expr {$s * 32 + 31}]
     set nc 0
@@ -419,7 +428,7 @@ if {$top5_bad != 0} {
     puts "P7B_SNAP_TOP5_CDC_MISSING slots_with_zero_cells=$top5_bad"
     exit 1
 }
-puts "P7B_SNAP_TOP5_SLOTS_OK = 5"
+puts "P7B_SNAP_TOP5_SLOTS_OK = 2"
 set f_pin [get_pins -quiet -filter "NAME == tx_p0_frames_r_reg\[0\]/Q"]
 if {[llength $f_pin] != 1} {
     puts "P7B_SNAP_TOP5_FANOUT_BAD pin_not_found tx_p0_frames_r_reg\[0\]/Q"

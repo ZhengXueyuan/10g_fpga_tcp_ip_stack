@@ -1,0 +1,99 @@
+# P11 build 0x2D retry directed STA (post-route dcp)  Sun Oct 18 18:19:39 +0800 2026
+# dcp = D:/repo/XCKU5PMini/udp_hls_10g/vivado_prj/p7b_ku5p_prj.runs/impl_1/wrapper_p4_routed.dcp
+# NOTE: this file records THIS dcp only (WNS = -0.013).
+# GLOBAL worst_setup_slack = -0.013
+# GLOBAL start = u_tcp_tx/u_fifo_b/wptr_reg[1]/C
+# GLOBAL end   = u_tcb/snd_una_r_reg[3][15]/CE
+
+# --- DP group (g_hw.clk_out0) top10 by slack ---
+DP01 slack=-0.013  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_tcb/snd_una_r_reg[3][15]/CE
+DP02 slack=-0.013  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_tcb/snd_una_r_reg[3][19]/CE
+DP03 slack=-0.013  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_tcb/snd_una_r_reg[3][21]/CE
+DP04 slack=-0.013  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_tcb/snd_una_r_reg[3][7]/CE
+DP05 slack=-0.013  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_tcb/snd_una_r_reg[10][23]/CE
+DP06 slack=-0.013  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_tcb/snd_una_r_reg[10][31]/CE
+DP07 slack=-0.013  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_tcp_tx/u_ackq/mem_reg_0_31_0_13/RAMD_D1/I
+DP08 slack=-0.013  u_app_ctrl/o_ev_up_reg/C -> u_app_ctrl/orph_cnt_reg[4][2]/CE
+DP09 slack=-0.013  u_app_ctrl/o_ev_up_reg/C -> u_app_ctrl/orph_cnt_reg[4][6]/CE
+DP10 slack=-0.012  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_tcb/rcv_nxt_r_reg[15][27]/CE
+
+# --- 200 worst setup paths with slack < 0 (the 37 failing endpoints live here) ---
+NEG001 slack=-0.013  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_tcb/snd_una_r_reg[3][15]/CE
+NEG002 slack=-0.013  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_tcb/snd_una_r_reg[3][19]/CE
+NEG003 slack=-0.013  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_tcb/snd_una_r_reg[3][21]/CE
+NEG004 slack=-0.013  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_tcb/snd_una_r_reg[3][7]/CE
+NEG005 slack=-0.013  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_tcb/snd_una_r_reg[10][23]/CE
+NEG006 slack=-0.013  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_tcb/snd_una_r_reg[10][31]/CE
+NEG007 slack=-0.013  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_tcp_tx/u_ackq/mem_reg_0_31_0_13/RAMD_D1/I
+NEG008 slack=-0.013  u_app_ctrl/o_ev_up_reg/C -> u_app_ctrl/orph_cnt_reg[4][2]/CE
+NEG009 slack=-0.013  u_app_ctrl/o_ev_up_reg/C -> u_app_ctrl/orph_cnt_reg[4][6]/CE
+NEG010 slack=-0.012  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_tcb/rcv_nxt_r_reg[15][27]/CE
+NEG011 slack=-0.012  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_tcb/rcv_nxt_r_reg[15][29]/CE
+NEG012 slack=-0.012  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_tcb/rcv_nxt_r_reg[15][2]/CE
+NEG013 slack=-0.012  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_tcb/rcv_nxt_r_reg[15][31]/CE
+NEG014 slack=-0.011  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_tcb/snd_una_r_reg[1][21]/CE
+NEG015 slack=-0.009  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_app/pw_data_reg[23]/D
+NEG016 slack=-0.009  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_tcb/rcv_nxt_r_reg[15][11]/CE
+NEG017 slack=-0.009  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_tcb/rcv_nxt_r_reg[15][16]/CE
+NEG018 slack=-0.008  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_tcp_tx/u_ackq/mem_reg_0_31_0_13/RAME_D1/I
+NEG019 slack=-0.008  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_app_ctrl/orph_cnt_reg[9][2]/CE
+NEG020 slack=-0.008  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_app_ctrl/orph_cnt_reg[9][4]/CE
+NEG021 slack=-0.008  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_app_ctrl/orph_cnt_reg[9][7]/CE
+NEG022 slack=-0.005  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_tcb/rcv_nxt_r_reg[0][19]/CE
+NEG023 slack=-0.005  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_tcb/rcv_nxt_r_reg[0][1]/CE
+NEG024 slack=-0.005  u_app_ctrl/o_ev_up_reg/C -> u_app_ctrl/orph_saw_reg[0]/D
+NEG025 slack=-0.004  u_app_ctrl/o_ev_up_reg/C -> u_app_ctrl/st_pend_reg[6]/D
+NEG026 slack=-0.003  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_tcb/snd_una_r_reg[10][25]/CE
+NEG027 slack=-0.003  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_tcb/snd_una_r_reg[10][26]/CE
+NEG028 slack=-0.003  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_tcb/snd_una_r_reg[10][3]/CE
+NEG029 slack=-0.003  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_tcb/snd_una_r_reg[10][5]/CE
+NEG030 slack=-0.003  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_tcb/rcv_wnd_r_reg[12][11]/CE
+NEG031 slack=-0.003  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_tcb/snd_wnd_r_reg[15][3]/CE
+NEG032 slack=-0.002  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_tcb/rcv_wnd_r_reg[3][11]/CE
+NEG033 slack=-0.002  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_tcb/rcv_wnd_r_reg[3][12]/CE
+NEG034 slack=-0.002  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_tcb/rcv_wnd_r_reg[3][1]/CE
+NEG035 slack=-0.002  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_tcb/rcv_wnd_r_reg[3][8]/CE
+NEG036 slack=-0.001  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_tcb/rcv_wnd_r_reg[13][0]/CE
+NEG037 slack=-0.001  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_app/pw_valid_reg/D
+# negative paths in 200-worst = 37
+
+# --- directed families: worst setup path FROM the family ---
+u_tcp_tx/f_lip_reg                             cells=64    slack=1.727  u_tcp_tx/f_lip_reg[1][2]/C -> u_tcp_tx/f_ipcsum_reg[1][14]/D
+u_tcp_tx/ctrl_lip_reg                          cells=32    slack=1.365  u_tcp_tx/ctrl_lip_reg[26]/C -> u_tcp_tx/ctrl_tcpcsum_reg[9]/D
+u_rx_merge                                     cells=42    slack=2.625  u_rx_merge/sel_reg_rep/C -> u_vlan_strip/hold_reg[23]/CE
+u_tx_udp_arb                                   cells=9     slack=1.884  u_tx_udp_arb/busy_reg/C -> u_slow_tx/stat_purge_reg[28]/CE
+u_tx_udp_arb_p1                                cells=85    slack=1.977  u_tx_udp_arb_p1/sel_fast_reg/C -> u_udp_tx/u_fifo_a/dout_reg[55]/D
+u_tx_arb                                       cells=9     slack=1.772  u_tx_arb/sel_fast_reg/C -> u_tcp_tx/u_fifo_b/dout_reg[50]/D
+u_tx_arb_p1                                    cells=11    slack=1.581  u_tx_arb_p1/sel_fast_reg/C -> u_tcp_tx/u_fifo_b/dout_reg[50]/D
+u_hls                                          cells=43527 slack=0.265  u_hls/grp_dhcp_tx_process_fu_2064/ap_CS_fsm_reg[12]/C -> u_hls/buffer_r_U/udp_echo_buffer_r_RAM_2P_BRAM_1R1W_ram_u/ram_reg_bram_0/DINADIN[20]
+u_maccnt_ch0rx                                 cells=162   slack=4.416  u_maccnt_ch0rx/req_s2_reg/C -> u_maccnt_ch0rx/dst_val_reg[26]/CE
+u_maccnt_ch0tx                                 cells=311   slack=3.628  u_maccnt_ch0tx/ack_tgl_reg/C -> u_maccnt_ch0tx/dst_val_reg[62]/CE
+maccnt_sync(REF_NAME)                          cells=1    
+u_snap_p7bdp/hold_b_reg[1248..1407]            cells=160   (all u_snap_p7bdp/hold_b_reg = 1142)
+u_snap_p7bdp/hold_b_reg[1248..1407]            cells=160   slack=  u_snap_p7bdp/hold_b_reg[1324]/C -> u_snap_p7bdp/dout_a_reg[1324]/D
+u_snap_p7bdp/hold_b_reg[1248..1407]-TO         cells=160   slack=2.709  u_snap_p7bdp/tog_sync_b_reg[1]/C -> u_snap_p7bdp/hold_b_reg[1346]/CE
+cam_rd_dip -> u_tcp_tx/*csum*                  src_cells=0     snk_cells=1187
+cam_rd_dip -> u_tcp_tx/*csum*                   NO_PATH
+
+# --- directed families: worst setup path INTO the family ---
+u_tcp_tx/f_lip_reg-TO                          cells=64    slack=0.175  u_tcp_tx/u_fifo_b/wptr_reg[1]/C -> u_tcp_tx/f_lip_reg[1][16]/CE
+u_tcp_tx/ctrl_lip_reg-TO                       cells=32    slack=2.213  u_tcp_tx/u_fifo_a/wptr_reg[3]_replica/C -> u_tcp_tx/ctrl_lip_reg[15]/CE
+u_rx_merge/-TO                                 cells=42    slack=3.363  u_classify/u_wf/rptr_reg[0]/C -> u_rx_merge/busy_reg/D
+u_tx_udp_arb/-TO                               cells=9     slack=2.800  u_clkgen/rel_sr_reg[3]/C -> u_tx_udp_arb/busy_reg/CLR
+u_tx_udp_arb_p1/-TO                            cells=85    slack=2.800  u_clkgen/rel_sr_reg[3]/C -> u_tx_udp_arb_p1/sel_fast_reg/CLR
+u_tx_arb/-TO                                   cells=9     slack=2.800  u_clkgen/rel_sr_reg[3]/C -> u_tx_arb/sel_fast_reg/CLR
+u_tx_arb_p1/-TO                                cells=11    slack=2.800  u_clkgen/rel_sr_reg[3]/C -> u_tx_arb_p1/busy_reg/CLR
+u_hls/-TO                                      cells=43527 slack=0.265  u_hls/grp_dhcp_tx_process_fu_2064/ap_CS_fsm_reg[12]/C -> u_hls/buffer_r_U/udp_echo_buffer_r_RAM_2P_BRAM_1R1W_ram_u/ram_reg_bram_0/DINADIN[20]
+u_maccnt_ch0rx/-TO                             cells=162   slack=2.928  u_clkgen/rel_sr_reg[3]/C -> u_maccnt_ch0rx/ack_tgl_reg/CLR
+u_maccnt_ch0tx/-TO                             cells=311   slack=2.930  u_clkgen/rel_sr_reg[3]/C -> u_maccnt_ch0tx/data_s1_reg[5]/CLR
+
+# top200 scan for directed families (occurrences; heuristic only):
+f_lip_reg                    0
+ctrl_lip_reg                 0
+cam_rd_dip                   0
+u_rx_merge                   0
+u_tx_udp_arb                 0
+u_tx_arb                     0
+u_snap_p7bdp/hold_b_reg      0
+u_hls                        0
+u_maccnt                     0

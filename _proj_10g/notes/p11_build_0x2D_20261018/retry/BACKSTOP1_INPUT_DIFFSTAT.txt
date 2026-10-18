@@ -1,0 +1,11 @@
+warning: in the working copy of 'board/build_p7b_ku5p.tcl', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'board/p7b_ku5p_drc.rpt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'board/p7b_ku5p_util.rpt', LF will be replaced by CRLF the next time Git touches it
+ board/build_p7b_ku5p.tcl       |   18 +-
+ board/p7b_ku5p_clkinteract.rpt |   44 +-
+ board/p7b_ku5p_drc.rpt         |    2 +-
+ board/p7b_ku5p_stdout.txt      | 3625 ++++++++++++++++++++++++++++++++++-
+ board/p7b_ku5p_timing.rpt      | 4080 ++++++++++++++++++++--------------------
+ board/p7b_ku5p_util.rpt        |   66 +-
+ board/wrapper_p4.v             |   87 +-
+ 7 files changed, 5705 insertions(+), 2217 deletions(-)

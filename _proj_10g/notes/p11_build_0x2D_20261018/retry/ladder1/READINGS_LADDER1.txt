@@ -1,0 +1,28 @@
+# P11 0x2D retry -- backstop-1 (delete W86/W87; NW 86 / P7BDP 42)
+# input change: board/wrapper_p4.v + board/build_p7b_ku5p.tcl (see ../BACKSTOP1_INPUT_DIFF.txt)
+# build entry: cmd //c 'board\run_build_p7b_ku5p.bat'   (single invocation)
+BUILD_EXIT=0
+BITSTREAM-OK
+P7B_VERDICT = OK
+P7B_MODULE_RESOLVED rx_merge2=1 tx_demux2=1 maccnt_sync=0
+P7B_BLACKBOX_COUNT 0
+P7B_BLACKBOX_LOG_HITS = 0
+P7B_SNAP_TOP5_SLOT slot=39 bits=1248..1279 cells=32
+P7B_SNAP_TOP5_SLOT slot=40 bits=1280..1311 cells=32
+P7B_SNAP_TOP5_SLOT slot=41 bits=1312..1343 cells=32
+P7B_SNAP_TOP5_SLOTS_OK = 3
+P7B_SNAP_TOP5_FANOUT tx_p0_frames_r_reg[0]/Q loads=2 hold_b=1 snap_din=0
+P7B_SNAP_TOP5_FANOUT_OK
+P7B_WNS = -0.089
+P7B_WHS = 0.007
+WNS(ns)=-0.089  TNS=-30.513  TNS failing endpoints=726  total=273415
+WHS(ns)=0.007   THS=0.000   THS failing endpoints=0
+WPWS(ns)=0.000  TPWS=0.000  TPWS failing endpoints=0
+Timing constraints are not met.
+DRC checks found: 69; Error rows=0 Critical rows=0
+route: fully routed nets=145995; nets with routing errors=0
+placed: CLB LUTs=83691 (38.57%); CLB Registers=77375 (17.83%); Block RAM Tile=346 (72.08%); URAM=1; DSP=4
+bitstream: 4f87308ec6ba50f9871b05af099af532fac8b44bdfef6fe5a84f9cbc18c7cbee
+size = 15431261
+SW_CRC=f6f7ac99
+archived pre-build by #54 at _proj_10g/notes/p7b_build_archive/20261018_182241 (19 files, first-attempt bitstream+reports)

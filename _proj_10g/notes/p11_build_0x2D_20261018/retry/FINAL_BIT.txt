@@ -1,0 +1,13 @@
+# 0x2D build bitstream evidence map (2026-10-18)
+
+FINAL (backstop-2, NW 85 / P7BDP 41; WNS +0.042 / 0/0/0):
+ecef15f2339435edb70727e6a979b363375be2a0f8bd875d352f63a293b0e76f  ladder2/wrapper_p4.bit
+  size = 15431261  SW_CRC=e7658864  BID=0x2D
+
+FIRST RUN (NW 88 / P7BDP 44; WNS -0.013 / 37 setup failing endpoints):
+b81399d1e4a3f156338f71c8f3953ffdaf9d1b7b34e67c1074e04029626681df  build/wrapper_p4.bit
+  size = 15431261  SW_CRC=b11503ce  BID=0x2D
+
+BACKSTOP-1 (delete W86/W87; NW 86 / P7BDP 42; WNS -0.089 / 726 endpoints):
+4f87308ec6ba50f9871b05af099af532fac8b44bdfef6fe5a84f9cbc18c7cbee  ladder1/wrapper_p4.bit
+  size = 15431261  SW_CRC=f6f7ac99  BID=0x2D

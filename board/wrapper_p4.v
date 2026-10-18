@@ -2987,13 +2987,7 @@ module wrapper_p4 #(
     wire [31:0] txcdc1_ovf_cnt;              // ch0 txcdc 拒写 (W86 低半)
     wire [63:0] m_tx1_tdata; wire [7:0] m_tx1_tkeep;
     wire        m_tx1_tvalid, m_tx1_tready, m_tx1_tlast;
-    wire [31:0] ch0_tx_mac_frames, ch0_tx_mac_abort;  // ch0 MAC TX (W87 源)
-    // W86/W87 跨域镜像线 (N-4; 必须在 p7bdp 槽 42/43 的使用点之前声明)
-    wire [31:0] ch0_rxcdc_ovf_dp;
-    wire [63:0] ch0_tx_cnt_dp;
-    wire [31:0] ch0_tx_frames_dp = ch0_tx_cnt_dp[31:0];
-    wire [31:0] ch0_tx_abort_dp  = ch0_tx_cnt_dp[63:32];
-    wire [63:0] ch0_tx_cnt_src   = {ch0_tx_mac_abort, ch0_tx_mac_frames};
+    wire [31:0] ch0_tx_mac_frames, ch0_tx_mac_abort;  // ch0 MAC TX (原 W87 源; backstop-1 后无消费者)
 `endif
     wire [7:0]  utx_tkeep, utx2_tkeep;
     wire        utx_tvalid, utx_tready, utx_tlast;
@@ -3885,7 +3879,15 @@ module wrapper_p4 #(
     //   MIR 四字由 SNAP_LAST_IDX 自动下移 ⇒ MIR_STATUS/DATA/CTRL/DMA_CNT = 0x180/0x184/0x188/0x18C;
     //   **未实现地址 = 0x190** (word 100); {snap_idx,5'b0} 最大 = (88-1)<<5 = 2784 < 4096 ✓;
     //   snap_idx = r_word[6:0]-8 最大 87 ⇒ 7 位 ✓ (回绕红线仍 ≥0x200).
-    localparam SNAP_NW_P6E = 88;        // 总字数 W0..W87 (未实现地址 = 0x190 = word 100)
+    // ⛔ P11 0x2D backstop-1 (2026-10-18): 88 → **86** —— WNS -0.013 (<0) 触发预登记
+    //   backstop 第 1 档「删 W86/W87」(DESIGN_v2r1 §3.4)。保留 W83/W84/W85 ⇒ 快照
+    //   W0..W85; MIR 四字自动 = 0x178/0x17C/0x180/0x184; **未实现地址 = 0x188** (word 98);
+    //   {snap_idx,5'b0} 最大 = (86-1)<<5 = 2720 < 4096 ✓; snap_idx 最大 85 ⇒ 7 位 ✓.
+    //   ⛔ backstop-2 (2026-10-18): 86 → **85** —— 第 1 档构建读数 WNS -0.089 / 726
+    //   失败端点 (仍 <0) ⇒ 按同一预登记阶梯删 W85 (classify 总帧数), 只保留 W83/W84。
+    //   快照 W0..W84; MIR 四字自动 = 0x174/0x178/0x17C/0x180; **未实现地址 = 0x184**
+    //   (word 97); {snap_idx,5'b0} 最大 = (85-1)<<5 = 2688 < 4096 ✓.
+    localparam SNAP_NW_P6E = 85;        // 总字数 W0..W84 (未实现地址 = 0x184 = word 97; backstop-2)
     // ⭐ P7B-GAP9-TX (2026-10-10): 63 → **65** (W63/W64 = app_pattern 的两个停滞计数器)。
     //   预算复算: 65 ≤ 119 (7 位译码上限) ✓; 未实现地址 = 0x20+4*65 = **0x124** (word 73, 真正未实现);
     //   `{snap_idx,5'b0}` 最大 = (65-1)<<5 = 2048 < 4096 ⇒ `axi_regs.snap_base` 仍是 [11:0] (**不动**);
@@ -3906,7 +3908,7 @@ module wrapper_p4 #(
     localparam SNAP_DP_NW  = 22;        // DP 束字数 (b 域 = dp_clk)
     // P7b 三条新束的字数 (与上面同源: 装配段 `snap_dout_all` 的项数必须与之对账)
     localparam SNAP_P7BFE_NW = 3;       // W36..W38 (b 域 = gmii_clk)
-    localparam SNAP_P7BDP_NW = 44;      // P11: 39 → 44 (槽 39..43 = W83..W87)
+    localparam SNAP_P7BDP_NW = 41;      // P11: 39 → 41 (槽 39..40 = W83/W84; backstop-2 再删槽 41 = W85)
                                         // W39/W40, W45..W50 + W51..W60 (BIZ) + W61/W62 (WU)
                                         //   + **W63/W64 (P7B-GAP9-TX 的两个停滞计数器)**
                                         //   + **W66 (构建 E: tcp_tx_frame.stat_winstall)**
@@ -4820,41 +4822,25 @@ module wrapper_p4 #(
     assign p7bdp_din[36*32 +: 32] = ch0_pcs_status;  // 槽 36 → W76
     assign p7bdp_din[37*32 +: 32] = ch0_pcs_evt;     // 槽 37 → W77
     assign p7bdp_din[38*32 +: 32] = ch0_los_bundle;  // 槽 38 → W78
-    // ---- P11 P2-甲: 槽 39..43 = W83..W87 (全部 dp 域寄存器输出) ----
-    //   N-10: 非 DUAL 构建 W83/W84/W86/W87 = 常量 0; **W85 仍真** (classify 两构建都在)。
-    //   W85 = (cls_stat_fast + cls_stat_slow)[31:0] —— 显式 33 位和再截断 (L-5)。
-    function [15:0] sat16;   // W86/W87 的 16 位饱和 (饱和后只表示 "≥0xFFFF")
-        input [31:0] v;
-        begin
-            sat16 = (v > 32'h0000FFFF) ? 16'hFFFF : v[15:0];
-        end
-    endfunction
+    // ---- P11 P2-甲: 槽 39..40 = W83/W84 (dp 域寄存器输出) ----
+    //   ⛔ 0x2D backstop-1 (2026-10-18): 删 W86/W87 (槽 42/43) —— 其唯一消费者消失,
+    //      连同 `sat16`、两个 `maccnt_sync` 实例与源域 tick 一并删除 (见下方 CDC 段)。
+    //   ⛔ 0x2D backstop-2 (2026-10-18): 再删 W85 (槽 41) —— classify 总帧数。
+    //   N-10: 非 DUAL 构建 W83/W84 = 常量 0。
 `ifdef DUAL_SFP_A
   `ifdef APP_MODE
     wire [31:0] w83_dp = tx_p0_frames;                    // ch1 TX 帧数
     wire [31:0] w84_dp = tx_p1_frames;                    // ch0 TX 帧数
-    wire [31:0] w85_dp = ({1'b0, cls_stat_fast} + {1'b0, cls_stat_slow}); // [31:0] 截断
-    wire [31:0] w86_dp = {sat16(ch0_rxcdc_ovf_dp), sat16(txcdc1_ovf_cnt)};
-    wire [31:0] w87_dp = {sat16(ch0_tx_abort_dp),  sat16(ch0_tx_frames_dp)};
   `else
     wire [31:0] w83_dp = 32'd0;
     wire [31:0] w84_dp = 32'd0;
-    wire [31:0] w85_dp = ({1'b0, cls_stat_fast} + {1'b0, cls_stat_slow});
-    wire [31:0] w86_dp = 32'd0;
-    wire [31:0] w87_dp = 32'd0;
   `endif
 `else
     wire [31:0] w83_dp = 32'd0;
     wire [31:0] w84_dp = 32'd0;
-    wire [31:0] w85_dp = ({1'b0, cls_stat_fast} + {1'b0, cls_stat_slow});
-    wire [31:0] w86_dp = 32'd0;
-    wire [31:0] w87_dp = 32'd0;
 `endif
     assign p7bdp_din[39*32 +: 32] = w83_dp;   // 槽 39 → W83
     assign p7bdp_din[40*32 +: 32] = w84_dp;   // 槽 40 → W84
-    assign p7bdp_din[41*32 +: 32] = w85_dp;   // 槽 41 → W85
-    assign p7bdp_din[42*32 +: 32] = w86_dp;   // 槽 42 → W86
-    assign p7bdp_din[43*32 +: 32] = w87_dp;   // 槽 43 → W87
 
     snap_cdc #(.W(32), .NW(SNAP_P7BFE_NW)) u_snap_p7bfe (
         .clk_a(pcie_axi_aclk), .rst_n(pcie_axi_aresetn), .req_a(snap_req),
@@ -4875,36 +4861,13 @@ module wrapper_p4 #(
         .valid_a(txsnap_valid), .clk_b(tx_fe_clk), .din_b(txsnap_din)
     );
 
-`ifdef DUAL_SFP_A
-    // ---- P11 P2-甲 (N-4): ch0 跨域计数镜像 (4 相 toggle/ack, 禁裸 2FF 多比特) ----
-    //   u_maccnt_ch0rx: ch0 RX FIFO 拒写 (gmii_clk_0) -> dp_clk
-    //   u_maccnt_ch0tx: ch0 MAC TX {abort,frames} (tx_fe_clk_0) -> dp_clk (同采样拍)
-    //   线名声明已上移到 DUAL TX 束 (p7bdp 槽 42/43 的使用点之前)。
-    // ---- F-18: 采样节流 = 每 256 个源域时钟一次 (8 位自由计数 rollover) ----
-    //   设计 §3.4 的"每 256 dp_clk 取一次"; 原实现 src_tick=1'b1 (握手每次完成即再发起,
-    //   频度高一个数量级)。8 位计数器 rollover 产生单拍脉冲, 周期 = 256 源拍 (1.64 µs)。
-    reg [7:0] maccnt_tick_rx_r, maccnt_tick_tx_r;
-    always @(posedge gmii_clk_0 or negedge rx_mac_rst_n_0) begin
-        if (!rx_mac_rst_n_0) maccnt_tick_rx_r <= 8'd0;
-        else                 maccnt_tick_rx_r <= maccnt_tick_rx_r + 8'd1;
-    end
-    always @(posedge tx_fe_clk_0 or negedge tx_mac_rst_n_0) begin
-        if (!tx_mac_rst_n_0) maccnt_tick_tx_r <= 8'd0;
-        else                 maccnt_tick_tx_r <= maccnt_tick_tx_r + 8'd1;
-    end
-    wire maccnt_tick_rx = (maccnt_tick_rx_r == 8'hFF);
-    wire maccnt_tick_tx = (maccnt_tick_tx_r == 8'hFF);
-    maccnt_sync #(.W(32)) u_maccnt_ch0rx (
-        .src_clk(gmii_clk_0), .src_rst_n(rx_mac_rst_n_0),
-        .src_val(ch0_rxcdc_ovf), .src_tick(maccnt_tick_rx),
-        .dst_clk(dp_clk), .dst_rst_n(dp_rst_n), .dst_val(ch0_rxcdc_ovf_dp)
-    );
-    maccnt_sync #(.W(64)) u_maccnt_ch0tx (
-        .src_clk(tx_fe_clk_0), .src_rst_n(tx_mac_rst_n_0),
-        .src_val(ch0_tx_cnt_src), .src_tick(maccnt_tick_tx),
-        .dst_clk(dp_clk), .dst_rst_n(dp_rst_n), .dst_val(ch0_tx_cnt_dp)
-    );
-`endif
+    // ⛔ P11 0x2D backstop-1 (2026-10-18): 本段原为 u_maccnt_ch0rx / u_maccnt_ch0tx
+    //    (W86/W87 的跨域事件镜像, 4 相 toggle/ack + 每 256 源拍采样节流)。WNS -0.013
+    //    触发预登记 backstop 第 1 档「删 W86/W87」⇒ 两个字的唯一消费者消失 ⇒ 连同
+    //    两个 maccnt_sync 实例、源域 tick 计数器与 *_dp 镜像线一并删除 (综合本会剪掉
+    //    无负载实例; 显式删除使输入与读数一致)。源侧计数 (ch0_rxcdc_ovf /
+    //    ch0_tx_mac_frames / ch0_tx_mac_abort) 仍接在各自模块输出上但无消费者,
+    //    由综合自行剪除; 其行为层语义不在本构建观测面内。
 
     // ---- P1: ch0 计数束 (W79..W82), b 域 = rx_clk_out_0 (ch0 CDR 恢复钟) ----
     //   ⚠️ 该钟在拔线/LOS 负对照时可能停 ⇒ 本束必须由下面的“汇合超时”兜住,
@@ -5035,15 +4998,15 @@ module wrapper_p4 #(
     // check_window.py 的装配项解析要求拼接体是纯项列表)。
     // ⛔ P11 F-21 修复 (2026-10-18): 0x2C 曾在这里用 `w8x_snap = w8x_dp` **直连**进快照,
     //    绕过 u_snap_p7bdp 的 CDC —— 多比特计数器裸跨域 (位混风险), 且 p7bdp 槽 39..43
-    //    成死逻辑 (布后 hold_b 槽 39..43 = 0 个寄存器)。现改为**只读 p7bdp_dout[43..39]**:
-    //    源 (DUAL 真值 / 非 DUAL 常量 tie-off) → p7bdp_din[39..43] → u_snap_p7bdp → dout。
-    //    N-10 语义不变: 非 DUAL 构建的 W83/W84/W86/W87 仍是常量 0、W85 仍真。
-    //    静态门 = `_proj_10g/p7b_chain/sim/check_snap_top5_wired.py` (p7b_chain 门首步);
-    //    布后门 = `board/build_p7b_ku5p.tcl` 的 P7B_SNAP_TOP5_CDC 段。
+    //    成死逻辑 (布后 hold_b 槽 39..43 = 0 个寄存器)。现改为**只读 p7bdp_dout[40..39]**:
+    //    源 (DUAL 真值 / 非 DUAL 常量 tie-off) → p7bdp_din[40..39] → u_snap_p7bdp → dout。
+    //    N-10 语义不变: 非 DUAL 构建的 W83/W84 仍是常量 0。
+    //    ⛔ 0x2D backstop-1: W86/W87 (槽 42/43) 已删; backstop-2: W85 (槽 41) 已删
+    //    ⇒ 顶部只剩 W84/W83 两项。
+    //    静态门 = `_proj_10g/p7b_chain/sim/check_snap_top5_wired.py` (p7b_chain 门首步;
+    //    ⚠️ 该门要按 backstop 几何另行同步, 不在本构建执行面);
+    //    布后门 = `board/build_p7b_ku5p.tcl` 的 P7B_SNAP_TOP5_CDC 段 (已同步为槽 39..40)。
     wire [SNAP_NW_P6E*32-1:0] snap_dout_all = {
-        p7bdp_dout[43*32 +: 32],   // W87 ch0 MAC TX {abort(16),frames(16)} 饱和 (P11; 槽 43)
-        p7bdp_dout[42*32 +: 32],   // W86 ch0 FIFO ovf {rx(16),tx(16)} 饱和 (P11; 槽 42)
-        p7bdp_dout[41*32 +: 32],   // W85 rx_classify 总帧数 (fast+slow, [31:0] 截断; 槽 41)
         p7bdp_dout[40*32 +: 32],   // W84 TX port1 (ch0) 帧数 (P11; 槽 40)
         p7bdp_dout[39*32 +: 32],   // W83 TX port0 (ch1) 帧数 (P11; 槽 39)
         ch0snap_dout[3*32 +: 32],  // W82 ch0 RX 丢帧数 (mac_rx_ch0.stat_drop; P1; 槽 3)

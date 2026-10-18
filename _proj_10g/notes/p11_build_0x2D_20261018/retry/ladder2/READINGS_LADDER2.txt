@@ -1,0 +1,79 @@
+# P11 0x2D retry -- backstop-2 (delete W85; NW 85 / P7BDP 41) -- FINAL BUILD OF THIS ROUND
+# input change: board/wrapper_p4.v + board/build_p7b_ku5p.tcl (see ../BACKSTOP1_2_INPUT_DIFF.txt)
+# build entry: cmd //c 'board\run_build_p7b_ku5p.bat'   (single invocation for this input)
+BUILD_EXIT=0
+BITSTREAM-OK
+P7B_VERDICT = OK
+P7B_IS_LOCKED_POSTGEN = 0
+P7B_CONVERGED_AT_ROUND = 2
+P7B_NFILES = 445
+HLS_SRC_HASH = 556ed00c4ad6f26f52dee9290f0f813308514189c2505c116d2a38334b945218  (n=15)
+HLS_NET_HASH = 452a11226a3ce4b2923ce3b026c39562d655065eb639581e9d2da879d0e64428  (n=175)
+P7B_BLACKBOX_LOG_HITS = 0
+P7B_MODULE_RESOLVED rx_merge2=1 tx_demux2=1 maccnt_sync=0
+P7B_BLACKBOX_COUNT 0
+P7B_VERILOG_DEFINE = APP_MODE=1 DEV_USP=1 PCIE_OBS=1 DP_156MHZ=1 P7B_10G=1 UDP_TX_OVL=1 TCP_TX_OVL=1 SFP2_MODE_A=1 DUAL_SFP_A=1
+
+# --- F-21 post-synth gate (geometry after backstop-2: only slots 39/40 exist) ---
+P7B_SNAP_TOP5_SLOT slot=39 bits=1248..1279 cells=32
+P7B_SNAP_TOP5_SLOT slot=40 bits=1280..1311 cells=32
+P7B_SNAP_TOP5_SLOTS_OK = 2
+P7B_SNAP_TOP5_FANOUT tx_p0_frames_r_reg[0]/Q loads=2 hold_b=1 snap_din=0
+P7B_SNAP_TOP5_FANOUT_OK
+
+# --- timing (all user specified timing constraints are met) ---
+P7B_WNS = 0.042
+P7B_WHS = 0.009
+P7B_WPWS = 0.009 0.010 0.010 0.010 0.010 0.011 0.018 0.023 0.039 0.042 0.050 0.050 0.051 0.052 0.066 0.099 0.104 0.174 0.186 0.203 0.276 0.301 0.356 0.400 1.093 4.350 5.059 6.757 6.788 6.851 6.913 7.344 8.066 998.890
+WNS(ns)=0.042  TNS=0.000  TNS failing endpoints=0  total=273248
+WHS(ns)=0.009  THS=0.000  THS failing endpoints=0
+WPWS(ns)=0.000 TPWS=0.000 TPWS failing endpoints=0
+Line: "All user specified timing constraints are met."
+
+# --- hard gates (synth_1/runme.log) ---
+12-4739 = 0
+Synth 8-11241 = 0
+undeclared symbol = 0
+VRFC 10-3091 (actual bit length 1 ...) = 0
+VRFC 10-2989 = 0
+implicitly declared = 0
+black box = 0
+8-3491 = 0
+
+# --- DRC / route / clock interaction ---
+DRC checks found: 69; Error rows=0; Critical rows=0; Warning rows=5
+route: fully routed nets=144324; nets with routing errors=0
+clock interaction: g_hw.clk_out0 -> g_hw.clk_out0 = Timed/Clean slack 0.04, 0 failing endpoints;
+  all cross-clock pairs = "Ignored / Asynchronous Groups" (36 rows)
+
+# --- placed resources ---
+CLB LUTs=82013 (37.80%); CLB Registers=77361 (17.83%); Block RAM Tile=346 (72.08%);
+URAM=1 (1.56%); DSPs=4 (0.22%); Bonded IOB=12 (4.29%); GTYE4_CHANNEL=6 (37.50%)
+
+# --- bitstream identity ---
+sha256 = ecef15f2339435edb70727e6a979b363375be2a0f8bd875d352f63a293b0e76f
+size = 15431261
+SW_CRC=e7658864
+
+# --- #54 pre-build archive ---
+ARCHIVE_DONE 20261018_192215 files=19 dir=...\_proj_10g\notes\p7b_build_archive\20261018_192215
+  (this archive holds the backstop-1 bitstream/reports before create_project -force wiped them)
+
+# --- directed STA (post-route dcp; READ-ONLY run after build) ---
+GLOBAL worst_setup_slack = 0.042
+GLOBAL start = u_tcp_tx/u_fifo_b/wptr_reg[4]/C
+GLOBAL end   = u_tcb/snd_nxt_r_reg[15][29]/CE
+u_tcp_tx/f_lip_reg                  cells=64    slack=1.837
+u_tcp_tx/ctrl_lip_reg               cells=32    slack=1.442
+u_rx_merge                          cells=39    slack=2.065
+u_tx_udp_arb                        cells=8     slack=2.211
+u_tx_udp_arb_p1                     cells=6     slack=2.270
+u_tx_arb                            cells=5     slack=1.551
+u_tx_arb_p1                         cells=7     slack=1.649
+u_hls                               cells=43526 slack=0.485
+u_maccnt_ch0rx                      NO_CELL (deleted with W86/W87; expected)
+u_maccnt_ch0tx                      NO_CELL (deleted with W86/W87; expected)
+maccnt_sync(REF_NAME)               cells=0
+u_snap_p7bdp/hold_b_reg[1248..1311] cells=64 (two remaining words W83/W84); into-family slack=2.951
+cam_rd_dip -> u_tcp_tx/*csum*       src_cells=0 / NO_PATH  (named cell not found in this netlist)
+TOP200 scan: f_lip/ctrl_lip/cam_rd_dip/u_rx_merge/u_tx_udp_arb/u_tx_arb/hold_b/u_hls/u_maccnt = 0 occurrences
