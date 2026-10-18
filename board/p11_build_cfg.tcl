@@ -53,7 +53,7 @@ proc p11_hls_variant_dir {root variant} {
 proc p11_default_variant {cfg} {
     switch -- $cfg {
         c1      { return "c1" }
-        c2      { return "c1" }        ;# 乙模式业务口单 IP 网表; 乙轮定, 暂挂 c1
+        c2      { return "c1" }
         c3      { return "p2_dual_max3" }
         c4      { return "p3_dual_max8" }
         default { return "" }

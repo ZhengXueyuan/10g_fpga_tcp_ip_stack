@@ -2062,3 +2062,12 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - **矩阵 41/41 / 0 failed / FROZEN**（400 文件；content `4f549789…`；`GIT_HEAD=27513627` = 审查提交，代码基线 `cdd24667` + 本轮未提交工作树）。
 - **未跑**：Vivado synth/impl/位流/时序/资源；板级。**方法限制**：H-1 迟到 rel 用 `force` 注入；H-2 集成靠 churn 5c；M-5 无独立 app_ctrl 单元 TB；M-9 无 MMCM 重锁行为门；M-13 未执行。
 - **下一棒**：提交修复轮（含 P2/P3/C1 HLS 归档）→ 0x2F 构建（C4 + P3 变体 + BID 0x2F + 合同 2 或 8）→ 视时间；7 点收工。
+
+## §10-159 2026-10-19 06:0x：**0x2F 构建（C4 + P3 HLS + 合同 2）—— 构建完成但时序门 FAIL（WNS −6.456 / 25,697 端点）；位流禁烧**
+- **输入**：`P11_CFG=c4` · `HLS_VARIANT=p3_dual_max8` · `P11_CONFIG=c4 (dual)` · `P11_HLS_ADV_WND_HITS=3` · `P11_EXPECTED_CONNS=2`（48KB/连接）· BID `0x2F` · `HLS_SRC_HASH=b7dd1542…` · `HLS_NET_HASH=125a71f8…`（176 文件）。
+- **结果**：构建完成（04:50–06:03，约 73 min）；位流 `088948dfa4effbd574fbc01e96d0b0ceb97002d81fe7791f4db33ed87fe3a1f0`，15,431,261 B；`P7B_VERDICT=OK`（**仅判位流存在**）；**WNS −6.456 / TNS −55,816.719 / setup 失败端点 25,697 / 371,939**；WHS +0.010 / hold 0；WPWS 0；**"Timing constraints are not met."** ⇒ **设计构建门 FAIL，位流禁烧**。
+- **最差路径**：`u_app_ctrl/c_rcv_nxt_reg[9][4]/C → u_win_pool/port_win1_reg[0]/D`（同 `g_hw.clk_out0` 6.400ns）；13.137 ns（logic 4.788 / route 8.349），42 级 / 14 CARRY8。根因 = **新增 `o_quota_rel`/manager 授予-归还 17 位算术的组合链从 app_ctrl 扫描态直入 `port_win`**；0x2D 的 app_ctrl 扫描 3 拍流水未覆盖这条新路径。25,697 端点与同一 cone/扇出同族（定向 `-from` 待下轮）。
+- **资源（placed）**：LUT **122,366 (56.40%)** / FF **98,160 (22.62%)** / BRAM **109 (22.71%)** / URAM **17 (26.56%)** / DSP 4。**设计纸面 BRAM 267/395、URAM 1 不成立**（P3 HLS/128KB echo 映射到 URAM/分布式 RAM）；资源账待订正。
+- **构建轮修掉三个集成缺陷**（前两次失败原因）：① RTL 清单漏 5 个新件（`slow_cfg_demux` 首报 not found）；② C4 module-resolve 门误要求退役的 `rx_merge2/tx_demux2 ≥1`（改为 C4 预期 0 + 5 个 P3 新件 ≥1/无黑盒）；③ `p11_build_cfg.tcl` 的 `switch` 体内行内 `;#` 被 Tcl 解析成额外 pattern（删除注释，`P11_BUILDCFG_GATE PASS`）。
+- **已通过**：IP 收敛 2；P3 模块 5/5=1、blackbox 0；F-21 CDC 槽 39/40 OK + fanout OK；`P7B_BIT_EXISTS=1`。矩阵 41/41 FROZEN 在 `148a2f22`（Tcl 修复前；buildcfg 门单独重跑 PASS）。
+- **下一棒**：给 `o_quota_rel`/manager 事件-算术加 1–2 拍流水（首选）→ 定向 STA 预检 → 重建（新 BID，建议 0x30）；若仍不收敛退 M3（违背共享语义）；**0x2F 位流禁烧**。板仍 = 0x2D + `0x08=0` + carrier 1/1；未上板、QSPI 零写。

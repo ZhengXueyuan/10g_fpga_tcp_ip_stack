@@ -208,7 +208,9 @@ import_files -norecurse \
     ${root_dir}/rtl/udp_rx.v ${root_dir}/rtl/udp_split.v ${root_dir}/rtl/udp_tx_cfg.v \
     ${root_dir}/rtl/udp_tx_frame.v ${root_dir}/rtl/tx_arb.v ${root_dir}/rtl/app_ctrl.v \
     ${root_dir}/rtl/app_pattern.v ${root_dir}/rtl/app_udp_pattern.v \
-    ${root_dir}/rtl/app_status_uart.v     ${root_dir}/rtl/rx_merge2.v ${root_dir}/rtl/tx_demux2.v ${root_dir}/rtl/maccnt_sync.v
+    ${root_dir}/rtl/app_status_uart.v     ${root_dir}/rtl/rx_merge2.v ${root_dir}/rtl/tx_demux2.v ${root_dir}/rtl/maccnt_sync.v \
+    ${root_dir}/rtl/win_pool_mgr.v ${root_dir}/rtl/retx_pool_shared.v \
+    ${root_dir}/rtl/slow_merge2.v ${root_dir}/rtl/slow_demux2.v ${root_dir}/rtl/slow_cfg_demux.v
 sec "P7B_ADD_OBS"
 import_files -norecurse ${root_dir}/rtl/snap_cdc.v ${root_dir}/_proj_pcie/rtl/axi_regs.v \
                          ${root_dir}/rtl/clk_gen_p6b.v ${root_dir}/rtl/fifo_async.v \
@@ -458,17 +460,43 @@ set c2 [get_cells -hier -quiet -filter {REF_NAME =~ tx_demux2}]
 set c3 [get_cells -hier -quiet -filter {REF_NAME =~ maccnt_sync}]
 set n1 [llength $c1]; set n2 [llength $c2]; set n3 [llength $c3]
 puts "P7B_MODULE_RESOLVED rx_merge2=$n1 tx_demux2=$n2 maccnt_sync=$n3"
-set bb 0
-foreach c [concat $c1 $c2 $c3] {
-    if {[get_property IS_BLACKBOX $c]} { incr bb }
-}
-puts "P7B_BLACKBOX_COUNT $bb"
 # ⛔ P11 0x2D backstop-1 (2026-10-18): 预登记 backstop 第 1 档「删 W86/W87」删除了
 #    u_maccnt_ch0rx/u_maccnt_ch0tx 的唯一消费者 (p7bdp 槽 42/43) ⇒ 无负载实例会被
 #    综合剪掉 ⇒ maccnt_sync 实例数 = 0 是本档的**预期读数**, 不是黑盒/漏导入。
-#    本门仍硬性要求 rx_merge2/tx_demux2 ≥1 且所有实例 IS_BLACKBOX=0; maccnt_sync
+#    非 C4 档仍硬性要求 rx_merge2/tx_demux2 ≥1 且所有实例 IS_BLACKBOX=0; maccnt_sync
 #    只作读数打印。⚠️ 若后续退档恢复 W86/W87, 必须把 `$n3 < 1` 条件加回。
-if {$n1 < 1 || $n2 < 1 || $bb != 0} { puts "P7B_MODULE_MISSING_OR_BLACKBOX" ; exit 1 }
+# ⭐ P11 P3 C4 (2026-10-19): fast merge/demux **退役** ⇒ 本档预期 n1=n2=0;
+#    改查 5 个 P3 新件 (win_pool_mgr/retx_pool_shared/slow_merge2/slow_demux2/
+#    slow_cfg_demux) 均 ≥1 且无黑盒。固定句: C4 若出现 rx_merge2/tx_demux2 也是错。
+if {$P11_IS_DUAL} {
+    set bb 0
+    foreach c [concat $c1 $c2 $c3] {
+        if {[get_property IS_BLACKBOX $c]} { incr bb }
+    }
+    set p3ok 1
+    foreach nm {win_pool_mgr retx_pool_shared slow_merge2 slow_demux2 slow_cfg_demux} {
+        set cc [get_cells -hier -quiet -filter "REF_NAME =~ $nm"]
+        set nn [llength $cc]
+        puts "P7B_P3_MODULE $nm=$nn"
+        if {$nn < 1} { set p3ok 0 }
+        foreach c $cc {
+            if {[get_property IS_BLACKBOX $c]} { incr bb }
+        }
+    }
+    puts "P7B_BLACKBOX_COUNT $bb"
+    if {$n1 != 0 || $n2 != 0 || !$p3ok || $bb != 0} {
+        puts "P7B_MODULE_MISSING_OR_BLACKBOX" ; exit 1
+    }
+} else {
+    set bb 0
+    foreach c [concat $c1 $c2 $c3] {
+        if {[get_property IS_BLACKBOX $c]} { incr bb }
+    }
+    puts "P7B_BLACKBOX_COUNT $bb"
+    if {$n1 < 1 || $n2 < 1 || $bb != 0} {
+        puts "P7B_MODULE_MISSING_OR_BLACKBOX" ; exit 1
+    }
+}
 
 # ---- P11 F-21: W83/W84 must pass through u_snap_p7bdp's coherent CDC ----
 #   0x2C 构建的布后实测: `snap_dout_all` 顶部 5 项走 `w8x_snap = w8x_dp` 直连 ⇒
