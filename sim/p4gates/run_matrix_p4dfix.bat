@@ -270,6 +270,21 @@ call :gate g2_rx_merge2 _proj_10g\p11_dual\sim\run_tb_rx_merge2.bat p11merge_src
 call :gate g5_tcp_srcip _proj_10g\p11_dual\sim\run_tb_tcp_tx_srcip.bat p11srcip_src.f -                -
 call :gate g6_p11_dual _proj_10g\p11_dual\sim\run_tb_p11_dual.bat p11dual_src.f -                     -
 
+REM ---- P11 P3 (C4 甲双栈; 2026-10-19; 24 -> 32) -----------------------------
+REM   G-P3-1  win_pool_mgr 单元 / G-P3-1b 8 连接 churn / G-P3-3 共享 retx /
+REM   G-P3-4 慢 merge+demux+cfg demux / G-P3-6 C4 wrapper 全链 /
+REM   G-P3-7 C4 elaboration 正控.
+REM   ⚠️ 负控驱动 (run_negctl_{wpm,churn,cfg_c4}.bat) 为独立门、未入册 (P2 G3/G4
+REM      同款登记债: 它们 cd 到 %~dp0 编译, 不满足矩阵私有 cwd 约定).
+call :gate p11_c4_elab   _proj_10g\notes\p11_p3_impl_20261018\gates\sim\run_elab_c4.bat            p11c4elab_src.f - -
+call :gate p11_wpm       _proj_10g\notes\p11_p3_impl_20261018\gates\sim\run_tb_win_pool_mgr.bat     p11wpm_src.f    - -
+call :gate p11_retx_pool _proj_10g\notes\p11_p3_impl_20261018\gates\sim\run_tb_retx_pool_shared.bat p11retx_src.f   - -
+call :gate p11_slow_merge2 _proj_10g\notes\p11_p3_impl_20261018\gates\sim\run_tb_slow_merge2.bat    p11sm2_src.f    - -
+call :gate p11_slow_demux2 _proj_10g\notes\p11_p3_impl_20261018\gates\sim\run_tb_slow_demux2.bat    p11sd2_src.f    - -
+call :gate p11_slow_cfg_demux _proj_10g\notes\p11_p3_impl_20261018\gates\sim\run_tb_slow_cfg_demux.bat p11scd_src.f - -
+call :gate p11_churn    _proj_10g\notes\p11_p3_impl_20261018\gates\sim\run_tb_p3_churn.bat          p11churn_src.f  - -
+call :gate p11_c4_wrap  _proj_10g\notes\p11_p3_impl_20261018\gates\sim\run_tb_p11_c4_wrap.bat      p11c4w_src.f    - -
+
 call :log "--- revision fingerprint (after) ---"
 "%PY%" "%P4GATE_PY%" fingerprint --root "%REPO_ROOT%" --out "%FP_AFTER%" --label after >>"%MATRIX_LOG%" 2>&1
 if errorlevel 1 goto :fatal_fp2

@@ -1,0 +1,52 @@
+#-----------------------------------------------------------
+# xsim v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Mon Oct 19 01:26:58 2026
+# Process ID         : 15776
+# Current directory  : D:/repo/XCKU5PMini/udp_hls_10g/sim/p4gates/work_20261019_005516/p11_c4_wrap
+# Command line       : xsim.exe -log xsim_c4w.log -mode tcl -source {xsim.dir/tb_p11_c4_wrap/xsim_script.tcl}
+# Log file           : D:/repo/XCKU5PMini/udp_hls_10g/sim/p4gates/work_20261019_005516/p11_c4_wrap/xsim_c4w.log
+# Journal file       : D:/repo/XCKU5PMini/udp_hls_10g/sim/p4gates/work_20261019_005516/p11_c4_wrap\xsim.jou
+# Running On         : xyz-intel
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26300
+# Processor Detail   : Intel(R) Core(TM) Ultra 7 265K
+# CPU Frequency      : 3878 MHz
+# CPU Physical cores : 20
+# CPU Logical cores  : 20
+# Host memory        : 68053 MB
+# Swap memory        : 4294 MB
+# Total Virtual      : 72348 MB
+# Available Virtual  : 34546 MB
+#-----------------------------------------------------------
+source xsim.dir/tb_p11_c4_wrap/xsim_script.tcl
+# xsim {tb_p11_c4_wrap} -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+=== G-P3-6 C4 wrapper ===
+Error: [Unisim RAMB36E2-11] Memory Collision at time 13200.001 ns.
+A simultaneous WRITE on port B (0040) and READ on port A (0000) occured.
+The WRITE was successful but the READ may be corrupted. Instance: tb_p11_c4_wrap.u_dut.u_slow_rx.u_ff.gen_mem[0].u_main
+  [ ok ] B ARP reply for IP_A present on ch1
+  [ ok ] B ARP opcode=reply
+  [ ok ] B ARP SPA = IP_A
+  [ ok ] B no ARP reply on ch0 (cross-port isolation)
+Error: [Unisim RAMB36E2-11] Memory Collision at time 38800.001 ns.
+A simultaneous WRITE on port B (0240) and READ on port A (0200) occured.
+The WRITE was successful but the READ may be corrupted. Instance: tb_p11_c4_wrap.u_dut.u_slow_rx.u_ff.gen_mem[0].u_main
+  [info] A ARP/IP_B on ch0 reply idx=13 (单 IP 归档网表 => 构建轮复测)
+Error: [Unisim RAMB36E2-11] Memory Collision at time 64419.201 ns.
+A simultaneous WRITE on port B (0440) and READ on port A (0400) occured.
+The WRITE was successful but the READ may be corrupted. Instance: tb_p11_c4_wrap.u_dut.u_slow_rx.u_ff.gen_mem[0].u_main
+  [ ok ] D SYN-ACK for IP_A present on ch1
+  [ ok ] D IP proto = TCP
+  [ ok ] D TCP flags = SYN|ACK
+  [ ok ] D SYN-ACK src IP = IP_A
+P11_C4_WRAP TB PASS
+$finish called at time : 102652800 ps : File "D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_p3_impl_20261018/gates/sim/tb_p11_c4_wrap.v" Line 270
+run: Time (s): cpu = 00:00:00 ; elapsed = 00:00:06 . Memory (MB): peak = 246.082 ; gain = 0.000
+exit
+INFO: xsimkernel Simulation Memory Usage: 334968 KB (Peak: 334968 KB), Simulation CPU Usage: 5562 ms
+INFO: [Common 17-206] Exiting xsim at Mon Oct 19 01:27:05 2026...

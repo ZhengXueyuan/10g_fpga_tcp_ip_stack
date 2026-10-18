@@ -1,0 +1,32 @@
+#-----------------------------------------------------------
+# xsim v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Sun Oct 18 23:57:14 2026
+# Process ID         : 31148
+# Current directory  : D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_p3_impl_20261018/gates/sim
+# Command line       : xsim.exe -log xsim_sm2.log -mode tcl -source {xsim.dir/tb_sm2/xsim_script.tcl}
+# Log file           : D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_p3_impl_20261018/gates/sim/xsim_sm2.log
+# Journal file       : D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_p3_impl_20261018/gates/sim\xsim.jou
+# Running On         : xyz-intel
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26300
+# Processor Detail   : Intel(R) Core(TM) Ultra 7 265K
+# CPU Frequency      : 3878 MHz
+# CPU Physical cores : 20
+# CPU Logical cores  : 20
+# Host memory        : 68053 MB
+# Swap memory        : 4294 MB
+# Total Virtual      : 72348 MB
+# Available Virtual  : 35120 MB
+#-----------------------------------------------------------
+source xsim.dir/tb_sm2/xsim_script.tcl
+# xsim {tb_sm2} -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+=== G-P3-4 slow_merge2 ===
+SLOW_MERGE2 TB PASS
+$finish called at time : 350 ns : File "D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_p3_impl_20261018/gates/sim/tb_slow_merge2.v" Line 109
+exit
+INFO: [Common 17-206] Exiting xsim at Sun Oct 18 23:57:15 2026...

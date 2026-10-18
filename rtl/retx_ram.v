@@ -19,7 +19,16 @@
 //   调用方 ring 消费窗口整体后移 1 拍 (rd_tap/r_tap_seq 时序不变)。
 // 读: r_data = W_w << 8*o | W_{w+1} >> 8*(8-o), rd_en 后 2 拍有效 (读口寄存器化,
 //     rd_en 作读使能, 空闲时保持上一读数)。
-module retx_ram (
+// ---- P11 P3 (2026-10-18): N 参数化 (设计件 §4.7 / §6.2) ----
+//   N = 16 (默认) = 今天的 16 连接 x 64KB 环; 地址 {conn[3:0], w[12:1]} = 16 位,
+//                   阵列 65536 字/bank —— **与改动前逐位相同**。
+//   N = 8        = 每口 8 槽 (B/C2P 退路); 地址 15 位, 阵列 32768 字/bank。
+//   N = 1        = 共享 8 槽里每槽一个实例 (B/C2S 首选; conn 位宽 0), 12 位地址。
+//   实现 = 地址拼接后按 AW 截低位 (`{conn, w[12:1]}` 的低 AW 位); 高位的 conn
+//   位在 N<16 时被自然丢弃 ⇒ 语义 = "每 conn 每 bank 4096 字" 的 ring 不变。
+module retx_ram #(
+    parameter integer N = 16
+) (
     input  wire        clk,
     input  wire        rst_n,
     input  wire        wr_en,
@@ -32,6 +41,11 @@ module retx_ram (
     input  wire [15:0] r_seq,
     output wire [63:0] r_data
 );
+    // 连接地址位数 (N=1 ⇒ 0 位, 地址只留 w[12:1]) 与阵列深度
+    localparam integer CW    = (N <= 1) ? 0 : (N <= 2) ? 1 : (N <= 4) ? 2 :
+                               (N <= 8) ? 3 : 4;
+    localparam integer DEPTH = N * 4096;      // 每 bank 字数
+    localparam integer AW    = CW + 12;       // 每 bank 地址位数
     // ---------------- 写分解 (o = 字内字节偏移, 至多落 2 字) ----------------
     wire [12:0] w     = w_seq[15:3];          // ring 字下标 0..8191 (P4c: 13 位)
     wire [3:0]  o4    = {1'b0, w_seq[2:0]};   // 0..7
@@ -68,15 +82,15 @@ module retx_ram (
     // 写延迟 = 1 拍 (地址/数据/使能同延, 相互对齐不变)。**读侧未动**: 重传读点由
     // rb_snd_nxt 驱动, 与写游标 tap_seq 至少差 RTT/RTO (>= 数百拍), 1 拍写延迟无
     // 语义影响 (tap_seq 是 FSM 自身游标, 不依赖 ram 写完成)。
-    (* max_fanout = 64 *) reg [15:0] wa_e_r;
-    (* max_fanout = 64 *) reg [15:0] wa_o_r;
+    (* max_fanout = 64 *) reg [AW-1:0] wa_e_r;
+    (* max_fanout = 64 *) reg [AW-1:0] wa_o_r;
     reg [63:0] d_e_r, d_o_r;
     reg [7:0]  we_e_r, we_o_r;
     reg        wr_r;
     always @(posedge clk) begin
         wr_r   <= wr_en;
-        wa_e_r <= wa_e;
-        wa_o_r <= wa_o;
+        wa_e_r <= wa_e[AW-1:0];
+        wa_o_r <= wa_o[AW-1:0];
         d_e_r  <= d_e;  d_o_r  <= d_o;
         we_e_r <= we_e; we_o_r <= we_o;
     end
@@ -99,14 +113,14 @@ module retx_ram (
     //  同拍寄存、与数据同拍对齐 (r_sel 与 q 同由 rd_d1 使能) → 字节旋转不错位。
     //  调用方 (tcp_tx_frame S_RING) 只把 ring 消费窗口整体后移 1 拍, 读请求
     //  (rd_tap / r_tap_seq) 时序完全不变。
-    (* max_fanout = 32 *) reg [15:0] ra_e_r, ra_o_r;
+    (* max_fanout = 32 *) reg [AW-1:0] ra_e_r, ra_o_r;
     (* max_fanout = 32 *) reg        rd_d1;   // 读使能也复制 (驱动 256 个 ENBWREN)
     reg  [3:0]  ra_sel_r;
     always @(posedge clk) begin
         rd_d1 <= rd_en;
         if (rd_en) begin
-            ra_e_r   <= ra_e;
-            ra_o_r   <= ra_o;
+            ra_e_r   <= ra_e[AW-1:0];
+            ra_o_r   <= ra_o[AW-1:0];
             ra_sel_r <= r_seq[3:0];
         end
     end
@@ -120,8 +134,9 @@ module retx_ram (
     assign r_data = (w_w << rsh_l) | ((ro4 == 0) ? 64'h0 : (w_w1 >> rsh_h));
 
     // ---------------- 存储: 偶/奇 bank, 8 字节使能, 无复位块 (推断 BRAM) ----
-    reg [63:0] mem_e [0:65535];   // P4c: 每 bank 64K 字 (16 conns x 4096 字)
-    reg [63:0] mem_o [0:65535];
+    // P11 P3: 深度 = N x 4096 字 (N=16 时 = 今天的 65536, 逐位相同)
+    reg [63:0] mem_e [0:DEPTH-1];
+    reg [63:0] mem_o [0:DEPTH-1];
 
     genvar bj;
     generate

@@ -134,6 +134,23 @@ module tcp_tx_frame (
     // ---- P11 P2-甲: 本帧出口端口位 (帧内稳定, 送 TX demux; 复位 0) ----
     // PER_CONN_SRC_IP=0 ⇒ 恒 0 (原行为); =1 ⇒ 按本帧连接的 CAM 端口位
     output reg         o_port,
+    // ---- P11 P3 (2026-10-18): EXTERNAL_RETX = 1 时的重传环外部端口 ----
+    // 设计件 §4.7 / §6.2: 共享 8 槽 retx (retx_pool_shared) 需要把两套
+    // tcp_tx_frame 的 ring 读写口抽到模块外 (每槽只有属主口访问 ⇒ 无同槽双写)。
+    //   · EXTERNAL_RETX = 0 (默认): 内部例化 `retx_ram #(.N(RETX_N))`, 本组端口
+    //     只是把同一组线引出 (无消费者, 综合裁掉) —— **行为与改动前等价**
+    //     (源已改 ⇒ 不承诺 placed 网表逐位)。
+    //   · EXTERNAL_RETX = 1: 内部**不例化** retx_ram; 写/读口由外部共享池服务,
+    //     读数据 `ext_retx_r_data` 按 retx_ram 的 2 拍读延迟语义回送。
+    output wire        ext_retx_wr_en,
+    output wire [3:0]  ext_retx_w_conn,
+    output wire [15:0] ext_retx_w_seq,
+    output wire [63:0] ext_retx_w_data,
+    output wire [3:0]  ext_retx_w_n,
+    output wire        ext_retx_rd_en,
+    output wire [3:0]  ext_retx_r_conn,
+    output wire [15:0] ext_retx_r_seq,
+    input  wire [63:0] ext_retx_r_data,
     // 帧字流输出 (接 mac_tx_64)
     output reg  [63:0] m_axis_tdata,
     output reg  [7:0]  m_axis_tkeep,
@@ -310,6 +327,17 @@ module tcp_tx_frame (
     parameter        PERSIST_EN = 1'b0;              // 默认关 (开 = wrapper 显式传 1'b1)
     parameter [25:0] PS_BASE    = 26'd3_051_758;     // 5.0 s  (阶梯第 1 档)
     parameter [25:0] PS_MAX     = 26'd36_621_094;    // 60.0 s (阶梯封顶, 永不放弃)
+
+    // =========================================================================
+    // P11 P3 (2026-10-18): 重传环外部化 (设计件 §4.7 / §6.2 / §14.3-2)
+    //   EXTERNAL_RETX = 0 (默认) ⇒ 内部 retx_ram #(.N(RETX_N)); OVL/默认两体都接。
+    //                    RETX_N = 16 (默认) ⇒ 与今天的 16 连接 x 64KB 逐位相同;
+    //                    B/C2P 退路可在 wrapper 传 RETX_N=8 (每口 8 槽)。
+    //   EXTERNAL_RETX = 1 ⇒ 不例化内部 retx_ram; 读写口走 ext_retx_* 端口
+    //                    (C4 共享 8 槽 = retx_pool_shared)。
+    // =========================================================================
+    parameter        EXTERNAL_RETX = 1'b0;
+    parameter integer RETX_N       = 16;
 
 `ifdef TCP_TX_OVL
     // =========================================================================
@@ -988,12 +1016,29 @@ module tcp_tx_frame (
     wire        rd_en_m = rd_tap || ps_rd;
     wire [3:0]  r_conn_m = ps_rd ? scan_id : retx_id_r;
     wire [15:0] r_seq_m  = ps_rd ? rb_snd_una[15:0] : r_tap_seq;
-    retx_ram u_retx (
-        .clk(clk), .rst_n(rst_n),
-        .wr_en(wr_tap), .w_conn(w_tap_conn), .w_seq(w_tap_seq[15:0]),
-        .w_data(s_axis_tdata), .w_n(pop8(s_axis_tkeep)),
-        .rd_en(rd_en_m), .r_conn(r_conn_m), .r_seq(r_seq_m), .r_data(ring_d)
-    );
+    wire [63:0] ring_d_i;
+    generate
+        if (EXTERNAL_RETX) begin : g_retx_ext
+            assign ring_d_i = 64'd0;   // 外部共享池提供数据 (见 ring_d 选择)
+        end else begin : g_retx_int
+            retx_ram #(.N(RETX_N)) u_retx (
+                .clk(clk), .rst_n(rst_n),
+                .wr_en(wr_tap), .w_conn(w_tap_conn), .w_seq(w_tap_seq[15:0]),
+                .w_data(s_axis_tdata), .w_n(pop8(s_axis_tkeep)),
+                .rd_en(rd_en_m), .r_conn(r_conn_m), .r_seq(r_seq_m), .r_data(ring_d_i)
+            );
+        end
+    endgenerate
+    assign ring_d = EXTERNAL_RETX ? ext_retx_r_data : ring_d_i;
+    // 外部口 (EXTERNAL_RETX=0 时无消费者; 综合裁掉)
+    assign ext_retx_wr_en  = wr_tap;
+    assign ext_retx_w_conn = w_tap_conn;
+    assign ext_retx_w_seq  = w_tap_seq[15:0];
+    assign ext_retx_w_data = s_axis_tdata;
+    assign ext_retx_w_n    = pop8(s_axis_tkeep);
+    assign ext_retx_rd_en  = rd_en_m;
+    assign ext_retx_r_conn = r_conn_m;
+    assign ext_retx_r_seq  = r_seq_m;
 
     checksum16 u_csum (
         .clk(clk), .rst_n(rst_n),
@@ -2033,12 +2078,29 @@ module tcp_tx_frame (
     wire [11:0] plen_preset = (ring_delta >= 32'd1460) ? 12'd1460 :
                               ring_delta[11:0];
 
-    retx_ram u_retx (
-        .clk(clk), .rst_n(rst_n),
-        .wr_en(wr_tap), .w_conn(w_tap_conn), .w_seq(w_tap_seq[15:0]),
-        .w_data(s_axis_tdata), .w_n(pop8(s_axis_tkeep)),
-        .rd_en(rd_tap), .r_conn(retx_id_r), .r_seq(r_tap_seq), .r_data(ring_d)
-    );
+    wire [63:0] ring_d_i;
+    generate
+        if (EXTERNAL_RETX) begin : g_retx_ext
+            assign ring_d_i = 64'd0;   // 外部共享池提供数据 (见 ring_d 选择)
+        end else begin : g_retx_int
+            retx_ram #(.N(RETX_N)) u_retx (
+                .clk(clk), .rst_n(rst_n),
+                .wr_en(wr_tap), .w_conn(w_tap_conn), .w_seq(w_tap_seq[15:0]),
+                .w_data(s_axis_tdata), .w_n(pop8(s_axis_tkeep)),
+                .rd_en(rd_tap), .r_conn(retx_id_r), .r_seq(r_tap_seq), .r_data(ring_d_i)
+            );
+        end
+    endgenerate
+    assign ring_d = EXTERNAL_RETX ? ext_retx_r_data : ring_d_i;
+    // 外部口 (EXTERNAL_RETX=0 时无消费者; 综合裁掉)
+    assign ext_retx_wr_en  = wr_tap;
+    assign ext_retx_w_conn = w_tap_conn;
+    assign ext_retx_w_seq  = w_tap_seq[15:0];
+    assign ext_retx_w_data = s_axis_tdata;
+    assign ext_retx_w_n    = pop8(s_axis_tkeep);
+    assign ext_retx_rd_en  = rd_tap;
+    assign ext_retx_r_conn = retx_id_r;
+    assign ext_retx_r_seq  = r_tap_seq;
 
     // ---- 载荷 FIFO/校验和 写口 mux (活帧与 ring 帧按状态互斥) ----
     wire        wr  = (accept && (s_axis_tkeep != 8'h00) && !len_bad) || ring_wr;

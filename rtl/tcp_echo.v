@@ -10,7 +10,16 @@
 // - 零长数据帧不存在 (TCP 无零长数据段), 无 ztx 路径
 // - 帧边界由 tcp_tx_frame 的 s_axis_tready 天然隔离 (S_WAIT 起 tready=0,
 //   新帧首字被挡住直到 S_IDLE), 无需额外握手
-module tcp_echo (
+// ---- P11 P3 (2026-10-18): D/AW 参数化 (设计件 §4.5) ----
+//   默认 D=8192/AW=13 = 今天的 64KB frame_fifo + 14 位指针 —— **行为/端口宽度
+//   与改动前逐位相同** (C1/C3 回归锚)。
+//   C4 每口传 D=16384/AW=14 = 128KB: 8 条 12KB 连接全落一口 (8+0) 时
+//   Σwinq = 96KB < 128KB, 满足"每口物理 RX 缓冲 >= 该口所有连接配额之和"。
+//   D 必须是 2 的幂 (frame_fifo 的 NB=D/512 与指针回绕逻辑要求)。
+module tcp_echo #(
+    parameter integer D  = 8192,
+    parameter integer AW = 13
+) (
     input  wire        clk,
     input  wire        rst_n,
     // 来自 tcp_rx
@@ -47,15 +56,18 @@ module tcp_echo (
     // P4b-7-P6 诊断 (UART RX 侧快照, 纯 assign): echo FSM + frame_fifo 深度/指针
     output wire [2:0]  dbg_state,          // echo FSM state (2 位有效, 3 位零扩)
     output wire        dbg_fifo_empty,     // frame_fifo empty
-    output wire [13:0] dbg_fifo_wptr,      // frame_fifo wptr[13:0] (P4c: AW=13)
-    output wire [13:0] dbg_fifo_rptr,      // frame_fifo rptr[13:0] (P4c: AW=13)
+    output wire [AW:0] dbg_fifo_wptr,      // frame_fifo wptr[AW:0] (默认 AW=13: 14 位)
+    output wire [AW:0] dbg_fifo_rptr,      // frame_fifo rptr[AW:0] (默认 AW=13: 14 位)
     // P4b-7-P6 tlast 位图转储 (UART 侧): 边存槽址 -> 该槽边存值 (bit8 = tlast);
     // 组合读, 上游 u_fifo mem_s (LUTRAM) 直通, 与 echo 逻辑零耦合
-    input  wire [12:0] dbg_rd_addr,        // frame_fifo 边存读址 (P4c: AW=13)
+    input  wire [AW-1:0] dbg_rd_addr,      // frame_fifo 边存读址 (默认 AW=13: 13 位)
     output wire [8:0]  dbg_rd_side         // 该址边存值 [8]=tlast [7:0]=tkeep
 );
 
     localparam [1:0] S_IDLE = 2'd0, S_FWD = 2'd1;
+    // 深度相关的计数宽度 (默认 8192 字 = 今天的 6 位; 16384 字 = 7 位)
+    localparam integer FQW   = (D <= 8192) ? 6 : 7;   // 已判定好帧队列深度位宽
+    localparam integer CQ_AW = (D <= 8192) ? 6 : 7;   // conn_id 队列深度/位宽
 
     reg  [1:0]  state;
     reg         first_b;
@@ -63,8 +75,8 @@ module tcp_echo (
     reg         pend;                   // fend 已见, 等载荷末字实际交付
     reg         p_err;                  // 本帧坏 (fend 拍锁存)
     reg         rback;                  // 回卷脉冲 (判定拍)
-    reg  [5:0]  fq;                     // 已判定好帧队列深度 (cq 深度冗余, fq 是权威计数;
-                                        // P4c: 4->6 位随 fifo 8192 字加深, 帧数上界 ~44)
+    reg  [FQW-1:0] fq;                  // 已判定好帧队列深度 (cq 深度冗余, fq 是权威计数;
+                                        // 默认 6 位 (8192 字, 帧数上界 ~44); 16384 字 ⇒ 7 位)
 
     wire        accept = s_axis_tvalid && s_axis_tready;
     wire [72:0] fdin   = {s_axis_tlast, s_axis_tkeep, s_axis_tdata};
@@ -90,7 +102,7 @@ module tcp_echo (
     // 8192 字 = 64KB ≈ 44 帧 (双会话 ~68 帧的极端情形仍靠 PC RTO 自愈);
     // cq/fq 同步加宽防判定后入队截断 (cq 满则 judged 帧滞留 fifo 且 fq 失配).
     // 深度仍满足 ≥ 单帧 190 字.
-    frame_fifo #(.W(73), .D(8192), .AW(13)) u_fifo (
+    frame_fifo #(.W(73), .D(D), .AW(AW)) u_fifo (
         .clk(clk), .rst_n(rst_n),
         .wr(accept), .din(fdin),
         .snap(accept && first_b),
@@ -105,7 +117,7 @@ module tcp_echo (
     // conn_id 队列: 判定好帧推入, 转发完弹出 (与载荷帧同序)
     wire cq_push = judged && !p_err;
     wire cq_pop  = fwd_rd && fdout[72];
-    fifo_sync #(.W(4), .D(64), .AW(6)) u_cq (   // P4c: 32->64 深 (随 fifo 8192 字同比例加宽)
+    fifo_sync #(.W(4), .D(1 << CQ_AW), .AW(CQ_AW)) u_cq (   // 与 frame_fifo 深度同比例
         .clk(clk), .rst_n(rst_n),
         .wr(cq_push && !cq_full), .din(meta_conn_id),
         .rd(cq_pop), .dout(cq_dout),
@@ -116,7 +128,7 @@ module tcp_echo (
         if (!rst_n) begin
             state <= S_IDLE; first_b <= 1'b1;
             has_data <= 1'b0; pend <= 1'b0; p_err <= 1'b0; rback <= 1'b0;
-            fq <= 6'd0;
+            fq <= {FQW{1'b0}};
             stat_echo <= 0; stat_drop_crc <= 0;
             stat_tlast_wr <= 0; stat_tlast_fwd <= 0;
         end else begin
@@ -147,21 +159,21 @@ module tcp_echo (
 
             // fq 权威计数 (cq_empty 是弹前值, 不能用于帧尾判决)
             case ({cq_push, cq_pop})
-                2'b10: fq <= fq + 6'd1;
-                2'b01: fq <= fq - 6'd1;
+                2'b10: fq <= fq + 1'b1;
+                2'b01: fq <= fq - 1'b1;
                 default: ;
             endcase
 
             // ---- 转发 ----
             case (state)
                 S_IDLE: begin
-                    if (fq != 6'd0) state <= S_FWD;
+                    if (fq != {FQW{1'b0}}) state <= S_FWD;
                 end
                 default: begin   // S_FWD: 顺序转发; 末字拍弹 conn, fq==1 则回 IDLE
                     if (fwd_rd && fdout[72]) begin
                         stat_echo <= stat_echo + 1;
                         stat_tlast_fwd <= stat_tlast_fwd + 32'd1;   // P4b-7-P6 末拍转发账
-                        if (fq == 6'd1) state <= S_IDLE;
+                        if (fq == 1) state <= S_IDLE;
                     end
                 end
             endcase

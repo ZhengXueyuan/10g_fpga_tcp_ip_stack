@@ -7,9 +7,25 @@
 #include "eth_types.h"
 #include "eth_utils.h"
 
+// P11 P3 (2026-10-18): 8 连接合同 —— 构建 cflag `-DMAX_TCP_CONN=8` 时启用;
+// 默认 3 = 0x2A/0x2D 归档网表的历史值 (cfg_single/cfg_shared 继续用归档网表,
+// 本源码的默认值只服务 csim 与未指定 cflag 的构建)。
 #ifndef MAX_TCP_CONN
 #define MAX_TCP_CONN     3
 #endif
+
+//=============================================================================
+// P11 P3: SYN-ACK 通告窗口 = 运行时输入 (设计件 §5.3 / §14.3-4)
+//   `tcp_adv_wnd_cur` 由顶层 udp_echo 的 `i_tcp_adv_wnd` 每个 pass 写入。
+//   为什么必须与共享池配额一致: SYN-ACK 先于 fast path 的 cfg ADD / 首次 ACK;
+//   若通告 48KB 而实际配额 12KB ⇒ 对端按 48KB 发 ⇒ 窗口收缩/丢段。
+//   默认 0xC000 = 历史硬编码值 ⇒ csim/旧调用逐位不变。
+//   (机制为文件级寄存器而不是逐层传参: 综合后 tcp_send/tcp_rx_process 全部
+//    内联进 udp_echo, 该寄存器就是顶层的一个 16 位寄存器; 语义与"顶层输入"
+//    相同。C1/C3 用归档网表, 不经过本源码。)
+//=============================================================================
+static uint16_t tcp_adv_wnd_cur = 0xC000;
+static void tcp_adv_wnd_set(uint16_t w){ tcp_adv_wnd_cur = w; }
 
 // ARP lookup (defined in layer_arp.cpp — same translation unit).
 bool arp_lookup(arp_entry_t *table, ap_uint<32> ip, mac_addr_t &mac);
@@ -196,6 +212,9 @@ static void cfg_write(hls::stream<ap_uint<32> > &cfg_stream, uint8_t cmd,
         w[7]=snd_nxt;
     }else{
         for(int i=1;i<8;i++)w[i]=0;
+        // P11 P3: DEL 也携带 local_ip (w2) —— RTL 的 slow_cfg_demux 用它做
+        // "DEL 的 w2 与 slot_port 一致性"校验 (路由仍按 slot_port, 不依赖 w2)。
+        w[2]=local_ip;
     }
     for(int i=0;i<8;i++)cfg_stream.write(w[i]);
 }
@@ -289,10 +308,11 @@ static void tcp_send(uint32_t *buf, mac_tx_req_t &tx_req, int8_t cid,
     bool has_opts=(flags&TCP_SYN)!=0;
     uint16_t total=(has_opts?TCP_MAX_HDR:TCP_HEADER_BYTES)+pay_len;
     uint32_t sip=c.local_ip;   // P11 P2-甲: 源 IP 随连接 (IP_A 或 IP_B)
-    // P4c: 我方通告窗 48K (0xC000) — 与 fast 侧 TCB rcv_wnd (slow_cfg_adp 常量
-    // 0xC000) 及门控帽 RING_CAP 0xBFFE 同量纲; 48K < 64K 故不引入 WS
+    // P4c: 我方通告窗 = tcp_adv_wnd_cur (默认 0xC000 = 历史 48K)。
+    // P11 P3: 该值由顶层 `i_tcp_adv_wnd` 运行时写入, 必须与共享池的 wq_cap 一致
+    // (2×10G 2 连接 48KB / 8 连接 12KB)。48K/12K < 64K 故仍不引入 WS
     // (P4b-6 死锁前科: WS=7 通告被放大 128 倍塞满管道, 见下 SYN 选项注释)。
-    tcp_build_hdr(seg,TCP_PORT_ECHO,c.peer_port,c.seq,c.peer_seq,flags,0xC000,has_opts);
+    tcp_build_hdr(seg,TCP_PORT_ECHO,c.peer_port,c.seq,c.peer_seq,flags,tcp_adv_wnd_cur,has_opts);
     if(payload&&pay_len>0){for(int i=0;i<pay_len;i++)seg[TCP_HEADER_BYTES+i]=payload[i];}
     uint16_t cs=tcp_csum(sip,c.peer_ip,seg,total);seg[16]=(cs>>8)&0xFF;seg[17]=cs&0xFF;
     // Update SEQ and flight size
@@ -621,7 +641,8 @@ static void tcp_rx_process(bool rst, ip_rx_t &ip_rx, uint32_t *buf, mac_tx_req_t
     // 峰值占用远低于深度, 不引入稳态背压 (仅"帧同时到达"的极端排布才有 1~2
     // 拍瞬时 tready=0 — HLS 侧只是等一拍, 不丢记录)。
     if(cid>=0&&tcp_conn[cid].state!=T_FREE&&(flags&TCP_SYN)&&!(flags&TCP_ACK)){
-        cfg_write(cfg_stream,CFG_CMD_DEL,cid,0,0,0,0,0,0,0,0);
+        // P11 P3: DEL 也带 local_ip (w2) — cfg demux 的一致性校验; 路由仍按 slot_port
+        cfg_write(cfg_stream,CFG_CMD_DEL,cid,0,tcp_conn[cid].local_ip,0,0,0,0,0,0);
         tcp_conn[cid].state=T_FREE;
         tcp_conn[cid].retrans_pending=false;
     }
@@ -650,7 +671,7 @@ static void tcp_rx_process(bool rst, ip_rx_t &ip_rx, uint32_t *buf, mac_tx_req_t
                tcp_conn[i].local_ip==ip_rx.dst_ip){
                 tcp_conn[i].state=T_FREE;
                 tcp_conn[i].retrans_pending=false;
-                cfg_write(cfg_stream,CFG_CMD_DEL,i,0,0,0,0,0,0,0,0);
+                cfg_write(cfg_stream,CFG_CMD_DEL,i,0,tcp_conn[i].local_ip,0,0,0,0,0,0);
                 return;
             }
         }
@@ -714,7 +735,7 @@ static void tcp_rx_process(bool rst, ip_rx_t &ip_rx, uint32_t *buf, mac_tx_req_t
             else if(flags&TCP_FIN){
                 c.peer_seq=seq+1;
                 // cfg 先于 tcp_send (延迟路径死锁, 见 T_LISTEN 注)
-                cfg_write(cfg_stream,CFG_CMD_DEL,cid,0,0,0,0,0,0,0,0);
+                cfg_write(cfg_stream,CFG_CMD_DEL,cid,0,c.local_ip,0,0,0,0,0,0);
                 tcp_send(buf,tx_req,cid,TCP_FIN|TCP_ACK,NULL,0);
                 // 直接释放槽位: 最后 ACK 走 fast path, HLS 永远收不到 —
                 // 进 T_LAST_ACK 要等 4 个 RTO (~13s) 限次重传才释放,
@@ -736,7 +757,7 @@ static void tcp_rx_process(bool rst, ip_rx_t &ip_rx, uint32_t *buf, mac_tx_req_t
             if(flags&TCP_FIN){c.state=T_LAST_ACK;
                 // P4b: fast 侧拆除 (CFG_DEL); HLS 槽位等最后 ACK 释放。
                 // cfg 先于 tcp_send (延迟路径死锁, 见 T_LISTEN 注)
-                cfg_write(cfg_stream,CFG_CMD_DEL,cid,0,0,0,0,0,0,0,0);
+                cfg_write(cfg_stream,CFG_CMD_DEL,cid,0,c.local_ip,0,0,0,0,0,0);
                 tcp_send(buf,tx_req,cid,TCP_FIN|TCP_ACK,NULL,0);}break;
         case T_LAST_ACK:if(flags&TCP_ACK){c.retrans_pending=false;c.state=T_FREE;}break;
     }

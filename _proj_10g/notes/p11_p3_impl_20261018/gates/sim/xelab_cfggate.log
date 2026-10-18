@@ -1,0 +1,28 @@
+Vivado Simulator v2025.2
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+Running: C:/AMDDesignTools/2025.2/Vivado/bin/unwrapped/win64.o/xelab.exe -debug typical -L unisims_ver -L xpm xil_defaultlib.wrapper_p4 xil_defaultlib.glbl -s wrapper_cfg_neg -log xelab_cfggate.log 
+Multi-threading is on. Using 18 slave threads.
+Starting static elaboration
+Pass Through NonSizing Optimizer
+ERROR: [VRFC 10-2063] Module <P11_DUAL_AND_SFP2_MODE_B_CONFLICT> not found while processing module instance <g_p11dual_modeb.u_p11dual_modeb> [D:/repo/XCKU5PMini/udp_hls_10g/board/wrapper_p4.v:405]
+ERROR: [VRFC 10-8530] module 'clk_gen_p6b(SIM_BYPASS=1)' is ignored due to previous errors [D:/repo/XCKU5PMini/udp_hls_10g/rtl/clk_gen_p6b.v:104]
+ERROR: [VRFC 10-8530] module 'fifo_async(WIDTH=76,DEPTH=256,AW=8)' is ignored due to previous errors [D:/repo/XCKU5PMini/udp_hls_10g/rtl/fifo_async.v:101]
+ERROR: [VRFC 10-8530] module 'vlan_strip(RESYNC_EN=1'b1)' is ignored due to previous errors [D:/repo/XCKU5PMini/udp_hls_10g/rtl/vlan_strip.v:56]
+ERROR: [VRFC 10-8530] module 'app_pattern(TX_BYTES=32'b01111111111111111111111111111,TX_CONTINUOUS=1'b1,TX_SWCLOSE=1'b1)' is ignored due to previous errors [D:/repo/XCKU5PMini/udp_hls_10g/rtl/app_pattern.v:26]
+ERROR: [VRFC 10-8530] module 'app_ctrl(WIN_CAP=16'b1111000000000000,EXT_QUOTA=1'b1,ORPHAN_EN=1'b1,ORPHAN_ZW_EN=1'b1)' is ignored due to previous errors [D:/repo/XCKU5PMini/udp_hls_10g/rtl/app_ctrl.v:274]
+ERROR: [VRFC 10-8530] module 'tcp_echo(D=16384,AW=14)' is ignored due to previous errors [D:/repo/XCKU5PMini/udp_hls_10g/rtl/tcp_echo.v:19]
+ERROR: [VRFC 10-8530] module 'tcb(WIN_CAP=16'b1111000000000000)' is ignored due to previous errors [D:/repo/XCKU5PMini/udp_hls_10g/rtl/tcb.v:8]
+ERROR: [VRFC 10-8530] module 'tcp_tx_frame(RING_CAP=16'b1111000000000000,PERSIST_EN=1'b1,EXTERNAL_RETX=1'b1)' is ignored due to previous errors [D:/repo/XCKU5PMini/udp_hls_10g/rtl/tcp_tx_frame.v:24]
+ERROR: [VRFC 10-8530] module 'udp_split(IP_B=32'b11000000101010000110010000000100)' is ignored due to previous errors [D:/repo/XCKU5PMini/udp_hls_10g/rtl/udp_split.v:153]
+ERROR: [VRFC 10-8530] module 'udp_tx_cfg(IP_B=32'b11000000101010000110010000000100)' is ignored due to previous errors [D:/repo/XCKU5PMini/udp_hls_10g/rtl/udp_tx_cfg.v:62]
+ERROR: [VRFC 10-8530] module 'slow_merge2(TO_CYCLES=4096)' is ignored due to previous errors [D:/repo/XCKU5PMini/udp_hls_10g/rtl/slow_merge2.v:18]
+ERROR: [VRFC 10-8530] module 'retx_pool_shared_default' is ignored due to previous errors [D:/repo/XCKU5PMini/udp_hls_10g/rtl/retx_pool_shared.v:17]
+ERROR: [VRFC 10-8530] module 'slow_tx_adp(IP_B=32'b11000000101010000110010000000100)' is ignored due to previous errors [D:/repo/XCKU5PMini/udp_hls_10g/rtl/slow_tx_adp.v:13]
+ERROR: [VRFC 10-8530] module 'fifo_sync(D=16,AW=4)' is ignored due to previous errors [D:/repo/XCKU5PMini/udp_hls_10g/rtl/fifo_sync.v:20]
+ERROR: [VRFC 10-8530] module 'frame_fifo(D=16384,AW=14)' is ignored due to previous errors [D:/repo/XCKU5PMini/udp_hls_10g/rtl/frame_fifo.v:57]
+ERROR: [VRFC 10-8530] module 'udp_split_fifo(D=16,AW=4)' is ignored due to previous errors [D:/repo/XCKU5PMini/udp_hls_10g/rtl/udp_split.v:96]
+ERROR: [VRFC 10-8530] module 'udp_rx(IP_B=32'b11000000101010000110010000000100)' is ignored due to previous errors [D:/repo/XCKU5PMini/udp_hls_10g/rtl/udp_rx.v:15]
+ERROR: [VRFC 10-8530] module 'udp_echo_fifo_w32_d512_A_default' is ignored due to previous errors [D:/repo/XCKU5PMini/udp_hls_10g/hls/slowstack_prj/solution1/syn/verilog/udp_echo_fifo_w32_d512_A.v:9]
+INFO: [VRFC 10-10021] Sorry, too many errors..
+ERROR: [XSIM 43-3322] Static elaboration of top level Verilog design unit(s) in library work failed.

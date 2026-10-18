@@ -2033,3 +2033,11 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - **低 11 条**：设计件 §14.2 逐条处置（BRAM 266/394/306 + HLS MAX=8 注；slow merge/demux 用新模块、不复用 fast `rx_merge2`/`tx_demux2`；`slow_cfg_demux` 补入新件；FF 包络 −0.3–0.5k；wrapper 行号 1668-1670/1531/1591；`app_ctrl:532`/`layer_arp:194-198`；62,939 标纸面；MAC 路径 `_proj_10g/p7b_mac/rtl/`；审查时 895 行 / §14 后 944 行 / 收口 `93e36ea9`；RTL 陈旧交叉引用实施轮清）。
 - **8 条 TL 裁定（用户 2026-10-18 授权自裁；kimi 全部同意默认）**：① **M2**（附 G-P3-1b；M3 退路）② **共享 retx 8 槽 128 tile**（每口 256 tile backstop）③ **96KB + 128KB echo** ④ **一个 bitstream 一个合同**（2×48KB/8×12KB；host 寄存器留 P4+）⑤ **超额准入零窗**（RST 不进 v1）⑥ **B/C2S**（A′ 风险对冲）⑦ **C1+C3 保留回归锚**（C3 退役待 P3 板级后用户裁）⑧ **C4=0x2F**，C2=0x2E/0x30，C1/C3 重建另分配 BID。
 - **下一棒**：**P3 实施轮**（只改 RTL/HLS + 门；不构建/不上板；C1/C3 默认关回归硬门）→ 实施红队审查 → 构建 0x2F。
+
+## §10-156 2026-10-19 01:3x：**P3 实施轮收口（C4 甲·双栈）** —— RTL/HLS + 门；32/32 FROZEN；**未构建/未上板**
+- **新件 5**（`win_pool_mgr` / `retx_pool_shared` / `slow_merge2` / `slow_demux2` / `slow_cfg_demux`）+ **改件 14**（`app_ctrl`/`retx_ram`/`tcp_tx_frame`/`tcp_echo`、HLS `layer_tcp`/`udp_echo`/`tb`/`run_hls`、`wrapper_p4.v` **+965**、build tcl、matrix 24→32、paths、check_window）；**无派生模块副本**；`rtl/`/`hls/src/` 模式宏命中 0。
+- **门读数**：G-P3-1/1b/3/4/5/6/7/8 全有读数；**负控全红**（wpm 3/3、churn 4/4、cfg 9/9）；矩阵 **32/32 / 0 failed / FROZEN**（382 文件，content digest `e4367d75…`；首跑 31/32 唯一红 `biz_win` = W79 源名，修 `check_window.py` 后全绿）；HLS csim 三臂 **75/72/51 passed**，**3 条失败 = P2 前既有基线**（`p11_p2a_impl/gates/base_out.txt` 同集合）。
+- **偏差 13 条**（报告 §3）：`app_ctrl` 双读口（扫描/事件）、C18 old-first、HLS `adv_wnd` 文件级寄存器、boot writer 常量、`P11_CFG_ENFORCE` 兼容、`tcp_echo` CQ/FQ 宽度、slow merge 位置（`udp_split` 后）、每口 UDP app 全链、W79（C4）= ch0 MAC 好帧、`check_window` 两源名、负控未入矩阵、`C4+ModeB` 被既有宽门预占、`tcp_tx_frame` 9 个 `ext_retx_*` 端口。
+- **未测**：无 synth/impl/位流/时序/资源；无 HLS csynth（P3 双 IP 网表不存在）；C4 port1 仅接线/elab（IP_B 应答未测）；8 连接板级/2×10G/对端未测；慢 merge 半帧看门狗未构造。
+- **已知非新**：C4 wrapper xsim 日志有 `u_slow_rx.u_ff` RAMB SDP 碰撞告警（P2 同款既存；`frame_fifo` bypass 语义已解释），登记。
+- **下一棒**：**独立红队审查实施** → 修 → 构建 0x2F（先 HLS csynth 双 IP 网表）。板仍 = 0x2D + `0x08=0` + carrier 1/1。

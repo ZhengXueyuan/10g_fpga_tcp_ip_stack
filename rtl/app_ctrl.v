@@ -303,6 +303,19 @@ module app_ctrl #(
     // 就能同时跑两臂 (同激励、同波形), 比两个 checkout 的对照更强。
     parameter        WU_LEGACY = 1'b0,
     //=========================================================================
+    // P11 P3 (2026-10-18): 外部共享配额模式 (设计件 §4.3 / §14.3-1)
+    //   EXT_QUOTA = 0 (默认) ⇒ 今天的内部 pool/winq/C14/C15 **行为回归**
+    //     (源已改 ⇒ 不承诺 placed 网表逐位; C1/C3 只承诺功能等价)。
+    //   EXT_QUOTA = 1 ⇒ win_pool_mgr 是 pool/winq/port_win 的**唯一属主**;
+    //     本模块只读配额 (`i_winq_rd*`), 并把四条释放路径收敛成
+    //     `o_quota_rel` / `o_quota_rel_slot` 交给 manager:
+    //       ev_down_i (外部 DEL / 孤儿回收) | to_fire (关闭超时) | st_req_now
+    //       (abort 完成 / 宽限兜底)。C18 的旧配额归还在 manager 内原子完成;
+    //     **C15 增量补授关闭** (用户约束: 不建连后借还)。
+    //   6 类配额写点旁路表见设计件 §4.3 (复位/ev_up/ev_down/超时/abort/C15)。
+    //=========================================================================
+    parameter        EXT_QUOTA = 1'b0,
+    //=========================================================================
     // p9 orphan fix (2026-10-17): 孤儿会话/槽泄漏回收 (设计件 v4, 附录 B 权威)
     //   ORPHAN_EN          : 0 = 本附录全部逻辑不存在 (零回归; ev_down_i≡ev_down)
     //   ORPHAN_LIM         : 模式 A 阈值 (tick 数; 8 位饱和)
@@ -366,6 +379,17 @@ module app_ctrl #(
     input  wire [15:0] rc_rcv_wnd,
     input  wire [15:0] rc_snd_wnd,
     input  wire [3:0]  rc_state,
+    // ---- P11 P3: 外部共享配额 (EXT_QUOTA=1) ----
+    // 两个只读配额口: A = 扫描/init (id = init_pend?init_slot:scan_id),
+    //                  B = 事件     (id = ev_down_i?ev_slot_i:ev_slot)。
+    // 两口的必要性见 win_pool_mgr 端口注释 (同拍不同槽的扫描与事件)。
+    output wire [3:0]  o_winq_rd_id,
+    input  wire [15:0] i_winq_rd,
+    output wire [3:0]  o_winq_rd_id_ev,
+    input  wire [15:0] i_winq_rd_ev,
+    // 统一释放 (每条非零配额的槽恰好一次; EXT_QUOTA=0 时恒 0)
+    output wire        o_quota_rel,
+    output wire [3:0]  o_quota_rel_slot,
     // ---- 状态输入 ----
     input  wire [16:0] rx_occ_bytes,   // app RX 可读字节 (echo frame_fifo 占用)
     input  wire [15:0] fin_sent,       // tcp_tx_frame.o_fin_sent
@@ -548,6 +572,7 @@ module app_ctrl #(
     reg         pa_v;
     reg  [3:0]  pa_sid;              // 被采样的槽号
     reg  [16:0] pa_fq;               // (occ >= winq) ? 0 : winq - occ
+    reg  [15:0] pa_winq;             // P11: T 拍该槽配额的锁存 (EXT_QUOTA=1 用)
     reg  [31:0] pa_redge_n;          // 右沿候选 = rn + fq
     reg  [15:0] pa_rwnd;             // 采样 rcv_wnd (fc 判据对照)
     reg  [3:0]  pa_state;
@@ -555,6 +580,7 @@ module app_ctrl #(
     reg         pb_v;
     reg  [3:0]  pb_sid;
     reg  [15:0] pb_wscan;            // = pa_fq[15:0] (等价性证明)
+    reg  [15:0] pb_winq;             // P11: T+1 拍配额锁存 (T+2 判据用)
     reg  [15:0] pb_rwnd;
     reg  [3:0]  pb_state;
     // 事件撞车跟踪 (让位): 事件的清理/授权/init 才是权威值 — 流水线 landing
@@ -598,6 +624,19 @@ module app_ctrl #(
                               orph_notify_pend || orph_down_i;
     assign      orphan_cam_clr  = ORPHAN_EN && orphan_cam_clr_r;
     assign      orphan_cam_slot = orph_slot;
+
+    //=========================================================================
+    // P11 P3: 外部共享配额读口 (EXT_QUOTA=0 ⇒ 下面所有 winq_q_* 退化为内部
+    // 阵列读, 逻辑与改动前逐位等价; EXT_QUOTA=1 ⇒ 只读 manager 的配额)。
+    //=========================================================================
+    assign o_winq_rd_id    = init_pend ? init_slot : scan_id;   // 扫描/init 口
+    assign o_winq_rd_id_ev = ev_down_i ? ev_slot_i : ev_slot;   // 事件口
+    wire [15:0] winq_q_scan = EXT_QUOTA ? i_winq_rd    : winq[scan_id];
+    wire [15:0] winq_q_init = EXT_QUOTA ? i_winq_rd    : winq[init_slot];
+    wire [15:0] winq_q_ev   = EXT_QUOTA ? i_winq_rd_ev : winq[ev_slot];
+    wire [15:0] winq_q_evd  = EXT_QUOTA ? i_winq_rd_ev : winq[ev_slot_i];
+    // T+2 拍用扫描样本的**锁存**值 (单读口在 T+2 已指向别的槽; 见 pa_winq/pb_winq)
+    wire [15:0] winq_q_pb   = EXT_QUOTA ? pb_winq : winq[pb_sid];
 
     // ---- app_tx_ready: ESTAB && 在飞 < min(snd_wnd, WIN_CAP) && !fin_req
     //      && !fin_sent && !rst_req && !rst_sent (P5a 用轮扫注册值;
@@ -886,7 +925,7 @@ module app_ctrl #(
     // **赢过** C14-① 的授予预留 (occ=20480 时预留 28672 被补成 49152)。安全性仍由
     // redge_calc 的 occ 修正兜住 (occ + 窗 = 49152 <= 65536 ✓), 但"双保险"实为
     // 单保险 ⇒ C17 的扫描让位 (下 always 的采样守卫) 使两者不再同拍。
-    wire [15:0] inc_room  = wq_cap_r - winq[pb_sid];     // 用流水槽号 (拍 T+2)
+    wire [15:0] inc_room  = wq_cap_r - winq_q_pb;        // 用流水槽号 (拍 T+2)
     wire [16:0] inc_grant = ({1'b0, inc_room} < pool) ? {1'b0, inc_room}
                                                       : pool;
 
@@ -894,7 +933,7 @@ module app_ctrl #(
     // 只剩一级 17 位饱和减法 (fq) + 一级 32 位加法 (redge_n)。原来是四级串联
     // (fq -> redge_n -> sdelta -> wcalc -> wu_mark 比较), 实测 22 CARRY4 / 37 级
     // 逻辑 / WNS -3.089ns。fq 同时供 redge_n 与 fq_r 锁存 (wscan 由它直接得到)。
-    wire [16:0] fq_scan  = fq_calc(winq[scan_id], rx_occ_bytes);
+    wire [16:0] fq_scan  = fq_calc(winq_q_scan, rx_occ_bytes);
     wire [31:0] redge_n  = rc_rcv_nxt + {15'b0, fq_scan};
     // 拍 T+1 的单调判据 (对寄存值做一次 32 位序比较)
     wire signed [31:0] sdelta_b = $signed(pa_redge_n - redge[pa_sid]);
@@ -991,6 +1030,17 @@ module app_ctrl #(
     wire        st_req_now = scan_tick && !init_pend && !ev_blk &&
                              (rc_state == ST_ESTAB) && !st_done[scan_id] &&
                              (rst_sent[scan_id] || st_grace);
+    // ---- P11 P3: 统一释放 (EXT_QUOTA=1) ----
+    // 四条释放路径收敛为一条: 外部 DEL / 孤儿回收 (ev_down_i)、关闭超时
+    // (to_fire)、abort 完成或宽限兜底 (st_req_now)。`winq_rd[slot] != 0` 门
+    // 保证每条**非零配额**恰好释放一次 (后续零额释放被抑制 —— manager 的
+    // stat_rel_dup 应恒 0)。槽号: 事件拍 = ev_slot_i, 扫描拍 = scan_id。
+    wire [3:0] qrel_slot = ev_down_i ? ev_slot_i : scan_id;
+    assign o_quota_rel_slot = qrel_slot;
+    assign o_quota_rel = EXT_QUOTA && !ev_up &&
+                         ((ev_down_i  && (winq_q_evd  != 16'd0)) ||
+                          (to_fire    && (winq_q_scan != 16'd0)) ||
+                          (st_req_now && (winq_q_scan != 16'd0)));
     // ---- 配额归还 (超时/abort 收尾 与 ev_down 共用同一个表达式) ----
     // 为什么合并: `winq`/`pool` 是同一笔额度的两面。若"拆连归还"与 ev_down 的归还
     // 分两处写 pool, 同拍时后写者胜 ⇒ 另一笔信用凭空消失 (Σwinq + pool == WIN_POOL
@@ -999,7 +1049,7 @@ module app_ctrl #(
     // (ev_down 时 ret_slot_q = winq[ev_slot], 与 P5b 原式逐位一致 ⇒ 零行为变化)。
     // p9 orphan fix (F8): 归还槽号必须走 ev_slot_i (孤儿通知也要归还**该槽**配额;
     // 漏这一处 ⇒ 归还错槽 = 池记账毒化)
-    wire [15:0] ret_slot_q = ev_down_i ? winq[ev_slot_i] : winq[scan_id];
+    wire [15:0] ret_slot_q = ev_down_i ? winq_q_evd : winq_q_scan;
     wire [17:0] p_sum_x    = {1'b0, pool} + {1'b0, ret_slot_q};
     wire [16:0] pool_ret_x = (p_sum_x > {1'b0, WIN_POOL}) ? {1'b0, WIN_POOL}
                                                         : p_sum_x[16:0];
@@ -1028,8 +1078,10 @@ module app_ctrl #(
             to_pend <= 16'd0; st_pend <= 16'd0; st_done <= 16'd0;
             to_fired <= 16'd0; to_pushed_r <= 1'b0;
             pa_v <= 1'b0; pa_sid <= 4'd0; pa_fq <= 17'd0; pa_redge_n <= 32'd0;
+            pa_winq <= 16'd0;
             pa_rwnd <= 16'd0; pa_state <= 4'd0;
             pb_v <= 1'b0; pb_sid <= 4'd0; pb_wscan <= 16'd0; pb_rwnd <= 16'd0;
+            pb_winq <= 16'd0;
             pb_state <= 4'd0;
             ev1_v <= 1'b0; ev1_slot <= 4'd0;
             // p9 orphan fix: 复位 (ORPHAN_EN=0 ⇒ 常量折叠)
@@ -1070,12 +1122,12 @@ module app_ctrl #(
                 // (连接拆了 app 没读走的数据照样占槽), 同槽 DEL→ADD 时遗留占用
                 // 会同新配额叠加 ⇒ occ(遗留) + 49152 > 65536 (遗留 > 16KB 即溢出)。
                 // occ=0 时简并为 rcv_nxt + winq (C3 原式)。
-                redge[init_slot]   <= redge_calc(winq[init_slot], rc_rcv_nxt,
+                redge[init_slot]   <= redge_calc(winq_q_init, rc_rcv_nxt,
                                                  rx_occ_bytes);
                 // C10: wu_mark 取 winq (刚授予的配额), 不取采样的 rc_rcv_wnd —
                 // init 后 TCB 值即 winq (下面 fc_pend 立即纠正), 两者一致, 且免去
                 // 对采样值的时序依赖 ⇒ 连接刚建立不会多发一个 wu。
-                wu_mark[init_slot] <= winq[init_slot];
+                wu_mark[init_slot] <= winq_q_init;
                 // 让 warr[] 组合值与本次 redge 自洽 (fc 纠偏写的值 = winq):
                 // 否则 c_rcv_nxt 若还是旧会话/复位残留值, warr 会算出巨大窗口。
                 c_rcv_nxt[init_slot] <= rc_rcv_nxt;
@@ -1094,7 +1146,7 @@ module app_ctrl #(
                 // occ=0 时 = winq ⇒ 与规格 C10 的字面值逐位相同 (单连接常态);
                 // occ>0 时若写 winq 会通告 > redge 的右沿 ⇒ 下一次扫描的 fc 写
                 // 变成"撤窗" (在飞数据被拒 ⇒ C16 病理) ⇒ 必须取空闲量。
-                fc_wq[init_slot]     <= fq_calc(winq[init_slot], rx_occ_bytes);
+                fc_wq[init_slot]     <= fq_calc(winq_q_init, rx_occ_bytes);
                 init_pend <= 1'b0;
             end
 
@@ -1116,12 +1168,16 @@ module app_ctrl #(
                     // C18: 记池必须**先归还该槽旧配额** (pool_upd = pool - g + winq[slot],
                     // 封顶 WIN_POOL) —— 否则同槽二次 ev_up (无 ev_down) 会让旧配额蒸发
                     // (理由见 pool_reuse 注释)。单连接正常流程 winq[ev_slot]=0 ⇒ 与原式逐位相同。
-                    winq[ev_slot] <= g_grant;
-                    pool          <= pool_upd;
-                    if (winq[ev_slot] != 16'd0)
-                        stat_slot_reuse <= stat_slot_reuse + 32'd1;
-                    if (g_grant < wq_cap_r)
-                        stat_pool_exhaust <= stat_pool_exhaust + 32'd1;
+                    // P11 P3: EXT_QUOTA=1 ⇒ manager 是唯一属主 (旁路写点 #2);
+                    // C18 的旧配额归还在 manager 内原子完成。
+                    if (!EXT_QUOTA) begin
+                        winq[ev_slot] <= g_grant;
+                        pool          <= pool_upd;
+                        if (winq[ev_slot] != 16'd0)
+                            stat_slot_reuse <= stat_slot_reuse + 32'd1;
+                        if (g_grant < wq_cap_r)
+                            stat_pool_exhaust <= stat_pool_exhaust + 32'd1;
+                    end
                     // ---- C3/C10: 一拍的 init (读新槽 TCB 值) ----
                     init_pend <= 1'b1;
                     init_slot <= ev_slot;
@@ -1161,8 +1217,12 @@ module app_ctrl #(
                     // 注意: 归还的是**配额**, 不是物理占用 (占用不释放 — 见 C14)。
                     // P5c-T3: 归还表达式 = pool_ret_x (与超时/abort 收尾同一个;
                     // ev_down 时两者逐位一致 ⇒ 行为不变, 但同拍双写变得不可能不一致)
-                    pool              <= pool_ret_x;
-                    winq[ev_slot_i]   <= 16'd0;
+                    // P11 P3: EXT_QUOTA=1 ⇒ 不写内部池 (旁路写点 #3); 归还由
+                    // o_quota_rel 在本拍交给 manager (同沿)。
+                    if (!EXT_QUOTA) begin
+                        pool            <= pool_ret_x;
+                        winq[ev_slot_i] <= 16'd0;
+                    end
                     // C1: redge **保持不变** (不要写 0)。写 0 在 rcv_nxt >= 2^31
                     // (约 50% 的对端 ISS) 会被序比较 sdelta = $signed(redge_n - 0)
                     // 判为"未来值"(负) 而永久留存 ⇒ W 恒 0 ⇒ 死锁。同槽重连由
@@ -1237,6 +1297,7 @@ module app_ctrl #(
                 pa_v       <= 1'b1;
                 pa_sid     <= scan_id;
                 pa_fq      <= fq_scan;
+                pa_winq    <= winq_q_scan;      // P11: EXT_QUOTA=1 的 T+2 判据源
                 pa_redge_n <= redge_n;
                 pa_rwnd    <= rc_rcv_wnd;
                 pa_state   <= rc_state;
@@ -1275,8 +1336,11 @@ module app_ctrl #(
                         //    为 0 ⇒ 天然不 double-free (与 C4 的饱和加同构)。
                         //    物理占用不受影响 (归还的是**配额**; occ 由 C14-① 的授予
                         //    公式另行扣除) ⇒ 不越物理界。
-                        pool           <= pool_ret_x;
-                        winq[scan_id]  <= 16'd0;
+                        // P11 P3: EXT_QUOTA=1 ⇒ 归还交 manager (旁路写点 #4)
+                        if (!EXT_QUOTA) begin
+                            pool          <= pool_ret_x;
+                            winq[scan_id] <= 16'd0;
+                        end
                         wu_pend[scan_id] <= 1'b0;
                         wu_zero[scan_id] <= 1'b0;
                         wu_mark[scan_id] <= 16'd0;
@@ -1300,8 +1364,11 @@ module app_ctrl #(
                 if (st_req_now) begin
                     st_pend[scan_id] <= 1'b1;
                     st_done[scan_id] <= 1'b1;
-                    pool             <= pool_ret_x;
-                    winq[scan_id]    <= 16'd0;
+                    // P11 P3: EXT_QUOTA=1 ⇒ 归还交 manager (旁路写点 #5)
+                    if (!EXT_QUOTA) begin
+                        pool          <= pool_ret_x;
+                        winq[scan_id] <= 16'd0;
+                    end
                     // 该槽正在拆除: 挂着的窗口纠偏与窗口更新 ACK 请求一并作废
                     // (对死连接写窗口/发重开 ACK 都是噪声; 与 ev_down 的清理同源)
                     fc_pend[scan_id] <= 1'b0;
@@ -1321,6 +1388,7 @@ module app_ctrl #(
                 // wscan = fq[15:0] (等价性证明见文件头: wcalc(redge_n, rn) ≡ fq,
                 // 且 redge_upd=0 时两式同样相等 ⇒ 与旧式逐位等价)
                 pb_wscan <= pa_fq[15:0];
+                pb_winq  <= pa_winq;            // P11: 与 pb_sid 同源的配额锁存
                 pb_rwnd  <= pa_rwnd;
                 pb_state <= pa_state;
             end else begin
@@ -1342,10 +1410,13 @@ module app_ctrl #(
                 // 旧池余额**再授一份 (pool 只减一份) ⇒ Σwinq 越过 WIN_POOL (实测 2x),
                 // 后果是"授予总量 + occ" 可超 64KB 物理缓冲 (C4/C15 想守的那条界)。
                 // 事件 1 拍脉冲且稀疏 ⇒ 该拍不授、下一次扫描访到该槽再授, 零代价。
-                if ((pb_state == ST_ESTAB) && (winq[pb_sid] < wq_cap_r) &&
+                // P11 P3: EXT_QUOTA=1 ⇒ C15 关闭 (写点 #6; 用户约束 = 预配额、
+                // 不建连后借还)。EXT_QUOTA=0 时 winq_q_pb == winq[pb_sid]。
+                if (!EXT_QUOTA &&
+                    (pb_state == ST_ESTAB) && (winq_q_pb < wq_cap_r) &&
                     (pool != 17'd0) && !ev_blk &&
                     !st_done[pb_sid] && !to_fired[pb_sid]) begin
-                    winq[pb_sid] <= winq[pb_sid] + inc_grant[15:0];
+                    winq[pb_sid] <= winq_q_pb + inc_grant[15:0];
                     // **必须同时扣池**: 只加 winq 不扣 pool 会让 Σwinq > WIN_POOL
                     // (定向门 T5c 实测抓到: winq 补到 C000 而 pool 仍 C000 ⇒ 池
                     //  可被反复超发, 物理缓冲失去信用约束)
@@ -1427,12 +1498,12 @@ module app_ctrl #(
                         //   ⇒ 显式 block 掉整块, 不给"窗口 0 通告"留任何路径。
                         //   门 = `tb/tb_wu_f2.v` PH0 (winq=0 档, 修前/修后同一激励逐字对照:
                         //   修前 wu_zero 被钉在 1, 修后恒 0; 两版 wu_pend 都是 0 次)。
-                        if (winq[pb_sid] != 16'd0) begin
-                            if ((({1'b0, pb_wscan} < {2'b0, winq[pb_sid][15:2]}) ||
+                        if (winq_q_pb != 16'd0) begin
+                            if ((({1'b0, pb_wscan} < {2'b0, winq_q_pb[15:2]}) ||
                                  (pb_wscan == 16'd0)) && wu_act[pb_sid]) begin
                                 wu_zero[pb_sid] <= 1'b1;     // 入危险区: 武装 (P1 下界 + P2 进度门)
                             end else if (wu_zero[pb_sid] &&
-                                         ({1'b0, pb_wscan} >= {1'b0, winq[pb_sid][15:1]})) begin
+                                         ({1'b0, pb_wscan} >= {1'b0, winq_q_pb[15:1]})) begin
                                 wu_pend[pb_sid] <= 1'b1;     // 电平请求 (等 wu_gnt)
                                 wu_mark[pb_sid] <= pb_wscan;
                                 wu_zero[pb_sid] <= 1'b0;

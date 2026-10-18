@@ -331,17 +331,21 @@ def main():
     #      `ch0snap_din = {…}` 拼接下标 = 3-slot (槽 3 在第 0 项)。
     ch0_body, _ = grab_concat(src0, r"ch0snap_din\s*=")
     ch0_din_items = [code_of(x) for x in split_top_items(re.sub(r"//[^\n]*", "", ch0_body))] if ch0_body else []
-    ch0_map = ((79, 0, "ch0_rx_frames"), (80, 1, "ch0_rx_bytes"),
-               (81, 2, "ch0_stat_crc_err"), (82, 3, "ch0_stat_drop"))
-    for k, slot, src_name in ch0_map:
+    # P11 P3 (2026-10-19): W79 的 C4 语义 = "ch0 MAC RX 好帧" (`ch0_stat_frames`,
+    #   与 W0 同计数点); C3/历史口径 = "被 merge 输入 FIFO 接受的好帧数"
+    #   (`ch0_rx_frames`)。wrapper 用 `ch0_w79_frames` 做二选一 ⇒ 本检查接受
+    #   两个源名 (读侧标签仍需在 C4 阶段同步; 该语义变更见 P3 实施报告 §3-9)。
+    ch0_map = ((79, 0, ("ch0_rx_frames", "ch0_w79_frames")), (80, 1, ("ch0_rx_bytes",)),
+               (81, 2, ("ch0_stat_crc_err",)), (82, 3, ("ch0_stat_drop",)))
+    for k, slot, src_names in ch0_map:
         k2 = 82 - k + np11_top
         want_asm = "ch0snap_dout[%d*32 +: 32]" % slot
         ck(code_of(items[k2]) == want_asm, "5c 槽号映射 W%d (ch0 束装配)" % k,
            "(装配第 %d 项 = '%s', 期望 '%s')" % (k2, code_of(items[k2])[:40], want_asm))
         din_idx = 3 - slot
         got = ch0_din_items[din_idx] if din_idx < len(ch0_din_items) else "<缺项>"
-        ck(got == src_name, "5c 槽号映射 W%d (ch0 束 din)" % k,
-           "(ch0snap_din 第 %d 项 = '%s', 期望 '%s')" % (din_idx, got[:40], src_name))
+        ck(got in src_names, "5c 槽号映射 W%d (ch0 束 din)" % k,
+           "(ch0snap_din 第 %d 项 = '%s', 期望 %s)" % (din_idx, got[:40], "/".join(src_names)))
     # W83/W84: p7bdp 槽 39/40, RHS = 两条具名线 (0x2D backstop-2 保留; W85..W87 已删, 不再断言)
     for k, slot, src_name in ((83, 39, "w83_dp"), (84, 40, "w84_dp")):
         pat = r"assign\s+p7bdp_din\[%d\*32\s*\+\:\s*32\]\s*=\s*%s\s*;" % (slot, src_name)

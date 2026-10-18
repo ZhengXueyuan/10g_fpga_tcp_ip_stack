@@ -17,10 +17,13 @@
 // 现本 TB 可直接 g++ 编译跑 csim; xsim 真 RTL 验证仍是最终判据。
 static hls::stream<ap_uint<32> > g_cfg;
 void udp_echo(bool, hls::stream<gmii_byte_t>&, hls::stream<gmii_byte_t>&, hls::stream<gmii_byte_t>&,
-              hls::stream<ap_uint<32> >&, bool&, bool&, bool&, bool&);
+              hls::stream<ap_uint<32> >&, ap_uint<16>, bool&, bool&, bool&, bool&);
+// P11 P3: 兼容壳新增 adv_wnd 形参 (默认 = g_adv_wnd = 0xC000 历史值 ⇒ 既有调用逐字不变)
+static ap_uint<16> g_adv_wnd = 0xC000;
 static void udp_echo(bool reset_n, hls::stream<gmii_byte_t>&rx, hls::stream<gmii_byte_t>&tx,
-                     hls::stream<gmii_byte_t>&msg, bool&d0, bool&d1, bool&d2, bool&d3) {
-    udp_echo(reset_n, rx, tx, msg, g_cfg, d0, d1, d2, d3);
+                     hls::stream<gmii_byte_t>&msg, bool&d0, bool&d1, bool&d2, bool&d3,
+                     ap_uint<16> adv_wnd = g_adv_wnd) {
+    udp_echo(reset_n, rx, tx, msg, g_cfg, adv_wnd, d0, d1, d2, d3);
 }
 
 static int passed=0,failed=0;
@@ -893,6 +896,22 @@ static int build_rst(uint8_t*f,uint32_t sip,uint32_t dip,uint16_t sport,uint32_t
     uint16_t tc=(uint16_t)(~s);f[ts+16]=(tc>>8)&0xFF;f[ts+17]=tc&0xFF;
     return idx;
 }
+// TCP FIN (无载荷): 返回帧长。P11 P3: 用于验证 DEL 记录携带 local_ip。
+static int build_fin(uint8_t*f,uint32_t sip,uint32_t dip,uint16_t sport,uint32_t seq){
+    int idx=0; put_eth(f,idx,0x000A3501FEC0ULL,smac_101(),0x0800);
+    put_ip_hdr(f,idx,sip,dip,6,40);
+    int ts=idx;
+    f[idx++]=(sport>>8)&0xFF;f[idx++]=sport&0xFF;f[idx++]=0x1F;f[idx++]=0x90;
+    f[idx++]=(seq>>24)&0xFF;f[idx++]=(seq>>16)&0xFF;f[idx++]=(seq>>8)&0xFF;f[idx++]=seq&0xFF;
+    f[idx++]=0;f[idx++]=0;f[idx++]=0;f[idx++]=0;
+    f[idx++]=0x50;f[idx++]=0x11;f[idx++]=0x20;f[idx++]=0x00;
+    f[idx++]=0;f[idx++]=0;f[idx++]=0;f[idx++]=0;
+    uint32_t s=6+20;s+=(sip>>16)&0xFFFF;s+=sip&0xFFFF;s+=(dip>>16)&0xFFFF;s+=dip&0xFFFF;
+    for(int i=0;i<19;i+=2)s+=((uint16_t)f[ts+i]<<8)|f[ts+i+1];
+    while(s>>16)s=(s&0xFFFF)+(s>>16);
+    uint16_t tc=(uint16_t)(~s);f[ts+16]=(tc>>8)&0xFF;f[ts+17]=tc&0xFF;
+    return idx;
+}
 
 #define IP_A_U32 (0xC0A86402u)
 #define IP_B_U32 (0xC0A86404u)
@@ -1048,9 +1067,117 @@ static void test_p11_rst_released_slot(void){
 }
 #endif
 
+//=============================================================================
+// P11 P3 (2026-10-18) csim 用例 — 设计件 §9.1 G-P3-5
+//   · adv_wnd 运行时输入: SYN-ACK 窗口 = 调用时传入的值 (不再是硬编码 0xC000)
+//   · MAX_TCP_CONN=8: 8 条不同四元组 SYN 全部建连; 第 9 条无槽被拒
+//   · DEL 携带 local_ip: FIN/RST 拆除记录 w2 = 该连接 local_ip (cfg demux 校验)
+//=============================================================================
+static void test_p3_adv_wnd(void){
+    TEST("P3 adv_wnd (SYN-ACK window = runtime input)");
+    drain(); for(int i=0;i<5;i++)udp_echo(false,g_rx,g_tx,g_msg,led_d0,led_d1,led_d2,led_d3); drain();
+    drain_cfg(NULL,0);
+    uint8_t f[128],cap[256]; int n,m;
+    g_adv_wnd = 0x3000;
+    n=build_syn(f,0xC0A86465u,IP_A_U32,23500,0x50000000u); feed(f,n);
+    m=capture_if(pred_synack,cap,256);
+    CHECK(m>0,"SYN-ACK with adv_wnd=0x3000 present");
+    if(m>0){
+        uint16_t win=((uint16_t)cap[56]<<8)|cap[57];   // uh=42, window at uh+14
+        CHECK(win==0x3000,"SYN-ACK window == adv_wnd (0x3000)");
+    }
+    // 0xC000 臂: 同一路径恢复历史值
+    drain_cfg(NULL,0);
+    g_adv_wnd = 0xC000;
+    n=build_syn(f,0xC0A86465u,IP_A_U32,23501,0x50010000u); feed(f,n);
+    m=capture_if(pred_synack,cap,256);
+    CHECK(m>0,"SYN-ACK with adv_wnd=0xC000 present");
+    if(m>0){
+        uint16_t win=((uint16_t)cap[56]<<8)|cap[57];
+        CHECK(win==0xC000,"SYN-ACK window == adv_wnd (0xC000)");
+    }
+    g_adv_wnd = 0xC000;
+    // 清理: RST 释放本用例的两条连接 (MAX=3 回归臂也需要空槽)
+    n=build_rst(f,0xC0A86465u,IP_A_U32,23500,0x50000001u); feed(f,n);
+    n=build_rst(f,0xC0A86465u,IP_A_U32,23501,0x50010001u); feed(f,n);
+    for(int i=0;i<20;i++){udp_echo(true,g_rx,g_tx,g_msg,led_d0,led_d1,led_d2,led_d3);while(!g_tx.empty())g_tx.read(dummy);}
+    drain_cfg(NULL,0);
+}
+
+static void test_p3_max8(void){
+    TEST("P3 MAX_TCP_CONN=8 (8 connections; 9th rejected)");
+    drain(); for(int i=0;i<5;i++)udp_echo(false,g_rx,g_tx,g_msg,led_d0,led_d1,led_d2,led_d3); drain();
+    drain_cfg(NULL,0);
+    uint8_t f[128],cap[256]; uint32_t rec[256];
+    int n,m,got=0;
+#if MAX_TCP_CONN >= 8
+    // 8 条不同源端口 = 8 条不同四元组; 全在 IP_A 上 (单口 csim 合同)
+    for(int k=0;k<8;k++){
+        n=build_syn(f,0xC0A86465u,IP_A_U32,(uint16_t)(24000+k),0x60000000u+(uint32_t)k*0x10000u);
+        feed(f,n);
+        m=capture_if(pred_synack,cap,256);
+        if(m>0) got++;
+    }
+    CHECK(got==8,"8 distinct SYNs -> 8 SYN-ACK (MAX_TCP_CONN=8)");
+    int w=drain_cfg(rec,256);
+    CHECK(w>=64,"8 cfg ADD records written (>=64 words)");
+    // 第 9 条: 无空闲槽 ⇒ 无 SYN-ACK (准入合同: 零窗/静默)
+    n=build_syn(f,0xC0A86465u,IP_A_U32,24099,0x61000000u); feed(f,n);
+    m=capture_if(pred_synack,cap,256);
+    CHECK(m<0,"9th SYN rejected (no free slot)");
+    // 清理: 对 8 条连接逐个 RST 释放槽位 (后续用例需要空表)
+    for(int k=0;k<8;k++){
+        n=build_rst(f,0xC0A86465u,IP_A_U32,(uint16_t)(24000+k),0x60000001u+(uint32_t)k*0x10000u);
+        feed(f,n);
+    }
+    for(int i=0;i<20;i++){udp_echo(true,g_rx,g_tx,g_msg,led_d0,led_d1,led_d2,led_d3);while(!g_tx.empty())g_tx.read(dummy);}
+    drain_cfg(NULL,0);
+#else
+    // MAX=3 构建 (默认历史值): 本用例无判别力, 显式登记为跳过
+    printf(" SKIP: MAX_TCP_CONN=%d (<8; P3 网表构建需要 -DMAX_TCP_CONN=8)\n",MAX_TCP_CONN);
+#endif
+    for(int i=0;i<80;i++){udp_echo(true,g_rx,g_tx,g_msg,led_d0,led_d1,led_d2,led_d3);while(!g_tx.empty())g_tx.read(dummy);}
+}
+
+static void test_p3_del_local_ip(void){
+    TEST("P3 DEL carries local_ip (cfg demux consistency)");
+    drain(); for(int i=0;i<5;i++)udp_echo(false,g_rx,g_tx,g_msg,led_d0,led_d1,led_d2,led_d3); drain();
+    drain_cfg(NULL,0);
+    uint8_t f[128],cap[256]; uint32_t rec[128]; int n,m,w;
+    // FIN 拆除 (T_SYN_RCVD 的 FIN 分支): 连接在 IP_B
+    n=build_syn(f,0xC0A86465u,IP_B_U32,24500,0x70000000u); feed(f,n);
+    m=capture_if(pred_synack,cap,256);
+#if BOARD_IP_DUAL
+    CHECK(m>0,"SYN-ACK for IP_B (DEL test)");
+    drain_cfg(NULL,0);
+    n=build_fin(f,0xC0A86465u,IP_B_U32,24500,0x70000001u); feed(f,n);
+    for(int i=0;i<10;i++) udp_echo(true,g_rx,g_tx,g_msg,led_d0,led_d1,led_d2,led_d3);
+    w=drain_cfg(rec,128);
+    CHECK(w>=8,"FIN produces a cfg record (DEL)");
+    if(w>=8) CHECK(rec[2]==IP_B_U32,"DEL w2 = local_ip (IP_B)");
+    // RST 拆除 (固定四元组循环): 连接在 IP_A
+    n=build_syn(f,0xC0A86465u,IP_A_U32,24501,0x71000000u); feed(f,n);
+    m=capture_if(pred_synack,cap,256);
+    CHECK(m>0,"SYN-ACK for IP_A (RST DEL test)");
+    drain_cfg(NULL,0);
+    n=build_rst(f,0xC0A86465u,IP_A_U32,24501,0x71000001u); feed(f,n);
+    for(int i=0;i<10;i++) udp_echo(true,g_rx,g_tx,g_msg,led_d0,led_d1,led_d2,led_d3);
+    w=drain_cfg(rec,128);
+    CHECK(w>=8,"RST produces a cfg record (DEL)");
+    if(w>=8) CHECK(rec[2]==IP_A_U32,"RST DEL w2 = local_ip (IP_A)");
+#else
+    CHECK(m<0,"SYN to IP_B suppressed (legacy; DEL test skipped)");
+#endif
+    for(int i=0;i<40;i++){udp_echo(true,g_rx,g_tx,g_msg,led_d0,led_d1,led_d2,led_d3);while(!g_tx.empty())g_tx.read(dummy);}
+}
+
 int main() {
     test_crc();
     test_reset();
+    // P3 用例先跑 (需要空连接表; 自身结束后释放槽位)
+    test_p3_max8();
+    test_p3_del_local_ip();
+    test_p3_adv_wnd();
     test_tx_default();
     test_arp();
     test_icmp();

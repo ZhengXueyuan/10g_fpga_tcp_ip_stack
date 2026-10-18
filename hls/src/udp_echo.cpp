@@ -32,6 +32,7 @@ void udp_echo(
     hls::stream<gmii_byte_t> &tx_stream,
     hls::stream<gmii_byte_t> &msg_stream,    // debug messages → UART IP
     hls::stream<ap_uint<32> > &cfg_stream,   // P4b: 连接配置记录 → fast path CAM/TCB
+    ap_uint<16>               i_tcp_adv_wnd, // P11 P3: SYN-ACK 通告窗 (= 共享池配额)
     bool                     &led_d0,        // LED D0 (M16)
     bool                     &led_d1,        // LED D1 (N16)
     bool                     &led_d2,        // LED D2 (P15)
@@ -42,11 +43,15 @@ void udp_echo(
     #pragma HLS INTERFACE axis port=tx_stream
     #pragma HLS INTERFACE axis port=msg_stream
     #pragma HLS INTERFACE axis port=cfg_stream
+    #pragma HLS INTERFACE ap_none port=i_tcp_adv_wnd
     #pragma HLS INTERFACE ap_none port=led_d0
     #pragma HLS INTERFACE ap_none port=led_d1
     #pragma HLS INTERFACE ap_none port=led_d2
     #pragma HLS INTERFACE ap_none port=led_d3
     #pragma HLS INTERFACE ap_ctrl_none port=return
+
+    // P11 P3: 运行时通告窗 (常量输入; 综合后 = 顶层一个 16 位寄存器)
+    tcp_adv_wnd_set((uint16_t)i_tcp_adv_wnd);
 
     // Shared resources
     static uint32_t    buffer[BUFFER_DEPTH];
