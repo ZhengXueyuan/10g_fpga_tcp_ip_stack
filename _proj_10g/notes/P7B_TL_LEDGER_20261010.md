@@ -2041,3 +2041,12 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - **未测**：无 synth/impl/位流/时序/资源；无 HLS csynth（P3 双 IP 网表不存在）；C4 port1 仅接线/elab（IP_B 应答未测）；8 连接板级/2×10G/对端未测；慢 merge 半帧看门狗未构造。
 - **已知非新**：C4 wrapper xsim 日志有 `u_slow_rx.u_ff` RAMB SDP 碰撞告警（P2 同款既存；`frame_fifo` bypass 语义已解释），登记。
 - **下一棒**：**独立红队审查实施** → 修 → 构建 0x2F（先 HLS csynth 双 IP 网表）。板仍 = 0x2D + `0x08=0` + carrier 1/1。
+
+## §10-157 2026-10-19 02:0x：**P3 实施红队审查收口（5 高 / 14 中 / 13 低）** —— 判定必须先修 H-1..H-5 再构建；修复轮已派
+- 审查件 = `p11_p3_impl_review_20261019/FINDINGS.md`（只读；HEAD `cdd24667`；不下 PASS/FAIL）。
+- **H-1** 跨口同槽 C18：`win_pool_mgr` 不记每槽授出端口 ⇒ 跨口复用 `port_win` 下溢/旧 `rel` 可能释放新配额（无门覆盖）。
+- **H-2** `slow_cfg_demux` 在 ADD 路由拍翻转 `slot_port` ⇒ 旧口 retx 窗口被 owner 门丢弃、旧读可能陈旧（无门覆盖）。
+- **H-3** `ACC_MARGIN` 两口共用 port0 ESTAB 计数 ⇒ port1 8+0 物理预算 136,906 B > 128KB echo 131,072 B（超 5,834 B）。
+- **H-4** HLS 网表与 `P11_HLS_ADV_WND` 无配对硬门、该分支从未编译；**H-5** EXT=0 回归无归档证据；**M-1** C4 wrap arm A 日志 `reply idx=13` 与报告相反、arm C 未跑。
+- **矩阵内容绑定独立复算 382/382（missing/mismatch 0）**；HLS 175/175 与归档一致；报告 `e4367d75` 是 compare 重算、存储 `DIGEST_ALL=851d1343`（M-11 叙事订正）。
+- **修复轮已派**（H-1..H-5 + M-1/2/3/4/5/6/8/10/12/14；M-9/11/13 及低项按时间）：只改源+门，不构建/不上板。下一步 = 修复 → TL 抽核 → 构建 0x2F（若时间）/7 点交接。
