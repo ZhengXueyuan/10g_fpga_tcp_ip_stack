@@ -27,6 +27,65 @@ TCP/UDP 数据段走纯硬件快路径；ARP、ping、TCP 握手等慢速控制�
 
 慢路径整体限速 ≈1.25 Gbps（64 位字入、1 字节/拍出）：ARP / ping / 握手等控制面流量足够，不承载批量数据。
 
+## 数据通路（数据流一览）
+
+实线 = 数据流；点线 = 计数器 / 观测。双 SFP+ 口（P11）为施工中，其余为现役结构。
+
+```mermaid
+flowchart LR
+    subgraph LINE["线上"]
+        P1["SFP+ 口 ch1（J8）<br>IP_A / port0"]
+        P0["SFP+ 口 ch0（J7）<br>IP_B / port1"]
+        G1["1G 电口（RGMII）"]
+    end
+
+    subgraph RXDIR["接收方向"]
+        MRX["自写 MAC 接收<br>10G 64 位 ×2 + 1G"]
+        MG["rx_merge2<br>两口帧合并（RR）"]
+        VS["vlan_strip<br>VLAN 剥离"]
+        CF["rx_classify<br>快 / 慢分流"]
+    end
+
+    subgraph FAST["快路径（RTL，10G 线速）"]
+        FP["TCP 数据面：tcp_rx / tcp_tx_frame<br>重传 · 窗口 · 零窗探针 · RST<br>UDP 收发：udp_rx / udp_tx_frame"]
+        APP["板上应用接口<br>（APP_MODE 演示应用）"]
+    end
+
+    subgraph SLOWP["慢路径（HLS 综合，≈1.25 Gbps）"]
+        HLS["udp_echo 协议栈<br>ARP · ICMP · IGMP · DHCP<br>UDP echo(8080) · TCP 握手"]
+    end
+
+    subgraph TXDIR["发送方向"]
+        DX["tx_demux2<br>按口分发（双口）"]
+        ARB["每口 tx_arb<br>TCP 严格优先"]
+        MTX["MAC 发送<br>10G ×2 + 1G"]
+    end
+
+    subgraph OBSP["观测面"]
+        SNAP["快照观察窗 W0..W87<br>PCIe XDMA"]
+        PC["PC：寄存器读取 + DMA 镜像"]
+    end
+
+    P1 --> MRX
+    P0 --> MRX
+    G1 --> MRX
+    MRX --> MG --> VS --> CF
+    CF -->|"TCP / UDP 数据段"| FP
+    CF -->|"ARP · ping · 握手等"| HLS
+    APP <--> FP
+    HLS -->|"连接配置（CAM / TCB）"| FP
+    FP --> DX
+    HLS --> DX
+    DX --> ARB --> MTX
+    MTX --> P1
+    MTX --> P0
+    MTX --> G1
+    MRX -.->|"计数器"| SNAP
+    FP -.->|"计数器"| SNAP
+    HLS -.->|"计数器"| SNAP
+    SNAP --> PC
+```
+
 ## 当前状态
 
 - **板上现役 = 构建 `0x2A`**：快照观察窗 **76 字**（W0..W75）/ 未实现地址 `0x160`，板卡 `0x08 = 0`（未受控停流）、`carrier = 1`。
