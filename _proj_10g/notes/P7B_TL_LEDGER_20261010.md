@@ -1853,3 +1853,14 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - **TL 附加发现（构建轮前置）**：① **synth 日志 `black box`/`8-3491` grep 硬门尚未落进 tcl**（现为 `IS_BLACKBOX` 属性检查）⇒ 构建轮补或明确以属性检查为准并写明；② `apply_readside_bid1c.py --rehearse` 因哨兵已改到 0x2C **未真正演练 0x2C 阶段** ⇒ 构建/板级前重置哨兵演练一次或以默认值 grep 自检门替代；③ **HLS 网表仍是单 IP**（csynth 未跑）⇒ 构建轮必须先跑 `run_hls.tcl`（`-DBOARD_IP_DUAL=1`）并归档旧网表；G6 臂 A 的 IP_B 握手留构建轮。
 - **未测照录**：构建/综合/位流 · 上板 · HLS csynth · 双 IP 网表 xsim · `tb_hls_dual_ip.v`（未写）· G3/G4 未进常驻矩阵 · 板级 W83..W87/maccnt/双口吞吐 · `maccnt_sync` 物理 CDC 时序 · apply_readside 端到端 · HLS 3 条既有 csim 失败（未修）· 臂 A 仅 IP_A。
 - **下一棒 = 实施红队审查轮**（只读复核本轮全部产出；重点：N-6 两体、tx_demux2 接线、maccnt_sync CDC、G5/G6 判别力、读侧 0x2C、HLS local_ip 全调用点）→ 修复轮 → 构建 0x2C（先 HLS csynth）→ 板级 P2。
+
+## §10-137 2026-10-18 11:0x：**P2 实施红队审查收口**（`p11_review_p2a_impl_20261018/FINDINGS.md` 代落）—— **高 3 / 中 8 / 低 9**（F-1..F-20）+ 设计不符 D-1..D-13；**核心 RTL 未发现会静默错的实现缺陷**；TL 抽核 5/5；结论 = **需先修再构建**
+- **高 3 条（TL 全部亲核成立）**：
+  - **F-1 读侧 0x2C 链未同步（板级轮硬阻断）**：`j6_r6fix.sh`/`tcpreg_j6.sh` 的 `GEOM_TIERS` 顶端仍 83/0x2B、无 88 档 ⇒ 新位流入口 `J6_GEOM_FAIL exit 3`；gate4 系 6 文件（accept/selftest/livefake/final_state/gen_inputs/negctrl）仍 83/0x2B，`p7b_gate4_negctrl.sh` 内部 `:74/:80` 与 `:156 NW=88` 自相矛盾。**设计 N-5 清单本身不完整**（D-4）。
+  - **F-2 `rx_merge2` 无半帧看门狗**：`busy` 只在 `frame_last` 释放（`rtl/rx_merge2.v:86-99`），任一口停钟/LOS ⇒ 无 tlast 半帧 ⇒ **另一口 RX 永久锁死**（新跨口耦合，设计未登记）。建议加 `TO_CYCLES` 看门狗 + G2 断 tlast 臂；作设计修订项。
+  - **F-3 maccnt 门无活性**：G6 臂 C 只查"无混合值"（`tb_p11_dual.v:294-325`），`dst_val` 恒 0/恒 0xFF 也绿 ⇒ W86 高半/W87 可能是死仪表。需斜坡计数 + 常值不重复 + 强制常 0 变异。
+- **中 8 条**：F-4 `fifo_async.ovf_pulse = wr_en && full_r` 是**反压拍数非丢字数**（AXIS 保持 tvalid ⇒ 字不丢）⇒ 设计 §3.4"应恒 0"/P2-2 修正项不成立（D-1/D-2）；F-5 `apply_readside` 的 `_to_2c` 机械替换会改错历史注释、0x2C 阶段从未真演练；F-6 构建 tcl 无 `HLS_SRC_HASH`/`HLS_NET_HASH`、无 synth 日志 blackbox grep；F-7 H-1 无 Z 断言未实现；F-8 非 DUAL 三个隐式网（`rx_p0_tvalid`/`tx_p0_frames`/`tx_p1_frames`）；F-9 真构建组合 `DUAL+SFP2_MODE_A` 从未 elab/仿真；F-10 归档 `gates/g5_run.log` 是 08:14 全红旧跑、报告未解释；F-11 `slow_tx_adp` 提取逻辑未按 `PER_PORT` 门控。
+- **低 9 条**：F-12 G3 反转"变异"非真变异 · F-13 UDP 侧 `o_port↔源 IP` 一致性无门 · F-14 G6 未拦 Unisim RAMB36E2-11 Memory Collision · F-15 G5 变异不覆盖 `lip_r` 同沿形态 · F-16 `P7B_BIZ_WINDOW.md:77` W79 标签未同步 · F-17 HLS 3 条基线失败见证偏弱（需改前树 worktree 重跑）· F-18 `maccnt` `src_tick=1` vs 设计"每 256 拍" · F-19 `rx_merge2` 复位域与 FIFO 不同源 · F-20 构建 bat 未加 `P7B_VERDICT` 文本硬门。
+- **TL 抽核 5/5**：F-1（GEOM_TIERS 83 顶 + gate4 6 文件旧默认）· F-2（`busy` 无超时）· F-3（臂 C 只查混合值）· F-4（`ovf_pulse_w = wr_en && full_r`）· F-10（`gates/g5_run.log` 全红、mtime 08:14 早于最终跑）——全部与原文一致。
+- **修复轮范围（已派）**：F-1/F-3/F-5/F-6/F-7/F-8/F-9/F-10/F-11/F-12/F-13/F-14/F-15/F-16/F-17/F-18/F-19/F-20 + D-1..D-13；**F-2 看门狗与 F-4 判据口径 = 设计修订项**（实施 + 登记待用户裁）。
+- **下一棒**：修复轮 → TL 抽核 → 构建 0x2C（先 `run_hls.tcl -DBOARD_IP_DUAL=1` 并归档旧网表）→ 板级 P2。
