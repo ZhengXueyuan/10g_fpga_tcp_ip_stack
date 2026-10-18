@@ -20,7 +20,7 @@ LNKSTA           = Speed 5GT/s (downgraded), Width x4
 SCRATCH_0x08     = 0x00000000
 CARRIER_P1       = 1
 CARRIER_P0       = 1
-QSPI_WRITES      = 0 (zero; all six burns volatile)
+QSPI_WRITES      = 0 (zero; all eight burns volatile)
 BURNS_THIS_ROUND = 8 (0x2D x7 + 0x2B x1 A/B arm); every burn: device-level remove+rescan OK, escalation 0
 REMOVE_RESCAN    = device-level only, one per burn, all succeeded
 FINAL_SNAP       = gen=1 status=0x00010056 ch0_stale=0; W0=2 W20=4 W43=0xda014620 W51=0 W52=0 W54=0 W55=0 W83=4 W84=0

@@ -138,10 +138,13 @@ rp_filter=0 / arp_ignore=1 / arp_announce=2；adaptive-rx off, rx-usecs 0
 
 - 第一条连接 FIN 后等 0.3 s + pcap 起停（≥10 ms 扫描周期）再建第二条。
 - 第二条上发 1 字节 → 隔 0.4 s → 再 1 字节。p0 pcap 抓到 **4 个板源纯 ACK**：
-  - `ack = SYN seq + 2`（两字节都被确认）；
+  - **`ack` 恒 = 首探针 seq + 1（只确认首字节）**；第二字节在 4 次重传内未被确认
+    （`raw/B2_PHASE1.log:54-64`）；**池归还判据只看 `win>0`，不受此项影响**；
   - **`tcp.win = 49152 > 0`** ⇒ **池已归还**；
   - **`ip.id` = 52856 / 52859 / 52860 / 52861**（滚动、非 0）⇒ 帧源 = **fast path**；
     同 pcap 的 HLS SYN-ACK `ip.id = 0`（与 N-1 的判别法逐字吻合）。
+  - **文本提取件** = `raw/B2_POOL_ACK_IPID.txt`（极简 pcap 解析器；4 个 ACK-only 板源帧的
+    seq/ack/win/ip.id 全字段；pcap 二进制原件 = `raw/B2P1_p0_conn2.pcap`）。
 - 二次核对：连接打开时 `ss -ti` 逐字 `snd_wnd:49152` = ACK 的 `tcp.win`。
 - **无 ACK ⇒ 未判定**的分支本轮未触发（ACK 抓到了）。
 - ⚠️ **板侧 DEL/CONN_DOWN 无直接仪器**（app 总线在板上不可用）：以 FIN 收尾 + 0.3 s 等待替代，
@@ -155,8 +158,11 @@ rp_filter=0 / arp_ignore=1 / arp_announce=2；adaptive-rx off, rx-usecs 0
 | B（p0→IP_B） | 200,001,020 B / `mism=0` / 1076.5 Mbps / 1.486 s | W84 **+136,990**、W83 **+0**、W52 +136,988、W51 **+200,002,480** | p0 Δbytes=207,949,430 / Δpkts=136,991 |
 
 - `W51 − sink bytes = 1,460 B`（恰好 1 MSS，关闭时在飞的那一帧），与 P1 S-6 同族。
-- **仪器坑（登记）**：NIC `port_rx_*` 的读取**滞后约 1 s**。刚跑完立即读只得 92k/137k 帧；
+- **仪器坑（登记）**：NIC `port_rx_*` 的读取**滞后约 1 s**。刚跑完立即读只得 92,284/103,175 帧；
   静置后再读才补到 136,990/136,991。**判据必须用“静置后”读数**（或 `ip -s link`）。
+- ⚠️ **取证缺口（如实标注）**：表中“对端 NIC（静置后）”的 136,990/136,991 为**文本读数**；
+  **raw 未留存静置后的 NIC 读数**（raw 只有即时 92,284/103,175）。补件未做 ⇒ 该列按“**未留存**”读，
+  但板侧 W83/W84 = 136,990 与 sink 200,001,020 B 独立成立。
 
 ### 3.5 每口 1 条同时建连（B-2c，21:47）
 
@@ -199,13 +205,18 @@ rp_filter=0 / arp_ignore=1 / arp_announce=2；adaptive-rx off, rx-usecs 0
 
 - 两口同时各起一个 `p7b_tcp_sink`（p1→IP_A、p0→IP_B）：
   - p1 sink connected 但 **0 字节**、15 s 后 STALL；p0 sink **connect timeout**；
-  - 板侧 W84（ch0 TX）仅 **+3 帧**；W55（重传）**+3,353**；W83 增长但 p1 sink 收不到。
+  - 板侧 W84（ch0 TX）仅 **+3 帧**；W55（重传）**+3,353**；**W83 从 0x4 增到 0x23C1
+    （+9,149 帧）**，但 p1 sink 收不到。
+  - ⚠️ **+9,149 帧去向未闭环**：p1 sink 0 字节；候选 = 重传帧 / 控制帧 / 窗口内未交付；
+    本轮**未归因**（不写成“已解释”）。
 - 根因（工程既有结论，本轮复现）：**演示 app 的 TCP TX 是单会话**（Stage C 已登记
   “TCP 数据 × TCP 数据构型结构性做不了”）。⇒ 本项不是板级缺陷，是 app 能力边界。
 
 ### 5.2 Part B：两口同时 UDP 灌入（RX 合并）——干净窗口
 
-- 取窗前静默：两次快照（gen 3→4，间隔 >1 ms）`W83=W84=W20=0x32` **逐字相等** 【已证】。
+- **两次执行说明**：第一次 = `raw/B4_MERGE.log`（21:31:55，B-4 探索跑）；最终采用
+  `raw/B4B_RXFLOOD.log`（21:48:09）。取代原因按日志序为“统一到静默对 + 4 s 窗 + 两口 UDP”
+  口径；**现场未单独记录取代原因（如实登记）**，第一次只作备查、不作判据。
 - 灌入：`p7b_udp_src --host IP --port 8081 --seconds 7 --mbps 0` 两口并行（各绑 `PIN_CPU=7`）。
   - p1：868,832 pkts / 7.002 s / wire **1,502.9 Mbps**；
   - p0：844,064 pkts / 7.000 s / wire **1,460.5 Mbps**；
@@ -235,9 +246,11 @@ rp_filter=0 / arp_ignore=1 / arp_announce=2；adaptive-rx off, rx-usecs 0
 相加不构成任何方向的对账式。本轮按两个方向分别给账：
 
 - **RX ch0**：`ΔW79 + ΔW82 ≈ 对端 p0 注入帧数`（本轮 844,077 vs 844,064）。
-- **TX ch0**：`ΔW84` vs 对端 p0 NIC 收帧；本轮 NIC 读取窗与快照窗**未对齐**（NIC 滞后 ~1 s），
-  故 `INFLIGHT_MAX_FRAMES=33` 的界**未判定**（不伪造成立）。
-  （过程值：PRE→POST `ΔW84=2,825,089`，p0 NIC 同段 Δpkts=2,825,089 量级，差值落在未对齐窗内。）
+- **TX ch0**：`ΔW84` vs 对端 p0 NIC 收帧。本轮 NIC 读取窗**紧贴**板侧快照窗（差值只落在
+  ~1 s 读取滞后边界内），证据方向**不排除** `INFLIGHT≤33` 成立；但严格等式在边界处不闭合
+  ⇒ 按保守口径记【未判定】，**不伪造成立**。过程值：PRE→POST `ΔW84=2,825,089`，p0 NIC
+  同段 Δpkts=2,825,089 量级。**理由更正**：不是“窗未对齐所以不可比”，而是“边界滞后使严格
+  等式不闭合”。
 
 ---
 
@@ -316,6 +329,8 @@ rp_filter=0 / arp_ignore=1 / arp_announce=2；adaptive-rx off, rx-usecs 0
 8. **E-6.2 的“INFLIGHT_MAX_FRAMES=33”**：本轮 NIC 窗与快照窗未对齐 ⇒ 该界【未判定】，不伪造成立。
 9. **B-2c 两次失败**（广播 SYN-ACK / 半开 TCB 占槽）机理未完全分离；重烧后恢复。
 10. **W13 的 app 语义失配**（§7）已登记，不是端口/源 IP 缺陷。
+11. **`FINAL_STATE_READ.log` 的 `PROCS=2`**：来自终态检查命令的进程计数，**口径未记录**；
+    `RESIDUAL_PROCS=none` 为人工确认（`p7b_*`/`tcpdump`/`p7b_rate2_bench` 均无）。
 
 ---
 
@@ -325,6 +340,7 @@ rp_filter=0 / arp_ignore=1 / arp_announce=2；adaptive-rx off, rx-usecs 0
 - **B-4 的“≥聚合容量”前件**：本轮只灌到 2.96 Gbps，板全吸收（【未测】）。
 - **ch0 abort（W87）**：0x2D 已删该字（【未观测到（无该仪器）】）。
 - **W85 守恒**：观测面已删除（【结构性不可评估】）。
+- **W86（ch0 RX/TX FIFO ovf）**：0x2D 已删该字（【未观测到（无该仪器）】）。
 - **B-4 TX 侧 INFLIGHT_MAX_FRAMES 界**：NIC 窗未与快照窗对齐（【未判定】）。
 - **板侧 DEL/CONN_DOWN 确认**：无直接仪器，只有 FIN + 池归还探针的间接见证。
 - **G5 单元门 / G2/G3/G4/G6/G7 等仿真门**：本轮禁跑 xsim，未重新执行。
@@ -361,6 +377,7 @@ p11_board_p2_0x2D_20261018/
 ├── raw/
 │   ├── B1_PORT_A_0x2D{,_r2,_r3}.log / B1_PORT_A_0x2B{,_r2,_r3}.log
 │   ├── B2_NETNS_SETUP.log / B2_PHASE1.log / B2_POOL_ACK_DETAIL.log / B2B_DATA.log
+│   ├── B2_POOL_ACK_IPID.txt   （TL 补：pcap 文本提取，4 个 ACK-only 的 seq/ack/win/ip.id）
 │   ├── B2C_DUALCONN.log / B2C2_DUALCONN.log / B2C3_DUALCONN.log
 │   ├── B3_WRONGPORT.log / B3B_OUTLET.log
 │   ├── B4_MERGE.log / B4A_TX2PORT.log / B4B_RXFLOOD.log
@@ -370,6 +387,11 @@ p11_board_p2_0x2D_20261018/
 └── tools/                        本轮上传到对端的脚本（与对端 /tmp/p2b_* 同源）
 ```
 
-- 读侧工具：`_proj_pcie/p7b_biz/p7b_snap.sh`（md5 `8318e8ffd01a40015a09bca0be91cfbb`）上传为
-  对端 `/tmp/p2b_snap.sh`；sink md5 `f62299291fcb9e02afe109c4ea1f90ab`（未改）。
+- 读侧工具：`_proj_pcie/p7b_biz/p7b_snap.sh`（**repo 源 sha256
+  `8011a2fd38b023fb4f8cf032ad1d5fae933716848273e97eaae5ff9e104266ac`**）上传为对端
+  `/tmp/p2b_snap.sh`；部署时记录的 md5 `8318e8ffd01a40015a09bca0be91cfbb`
+  **未留存对端副本、不可独立复算**（如实标注）。
+- sink：repo 源 `_proj_pcie/p7b_biz/p7b_tcp_sink.cpp` **sha256
+  `b85c5804ad4c34b00441f3bcbc442b08a98853e188b5e5cd26f8b66ee01ef166`**；部署二进制
+  md5 `f62299291fcb9e02afe109c4ea1f90ab` **未留存、不可独立复算**（对端 `/tmp` 已清理）。
 - 大件：`wrapper_p4.bit`（15,431,261 B）按轮保留，**不入库**（与历轮口径一致）。
