@@ -1,0 +1,4 @@
+cam_rd_dip nets = 32
+total loads = 32 ; loads under u_tcp_tx = 32
+through-nets worst slack=0.581  u_tcp_tx/u_ackq/rptr_reg[0]/C -> u_tcp_tx/u_csum/acc_reg[31]/D
+worst INTO u_tcp_tx/*csum* slack=0.177  u_tcp_tx/nbeats_reg[4]/C -> u_tcp_tx/u_csum/acc_reg[31]/D

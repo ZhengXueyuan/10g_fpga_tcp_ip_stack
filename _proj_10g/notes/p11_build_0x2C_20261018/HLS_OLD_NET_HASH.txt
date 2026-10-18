@@ -1,0 +1,5 @@
+HLS_OLD_NET_HASH = 2114789ab41ae2a6795e7e23bc17b47c72847a0292c1acfe922a2ff0c9f2b5c5
+N_FILES = 176
+ALGORITHM = sha256(concat(lowercase sha256 of each file, ASCII-sorted basenames, *.v + *.dat))  [same as build_p7b_ku5p.tcl p7b_sha256_set]
+SOURCE = hls/slowstack_prj/solution1/syn/verilog/ (BEFORE 0x2C dual-IP rerun)
+ARCHIVE = _proj_10g/notes/p11_build_0x2C_20261018/hls_archive_single_ip/

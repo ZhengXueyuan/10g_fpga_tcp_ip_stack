@@ -1,0 +1,13 @@
+cam_rd_dip nets = 32
+driver pins = 32
+  DRV u_cam/DI[0]
+  DRV u_cam/D[0]
+  DRV u_cam/D[10]
+  DRV u_cam/D[11]
+  DRV u_cam/D[12]
+  DRV u_cam/D[13]
+  DRV u_cam/D[14]
+  DRV u_cam/D[15]
+u_tcp_tx/*csum* cells = 1192
+cam drivers FROM NO_PATH
+cam drivers -> csum NO_PATH

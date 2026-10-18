@@ -1879,3 +1879,14 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - **新登记工具坑**：`find /c /v ""` 本机挂起（等 stdin）· G7 共享 `xil_defaultlib` 致 xvlog 挂起（改每组合私有库）· bat 内 UTF-8/emoji 注释制造"幽灵命令"（本轮 4 个 bat 已全 ASCII）· N-6 变异器两个假阴性（双锚/臂 tag）· `RAMB36E2-11` 良性判定。
 - **未测/待追认照录**：构建/综合/时序/资源/黑盒/HLS 双 IP 网表全部未测 · 上板未测 · **F-2 需用户追认** · **F-4 判据口径需判据所有者确认** · W86 RTL 名仍 `*_ovf` · UDP 一致性臂用 force 学习口 · 矩阵指纹不含 `tb/tb_app_udp.v`。
 - **下一棒 = 构建 0x2C**（先 `run_hls.tcl -DBOARD_IP_DUAL=1` + 归档旧网表；再 `board/run_build_p7b_ku5p.bat` 一次收口；backstop W86/W87→W85→W83/W84→abort-to-0x2B）→ 板级 P2。
+
+## §10-139 2026-10-18 13:2x：**构建 0x2C 收口**（`p11_build_0x2C_20261018/README_FOR_TL.md` + `gates/`）—— HLS 双 IP 重综合成功；Vivado 位流已出（`e92f588b…`，WNS **+0.011** / 0/0/0）；**新发现 F-21：W83..W87 绕过 `snap_cdc` 裸跨域** ⇒ 板级轮阻断，先修再重构建（0x2D）
+- **HLS**：`run_hls.tcl -DBOARD_IP_DUAL=1` csynth exit 0、ERROR/Critical 0；新网表 **175 文件** `HLS_NEW_NET_HASH=452a1122…4428`（旧 `2114789a…b5c5` / 176 文件）；旧单 IP 网表已归档 `hls_archive_single_ip/`（176 文件 + SHA256SUMS）；IP_B 新网表 6 模块命中、旧网表 0；资源估计 BRAM_18K 43 / DSP 4 / FF 22,571 / LUT 50,341 / URAM 0；循环 II 与改前同族同值（68×II=1、9×II>1）。
+- **Vivado**：`P7B_VERDICT = OK`；位流 **`e92f588b58452e58b86bb96df11091eec1f2c72ae346d3740f36c3e6f2b8d6be`**，15,431,261 B，`SW_CRC=ccd5f297`；**WNS +0.011 / WHS +0.010 / 三类失败端点 0/0/0**；`12-4739=0`、隐式网 5 键 0、DRC 0 Error/0 Critical、route 0 errors；`P7B_MODULE_RESOLVED 1/1/1`、`P7B_BLACKBOX_COUNT 0`、`P7B_BLACKBOX_LOG_HITS 0`；9 宏 + `BUILD_ID_V=0x2C` + NW 88 / P7BDP 44。资源 placed：LUT 83,165 / FF 77,927 / BRAM 346 / URAM 1 / DSP 4（vs 0x2B：+3,141 LUT / +1,039 FF / −2 BRAM / WNS −0.037）。全局 WNS 宿主 = **老族** `u_app_udp/u_txf/dout → u_udp_tx/ip_csum_r`；新件族未进 DP 前 10。backstop 未触发。
+- **包装 bat rc=1 = 门自身误报**：唯一命中 `P7B-MODULE-MISSING-OR-BLACKBOX` 的位置是 `board/p7b_ku5p_stdout.txt:3794` 的 **Tcl 源码回显行**（以 `# ` 开头），实际解析 1/1/1、黑盒 0；Vivado rc=0。修法 = bat 用 `/B` 锚定行首（修复轮）。
+- ⛔ **F-21（新，高，板级轮阻断）：W83..W87 绕过 `snap_cdc`，是裸多比特 CDC** ——
+  - 证据：`board/wrapper_p4.v:5034-5049` 顶层 `w8x_snap = w8x_dp` 直接驱动 `snap_dout_all` 顶部 5 项；`:4851-4855` 接好的 `p7bdp_din[39..43]` **成为死逻辑**；布后探针 `u_snap_p7bdp/hold_b_reg` 槽 39..43 各 **0 个寄存器**（`gates/SNAP_PROBE_0x2C.txt`）；`tx_p0_frames_r_reg[0]/Q` 扇出 = 计数器反馈 + **`u_pcie_regs/snap_din[2422]`**，无 `hold_b`（`gates/FANOUT_PROBE_0x2C.txt`）；W84/W85/W86/W87 同形。
+  - 性质：不是时序失败（异步组已 cut）⇒ WNS/端点全绿；但 **DP→PCIe 多比特计数无同步** ⇒ 快照可能读到撕裂值/亚稳态，W83/W84/W85/W86/W87 的板级对账不可信。与 DESIGN_v2r1 §3.4/§3.5（"5 字进 p7bdp 束"）冲突。
+  - 修法：`snap_dout_all` 顶部 5 项改用 `p7bdp_dout[43..39]`，删除 `w8x_snap` 直连；加**结构门**（静态：顶部 5 项必须读 `p7bdp_dout`；布后：`tx_p0_frames_r_reg` 扇出必须含 `u_snap_p7bdp/hold_b_reg`、不得直连 `snap_din`）；重建取证。
+- **决策（TL，登记待用户追认）**：① 板级轮**暂缓**，先修 F-21 + 重建 **0x2D**（首个 0x2C 位流从未烧板；按"每次构建 bump BID"纪律重建必须换号；乙顺延 **0x2E**，读侧 BID 0x2C→0x2D、几何 88 不变）；② 用户已批的 **F-2 阈值 0xFFFF** 作为同一新输入进 0x2D（参数常量、时序中性；回退一行）；③ 构建 bat 的 `/B` 锚定同轮修。
+- **下一棒 = F-21 修复轮**（wrapper 布线 + 结构门 + bat 锚定 + TO_CYCLES 0xFFFF）→ TL 抽核 → 重建 0x2D → 板级 P2。

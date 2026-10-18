@@ -1,0 +1,121 @@
+
+****** Vivado v2025.2 (64-bit)
+  **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+  **** Start of session at: Sun Oct 18 13:04:07 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source {D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p11_build_0x2C_20261018\gates\sta_fanout_probe_0x2C.tcl}
+# set here [file dirname [file normalize [info script]]]
+# set R [file normalize [file join $here ".." ".." ".." ".."]]
+# open_checkpoint "$R/vivado_prj/p7b_ku5p_prj.runs/impl_1/wrapper_p4_routed.dcp"
+Command: open_checkpoint D:/repo/XCKU5PMini/udp_hls_10g/vivado_prj/p7b_ku5p_prj.runs/impl_1/wrapper_p4_routed.dcp
+
+Starting open_checkpoint Task
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.026 . Memory (MB): peak = 328.395 ; gain = 5.383
+INFO: [Device 21-403] Loading part xcku5p-ffvb676-1-e
+Netlist sorting complete. Time (s): cpu = 00:00:01 ; elapsed = 00:00:01 . Memory (MB): peak = 1693.195 ; gain = 0.000
+INFO: [Netlist 29-17] Analyzing 8703 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 2 CPU seconds
+INFO: [Project 1-479] Netlist was created with Vivado 2025.2
+INFO: [Project 1-570] Preparing netlist for logic optimization
+Read ShapeDB Complete: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.319 . Memory (MB): peak = 1914.953 ; gain = 40.383
+INFO: [Timing 38-478] Restoring timing data from binary archive.
+INFO: [Timing 38-479] Binary timing data restore complete.
+INFO: [Project 1-856] Restoring constraints from binary archive.
+INFO: [Constraints 18-5170] The checkpoint was created with non-default parameter values which do not match the current Vivado settings.  Mismatching parameters are:
+  general.maxThreads
+INFO: [Project 1-853] Binary constraint restore complete.
+INFO: [Designutils 20-5722] Start Reading Physical Databases.
+Reading placement.
+Read Netlist Cache: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.136 . Memory (MB): peak = 4174.395 ; gain = 0.000
+Reading placer database...
+Read Device Cache: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.031 . Memory (MB): peak = 4174.395 ; gain = 0.000
+Read PlaceDB: Time (s): cpu = 00:00:05 ; elapsed = 00:00:05 . Memory (MB): peak = 4174.395 ; gain = 0.000
+Read PulsedLatchDB: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 4174.395 ; gain = 0.000
+Reading routing.
+Read RouteStorage: Time (s): cpu = 00:00:03 ; elapsed = 00:00:02 . Memory (MB): peak = 4174.395 ; gain = 0.000
+Read Physdb Files: Time (s): cpu = 00:00:08 ; elapsed = 00:00:07 . Memory (MB): peak = 4174.395 ; gain = 0.000
+Restored from archive | CPU: 8.000000 secs | Memory: 0.000000 MB |
+Finished XDEF File Restore: Time (s): cpu = 00:00:08 ; elapsed = 00:00:07 . Memory (MB): peak = 4174.395 ; gain = 0.000
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.060 . Memory (MB): peak = 4174.395 ; gain = 0.000
+INFO: [Project 1-111] Unisim Transformation Summary:
+  A total of 1493 instances were transformed.
+  DSP48E2 => DSP48E2 (DSP_ALU, DSP_A_B_DATA, DSP_C_DATA, DSP_MULTIPLIER, DSP_M_DATA, DSP_OUTPUT, DSP_PREADD, DSP_PREADD_DATA): 4 instances
+  IBUF => IBUF (IBUFCTRL, INBUF): 3 instances
+  IBUFDS => IBUFDS (DIFFINBUF, IBUFCTRL): 1 instance 
+  RAM16X1D => RAM32X1D (RAMD32(x2)): 35 instances
+  RAM16X1S => RAM32X1S (RAMS32): 208 instances
+  RAM256X1S => RAM256X1S (MUXF7(x2), MUXF8, RAMS64E(x4)): 8 instances
+  RAM32M => RAM32M (RAMD32(x6), RAMS32(x2)): 43 instances
+  RAM32M16 => RAM32M16 (RAMD32(x14), RAMS32(x2)): 163 instances
+  RAM32X1D => RAM32X1D (RAMD32(x2)): 13 instances
+  RAM64M => RAM64M (RAMD64E(x4)): 245 instances
+  RAM64M8 => RAM64M8 (RAMD64E(x8)): 638 instances
+  RAM64X1D => RAM64X1D (RAMD64E(x2)): 132 instances
+
+INFO: [Project 1-604] Checkpoint was created with Vivado v2025.2 (64-bit) build 6299465
+WARNING: [Vivado 12-23575] Critical violations of the methodology design rules detected. Critical violations may contribute to timing failures or cause functional issues in hardware. Run report_methodology for more information.
+open_checkpoint: Time (s): cpu = 00:01:27 ; elapsed = 00:01:15 . Memory (MB): peak = 4174.395 ; gain = 3858.812
+# set fh [open "$here/FANOUT_PROBE_0x2C.txt" w]
+# proc loads_of {fh tag cellpat} {
+#     set cs [get_cells -hier -quiet -filter "NAME =~ *$cellpat*"]
+#     puts $fh "\n# $tag  cells=[llength $cs]"
+#     if {![llength $cs]} { return }
+#     set c [lindex $cs 0]
+#     set nm [get_property NAME $c]
+#     set pins [get_pins -quiet -of_objects $c -filter {DIRECTION == OUT}]
+#     puts $fh "  first_cell=$nm  out_pins=[llength $pins]"
+#     foreach pn $pins {
+#         set nets [get_nets -quiet -of_objects $pn]
+#         foreach n $nets {
+#             set ld [get_pins -quiet -of_objects $n -filter {DIRECTION == IN}]
+#             puts $fh "    pin=[get_property NAME $pn] net=[get_property NAME $n] loads=[llength $ld]"
+#             set k 0
+#             foreach l $ld {
+#                 if {$k < 12} { puts $fh "      LOAD [get_property NAME $l]"; incr k }
+#             }
+#             set sn 0; set hb 0; set other 0
+#             foreach l $ld {
+#                 set ln [get_property NAME $l]
+#                 if {[string match "*snap_words_r_reg*" $ln]} { incr sn }
+#                 if {[string match "*u_snap_p7bdp/hold_b_reg*" $ln]} { incr hb }
+#                 if {[string match "*u_snap_p7bdp*" $ln]} { }
+#             }
+#             puts $fh "    LOADCOUNT snap_words_r=$sn hold_b=$hb"
+#         }
+#     }
+# }
+# loads_of $fh "tx_p0_frames_r_reg" "tx_p0_frames_r_reg"
+# loads_of $fh "tx_p1_frames_r_reg" "tx_p1_frames_r_reg"
+# loads_of $fh "maccnt_ch0tx/dst_val_reg" "u_maccnt_ch0tx/dst_val_reg"
+# set n87 0
+# set n86 0
+# set n85 0
+# set n84 0
+# set n83 0
+# foreach c [get_cells -hier -quiet -filter "NAME =~ *snap_words_r_reg*"] {
+#     set nm [get_property NAME $c]
+#     if {[regexp {snap_words_r_reg\[(\d+)\]} $nm -> i]} {
+#         if {$i >= 2784 && $i <= 2815} { incr n87 }
+#         if {$i >= 2752 && $i <= 2783} { incr n86 }
+#         if {$i >= 2720 && $i <= 2751} { incr n85 }
+#         if {$i >= 2688 && $i <= 2719} { incr n84 }
+#         if {$i >= 2656 && $i <= 2687} { incr n83 }
+#     }
+# }
+# puts $fh "\nsnap_words_r word83..87 bit counts: W83=$n83 W84=$n84 W85=$n85 W86=$n86 W87=$n87 (32 = full)"
+# set sw [get_cells -hier -quiet -filter "NAME =~ *snap_words_r_reg*"]
+# if {[llength $sw]} {
+#     set ck [get_pins -quiet -of_objects [lindex $sw 0] -filter {REF_PIN_NAME == CLK}]
+#     foreach pn $ck {
+#         set nn [get_nets -quiet -of_objects $pn]
+#         foreach n $nn { puts $fh "snap_words_r CLK net = [get_property NAME $n]" }
+#     }
+# }
+# close $fh
+# exit
+INFO: [Common 17-206] Exiting Vivado at Sun Oct 18 13:05:33 2026...

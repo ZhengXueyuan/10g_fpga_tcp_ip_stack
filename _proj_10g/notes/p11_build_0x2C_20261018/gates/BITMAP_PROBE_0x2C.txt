@@ -1,0 +1,15 @@
+# driver of selected u_pcie_regs/snap_din bits
+  u_pcie_regs/snap_din[2422] : net=tx_p0_frames_r_reg[0] driver=tx_p0_frames_r_reg[0]/Q
+  u_pcie_regs/snap_din[2656] : NO_PIN
+  u_pcie_regs/snap_din[2688] : NO_PIN
+  u_pcie_regs/snap_din[2720] : NO_PIN
+  u_pcie_regs/snap_din[2752] : NO_PIN
+  u_pcie_regs/snap_din[2784] : NO_PIN
+
+# D-pin drivers of selected snap_words_r bits (pcie domain regs)
+  snap_words_r_reg[2422]/D net=u_pcie_regs/snap_din[2210] driver=?
+  snap_words_r_reg[2656]/D net=u_pcie_regs/snap_din[2422] driver=?
+  snap_words_r_reg[2688]/D net=u_pcie_regs/snap_din[2454] driver=?
+  snap_words_r_reg[2720]/D net=u_pcie_regs/snap_din[2486] driver=?
+  snap_words_r_reg[2752]/D net=u_pcie_regs/snap_din[2518] driver=?
+  snap_words_r_reg[2784]/D net=u_pcie_regs/snap_din[2550] driver=?

@@ -1,0 +1,82 @@
+P11 P2 build 0x2C -- HLS dual-IP resynthesis readings
+=====================================================
+Date: 2026-10-18 (round workspace)
+Entry: hls/run_hls.bat  ->  vitis-run --mode hls --tcl --part xc7k325tffg676-2 --freqhz 125000000 run_hls.tcl
+       run_hls.tcl line 10 ALREADY carries: add_files src/udp_echo.cpp -cflags "-DBOARD_IP_DUAL=1"
+Log:   _proj_10g/notes/p11_build_0x2C_20261018/hls/run_hls_0x2C.log (and hls_run_tcl.log)
+
+1) STATUS
+   CSYNTH exit code = 0
+   "===== CSYNTH DONE =====" present
+   ERROR/Critical count in log = 0
+   Total elapsed = 121.997 s (csynth_design command 1m58s)
+
+2) LATENCY / INTERVAL  (global iron rule: ap_ctrl_none free-running body must be II=1)
+   Interface: udp_echo top has ap_clk / ap_rst_n / reset_n + AXIS streams and NO
+   ap_start/ap_done => free-running (ap_ctrl_none-class) block, as in all previous builds.
+   Top-level Latency/Interval in udp_echo_csynth.rpt = "?" / "?" (data-dependent loops;
+   the report gives no top body II). This is the historical shape, not a regression signal.
+   Loop-level pipeline IIs from the log:
+      Final II = 1  : 68 loops
+      Final II > 1  : 9 loops (baseline Sep-20 log also has 9 nontrivial ones + 1 extra
+                      tcp_active_tick II=3; see item 5):
+        II=3  tcp_parse_opts_Pipeline_VITIS_LOOP_404_1   (baseline: VITIS_LOOP_390_1)
+        II=3  tcp_send_Pipeline_VITIS_LOOP_112_1
+        II=3  icmp_rx_process_Pipeline_VITIS_LOOP_112_1
+        II=3  udp_tx_process_Pipeline_VITIS_LOOP_112_1
+        II=3  tcp_send_1_Pipeline_VITIS_LOOP_112_1
+        II=2  l1_insert_Pipeline_VITIS_LOOP_89_2         (Resource Limitation; same baseline)
+        II=4  stats_report_Pipeline_VITIS_LOOP_31_1
+        II=2  stats_report_bool_stream_bool_unsigned_short_operator_Pipeline_VITIS_LOOP_29_1
+        II=49 arp_dump_Pipeline_VITIS_LOOP_223_1         (baseline: VITIS_LOOP_219_1)
+   Baseline check: hls/logs/hls_run_tcl_23312.backup.log (pre-P11, Sep) shows the SAME
+   II values for every loop family; loop-number suffixes shifted because the committed
+   dual-IP source change (967e974e) added/removed lines in several .cpp files.
+
+3) RESOURCE ESTIMATE (udp_echo_csynth.rpt, target device in report = xc7k325t-ffg676-2)
+   BRAM_18K = 43 (4%)
+   DSP      = 4  (~0%)
+   FF       = 22571 (5%)
+   LUT      = 50341 (24%)
+   URAM     = 0
+   Timing estimate: Target 8.00 ns / Estimated 6.373 ns / Uncertainty 2.16 ns -> Slack -0.53
+   (same -0.53 estimate as the pre-P11 baseline; it is an HLS estimate at 125 MHz only,
+    NOT the Vivado DP timing sign-off)
+
+4) NEW NETLIST
+   dir   = hls/slowstack_prj/solution1/syn/verilog/
+   files = 175 (*.v + *.dat)
+   HLS_NEW_NET_HASH = 452a11226a3ce4b2923ce3b026c39562d655065eb639581e9d2da879d0e64428
+     algorithm = sha256(concat(lowercase sha256 of each file, ASCII-sorted basenames)) --
+     same as board/build_p7b_ku5p.tcl p7b_sha256_set
+   manifest = NEW_NETLIST_FILES.txt / NEW_NETLIST_SHA256SUMS.txt (this dir)
+
+5) DUAL-IP SEMANTICS CHECK (step 5 of the round order)
+   * IP_B constant 192.168.100.4 = 0xC0A86404 = decimal 3232261124
+       NEW netlist: present in 6 modules
+         udp_echo_arp_rx_process.v / udp_echo_icmp_rx_process.v / udp_echo_igmp_rx_process.v
+         udp_echo_ip_rx_process.v / udp_echo_tcp_rx_process.v / udp_echo_udp_tx_process.v
+       OLD (archived single-IP) netlist: 0 files
+   * IP_A constant 192.168.100.2 = 0xC0A86402 = decimal 3232261122
+       present in both old and new (old: or_ln65_2_fu_290_p5 compare; new: dst_assign_fu_330_p5)
+   * ip_rx_process new compare lines (udp_echo_ip_rx_process.v:1163/1167):
+       dst == 32'd3232261124 (IP_B) and dst == 32'd3232261122 (IP_A)
+   * udp_echo top-level PORT LIST IS UNCHANGED old vs new (by design H-1: dual IP is
+     compile-time + cfg, no new top ports). The dual-IP change is visible internally:
+     ip_rx_process gained a 32-bit dst_ip return (ap_return_2 widened 16->32, ap_return_4 added).
+   * Structural diffs old vs new also include: tcp_active_tick module no longer emitted
+     (inlined into caller) and tcp_conn_* RAMs moved under udp_echo_tcp_rx_process_*.
+     These are consistent with the committed source delta 967e974e (389 insertions across
+     eth_types.h + 8 cpp files); no uncommitted HLS source changes exist (git status tracked = 0).
+
+6) OLD NETLIST ARCHIVE (pre-round state)
+   dir   = _proj_10g/notes/p11_build_0x2C_20261018/hls_archive_single_ip/  (176 files, 3.5 MB)
+   HLS_OLD_NET_HASH = 2114789ab41ae2a6795e7e23bc17b47c72847a0292c1acfe922a2ff0c9f2b5c5
+   NOTE: its mtime is 2026-09-20 17:53 => it was built from the PRE-P11 source
+   (bf64c368, P5d), i.e. "single IP" AND one source commit older than the current tree;
+   so old-vs-new differences are NOT purely the BOARD_IP_DUAL macro.
+
+7) UNTESTED / NOT CLAIMED
+   No csim was run in this round. HLS csim status was last recorded by the fix round
+   (F-17: three arms byte-identical to base_out.txt, 3 pre-existing csim failures).
+   This file makes no pass/fail ruling.

@@ -1,0 +1,22 @@
+
+# tx_p0_frames_r_reg  cells=36
+  first_cell=tx_p0_frames_r_reg[0]  out_pins=1
+    pin=tx_p0_frames_r_reg[0]/Q net=tx_p0_frames_r_reg[0] loads=2
+      LOAD tx_p0_frames_r[0]_i_3/I0
+      LOAD u_pcie_regs/snap_din[2422]
+    LOADCOUNT snap_words_r=0 hold_b=0
+
+# tx_p1_frames_r_reg  cells=36
+  first_cell=tx_p1_frames_r_reg[0]  out_pins=1
+    pin=tx_p1_frames_r_reg[0]/Q net=tx_p1_frames_r_reg[0] loads=2
+      LOAD tx_p1_frames_r[0]_i_5/I0
+      LOAD u_pcie_regs/snap_din[2454]
+    LOADCOUNT snap_words_r=0 hold_b=0
+
+# maccnt_ch0tx/dst_val_reg  cells=64
+  first_cell=u_maccnt_ch0tx/dst_val_reg[0]  out_pins=1
+    pin=u_maccnt_ch0tx/dst_val_reg[0]/Q net=u_maccnt_ch0tx/dst_val[0] loads=1
+      LOAD u_maccnt_ch0tx/snap_words_r[2784]_i_1/I1
+    LOADCOUNT snap_words_r=0 hold_b=0
+
+snap_words_r word83..87 bit counts: W83=32 W84=32 W85=36 W86=32 W87=32 (32 = full)

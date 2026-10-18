@@ -1,0 +1,22 @@
+hold_b cells = 982 ; max_index = 1239
+slot0=24 slot1=32 slot2=0 slot3=0 slot4=0 slot5=0 slot6=32 slot7=0 slot8=32 slot9=32 slot10=5 slot11=32 slot12=32 slot13=32 slot14=32 slot15=32 slot16=32 slot17=32 slot18=32 slot19=1 slot20=32 slot21=32 slot22=32 slot23=14 slot24=32 slot25=32 slot26=32 slot27=32 slot28=32 slot29=32 slot30=32 slot31=32 slot32=32 slot33=32 slot34=32 slot35=32 slot36=24 slot37=32 slot38=18 slot39=0 slot40=0 slot41=0 slot42=0 slot43=0
+tx_p0_frames_r_reg                 cells=36
+    tx_p0_frames_r_reg[0]
+    tx_p0_frames_r_reg[0]_i_2
+    tx_p0_frames_r_reg[10]
+tx_p1_frames_r_reg                 cells=36
+    tx_p1_frames_r_reg[0]
+    tx_p1_frames_r_reg[0]_i_2
+    tx_p1_frames_r_reg[10]
+tx_p0_frames_reg                   cells=0
+tx_p1_frames_reg                   cells=0
+ch0_rxcdc_ovf_dp_reg               cells=0
+u_maccnt_ch0tx/dst_val_reg         cells=64
+    u_maccnt_ch0tx/dst_val_reg[0]
+    u_maccnt_ch0tx/dst_val_reg[10]
+    u_maccnt_ch0tx/dst_val_reg[11]
+u_maccnt_ch0rx/dst_val_reg         cells=32
+    u_maccnt_ch0rx/dst_val_reg[0]
+    u_maccnt_ch0rx/dst_val_reg[10]
+    u_maccnt_ch0rx/dst_val_reg[11]
+snap_words_r cells=2586 max_index=2815

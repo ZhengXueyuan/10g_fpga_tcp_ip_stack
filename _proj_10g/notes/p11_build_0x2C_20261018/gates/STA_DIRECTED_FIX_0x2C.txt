@@ -1,0 +1,33 @@
+# P11 P2 build 0x2C directed STA follow-up  Sun Oct 18 12:58:54 +0800 2026
+
+# hold_b_reg total cells = 982
+#   sample NAME=u_snap_p7bdp/hold_b_reg[1000]
+#   sample NAME=u_snap_p7bdp/hold_b_reg[1001]
+#   sample NAME=u_snap_p7bdp/hold_b_reg[1002]
+#   sample NAME=u_snap_p7bdp/hold_b_reg[1003]
+#   sample NAME=u_snap_p7bdp/hold_b_reg[1004]
+#   sample NAME=u_snap_p7bdp/hold_b_reg[1005]
+#   sample NAME=u_snap_p7bdp/hold_b_reg[1006]
+#   sample NAME=u_snap_p7bdp/hold_b_reg[1007]
+slot39..43 2-D cells = 0
+bit1248..1407 1-D cells = 0
+W83..W87-hold_b SELECTED = 0 (name form not matched; sample above)
+
+cam_rd_dip pins = 0
+u_tcp_tx/*csum* cells = 1192
+cam_rd_dip nets = 32
+#   NET cam_rd_dip[0]
+#   NET cam_rd_dip[10]
+#   NET cam_rd_dip[11]
+#   NET cam_rd_dip[12]
+
+top200 occurrences:
+  u_snap_p7bdp         0
+  snap_cdc             0
+  u_hls                0
+  u_maccnt             0
+  f_lip                0
+  ctrl_lip             0
+  u_rx_merge           0
+  u_tx_udp_arb         0
+  u_tx_arb             0

@@ -1,0 +1,59 @@
+# P11 P2 build 0x2C directed STA (post-route dcp)  Sun Oct 18 12:54:04 +0800 2026
+# dcp = D:/repo/XCKU5PMini/udp_hls_10g/vivado_prj/p7b_ku5p_prj.runs/impl_1/wrapper_p4_routed.dcp
+# NOTE:纸面/历史对照另存; �?文件�?记录�?�? dcp 的�?�数�?
+# GLOBAL worst_setup_slack = 0.011
+# GLOBAL start = u_app_udp/u_txf/dout_reg[65]/C
+# GLOBAL end   = u_udp_tx/ip_csum_r_reg[1][8]/D
+
+# --- timing groups present ---
+
+# --- DP group (g_hw.clk_out0) top10 by slack ---
+DP01 slack=0.011  u_app_udp/u_txf/dout_reg[65]/C -> u_udp_tx/ip_csum_r_reg[1][8]/D
+DP02 slack=0.017  u_app_udp/u_txf/dout_reg[65]/C -> u_udp_tx/ip_csum_r_reg[1][14]/D
+DP03 slack=0.028  u_app_udp/u_txf/dout_reg[65]/C -> u_udp_tx/ip_csum_r_reg[0][8]/D
+DP04 slack=0.029  u_tcp_tx/u_ackq/rptr_reg[0]/C -> u_tcb/rcv_wnd_r_reg[8][0]/CE
+DP05 slack=0.029  u_tcp_tx/u_ackq/rptr_reg[0]/C -> u_tcb/rcv_wnd_r_reg[8][3]/CE
+DP06 slack=0.029  u_tcp_tx/u_ackq/rptr_reg[0]/C -> u_tcb/rcv_wnd_r_reg[8][5]/CE
+DP07 slack=0.030  u_tcp_tx/u_ackq/rptr_reg[0]/C -> u_tcb/rcv_wnd_r_reg[8][11]/CE
+DP08 slack=0.030  u_tcp_tx/u_ackq/rptr_reg[0]/C -> u_tcb/rcv_wnd_r_reg[8][4]/CE
+DP09 slack=0.032  u_tcp_tx/u_ackq/rptr_reg[0]/C -> u_tcb/rcv_wnd_r_reg[15][10]/CE
+DP10 slack=0.036  u_app_udp/u_txf/dout_reg[65]/C -> u_udp_tx/ip_csum_r_reg[0][14]/D
+
+# --- directed families: worst setup path FROM the family ---
+u_tcp_tx/f_lip_reg                             cells=64    slack=1.620  u_tcp_tx/f_lip_reg[0][20]/C -> u_tcp_tx/f_ipcsum_reg[0][8]/D
+u_tcp_tx/ctrl_lip_reg                          cells=32    slack=1.452  u_tcp_tx/ctrl_lip_reg[17]/C -> u_tcp_tx/ctrl_tcpcsum_reg[10]/D
+u_rx_merge                                     cells=39    slack=2.677  u_rx_merge/sel_reg/C -> u_vlan_strip/hold_reg[24]/CE
+u_tx_udp_arb                                   cells=10    slack=1.103  u_tx_udp_arb/sel_fast_reg/C -> u_slow_tx/stat_purge_reg[20]/CE
+u_tx_udp_arb_p1                                cells=85    slack=1.141  u_tx_udp_arb_p1/sel_fast_reg/C -> u_slow_tx/stat_purge_reg[20]/CE
+u_tx_arb                                       cells=10    slack=0.997  u_tx_arb/sel_fast_reg/C -> u_tcp_tx/fin_seq_r_reg[2][5]/CE
+u_tx_arb_p1                                    cells=11    slack=0.858  u_tx_arb_p1/busy_reg/C -> u_tcp_tx/fin_seq_r_reg[2][5]/CE
+u_hls                                          cells=43525 slack=0.562  u_hls/l1_cache_valid_U/udp_echo_l1_cache_valid_RAM_AUTO_1R1W_ram_u/ram_reg_bram_0/CLKBWRCLK -> u_hls/l1_cache_valid_U/written_reg[5]/D
+u_maccnt_ch0rx                                 cells=161   slack=4.820  u_maccnt_ch0rx/busy_reg/C -> u_maccnt_ch0rx/src_lat_reg[11]/CE
+u_maccnt_ch0tx                                 cells=311   slack=4.297  u_maccnt_ch0tx/busy_reg/C -> u_maccnt_ch0tx/src_lat_reg[50]/CE
+u_snap_p7bdp/hold_b_reg[1248..1407]            cells=0     (all u_snap_p7bdp/hold_b_reg = 982)
+u_snap_p7bdp/hold_b_reg[1248..1407]        NO_CELL_IN_RANGE
+cam_rd_dip -> u_tcp_tx/*csum*                  src_cells=0     snk_cells=1192
+cam_rd_dip -> u_tcp_tx/*csum*                   NO_PATH
+
+# --- directed families: worst setup path INTO the family ---
+u_tcp_tx/f_lip_reg-TO                          cells=64    slack=0.326  u_clkgen/rel_sr_reg[3]/C -> u_tcp_tx/f_lip_reg[1][15]/CLR
+u_tcp_tx/ctrl_lip_reg-TO                       cells=32    slack=0.408  u_clkgen/rel_sr_reg[3]/C -> u_tcp_tx/ctrl_lip_reg[25]/CLR
+u_rx_merge/-TO                                 cells=39    slack=2.986  u_rxcdc_ch0/rbin_r_reg[0]_rep/C -> u_rx_merge/to_cnt_reg[9]/D
+u_tx_udp_arb/-TO                               cells=10    slack=0.427  u_clkgen/rel_sr_reg[3]/C -> u_tx_udp_arb/busy_reg/CLR
+u_tx_udp_arb_p1/-TO                            cells=85    slack=0.431  u_clkgen/rel_sr_reg[3]/C -> u_tx_udp_arb_p1/sel_fast_reg/CLR
+u_tx_arb/-TO                                   cells=10    slack=0.451  u_clkgen/rel_sr_reg[3]/C -> u_tx_arb/busy_reg/CLR
+u_tx_arb_p1/-TO                                cells=11    slack=0.440  u_clkgen/rel_sr_reg[3]/C -> u_tx_arb_p1/busy_reg/CLR
+u_hls/-TO                                      cells=43525 slack=0.303  u_clkgen/rel_sr_reg[3]/C -> u_hls/grp_stats_report_fu_2283/grp_stats_report_bool_stream_gmii_byte_t_0_bool_unsigned_short_operator_s_fu_150/grp_stats_report_bool_stream_bool_unsigned_short_operator_Pipeline_VITIS_LOOP_29_1_fu_62/tmp_reg_186_reg[0]/CLR
+u_maccnt_ch0rx/-TO                             cells=161   slack=0.202  u_clkgen/rel_sr_reg[3]/C -> u_maccnt_ch0rx/data_s1_reg[22]/CLR
+u_maccnt_ch0tx/-TO                             cells=311   slack=0.204  u_clkgen/rel_sr_reg[3]/C -> u_maccnt_ch0tx/data_s1_reg[56]/CLR
+
+# top200 scan for directed families (occurrences; heuristic only):
+f_lip_reg                    0
+ctrl_lip_reg                 0
+cam_rd_dip                   0
+u_rx_merge                   0
+u_tx_udp_arb                 0
+u_tx_arb                     0
+u_snap_p7bdp/hold_b_reg      0
+u_hls                        0
+u_maccnt                     0
