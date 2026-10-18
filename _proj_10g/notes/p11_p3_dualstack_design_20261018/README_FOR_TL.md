@@ -98,7 +98,7 @@
 | 配置 | 端口数 / 第二口角色 | TCP 快路径 | 第二口数据面 | HLS | 缓存/池 | 聚合上限 | BID / 锚 |
 |---|---|---|---|---|---|---|---|
 | **C1 只连一个端口**（单口基线） | 1 / 无 | **1 套**（`tcp_rx`/`tcp_tx_frame`/`tcb`/`tcp_cam`/`app_ctrl`/`tcp_echo`/`app`），无 merge/demux | **无**（无第二口 MAC/数据面） | 单份单 IP（归档 0x2A 网表） | 单 `app_ctrl` 池 48KB | ~10G（单口一条 TX 线） | **0x2A**（已上板；P11 前最近单口位流） |
-| **C2 一个端口转发**（乙·镜像） | 2 / 镜像转发口 | **1 套业务栈**（业务口） | **第二口无 IP / 无 TCB / 无连接状态**；仅 **业务口 RX tap → FIFO → 第二口 TX MAC** 旁路；**不转发 TX**；**与 PCIe 无关** | 单份单 IP（业务口） | 业务栈自己的池 | 业务口 ~10G；镜像口随 tap 速率 | 单独 BID（**0x2E 或 0x30**，乙轮定）；**纸面**（P1（0x2B）只有 ch0 RX MAC；**P2/0x2D 已在树中落地 `mac_tx_10g u_mac_tx_ch0`（`board/wrapper_p4.v:3395`，`ifdef DUAL_SFP_A` 内），非新写模块**；C2 只需在 `cfg_mirror` 例化/接线，资源估计不变 1,602 LUT / 488 FF） |
+| **C2 一个端口转发**（乙·镜像） | 2 / 镜像转发口 | **1 套业务栈**（业务口） | **第二口无 IP / 无 TCB / 无连接状态**；仅 **业务口 RX tap → FIFO → 第二口 TX MAC** 旁路；**不转发 TX**；**与 PCIe 无关**（**方向以 §14.1-1 为准：业务口 = ch1/J8，第二口 = ch0/J7**） | 单份单 IP（业务口） | 业务栈自己的池 | 业务口 ~10G；镜像口随 tap 速率 | 单独 BID（**0x2E 或 0x30**，乙轮定）；**纸面**（P1（0x2B）只有 ch0 RX MAC；**P2/0x2D 已在树中落地 `mac_tx_10g u_mac_tx_ch0`（`board/wrapper_p4.v:3395`，`ifdef DUAL_SFP_A` 内），非新写模块**；C2 只需在 `cfg_mirror` 例化/接线，资源估计不变 1,602 LUT / 488 FF） |
 | **C3 两个端口共享 10G**（甲·单栈 = P2-甲） | 2 / 共享栈入口 | **1 套** + **`rx_merge2`/`tx_demux2`**（两口都是 L2 入口，合流进同一栈） | 第二口 RX 进 merge、TX 由 demux 分流；全业务口（双 IP） | 单份双 IP（归档 P2 网表） | 单 `app_ctrl` 池 **48KB**；0x2D 历史 HLS `MAX_TCP_CONN=3`，P3 源配 P3 HLS 可 `MAX=8`（8 连接共池，6KB/条） | 聚合 **~10G**（一条 TX 线） | **0x2D**（已上板） |
 | **C4 两个端口 10G×2**（甲·双栈 = P3） | 2 / 独立栈入口 | **2 套同模块实例**（每口独立 `tcp_rx`/`tcp_tx_frame`/`tcb`/`tcp_cam`/`app_ctrl`/`tcp_echo`/`app`），**无 fast merge/demux** | 两口各自 IP/TCB/CAM/retx，各自 MAC/arb/FIFO | 单份双 IP（P3 网表：`MAX_TCP_CONN=8` + `adv_wnd` 输入） | **新模块 `win_pool_mgr` 单共享 96KB** + 两套 app_ctrl 只读配额；**共享 8 槽 retx（首选）** | **2×~9.5G 线上载荷** | **0x2F**（纸面；乙顺延） |
 
@@ -157,7 +157,7 @@ board/
    - 判据：`git ls-files rtl/ | grep -Ei '(_p3|_dual|_port[12]|_copy|_c[1-4])'` = **0**；C4 构建的 `xvlog` 文件表与 C3 `cfg_shared`（以及 C1 `cfg_single`）的**同名模块文件集合差集 = 仅新模块**（`win_pool_mgr.v` + 慢 merge/demux（若新建）+ `retx_pool_shared.v`（若选共享 retx））。
    - **实例计数门（逐配置，按 C4 表为最严）**：
      - C1 `cfg_single`：`tcp_rx`/`tcp_tx_frame`/`tcb`/`tcp_cam`/`app_ctrl`/`app_pattern` = **1**；`mac_rx_10g`/`mac_tx_10g` = **1**；`win_pool_mgr` = 0；`rx_merge2` = 0。
-     - C2 `cfg_mirror`：业务栈 `tcp_rx`/`tcp_tx_frame`/`tcb`/`tcp_cam`/`app_ctrl`/`app_pattern` = **1**；`mac_rx_10g` = **2**（业务口 + 第二口 tap）；`mac_tx_10g` = **2**（业务口 + 第二口镜像 TX）；`win_pool_mgr` = 0；`rx_merge2` = 0；**第二口 `tcp_rx`/`tcb`/`tcp_cam`/`tcp_tx_frame`/`app_ctrl` = 0**。
+     - C2 `cfg_mirror`：业务栈 `tcp_rx`/`tcp_tx_frame`/`tcb`/`tcp_cam`/`app_ctrl`/`app_pattern` = **1**；`mac_rx_10g` = **1 数据路径（ch1 业务口；ch0 RX 若保留只作 LOS/观测，不进 TCP）**；`mac_tx_10g` = **2**（ch1 业务 + ch0 镜像）；`win_pool_mgr` = 0；`rx_merge2` = 0；**第二口 `tcp_rx`/`tcb`/`tcp_cam`/`tcp_tx_frame`/`app_ctrl` = 0**（**方向/计数以 §14.1-1 为准**）。
      - C3 `cfg_shared`：`tcp_rx`/`tcp_tx_frame`/`tcb`/`tcp_cam`/`app_ctrl`/`app_pattern` = **1**；`mac_rx_10g`/`mac_tx_10g` = **2**；`win_pool_mgr` = 0；`rx_merge2` = **1**。
      - C4 `cfg_dual`：`tcp_rx`/`tcp_tx_frame`/`tcb`/`tcp_cam`/`app_ctrl`/`app_pattern` = **2**；`mac_rx_10g`/`mac_tx_10g` = **2**；`win_pool_mgr` = **1**；`rx_merge2` = 0。
      - **任何配置出现第三份同模块副本 = 硬失败**（`P11_INSTANCE_COUNT` 门）。
@@ -724,7 +724,7 @@ output wire [3:0] o_quota_rel_slot;
 | **G-P3-8 矩阵/指纹** | 新门入册；`paths.txt` 指纹加 `hls/src/*.cpp|*.h`、`hls/run_hls.tcl`、`_proj_10g/p11_p3*/sim/run_*`；`HLS_SRC_HASH`/`NET_HASH`；FROZEN | 指纹漂移未逐条解释 ⇒ 红；HLS 源/网表哈希缺失 ⇒ 红 |
 
 - **2×10G 模型**：全链门用**功能级**两通道（每口 10G 帧率模型/背压，不做 10G 全时长仿真）；速率判据在板级。8 连接 × 2 口的功能吞吐在门里用缩短帧数/有限字节，门断言 = 每口帧/字节计数前进 + 内容逐字节 + 无跨口。
-- **常驻矩阵**：现有 21 门（P2 设计 §5.2 说 21→24；以现读 `run_matrix_p4dfix.bat` 为准）+ G-P3-1..6 注册 + G-P3-7/8；矩阵数按实际注册写，不照抄旧数。
+- **常驻矩阵**：现读 `sim/p4gates/run_matrix_p4dfix.bat` = **24 个 `^call :gate`**（含 `g6_p11_dual`；2026-10-18 现读）+ G-P3-1..6 注册 + G-P3-7/8；矩阵数按实际注册写，不照抄旧数。
 
 ### 9.2 构建计划
 
@@ -893,3 +893,52 @@ output wire [3:0] o_quota_rel_slot;
 - `EXT_QUOTA=1` 的 M2 是**有条件**的（释放路径穷举 + G-P3-1b 全过）；红队若不接受，退 M3（每口 48KB，明确偏离用户共享语义）。
 - 观测首版 NW 85 不加新字，与用户"开发期全量"偏好有偏离；这是时序风险下的显式取舍，留用户/红队裁。
 - 2×10G 主判据只写板→对端；板 RX 每口 10G 未证，不许用 TX 外推。
+
+---
+
+## 14. kimi-tl 审查回灌 + TL 裁定（2026-10-18）
+
+审查报告 = `%TEMP%/bridge/xr9/P3_DUALSTACK_REVIEW.md`（双路独立；**中 3 / 低 11**；无高档）。总评：设计件质量高，**可进入"用户裁 8 条 → 实施"**；送审方自点 10 处重点全部成立。
+
+### 14.1 中档 3 条（实施前收口）
+
+| # | 项 | 裁定 / 处置 |
+|---|---|---|
+| 1 | **C2 镜像源方向矛盾** | **以用户 2026-10-18 §10-119 为准**：业务口 = **ch1/J8 = IP_A = 192.168.100.2（port0）**，第二口 = **ch0/J7 = IP_B（port1）**；C2 = **ch1 RX tap → FIFO → ch0 TX MAC**；ch0 无 IP/TCB/CAM/tcp_rx。在树 P1 注释（`board/wrapper_p4.v:254-258`，"mirror ch0 RX out of the second port"）与 P1 设计（`p9_dual_sfp_p1_design_20261017/README_FOR_TL.md:21/§2.3/§4.5`）是 **§10-119 之前的旧计划**（ch0 RX → PCIe C2H），**不据此改 §2.1**；C2 实施轮一并订正旧注释/旧文档。§2.3 的 C2 实例数随之订正：`tcp_*` = 1（业务栈）；`mac_rx_10g` = **1 条数据路径（ch1）**（ch0 RX 若保留只作 LOS/观测，**不得进 TCP/CAM**）；`mac_tx_10g` = **2**（ch1 业务 + ch0 镜像）；`win_pool_mgr` = 0；`rx_merge2` = 0。旧句"业务口 + 第二口 tap"作废。 |
+| 2 | **门计数失实** | 现读 `sim/p4gates/run_matrix_p4dfix.bat` = **24** 个 `^call :gate` 行（含 `g6_p11_dual`）；§9.1 的"21 门"及"21→24"括注作废，按 24 写。 |
+| 3 | **台账 §10-153 未同步** | 已回改：0x2D 现役 HLS `MAX_TCP_CONN=3`；"8 连接共用一个 48 KB 池"是 **P3 源 + P3 HLS（MAX=8）的配置能力**，不是 0x2D 现状。 |
+
+### 14.2 低档 11 条（随实施轮随手；**本勘误表为准**）
+
+| # | 项 | 处置 |
+|---|---|---|
+| 1 | BRAM 表列项加总≠总计 | 列项和 = **266 / 394 / 306**（B/C2S / B/C2P / A′）；§6.4 印刷值 267/395/304 按此订正，±2 tile 纸面包络。 |
+| 2 | BRAM 未折 HLS MAX=8 | HLS 行 37 是 MAX=3 锚；C4 总 BRAM = **268–270（共享 retx）/ 396–398（每口 retx）**；A′ = 306+2–8；结论 ≤480 不变。 |
+| 3 | 文件差集漏 cfg_demux | 新件清单补 **`rtl/slow_cfg_demux.v`**（§5.2 名称；§9.2 的 `cfg_demux.v` 统一为此名）。 |
+| 4 | `rx_merge2` 实例门 vs slow merge "复用" | **裁定：C4 用新 `rtl/slow_merge2.v` / `rtl/slow_demux2.v`，不例化 fast `rx_merge2`/`tx_demux2`**；实例门按模块名有效。若日后复用，门须按参数化/层次计数。 |
+| 5 | FF 包络差 0.1k | §8.3 注 2 δ_C2 FF = **−0.3–0.5k**（不是 −0.3–0.6k）。 |
+| 6 | backstop 措辞 | 0x2D retry 件明确**不归因**（#94）；−0.013 / −0.089 / +0.042 是不同网表读数，**不许写成因果**。 |
+| 7 | wrapper 行号漂移 | 现读：app 寄存器钉死 **:1668-1670**（原 1547-1549）、`u_app` **:1531**（原 1511）、`u_app_ctrl` **:1591**（原 1582）。 |
+| 8 | app_ctrl / layer_arp 锚 | "窗口不可撤销" = **`rtl/app_ctrl.v:532`**（另 :277/:284），原 :19-21 作废；`layer_arp.cpp` 的 `board_src_ip` = **:194-198**（原 149/194/201）。 |
+| 9 | 62,939 标签过高 | 算术正确，但**现役帽下最坏在飞未重算** ⇒ 标 **纸面**，不是"已证·源码"。 |
+| 10 | 10G MAC 归属 | `mac_rx_10g.v`/`mac_tx_10g.v` 在 **`_proj_10g/p7b_mac/rtl/`**，不在 `rtl/`；2 仓切口的 stack 面必须包含该目录。 |
+| 11 | 行数/HEAD | 审查时 **895 行**（含 §13）；本 §14 回灌后 **944 行**；抬头 `HEAD=87a04937` 是**设计基线**，收口提交 = **93e36ea9**；队列/台账已同步。 |
+| 12 | RTL 陈旧交叉引用 | `retx_ram.v:8` / `tcb.v:15-16` 引 wrapper `:227/:1971`，实 `:333/:1583`；非设计件产生，实施轮随手清。 |
+
+### 14.3 8 条待裁项 —— TL 裁定（用户 2026-10-18 授权自裁；kimi 意见全部同意默认）
+
+| # | 事项 | 裁定 |
+|---|---|---|
+| 1 | 池实现 | **M2**（`win_pool_mgr` + 两套 `app_ctrl EXT_QUOTA` + `o_quota_rel`），附 G-P3-1b 释放路径门；M3 为预登记退路。 |
+| 2 | retx | **共享 8 槽 128 tile 首选**；每口 8 槽 256 tile 为 backstop。 |
+| 3 | 池大小/echo | **96KB 池 + 每口 128KB echo**（D=16384/AW=14）。 |
+| 4 | 合同常量 | **一个 bitstream 一个合同**（2×48KB 或 8×12KB，构建常量）；host 可见配额寄存器留 P4+。 |
+| 5 | 超额准入 | **零窗**（P5d 语义）；RST 不进第一版。 |
+| 6 | A′ vs B/C2 | **B/C2S**；A′ 仅作风险对冲。 |
+| 7 | C1/C3 退留 | **C1 + C3 保留为回归锚**；C3 是否退役在 P3 板级收口后由用户裁。 |
+| 8 | BID | **C4=0x2F**；C2=0x2E 或 0x30（乙轮定）；C1/C3 的 P3 源回归重建另分配新 BID。 |
+
+### 14.4 结论
+
+- 3 中档全部收口；11 低档按上表处置（实施轮随手）；8 条已裁。
+- **可进入 P3 实施轮**：只改 RTL/HLS + 门，**不构建、不上板**；C1/C3 默认关回归为硬门；实施后红队审查，再构建 0x2F。
