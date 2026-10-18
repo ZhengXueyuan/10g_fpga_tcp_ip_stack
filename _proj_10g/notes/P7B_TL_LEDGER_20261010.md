@@ -1951,3 +1951,11 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - **TL 收口动作（已做）**：`board/wrapper_p4.v:1188` `.TO_CYCLES(16'hFFFF)` → **`4096`**；陈旧 elab 件改名；paths.txt 补指纹；**全矩阵重跑完成 = 24/24 EXIT=0、gates failed 0、FROZEN 346 文件**（新增 5 个指纹件）、content DIGEST **`bde7cd76…2e08`**、BEFORE HEAD=`da70b2ac` / AFTER HEAD=`0b9b7c89`、15:57:31；BEFORE/AFTER 的 legacy digest 同值 `b518ceae…81e5` ⇒ 跑动期间内容未变。
 - **kimi README 追加两条**（`25c11d02`「数据通路（数据流一览）」/ `0b9b7c89` 纵向流程图）—— **作者 ZhengXueyuan，remote=local 已核（origin/master=`0b9b7c89`）**；矩阵内容指纹 before=after，未触及被指纹文件。
 - **未测照录**：0x2D 构建/综合/时序/布后门正读数；板级 W83..W87 与看门狗触发；`scan_xsim_errors.py` 的合成负控不覆盖真实 RTL 错误。
+
+## §10-147 2026-10-18 18:0x：**0x2D 首跑在 F-21 综合后门假红处停止**（实现未启动、无位流）；门已改 `-leaf`，正/负控通过；矩阵重跑中
+- **首跑结果**：唯一入口 `run_build_p7b_ku5p.bat` 一次；`BUILD_EXIT=1` / `BUILD-GATE-FAIL` = `P7B-SNAP-TOP5-CDC-FAIL`。正读数 = 五槽各 32 cells、`SLOTS_OK=5`；红读数 = `FANOUT ... loads=2 hold_b=0 snap_din=0`。**impl_1 文件数 0；无 WNS/WHS/端点/DRC/资源（placed）/位流/定向 STA —— 一律未测，不是 0**。synth 估计 LUT 67,493 / FF 56,499 / BRAM 310 / URAM 1 / DSP 4；黑盒 0、模块 1/1/1、隐式网 8 键 0；HLS **复用** 0x2C 网表（`HLS_NET_HASH=452a1122…4428`、`HLS_SRC_HASH=556ed00c…5218`）；#54 归档成功（含 0x2C 位流）。
+- **假红根因（事实诊断）**：门用非 `-leaf` 枚举，`tx_p0_frames_r_reg[0]/Q` 的第一个层次负载是边界 pin `u_snap_p7bdp/tx_p0_frames_r_reg[0]`（`IS_LEAF=0`），名字不含 `hold_b_reg`；`-leaf` 枚举 = `tx_p0_frames_r[0]_i_3/I0` + **`u_snap_p7bdp/hold_b_reg[1248]/D`**。⇒ F-21 设计修法在综合网表里存在且已连到 CDC；`snap_din=0` 仍成立。
+- **修法（已落）**：`build_p7b_ku5p.tcl` 的负载枚举改 **`get_pins -leaf`**；直接路径白名单扩展为 `snap_din`/`snap_words_r`；注释术语由"布后门"改"**综合后（post-synth）**"。**正控**（0x2D synth checkpoint）：五槽 32 each、`FANOUT loads=2 hold_b=1 snap_din=0`、`SLOTS_OK=5`；**负控**（0x2C routed dcp）：槽 39..43 全 0、`LEAF ... u_pcie_regs/snap_words_r_reg[2656]/D`（无 hold_b）⇒ 门会红。
+- **其它如实登记**：① wrapper `:1184-1185` 注释曾写"0x2D = 0xFFFF"而代码是 4096 ⇒ 已改"4096（0xFFFF 已否）"；② "布后门"术语在 F-21 报告/设计 E-5 已订正为"综合后门"（F-21 报告加 TL 注）；③ bat 4 行中文 REM 在 OEM 代码页产生幽灵命令 ⇒ 已全 ASCII；④ 未执行 backstop（四档都绑定时序失败；删 W83..W87 不会让本门变绿）。
+- **下一步**：矩阵重跑（绑定 wrapper 注释改动）→ 若 24/24 → 重建 0x2D（同一 tcl，门应过）→ 板级。
+- **矩阵重跑（门修 + 注释改后）**：**24/24 EXIT=0、gates failed 0、FROZEN 346 文件**、content DIGEST **`dcadd762…1e01f2`**、BEFORE=AFTER HEAD=`5a64a395`、17:07:30 ⇒ 绑定当前树（wrapper 注释改动后的同一内容）。重建 0x2D 的前置满足。

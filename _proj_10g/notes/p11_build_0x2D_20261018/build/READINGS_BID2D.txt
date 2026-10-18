@@ -1,0 +1,77 @@
+# P11 build 0x2D readings (collected 2026-10-18 16:29:08)
+# --- IMPL STATUS ---
+impl_1 files = 0
+build stopped at P7B_SNAP_TOP5_CDC gate (post-synth) => implementation never launched
+STALE: p7b_ku5p_timing.rpt mtime=2026-10-18 12:50:16.120497 -> STALE_0x2C_p7b_ku5p_timing.rpt (NOT a 0x2D reading)
+STALE: p7b_ku5p_util.rpt mtime=2026-10-18 12:50:17.552789 -> STALE_0x2C_p7b_ku5p_util.rpt (NOT a 0x2D reading)
+STALE: p7b_ku5p_drc.rpt mtime=2026-10-18 12:50:23.281931 -> STALE_0x2C_p7b_ku5p_drc.rpt (NOT a 0x2D reading)
+STALE: p7b_ku5p_clkinteract.rpt mtime=2026-10-18 12:50:23.780782 -> STALE_0x2C_p7b_ku5p_clkinteract.rpt (NOT a 0x2D reading)
+# --- console ---
+ARCHIVE_SHA256_OK
+ARCHIVE_DONE 20261018_160226 files=19 dir=D:\repo\XCKU5PMini\udp_hls_10g\board\..\_proj_10g\notes\p7b_build_archive\20261018_160226
+BUILD_EXIT=1
+P7B-SNAP-TOP5-CDC-FAIL 
+P7B-VERDICT-OK-MISSING 
+BUILD-GATE-FAIL 
+# --- stdout keys ---
+HLS_SRC_HASH = 556ed00c4ad6f26f52dee9290f0f813308514189c2505c116d2a38334b945218  (n=15 files: hls/src/*.cpp|*.h + hls/run_hls.tcl)
+HLS_NET_HASH = 452a11226a3ce4b2923ce3b026c39562d655065eb639581e9d2da879d0e64428  (n=175 files: hls/slowstack_prj/solution1/syn/verilog/*.v|*.dat)
+P7B_CONVERGED_AT_ROUND = 2
+P7B_IS_LOCKED_POSTGEN = 0
+P7B_XDMA_VERDICT = OK (AXI_Stream / 回�?? 13/13 / 生成参数 6/6 / 参照 diff �?�?预期�?)
+P7B_VERILOG_DEFINE = APP_MODE=1 DEV_USP=1 PCIE_OBS=1 DP_156MHZ=1 P7B_10G=1 UDP_TX_OVL=1 TCP_TX_OVL=1 SFP2_MODE_A=1 DUAL_SFP_A=1
+P7B_NFILES = 445
+P7B_BLACKBOX_LOG_HITS = 0
+P7B_MODULE_RESOLVED rx_merge2=1 tx_demux2=1 maccnt_sync=1
+P7B_BLACKBOX_COUNT 0
+P7B_SNAP_TOP5_SLOT slot=39 bits=1248..1279 cells=32
+P7B_SNAP_TOP5_SLOT slot=40 bits=1280..1311 cells=32
+P7B_SNAP_TOP5_SLOT slot=41 bits=1312..1343 cells=32
+P7B_SNAP_TOP5_SLOT slot=42 bits=1344..1375 cells=32
+P7B_SNAP_TOP5_SLOT slot=43 bits=1376..1407 cells=32
+P7B_SNAP_TOP5_SLOTS_OK = 5
+P7B_SNAP_TOP5_FANOUT tx_p0_frames_r_reg[0]/Q loads=2 hold_b=0 snap_din=0
+P7B_SNAP_TOP5_FANOUT_BAD hold_b=0 snap_din=0
+# --- hard gate hits (synth_1/runme.log) ---
+12-4739 = 0
+Synth 8-11241 = 0
+undeclared symbol = 0
+VRFC 10-3091] actual bit length 1 differs from formal bit length = 0
+VRFC 10-2989 = 0
+implicitly declared = 0
+black box = 0
+8-3491 = 0
+# --- three failure endpoint classes (timing summary tail) ---
+NO IMPL TIMING SUMMARY (impl_1 never launched)
+# --- Slack (VIOLATED) ---
+Slack (VIOLATED) lines = 0
+All constraints met line = NO
+# --- DRC ---
+NO IMPL DRC REPORT (impl_1 never launched)
+DRC Error rows = 0 / Critical rows = 0
+# --- route ---
+# --- resources (placed / synth) ---
+synth: | CLB LUTs*                  | 67493 |     0 |          0 |    216960 | 31.11 |
+synth: | CLB Registers              | 56499 |     0 |          0 |    433920 | 13.02 |
+synth: | Block RAM Tile    |  310 |     0 |          0 |       480 | 64.58 |
+synth: | URAM              |    1 |     0 |          0 |        64 |  1.56 |
+synth: | DSPs           |    4 |     0 |          0 |      1824 |  0.22 |
+synth: |   DSP48E2 only |    4 |       |            |           |       |
+synth: | GTYE4_CHANNEL   |    0 |     0 |          0 |        16 |  0.00 |
+synth: | GTYE4_COMMON    |    0 |     0 |          0 |         4 |  0.00 |
+synth: | DSP48E2     |     4 |          Arithmetic |
+synth: | URAM288     |     1 |            BLOCKRAM |
+# --- clock interaction: rx_clk_out / gtrefclk / async ---
+# --- F-21 post-place gate positive readings ---
+P7B_SNAP_TOP5_SLOT slot=39 bits=1248..1279 cells=32
+P7B_SNAP_TOP5_SLOT slot=40 bits=1280..1311 cells=32
+P7B_SNAP_TOP5_SLOT slot=41 bits=1312..1343 cells=32
+P7B_SNAP_TOP5_SLOT slot=42 bits=1344..1375 cells=32
+P7B_SNAP_TOP5_SLOT slot=43 bits=1376..1407 cells=32
+P7B_SNAP_TOP5_SLOTS_OK = 5
+P7B_SNAP_TOP5_FANOUT tx_p0_frames_r_reg[0]/Q loads=2 hold_b=0 snap_din=0
+P7B_SNAP_TOP5_FANOUT_BAD hold_b=0 snap_din=0
+# --- bitstream ---
+MISSING  wrapper_p4.bit
+size = 0
+SW_CRC=?

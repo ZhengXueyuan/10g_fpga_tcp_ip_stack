@@ -1,0 +1,116 @@
+
+****** Vivado v2025.2 (64-bit)
+  **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+  **** Start of session at: Sun Oct 18 16:25:34 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source {D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p11_build_0x2D_20261018\gates\snap_top5_diag_0x2D.tcl}
+# set here [file dirname [file normalize [info script]]]
+# set R [file normalize [file join $here ".." ".." ".." ".."]]
+# set DCP "$R/vivado_prj/p7b_ku5p_prj.runs/synth_1/wrapper_p4.dcp"
+# set OUT "$here/SNAP_TOP5_DIAG_0x2D.txt"
+# puts "P11BUILD0x2D-DIAG open $DCP"
+P11BUILD0x2D-DIAG open D:/repo/XCKU5PMini/udp_hls_10g/vivado_prj/p7b_ku5p_prj.runs/synth_1/wrapper_p4.dcp
+# open_checkpoint $DCP
+Command: open_checkpoint D:/repo/XCKU5PMini/udp_hls_10g/vivado_prj/p7b_ku5p_prj.runs/synth_1/wrapper_p4.dcp
+
+Starting open_checkpoint Task
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.025 . Memory (MB): peak = 323.844 ; gain = 1.254
+INFO: [Device 21-403] Loading part xcku5p-ffvb676-1-e
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.680 . Memory (MB): peak = 1676.875 ; gain = 0.000
+INFO: [Netlist 29-17] Analyzing 7963 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 2 CPU seconds
+INFO: [Project 1-479] Netlist was created with Vivado 2025.2
+INFO: [Project 1-570] Preparing netlist for logic optimization
+Read ShapeDB Complete: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.156 . Memory (MB): peak = 1776.723 ; gain = 18.270
+INFO: [Project 1-1714] 1 XPM XDC files have been applied to the design.
+CRITICAL WARNING: [Project 1-486] Could not resolve non-primitive black box cell 'pcs64' instantiated as 'u_pcs' [D:/repo/XCKU5PMini/udp_hls_10g/vivado_prj/p7b_ku5p_prj.srcs/sources_1/imports/board/wrapper_p4.v:507]
+CRITICAL WARNING: [Project 1-486] Could not resolve non-primitive black box cell 'xdma_0' instantiated as 'u_pcie_xdma' [D:/repo/XCKU5PMini/udp_hls_10g/vivado_prj/p7b_ku5p_prj.srcs/sources_1/imports/board/wrapper_p4.v:5189]
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.035 . Memory (MB): peak = 2682.383 ; gain = 0.000
+INFO: [Project 1-111] Unisim Transformation Summary:
+  A total of 1263 instances were transformed.
+  DSP48E2 => DSP48E2 (DSP_ALU, DSP_A_B_DATA, DSP_C_DATA, DSP_MULTIPLIER, DSP_M_DATA, DSP_OUTPUT, DSP_PREADD, DSP_PREADD_DATA): 4 instances
+  IBUF => IBUF (IBUFCTRL, INBUF): 3 instances
+  IBUFDS => IBUFDS (DIFFINBUF, IBUFCTRL): 1 instance 
+  RAM16X1S => RAM32X1S (RAMS32): 208 instances
+  RAM32M => RAM32M (RAMD32(x6), RAMS32(x2)): 8 instances
+  RAM32M16 => RAM32M16 (RAMD32(x14), RAMS32(x2)): 40 instances
+  RAM64M => RAM64M (RAMD64E(x4)): 245 instances
+  RAM64M8 => RAM64M8 (RAMD64E(x8)): 622 instances
+  RAM64X1D => RAM64X1D (RAMD64E(x2)): 132 instances
+
+INFO: [Project 1-604] Checkpoint was created with Vivado v2025.2 (64-bit) build 6299465
+open_checkpoint: Time (s): cpu = 00:00:36 ; elapsed = 00:00:34 . Memory (MB): peak = 2682.383 ; gain = 2369.965
+# set fh [open $OUT w]
+# puts $fh "# P11 build 0x2D: F-21 gate failure diagnosis (synth_1 checkpoint, READ-ONLY)"
+# puts $fh "# dcp = $DCP"
+# puts $fh "# time = [clock format [clock seconds]]"
+# proc loads_of_pin {fh tag pin} {
+#     set nets [get_nets -quiet -of_objects $pin]
+#     puts $fh "$tag nets=[llength $nets]"
+#     foreach n $nets {
+#         set lp [get_pins -quiet -of_objects $n -filter {DIRECTION == IN}]
+#         puts $fh "  NET [get_property NAME $n] loads=[llength $lp]"
+#         foreach l $lp { puts $fh "    LOAD [get_property NAME $l]" }
+#     }
+# }
+# puts $fh "\n## 1. exact pin tx_p0_frames_r_reg\[0\]/Q"
+# set p [get_pins -quiet -filter "NAME == tx_p0_frames_r_reg\[0\]/Q"]
+# puts $fh "pins_found=[llength $p]"
+# if {[llength $p]} { loads_of_pin $fh "Q" $p }
+# puts $fh "\n## 2. all cells matching *tx_p0_frames_r_reg\[0\]* (replication candidates)"
+# set cells [get_cells -hier -quiet -filter "NAME =~ *tx_p0_frames_r_reg\[0\]*"]
+# puts $fh "cells=[llength $cells]"
+# foreach c $cells {
+#     puts $fh "  CELL [get_property NAME $c] REF=[get_property REF_NAME $c]"
+#     set q [get_pins -quiet -of_objects $c -filter {NAME =~ */Q}]
+#     foreach qq $q { loads_of_pin $fh "   Q([get_property NAME $qq])" $qq }
+# }
+# puts $fh "\n## 3. driver chain into u_snap_p7bdp/hold_b_reg\[1248\]/D"
+# set d [get_pins -quiet -filter "NAME == u_snap_p7bdp/hold_b_reg\[1248\]/D"]
+# puts $fh "D pins_found=[llength $d]"
+# if {[llength $d]} {
+#     set nets [get_nets -quiet -of_objects $d]
+#     foreach n $nets {
+#         puts $fh "  NET_FEEDING_D [get_property NAME $n]"
+#         set drv [get_pins -quiet -of_objects $n -filter {DIRECTION == OUT}]
+#         foreach dp $drv {
+#             puts $fh "    DRIVER_PIN [get_property NAME $dp]"
+#             set dc [get_cells -quiet -of_objects $dp]
+#             puts $fh "    DRIVER_CELL [get_property NAME $dc] REF=[get_property REF_NAME $dc]"
+#         }
+#     }
+# }
+# puts $fh "\n## 4. hold_b_reg[1248..1407] count (recheck)"
+# set hb [get_cells -hier -quiet -filter "NAME =~ *u_snap_p7bdp/hold_b_reg*"]
+# puts $fh "all_hold_b=[llength $hb]"
+# foreach s {39 40 41 42 43} {
+#     set lo [expr {$s*32}]; set hi [expr {$s*32+31}]; set n 0
+#     foreach c $hb {
+#         set nm [get_property NAME $c]
+#         if {[regexp {hold_b_reg\[(\d+)\]} $nm -> idx]} {
+#             if {$idx >= $lo && $idx <= $hi} { incr n }
+#         }
+#     }
+#     puts $fh "  slot=$s bits=$lo..$hi cells=$n"
+# }
+# puts $fh "\n## 5. any direct clock-domain path left to u_pcie_regs/snap_din from tx_p0_frames_r*"
+# set sd [get_cells -hier -quiet -filter "NAME =~ *u_pcie_regs/snap_din*"]
+# puts $fh "snap_din_cells=[llength $sd]"
+# set tf [get_cells -hier -quiet -filter "NAME =~ *tx_p0_frames_r_reg*"]
+# puts $fh "tx_p0_frames_r_cells=[llength $tf]"
+# set p2 {}
+# catch { set p2 [get_timing_paths -from $tf -to $sd -delay_type max -max_paths 5 -sort_by slack] }
+# puts $fh "paths tx_p0_frames_r* -> snap_din* = [llength $p2]"
+# foreach pp $p2 {
+#     puts $fh "  PATH slack=[get_property SLACK $pp] [get_property STARTPOINT_PIN $pp] -> [get_property ENDPOINT_PIN $pp]"
+# }
+# close $fh
+# puts "P11BUILD0x2D-DIAG done -> $OUT"
+P11BUILD0x2D-DIAG done -> D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_build_0x2D_20261018/gates/SNAP_TOP5_DIAG_0x2D.txt
+# exit
+INFO: [Common 17-206] Exiting Vivado at Sun Oct 18 16:26:15 2026...

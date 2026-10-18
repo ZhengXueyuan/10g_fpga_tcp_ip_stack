@@ -1,0 +1,35 @@
+# P11 build 0x2D: F-21 gate failure diagnosis (synth_1 checkpoint, READ-ONLY)
+# dcp = D:/repo/XCKU5PMini/udp_hls_10g/vivado_prj/p7b_ku5p_prj.runs/synth_1/wrapper_p4.dcp
+# time = Sun Oct 18 16:26:10 +0800 2026
+
+## 1. exact pin tx_p0_frames_r_reg[0]/Q
+pins_found=1
+Q nets=1
+  NET tx_p0_frames_r_reg[0] loads=2
+    LOAD tx_p0_frames_r[0]_i_3/I0
+    LOAD u_snap_p7bdp/tx_p0_frames_r_reg[0]
+
+## 2. all cells matching *tx_p0_frames_r_reg[0]* (replication candidates)
+cells=2
+  CELL tx_p0_frames_r_reg[0] REF=FDCE
+   Q(tx_p0_frames_r_reg[0]/Q) nets=1
+  NET tx_p0_frames_r_reg[0] loads=2
+    LOAD tx_p0_frames_r[0]_i_3/I0
+    LOAD u_snap_p7bdp/tx_p0_frames_r_reg[0]
+  CELL tx_p0_frames_r_reg[0]_i_2 REF=CARRY8
+
+## 3. driver chain into u_snap_p7bdp/hold_b_reg[1248]/D
+D pins_found=0
+
+## 4. hold_b_reg[1248..1407] count (recheck)
+all_hold_b=1142
+  slot=39 bits=1248..1279 cells=32
+  slot=40 bits=1280..1311 cells=32
+  slot=41 bits=1312..1343 cells=32
+  slot=42 bits=1344..1375 cells=32
+  slot=43 bits=1376..1407 cells=32
+
+## 5. any direct clock-domain path left to u_pcie_regs/snap_din from tx_p0_frames_r*
+snap_din_cells=0
+tx_p0_frames_r_cells=36
+paths tx_p0_frames_r* -> snap_din* = 0

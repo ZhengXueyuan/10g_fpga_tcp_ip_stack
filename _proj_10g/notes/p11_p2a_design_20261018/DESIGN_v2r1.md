@@ -1008,10 +1008,11 @@ grep -nE 'awk -v NW=83' _proj_pcie/p7b_gate4_negctrl.sh
    - 静态（源码面，已挂进 `run_tb_p7b_chain.bat`，24 门矩阵内）：
      `_proj_10g/p7b_chain/sim/check_snap_top5_wired.py` —— 断言顶部 5 项 = `p7bdp_dout[43..39]`、
      无 `w8x_snap` / 无 `assign w8x_snap = w8x_dp`、`p7bdp_din[39..43]` 五条线在位、N-10 tie-off 仍在。
-   - 布后（构建轮执行）：`board/build_p7b_ku5p.tcl` 的 `P7B_SNAP_TOP5_CDC` 段 ——
-     `u_snap_p7bdp/hold_b_reg[1248..1407]` 每槽至少 1 个寄存器；`tx_p0_frames_r_reg[0]/Q` 扇出含
-     `u_snap_p7bdp/hold_b_reg`、不含 `u_pcie_regs/snap_din`；失败 = `P7B_SNAP_TOP5_CDC_MISSING` /
-     `P7B_SNAP_TOP5_FANOUT_BAD` + exit 1。
+   - **综合后（post-synth；构建轮执行；`open_run synth_1`）**：`board/build_p7b_ku5p.tcl` 的
+     `P7B_SNAP_TOP5_CDC` 段 —— `u_snap_p7bdp/hold_b_reg[1248..1407]` 每槽至少 1 个寄存器；
+     `tx_p0_frames_r_reg[0]/Q` 扇出含 `u_snap_p7bdp/hold_b_reg`、不含 `u_pcie_regs/snap_din`/
+     `snap_words_r`；**负载枚举必须 `get_pins -leaf`**（层次边界 pin 是别名，非 leaf 枚举会假红；
+     0x2D 首跑即此）；失败 = `P7B_SNAP_TOP5_CDC_MISSING` / `P7B_SNAP_TOP5_FANOUT_BAD` + exit 1。
 4. **BID**：`BUILD_ID_V = 32'h0000002D`（甲重建；**0x2C 位流从未烧板**）；**乙顺延 0x2E**（本文件与
    `P7B_OPEN_ITEMS.md` §0-72 同步登记）。
 5. **F-2 `TO_CYCLES`（最终值 = 4096）**：用户 **2026-10-18 裁定 `TO_CYCLES = 4096`**；**0xFFFF 方案已否**
@@ -1023,5 +1024,5 @@ grep -nE 'awk -v NW=83' _proj_pcie/p7b_gate4_negctrl.sh
 6. **读侧**：BID 0x2C → 0x2D 的**显式增量**（26 处 / 15 文件；几何不变 88 字 / `0x190`）；
    `apply_readside_bid1c.py --assert --bid 0x2D` = 0 fail；从 0x2C 树重放 = **20/20 逐字节相同**。
 
-**未测（不许当已答）**：重建 0x2D 的综合/实现/时序、布后门的两条实际读数、板级 W83..W87 相干性；
+**未测（不许当已答）**：重建 0x2D 的综合/实现/时序、**综合后门**的两条实际读数、板级 W83..W87 相干性；
 以及"裸 CDC 是否真的读出过位混" —— **未观测到 ≠ 不存在**（0x2C 从未上板）。

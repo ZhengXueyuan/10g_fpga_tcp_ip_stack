@@ -393,10 +393,13 @@ if {$n1 < 1 || $n2 < 1 || $n3 < 1 || $bb != 0} { puts "P7B_MODULE_MISSING_OR_BLA
 #   0x2C 构建的布后实测: `snap_dout_all` 顶部 5 项走 `w8x_snap = w8x_dp` 直连 ⇒
 #   p7bdp 槽 39..43 成死逻辑 (`hold_b_reg[1248..1407]` = 0 个寄存器),
 #   `tx_p0_frames_r_reg[0]/Q` 直接进 `u_pcie_regs/snap_din` (裸多比特 CDC)。
-#   本段是**布后结构门** (open_run synth_1 = 综合网表; 构建轮执行):
+#   本段是**综合后 (post-synth) 结构门** (open_run synth_1 = 综合网表; 构建轮执行):
 #     ① 槽 39..43 (位 1248..1407) 每个槽至少 1 个 hold_b 寄存器;
 #     ② `tx_p0_frames_r_reg[0]/Q` 的负载里**必须**有 u_snap_p7bdp/hold_b,
-#        且**不得**有 u_pcie_regs/snap_din。
+#        且**不得**有 u_pcie_regs/snap_din (综合名) / snap_words_r (布局名)。
+#   ⚠️ 负载枚举必须 `get_pins -leaf`: 层次边界 pin
+#      `u_snap_p7bdp/tx_p0_frames_r_reg[0]` 只是别名, 非叶子 pin 枚举会漏掉
+#      `u_snap_p7bdp/hold_b_reg[1248]/D` ⇒ 假红 (0x2D 首跑即此)。
 #   失败 = `P7B_SNAP_TOP5_CDC_MISSING` / `P7B_SNAP_TOP5_FANOUT_BAD` + exit 1。
 sec "P7B_SNAP_TOP5_CDC"
 set top5_bad 0
@@ -424,13 +427,13 @@ if {[llength $f_pin] != 1} {
 }
 set f_nets [get_nets -quiet -of_objects $f_pin]
 set f_loads {}
-foreach n $f_nets { set f_loads [concat $f_loads [get_pins -quiet -of_objects $n -filter {DIRECTION == IN}]] }
+foreach n $f_nets { set f_loads [concat $f_loads [get_pins -quiet -leaf -of_objects $n -filter {DIRECTION == IN}]] }
 set f_hb 0
 set f_sd 0
 foreach l $f_loads {
     set ln [get_property NAME $l]
     if {[string match "*u_snap_p7bdp/hold_b_reg*" $ln]} { incr f_hb }
-    if {[string match "*u_pcie_regs/snap_din*" $ln]}    { incr f_sd }
+    if {[string match "*u_pcie_regs/snap_din*" $ln] || [string match "*u_pcie_regs/snap_words_r*" $ln]} { incr f_sd }
 }
 puts "P7B_SNAP_TOP5_FANOUT tx_p0_frames_r_reg\[0\]/Q loads=[llength $f_loads] hold_b=$f_hb snap_din=$f_sd"
 if {$f_hb < 1 || $f_sd != 0} {

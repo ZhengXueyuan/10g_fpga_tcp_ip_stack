@@ -1,0 +1,19 @@
+# P11 build 0x2D F-21 gate diag #3 (synth_1, READ-ONLY)
+Q nets=1
+NET tx_p0_frames_r_reg[0]
+  IN pins (default)=2
+    tx_p0_frames_r[0]_i_3/I0  TYPE= IS_LEAF=1 DIR=IN
+    u_snap_p7bdp/tx_p0_frames_r_reg[0]  TYPE= IS_LEAF=0 DIR=IN
+  LEAF pins=3
+    tx_p0_frames_r[0]_i_3/I0  TYPE= DIR=IN
+    tx_p0_frames_r_reg[0]/Q  TYPE= DIR=OUT
+    u_snap_p7bdp/hold_b_reg[1248]/D  TYPE= DIR=IN
+
+## same-named hierarchical pins/nets:
+PIN u_snap_p7bdp/tx_p0_frames_r_reg[0] found=1
+  TYPE= IS_LEAF=0 DIR=IN
+NET u_snap_p7bdp/tx_p0_frames_r_reg[0] found=1
+
+## hold_b_reg[1248]/D net back-trace to a leaf driver
+D_NET u_snap_p7bdp/tx_p0_frames_r_reg[0]
+  same_name_as_top_Q_net=0

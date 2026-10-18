@@ -1,0 +1,43 @@
+# P11 build 0x2D -- HLS netlist reuse check (phase 0 item 3)
+
+## Decision
+REUSE the existing netlist; csynth was NOT re-run in this round.
+Reason: the netlist hash computed on the current tree equals the 0x2C
+HLS_NEW_NET_HASH exactly.
+
+## Exact algorithm (copied from board/build_p7b_ku5p.tcl `p7b_sha256_set`)
+- file set (netlist) = hls/slowstack_prj/solution1/syn/verilog/*.v + *.dat
+- order = Tcl `lsort` (ASCII). Verified: archived 0x2C P7B_HASH_FILE order is
+  byte-identical to `LC_ALL=C sort` of the current file names.
+- acc = concatenation of the 175 lowercase per-file SHA256 hex strings with
+  NO separator/newline; final = SHA256(acc) over the ASCII bytes.
+
+## Readings (this round, 2026-10-18)
+netlist files n = 175
+HLS_NET_HASH = 452a11226a3ce4b2923ce3b026c39562d655065eb639581e9d2da879d0e64428
+0x2C HLS_NEW_NET_HASH (archived) = 452a11226a3ce4b2923ce3b026c39562d655065eb639581e9d2da879d0e64428
+=> MATCH
+
+source files n = 15  (hls/src/*.cpp, hls/src/*.h, hls/run_hls.tcl)
+HLS_SRC_HASH = 556ed00c4ad6f26f52dee9290f0f813308514189c2505c116d2a38334b945218
+0x2C HLS_SRC_HASH (archived) = 556ed00c4ad6f26f52dee9290f0f813308514189c2505c116d2a38334b945218
+=> MATCH
+
+Per-file cross-check: e.g. udp_echo.v SHA256 =
+13a70ff8b45d7555ca77a87bdc1fefb85d7e6dea89a4720754f5d800a20a5723
+= the 0x2C log's `P7B_HASH_FILE ... udp_echo.v` line (character-for-character).
+
+The build itself re-computed and printed the same values inside its log:
+  HLS_SRC_HASH = 556ed00c4ad6f26f52dee9290f0f813308514189c2505c116d2a38334b945218  (n=15 ...)
+  HLS_NET_HASH = 452a11226a3ce4b2923ce3b026c39562d655065eb639581e9d2da879d0e64428  (n=175 ...)
+=> the reuse decision is confirmed by the build's own instrumentation.
+
+## Method note (honest accounting)
+A first ad-hoc bash aggregation inserted a newline after each per-file hash and
+produced 45a5961c...; that was an error in the re-implementation, corrected by
+dropping the separators (matching `puts -nonewline`). The authoritative match is
+the one above plus the in-build print.
+
+## Consequence
+No hls/run_hls.tcl invocation, no old-netlist archiving was needed this round
+(the netlist on disk is already the 0x2C double-IP netlist).

@@ -1,0 +1,42 @@
+# P11 build 0x2D F-21 gate diag #2 (synth_1, READ-ONLY)
+
+## A. the mystery cell inside u_snap_p7bdp
+found=0
+
+## B. hold_b_reg[1248] cell + D-pin driver (with -hier)
+hold_b1248_cells=1
+CELL u_snap_p7bdp/hold_b_reg[1248] REF=FDCE
+  OUTPIN u_snap_p7bdp/hold_b_reg[1248]/Q
+    NET u_snap_p7bdp/hold_b_reg_n_52_[1248] loads=1
+      LOAD u_snap_p7bdp/dout_a_reg[1248]/D
+  INPIN u_snap_p7bdp/hold_b_reg[1248]/CE <- DRIVER u_snap_p7bdp/hold_b[1407]_i_1/O
+  INPIN u_snap_p7bdp/hold_b_reg[1248]/CLR <- DRIVER u_snap_p7bdp/hold_b[1407]_i_3/O
+hold_b1248_D_pins=1
+  D_NET u_snap_p7bdp/tx_p0_frames_r_reg[0]
+
+## C. all FDCE cells named *tx_p0_frames_r_reg* inside u_snap_p7bdp
+cells=0
+
+## D. hold_b_reg[1248..1279] D-driver sample (bits 1248..1255)
+bit=1248 pins=1
+bit=1249 pins=1
+bit=1250 pins=1
+bit=1251 pins=1
+bit=1252 pins=1
+bit=1253 pins=1
+bit=1254 pins=1
+bit=1255 pins=1
+
+## E. top-level tx_p0_frames_r_reg[0] and the full tx_p0_frames_r_reg family
+top_Q=1
+family_cells=36
+  tx_p0_frames_r_reg[0] REF=FDCE
+  tx_p0_frames_r_reg[0]_i_2 REF=CARRY8
+  tx_p0_frames_r_reg[10] REF=FDCE
+  tx_p0_frames_r_reg[11] REF=FDCE
+  tx_p0_frames_r_reg[12] REF=FDCE
+  tx_p0_frames_r_reg[13] REF=FDCE
+  tx_p0_frames_r_reg[14] REF=FDCE
+  tx_p0_frames_r_reg[15] REF=FDCE
+  tx_p0_frames_r_reg[16] REF=FDCE
+  tx_p0_frames_r_reg[16]_i_1 REF=CARRY8

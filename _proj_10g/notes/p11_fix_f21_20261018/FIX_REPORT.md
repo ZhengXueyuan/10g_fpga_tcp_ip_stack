@@ -205,3 +205,11 @@ LOADCOUNT hold_b=0 snap_din=1
   `gates/matrix_p7b_chain_run2.log`（矩阵内 p7b_chain 门日志，含静态门 PASS）
 - `gates/f3_resync_standalone_after_run2.log`
 - `gen_edits_2d.py` · `EDITS_2D_block.py` · `gates/negctl_prefix_tree/board/wrapper_p4.v`
+
+---
+
+## TL 注（2026-10-18，0x2D 首跑后回灌）
+
+- **术语订正**：`P7B_SNAP_TOP5_CDC` 的执行点是 `open_run synth_1` = **综合后（post-synth）**，不是布局后；本报告原文的"布后门"按"综合后门"读（设计附录 E-5 已就地订正）。
+- **0x2D 首跑假红（已修）**：门用非 `-leaf` 枚举，命中层次边界 pin `u_snap_p7bdp/tx_p0_frames_r_reg[0]`（`IS_LEAF=0`），漏掉真正的 `u_snap_p7bdp/hold_b_reg[1248]/D`。修法 = `get_pins -leaf`；已用 0x2D 综合 checkpoint 正控（`hold_b=1`）与 0x2C routed dcp 负控（槽 39..43 全 0、直连 `u_pcie_regs/snap_words_r_reg[2656]/D`）验证。
+- **0x2D 首跑结果**：构建在综合后门停止，**实现未启动、无位流、无时序/资源读数**；未执行 backstop（四档均绑定时序失败，且删字不会让本门变绿）。
