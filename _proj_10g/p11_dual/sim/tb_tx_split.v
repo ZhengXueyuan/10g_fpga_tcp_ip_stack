@@ -6,8 +6,8 @@
 //   A. 端口分离: 生产者的 s_port 0/1 帧只出现在对应口
 //   B. 帧原子性: 帧内 s_port 翻转 ⇒ 整帧只走帧首锁存口; stat_port_change > 0
 //   C. 口内优先级 (镜像 wrapper 两级 arb): TCP > UDP > HLS
-//   D. 接线反转变异: 把 demux 的两个输出交叉接到检查器 ⇒ 检查器必须报错
-//      (证明"端口反接"这种缺陷在本门的判据下有牙)
+//   D. 接线反转变异 (F-12): **第二份 tx_demux2 实例**把 d0/d1 输出交叉接到检查器
+//      (同一激励): 正常件的判据 "port-0 帧只在 d0" 在变异件上必红 ⇒ 真变异证据
 //=============================================================================
 module tb_tx_split;
     reg clk = 1'b0, rst_n = 1'b0;
@@ -39,13 +39,32 @@ module tb_tx_split;
         .stat_port_change(stat_pc), .stat_frames0(stat_f0), .stat_frames1(stat_f1)
     );
 
+    // ---------------- D: 交叉接线的变异件 (同一激励, 第二份 demux) ----------------
+    //   d0 输出端口接到检查器的 i1_*, d1 输出端口接到 i0_* ⇒ 端口反接。
+    wire [63:0] i0_tdata, i1_tdata; wire [7:0] i0_tkeep, i1_tkeep;
+    wire i0_tvalid, i1_tvalid, i0_tlast, i1_tlast;
+    reg  i0_tready = 1'b1, i1_tready = 1'b1;
+    tx_demux2 u_demux_inv (
+        .clk(clk), .rst_n(rst_n),
+        .s_tdata(s_tdata), .s_tkeep(s_tkeep), .s_tvalid(s_tvalid),
+        .s_tready(), .s_tlast(s_tlast), .s_port(s_port),
+        // ⚠️ 交叉: dut.d0 -> 检查器 i1_*; dut.d1 -> 检查器 i0_*
+        .d0_tdata(i1_tdata), .d0_tkeep(i1_tkeep), .d0_tvalid(i1_tvalid),
+        .d0_tready(i1_tready), .d0_tlast(i1_tlast),
+        .d1_tdata(i0_tdata), .d1_tkeep(i0_tkeep), .d1_tvalid(i0_tvalid),
+        .d1_tready(i0_tready), .d1_tlast(i0_tlast),
+        .stat_port_change(), .stat_frames0(), .stat_frames1()
+    );
+
     // 输出观察: 每拍记录 d0/d1 上的 beat (tag = 端口)
-    integer n0=0, n1=0;
+    integer n0=0, n1=0, n0i=0, n1i=0;
     integer seq0[0:63], seq1[0:63];
     reg [63:0] word0[0:63], word1[0:63];
     always @(posedge clk) begin
         if (d0_tvalid && d0_tready) begin word0[n0]=d0_tdata; seq0[n0]=d0_tdata[31:0]; n0<=n0+1; end
         if (d1_tvalid && d1_tready) begin word1[n1]=d1_tdata; seq1[n1]=d1_tdata[31:0]; n1<=n1+1; end
+        if (i0_tvalid && i0_tready) n0i <= n0i+1;
+        if (i1_tvalid && i1_tready) n1i <= n1i+1;
     end
 
     task send_frame; input integer port; input integer len; input integer tag; input flip;
@@ -141,14 +160,17 @@ module tb_tx_split;
         chk(nprio>=3 && prio[0]==1 && prio[1]==2 && prio[2]==3,
             "C: per-port priority TCP(A) > UDP(B) > HLS(C)");
 
-        // ---- D: 接线反转变异 (demux 输出交叉 → 检查器必须报错) ----
-        //   用同一激励: 帧 s_port=0 应只在 d0; 若把 d0/d1 交叉, 检查器 (本 TB 的 A 判据)
-        //   会在 x0 上看到本该属于 x1 的 tag ⇒ 检出。这里直接复核"交叉后判据必红"。
+        // ---- D: 接线反转变异 (F-12): 第二份 demux 把 d0/d1 交叉接线 ----
         begin : mut
-            n0=0; n1=0;
+            n0=0; n1=0; n0i=0; n1i=0;
             send_frame(0,4,9,0);
             @(posedge clk);
-            chk(n0==4 && n1==0, "D: port-0 frame only on port-0 output (wire inversion would trip this)");
+            chk(n0==4 && n1==0, "D: normal wiring: port-0 frame only on d0 (4 beats)");
+            // 同一判据施加到交叉接线件: 端口 0 的 4 拍应落在检查器的 i1 线上
+            // ⇒ "i0==4 && i1==0" 必不成立。若成立 = 变异没打中/接线没反。
+            chk(!(n0i==4 && n1i==0),
+                "D-mut: crossed d0/d1 wiring makes the same criterion RED (real mutation)");
+            chk(n1i==4 && n0i==0, "D-mut: the inverted instance really put the port-0 frame on i1");
         end
 
         if (errs==0) $display("TX_SPLIT TB PASS");

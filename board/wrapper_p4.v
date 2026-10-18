@@ -935,11 +935,15 @@ module wrapper_p4 #(
     //    单域"的构建会在快照段报 undeclared (对抗审查 F1 那个组合)。
     wire [8:0]  rxcdc_occ_w;                 // u_rxcdc 写域可见占用 (W27 的来源; 见 §7.2 探针)
     wire [31:0] rxcdc_ovf_cnt;               // P7b: u_rxcdc 拒写计数 (**FE = wr_clk 域**)
+    // P11 P2-甲 (F-8): `rx_p0_tvalid` 在**两种宏态下都被用** (DP_156MHZ 支无条件赋值,
+    //   非 DUAL 支把它别名到 rx_tvalid) ⇒ 声明必须在 ifdef 之外, 否则非 DUAL 构建里
+    //   它是**隐式 1 位网** (坑 24; 功能恰好正确但截断面静默)。
+    wire        rx_p0_tvalid;
 `ifdef DUAL_SFP_A
     // P11 P2-甲: merge 的两路 dp 域输入 (p0 = ch1/u_rxcdc, p1 = ch0/u_rxcdc_ch0)
     wire [63:0] rx_p0_tdata, ch0_dp_tdata;
     wire [7:0]  rx_p0_tkeep, ch0_dp_tkeep;
-    wire        rx_p0_tvalid, rx_p0_tready, rx_p0_tlast, rx_p0_tuser, rx_p0_tcrs, rx_p0_terr;
+    wire        rx_p0_tready, rx_p0_tlast, rx_p0_tuser, rx_p0_tcrs, rx_p0_terr;
     wire        ch0_dp_tvalid, ch0_dp_tready, ch0_dp_tlast, ch0_dp_tuser, ch0_dp_tcrs, ch0_dp_terr;
     wire        ch0_fifo_full, ch0_fifo_empty;
     wire [31:0] ch0_rxcdc_ovf;               // ch0 RX FIFO 拒写 (gmii_clk_0 域; W86 高半源)
@@ -1176,8 +1180,11 @@ module wrapper_p4 #(
     // ---- P11 P2-甲: ch0/ch1 帧级合并 (工作保持 RR; STRICT 硬接 0) ----
     //   输出直接替换现役 rx_* 总线 (vlan_strip / rx_classify 零改动)。
     //   每帧末 1 拍重仲裁气泡 (大帧 ~0.5%, 最小帧 8 字 ~11%); merge 无内部丢帧路径。
-    rx_merge2 #(.STRICT(1'b0)) u_rx_merge (
-        .clk(dp_clk), .rst_n(dp_rst_n),
+    //   F-2: TO_CYCLES=4096 半帧看门狗 (停钟/半帧不再连坐另一口; stat_abort 只给门)。
+    //   F-19: rst_n 改用板级 `reset_n` —— 与两路输入 FIFO 的 rd 侧同源; 原 dp_rst_n
+    //         在 MMCM 失锁重锁时会清 merge 而不清 FIFO 指针 (F-3 同类的新实例)。
+    rx_merge2 #(.STRICT(1'b0), .TO_CYCLES(4096)) u_rx_merge (
+        .clk(dp_clk), .rst_n(reset_n),
         .p0_tdata(rx_p0_tdata), .p0_tkeep(rx_p0_tkeep), .p0_tvalid(rx_p0_tvalid),
         .p0_tready(rx_p0_tready), .p0_tlast(rx_p0_tlast), .p0_tuser(rx_p0_tuser),
         .p0_tcrs(rx_p0_tcrs), .p0_terr(rx_p0_terr),
@@ -1187,7 +1194,7 @@ module wrapper_p4 #(
         .m_tdata(rx_tdata), .m_tkeep(rx_tkeep), .m_tvalid(rx_tvalid),
         .m_tready(rx_tready), .m_tlast(rx_tlast), .m_tuser(rx_tuser),
         .m_tcrs(rx_tcrs), .m_terr(rx_terr),
-        .stat_frames0(), .stat_frames1(), .stat_out(), .stat_bubble()
+        .stat_frames0(), .stat_frames1(), .stat_out(), .stat_bubble(), .stat_abort()
     );
 `endif
 
@@ -2936,6 +2943,11 @@ module wrapper_p4 #(
     wire [63:0] mrg_tdata;
     wire [7:0]  mrg_tkeep;
     wire        mrg_tvalid, mrg_tready, mrg_tlast;
+    // P11 P2-甲 (F-8): W83/W84 的源线在**每一种宏态下都被赋值** (DUAL 支来自每口 arb,
+    //   非 DUAL 支在下面赋常量 0; 且非 APP_MODE 构建也会走那个 else 支) ⇒ 声明必须在
+    //   `ifdef APP_MODE` **之外**。旧写法在非 DUAL/非 APP_MODE 构建里是"32 位常量赋给
+    //   1 位隐式网" (截断; 本分支无消费者但违反坑 24)。
+    wire [31:0] tx_p0_frames, tx_p1_frames;  // W83/W84 (arb 输出帧数)
 `ifdef APP_MODE
     // ---- app UDP TX 口 (P5e-T3: 由 app_udp_pattern 驱动; T2 时恒空) ----
     wire [63:0] app_udp_tx_tdata;
@@ -2973,7 +2985,6 @@ module wrapper_p4 #(
     wire [31:0] txcdc1_ovf_cnt;              // ch0 txcdc 拒写 (W86 低半)
     wire [63:0] m_tx1_tdata; wire [7:0] m_tx1_tkeep;
     wire        m_tx1_tvalid, m_tx1_tready, m_tx1_tlast;
-    wire [31:0] tx_p0_frames, tx_p1_frames;  // W83/W84 (arb 输出帧数)
     wire [31:0] ch0_tx_mac_frames, ch0_tx_mac_abort;  // ch0 MAC TX (W87 源)
     // W86/W87 跨域镜像线 (N-4; 必须在 p7bdp 槽 42/43 的使用点之前声明)
     wire [31:0] ch0_rxcdc_ovf_dp;
@@ -4867,14 +4878,28 @@ module wrapper_p4 #(
     //   u_maccnt_ch0rx: ch0 RX FIFO 拒写 (gmii_clk_0) -> dp_clk
     //   u_maccnt_ch0tx: ch0 MAC TX {abort,frames} (tx_fe_clk_0) -> dp_clk (同采样拍)
     //   线名声明已上移到 DUAL TX 束 (p7bdp 槽 42/43 的使用点之前)。
+    // ---- F-18: 采样节流 = 每 256 个源域时钟一次 (8 位自由计数 rollover) ----
+    //   设计 §3.4 的"每 256 dp_clk 取一次"; 原实现 src_tick=1'b1 (握手每次完成即再发起,
+    //   频度高一个数量级)。8 位计数器 rollover 产生单拍脉冲, 周期 = 256 源拍 (1.64 µs)。
+    reg [7:0] maccnt_tick_rx_r, maccnt_tick_tx_r;
+    always @(posedge gmii_clk_0 or negedge rx_mac_rst_n_0) begin
+        if (!rx_mac_rst_n_0) maccnt_tick_rx_r <= 8'd0;
+        else                 maccnt_tick_rx_r <= maccnt_tick_rx_r + 8'd1;
+    end
+    always @(posedge tx_fe_clk_0 or negedge tx_mac_rst_n_0) begin
+        if (!tx_mac_rst_n_0) maccnt_tick_tx_r <= 8'd0;
+        else                 maccnt_tick_tx_r <= maccnt_tick_tx_r + 8'd1;
+    end
+    wire maccnt_tick_rx = (maccnt_tick_rx_r == 8'hFF);
+    wire maccnt_tick_tx = (maccnt_tick_tx_r == 8'hFF);
     maccnt_sync #(.W(32)) u_maccnt_ch0rx (
         .src_clk(gmii_clk_0), .src_rst_n(rx_mac_rst_n_0),
-        .src_val(ch0_rxcdc_ovf), .src_tick(1'b1),
+        .src_val(ch0_rxcdc_ovf), .src_tick(maccnt_tick_rx),
         .dst_clk(dp_clk), .dst_rst_n(dp_rst_n), .dst_val(ch0_rxcdc_ovf_dp)
     );
     maccnt_sync #(.W(64)) u_maccnt_ch0tx (
         .src_clk(tx_fe_clk_0), .src_rst_n(tx_mac_rst_n_0),
-        .src_val(ch0_tx_cnt_src), .src_tick(1'b1),
+        .src_val(ch0_tx_cnt_src), .src_tick(maccnt_tick_tx),
         .dst_clk(dp_clk), .dst_rst_n(dp_rst_n), .dst_val(ch0_tx_cnt_dp)
     );
 `endif

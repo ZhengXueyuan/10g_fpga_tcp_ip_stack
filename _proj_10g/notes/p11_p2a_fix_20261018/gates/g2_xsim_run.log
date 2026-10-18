@@ -1,0 +1,48 @@
+#-----------------------------------------------------------
+# xsim v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Sun Oct 18 10:39:40 2026
+# Process ID         : 35352
+# Current directory  : D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/p11_dual/sim
+# Command line       : xsim.exe -log xsim_run.log -mode tcl -source {xsim.dir/tb_rx_merge2/xsim_script.tcl}
+# Log file           : D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/p11_dual/sim/xsim_run.log
+# Journal file       : D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/p11_dual/sim\xsim.jou
+# Running On         : xyz-intel
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26300
+# Processor Detail   : Intel(R) Core(TM) Ultra 7 265K
+# CPU Frequency      : 3878 MHz
+# CPU Physical cores : 20
+# CPU Logical cores  : 20
+# Host memory        : 68053 MB
+# Swap memory        : 4294 MB
+# Total Virtual      : 72348 MB
+# Available Virtual  : 36230 MB
+#-----------------------------------------------------------
+source xsim.dir/tb_rx_merge2/xsim_script.tcl
+# xsim {tb_rx_merge2} -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+==== TB_RX_MERGE2 ====
+  [ ok ] A: 3 frames out (single port, work-conserving)
+  [ ok ] A: stat_frames0=3 stat_frames1=0
+  [ ok ] A: all served from p0
+  [ ok ] B: 6 frames out (both ports)
+  [ ok ] B: 3+3 frames
+  [ ok ] B: 6 frame starts
+  [ ok ] B: strict frame-level alternation p1,p0,...
+  [ ok ] C: 6 frames out under random backpressure (atomic)
+  [ ok ] D: m_tvalid low during reset
+  [ ok ] E: low-priority p0 tready stayed 0 while p1 stalled (>=24 cycles)
+  [ ok ] E: p0 model FIFO overflow > 0 (DEPTH=4 negative control armed)
+  [ ok ] F: 4 frames out
+  [ ok ] F: STRICT serves all p1 frames before p0
+  [ ok ] G: p0's two frames still come out after p1 half-frame watchdog
+  [ ok ] G: stat_frames0=2 stat_frames1=0 (half frame not counted)
+  [ ok ] G: stat_abort incremented (half-frame timeout fired)
+RX_MERGE2 TB PASS
+$finish called at time : 2105 ns : File "D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/p11_dual/sim/tb_rx_merge2.v" Line 295
+exit
+INFO: [Common 17-206] Exiting xsim at Sun Oct 18 10:39:43 2026...

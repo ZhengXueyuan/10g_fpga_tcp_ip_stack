@@ -327,6 +327,25 @@ module tb_app_udp;
         .stat_frames(cf_frames), .stat_deny(cf_deny)
     );
 
+    // ---- P11 H-1 (F-7): 运行期无 X 断言 ----
+    //   `peer_my_ip` 是本轮唯一新输入; 若某个直接例化点漏接 ⇒ 32'hZ ⇒
+    //   `cfg_sync` 恒 X ⇒ deny X ⇒ 该 TB 的 TX 全灭。旧门只查"没发帧", 会把
+    //   这种漏接误读成"peer 表空"。这里直接盯住两条受污染信号。
+    //   ⚠️ `$isunknown` 只在 SystemVerilog 模式可用; 本 TB 以 Verilog-2001 编译 ⇒
+    //      用等价判据 `(v !== 0) && (v !== 1)` (仅 X/Z 为真)。
+    function is_xz1; input v; begin is_xz1 = (v !== 1'b0) && (v !== 1'b1); end endfunction
+    integer p11_xerr = 0;
+    always @(posedge clk) begin
+        if (rst_n) begin
+            if (is_xz1(u_cfg.o_port) || is_xz1(u_cfg.cfg_sync)) begin
+                if (p11_xerr == 0)
+                    $display("  [FAIL] P11 H-1: X/Z on u_cfg.o_port or u_cfg.cfg_sync (peer_my_ip unconnected?)");
+                p11_xerr = p11_xerr + 1;
+                errs = errs + 1;
+            end
+        end
+    end
+
     udp_tx_frame u_tx (
         .clk(clk), .rst_n(rst_n),
         .s_axis_tdata(utx_td), .s_axis_tkeep(utx_tk), .s_axis_tvalid(utx_tv),

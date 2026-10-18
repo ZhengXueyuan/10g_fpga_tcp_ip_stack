@@ -128,14 +128,14 @@ BOARD_IP=192.168.100.2
 MYIP=192.168.100.100
 DEV=/dev/xdma0_user
 TOOLS=/home/a/xdma_test/dma_ip_drivers-patched/XDMA/linux-kernel/tools
-EXPECT_BID=${EXPECT_BID:-0x0000002B}      # P11 P1 ch0 bring-up = 0x2B (源码 board/wrapper_p4.v 的 BUILD_ID_V; 原 0x2A = p9 孤儿修复 / 0x29 = 0x29 拆刀 / 0x28 = P9 E12)
+EXPECT_BID=${EXPECT_BID:-0x0000002C}      # P11 P2-甲 双口+双 IP = 0x2C (源码 board/wrapper_p4.v 的 BUILD_ID_V; 原 0x2B = P11 P1 / 0x2A = p9 孤儿修复 / 0x29 = 0x29 拆刀 / 0x28 = P9 E12)
 # ⛔ 2026-10-07 Stage C 同步轮: 原句 = "P7B-WU 二轮 = 9"; 读 Build 2 (63 字 / BID 9) 覆盖 EXPECT_BID=0x00000009
 # ⛔ 2026-10-10 订正 (构建 C 门同步轮): 原默认 0x0000000A (P7b Stage C 63 字) ⇒ 现役 = **17 / 65 字**。
 #    ⚠️ 默认 `EXPECT_BID` 与默认 `SNAP_WORDS` **必须同代** (后者本轮已 = 65): 不同代 ⇒ G1 身份红 +
 #    B_WIN "窗口不完整" 红 (假红)。读旧位流: Stage C 63 字 = `EXPECT_BID=0x0000000A SNAP_WORDS=63`;
 #    WU 二轮 / Build 2 = `EXPECT_BID=0x00000009 SNAP_WORDS=63`。
-SNAP_WORDS=${SNAP_WORDS:-83}
-UNIMPL_ADDR=${UNIMPL_ADDR:-$(printf '0x%X' $(( 0x20 + 4*SNAP_WORDS + 16 )))}   # 83 ⇒ 0x17C (P11 P1 起; 76 ⇒ 0x160 (p9 孤儿修复); 75 ⇒ 0x15C (P9 E12); 71 ⇒ 0x14C (M1 期B); 70 字及更早 = 0x138/0x12C/0x128/0x124/0x11C/0x114/0xEC —— 读旧位流须显式覆盖)
+SNAP_WORDS=${SNAP_WORDS:-88}
+UNIMPL_ADDR=${UNIMPL_ADDR:-$(printf '0x%X' $(( 0x20 + 4*SNAP_WORDS + 16 )))}   # 88 ⇒ 0x190 (P11 P2-甲 起; 83 ⇒ 0x17C (P11 P1); 76 ⇒ 0x160 (p9 孤儿修复); 75 ⇒ 0x15C (P9 E12); 71 ⇒ 0x14C (M1 期B); 70 字及更早 = 0x138/0x12C/0x128/0x124/0x11C/0x114/0xEC —— 读旧位流须显式覆盖)
 # ⚠️ 未实现地址的**公式 M1 起变了**: 旧 = `0x20 + 4*SNAP_WORDS` (63/65/66/67/70 字各代成立);
 #    M1 期B 起 = `0x20 + 4*SNAP_WORDS + 16` (快照末字后接 MIR_STATUS/DATA/CTRL/DMA_CNT 四字)
 #    ⇒ 71 字 = **0x14C** (M1 期B); ⭐ P9 E12 起 75 字 = **0x15C**; ⭐ p9 孤儿修复起 76 字 = **0x160**;
@@ -420,8 +420,8 @@ check_window(){ # <标签> <unimpl 值> <数组名>
 #   是上一代/复位值 ⇒ 不可当本代读数 (W76..W78 仍是本代)。P1 几何 (NW>=83) 才判。
 check_ch0_stale(){ # <标签> <status 原始值> <数组名>
   local tg="$1" st="${2:-}" ; local -n W="$3"
-  if [ "$SNAP_WORDS" -lt 83 ]; then
-    res SKIP "B_CH0" "$tg ch0 束本代有效性 (SNAP_STATUS[7])" "P1 几何才有" "SNAP_WORDS=$SNAP_WORDS < 83 ⇒ 该代无 ch0 束"; return 0
+  if [ "$SNAP_WORDS" -lt 88 ]; then
+    res SKIP "B_CH0" "$tg ch0 束本代有效性 (SNAP_STATUS[7])" "P2 几何才有" "SNAP_WORDS=$SNAP_WORDS < 88 ⇒ 该代无 ch0 束"; return 0
   fi
   if [ -z "$st" ] || ! [[ "$st" =~ ^0[xX][0-9a-fA-F]{1,8}$ ]]; then
     res SKIP "B_CH0" "$tg ch0 束本代有效性 (SNAP_STATUS[7])" "读到 STATUS" "本块没有 STATUS 行 (离线合成文本?) ⇒ 不判; **未观测到 ≠ 不存在**"; return 0

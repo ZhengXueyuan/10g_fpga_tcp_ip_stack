@@ -17,9 +17,17 @@
 // 【可观测性边界】A-1 下 RX 合并流不携带端口标签 (身份 = 目的 IP) ⇒ 板内无法
 //   回答"这一帧从哪个物理口进来"; 诊断靠对端每口 NIC 计数/拔插/TX_DIS 隔离。
 //   stat_frames0/1 只给门用 (不进快照)。
+//
+// 【P2-甲 F-2: 半帧看门狗】(TO_CYCLES = 0 ⇒ 关; wrapper 传 4096)
+//   上游 mac_rx_10g 只在"新 /S/ 碎片"或"FIFO 满"时产生 TERM; 若链路断/停钟或 PCS
+//   中途复位, 已推入输入 FIFO 的半帧(无 tlast)不会再有后续字 ⇒ busy 永久锁死 ⇒
+//   另一口也被连坐。看门狗: `busy && !sel_tvalid` 连续 ≥ TO_CYCLES 拍 ⇒ 释放 busy、
+//   stat_abort+1、**不产生帧计数**。释放后残留半帧已消费的拍照常由下一轮仲裁排出
+//   (无 tlast 的流不构成帧); 下游 vlan_strip 的 RESYNC_EN=1 (DP 构建) 等到 SOP 才放行。
 //=============================================================================
 module rx_merge2 #(
-    parameter STRICT = 1'b0        // 1 = 严格优先 p1 (仅 G2 负控实例; wrapper 硬接 0)
+    parameter STRICT = 1'b0,       // 1 = 严格优先 p1 (仅 G2 负控实例; wrapper 硬接 0)
+    parameter TO_CYCLES = 0        // >0 = 半帧看门狗阈值 (dp_clk 拍); 0 = 关
 ) (
     input  wire        clk,
     input  wire        rst_n,
@@ -54,12 +62,14 @@ module rx_merge2 #(
     output reg  [31:0] stat_frames0,   // p0 帧数
     output reg  [31:0] stat_frames1,   // p1 帧数
     output reg  [31:0] stat_out,       // 输出帧数 (= frames0+frames1)
-    output reg  [31:0] stat_bubble     // !busy 且两口都无 tvalid 的拍数
+    output reg  [31:0] stat_bubble,    // !busy 且两口都无 tvalid 的拍数
+    output reg  [31:0] stat_abort      // F-2 看门狗: 半帧超时释放次数 (不计帧)
 );
 
     reg        busy;      // 帧内锁
     reg        sel;       // 本帧口 (0 = p0, 1 = p1)
     reg        rr;        // 上一帧服务的口 (工作保持偏好 ~rr)
+    reg [31:0] to_cnt;    // F-2: 连续 `busy && !sel_tvalid` 拍数
 
     // 空闲拍仲裁 (只决定下一拍 busy 的 sel)
     wire p0_av = p0_tvalid;
@@ -85,18 +95,34 @@ module rx_merge2 #(
 
     wire frame_last = m_tvalid && m_tready && m_tlast;
 
+    // ---- F-2: 半帧看门狗 (TO_CYCLES=0 ⇒ 恒不触发; 常量折叠后零逻辑) ----
+    wire sel_stalled = busy && !sel_tvalid;
+    wire to_fire     = (TO_CYCLES > 0) && sel_stalled &&
+                       ((to_cnt + 32'd1) >= TO_CYCLES);
+
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            busy <= 1'b0; sel <= 1'b0; rr <= 1'b0;
+            busy <= 1'b0; sel <= 1'b0; rr <= 1'b0; to_cnt <= 32'd0;
             stat_frames0 <= 32'd0; stat_frames1 <= 32'd0;
-            stat_out <= 32'd0; stat_bubble <= 32'd0;
+            stat_out <= 32'd0; stat_bubble <= 32'd0; stat_abort <= 32'd0;
         end else begin
             if (pick) begin
                 busy <= 1'b1;
                 sel  <= pick1;
+                to_cnt <= 32'd0;
             end else if (frame_last) begin
                 busy <= 1'b0;
                 rr   <= sel;                 // 下一帧优先另一口
+                to_cnt <= 32'd0;
+            end else if (to_fire) begin
+                // 超时: 释放帧锁, 不产生帧计数 (该半帧永远不闭合)
+                busy <= 1'b0;
+                to_cnt <= 32'd0;
+                stat_abort <= stat_abort + 32'd1;
+            end else if (!sel_stalled) begin
+                to_cnt <= 32'd0;
+            end else begin
+                to_cnt <= to_cnt + 32'd1;
             end
             if (pick) begin
                 // 选口拍不计帧 (帧末才计)

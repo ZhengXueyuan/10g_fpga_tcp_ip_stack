@@ -11,6 +11,8 @@
 //      低优先口 p0 持续注入 ≥2 个最大帧 (190 beats) 到 DEPTH=4 的模型 FIFO
 //      ⇒ 断言 p0_tready 持续 0 且 p0 溢出增长 (负控有牙)
 //   F. STRICT=1 正臂: 先服务完 p1 全部帧, 再服务 p0
+//   G. F-2 半帧看门狗 (TO_CYCLES=16): p1 注入 4 拍**不发 tlast**, 静默 ≥16 拍 ⇒
+//      stat_abort 增长、该半帧不产生帧计数, 且 p0 的两帧仍能出来 (跨口不再被锁死)
 // 帧字: [72]=tlast [71:64]=tkeep [63]=port [62:56]=0 [55:32]=idx [31:0]=beat
 //=============================================================================
 module tb_rx_merge2;
@@ -44,11 +46,13 @@ module tb_rx_merge2;
     integer flen1 [0:255];
 
     reg  arm_strict = 1'b0;
+    reg  arm_wd = 1'b0;
+    reg  chk_off = 1'b0;          // 看门狗臂: 输出含"无 tlast 的半帧", 暂停 beat 序检查
     reg  m_ready = 1'b1;
 
-    wire p0_ready_r, p1_ready_r, p0_ready_s, p1_ready_s;
-    wire p0_rd = arm_strict ? p0_ready_s : p0_ready_r;
-    wire p1_rd = arm_strict ? p1_ready_s : p1_ready_r;
+    wire p0_ready_r, p1_ready_r, p0_ready_s, p1_ready_s, p0_ready_w, p1_ready_w;
+    wire p0_rd = arm_wd ? p0_ready_w : (arm_strict ? p0_ready_s : p0_ready_r);
+    wire p1_rd = arm_wd ? p1_ready_w : (arm_strict ? p1_ready_s : p1_ready_r);
     always @(posedge clk) begin
         if (p0_v && p0_rd) h0 <= h0 + 1;
         if (p1_v && p1_rd) h1 <= h1 + 1;
@@ -79,14 +83,32 @@ module tb_rx_merge2;
         .p1_tready(p1_ready_s), .p1_tlast(p1_q[72]), .p1_tuser(1'b0), .p1_tcrs(1'b1), .p1_terr(1'b0),
         .m_tdata(m1_d), .m_tkeep(m1_k), .m_tvalid(m1_v), .m_tready(m_ready),
         .m_tlast(m1_l), .m_tuser(m1_u), .m_tcrs(m1_c), .m_terr(m1_e),
-        .stat_frames0(sf0_s), .stat_frames1(sf1_s), .stat_out(so_s), .stat_bubble(sb_s)
+        .stat_frames0(sf0_s), .stat_frames1(sf1_s), .stat_out(so_s), .stat_bubble(sb_s),
+        .stat_abort()
+    );
+
+    // ---------------- DUT: TO_CYCLES=16 (F-2 看门狗) ----------------
+    wire [63:0] mw_d; wire [7:0] mw_k; wire mw_v, mw_l, mw_u, mw_c, mw_e;
+    wire [31:0] sf0_w, sf1_w, so_w, sb_w, sa_w;
+    rx_merge2 #(.STRICT(1'b0), .TO_CYCLES(16)) u_wd (
+        .clk(clk), .rst_n(rst_n),
+        .p0_tdata(p0_q[63:0]), .p0_tkeep(p0_q[71:64]), .p0_tvalid(p0_v),
+        .p0_tready(p0_ready_w), .p0_tlast(p0_q[72]), .p0_tuser(1'b0), .p0_tcrs(1'b1), .p0_terr(1'b0),
+        .p1_tdata(p1_q[63:0]), .p1_tkeep(p1_q[71:64]), .p1_tvalid(p1_v),
+        .p1_tready(p1_ready_w), .p1_tlast(p1_q[72]), .p1_tuser(1'b0), .p1_tcrs(1'b1), .p1_terr(1'b0),
+        .m_tdata(mw_d), .m_tkeep(mw_k), .m_tvalid(mw_v), .m_tready(m_ready),
+        .m_tlast(mw_l), .m_tuser(mw_u), .m_tcrs(mw_c), .m_terr(mw_e),
+        .stat_frames0(sf0_w), .stat_frames1(sf1_w), .stat_out(so_w), .stat_bubble(sb_w),
+        .stat_abort(sa_w)
     );
 
     // ---------------- 输出检查 ----------------
-    wire        ov_v = arm_strict ? m1_v : m0_v;
-    wire [63:0] ov_d = arm_strict ? m1_d : m0_d;
-    wire        ov_l = arm_strict ? m1_l : m0_l;
+    wire        ov_v = arm_wd ? mw_v : (arm_strict ? m1_v : m0_v);
+    wire [63:0] ov_d = arm_wd ? mw_d : (arm_strict ? m1_d : m0_d);
+    wire        ov_l = arm_wd ? mw_l : (arm_strict ? m1_l : m0_l);
     wire        ov_rd= ov_v && m_ready;
+    integer     tl_w = 0;         // 看门狗臂的 tlast 计数 (半帧无 tlast ⇒ 不计)
+    always @(posedge clk) if (rst_n && arm_wd && ov_rd && ov_l) tl_w <= tl_w + 1;
 
     integer frames_seen = 0, o_open = 0, o_port = 0, o_idx = 0, o_beat = 0, o_len = 0;
     integer hist_port [0:255];
@@ -100,20 +122,20 @@ module tb_rx_merge2;
                 o_open <= 1;
                 o_port <= ov_d[63]; o_idx <= ov_d[55:32]; o_beat <= 0;
                 o_len  <= ov_d[63] ? flen1[ov_d[55:32]] : flen0[ov_d[55:32]];
-                if (ov_d[31:0] !== 32'd0) begin errs=errs+1; $display("  [FAIL] first beat idx != 0"); end
+                if (!chk_off && ov_d[31:0] !== 32'd0) begin errs=errs+1; $display("  [FAIL] first beat idx != 0"); end
                 hist_port[nhist] <= ov_d[63]; nhist <= nhist + 1;
                 if (ov_d[63]) seen1[ov_d[55:32]] <= 1'b1; else seen0[ov_d[55:32]] <= 1'b1;
                 if (ov_l) begin
-                    if (o_len !== 1 && (ov_d[63] ? flen1[ov_d[55:32]] : flen0[ov_d[55:32]]) !== 1)
+                    if (!chk_off && o_len !== 1 && (ov_d[63] ? flen1[ov_d[55:32]] : flen0[ov_d[55:32]]) !== 1)
                         begin errs=errs+1; $display("  [FAIL] single-beat frame with len != 1"); end
                     o_open <= 0; frames_seen <= frames_seen + 1;
                 end
             end else begin
                 // 帧内后续拍: 口/帧号必须不变, beat 必须连续
-                if (ov_d[63] !== o_port || ov_d[55:32] !== o_idx || ov_d[31:0] !== (o_beat+1))
+                if (!chk_off && (ov_d[63] !== o_port || ov_d[55:32] !== o_idx || ov_d[31:0] !== (o_beat+1)))
                     begin errs=errs+1; $display("  [FAIL] interleave/beat order p=%0d i=%0d b=%0d", ov_d[63], ov_d[55:32], ov_d[31:0]); end
                 if (ov_l) begin
-                    if ((o_beat + 1) !== (o_len - 1))
+                    if (!chk_off && (o_beat + 1) !== (o_len - 1))
                         begin errs=errs+1; $display("  [FAIL] tlast at beat %0d (len %0d)", o_beat+1, o_len); end
                     o_open <= 0; frames_seen <= frames_seen + 1;
                 end else begin
@@ -151,6 +173,17 @@ module tb_rx_merge2;
         end
     endtask
 
+    // F-2 看门狗臂: 推入 len 拍但**永不发 tlast** (半帧; 之后静默)
+    task push_half1; input integer idx; input integer len; integer b;
+        begin
+            flen1[idx] = len;
+            for (b=0;b<len;b=b+1) begin
+                if ((t1-h1) >= depth1) ovf1 = ovf1 + 1;
+                else begin q1[t1] = pack(1, idx, b, 1'b0); t1 = t1 + 1; end
+            end
+        end
+    endtask
+
     task do_reset;
         begin
             rst_n = 1'b0; m_ready = 1'b1;
@@ -158,6 +191,7 @@ module tb_rx_merge2;
             depth0=QD; depth1=QD;
             frames_seen=0; o_open=0; nhist=0;
             seen0 = 0; seen1 = 0;
+            arm_wd = 1'b0; chk_off = 1'b0; tl_w = 0;
             repeat(3) @(posedge clk);
             rst_n = 1'b1;
             repeat(2) @(posedge clk);
@@ -244,6 +278,17 @@ module tb_rx_merge2;
         chk(nhist == 4 && hist_port[0]==1 && hist_port[1]==1 && hist_port[2]==0 && hist_port[3]==0,
             "F: STRICT serves all p1 frames before p0");
         arm_strict = 1'b0;
+
+        // ---------- G: F-2 半帧看门狗 (TO_CYCLES=16) ----------
+        do_reset();
+        arm_wd = 1'b1; chk_off = 1'b1;
+        push_half1(0, 4);          // p1: 4 拍, 永不发 tlast
+        push0(0,4); push0(1,4);    // p0: 两帧完好的
+        guard=0; while (tl_w < 2 && guard < 800) begin @(posedge clk); guard=guard+1; end
+        chk(tl_w == 2, "G: p0's two frames still come out after p1 half-frame watchdog");
+        chk(sf0_w == 2 && sf1_w == 0, "G: stat_frames0=2 stat_frames1=0 (half frame not counted)");
+        chk(sa_w > 0, "G: stat_abort incremented (half-frame timeout fired)");
+        arm_wd = 1'b0; chk_off = 1'b0;
 
         if (errs == 0) $display("RX_MERGE2 TB PASS");
         else           $display("RX_MERGE2 TB FAIL errs=%0d", errs);

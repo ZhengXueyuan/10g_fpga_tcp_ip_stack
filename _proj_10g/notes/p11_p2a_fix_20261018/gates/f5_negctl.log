@@ -1,0 +1,24 @@
+=== negctl bid ===
+OK   _proj_10g/notes/p7b_biz_win/check_window.py          派生式             {'nnew_top': 22, 'ntx': 1, 'nnew': 14}   nnew_top + ntx + nnew == NW - 51 (W51..W(NW-1) 的分解; 70-51=19)
+NEGCTL 目标断言: _proj_10g/notes/p7b_affinity/j6_r6fix.sh[BID] ⇒ ✅ 在 FAIL 名单里
+NEGCTL_VERDICT 有牙 (断言确实变红 (共 1 条 FAIL, 含目标 _proj_10g/notes/p7b_affinity/j6_r6fix.sh[BID])) ⇒ 真实运行会 FAIL 并非零退出
+NEGCTL_EXIT=1
+RC=0
+=== negctl table ===
+OK   _proj_pcie/p7b_gate4_negctrl.sh                            表长 = 88 / 期望 NW = 88   合成夹具的 V 字表 (长度 < NW ⇒ 尾部字打 0 = 假数据)
+OK   _proj_pcie/p7b_gate4_selftest.sh                           地址条数 = 28 / 期望 28 (末条 0x190)   假板子的 FAKE_TAIL 地址表 (地址条数必须 == NW-60=W60..W(NW-1), 末条 = 未实现地址)
+NEGCTL_VERDICT 有牙 (断言确实变红 (共 1 条 FAIL)) ⇒ 真实运行会 FAIL 并非零退出
+NEGCTL_EXIT=1
+RC=0
+=== negctl tier ===
+OK   _proj_10g/notes/p7b_biz_win/check_window.py          派生式             {'nnew_top': 22, 'ntx': 1, 'nnew': 14}   nnew_top + ntx + nnew == NW - 51 (W51..W(NW-1) 的分解; 70-51=19)
+NEGCTL 目标断言: _proj_10g/notes/p7b_biz_tcpreg/tcpreg_j6.sh[TIER_TOP] ⇒ ✅ 在 FAIL 名单里
+NEGCTL_VERDICT 有牙 (断言确实变红 (共 1 条 FAIL, 含目标 _proj_10g/notes/p7b_biz_tcpreg/tcpreg_j6.sh[TIER_TOP])) ⇒ 真实运行会 FAIL 并非零退出
+NEGCTL_EXIT=1
+RC=0
+=== negctl face ===
+---- 搜索面 [unimpl-addr]: 命中 61 文件 (已登记 61 / 未登记 0)
+SEARCH_FACE FAIL (4 族 / 531 命中文件)
+NEGCTL_VERDICT 有牙 (断言确实变红 (共 3 条 FAIL)) ⇒ 真实运行会 FAIL 并非零退出
+NEGCTL_EXIT=1
+RC=0

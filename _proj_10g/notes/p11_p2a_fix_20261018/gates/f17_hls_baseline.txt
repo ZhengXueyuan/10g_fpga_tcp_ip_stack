@@ -1,0 +1,47 @@
+# F-17 HLS baseline: three csim arms built+run in worktree@1c3cc7da (pre-change tree)
+# 2026-10-18T03:10:11Z
+## source hashes (worktree)
+04d202734d3a50414c7f752e37b8d5564c28337017f42d7f3227f858bfabe276 *D:/repo/XCKU5PMini/_p11_wt_2c/hls/src/layer_arp.cpp
+6d30d3edcb2cf4600ad0bc963874636f8068e8b81773e7d7db975df6b51891ab *D:/repo/XCKU5PMini/_p11_wt_2c/hls/src/layer_dhcp.cpp
+99386d455bc3319ea64b02346d04d980552a0ef74c5bffb16c84a7de1f4d015b *D:/repo/XCKU5PMini/_p11_wt_2c/hls/src/layer_icmp.cpp
+7978ce228f83cc117448633171cc38a702635b703a0fd3e64e8c861c74a71dc7 *D:/repo/XCKU5PMini/_p11_wt_2c/hls/src/layer_igmp.cpp
+5283cc2da890d4725517ff9304d430e945ed9fa99654c447e59fc2e8643c6af6 *D:/repo/XCKU5PMini/_p11_wt_2c/hls/src/layer_ip.cpp
+54fd261d044670b3885c22cb4821e199786dfe235ab74caf0eccfe6d19e86382 *D:/repo/XCKU5PMini/_p11_wt_2c/hls/src/layer_mac.cpp
+f30bc208fad20e1c3af18fb3454b50b1d020b27bfb1965ab1373e1ca60cacf40 *D:/repo/XCKU5PMini/_p11_wt_2c/hls/src/layer_stats.cpp
+77982b7e550f744da171b4d2438588ea07c383c0b143ee0b267fcea7f9cce6e3 *D:/repo/XCKU5PMini/_p11_wt_2c/hls/src/layer_tcp.cpp
+df824d851d5abe71b89276f2500466c9eaa95fc088d60a6549c49f8fcc6e681a *D:/repo/XCKU5PMini/_p11_wt_2c/hls/src/layer_uart.cpp
+4856dd1ff730144e0425dfd2dc9d64bb185828fdbfea72adeba47b15b316ae4b *D:/repo/XCKU5PMini/_p11_wt_2c/hls/src/layer_udp.cpp
+3ead26b6c0e91847da0e1bea30283a7aabef557890009bcffbeb51470ec0a1ee *D:/repo/XCKU5PMini/_p11_wt_2c/hls/src/udp_echo.cpp
+8ec26d4304cabb38704fe49049a78ed4e18b14eb9ca3db1253a5b10867944cf8 *D:/repo/XCKU5PMini/_p11_wt_2c/hls/src/eth_types.h
+2c1c622a0e2b3167d157da64440e1f5a8a5c210573805864cce9f79c9c728f5c *D:/repo/XCKU5PMini/_p11_wt_2c/hls/src/eth_utils.h
+8828b98601f6d87e252b75016596b33d5b5f679a5867b3c878c168bf9e2b70bf *D:/repo/XCKU5PMini/_p11_wt_2c/hls/src/udp_echo.h
+f864662c370c84def5dd4182220e20c27cd23c2b527ee30f63923483e4aee04d *D:/repo/XCKU5PMini/_p11_wt_2c/hls/run_hls.tcl
+## binary hashes
+d1982acea031b247e2520226598fbd2b47a1cdc7dcee92e42aed5371c8d089d2 *D:/repo/XCKU5PMini/_p11_wt_2c/_proj_10g/p11_dual/sim/work_f17/csim_d0.exe
+3a203778fd1ef9ed9f3bcc0ca7e3ed51b249918b6d3ba0e3e8dbdbb5289e8413 *D:/repo/XCKU5PMini/_p11_wt_2c/_proj_10g/p11_dual/sim/work_f17/csim_d1.exe
+d017a052a8d96bfbb661788a6f83f6e372ba0f4013904a2fc199a7553e4bc27d *D:/repo/XCKU5PMini/_p11_wt_2c/_proj_10g/p11_dual/sim/work_f17/csim_d1_rst.exe
+## failure lines per arm
+--- d0 ---
+ FAIL: got SYN-ACK
+recv_total=0
+ FAIL: all 2000 echo bytes received
+ FAIL: got SYN-ACK
+--- d1 ---
+ FAIL: got SYN-ACK
+recv_total=0
+ FAIL: all 2000 echo bytes received
+ FAIL: got SYN-ACK
+--- drst ---
+ FAIL: got SYN-ACK
+recv_total=0
+ FAIL: all 2000 echo bytes received
+ FAIL: got SYN-ACK
+## base_out.txt (main tree, 07:12:27) failure lines
+ FAIL: got SYN-ACK
+recv_total=0
+ FAIL: all 2000 echo bytes received
+ FAIL: got SYN-ACK
+## diff vs base_out (normalized)
+--- d0 ---
+--- d1 ---
+--- drst ---

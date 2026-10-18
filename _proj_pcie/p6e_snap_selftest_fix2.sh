@@ -78,7 +78,7 @@ LT=\$(cat "$W/latch")
 freecnt(){ awk -v t="\$1" -v f="\$2" 'BEGIN{ n=int((t-1700000000)*f)%4294967296; if(n<0) n+=4294967296; printf "0x%08x", n }'; }
 case "\$A" in
   0X00) V=0x50360001;;
-  0X04) V=\${FAKE_BID:-0x0000002B};;   # P11 P1 ch0 bring-up = 0x2B (⛔ 原 0x2A = p9 孤儿修复 / 0x29 = 0x29 拆刀 / 0x28 = P9 E12 / 0x0A = Stage C);
+  0X04) V=\${FAKE_BID:-0x0000002C};;   # P11 P2-甲 双口+双 IP = 0x2C (⛔ 原 0x2B = P11 P1 / 0x2A = p9 孤儿修复 / 0x29 = 0x29 拆刀 / 0x28 = P9 E12 / 0x0A = Stage C);
                                        # 必须与被验的 p6e_snap_check.sh 默认 EXPECT_BID **同代**
                                        # (否则 case ① 正对照因判据 1.2 身份不符**假红**); 可覆盖。
   0X08) V=0x00000000;;

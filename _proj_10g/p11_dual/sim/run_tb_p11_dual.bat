@@ -1,15 +1,16 @@
 @echo off
 REM run_tb_p11_dual.bat -- P11 P2-jia G6: real wrapper + DUAL dual-port chain gate
-REM   Config adds -d DUAL_SFP_A to the board sim config (P7B_10G + P7B_SIM_NOPCS +
-REM   PCIE_OBS + DEV_USP + APP_MODE + DP_156MHZ + P6B_SIM_CLKGEN + UDP_TX_OVL
-REM   + TCP_TX_OVL). Prints P11_DUAL TB PASS/FAIL (exit code follows).
+REM   Config adds -d DUAL_SFP_A **and -d SFP2_MODE_A** (F-9: the true build macro set;
+REM   P7B_10G + P7B_SIM_NOPCS + PCIE_OBS + DEV_USP + APP_MODE + DP_156MHZ +
+REM   P6B_SIM_CLKGEN + UDP_TX_OVL + TCP_TX_OVL + SFP2_MODE_A + DUAL_SFP_A).
+REM   Prints P11_DUAL TB PASS/FAIL (exit code follows).
 cd /d %~dp0
 call "%~dp0..\..\..\sim\p4gates\p4env.bat" || exit /b 1
 set "ROOT=%REPO_ROOT%"
 if not "%P4_WORKDIR%"=="" (cd /d "%P4_WORKDIR%") else (cd /d %~dp0)
 "%PY%" "%P4GATE_PY%" checkpaths --root "%ROOT%" --path "%CD%" --quiet || exit /b 1
 "%PY%" "%P4GATE_PY%" checkpaths --root "%ROOT%" --manifest "%GATES%\p11dual_src.f" --path "%CD%" --quiet || exit /b 1
-set "DEFS=-d P7B_10G -d P7B_SIM_NOPCS -d PCIE_OBS -d DEV_USP -d APP_MODE -d DP_156MHZ -d P6B_SIM_CLKGEN -d UDP_TX_OVL -d TCP_TX_OVL -d DUAL_SFP_A"
+set "DEFS=-d P7B_10G -d P7B_SIM_NOPCS -d PCIE_OBS -d DEV_USP -d APP_MODE -d DP_156MHZ -d P6B_SIM_CLKGEN -d UDP_TX_OVL -d TCP_TX_OVL -d SFP2_MODE_A -d DUAL_SFP_A"
 dir /b /s "%ROOT%\hls\slowstack_prj\solution1\syn\verilog\*.v" > hls_p11dual.f
 REM HLS netlist ROM images: without these xsim warns "cannot be opened" and the
 REM HLS MAC emits garbage preamble/src-MAC (P4 chain bats copy them too).
@@ -43,7 +44,31 @@ findstr /I /C:"Synth 8-11241" /C:"undeclared symbol" /C:"VRFC 10-3091] actual bi
 findstr /I /C:"ERROR" xvlog_p11dual.log >NUL && (echo XVLOG-ERROR-FAIL & findstr /I /C:"ERROR" xvlog_p11dual.log & exit /b 1)
 call %XV%\xelab.bat -debug typical -L unisims_ver -L xpm xil_defaultlib.tb_p11_dual xil_defaultlib.glbl -s tb_p11_dual -log xelab_p11dual.log > NUL 2>&1 || (type xelab_p11dual.log & exit /b 1)
 findstr /I /C:"Synth 8-11241" /C:"undeclared symbol" /C:"VRFC 10-3091] actual bit length 1 differs from formal bit length" /C:"VRFC 10-2989" /C:"implicitly declared" xelab_p11dual.log >NUL && (echo IMPLICIT-DECL-FAIL-XELAB & findstr /I /C:"Synth 8-11241" /C:"undeclared symbol" /C:"VRFC 10-3091] actual bit length 1 differs from formal bit length" /C:"VRFC 10-2989" /C:"implicitly declared" xelab_p11dual.log & exit /b 1)
+REM ---- F-7 (H-1): the new input `peer_my_ip` must never be reported unconnected ----
+REM   Targeted joint assertion: VRFC 10-3645 is noisy on clean designs, so it only counts
+REM   when the SAME LINE names peer_my_ip (project note: bare 10-3645 has many benign hits).
+findstr /C:"peer_my_ip" xelab_p11dual.log | findstr /C:"VRFC 10-3645" >NUL && (echo PEER_MY_IP-UNCONNECTED-FAIL & findstr /C:"peer_my_ip" xelab_p11dual.log & exit /b 1)
 call %XV%\xsim.bat tb_p11_dual -runall -log xsim_p11dual.log > NUL 2>&1 || (type xsim_p11dual.log & exit /b 1)
+REM ---- F-14: simulation-model errors are hard failures; the ONLY allowed exception is
+REM   the documented benign RAMB36E2-11 bypass collision in u_slow_rx.u_ff:
+REM   frame_fifo same-address write+read (WRITE_FIRST) => DOA X for one cycle, memory survives, masked by bypass_r,
+REM   never leaks (rtl/frame_fifo.v header "cycle semantics" bullet; the unisim model compares *_last
+REM   addresses but prints the current ones => the printed 0040/0000 are one cycle after the collision).
+findstr /I /C:"Critical" xsim_p11dual.log >NUL && (echo XSIM-CRITICAL-FAIL & findstr /I /C:"Critical" xsim_p11dual.log & exit /b 1)
+REM   NOTE: do NOT use find /c /v "": it HANGS on this machine (find.exe waits on stdin; 2026-10-18).
+REM     Use "negative filter + file size" to test non-empty instead.
+findstr /C:"Error:" xsim_p11dual.log > err_lines.tmp
+findstr /C:"Error:" xsim_p11dual.log | findstr /V /C:"Unisim RAMB36E2-11" > err_bad.tmp
+for %%A in (err_bad.tmp) do if %%~zA GTR 0 (
+  echo XSIM-ERROR-FAIL & type err_bad.tmp & exit /b 1
+)
+findstr /C:"Error: [Unisim RAMB36E2-11]" xsim_p11dual.log >NUL && (
+  findstr /C:"Instance:" xsim_p11dual.log | findstr /V /C:"Instance: tb_p11_dual.u_dut.u_slow_rx.u_ff" > err_inst.tmp
+  for %%A in (err_inst.tmp) do if %%~zA GTR 0 (
+    echo RAMB36E2-11-INSTANCE-UNEXPECTED & type err_inst.tmp & exit /b 1
+  )
+  echo XSIM_BENIGN_RAMB36E2_11 observed at u_slow_rx.u_ff -- documented bypass collision
+)
 findstr /C:"[FAIL]" /C:"P11_DUAL TB" xsim_p11dual.log
 findstr /C:"P11_DUAL TB PASS" xsim_p11dual.log >nul || exit /b 1
 exit /b 0

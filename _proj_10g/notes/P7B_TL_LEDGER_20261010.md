@@ -1864,3 +1864,18 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - **TL 抽核 5/5**：F-1（GEOM_TIERS 83 顶 + gate4 6 文件旧默认）· F-2（`busy` 无超时）· F-3（臂 C 只查混合值）· F-4（`ovf_pulse_w = wr_en && full_r`）· F-10（`gates/g5_run.log` 全红、mtime 08:14 早于最终跑）——全部与原文一致。
 - **修复轮范围（已派）**：F-1/F-3/F-5/F-6/F-7/F-8/F-9/F-10/F-11/F-12/F-13/F-14/F-15/F-16/F-17/F-18/F-19/F-20 + D-1..D-13；**F-2 看门狗与 F-4 判据口径 = 设计修订项**（实施 + 登记待用户裁）。
 - **下一棒**：修复轮 → TL 抽核 → 构建 0x2C（先 `run_hls.tcl -DBOARD_IP_DUAL=1` 并归档旧网表）→ 板级 P2。
+
+## §10-138 2026-10-18 12:0x：**P2 修复轮收口**（`p11_p2a_fix_20261018/FIX_REPORT.md` + `gates/`）—— F-1..F-20 + D-1..D-13 **全部处置**（19 修 + F-2 设计修订项实现待追认 + F-10 归档洁净化）；矩阵 24/24 FROZEN；TL 抽核 10/10
+- **F-1（高，读侧 0x2C）**：`j6_r6fix.sh`/`tcpreg_j6.sh` 的 `GEOM_TIERS` 顶端加 88/0x2C 档；6 个 gate4/夹具（accept/selftest/livefake/final_state/gen_inputs/negctrl）全部 88/0x2C；`apply_readside` 链补到 **20 文件**；`--assert` 0 fail。TL 抽核逐处命中。
+- **F-2（高，半帧看门狗）**：`rtl/rx_merge2.v` 加 `TO_CYCLES`（模块默认 0 = 关；wrapper 传 **4096**）+ `stat_abort`；G2 新增"p1 半帧不发 tlast ⇒ stat_abort 增、p0 帧仍出"臂。**= 设计修订项，需用户追认**（回退 = `.TO_CYCLES(0)` 一行；已登记 OPEN_ITEMS §0-68 + 设计附录 E §E-2）。
+- **F-3（高，maccnt 门无活性）**：G6 臂 C 改**斜坡精确追踪 + 冻结不递增 + 强制常 0 变异必红**；TL 抽核代码命中。
+- **F-4（中，ovf 语义）**：设计附录 E 订正 = **AXIS 反压拍数非丢字数**；P2-2 **删除 `sat16(ovf)` 字级修正项**，改用"取窗前静默 + `INFLIGHT_MAX_FRAMES` + W82/W4 MAC drop"；W86 只作健康指示；RTL 名保留 `*_ovf`。**判据口径需判据所有者确认**（OPEN_ITEMS §0-69）。
+- **F-5（中，apply_readside 可重放）**：0x2C 阶段改为 **43 处显式增量**；worktree@0x2B 重放 vs 现磁盘 **20/20 文件 SHA256 逐字节相同**（`gates/f5_byte_compare.txt`）；`--assert` 0 fail。TL 抽核证据。
+- **F-6/F-20（中）**：构建 tcl 加 `HLS_SRC_HASH`/`HLS_NET_HASH`（sha256 集合）+ synth 日志 `black box|8-3491` 0 命中硬门 + `P7B_VERDICT = OK`（`:420`）；bat 加 rc + 文本双判据（`P7B_VERDICT`/`MODULE_MISSING`）。TL 抽核行命中。
+- **F-7/F-8/F-9/F-11/F-12/F-13/F-14/F-15/F-16/F-17/F-18/F-19**：无 Z 断言（`tb_app_udp` 运行期 + xelab 定向）· 隐式网声明移出 ifdef · elab c8 = **真 9 宏组合（含 `SFP2_MODE_A`）** + c13（13 组合）· `slow_tx_adp` 提取逻辑整体进 `generate if (PER_PORT)` · G3 真交叉接线变异 · G6 UDP `peer_my_ip→o_src_ip/o_port` 臂 · G6 加 `Error/Critical/Unisim` 硬门（`RAMB36E2-11` 判为**既有良性 bypass 同址碰撞**，`frame_fifo.v:46-50`）· G5 四臂（新增 N-6 `lip_r` 精确变异）· W79 口径同步 · HLS 改前树 worktree@1c3cc7da 三臂 csim 与 `base_out.txt` **逐字节相同**（3 条失败确属既有）· maccnt 每 256 拍节流 · merge 复位改 `reset_n`。
+- **F-10**：`gates/g5_run.log` → `g5_run.SUPERSEDED_fail_0814.log`（旧 08:14 全红件），根因按错误签名反推登记（旧 bat 不可复原）；最终 per-arm 与矩阵为绿。
+- **门读数（修复后）**：G2 10:39:58 · G3 10:40:05 · G4 10:40:15 · G5 四臂 10:43:29 · G6 11:05:54 · G7 13 组合 11:18:30 · F-7 运行期 11:19:12；**矩阵 24/24 `EXIT=0`、0 failed、`VERDICT: FROZEN`（340 文件）、`DIGEST_ALL=ab050533…d53af`、`MATRIX DONE 11:50:30`**。
+- **TL 抽核 10/10**：F-1 两处档表 + 6 文件 · F-2 `TO_CYCLES/stat_abort` + wrapper 4096 · F-3 斜坡/冻结/变异 · F-8 声明在 ifdef 外 · F-11 `generate if (PER_PORT)` · F-6/F-20 tcl/bat 硬门 · F-5 20/20 逐字节 + assert 0 fail · F-17 改前树 csim 同签名 · 设计附录 E + P2-2 删 ovf 修正项 + W79 标签 · 矩阵 FROZEN。
+- **新登记工具坑**：`find /c /v ""` 本机挂起（等 stdin）· G7 共享 `xil_defaultlib` 致 xvlog 挂起（改每组合私有库）· bat 内 UTF-8/emoji 注释制造"幽灵命令"（本轮 4 个 bat 已全 ASCII）· N-6 变异器两个假阴性（双锚/臂 tag）· `RAMB36E2-11` 良性判定。
+- **未测/待追认照录**：构建/综合/时序/资源/黑盒/HLS 双 IP 网表全部未测 · 上板未测 · **F-2 需用户追认** · **F-4 判据口径需判据所有者确认** · W86 RTL 名仍 `*_ovf` · UDP 一致性臂用 force 学习口 · 矩阵指纹不含 `tb/tb_app_udp.v`。
+- **下一棒 = 构建 0x2C**（先 `run_hls.tcl -DBOARD_IP_DUAL=1` + 归档旧网表；再 `board/run_build_p7b_ku5p.bat` 一次收口；backstop W86/W87→W85→W83/W84→abort-to-0x2B）→ 板级 P2。

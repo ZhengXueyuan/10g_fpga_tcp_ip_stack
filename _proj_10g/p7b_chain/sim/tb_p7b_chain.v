@@ -1656,7 +1656,7 @@ module tb_p7b_chain;
         chk("P11 W87 ch0 MAC TX = 0 (non-DUAL tie-off)", v === 32'h00000000, "W87 @0x17C");
         u_dut.u_pcie_xdma.axil_read(32'h180, v); chk("P11 MIR_STATUS @0x180", v[22:19] === 4'd4, "MIR block auto-shifted by SNAP_NW=88");
         u_dut.u_pcie_xdma.axil_read(32'h190, v);
-        chk("P11 0x190 reads 0 no wrap",
+        chk("7b 0x190 reads 0 no wrap",
             (v === 32'h00000000) && (u_dut.u_pcie_xdma.last_rresp === 2'd2),
             "axi_regs decode; 88-word bound (P11 2026-10-18: 0x190 = 0x20+4*88+16; 原 83 字/0x17C)");
 

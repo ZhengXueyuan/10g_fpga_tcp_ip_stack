@@ -79,6 +79,7 @@ export NW EXPECT_BID        # ⚠️ 必须 export: 取数器 p7b_snap.sh 读的
 norm(){ printf "%s" "$1" | tr "A-F" "a-f"; }
 # 档表格式: "NW|BID|WEXTRA|说明"  (WEXTRA 空 = t0/t1 字表退回 5 53 54)
 GEOM_TIERS=(
+  "88|0x0000002C|61 62|P11 P2-甲 双口+双 IP (2026-10-18) 88 字 / BID 0x2C (双 SFP+ 数据面接入: W83/W84 = 每口 TX 帧数 / W85 = classify 总帧 / W86 = ch0 FIFO ovf / W87 = ch0 MAC TX; **几何变**: 83 -> 88 字, 未实现地址 0x17C -> 0x190)"
   "83|0x0000002B|61 62|P11 P1 ch0 bring-up (2026-10-18) 83 字 / BID 0x2B (ch0 J7 RX MAC + 76-bit tap + sink; W76 = ch0 PCS 状态 / W77 = ch0 PCS 事件 / W78 = LOS+模式 / W79..W82 = ch0 好帧/载荷字节/FCS 错/丢帧; **几何变**: 76 -> 83 字, 未实现地址 0x160 -> 0x17C)"
   "76|0x0000002A|61 62|p9 孤儿修复 (2026-10-17) 76 字 / BID 0x2A (孤儿会话/槽回收: app_ctrl 三因子失联判据 + 回收通知; slow_cfg_adp o_busy; W75 = app_ctrl.stat_orphan; **几何变**: 75 -> 76 字, 未实现地址 0x15C -> 0x160)"
   "75|0x00000029|61 62|0x29 拆刀 (2026-10-17) 75 字 / BID 0x29 (PERSIST_EN(1'b1) -> (1'b0) 单比特拆刀; LEGACY 两跑幽灵=有: LEG1 4 STALL+3 相位错 / LEG2 4 STALL+2 相位错; 几何/未实现地址 0x15C 不变)"

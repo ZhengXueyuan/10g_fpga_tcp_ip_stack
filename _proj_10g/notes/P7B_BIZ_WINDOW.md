@@ -74,7 +74,7 @@
 | **W76** | `0x150` | dp[36] | ch0 PCS 状态束 | dp_clk | ⭐ **P11 P1 (0x2B)**：ch0（J7）`stat_*_0` 3FF；位域同 W39（bit2=block_lock / bit4=hi_ber / [20:13]=rx_error[7:0] 逐 lane） |
 | **W77** | `0x154` | dp[37] | ch0 PCS 事件束 | dp_clk | ⭐ **P11 P1**：`[31:24]ferr [23:16]bad [15:8]erv` 8 位饱和；`[7:0]vcc` = **自由计数 mod 256**（不饱和；只作活动指示，S-1 不对它断言） |
 | **W78** | `0x158` | dp[38] | ch0 LOS + 模式 | dp_clk | ⭐ **P11 P1**：`[31]SFP2_MODE_B_SEL` / `[23:16]los1_evt` / `[15:8]los2_evt`（**只数上升沿**、饱和）/ `[1]los2_level` / `[0]los1_level`；复位后 3 拍 priming 不计数 |
-| **W79** | `0x15C` | ch0[0] | `ch0_rx_frames` | `rx_clk_out_0` | ⭐ **P11 P1**：ch0 好帧数（`tlast && tcrs && !terr`）；32 位自由回卷 |
+| **W79** | `0x15C` | ch0[0] | `ch0_rx_frames` | `rx_clk_out_0` | ⭐ **P11 P1 / N-14 口径**：**merge 输入 FIFO 接受的好帧数**（计数点 = tap 上 `tvalid && tready`，P2-甲 起 `tready = ~ch0_fifo_full`；好帧 = `tlast && tcrs && !terr`）；**FIFO 满丢帧由 W82（MAC `stat_drop`）计, 不进本字**；32 位自由回卷 |
 | **W80** | `0x160` | ch0[1] | `ch0_rx_bytes` | `rx_clk_out_0` | ⭐ **P11 P1**：好帧载荷字节 `Σpopc(tkeep)`（坏帧不计）；`W80 + 4×W79 = 线上字节`（好帧口径） |
 | **W81** | `0x164` | ch0[2] | `mac_rx_ch0.stat_crc_err` | `rx_clk_out_0` | ⭐ **P11 P1**：MAC 口径 FCS 错帧数（推入时按 `!res_ok` 计） |
 | **W82** | `0x168` | ch0[3] | `mac_rx_ch0.stat_drop` | `rx_clk_out_0` | ⭐ **P11 P1**：MAC 口径整帧丢（空间/碎片/零长）；⚠️ `W79+W81+W82` 不是“收到帧总数” |

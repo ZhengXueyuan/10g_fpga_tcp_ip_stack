@@ -65,13 +65,8 @@ module slow_tx_adp #(
     reg [7:0]  committed;
     reg        commit_pulse;
 
-    // ---- P11 P2-甲: 源 IP / VLAN 提取 (PER_PORT=1 时活) ----
-    reg  [5:0]  bpos;         // 帧内内容字节索引 (饱和 63)
-    reg  [39:0] src_sr;       // 内容字节移位窗 (最近 5 字节)
-    reg  [15:0] etype_r;      // 帧字节 12..13 (以太类型)
-    reg  [31:0] src_ip_lat;   // IPv4 源 IP / ARP SPA
-    reg         ip_seen;      // 本帧已识别源 IP
-    reg         vlan_seen;    // 本帧出现 0x8100/0x88A8 (L-10; sticky 到帧末)
+    // ---- P11 P2-甲: 源 IP / VLAN 提取状态在 `generate if (PER_PORT)` 内 (F-11) ----
+    //   单口构建: 提取寄存器/更新块**不例化** (设计 §2.7 的"单口零代价"承诺)。
     reg         side_push;    // 提交拍: 本帧出口位
     reg         play_port;    // 正在播放帧的端口位
 
@@ -176,6 +171,60 @@ module slow_tx_adp #(
     // 组合 rd: T_PRE/T_DATA/T_PURGE 每拍消费当前字节 (T_IDLE 留住帧首字节待判)
     assign i_rd = (tstate != T_IDLE) && !i_empty;
 
+    // ---- P11 P2-甲 F-11: 源 IP/ARP SPA/VLAN 提取 (PER_PORT=1 才例化) ----
+    //   ⛔ 旧写法把提取寄存器与更新块无条件放在 T_DATA 路径上; PER_PORT=0 时虽然有
+    //      `o_port=0`, 但寄存器仍真实存在 (是否被综合剪枝未证)。现在整块进 generate:
+    //      PER_PORT=0 ⇒ **零寄存器、零锥** (只有常数 0 的线)。
+    //   语义与旧块逐条相同: 帧首 (0x55..0xD5) 清状态; T_DATA 每消费一字节推进
+    //   bpos/src_sr; bpos==13 锁 etype (+ VLAN sticky); bpos==29/31 按 ethertype
+    //   锁 IPv4 SIP / ARP SPA。commit 拍只读组合结果 `ext_side_push`。
+    wire ext_side_push;
+    generate
+    if (PER_PORT) begin : g_ext
+        reg  [5:0]  bpos;         // 帧内内容字节索引 (饱和 63)
+        reg  [39:0] src_sr;       // 内容字节移位窗 (最近 5 字节)
+        reg  [15:0] etype_r;      // 帧字节 12..13 (以太类型)
+        reg  [31:0] src_ip_lat;   // IPv4 源 IP / ARP SPA
+        reg         ip_seen;      // 本帧已识别源 IP
+        reg         vlan_seen;    // 本帧出现 0x8100/0x88A8 (L-10; sticky 到帧末)
+
+        // 与主 FSM 的同拍条件 (只读, 不修改主 FSM 状态):
+        wire frame_start = (tstate == T_PRE) && !i_empty &&
+                           (in_b == 8'hD5) && (skip_cnt >= 4'd4);
+        wire byte_take   = (tstate == T_DATA) && !i_empty;
+
+        always @(posedge clk or negedge rst_n) begin
+            if (!rst_n) begin
+                bpos <= 6'd0; src_sr <= 40'd0; etype_r <= 16'd0;
+                src_ip_lat <= 32'd0; ip_seen <= 1'b0; vlan_seen <= 1'b0;
+            end else if (frame_start) begin
+                bpos <= 6'd0; src_sr <= 40'd0; etype_r <= 16'd0;
+                ip_seen <= 1'b0; vlan_seen <= 1'b0;
+            end else if (byte_take) begin
+                if (bpos != 6'd63) bpos <= bpos + 6'd1;
+                src_sr <= {src_sr[31:0], in_b};
+                if (bpos == 6'd13) begin
+                    etype_r <= {src_sr[7:0], in_b};             // 帧字节 12..13
+                    if (({src_sr[7:0], in_b} == 16'h8100) ||
+                        ({src_sr[7:0], in_b} == 16'h88A8))
+                        vlan_seen <= 1'b1;                      // L-10: 强制 o_port=0
+                end
+                if (bpos == 6'd29 && etype_r == 16'h0800) begin
+                    src_ip_lat <= {src_sr[23:0], in_b};         // IPv4 源 IP
+                    ip_seen    <= 1'b1;
+                end
+                if (bpos == 6'd31 && etype_r == 16'h0806) begin
+                    src_ip_lat <= {src_sr[23:0], in_b};         // ARP SPA
+                    ip_seen    <= 1'b1;
+                end
+            end
+        end
+        assign ext_side_push = ip_seen && !vlan_seen && (src_ip_lat == IP_B);
+    end else begin : g_noext
+        assign ext_side_push = 1'b0;
+    end
+    endgenerate
+
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             tstate <= T_IDLE; skip_cnt <= 4'd0;
@@ -184,8 +233,6 @@ module slow_tx_adp #(
             wf_wr <= 1'b0; wf_snap <= 1'b0; wf_rlbk <= 1'b0;
             wf_din <= 73'd0; commit_pulse <= 1'b0;
             stat_frames <= 0; stat_purge <= 0;
-            bpos <= 6'd0; src_sr <= 40'd0; etype_r <= 16'd0;
-            src_ip_lat <= 32'd0; ip_seen <= 1'b0; vlan_seen <= 1'b0;
             side_push <= 1'b0;
         end else begin
             wf_wr <= 1'b0; wf_snap <= 1'b0; wf_rlbk <= 1'b0;
@@ -203,33 +250,14 @@ module slow_tx_adp #(
                     end else if (in_b == 8'hD5 && skip_cnt >= 4'd4) begin
                         hc   <= 3'd0; pc <= 4'd0; pw <= 64'd0;
                         abort <= 1'b0;
-                        // P11: 每帧开始清提取状态 (0x55/D5 已跳过 ⇒ 下一拍 = 内容字节 0)
-                        bpos <= 6'd0; src_sr <= 40'd0; etype_r <= 16'd0;
-                        ip_seen <= 1'b0; vlan_seen <= 1'b0;
+                        // 每帧开始清提取状态的动作在 `g_ext` 的同拍块里 (F-11)
                         tstate <= T_DATA;
                     end else begin
                         tstate <= T_PURGE;     // 前导非法: 吞到 tlast 回卷
                     end
                 end
                 T_DATA: if (!i_empty) begin
-                    // ---- P11: 内容字节索引 + 源 IP/ARP SPA 提取 (零稳态代价:
-                    //      与既有字节流水同拍, 只在 bpos 命中时锁存) ----
-                    if (bpos != 6'd63) bpos <= bpos + 6'd1;
-                    src_sr <= {src_sr[31:0], in_b};
-                    if (bpos == 6'd13) begin
-                        etype_r <= {src_sr[7:0], in_b};             // 帧字节 12..13
-                        if (({src_sr[7:0], in_b} == 16'h8100) ||
-                            ({src_sr[7:0], in_b} == 16'h88A8))
-                            vlan_seen <= 1'b1;                      // L-10: 强制 o_port=0
-                    end
-                    if (bpos == 6'd29 && etype_r == 16'h0800) begin
-                        src_ip_lat <= {src_sr[23:0], in_b};         // IPv4 源 IP
-                        ip_seen    <= 1'b1;
-                    end
-                    if (bpos == 6'd31 && etype_r == 16'h0806) begin
-                        src_ip_lat <= {src_sr[23:0], in_b};         // ARP SPA
-                        ip_seen    <= 1'b1;
-                    end
+                    // 内容字节索引/源 IP 提取在 `g_ext` 的同拍块里 (F-11); 这里只做打包。
                     // 4 字节回持: 满 4 后每来 1 字节, 最老字节毕业进打包器。
                     // in_last 拍毕业字节直接合成末字 (tlast 必须落在帧的最后一个字)。
                     // ⚠️ 空间门用 `wf_full_next` (下一拍满), **不是** `wf_full` ——
@@ -275,7 +303,7 @@ module slow_tx_adp #(
                         // "commit 了但末字进不去" 这种静默态结构性不存在。
                         if (hc == 3'd4 && !abort && !wf_full_next) begin
                             commit_pulse <= 1'b1;
-                            side_push    <= ip_seen && !vlan_seen && (src_ip_lat == IP_B);
+                            side_push    <= ext_side_push;   // F-11: PER_PORT=0 时为常量 0
                             stat_frames  <= stat_frames + 1;
                         end else begin
                             wf_rlbk    <= 1'b1;      // 退化帧 (内容 <1 字) 或写坏

@@ -28,7 +28,7 @@ DBYTES=$((DGOOD*1518))      # Δbytes
 BGOOD=1375                  # 基线 (背景) 起点
 
 # ---- 造一块**规范**快照文本 ---------------------------------------------------
-# 几何: **83 字 (W0..W82)** —— P11 P1 ch0 bring-up (2026-10-18, BID=0x2B / 未实现 0x17C);
+# 几何: **88 字 (W0..W87)** —— P11 P2-甲 双口+双 IP (2026-10-18, BID=0x2C / 未实现 0x190);
 #       (原句: "76 字 (W0..W75) —— p9 孤儿修复 (2026-10-17, BID=0x2A / 未实现 0x160)" = 历史代, 逐字保留于下)
 #       (原句: "75 字 (W0..W74) —— 0x29 拆刀 (2026-10-17, BID=0x29 / 未实现 0x15C)" = 历史代, 逐字保留于下)
 #       (原句: "75 字 (W0..W74) —— P9 E12 观测计数器 (2026-10-15, BID=0x28 / 未实现 0x15C)" = 历史代, 逐字保留于下)
@@ -71,13 +71,14 @@ gen_snap(){  # gen_snap <文件> <第一块|第二块|洪泛A|洪泛B>
   { echo SNAP_BEGIN
     echo "TLATCH $tl"
     echo "GEN $gen"
-    echo "MAGIC 0x50360001"; echo "BID 0x0000002B"; echo "MARKER 0xdeadbeef"   # P11 P1 ch0 bring-up: 原 0x2A = p9 孤儿修复 / 0x29 = 0x29 拆刀 / 0x28 = P9 E12 / 0x27 = 换流门 R5 / 0x26 = RFC seq 修复 / 0x25 = F-3 修复
+    echo "MAGIC 0x50360001"; echo "BID 0x0000002C"; echo "MARKER 0xdeadbeef"   # P11 P2-甲 双口+双 IP: 原 0x2B = P11 P1 / 0x2A = p9 孤儿修复 / 0x29 = 0x29 拆刀 / 0x28 = P9 E12 / 0x27 = 换流门 R5 / 0x26 = RFC seq 修复 / 0x25 = F-3 修复
     local -a V=(1000 1518000 1518 0 0 $w5 998 998 0 0 0 0 0 0 0 0 0 0 0 0
                 $w20 0 0 0 $w24 1 0 0 0 0 1000 1514000 0 0 0 0
                 20000000 151800000 0 0x2000100C $vcc 0 0 0 0 0 0 0 0 0 $w50
                 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-                0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0)   # W51..W82 (M1: W70 = app_rx_mirror.drop_bytes; E12: W71..W74 = 换流门四观测计数器; p9 孤儿修复: W75 = app_ctrl.stat_orphan)
-    local i; for (( i = 0; i < 83; i++ )); do printf 'W%d 0x%X\n' "$i" "${V[$i]}"; done
+                0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+                0 0 0 0 0)   # W51..W87 (M1: W70 = app_rx_mirror.drop_bytes; E12: W71..W74 = 换流门四观测计数器; p9 孤儿修复: W75 = app_ctrl.stat_orphan; P11 P2-甲: W83..W87 = 双口 TX 帧/classify/ovf/MAC TX)
+    local i; for (( i = 0; i < 88; i++ )); do printf 'W%d 0x%X\n' "$i" "${V[$i]}"; done
     echo "UNIMPL 0xffffffff"
     echo SNAP_END
   } > "$f"

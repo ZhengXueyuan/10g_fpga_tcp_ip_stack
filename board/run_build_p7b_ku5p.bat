@@ -60,16 +60,25 @@ echo ARCHIVE_DONE %STAMP% files=%ARCN% dir=%ARCDIR%
 
 if not exist p7b_ku5p_stdout.txt del /q p7b_ku5p_stdout.txt
 call "%VV%" -mode batch -source "%~dp0build_p7b_ku5p.tcl" -nojournal -nolog > p7b_ku5p_stdout.txt 2>&1
-echo BUILD_EXIT=%ERRORLEVEL%
+set "VRC=%ERRORLEVEL%"
+echo BUILD_EXIT=%VRC%
 
-REM ---- hard gates (a hit is a FAILURE, not a note) --------------------------
-findstr /I /C:"12-4739" p7b_ku5p_stdout.txt >NUL && (echo DROPPED-CONSTRAINT-FAIL & findstr /I /C:"12-4739" p7b_ku5p_stdout.txt)
-findstr /I /C:"Synth 8-11241" /C:"undeclared symbol" /C:"VRFC 10-3091] actual bit length 1 differs from formal bit length" /C:"VRFC 10-2989" /C:"implicitly declared" p7b_ku5p_stdout.txt >NUL && (echo IMPLICIT-NET-FAIL & findstr /I /C:"Synth 8-11241" /C:"undeclared symbol" /C:"VRFC 10-3091] actual bit length 1 differs from formal bit length" /C:"VRFC 10-2989" /C:"implicitly declared" p7b_ku5p_stdout.txt)
-findstr /I /C:"NSTD-1" /C:"UCIO-1" /C:"AVAL-326" /C:"Opt 31-155" /C:"Opt 31-67" /C:"Route 35-7" p7b_ku5p_stdout.txt >NUL && (echo DRC-KEY-FAIL & findstr /I /C:"NSTD-1" /C:"UCIO-1" /C:"AVAL-326" /C:"Opt 31-155" /C:"Opt 31-67" /C:"Route 35-7" p7b_ku5p_stdout.txt)
+REM ---- F-20: text + rc DOUBLE criterion -------------------------------------
+REM   Vivado may exit 0 on ERROR (OPEN_ITEMS 0-51) => checking rc alone is a false green.
+REM   SUCCESS = (1) rc==0 AND (2) log has 'P7B_VERDICT = OK' AND (3) none of the four known failure texts.
+set "TRIP=0"
+findstr /I /C:"12-4739" p7b_ku5p_stdout.txt >NUL && (echo DROPPED-CONSTRAINT-FAIL & findstr /I /C:"12-4739" p7b_ku5p_stdout.txt & set "TRIP=1")
+findstr /I /C:"Synth 8-11241" /C:"undeclared symbol" /C:"VRFC 10-3091] actual bit length 1 differs from formal bit length" /C:"VRFC 10-2989" /C:"implicitly declared" p7b_ku5p_stdout.txt >NUL && (echo IMPLICIT-NET-FAIL & findstr /I /C:"Synth 8-11241" /C:"undeclared symbol" /C:"VRFC 10-3091] actual bit length 1 differs from formal bit length" /C:"VRFC 10-2989" /C:"implicitly declared" p7b_ku5p_stdout.txt & set "TRIP=1")
+findstr /I /C:"NSTD-1" /C:"UCIO-1" /C:"AVAL-326" /C:"Opt 31-155" /C:"Opt 31-67" /C:"Route 35-7" p7b_ku5p_stdout.txt >NUL && (echo DRC-KEY-FAIL & findstr /I /C:"NSTD-1" /C:"UCIO-1" /C:"AVAL-326" /C:"Opt 31-155" /C:"Opt 31-67" /C:"Route 35-7" p7b_ku5p_stdout.txt & set "TRIP=1")
+findstr /B /C:"P7B_VERDICT = SYNTH_FAIL" /C:"P7B_VERDICT = HLS_HASH_FAIL" /C:"P7B_VERDICT = BLACKBOX_LOG_HIT" /C:"P7B_VERDICT = BITSTREAM_MISSING" p7b_ku5p_stdout.txt >NUL && (echo P7B-VERDICT-FAIL & findstr /B /C:"P7B_VERDICT = SYNTH_FAIL" /C:"P7B_VERDICT = HLS_HASH_FAIL" /C:"P7B_VERDICT = BLACKBOX_LOG_HIT" /C:"P7B_VERDICT = BITSTREAM_MISSING" p7b_ku5p_stdout.txt & set "TRIP=1")
+findstr /C:"P7B_MODULE_MISSING_OR_BLACKBOX" p7b_ku5p_stdout.txt >NUL && (echo P7B-MODULE-MISSING-OR-BLACKBOX & set "TRIP=1")
+findstr /B /C:"P7B_VERDICT = OK" p7b_ku5p_stdout.txt >NUL || (echo P7B-VERDICT-OK-MISSING & set "TRIP=1")
+if not "%VRC%"=="0" (echo BUILD-RC-FAIL=%VRC% & set "TRIP=1")
 
 REM ---- readings (must be present in the log, not merely in a report file) ---
-findstr /B /C:"P7B_WNS" /C:"P7B_WHS" /C:"P7B_WPWS" /C:"P7B_BIT_EXISTS" /C:"P7B_VERDICT" /C:"P7B_CONVERGED_AT_ROUND" /C:"P7B_IS_LOCKED_POSTGEN" /C:"P7B DONE" p7b_ku5p_stdout.txt
+findstr /B /C:"HLS_SRC_HASH" /C:"HLS_NET_HASH" /C:"P7B_BLACKBOX_LOG_HITS" /C:"P7B_MODULE_RESOLVED" /C:"P7B_BLACKBOX_COUNT" /C:"P7B_WNS" /C:"P7B_WHS" /C:"P7B_WPWS" /C:"P7B_BIT_EXISTS" /C:"P7B_VERDICT" /C:"P7B_CONVERGED_AT_ROUND" /C:"P7B_IS_LOCKED_POSTGEN" /C:"P7B DONE" p7b_ku5p_stdout.txt
 
+if not "%TRIP%"=="0" (echo BUILD-GATE-FAIL & exit /b 1)
 if not exist "..\vivado_prj\p7b_ku5p_prj.runs\impl_1\wrapper_p4.bit" (echo NO-BITSTREAM & exit /b 1)
 echo BITSTREAM-OK
 exit /b 0

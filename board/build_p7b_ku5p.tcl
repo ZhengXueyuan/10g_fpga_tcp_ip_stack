@@ -30,9 +30,53 @@ set mac_dir    ${root_dir}/_proj_10g/p7b_mac/rtl
 proc sec {s} { puts "\nP7B >>>>>>>>>> $s" }
 catch {set_param general.maxThreads 8}
 
+# ---- F-6: HLS 源/网表 sha256 (构建必须归档; 拿不到 = 硬失败) ------------------
+#   ⚠️ Vivado 的 Tcl 没有内置 sha256 ⇒ 用 Windows 自带 PowerShell 的 Get-FileHash
+#      (逐文件一调; ~50 次进程启动 ≈ 十几秒, 可接受)。任一文件缺失/哈希失败返回 FAIL。
+proc p7b_ps_sha256 {f} {
+    if {![file exists $f]} { return "MISSING" }
+    set out ""
+    if {[catch {set out [exec powershell -NoProfile -Command "(Get-FileHash -LiteralPath '$f' -Algorithm SHA256).Hash"]} e]} {
+        puts "P7B_HASH_EXEC_ERR $e"
+        return "ERR"
+    }
+    return [string tolower [string trim $out]]
+}
+proc p7b_sha256_set {files} {
+    global script_dir
+    set acc ""
+    foreach f [lsort $files] {
+        set h [p7b_ps_sha256 $f]
+        puts "P7B_HASH_FILE $h $f"
+        if {($h eq "ERR") || ($h eq "MISSING")} { return "FAIL" }
+        append acc $h
+    }
+    set tmp [file join $script_dir _p7b_hash_acc.tmp]
+    set fh [open $tmp w]
+    puts -nonewline $fh $acc
+    close $fh
+    set comb [p7b_ps_sha256 $tmp]
+    file delete -force $tmp
+    return $comb
+}
+
 sec "P7B_ENV"
 puts "P7B_VIVADO = [version -short]"
 puts "P7B_PART_N = [llength [get_parts $part_name -quiet]]"
+# F-6: HLS 源 (hls/src/*.cpp|*.h + run_hls.tcl) 与网表 (verilog/*.v + *.dat) 双哈希
+set hls_src_files [concat [glob -nocomplain ${root_dir}/hls/src/*.cpp] \
+                         [glob -nocomplain ${root_dir}/hls/src/*.h] \
+                         [glob -nocomplain ${root_dir}/hls/run_hls.tcl]]
+set hls_net_files [concat [glob -nocomplain ${hls_dir}/*.v] \
+                         [glob -nocomplain ${hls_dir}/*.dat]]
+set HLS_SRC_HASH [p7b_sha256_set $hls_src_files]
+set HLS_NET_HASH [p7b_sha256_set $hls_net_files]
+puts "HLS_SRC_HASH = $HLS_SRC_HASH  (n=[llength $hls_src_files] files: hls/src/*.cpp|*.h + hls/run_hls.tcl)"
+puts "HLS_NET_HASH = $HLS_NET_HASH  (n=[llength $hls_net_files] files: hls/slowstack_prj/solution1/syn/verilog/*.v|*.dat)"
+if {($HLS_SRC_HASH eq "FAIL") || ($HLS_NET_HASH eq "FAIL")} {
+    puts "P7B_VERDICT = HLS_HASH_FAIL"
+    exit 1
+}
 
 sec "P7B_CREATE $project_name"
 create_project -force $project_name ${root_dir}/vivado_prj -part $part_name
@@ -302,6 +346,31 @@ if {![string match "100%*" [get_property PROGRESS [get_runs synth_1]]]} {
     exit 1
 }
 
+# ---- F-6/N-3: synth 日志黑盒硬门 (这条 grep 才是硬门; cell-count 对黑盒也返回) ----
+#   `black box` / `Synth 8-3491` (= 未解析模块被当黑盒) 必须 0 命中。
+#   历史锚: 2026-10-18 的 0x2B 构建 `synth_1/runme.log` 实测 0 命中 ⇒ 本门不会误伤。
+sec "P7B_BLACKBOX_LOG_GATE"
+set synth_log "${root_dir}/vivado_prj/${project_name}.runs/synth_1/runme.log"
+set bb_hits 0
+if {![file exists $synth_log]} {
+    puts "P7B_BLACKBOX_LOG_MISSING $synth_log"
+    set bb_hits 1
+} else {
+    set fh [open $synth_log r]
+    while {[gets $fh line] >= 0} {
+        if {[regexp -nocase {black box|8-3491} $line]} {
+            incr bb_hits
+            if {$bb_hits <= 20} { puts "P7B_BLACKBOX_LOG_HIT $line" }
+        }
+    }
+    close $fh
+}
+puts "P7B_BLACKBOX_LOG_HITS = $bb_hits"
+if {$bb_hits != 0} {
+    puts "P7B_VERDICT = BLACKBOX_LOG_HIT"
+    exit 1
+}
+
 # ---- P11 P2-甲 (N-3/N-4): 新件模块解析硬门 ----
 #   cell-count 对黑盒**也**返回实例 ⇒ 只用计数判"已解析"是假门。必须查
 #   IS_BLACKBOX / report_black_boxes; 本活把两者都打出来, 任一黑盒 = 硬失败。
@@ -343,5 +412,11 @@ puts "P7B_WHS = $whs"
 puts "P7B_WPWS = [get_property SLACK [get_timing_paths -delay_type min_max -max_paths 1 -sort_by group]]"
 puts "P7B_BIT = ${root_dir}/vivado_prj/${project_name}.runs/impl_1/${top_module}.bit"
 puts "P7B_BIT_EXISTS = [file exists ${root_dir}/vivado_prj/${project_name}.runs/impl_1/${top_module}.bit]"
+if {![file exists ${root_dir}/vivado_prj/${project_name}.runs/impl_1/${top_module}.bit]} {
+    puts "P7B_VERDICT = BITSTREAM_MISSING"
+    exit 1
+}
+# F-20: 成功判据的**文本侧** (bat 侧还要叠 rc + 本行; Vivado 报 ERROR 时 rc 可能仍是 0)
+puts "P7B_VERDICT = OK"
 puts "P7B DONE"
 exit

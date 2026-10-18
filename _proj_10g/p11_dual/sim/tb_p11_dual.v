@@ -278,11 +278,13 @@ module tb_p11_dual;
         end
     endtask
 
-    // ---------------- C: maccnt_sync + 2FF 变异 ----------------
+    // ---------------- C: maccnt_sync 活性/常值 + 2FF 变异 (F-3 改写) ----------------
     reg src_clk=0, dst_clk=0; always #5 src_clk=~src_clk; always #3.5 dst_clk=~dst_clk;
     reg [7:0] src_val=8'h00;
     wire [7:0] good_dst;
     reg [7:0] m1, m2;
+    reg        mut_arm = 1'b0;       // 1 = 把 DUT 的 dst_val 换成常 0 (变异臂)
+    wire [7:0] obs_val = mut_arm ? 8'h00 : good_dst;
     maccnt_sync #(.W(8)) u_mac (
         .src_clk(src_clk), .src_rst_n(reset_n), .src_val(src_val), .src_tick(1'b1),
         .dst_clk(dst_clk), .dst_rst_n(reset_n), .dst_val(good_dst)
@@ -299,13 +301,53 @@ module tb_p11_dual;
         end
     end
 
+    // F-3: 活性判据 (旧臂 C 只查"无混合值" ⇒ dst 恒 0/恒 0xFF 也能 PASS)
+    //   wait_obs : 期望值必须在 ≤maxc 个**目的域**时钟内被 dst 精确追到
+    //   hold_chk : 源域冻结后, dst 在 n 拍内**逐拍**保持同一值 (不重复增加)
+    task wait_obs; input [7:0] v; input integer maxc; output ok;
+        integer c;
+        begin
+            ok = 0;
+            for (c=0; c<maxc; c=c+1) begin
+                @(posedge dst_clk);
+                if (obs_val === v) begin ok = 1; c = maxc; end
+            end
+        end
+    endtask
+    task hold_chk; input [7:0] v; input integer ncyc; output ok;
+        integer c;
+        begin
+            ok = 1;
+            for (c=0; c<ncyc; c=c+1) begin
+                @(posedge dst_clk);
+                if (obs_val !== v) ok = 0;
+            end
+        end
+    endtask
+    integer ramp_fail=0, hold_fail=0, mut_fail=0, cok=0;
+    task ramp_track; input integer enable_mut; input [7:0] base; input integer nstep;
+        integer v;
+        begin
+            mut_arm = (enable_mut != 0);
+            for (v=0; v<nstep; v=v+1) begin
+                @(negedge src_clk); src_val = base + v[7:0];
+                wait_obs(base + v[7:0], 32, cok);
+                if (!cok) begin
+                    if (enable_mut) mut_fail = mut_fail + 1;
+                    else            ramp_fail = ramp_fail + 1;
+                    $display("  [info] ramp %s: expected %0d not seen", enable_mut ? "MUT" : "GOOD", base+v);
+                end
+            end
+        end
+    endtask
+
     integer i, g;
     initial begin
         $display("==== TB_P11_DUAL ====");
         reset_n = 1'b0; repeat(20) @(posedge u_dut.dp_clk); reset_n = 1'b1;
         repeat(50) @(posedge u_dut.dp_clk);
 
-        // ---------- C: maccnt_sync ----------
+        // ---------- C: maccnt_sync (F-3: 活性 + 常值 + 强制常 0 变异) ----------
         fork
             begin
                 for (i=0;i<400;i=i+1) begin
@@ -323,6 +365,17 @@ module tb_p11_dual;
         join
         chk(good_bad==0, "C: maccnt_sync dst never shows a mixed value");
         chk(mut_bad>0, "C: bare-2FF mutant DOES show mixed values (negative control has teeth)");
+        // C-live: 斜坡追踪 —— dst 必须在 ≤32 个目的域拍内追到**精确中间值**
+        @(negedge src_clk); src_val = 8'd0;
+        repeat(20) @(posedge dst_clk);
+        ramp_track(0, 8'd1, 4);          // 期望 1 -> 2 -> 3 -> 4
+        chk(ramp_fail==0, "C-live: dst tracks src to exact values 1..4 within <=32 dst cycles");
+        hold_chk(8'd4, 120, cok);
+        chk(cok, "C-live: src frozen at 4 => dst stays exactly 4 for >=120 dst cycles");
+        // C-mut: dst 被强制常 0 ⇒ 同一活性判据必须红 (证明判据有牙)
+        ramp_track(1, 8'd5, 4);          // 期望 5..8, 恒 0 下全都追不到
+        chk(mut_fail>0, "C-mut: dst forced to constant 0 => liveness criterion goes RED");
+        mut_arm = 1'b0;
 
         // ---------- A: HLS 真实握手 (IP_A, ch1) ----------
         build_syn();
@@ -369,6 +422,52 @@ module tb_p11_dual;
             chk(find_sig(1, 16'h1234, 8'hA3, 1) < 0, "B3: stx_* port=1 does NOT appear on ch1 TX");
             chk(u_dut.tx_p1_frames_r == (w84_b + 2), "B: W84 (ch0 TX frames) +2");
             chk(u_dut.tx_p0_frames_r == (w83_b + 1), "B: W83 (ch1 TX frames) +1");
+        end
+
+        // ---------- D: UDP peer_my_ip -> o_src_ip/o_port 一致性 (F-13) ----------
+        //   真 wrapper 里的 u_udp_tx_cfg: peer 表写入 IP_B 的学习帧 ⇒ 源 IP=IP_B 且
+        //   端口位=1; 再写 IP_A ⇒ 源 IP=IP_A 且端口位=0。拦的缺陷形态 = o_port 用了
+        //   peer_ip 而不是 peer_my_ip (两者在这里刻意不同)。
+        begin : armD
+            integer g;
+            // 1) peer_my_ip = IP_B (0xC0A86404)
+            @(negedge u_dut.dp_clk);
+            force u_dut.udp_meta_valid   = 1'b1;
+            force u_dut.udp_meta_src_mac = 48'h001122334455;
+            force u_dut.udp_meta_src_ip  = 32'hC0A86465;   // 对端 .101 (≠ 板 IP)
+            force u_dut.udp_meta_dst_ip  = 32'hC0A86404;   // IP_B
+            @(posedge u_dut.dp_clk);
+            @(negedge u_dut.dp_clk);
+            release u_dut.udp_meta_valid;
+            release u_dut.udp_meta_src_mac;
+            release u_dut.udp_meta_src_ip;
+            release u_dut.udp_meta_dst_ip;
+            g=0; while ((u_dut.utx_cfg_src_ip !== 32'hC0A86404) && g<20000)
+                begin @(posedge u_dut.dp_clk); g=g+1; end
+            chk(u_dut.utx_cfg_src_ip === 32'hC0A86404,
+                "D: udp_tx_cfg o_src_ip = IP_B after an IP_B learning frame");
+            chk(u_dut.utx_port === 1'b1, "D: udp_tx_cfg o_port = 1 for IP_B");
+            // 2) peer_my_ip = IP_A (0xC0A86402)
+            //    ⚠️ cfg 只在**空闲**拍刷新 (frame_busy=0) ⇒ 学到 peer 后 app 立刻开始连发,
+            //    cfg 会被帧窗冻住。先停 app (i_tx_ready=0) 让当前帧收尾, 再写第二笔。
+            force u_dut.u_app_udp.i_tx_ready = 1'b0;
+            @(negedge u_dut.dp_clk);
+            force u_dut.udp_meta_valid   = 1'b1;
+            force u_dut.udp_meta_src_mac = 48'h001122334466;
+            force u_dut.udp_meta_src_ip  = 32'hC0A86466;
+            force u_dut.udp_meta_dst_ip  = 32'hC0A86402;   // IP_A
+            @(posedge u_dut.dp_clk);
+            @(negedge u_dut.dp_clk);
+            release u_dut.udp_meta_valid;
+            release u_dut.udp_meta_src_mac;
+            release u_dut.udp_meta_src_ip;
+            release u_dut.udp_meta_dst_ip;
+            g=0; while ((u_dut.utx_cfg_src_ip !== 32'hC0A86402) && g<20000)
+                begin @(posedge u_dut.dp_clk); g=g+1; end
+            release u_dut.u_app_udp.i_tx_ready;
+            chk(u_dut.utx_cfg_src_ip === 32'hC0A86402,
+                "D: udp_tx_cfg o_src_ip = IP_A after an IP_A learning frame");
+            chk(u_dut.utx_port === 1'b0, "D: udp_tx_cfg o_port = 0 for IP_A");
         end
 
         if (errs==0) $display("P11_DUAL TB PASS");

@@ -37,7 +37,10 @@ echo %ROOT%\_proj_10g\p7b_mac\rtl\mac_tx_10g.v >> elab_files.f
 echo %ROOT%\sim\p6e_pcie\xdma_0_sim_stub.v >> elab_files.f
 call %XV%\xvlog.bat -work xil_defaultlib "%XV%\..\data\verilog\src\glbl.v" > xvlog_glbl.log 2>&1 || (type xvlog_glbl.log & exit /b 1)
 
-REM ---- P11 P2-甲: DEFS 逐组合**显式构造** (不在 COMMON 上做字符串减法) ----
+REM ---- P11 P2-A: DEFS built EXPLICITLY per combo (no string subtraction from COMMON) ----
+REM   F-9/FIX: every combo gets its OWN work dir + library. 2026-10-18 measured: reusing
+REM   one shared xil_defaultlib made xvlog HANG on c2 (0-byte log, idle CPU) after c1.
+set "ELIST=%CD%\elab_files.f"
 set "B=-d DEV_USP -d APP_MODE -d DP_156MHZ -d P6B_SIM_CLKGEN -d UDP_TX_OVL -d TCP_TX_OVL"
 set "P7=-d P7B_10G -d P7B_SIM_NOPCS"
 set "PCS=-d PCIE_OBS"
@@ -53,14 +56,16 @@ call :one c4 "%B%"                           ok
 call :one c5 "%B% %P7% %PCS% %S0%"           ok
 call :one c6 "%B% %P7% %PCS% %S0% %S1%"      fail
 call :one c7 "%B% %PCS% %S1%"                fail
-REM ---- P11 P2-甲 DUAL coverage: c8 positive control + c9..c12 four hard gates
-call :one c8  "%B% %P7% %PCS% %DU%"          ok
+REM ---- P11 P2-A DUAL coverage: c8 = REAL 9-macro build combo (F-9: includes SFP2_MODE_A),
+REM      c13 = DUAL without SFP2_MODE_A positive control, c9..c12 four hard gates
+call :one c8  "%B% %P7% %PCS% %S0% %DU%"     ok
+call :one c13 "%B% %P7% %PCS% %DU%"          ok
 call :one c9  "%B% %DU%"                     fail
 call :one c10 "%B% %P7% %PCS% %DU% %S1%"     fail
 call :one c11 "-d DEV_USP -d APP_MODE -d P6B_SIM_CLKGEN -d UDP_TX_OVL -d TCP_TX_OVL %P7% %PCS% %DU%" fail
 call :one c12 "-d DEV_USP -d DP_156MHZ -d P6B_SIM_CLKGEN -d UDP_TX_OVL -d TCP_TX_OVL %P7% %PCS% %DU%" fail
 
-REM ---- N-9: .STRICT 静态断言 (rx_merge2 实例必须硬接 0) ----
+REM ---- N-9: .STRICT static assertion (rx_merge2 instance must be hard-wired to 0) ----
 set "S0C=0"
 "%PY%" -c "s=open(r'%ROOT%/board/wrapper_p4.v',encoding='utf-8',errors='replace').read();print(s.count('.STRICT(1'+chr(39)+'b0)'))" > strict0.tmp
 set /p S0C=<strict0.tmp
@@ -71,7 +76,11 @@ echo [ELAB STRICT] count_0=%S0C% count_1=%S1C% (expect 1 / 0)
 if not "%S0C%"=="1" (echo [ELAB STRICT] FAIL count_STRICT0_NE_1 & set /a FAILS+=1)
 if not "%S1C%"=="0" (echo [ELAB STRICT] FAIL count_STRICT1_NE_0 & set /a FAILS+=1)
 
-echo ELAB_COMBO_FAILS=%FAILS% (12 combos: 4 macro + 3 SFP2 mode + 1 DUAL positive + 4 DUAL hard gates)
+REM ---- F-8: implicit-net structural self-check (declarations must be OUTSIDE ifdef DUAL_SFP_A) ----
+"%PY%" "%~dp0check_decl_outside_ifdef.py" "%ROOT%\board\wrapper_p4.v" rx_p0_tvalid tx_p0_frames tx_p1_frames
+if errorlevel 1 (echo [ELAB DECL] FAIL declaration-inside-ifdef-DUAL & set /a FAILS+=1)
+
+echo ELAB_COMBO_FAILS=%FAILS% (13 combos: 4 macro + 3 SFP2 mode + 2 DUAL positive (c8 = true build with SFP2_MODE_A, c13 = DUAL without) + 4 DUAL hard gates)
 if not "%FAILS%"=="0" exit /b 1
 echo ELAB_4COMBO_PASS
 exit /b 0
@@ -84,14 +93,25 @@ set "TAG=%~1"
 set "DEFS=%~2"
 set "EXPECT=%~3"
 if "%EXPECT%"=="" set "EXPECT=ok"
-if exist "xsim_%TAG%" rmdir /s /q "xsim_%TAG%"
+set "GD=%CD%"
+if exist "d_%TAG%" rmdir /s /q "d_%TAG%"
+mkdir "d_%TAG%"
 del /q "xvlog_%TAG%.log" "xelab_%TAG%.log" 2>nul
-call %XV%\xvlog.bat -work xil_defaultlib %DEFS% -i %ROOT%\rtl -i %ROOT%\board -f elab_files.f > "xvlog_%TAG%.log" 2>&1
-if errorlevel 1 goto :one_xvlog_fail
+cd /d "%GD%\d_%TAG%"
+REM   glbl must live in the SAME private library as the design (top-level compile goes to the
+REM   shared dir; 2026-10-18: per-combo dirs => "Cannot find xil_defaultlib.glbl" for all).
+call %XV%\xvlog.bat -work xil_defaultlib "%XV%\..\data\verilog\src\glbl.v" > glbl_%TAG%.log 2>&1
+call %XV%\xvlog.bat -work xil_defaultlib %DEFS% -i %ROOT%\rtl -i %ROOT%\board -f "%ELIST%" > "..\xvlog_%TAG%.log" 2>&1
+set "XRC=%ERRORLEVEL%"
+cd /d "%GD%"
+if not "%XRC%"=="0" goto :one_xvlog_fail
 findstr /I /C:"Synth 8-11241" /C:"undeclared symbol" /C:"VRFC 10-3091] actual bit length 1 differs from formal bit length" /C:"VRFC 10-2989" /C:"implicitly declared" "xvlog_%TAG%.log" >NUL && goto :one_imp_xvlog
 findstr /I /C:"ERROR" "xvlog_%TAG%.log" >NUL && goto :one_err_xvlog
-call %XV%\xelab.bat -debug typical -L unisims_ver -L xpm xil_defaultlib.wrapper_p4 xil_defaultlib.glbl -s wrap_%TAG% -log "xelab_%TAG%.log" > NUL 2>&1
-if errorlevel 1 goto :one_xelab_fail
+cd /d "%GD%\d_%TAG%"
+call %XV%\xelab.bat -debug typical -L unisims_ver -L xpm xil_defaultlib.wrapper_p4 xil_defaultlib.glbl -s wrap_%TAG% -log "..\xelab_%TAG%.log" > NUL 2>&1
+set "ERC=%ERRORLEVEL%"
+cd /d "%GD%"
+if not "%ERC%"=="0" goto :one_xelab_fail
 findstr /I /C:"Synth 8-11241" /C:"undeclared symbol" /C:"VRFC 10-3091] actual bit length 1 differs from formal bit length" /C:"VRFC 10-2989" /C:"implicitly declared" "xelab_%TAG%.log" >NUL && goto :one_imp_xelab
 REM ---- combo elaborated cleanly --------------------------------------------
 if /i "%EXPECT%"=="fail" (
