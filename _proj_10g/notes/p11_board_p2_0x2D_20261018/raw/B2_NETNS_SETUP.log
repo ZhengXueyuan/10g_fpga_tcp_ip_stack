@@ -1,0 +1,18 @@
+=== NETNS_SETUP_BEGIN 1792330134.524019277 Sun Oct 18 09:28:54 PM CST 2026
+MOVE_enp1s0f1np1_RC=0
+MOVE_enp1s0f0np0_RC=0
+--- nsa ---
+lo               DOWN           
+enp1s0f1np1      UP             192.168.100.1/32 fe80::20f:53ff:fe2c:6801/64 
+192.168.100.2 dev enp1s0f1np1 scope link 
+192.168.100.4 dev enp1s0f1np1 lladdr 00:0a:35:01:fe:c0 PERMANENT 
+NSA_CARRIER=1
+NSA_SPEED=10000
+--- nsb ---
+lo               DOWN           
+enp1s0f0np0      UP             192.168.100.101/32 fe80::20f:53ff:fe2c:6800/64 
+192.168.100.4 dev enp1s0f0np0 scope link 
+192.168.100.2 dev enp1s0f0np0 lladdr 00:0a:35:01:fe:c0 PERMANENT 
+NSB_CARRIER=1
+NSB_SPEED=10000
+=== NETNS_SETUP_END 1792330138.651094877

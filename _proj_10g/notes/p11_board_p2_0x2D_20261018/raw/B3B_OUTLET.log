@@ -1,0 +1,55 @@
+=== B3B_BEGIN tag=B3B 1792330241.231836222 Sun Oct 18 09:30:41 PM CST 2026
+[routes]
+192.168.100.2 dev enp1s0f1np1 scope link 
+192.168.100.4 dev enp1s0f1np1 scope link 
+192.168.100.2 dev enp1s0f0np0 scope link 
+192.168.100.4 dev enp1s0f0np0 scope link 
+--- 2A: p1 SYN -> IP_B (.4) ---
+P1_TO_IPB: CONNECT_FAIL TimeoutError('timed out')
+[p1 pcap]
+21:30:42.269882 00:0f:53:2c:68:01 > 00:0a:35:01:fe:c0, ethertype IPv4 (0x0800), length 74: 192.168.100.1.58716 > 192.168.100.4.8080: Flags [S], seq 3904837601, win 64240, options [mss 1460,sackOK,TS val 309325270 ecr 0,nop,wscale 10], length 0
+21:30:43.308906 00:0f:53:2c:68:01 > 00:0a:35:01:fe:c0, ethertype IPv4 (0x0800), length 74: 192.168.100.1.58716 > 192.168.100.4.8080: Flags [S], seq 3904837601, win 64240, options [mss 1460,sackOK,TS val 309326309 ecr 0,nop,wscale 10], length 0
+21:30:44.332899 00:0f:53:2c:68:01 > 00:0a:35:01:fe:c0, ethertype IPv4 (0x0800), length 74: 192.168.100.1.58716 > 192.168.100.4.8080: Flags [S], seq 3904837601, win 64240, options [mss 1460,sackOK,TS val 309327333 ecr 0,nop,wscale 10], length 0
+21:30:45.356930 00:0f:53:2c:68:01 > 00:0a:35:01:fe:c0, ethertype IPv4 (0x0800), length 74: 192.168.100.1.58716 > 192.168.100.4.8080: Flags [S], seq 3904837601, win 64240, options [mss 1460,sackOK,TS val 309328357 ecr 0,nop,wscale 10], length 0
+21:30:46.380934 00:0f:53:2c:68:01 > 00:0a:35:01:fe:c0, ethertype IPv4 (0x0800), length 74: 192.168.100.1.58716 > 192.168.100.4.8080: Flags [S], seq 3904837601, win 64240, options [mss 1460,sackOK,TS val 309329381 ecr 0,nop,wscale 10], length 0
+21:30:47.404898 00:0f:53:2c:68:01 > 00:0a:35:01:fe:c0, ethertype IPv4 (0x0800), length 74: 192.168.100.1.58716 > 192.168.100.4.8080: Flags [S], seq 3904837601, win 64240, options [mss 1460,sackOK,TS val 309330405 ecr 0,nop,wscale 10], length 0
+[p0 pcap]
+21:30:42.269959 00:0a:35:01:fe:c0 > 00:0f:53:2c:68:01, ethertype IPv4 (0x0800), length 60: 192.168.100.4.8080 > 192.168.100.1.58716: Flags [S.], seq 305419896, ack 3904837602, win 49152, options [mss 1460], length 0
+21:30:43.308976 00:0a:35:01:fe:c0 > 00:0f:53:2c:68:01, ethertype IPv4 (0x0800), length 60: 192.168.100.4.8080 > 192.168.100.1.58716: Flags [S.], seq 305419896, ack 3904837602, win 49152, options [mss 1460], length 0
+21:30:44.332986 00:0a:35:01:fe:c0 > 00:0f:53:2c:68:01, ethertype IPv4 (0x0800), length 60: 192.168.100.4.8080 > 192.168.100.1.58716: Flags [S.], seq 305419896, ack 3904837602, win 49152, options [mss 1460], length 0
+21:30:45.356992 00:0a:35:01:fe:c0 > 00:0f:53:2c:68:01, ethertype IPv4 (0x0800), length 60: 192.168.100.4.8080 > 192.168.100.1.58716: Flags [S.], seq 305419896, ack 3904837602, win 49152, options [mss 1460], length 0
+21:30:46.381030 00:0a:35:01:fe:c0 > 00:0f:53:2c:68:01, ethertype IPv4 (0x0800), length 60: 192.168.100.4.8080 > 192.168.100.1.58716: Flags [S.], seq 305419896, ack 3904837602, win 49152, options [mss 1460], length 0
+21:30:47.404976 00:0a:35:01:fe:c0 > 00:0f:53:2c:68:01, ethertype IPv4 (0x0800), length 60: 192.168.100.4.8080 > 192.168.100.1.58716: Flags [S.], seq 305419896, ack 3904837602, win 49152, options [mss 1460], length 0
+--- 2B: p0 SYN -> IP_A (.2) ---
+P0_TO_IPA: CONNECT_FAIL TimeoutError('timed out')
+[p0 pcap]
+21:30:49.837739 00:0f:53:2c:68:00 > 00:0a:35:01:fe:c0, ethertype IPv4 (0x0800), length 74: 192.168.100.101.53504 > 192.168.100.2.8080: Flags [S], seq 998129833, win 64240, options [mss 1460,sackOK,TS val 86576089 ecr 0,nop,wscale 10], length 0
+21:30:50.860930 00:0f:53:2c:68:00 > 00:0a:35:01:fe:c0, ethertype IPv4 (0x0800), length 74: 192.168.100.101.53504 > 192.168.100.2.8080: Flags [S], seq 998129833, win 64240, options [mss 1460,sackOK,TS val 86577113 ecr 0,nop,wscale 10], length 0
+21:30:51.884874 00:0f:53:2c:68:00 > 00:0a:35:01:fe:c0, ethertype IPv4 (0x0800), length 74: 192.168.100.101.53504 > 192.168.100.2.8080: Flags [S], seq 998129833, win 64240, options [mss 1460,sackOK,TS val 86578137 ecr 0,nop,wscale 10], length 0
+21:30:52.908938 00:0f:53:2c:68:00 > 00:0a:35:01:fe:c0, ethertype IPv4 (0x0800), length 74: 192.168.100.101.53504 > 192.168.100.2.8080: Flags [S], seq 998129833, win 64240, options [mss 1460,sackOK,TS val 86579161 ecr 0,nop,wscale 10], length 0
+21:30:53.932930 00:0f:53:2c:68:00 > 00:0a:35:01:fe:c0, ethertype IPv4 (0x0800), length 74: 192.168.100.101.53504 > 192.168.100.2.8080: Flags [S], seq 998129833, win 64240, options [mss 1460,sackOK,TS val 86580185 ecr 0,nop,wscale 10], length 0
+21:30:54.956937 00:0f:53:2c:68:00 > 00:0a:35:01:fe:c0, ethertype IPv4 (0x0800), length 74: 192.168.100.101.53504 > 192.168.100.2.8080: Flags [S], seq 998129833, win 64240, options [mss 1460,sackOK,TS val 86581209 ecr 0,nop,wscale 10], length 0
+[p1 pcap]
+21:30:49.837796 00:0a:35:01:fe:c0 > 00:0f:53:2c:68:00, ethertype IPv4 (0x0800), length 60: 192.168.100.2.8080 > 192.168.100.101.53504: Flags [S.], seq 305419896, ack 998129834, win 49152, options [mss 1460], length 0
+21:30:50.861021 00:0a:35:01:fe:c0 > 00:0f:53:2c:68:00, ethertype IPv4 (0x0800), length 60: 192.168.100.2.8080 > 192.168.100.101.53504: Flags [S.], seq 305419896, ack 998129834, win 49152, options [mss 1460], length 0
+21:30:51.884934 00:0a:35:01:fe:c0 > 00:0f:53:2c:68:00, ethertype IPv4 (0x0800), length 60: 192.168.100.2.8080 > 192.168.100.101.53504: Flags [S.], seq 305419896, ack 998129834, win 49152, options [mss 1460], length 0
+21:30:52.908996 00:0a:35:01:fe:c0 > 00:0f:53:2c:68:00, ethertype IPv4 (0x0800), length 60: 192.168.100.2.8080 > 192.168.100.101.53504: Flags [S.], seq 305419896, ack 998129834, win 49152, options [mss 1460], length 0
+21:30:53.932991 00:0a:35:01:fe:c0 > 00:0f:53:2c:68:00, ethertype IPv4 (0x0800), length 60: 192.168.100.2.8080 > 192.168.100.101.53504: Flags [S.], seq 305419896, ack 998129834, win 49152, options [mss 1460], length 0
+21:30:54.956986 00:0a:35:01:fe:c0 > 00:0f:53:2c:68:00, ethertype IPv4 (0x0800), length 60: 192.168.100.2.8080 > 192.168.100.101.53504: Flags [S.], seq 305419896, ack 998129834, win 49152, options [mss 1460], length 0
+--- board snapshot ---
+SNAP_BEGIN B3B_POST gen=13 status=0x000d0056
+SNAP_STATUS gen=13 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x002be56a
+W1   0x24   rx_stat_bytes          0x0af95c14
+W4   0x30   rx_stat_drop           0x00000000
+W20  0x70   mac_tx_frames          0x002be579
+W43  0xCC   mtx_stat_tx_words      0x85d71e7e
+W51  0xEC   app_tx_bytes           0x0644d516
+W52  0xF0   app_tx_frames          0x002dfca7
+W54  0xF8   app_mismatch           0x00000007
+W55  0xFC   tx_stat_retx           0x00000007
+W83  0x16C  tx_p0_frames           0x002be579
+W84  0x170  tx_p1_frames           0x0002175f
+W62  0x118  app_ctrl_rx_occ_bytes  0x00000000
+SNAP_END B3B_POST nff=0 stale_words=0
+=== B3B_END tag=B3B 1792330256.427313384

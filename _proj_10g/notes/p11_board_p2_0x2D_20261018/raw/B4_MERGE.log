@@ -1,0 +1,165 @@
+=== B4_BEGIN tag=B4 1792330315.249344593 Sun Oct 18 09:31:55 PM CST 2026
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x0000002d   (want 0x0000002D = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1792330315.268333054
+ID_RC=0
+=== PART A: simultaneous two-port TCP downlink (board TX both ports) ===
+SNAP_BEGIN B4_A_MID1 gen=14 status=0x000e0056
+SNAP_STATUS gen=14 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x002bebe3
+W1   0x24   rx_stat_bytes          0x0b1f5b26
+W4   0x30   rx_stat_drop           0x00000000
+W20  0x70   mac_tx_frames          0x00e55100
+W21  0x74   tx_stat_abort          0x00000000
+W43  0xCC   mtx_stat_tx_words      0xbcfc45b8
+W51  0xEC   app_tx_bytes           0x0644d516
+W52  0xF0   app_tx_frames          0x002dfca7
+W54  0xF8   app_mismatch           0x00000007
+W55  0xFC   tx_stat_retx           0x00000007
+W79  0x15C  ch0_rx_frames          0x0002177c
+W80  0x160  ch0_rx_bytes           0x007d92a6
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+W83  0x16C  tx_p0_frames           0x00e55102
+W84  0x170  tx_p1_frames           0x0002175f
+W62  0x118  app_ctrl_rx_occ_bytes  0x00000000
+SNAP_END B4_A_MID1 nff=0 stale_words=0
+SNAP_BEGIN B4_A_MID2 gen=15 status=0x000f0056
+SNAP_STATUS gen=15 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x002bebe8
+W1   0x24   rx_stat_bytes          0x0b1f66c0
+W4   0x30   rx_stat_drop           0x00000000
+W20  0x70   mac_tx_frames          0x0124112d
+W21  0x74   tx_stat_abort          0x00000000
+W43  0xCC   mtx_stat_tx_words      0xec4b275e
+W51  0xEC   app_tx_bytes           0x0644d516
+W52  0xF0   app_tx_frames          0x002dfca7
+W54  0xF8   app_mismatch           0x00000007
+W55  0xFC   tx_stat_retx           0x00000007
+W79  0x15C  ch0_rx_frames          0x00021780
+W80  0x160  ch0_rx_bytes           0x007d93c0
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+W83  0x16C  tx_p0_frames           0x0124112e
+W84  0x170  tx_p1_frames           0x00021760
+W62  0x118  app_ctrl_rx_occ_bytes  0x00000000
+SNAP_END B4_A_MID2 nff=0 stale_words=0
+SNAP_BEGIN B4_A_POST gen=16 status=0x00100056
+SNAP_STATUS gen=16 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x002bebf1
+W1   0x24   rx_stat_bytes          0x0b1f7990
+W4   0x30   rx_stat_drop           0x00000000
+W20  0x70   mac_tx_frames          0x01880be3
+W21  0x74   tx_stat_abort          0x00000000
+W43  0xCC   mtx_stat_tx_words      0x37ab2a1c
+W51  0xEC   app_tx_bytes           0x0644d516
+W52  0xF0   app_tx_frames          0x002dfca7
+W54  0xF8   app_mismatch           0x00000007
+W55  0xFC   tx_stat_retx           0x00000007
+W79  0x15C  ch0_rx_frames          0x00021780
+W80  0x160  ch0_rx_bytes           0x007d93c0
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+W83  0x16C  tx_p0_frames           0x01880be5
+W84  0x170  tx_p1_frames           0x00021760
+W62  0x118  app_ctrl_rx_occ_bytes  0x00000000
+SNAP_END B4_A_POST nff=0 stale_words=0
+[A p1 sink]
+SINK_CONN 0 POLL_TIMEOUT 3 x 5000 ms 无数据 (got=0) => 中止本连接
+SINK_CONN 0 STALL bytes=0 first_mismatch=-1 mism_bytes=0 conn_ms=0.971 dur_ms=15015.362 Mbps=0.000 reads=0 poll_tmo=3 CPU_FREQ_KHZ=1800000 THREADED=on q_full_push=0 q_full_pop=0 q_free_push=16 q_free_pop=0 slot_wait_spins=0 checked_bytes=0
+SINK_SUM conns=1 fail_conns=0 bytes=0 clean_conns=0 bad_conns=1 mismatch_bytes=0 stall_conns=1 err_conns=0 poll_tmo=3 wall_s=15.016 net_s=15.015 agg_Mbps=0.000 THREADED=on full_push=0 full_pop=0 free_push=16 free_pop=0 slot_wait_spins=0 checked_bytes=0 threads=2 check=lane8
+[A p0 sink]
+SINK_CONN 0 FAIL_CONNECT why=110 (Connection timed out) (t=5.005065)
+SINK_SUM conns=0 fail_conns=1 bytes=0 clean_conns=0 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=5.005 net_s=0.000 agg_Mbps=0.000 THREADED=on full_push=0 full_pop=0 free_push=0 free_pop=0 slot_wait_spins=0 checked_bytes=0 threads=0 check=lane8
+=== PART B: simultaneous two-port UDP flood (RX merge) ===
+SNAP_BEGIN B4_B_PRE gen=17 status=0x00110056
+SNAP_STATUS gen=17 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x002bebf4
+W1   0x24   rx_stat_bytes          0x0b1f7c62
+W4   0x30   rx_stat_drop           0x00000000
+W20  0x70   mac_tx_frames          0x0195bedd
+W21  0x74   tx_stat_abort          0x00000000
+W43  0xCC   mtx_stat_tx_words      0x41ff1746
+W51  0xEC   app_tx_bytes           0x0644d516
+W52  0xF0   app_tx_frames          0x002dfca7
+W54  0xF8   app_mismatch           0x00000007
+W55  0xFC   tx_stat_retx           0x00000007
+W79  0x15C  ch0_rx_frames          0x00021780
+W80  0x160  ch0_rx_bytes           0x007d93c0
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+W83  0x16C  tx_p0_frames           0x0195bede
+W84  0x170  tx_p1_frames           0x00021760
+W62  0x118  app_ctrl_rx_occ_bytes  0x00000000
+SNAP_END B4_B_PRE nff=0 stale_words=0
+SNAP_BEGIN B4_B_MID1 gen=18 status=0x00120056
+SNAP_STATUS gen=18 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x002fa7b6
+W1   0x24   rx_stat_bytes          0x2142cd86
+W4   0x30   rx_stat_drop           0x00000000
+W20  0x70   mac_tx_frames          0x01a31cc5
+W21  0x74   tx_stat_abort          0x00000000
+W43  0xCC   mtx_stat_tx_words      0x5572248c
+W51  0xEC   app_tx_bytes           0x0644d516
+W52  0xF0   app_tx_frames          0x002dfca7
+W54  0xF8   app_mismatch           0x00000007
+W55  0xFC   tx_stat_retx           0x00000007
+W79  0x15C  ch0_rx_frames          0x0005d5a8
+W80  0x160  ch0_rx_bytes           0x16a00f70
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+W83  0x16C  tx_p0_frames           0x01a31cc5
+W84  0x170  tx_p1_frames           0x000e8341
+W62  0x118  app_ctrl_rx_occ_bytes  0x00000000
+SNAP_END B4_B_MID1 nff=0 stale_words=0
+SNAP_BEGIN B4_B_MID2 gen=19 status=0x00130056
+SNAP_STATUS gen=19 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x0039383b
+W1   0x24   rx_stat_bytes          0x59f9b020
+W4   0x30   rx_stat_drop           0x00000000
+W20  0x70   mac_tx_frames          0x01c2d50e
+W21  0x74   tx_stat_abort          0x00000000
+W43  0xCC   mtx_stat_tx_words      0x853cbf4b
+W51  0xEC   app_tx_bytes           0x0644d516
+W52  0xF0   app_tx_frames          0x002dfca7
+W54  0xF8   app_mismatch           0x00000007
+W55  0xFC   tx_stat_retx           0x00000007
+W79  0x15C  ch0_rx_frames          0x000f640d
+W80  0x160  ch0_rx_bytes           0x4f241eb6
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+W83  0x16C  tx_p0_frames           0x01c2d50e
+W84  0x170  tx_p1_frames           0x002e28c5
+W62  0x118  app_ctrl_rx_occ_bytes  0x00000000
+SNAP_END B4_B_MID2 nff=0 stale_words=0
+UDP_A_RC=0
+UDP_B_RC=0
+SNAP_BEGIN B4_B_POST gen=20 status=0x00140056
+SNAP_STATUS gen=20 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x003e863e
+W1   0x24   rx_stat_bytes          0x796e3b16
+W4   0x30   rx_stat_drop           0x00000000
+W20  0x70   mac_tx_frames          0x01d47cab
+W21  0x74   tx_stat_abort          0x00000000
+W43  0xCC   mtx_stat_tx_words      0x9ff120c9
+W51  0xEC   app_tx_bytes           0x0644d516
+W52  0xF0   app_tx_frames          0x002dfca7
+W54  0xF8   app_mismatch           0x00000007
+W55  0xFC   tx_stat_retx           0x00000007
+W79  0x15C  ch0_rx_frames          0x0014b1b0
+W80  0x160  ch0_rx_bytes           0x6e8139e0
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+W83  0x16C  tx_p0_frames           0x01d47cab
+W84  0x170  tx_p1_frames           0x003fe97d
+W62  0x118  app_ctrl_rx_occ_bytes  0x00000000
+SNAP_END B4_B_POST nff=0 stale_words=0
+[B p1 udp]
+PIN_RULE=avoid-nic PIN_DEGRADED=none PIN_CPU=7 PIN_CORES_ONLINE=0-7 PIN_NIC_IFACE=enp1s0f1np1 PIN_NIC_CPUS=0,1,2,3,4,5 PIN_NIC_EXCLUDED=none PIN_CORE_LOAD=29607570 PIN_ALLOWED_MASK=80 PIN_GETCPU_START=7 PIN_FREQ_START_KHZ=3700583 PIN_GOV=schedutil PIN_NIC_IRQLINES=6 PIN_NIC_IFACE_SRC=auto PIN_TUPLE_ORDER=own_sib_t PIN_PAIR_RULE=n/a PIN_PAIR_DEGRADED=n/a PIN_CPU_IO=n/a PIN_CPU_WORK=n/a PIN_PC_IO=n/a PIN_PC_WORK=n/a PIN_PAIR_EXCL=n/a PIN_PAIR_REQ=n/a
+UDP_SUM pkts=1219136 pay_bytes=1794568192 dur_s=10.000 pps=121912 pay_Mbps=1435.641 wire_Mbps=1476.604 off_start=0 off_end=1794568192 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+[B p0 udp]
+PIN_RULE=avoid-nic PIN_DEGRADED=none PIN_CPU=7 PIN_CORES_ONLINE=0-7 PIN_NIC_IFACE=enp1s0f0np0 PIN_NIC_CPUS=0,1,2,3,4,5 PIN_NIC_EXCLUDED=none PIN_CORE_LOAD=29607570 PIN_ALLOWED_MASK=80 PIN_GETCPU_START=7 PIN_FREQ_START_KHZ=3853944 PIN_GOV=schedutil PIN_NIC_IRQLINES=6 PIN_NIC_IFACE_SRC=auto PIN_TUPLE_ORDER=own_sib_t PIN_PAIR_RULE=n/a PIN_PAIR_DEGRADED=n/a PIN_CPU_IO=n/a PIN_CPU_WORK=n/a PIN_PC_IO=n/a PIN_PC_WORK=n/a PIN_PAIR_EXCL=n/a PIN_PAIR_REQ=n/a
+UDP_SUM pkts=1219104 pay_bytes=1794521088 dur_s=10.000 pps=121909 pay_Mbps=1435.601 wire_Mbps=1476.563 off_start=0 off_end=1794521088 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+=== B4_END tag=B4 1792330341.746410018

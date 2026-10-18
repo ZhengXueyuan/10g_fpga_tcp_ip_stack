@@ -1,0 +1,60 @@
+=== BURN_BEGIN gen=0x2D 1792330352.712179300 Sun Oct 18 21:32:32     2026 anchor=single independent build artifact + local byte copy (NOT independent)
+--- 1) sha256 anchor check (must equal expected) ---
+LOCAL_BIT /d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_build_0x2D_20261018/retry/ladder2/wrapper_p4.bit size=15431261 mtime=2026-10-18 20:20:59.931648000 +0800
+WANT=ecef15f2339435edb70727e6a979b363375be2a0f8bd875d352f63a293b0e76f GOT=ecef15f2339435edb70727e6a979b363375be2a0f8bd875d352f63a293b0e76f
+SHA_OK (build artifact + local byte copy == expected; copy is NOT independent)
+BURN_BIT /d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_board_p2_0x2D_20261018/burn/wrapper_p4_0x2D.bit size=15431261 mtime=2026-10-18 21:32:32.818928100 +0800
+--- 2) pre-burn state + hw_server + xdma insmod ---
+active
+xdma                  110592  0
+xdma                  110592  0
+--- 3) burn (JTAG via 192.168.0.38:3121) 1792330357 ---
+BURN_STDOUT=/d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p7b_biz_tcpreg/tcpreg_program_stdout.txt mtime=1792330490 T0=1792330357 age=133s
+# puts "TCPREG_BIT = $bit"
+TCPREG_BIT = D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p11_board_p2_0x2D_20261018\burn\wrapper_p4_0x2D.bit
+# puts "TCPREG_BIT_EXISTS = [file exists $bit]"
+TCPREG_BIT_EXISTS = 1
+# puts "TCPREG_BIT_MTIME = [file mtime $bit]"
+TCPREG_BIT_MTIME = 1792330352
+# puts "TCPREG_PROG device=$dev freq=1MHz"
+TCPREG_PROG device=xcku5p_0 freq=1MHz
+# if {![file exists $bit]} { puts "TCPREG-ABORT: bitstream missing"; exit 1 }
+# if {[catch {program_hw_devices $dev} em]} { puts "TCPREG-ABORT PROGRAM FAILED: $em"; exit 1 }
+INFO: [Labtools 27-3164] End of startup status: HIGH
+# puts "TCPREG_PROG_DONE (检查上�? 'End of startup status: HIGH')"
+TCPREG_PROG_DONE (检查上�? 'End of startup status: HIGH')
+BURN_OK (HIGH + DONE + path + freshness + no-ABORT)
+--- 4) PCIe recovery: device-level remove+rescan (escalate to root port on failure) 1792330490 ---
+		LnkSta:	Speed 5GT/s (downgraded), Width x4
+[165835.206820] xdma:identify_bars: 2 BARs: config 1, user 0, bypass -1.
+[166063.291983] xdma:identify_bars: 2 BARs: config 1, user 0, bypass -1.
+[166505.653110] xdma:identify_bars: 2 BARs: config 1, user 0, bypass -1.
+/dev/xdma0_control
+/dev/xdma0_user
+--- 5) identity gate (GEN=0x2D: NW=85 BID=0x0000002D UNIMPL=0x184) ---
+REG_0x00=0x50360001
+REG_0x04=0x0000002d
+REG_0x14=0xdeadbeef
+REG_0x184=0xffffffff
+REG_0x08=0x00000000
+MIR_0x174=0x00200000
+MIR_0x178=0x5a5a5a5a
+MIR_0x17C=0x00000000
+MIR_0x180=0x00000000
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x0000002d   (want 0x0000002D = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1792330506.768292459
+ID_RC=0
+--- 6) window scan: NFF must be 0 over NW words ---
+WINDOW_SCAN_NFF=0
+--- 6b) PCIe link + BAR count ---
+		LnkSta:	Speed 5GT/s (downgraded), Width x4
+BAR_COUNT=2
+SYSFS_RESOURCE_NONZERO=2
+--- 7) release controlled stop (0x08 <- 0) + carrier ---
+cat: /sys/class/net/enp1s0f1np1/carrier: No such file or directory
+cat: /sys/class/net/enp1s0f0np0/carrier: No such file or directory
+SCRATCH_0x08(after)=0x00000000
+CARRIER_P1=CARRIER_P0==== BURN_END gen=0x2D 1792330507.960471900 ===

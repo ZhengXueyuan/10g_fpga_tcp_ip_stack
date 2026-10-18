@@ -1,0 +1,102 @@
+=== B6_BEGIN tag=B6 1792330790.876519691 Sun Oct 18 09:39:50 PM CST 2026
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x0000002d   (want 0x0000002D = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1792330790.893081599
+ID_RC=0
+SNAP_BEGIN B6_PRE gen=4 status=0x00040056
+SNAP_STATUS gen=4 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x00000007
+W1   0x24   rx_stat_bytes          0x0000026e
+W4   0x30   rx_stat_drop           0x00000000
+W8   0x40   udpapp_tx_frames       0x00000000
+W9   0x44   udpapp_tx_bytes        0x00000000
+W10  0x48   udpapp_rx_frames       0x00000000
+W11  0x4C   udpapp_rx_bytes        0x00000000
+W13  0x54   udpapp_mismatch        0x00000000
+W20  0x70   mac_tx_frames          0x00000009
+W43  0xCC   mtx_stat_tx_words      0xf9790fc0
+W79  0x15C  ch0_rx_frames          0x00000007
+W80  0x160  ch0_rx_bytes           0x00000252
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+W83  0x16C  tx_p0_frames           0x00000009
+W84  0x170  tx_p1_frames           0x00000005
+W62  0x118  app_ctrl_rx_occ_bytes  0x00000000
+SNAP_END B6_PRE nff=0 stale_words=0
+--- LEARN from IP_B (p0) ---
+LEARN_B_RC=0
+PCAP_B p1_frames=0 p0_frames=911269
+  p1_sample:
+  p0_sample:
+    21:39:51.971490 IP 192.168.100.101.39555 > 192.168.100.4.8081: UDP, length 1472
+    21:39:51.971498 IP 192.168.100.101.39555 > 192.168.100.4.8081: UDP, length 1472
+UDP_SUM pkts=832 pay_bytes=1224704 dur_s=0.204 pps=4088 pay_Mbps=48.141 wire_Mbps=49.514 off_start=0 off_end=1224704 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+SNAP_BEGIN B6_POST_B gen=5 status=0x00050056
+SNAP_STATUS gen=5 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x00000007
+W1   0x24   rx_stat_bytes          0x0000026e
+W4   0x30   rx_stat_drop           0x00000000
+W8   0x40   udpapp_tx_frames       0x004a2a64
+W9   0x44   udpapp_tx_bytes        0xaa73c238
+W10  0x48   udpapp_rx_frames       0x00000340
+W11  0x4C   udpapp_rx_bytes        0x0012b000
+W13  0x54   udpapp_mismatch        0x00000000
+W20  0x70   mac_tx_frames          0x00000009
+W43  0xCC   mtx_stat_tx_words      0x3b60fd17
+W79  0x15C  ch0_rx_frames          0x00000353
+W80  0x160  ch0_rx_bytes           0x0013567a
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+W83  0x16C  tx_p0_frames           0x00000009
+W84  0x170  tx_p1_frames           0x004a2a67
+W62  0x118  app_ctrl_rx_occ_bytes  0x00000000
+SNAP_END B6_POST_B nff=0 stale_words=0
+--- LEARN from IP_A (p1) ---
+LEARN_A_RC=0
+PCAP_A p1_frames=1336865 p0_frames=550978
+  p1_sample:
+    21:39:59.124029 IP 192.168.100.1.59159 > 192.168.100.2.8081: UDP, length 1472
+    21:39:59.124036 IP 192.168.100.1.59159 > 192.168.100.2.8081: UDP, length 1472
+  p0_sample:
+    21:39:58.132011 IP 192.168.100.4.8081 > 192.168.100.101.8081: UDP, length 1472
+    21:39:58.132011 IP 192.168.100.4.8081 > 192.168.100.101.8081: UDP, length 1472
+UDP_SUM pkts=832 pay_bytes=1224704 dur_s=0.204 pps=4084 pay_Mbps=48.089 wire_Mbps=49.461 off_start=0 off_end=1224704 call_errors=0 poll_tmo=0 skip_pkts=0 skip_bytes=0 skip_actual_off=-1
+SNAP_BEGIN B6_POST_A gen=6 status=0x00060056
+SNAP_STATUS gen=6 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x00000356
+W1   0x24   rx_stat_bytes          0x00136abc
+W4   0x30   rx_stat_drop           0x00000000
+W8   0x40   udpapp_tx_frames       0x00c9e789
+W9   0x44   udpapp_tx_bytes        0x88f35488
+W10  0x48   udpapp_rx_frames       0x00000680
+W11  0x4C   udpapp_rx_bytes        0x00256000
+W13  0x54   udpapp_mismatch        0x00129dd5
+W20  0x70   mac_tx_frames          0x00718d49
+W43  0xCC   mtx_stat_tx_words      0x9bae955c
+W79  0x15C  ch0_rx_frames          0x00000354
+W80  0x160  ch0_rx_bytes           0x001358c8
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+W83  0x16C  tx_p0_frames           0x00718d4a
+W84  0x170  tx_p1_frames           0x00585a4a
+W62  0x118  app_ctrl_rx_occ_bytes  0x00000000
+SNAP_END B6_POST_A nff=0 stale_words=0
+--- stop app TX: TX_DIS bit0 (J7/ch0) then bit1 (J8/ch1) ---
+SNAP_BEGIN B6_DIS0 gen=7 status=0x00070056
+SNAP_STATUS gen=7 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W83  0x16C  tx_p0_frames           0x0076d04d
+W84  0x170  tx_p1_frames           0x00585a4a
+SNAP_END B6_DIS0 nff=0 stale_words=0
+SNAP_BEGIN B6_DIS1 gen=8 status=0x00080056
+SNAP_STATUS gen=8 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W83  0x16C  tx_p0_frames           0x007aca4d
+W84  0x170  tx_p1_frames           0x00585a4a
+SNAP_END B6_DIS1 nff=0 stale_words=0
+SNAP_BEGIN B6_DISRESTORE gen=9 status=0x00090056
+SNAP_STATUS gen=9 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W83  0x16C  tx_p0_frames           0x007ebce5
+W84  0x170  tx_p1_frames           0x00585a4a
+SNAP_END B6_DISRESTORE nff=0 stale_words=0
+=== B6_END tag=B6 1792330809.398631819

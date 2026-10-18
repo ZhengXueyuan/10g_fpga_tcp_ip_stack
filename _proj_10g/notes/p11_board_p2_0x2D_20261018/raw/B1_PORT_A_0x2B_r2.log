@@ -1,0 +1,24 @@
+ID_BID   0x0000002b   (want 0x0000002B = 本构建的 BUILD_ID)
+SNAP_BEGIN B1B2B_r2_A gen=4 status=0x00040056
+W20  0x70   mac_tx_frames          0x0018ad3d
+W43  0xCC   mtx_stat_tx_words      0xead32086
+W51  0xEC   app_tx_bytes           0x8cbbc808
+W52  0xF0   app_tx_frames          0x0018ad35
+W54  0xF8   app_mismatch           0x00000000
+W55  0xFC   tx_stat_retx           0x00000001
+SNAP_BEGIN B1B2B_r2_B gen=5 status=0x00050056
+W20  0x70   mac_tx_frames          0x0022ae4c
+W43  0xCC   mtx_stat_tx_words      0x35e91a81
+W51  0xEC   app_tx_bytes           0xc5c9ad2d
+W52  0xF0   app_tx_frames          0x0022ae3d
+W54  0xF8   app_mismatch           0x00000000
+W55  0xFC   tx_stat_retx           0x00000004
+SNAP_BEGIN B1B2B_r2_C gen=6 status=0x00060056
+W20  0x70   mac_tx_frames          0x0029ce25
+W43  0xCC   mtx_stat_tx_words      0x6e6b1be3
+W51  0xEC   app_tx_bytes           0xee6b36ba
+W52  0xF0   app_tx_frames          0x0029ce13
+W54  0xF8   app_mismatch           0x00000000
+W55  0xFC   tx_stat_retx           0x00000007
+NIC_DELTA p1_rx_bytes=2010367223 p1_rx_packets=1324358 p1_rx_bad=0 p0_rx_bytes=0 p0_rx_packets=0
+SINK_SUM conns=1 fail_conns=0 bytes=2000000425 clean_conns=1 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=16.989 net_s=16.989 agg_Mbps=941.785 THREADED=on full_push=1369863 full_pop=1369863 free_push=1369879 free_pop=1369863 slot_wait_spins=5869 checked_bytes=2000000425 threads=2 check=lane8

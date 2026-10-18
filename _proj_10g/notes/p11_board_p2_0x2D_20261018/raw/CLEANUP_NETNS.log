@@ -1,0 +1,10 @@
+MOVE1_RC=0
+MOVE0_RC=0
+--- root state ---
+enp1s0f1np1      UP             192.168.100.100/32 fe80::e61c:8f53:200:2d05/64 
+enp1s0f0np0      UP             fe80::d497:5e4d:35ca:435/64 
+192.168.100.2 dev enp1s0f1np1 scope link 
+NSLIST=0
+enp1s0f1np1 carrier=1
+enp1s0f0np0 carrier=1
+TCPDUMP=0

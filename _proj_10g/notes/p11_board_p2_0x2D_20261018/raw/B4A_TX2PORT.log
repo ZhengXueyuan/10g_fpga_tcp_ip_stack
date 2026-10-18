@@ -1,0 +1,109 @@
+=== B4A_BEGIN tag=B4A 1792330518.835004210 Sun Oct 18 09:35:18 PM CST 2026
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x0000002d   (want 0x0000002D = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1792330518.851319679
+ID_RC=0
+--- quiet check: two snapshots 1ms+ apart ---
+SNAP_BEGIN B4A_Q1 gen=1 status=0x00010056
+SNAP_STATUS gen=1 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W83  0x16C  tx_p0_frames           0x00000004
+W84  0x170  tx_p1_frames           0x00000000
+W20  0x70   mac_tx_frames          0x00000004
+SNAP_END B4A_Q1 nff=0 stale_words=0
+SNAP_BEGIN B4A_Q2 gen=2 status=0x00020056
+SNAP_STATUS gen=2 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W83  0x16C  tx_p0_frames           0x00000004
+W84  0x170  tx_p1_frames           0x00000000
+W20  0x70   mac_tx_frames          0x00000004
+SNAP_END B4A_Q2 nff=0 stale_words=0
+SNAP_BEGIN B4A_PRE gen=3 status=0x00030056
+SNAP_STATUS gen=3 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x00000002
+W1   0x24   rx_stat_bytes          0x000000bc
+W4   0x30   rx_stat_drop           0x00000000
+W20  0x70   mac_tx_frames          0x00000004
+W21  0x74   tx_stat_abort          0x00000000
+W43  0xCC   mtx_stat_tx_words      0xf818d22a
+W51  0xEC   app_tx_bytes           0x00000000
+W52  0xF0   app_tx_frames          0x00000000
+W54  0xF8   app_mismatch           0x00000000
+W55  0xFC   tx_stat_retx           0x00000000
+W79  0x15C  ch0_rx_frames          0x00000002
+W80  0x160  ch0_rx_bytes           0x000000b4
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+W83  0x16C  tx_p0_frames           0x00000004
+W84  0x170  tx_p1_frames           0x00000000
+W62  0x118  app_ctrl_rx_occ_bytes  0x00000000
+SNAP_END B4A_PRE nff=0 stale_words=0
+SNAP_BEGIN B4A_MID1 gen=4 status=0x00040056
+SNAP_STATUS gen=4 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x00000113
+W1   0x24   rx_stat_bytes          0x0000450a
+W4   0x30   rx_stat_drop           0x00000000
+W20  0x70   mac_tx_frames          0x00000114
+W21  0x74   tx_stat_abort          0x00000000
+W43  0xCC   mtx_stat_tx_words      0x0b67b2a4
+W51  0xEC   app_tx_bytes           0x0002bd7c
+W52  0xF0   app_tx_frames          0x0000007b
+W54  0xF8   app_mismatch           0x00000000
+W55  0xFC   tx_stat_retx           0x00000063
+W79  0x15C  ch0_rx_frames          0x00000005
+W80  0x160  ch0_rx_bytes           0x00000176
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+W83  0x16C  tx_p0_frames           0x00000114
+W84  0x170  tx_p1_frames           0x00000002
+W62  0x118  app_ctrl_rx_occ_bytes  0x00000000
+SNAP_END B4A_MID1 nff=0 stale_words=0
+SNAP_BEGIN B4A_MID2 gen=5 status=0x00050056
+SNAP_STATUS gen=5 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x000003c1
+W1   0x24   rx_stat_bytes          0x0000f08a
+W4   0x30   rx_stat_drop           0x00000000
+W20  0x70   mac_tx_frames          0x000003c2
+W21  0x74   tx_stat_abort          0x00000000
+W43  0xCC   mtx_stat_tx_words      0x3ab50273
+W51  0xEC   app_tx_bytes           0x00099a0c
+W52  0xF0   app_tx_frames          0x000001af
+W54  0xF8   app_mismatch           0x00000000
+W55  0xFC   tx_stat_retx           0x00000161
+W79  0x15C  ch0_rx_frames          0x00000005
+W80  0x160  ch0_rx_bytes           0x00000176
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+W83  0x16C  tx_p0_frames           0x000003c2
+W84  0x170  tx_p1_frames           0x00000002
+W62  0x118  app_ctrl_rx_occ_bytes  0x00000000
+SNAP_END B4A_MID2 nff=0 stale_words=0
+SNAP_BEGIN B4A_POST gen=6 status=0x00060056
+SNAP_STATUS gen=6 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x000023e8
+W1   0x24   rx_stat_bytes          0x0008fa68
+W4   0x30   rx_stat_drop           0x00000000
+W20  0x70   mac_tx_frames          0x000023c1
+W21  0x74   tx_stat_abort          0x00000000
+W43  0xCC   mtx_stat_tx_words      0x7420354e
+W51  0xEC   app_tx_bytes           0x00740b94
+W52  0xF0   app_tx_frames          0x00001459
+W54  0xF8   app_mismatch           0x00000000
+W55  0xFC   tx_stat_retx           0x00000d19
+W79  0x15C  ch0_rx_frames          0x00000008
+W80  0x160  ch0_rx_bytes           0x0000022a
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+W83  0x16C  tx_p0_frames           0x000023c1
+W84  0x170  tx_p1_frames           0x00000003
+W62  0x118  app_ctrl_rx_occ_bytes  0x00000000
+SNAP_END B4A_POST nff=0 stale_words=0
+[p1 sink]
+[p0 sink]
+SINK_CONN 0 POLL_TIMEOUT 3 x 5000 ms 无数据 (got=0) => 中止本连接
+SINK_CONN 0 STALL bytes=0 first_mismatch=-1 mism_bytes=0 conn_ms=0.142 dur_ms=15015.378 Mbps=0.000 reads=0 poll_tmo=3 CPU_FREQ_KHZ=1500000 THREADED=on q_full_push=0 q_full_pop=0 q_free_push=16 q_free_pop=0 slot_wait_spins=0 checked_bytes=0
+SINK_SUM conns=1 fail_conns=0 bytes=0 clean_conns=0 bad_conns=1 mismatch_bytes=0 stall_conns=1 err_conns=0 poll_tmo=3 wall_s=15.016 net_s=15.015 agg_Mbps=0.000 THREADED=on full_push=0 full_pop=0 free_push=16 free_pop=0 slot_wait_spins=0 checked_bytes=0 threads=2 check=lane8
+--- NIC counters (settled) ---
+P1_RX port_rx_bytes:=562474602520 port_rx_packets:=370658464 
+P0_RX port_rx_bytes:=38972141634 port_rx_packets:=25673370 
+=== B4A_END tag=B4A 1792330587.267285638

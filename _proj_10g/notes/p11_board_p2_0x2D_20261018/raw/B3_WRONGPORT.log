@@ -1,0 +1,44 @@
+=== B3_BEGIN tag=B3 1792330217.931426399 Sun Oct 18 09:30:17 PM CST 2026
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x0000002d   (want 0x0000002D = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1792330217.949753740
+ID_RC=0
+MAC_P1=00:0f:53:2c:68:01 MAC_P0=00:0f:53:2c:68:00
+--- PART 1: ARP identity (p1 who-has IP_B) ---
+PING_P1: PING 192.168.100.4 (192.168.100.4) from 192.168.100.1 enp1s0f1np1: 56(84) bytes of data.
+PING_P1: 
+PING_P1: --- 192.168.100.4 ping statistics ---
+PING_P1: 1 packets transmitted, 0 received, 100% packet loss, time 0ms
+PING_P1: 
+[p1 ARP pcap]
+21:30:18.960518 00:0f:53:2c:68:01 > ff:ff:ff:ff:ff:ff, ethertype ARP (0x0806), length 42: Request who-has 192.168.100.4 tell 192.168.100.1, length 28
+[p0 ARP pcap]
+21:30:18.960598 00:0a:35:01:fe:c0 > 00:0f:53:2c:68:01, ethertype ARP (0x0806), length 60: Reply 192.168.100.4 is-at 00:0a:35:01:fe:c0, length 46
+192.168.100.4 dev enp1s0f1np1 INCOMPLETE 
+--- PART 2A: p1 SYN -> IP_B (wrong port) ---
+P1_TO_IPB: CONNECT_FAIL OSError(101, 'Network is unreachable')
+[p1 pcap]
+[p0 pcap]
+--- PART 2B: p0 SYN -> IP_A (wrong port) ---
+P0_TO_IPA: CONNECT_FAIL OSError(101, 'Network is unreachable')
+[p0 pcap]
+[p1 pcap]
+--- board snapshot after ---
+SNAP_BEGIN B3_POST gen=12 status=0x000c0056
+SNAP_STATUS gen=12 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x002be562
+W1   0x24   rx_stat_bytes          0x0af959a2
+W4   0x30   rx_stat_drop           0x00000000
+W20  0x70   mac_tx_frames          0x002be571
+W43  0xCC   mtx_stat_tx_words      0x548a0522
+W51  0xEC   app_tx_bytes           0x0644d516
+W52  0xF0   app_tx_frames          0x002dfca7
+W54  0xF8   app_mismatch           0x00000007
+W55  0xFC   tx_stat_retx           0x00000007
+W83  0x16C  tx_p0_frames           0x002be571
+W84  0x170  tx_p1_frames           0x00021759
+W62  0x118  app_ctrl_rx_occ_bytes  0x00000000
+SNAP_END B3_POST nff=0 stale_words=0
+=== B3_END tag=B3 1792330223.645700279

@@ -1,0 +1,97 @@
+=== B5_BEGIN tag=B5 1792330766.388919358 Sun Oct 18 09:39:26 PM CST 2026
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x0000002d   (want 0x0000002D = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1792330766.405178236
+ID_RC=0
+SNAP_BEGIN B5_PRE gen=1 status=0x00010056
+SNAP_STATUS gen=1 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x00000002
+W1   0x24   rx_stat_bytes          0x000000bc
+W4   0x30   rx_stat_drop           0x00000000
+W7   0x3C   stx_stat_frames        0x00000004
+W16  0x60   srx_hls_bytes          0x00000188
+W18  0x68   stx_stat_purge         0x00000000
+W20  0x70   mac_tx_frames          0x00000004
+W43  0xCC   mtx_stat_tx_words      0x156c9422
+W79  0x15C  ch0_rx_frames          0x00000002
+W80  0x160  ch0_rx_bytes           0x000000b4
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+W83  0x16C  tx_p0_frames           0x00000004
+W84  0x170  tx_p1_frames           0x00000000
+SNAP_END B5_PRE nff=0 stale_words=0
+--- SIDE B: nsb enp1s0f0np0 -> 192.168.100.4 ---
+[ping -c 3 (ARP first)]
+
+--- 192.168.100.4 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2044ms
+rtt min/avg/max/mdev = 0.095/0.120/0.153/0.024 ms
+UDP_B: UDP_ECHO_OK from=192.168.100.4:8080 len=7 match=True data=b'HELLO-B'
+[p1/p0 pcap — ARP replies]
+  p1:
+  p0:
+    21:39:27.472812 00:0f:53:2c:68:00 > ff:ff:ff:ff:ff:ff, ethertype ARP (0x0806), length 42: Request who-has 192.168.100.4 tell 192.168.100.101, length 28
+    21:39:27.472865 00:0a:35:01:fe:c0 > 00:0f:53:2c:68:00, ethertype ARP (0x0806), length 60: Reply 192.168.100.4 is-at 00:0a:35:01:fe:c0, length 46
+[p1/p0 pcap — ICMP/UDP src]
+  p1:
+  p0:
+    21:39:27.472884 00:0f:53:2c:68:00 > 00:0a:35:01:fe:c0, ethertype IPv4 (0x0800), length 98: 192.168.100.101 > 192.168.100.4: ICMP echo request, id 60503, seq 1, length 64
+    21:39:27.472955 00:0a:35:01:fe:c0 > 00:0f:53:2c:68:00, ethertype IPv4 (0x0800), length 98: 192.168.100.4 > 192.168.100.101: ICMP echo reply, id 60503, seq 1, length 64
+    21:39:28.492946 00:0f:53:2c:68:00 > 00:0a:35:01:fe:c0, ethertype IPv4 (0x0800), length 98: 192.168.100.101 > 192.168.100.4: ICMP echo request, id 60503, seq 2, length 64
+    21:39:28.493031 00:0a:35:01:fe:c0 > 00:0f:53:2c:68:00, ethertype IPv4 (0x0800), length 98: 192.168.100.4 > 192.168.100.101: ICMP echo reply, id 60503, seq 2, length 64
+SNAP_BEGIN B5_POST_B gen=2 status=0x00020056
+SNAP_STATUS gen=2 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x00000002
+W1   0x24   rx_stat_bytes          0x000000bc
+W4   0x30   rx_stat_drop           0x00000000
+W7   0x3C   stx_stat_frames        0x00000009
+W16  0x60   srx_hls_bytes          0x0000034e
+W18  0x68   stx_stat_purge         0x00000000
+W20  0x70   mac_tx_frames          0x00000004
+W43  0xCC   mtx_stat_tx_words      0x378dfa75
+W79  0x15C  ch0_rx_frames          0x00000007
+W80  0x160  ch0_rx_bytes           0x00000252
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+W83  0x16C  tx_p0_frames           0x00000004
+W84  0x170  tx_p1_frames           0x00000005
+SNAP_END B5_POST_B nff=0 stale_words=0
+--- SIDE A: nsa enp1s0f1np1 -> 192.168.100.2 ---
+[ping -c 3 (ARP first)]
+
+--- 192.168.100.2 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2027ms
+rtt min/avg/max/mdev = 0.099/0.130/0.188/0.040 ms
+UDP_A: UDP_ECHO_OK from=192.168.100.2:8080 len=7 match=True data=b'HELLO-A'
+[p1/p0 pcap — ARP replies]
+  p1:
+    21:39:31.137937 00:0f:53:2c:68:01 > ff:ff:ff:ff:ff:ff, ethertype ARP (0x0806), length 42: Request who-has 192.168.100.2 tell 192.168.100.1, length 28
+    21:39:31.138027 00:0a:35:01:fe:c0 > 00:0f:53:2c:68:01, ethertype ARP (0x0806), length 60: Reply 192.168.100.2 is-at 00:0a:35:01:fe:c0, length 46
+  p0:
+[p1/p0 pcap — ICMP/UDP src]
+  p1:
+    21:39:31.138035 00:0f:53:2c:68:01 > 00:0a:35:01:fe:c0, ethertype IPv4 (0x0800), length 98: 192.168.100.1 > 192.168.100.2: ICMP echo request, id 60686, seq 1, length 64
+    21:39:31.138115 00:0a:35:01:fe:c0 > 00:0f:53:2c:68:01, ethertype IPv4 (0x0800), length 98: 192.168.100.2 > 192.168.100.1: ICMP echo reply, id 60686, seq 1, length 64
+    21:39:32.140930 00:0f:53:2c:68:01 > 00:0a:35:01:fe:c0, ethertype IPv4 (0x0800), length 98: 192.168.100.1 > 192.168.100.2: ICMP echo request, id 60686, seq 2, length 64
+    21:39:32.141015 00:0a:35:01:fe:c0 > 00:0f:53:2c:68:01, ethertype IPv4 (0x0800), length 98: 192.168.100.2 > 192.168.100.1: ICMP echo reply, id 60686, seq 2, length 64
+  p0:
+SNAP_BEGIN B5_POST_A gen=3 status=0x00030056
+SNAP_STATUS gen=3 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x00000007
+W1   0x24   rx_stat_bytes          0x0000026e
+W4   0x30   rx_stat_drop           0x00000000
+W7   0x3C   stx_stat_frames        0x0000000e
+W16  0x60   srx_hls_bytes          0x00000514
+W18  0x68   stx_stat_purge         0x00000000
+W20  0x70   mac_tx_frames          0x00000009
+W43  0xCC   mtx_stat_tx_words      0x598e62e6
+W79  0x15C  ch0_rx_frames          0x00000007
+W80  0x160  ch0_rx_bytes           0x00000252
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+W83  0x16C  tx_p0_frames           0x00000009
+W84  0x170  tx_p1_frames           0x00000005
+SNAP_END B5_POST_A nff=0 stale_words=0
+=== B5_END tag=B5 1792330773.783365098

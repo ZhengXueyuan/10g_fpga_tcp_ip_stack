@@ -1,0 +1,44 @@
+1 packets transmitted, 1 received, 0% packet loss, time 0ms
+rtt min/avg/max/mdev = 0.160/0.160/0.160/0.000 ms
+1 packets transmitted, 1 received, 0% packet loss, time 0ms
+rtt min/avg/max/mdev = 0.159/0.159/0.159/0.000 ms
+=== B2C_BEGIN tag=B2C3 1792331271.202218534 Sun Oct 18 09:47:51 PM CST 2026
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x0000002d   (want 0x0000002D = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1792331271.219344153
+ID_RC=0
+SNAP_BEGIN B2C3_PRE gen=1 status=0x00010056
+SNAP_STATUS gen=1 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x00000004
+W1   0x24   rx_stat_bytes          0x00000162
+W4   0x30   rx_stat_drop           0x00000000
+W20  0x70   mac_tx_frames          0x00000005
+W43  0xCC   mtx_stat_tx_words      0xc03ebf88
+W83  0x16C  tx_p0_frames           0x00000005
+W84  0x170  tx_p1_frames           0x00000002
+SNAP_END B2C3_PRE nff=0 stale_words=0
+--- ss nsa ---
+Recv-Q Send-Q Local Address:Port   Peer Address:PortProcess
+0      0      192.168.100.1:48358 192.168.100.2:8080       
+--- ss nsb ---
+Recv-Q Send-Q   Local Address:Port   Peer Address:PortProcess
+64240  0      192.168.100.101:55566 192.168.100.4:8080       
+[A]
+CONNECT_OK local=192.168.100.1:48358 remote=192.168.100.2:8080 ms=0.1
+HOLD_CLOSED
+[B]
+CONNECT_OK local=192.168.100.101:55566 remote=192.168.100.4:8080 ms=0.2
+HOLD_CLOSED
+SNAP_BEGIN B2C3_POST gen=2 status=0x00020056
+SNAP_STATUS gen=2 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x00000032
+W1   0x24   rx_stat_bytes          0x00000cf0
+W4   0x30   rx_stat_drop           0x00000000
+W20  0x70   mac_tx_frames          0x00000032
+W43  0xCC   mtx_stat_tx_words      0xdcc7786d
+W83  0x16C  tx_p0_frames           0x00000032
+W84  0x170  tx_p1_frames           0x00000032
+SNAP_END B2C3_POST nff=0 stale_words=0
+=== B2C_END tag=B2C3 1792331274.320350040

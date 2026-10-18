@@ -1,0 +1,30 @@
+ID_BID   0x0000002d   (want 0x0000002D = 本构建的 BUILD_ID)
+SNAP_BEGIN B1D_r3_A gen=4 status=0x00040056
+W20  0x70   mac_tx_frames          0x0018e7e7
+W43  0xCC   mtx_stat_tx_words      0xaf8e6305
+W51  0xEC   app_tx_bytes           0x8e0a4e28
+W52  0xF0   app_tx_frames          0x0018e7dd
+W54  0xF8   app_mismatch           0x00000000
+W55  0xFC   tx_stat_retx           0x00000003
+W83  0x16C  tx_p0_frames           0x0018e7e7
+W84  0x170  tx_p1_frames           0x00000000
+SNAP_BEGIN B1D_r3_B gen=5 status=0x00050056
+W20  0x70   mac_tx_frames          0x0023bab4
+W43  0xCC   mtx_stat_tx_words      0xfaaa089f
+W51  0xEC   app_tx_bytes           0xcbc48508
+W52  0xF0   app_tx_frames          0x0023baaa
+W54  0xF8   app_mismatch           0x00000000
+W55  0xFC   tx_stat_retx           0x00000003
+W83  0x16C  tx_p0_frames           0x0023bab4
+W84  0x170  tx_p1_frames           0x00000000
+SNAP_BEGIN B1D_r3_C gen=6 status=0x00060056
+W20  0x70   mac_tx_frames          0x0029ce1d
+W43  0xCC   mtx_stat_tx_words      0x29eafa72
+W51  0xEC   app_tx_bytes           0xee6b36ba
+W52  0xF0   app_tx_frames          0x0029ce13
+W54  0xF8   app_mismatch           0x00000000
+W55  0xFC   tx_stat_retx           0x00000003
+W83  0x16C  tx_p0_frames           0x0029ce1d
+W84  0x170  tx_p1_frames           0x00000000
+NIC_DELTA p1_rx_bytes=2079455701 p1_rx_packets=1369868 p1_rx_bad=0 p0_rx_bytes=0 p0_rx_packets=0
+SINK_SUM conns=1 fail_conns=0 bytes=2000000425 clean_conns=1 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=15.570 net_s=15.570 agg_Mbps=1027.612 THREADED=on full_push=1369863 full_pop=1369863 free_push=1369879 free_pop=1369863 slot_wait_spins=0 checked_bytes=2000000425 threads=2 check=lane8

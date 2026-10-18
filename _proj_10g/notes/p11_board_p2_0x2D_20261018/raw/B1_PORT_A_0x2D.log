@@ -1,0 +1,76 @@
+=== B1_BEGIN tag=B1D 1792329648.319824631 Sun Oct 18 09:20:48 PM CST 2026
+--- id gate ---
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x0000002d   (want 0x0000002D = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1792329648.336292157
+ID_RC=0
+--- NIC pre ---
+NIC_PRE p1_rx_bytes=507536132268 p1_rx_packets=334467057 p1_rx_bad=14823 p0_rx_bytes=0 p0_rx_packets=0
+--- start sink 1792329648.343848027 ---
+--- snap A 1792329651.346185434 ---
+SNAP_BEGIN B1D_A gen=1 status=0x00010056
+SNAP_STATUS gen=1 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W5   0x34   gmii_free_FE           0xf43aab07
+W20  0x70   mac_tx_frames          0x0004076e
+W43  0xCC   mtx_stat_tx_words      0xf439cacc
+W21  0x74   tx_stat_abort          0x00000000
+W4   0x30   rx_stat_drop           0x00000000
+W51  0xEC   app_tx_bytes           0x16fa36db
+W52  0xF0   app_tx_frames          0x00040767
+W54  0xF8   app_mismatch           0x00000000
+W55  0xFC   tx_stat_retx           0x00000001
+W83  0x16C  tx_p0_frames           0x0004076e
+W84  0x170  tx_p1_frames           0x00000000
+W62  0x118  app_ctrl_rx_occ_bytes  0x00000000
+SNAP_END B1D_A nff=0 stale_words=0
+--- snap B 1792329659.415220734 ---
+SNAP_BEGIN B1D_B gen=2 status=0x00020056
+SNAP_STATUS gen=2 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W5   0x34   gmii_free_FE           0x3f609483
+W20  0x70   mac_tx_frames          0x000ef0f4
+W43  0xCC   mtx_stat_tx_words      0x3f5f83c0
+W21  0x74   tx_stat_abort          0x00000000
+W4   0x30   rx_stat_drop           0x00000000
+W51  0xEC   app_tx_bytes           0x553604cf
+W52  0xF0   app_tx_frames          0x000ef0ed
+W54  0xF8   app_mismatch           0x00000000
+W55  0xFC   tx_stat_retx           0x00000001
+W83  0x16C  tx_p0_frames           0x000ef0f4
+W84  0x170  tx_p1_frames           0x00000000
+W62  0x118  app_ctrl_rx_occ_bytes  0x00000000
+SNAP_END B1D_B nff=0 stale_words=0
+SINK_RC=0
+--- snap C 1792329664.488627488 ---
+SNAP_BEGIN B1D_C gen=3 status=0x00030056
+SNAP_STATUS gen=3 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W5   0x34   gmii_free_FE           0x6e9d9239
+W20  0x70   mac_tx_frames          0x0014e711
+W43  0xCC   mtx_stat_tx_words      0x6e9c62e7
+W21  0x74   tx_stat_abort          0x00000000
+W4   0x30   rx_stat_drop           0x00000000
+W51  0xEC   app_tx_bytes           0x77359b5d
+W52  0xF0   app_tx_frames          0x0014e709
+W54  0xF8   app_mismatch           0x00000000
+W55  0xFC   tx_stat_retx           0x00000001
+W83  0x16C  tx_p0_frames           0x0014e711
+W84  0x170  tx_p1_frames           0x00000000
+W62  0x118  app_ctrl_rx_occ_bytes  0x00000000
+SNAP_END B1D_C nff=0 stale_words=0
+--- NIC post ---
+NIC_POST p1_rx_bytes=509615588035 p1_rx_packets=335836926 p1_rx_bad=14823 p0_rx_bytes=0 p0_rx_packets=0
+NIC_DELTA p1_rx_bytes=2079455767 p1_rx_packets=1369869 p1_rx_bad=0 p0_rx_bytes=0 p0_rx_packets=0
+--- sink output ---
+PIN_RULE=avoid-nic PIN_DEGRADED=none PIN_CPU=7 PIN_CORES_ONLINE=0-7 PIN_NIC_IFACE=enp1s0f0np0,enp1s0f1np1 PIN_NIC_CPUS=0,1,2,3,4,5 PIN_NIC_EXCLUDED=none PIN_CORE_LOAD=26410830 PIN_ALLOWED_MASK=80 PIN_GETCPU_START=7 PIN_FREQ_START_KHZ=3815999 PIN_GOV=schedutil PIN_NIC_IRQLINES=12 PIN_NIC_IFACE_SRC=auto PIN_TUPLE_ORDER=own_sib_t PIN_PAIR_RULE=load-only PIN_PAIR_DEGRADED=nic0-0 PIN_CPU_IO=4 PIN_CPU_WORK=6 PIN_PC_IO=0 PIN_PC_WORK=2 PIN_PAIR_EXCL=3 PIN_PAIR_REQ=want
+SINK_CHECK check=lane8
+SINK_LIMITS maxbytes=2000000000 poll_ms=5000 stall_n=3 rcvbuf=2920 conns=1 secs=60
+SINK_RCVBUF_ORDER RCVBUF_ORDER=before_connect rcvbuf=2920
+SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+PIN_THREAD name=io PIN_TID_IO=1292286 PIN_CPU_IO=4 PIN_ALLOWED_MASK_IO=10 PIN_GETCPU_IO=4 CPU_FREQ_IO_KHZ=3863840
+PIN_THREAD name=work PIN_TID_WORK=1292287 PIN_CPU_WORK=6 PIN_ALLOWED_MASK_WORK=40 PIN_GETCPU_WORK=6 CPU_FREQ_WORK_KHZ=3702721
+SINK_CONN 0 OK bytes=2000000425 first_mismatch=-1 mism_bytes=0 conn_ms=0.213 dur_ms=15473.473 Mbps=1034.028 reads=1369863 poll_tmo=0 CPU_FREQ_KHZ=3800292 THREADED=on q_full_push=1369863 q_full_pop=1369863 q_free_push=1369879 q_free_pop=1369863 slot_wait_spins=0 checked_bytes=2000000425
+SINK_SUM conns=1 fail_conns=0 bytes=2000000425 clean_conns=1 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=15.474 net_s=15.473 agg_Mbps=1034.028 THREADED=on full_push=1369863 full_pop=1369863 free_push=1369879 free_pop=1369863 slot_wait_spins=0 checked_bytes=2000000425 threads=2 check=lane8
+SINK_DONE
+PIN_GETCPU_END=7 PIN_FREQ_END_KHZ=800000
+=== B1_END tag=B1D 1792329664.551642982

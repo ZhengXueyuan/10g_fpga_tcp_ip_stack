@@ -1,0 +1,37 @@
+--- prime ARP + simultaneous dual connect ---
+=== B2C_BEGIN tag=B2C2 1792331102.200185651 Sun Oct 18 09:45:02 PM CST 2026
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x0000002d   (want 0x0000002D = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1792331102.216966948
+ID_RC=0
+SNAP_BEGIN B2C2_PRE gen=3 status=0x00030056
+SNAP_STATUS gen=3 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x0000000e
+W1   0x24   rx_stat_bytes          0x0000045e
+W4   0x30   rx_stat_drop           0x00000000
+W20  0x70   mac_tx_frames          0x00000011
+W43  0xCC   mtx_stat_tx_words      0xfa4f9fbd
+W83  0x16C  tx_p0_frames           0x00000011
+W84  0x170  tx_p1_frames           0x00000008
+SNAP_END B2C2_PRE nff=0 stale_words=0
+--- ss nsa ---
+Recv-Q Send-Q Local Address:Port Peer Address:PortProcess
+--- ss nsb ---
+Recv-Q Send-Q Local Address:Port Peer Address:PortProcess
+[A]
+CONNECT_FAIL TimeoutError('timed out')
+[B]
+CONNECT_FAIL TimeoutError('timed out')
+SNAP_BEGIN B2C2_POST gen=4 status=0x00040056
+SNAP_STATUS gen=4 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x00000014
+W1   0x24   rx_stat_bytes          0x00000632
+W4   0x30   rx_stat_drop           0x00000000
+W20  0x70   mac_tx_frames          0x00000011
+W43  0xCC   mtx_stat_tx_words      0x377f8a59
+W83  0x16C  tx_p0_frames           0x00000011
+W84  0x170  tx_p1_frames           0x00000008
+SNAP_END B2C2_POST nff=0 stale_words=0
+=== B2C_END tag=B2C2 1792331108.823671392

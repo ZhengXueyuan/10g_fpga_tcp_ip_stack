@@ -1,0 +1,16 @@
+    192.168.100.4.8080 > 192.168.100.101.36978: Flags [S.], cksum 0x17bd (correct), seq 305419896, ack 3932386187, win 49152, options [mss 1460], length 0
+    192.168.100.4.8080 > 192.168.100.101.36978: Flags [P.], cksum 0xf664 (correct), seq 1:1461, ack 1, win 49152, length 1460: HTTP
+    192.168.100.4.8080 > 192.168.100.101.36978: Flags [P.], cksum 0xd023 (correct), seq 1461:2921, ack 1, win 49152, length 1460: HTTP
+    192.168.100.4.8080 > 192.168.100.101.36978: Flags [P.], cksum 0xf494 (correct), seq 2921:4381, ack 1, win 49152, length 1460: HTTP
+    192.168.100.4.8080 > 192.168.100.101.36978: Flags [P.], cksum 0xb5f0 (correct), seq 4381:5841, ack 1, win 49152, length 1460: HTTP
+    192.168.100.4.8080 > 192.168.100.101.36978: Flags [P.], cksum 0x7911 (correct), seq 5841:7301, ack 1, win 49152, length 1460: HTTP
+    192.168.100.4.8080 > 192.168.100.101.36978: Flags [P.], cksum 0xaf69 (correct), seq 7301:8761, ack 1, win 49152, length 1460: HTTP
+    192.168.100.4.8080 > 192.168.100.101.36978: Flags [P.], cksum 0xefe9 (correct), seq 8761:10221, ack 1, win 49152, length 1460: HTTP
+    192.168.100.4.8080 > 192.168.100.101.36978: Flags [P.], cksum 0xcb8b (correct), seq 10221:11681, ack 1, win 49152, length 1460: HTTP
+    192.168.100.4.8080 > 192.168.100.101.36978: Flags [P.], cksum 0x32d4 (correct), seq 11681:13141, ack 1, win 49152, length 1460: HTTP
+    192.168.100.4.8080 > 192.168.100.101.36978: Flags [P.], cksum 0xa62e (correct), seq 13141:14601, ack 1, win 49152, length 1460: HTTP
+    192.168.100.4.8080 > 192.168.100.101.36978: Flags [P.], cksum 0x4b90 (correct), seq 14601:16061, ack 1, win 49152, length 1460: HTTP
+--- count pure-ACK from board ---
+4
+--- SYN-ACK id ---
+    192.168.100.4.8080 > 192.168.100.101.36978: Flags [S.], cksum 0x17bd (correct), seq 305419896, ack 3932386187, win 49152, options [mss 1460], length 0

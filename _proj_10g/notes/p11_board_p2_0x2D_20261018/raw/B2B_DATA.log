@@ -1,0 +1,92 @@
+=== B2B_DATA_BEGIN tag=B2D 1792330186.870343258 Sun Oct 18 09:29:46 PM CST 2026
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x0000002d   (want 0x0000002D = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1792330186.886821819
+ID_RC=0
+--- PORT A data: nsa p1 -> IP_A ---
+NIC_A_PRE bytes=520012956604 packets=342686343
+SNAP_BEGIN B2D_A_PRE gen=8 status=0x00080056
+SNAP_STATUS gen=8 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x0029ce3f
+W1   0x24   rx_stat_bytes          0x0a7390a4
+W4   0x30   rx_stat_drop           0x00000000
+W20  0x70   mac_tx_frames          0x0029ce53
+W43  0xCC   mtx_stat_tx_words      0xfec05af4
+W51  0xEC   app_tx_bytes           0xee6d3db6
+W52  0xF0   app_tx_frames          0x0029ce6f
+W54  0xF8   app_mismatch           0x00000007
+W55  0xFC   tx_stat_retx           0x00000005
+W83  0x16C  tx_p0_frames           0x0029ce53
+W84  0x170  tx_p1_frames           0x00000037
+W62  0x118  app_ctrl_rx_occ_bytes  0x00000000
+W70  0x138  mir_drop_bytes         0x00000000
+SNAP_END B2D_A_PRE nff=0 stale_words=0
+SINK_A_RC=0
+SNAP_BEGIN B2D_A_POST gen=9 status=0x00090056
+SNAP_STATUS gen=9 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x002be55e
+W1   0x24   rx_stat_bytes          0x0af95872
+W4   0x30   rx_stat_drop           0x00000000
+W20  0x70   mac_tx_frames          0x002be571
+W43  0xCC   mtx_stat_tx_words      0x0eed4670
+W51  0xEC   app_tx_bytes           0xfa590966
+W52  0xF0   app_tx_frames          0x002be58b
+W54  0xF8   app_mismatch           0x00000007
+W55  0xFC   tx_stat_retx           0x00000006
+W83  0x16C  tx_p0_frames           0x002be571
+W84  0x170  tx_p1_frames           0x00000037
+W62  0x118  app_ctrl_rx_occ_bytes  0x00000000
+W70  0x138  mir_drop_bytes         0x00000000
+SNAP_END B2D_A_POST nff=0 stale_words=0
+NIC_A_DELTA bytes=140087176 packets=92284
+PIN_RULE=avoid-nic PIN_DEGRADED=none PIN_CPU=7 PIN_CORES_ONLINE=0-7 PIN_NIC_IFACE=enp1s0f1np1 PIN_NIC_CPUS=0,1,2,3,4,5 PIN_NIC_EXCLUDED=none PIN_CORE_LOAD=29470461 PIN_ALLOWED_MASK=80 PIN_GETCPU_START=7 PIN_FREQ_START_KHZ=800000 PIN_GOV=schedutil PIN_NIC_IRQLINES=6 PIN_NIC_IFACE_SRC=auto PIN_TUPLE_ORDER=own_sib_t PIN_PAIR_RULE=load-only PIN_PAIR_DEGRADED=nic0-0 PIN_CPU_IO=6 PIN_CPU_WORK=5 PIN_PC_IO=2 PIN_PC_WORK=1 PIN_PAIR_EXCL=3 PIN_PAIR_REQ=want
+PIN_THREAD name=io PIN_TID_IO=1298714 PIN_CPU_IO=6 PIN_ALLOWED_MASK_IO=40 PIN_GETCPU_IO=6 CPU_FREQ_IO_KHZ=3892746
+PIN_THREAD name=work PIN_TID_WORK=1298715 PIN_CPU_WORK=5 PIN_ALLOWED_MASK_WORK=20 PIN_GETCPU_WORK=5 CPU_FREQ_WORK_KHZ=3705623
+SINK_CONN 0 OK bytes=200001020 first_mismatch=-1 mism_bytes=0 conn_ms=0.138 dur_ms=1674.887 Mbps=955.293 reads=136986 poll_tmo=0 CPU_FREQ_KHZ=3800288 THREADED=on q_full_push=136986 q_full_pop=136986 q_free_push=137002 q_free_pop=136986 slot_wait_spins=0 checked_bytes=200001020
+SINK_SUM conns=1 fail_conns=0 bytes=200001020 clean_conns=1 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=1.675 net_s=1.675 agg_Mbps=955.293 THREADED=on full_push=136986 full_pop=136986 free_push=137002 free_pop=136986 slot_wait_spins=0 checked_bytes=200001020 threads=2 check=lane8
+PIN_GETCPU_END=7 PIN_FREQ_END_KHZ=2500000
+--- PORT B data: nsb p0 -> IP_B ---
+NIC_B_PRE bytes=73312 packets=55
+SNAP_BEGIN B2D_B_PRE gen=10 status=0x000a0056
+SNAP_STATUS gen=10 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x002be55e
+W1   0x24   rx_stat_bytes          0x0af95872
+W4   0x30   rx_stat_drop           0x00000000
+W20  0x70   mac_tx_frames          0x002be571
+W43  0xCC   mtx_stat_tx_words      0x143992b4
+W51  0xEC   app_tx_bytes           0xfa590966
+W52  0xF0   app_tx_frames          0x002be58b
+W54  0xF8   app_mismatch           0x00000007
+W55  0xFC   tx_stat_retx           0x00000006
+W83  0x16C  tx_p0_frames           0x002be571
+W84  0x170  tx_p1_frames           0x00000037
+W62  0x118  app_ctrl_rx_occ_bytes  0x00000000
+W70  0x138  mir_drop_bytes         0x00000000
+SNAP_END B2D_B_PRE nff=0 stale_words=0
+SINK_B_RC=0
+SNAP_BEGIN B2D_B_POST gen=11 status=0x000b0056
+SNAP_STATUS gen=11 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x002be55e
+W1   0x24   rx_stat_bytes          0x0af95872
+W4   0x30   rx_stat_drop           0x00000000
+W20  0x70   mac_tx_frames          0x002be571
+W43  0xCC   mtx_stat_tx_words      0x22a33adf
+W51  0xEC   app_tx_bytes           0x0644d516
+W52  0xF0   app_tx_frames          0x002dfca7
+W54  0xF8   app_mismatch           0x00000007
+W55  0xFC   tx_stat_retx           0x00000007
+W83  0x16C  tx_p0_frames           0x002be571
+W84  0x170  tx_p1_frames           0x00021755
+W62  0x118  app_ctrl_rx_occ_bytes  0x00000000
+W70  0x138  mir_drop_bytes         0x00000000
+SNAP_END B2D_B_POST nff=0 stale_words=0
+NIC_B_DELTA bytes=156619714 packets=103175
+PIN_RULE=avoid-nic PIN_DEGRADED=none PIN_CPU=7 PIN_CORES_ONLINE=0-7 PIN_NIC_IFACE=enp1s0f0np0 PIN_NIC_CPUS=0,1,2,3,4,5 PIN_NIC_EXCLUDED=none PIN_CORE_LOAD=29470476 PIN_ALLOWED_MASK=80 PIN_GETCPU_START=7 PIN_FREQ_START_KHZ=3735829 PIN_GOV=schedutil PIN_NIC_IRQLINES=6 PIN_NIC_IFACE_SRC=auto PIN_TUPLE_ORDER=own_sib_t PIN_PAIR_RULE=load-only PIN_PAIR_DEGRADED=nic0-0 PIN_CPU_IO=6 PIN_CPU_WORK=5 PIN_PC_IO=2 PIN_PC_WORK=1 PIN_PAIR_EXCL=3 PIN_PAIR_REQ=want
+PIN_THREAD name=work PIN_TID_WORK=1299034 PIN_CPU_WORK=5 PIN_ALLOWED_MASK_WORK=20 PIN_GETCPU_WORK=5 CPU_FREQ_WORK_KHZ=3702510
+PIN_THREAD name=io PIN_TID_IO=1299033 PIN_CPU_IO=6 PIN_ALLOWED_MASK_IO=40 PIN_GETCPU_IO=6 CPU_FREQ_IO_KHZ=3768949
+SINK_CONN 0 OK bytes=200001020 first_mismatch=-1 mism_bytes=0 conn_ms=0.133 dur_ms=1486.330 Mbps=1076.482 reads=136986 poll_tmo=0 CPU_FREQ_KHZ=3800280 THREADED=on q_full_push=136986 q_full_pop=136986 q_free_push=137002 q_free_pop=136986 slot_wait_spins=0 checked_bytes=200001020
+SINK_SUM conns=1 fail_conns=0 bytes=200001020 clean_conns=1 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=1.487 net_s=1.486 agg_Mbps=1076.482 THREADED=on full_push=136986 full_pop=136986 free_push=137002 free_pop=136986 slot_wait_spins=0 checked_bytes=200001020 threads=2 check=lane8
+PIN_GETCPU_END=7 PIN_FREQ_END_KHZ=2600000
+=== B2B_DATA_END tag=B2D 1792330190.808369266
