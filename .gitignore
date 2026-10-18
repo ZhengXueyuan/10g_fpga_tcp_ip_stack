@@ -876,3 +876,9 @@ _proj_10g/notes/**/work/evidence/*fulltext*.txt
 _proj_10g/notes/*_synth/prj_*/
 # ---- B4 自审回取的全量 pcap 分片（1.9 GB；本地留档、不入库；raw/ 根下复算件仍入库）----
 _proj_10g/notes/p9_review_board_b4_20261016/raw/pcap/*.pcap*
+
+# ---- 2026-10-18: 根目录误落的构建/调试产物（P6 闸 B 归档已归位到 agent_docs/p6_verify/）----
+/_compile.txt
+/board_seq.txt
+/clockInfo.txt
+/tight_setup_hold_pins.txt
