@@ -1,0 +1,219 @@
+P11 GATE UNIT TEST (real Tcl blocks extracted from board/build_p7b_ku5p.tcl)
+tclsh = C:\Program Files\Git\mingw64\bin\tclsh.EXE
+build = D:\repo\XCKU5PMini\udp_hls_10g\board\build_p7b_ku5p.tcl
+
+=== rom_good : OK (rc=0 want=0)
+  needle P7B_HLS_ROM_LOG_HITS = 0                      found
+  needle HARNESS_END                                   found
+SEC P7B_HLS_ROM_LOG_GATE
+P7B_HLS_ROM_LOG_HITS = 0
+P7B_HLS_ROM_READ_OK = 3 (expect >= 3)
+HARNESS_END
+
+=== rom_uninit : OK (rc=1 want=1)
+  needle P7B_VERDICT = HLS_ROM_UNINIT                  found
+SEC P7B_HLS_ROM_LOG_GATE
+P7B_HLS_ROM_LOG_HIT CRITICAL WARNING: [Synth 8-4445] could not open $readmem data file './a.dat'
+P7B_HLS_ROM_LOG_HITS = 1
+P7B_HLS_ROM_READ_OK = 1 (expect >= 3)
+P7B_VERDICT = HLS_ROM_UNINIT
+
+=== rom_read_missing : OK (rc=1 want=1)
+  needle P7B_VERDICT = HLS_ROM_READ_MISSING            found
+SEC P7B_HLS_ROM_LOG_GATE
+P7B_HLS_ROM_LOG_HITS = 0
+P7B_HLS_ROM_READ_OK = 2 (expect >= 3)
+P7B_VERDICT = HLS_ROM_READ_MISSING
+
+=== rom_log_missing : OK (rc=1 want=1)
+  needle P7B_VERDICT = HLS_ROM_LOG_MISSING             found
+SEC P7B_HLS_ROM_LOG_GATE
+P7B_HLS_ROM_LOG_MISSING C:\Users\zhxue\AppData\Local\Temp\p11_gate_unit_bop9qq9s\does_not_exist.log
+P7B_VERDICT = HLS_ROM_LOG_MISSING
+
+=== tcb_pass : OK (rc=0 want=0)
+  needle P11_STA_TCB_MIN = 0.019                       found
+  needle P11_STA_TCB_GATE = PASS                       found
+  needle HARNESS_END                                   found
+SEC P11_STA_TCB_GATE
+P11_STA_TCB_A = 0.1
+P11_STA_TCB_A_SRC = {u_tcp_tx/u_fifo_a/rptr_reg\[.*\]/C}
+P11_STA_TCB_A_DST = {u_tcb/rcv_wnd_r_reg\[.*\]/CE}
+P11_STA_TCB_A_LVL = 16
+P11_STA_TCB_B = 0.1
+P11_STA_TCB_B_SRC = {u_tcp_tx/u_fifo_b/wptr_reg\[.*\]/C}
+P11_STA_TCB_B_DST = {u_tcb/snd_nxt_r_reg\[.*\]/CE}
+P11_STA_TCB_B_LVL = 16
+P11_STA_TCB_C = 0.1
+P11_STA_TCB_C_SRC = {u_tcp_tx/u_fifo_b/rptr_reg\[.*\]/C}
+P11_STA_TCB_C_DST = {u_tcb/snd_una_r_reg\[.*\]/CE}
+P11_STA_TCB_C_LVL = 16
+P11_STA_TCB_D = 0.1
+P11_STA_TCB_D_SRC = {u_tcp_tx/u_ackq/rptr_reg\[.*\]/C}
+P11_STA_TCB_D_DST = {u_tcb/rcv_wnd_r_reg\[.*\]/CE}
+P11_STA_TCB_D_LVL = 16
+P11_STA_TCB_E = 0.1
+P11_STA_TCB_E_SRC = {u_tcp_tx/u_fifo_b/wptr_reg\[.*\]/C}
+P11_STA_TCB_E_DST = {u_tcb/snd_wnd_r_reg\[.*\]/CE}
+P11_STA_TCB_E_LVL = 16
+P11_STA_TCB_F = 0.1
+P11_STA_TCB_F_SRC = {u_tcp_tx/u_fifo_b/rptr_reg\[.*\]/C}
+P11_STA_TCB_F_DST = {u_tcb/snd_wnd_r_reg\[.*\]/CE}
+P11_STA_TCB_F_LVL = 16
+P11_STA_TCB_A2 = 0.1
+P11_STA_TCB_A2_SRC = {u_tcp_tx2/u_fifo_a/rptr_reg\[.*\]/C}
+P11_STA_TCB_A2_DST = {u_tcb2/rcv_wnd_r_reg\[.*\]/CE}
+P11_STA_TCB_A2_LVL = 16
+P11_STA_TCB_B2 = 0.1
+P11_STA_TCB_B2_SRC = {u_tcp_tx2/u_fifo_b/wptr_reg\[.*\]/C}
+P11_STA_TCB_B2_DST = {u_tcb2/snd_nxt_r_reg\[.*\]/CE}
+P11_STA_TCB_B2_LVL = 16
+P11_STA_TCB_C2 = 0.1
+P11_STA_TCB_C2_SRC = {u_tcp_tx2/u_fifo_b/rptr_reg\[.*\]/C}
+P11_STA_TCB_C2_DST = {u_tcb2/snd_una_r_reg\[.*\]/CE}
+P11_STA_TCB_C2_LVL = 16
+P11_STA_TCB_D2 = 0.1
+P11_STA_TCB_D2_SRC = {u_tcp_tx2/u_ackq/rptr_reg\[.*\]/C}
+P11_STA_TCB_D2_DST = {u_tcb2/rcv_wnd_r_reg\[.*\]/CE}
+P11_STA_TCB_D2_LVL = 16
+P11_STA_TCB_E2 = 0.1
+P11_STA_TCB_E2_SRC = {u_tcp_tx2/u_fifo_b/wptr_reg\[.*\]/C}
+P11_STA_TCB_E2_DST = {u_tcb2/snd_wnd_r_reg\[.*\]/CE}
+P11_STA_TCB_E2_LVL = 16
+P11_STA_TCB_F2 = 0.1
+P11_STA_TCB_F2_SRC = {u_tcp_tx2/u_fifo_b/rptr_reg\[.*\]/C}
+P11_STA_TCB_F2_DST = {u_tcb2/snd_wnd_r_reg\[.*\]/CE}
+P11_STA_TCB_F2_LVL = 16
+P11_STA_TCB_G2 = 0.019
+P11_STA_TCB_G2_SRC = {u_tcp_tx2/u_fifo_b/rptr_reg\[.*\]/C}
+P11_STA_TCB_G2_DST = {u_tcb2/rcv_wnd_r_reg\[.*\]/CE}
+P11_STA_TCB_G2_LVL = 16
+P11_STA_TCB_MIN = 0.019
+P11_STA_TCB_GATE = PASS
+HARNESS_END
+
+=== tcb_missing_pin : OK (rc=1 want=1)
+  needle P11_STA_TCB_GATE = FAIL (family pins missing) found
+SEC P11_STA_TCB_GATE
+P11_STA_TCB_A = 0.1
+P11_STA_TCB_A_SRC = {u_tcp_tx/u_fifo_a/rptr_reg\[.*\]/C}
+P11_STA_TCB_A_DST = {u_tcb/rcv_wnd_r_reg\[.*\]/CE}
+P11_STA_TCB_A_LVL = 16
+P11_STA_TCB_B = 0.1
+P11_STA_TCB_B_SRC = {u_tcp_tx/u_fifo_b/wptr_reg\[.*\]/C}
+P11_STA_TCB_B_DST = {u_tcb/snd_nxt_r_reg\[.*\]/CE}
+P11_STA_TCB_B_LVL = 16
+P11_STA_TCB_C = 0.1
+P11_STA_TCB_C_SRC = {u_tcp_tx/u_fifo_b/rptr_reg\[.*\]/C}
+P11_STA_TCB_C_DST = {u_tcb/snd_una_r_reg\[.*\]/CE}
+P11_STA_TCB_C_LVL = 16
+P11_STA_TCB_D = 0.1
+P11_STA_TCB_D_SRC = {u_tcp_tx/u_ackq/rptr_reg\[.*\]/C}
+P11_STA_TCB_D_DST = {u_tcb/rcv_wnd_r_reg\[.*\]/CE}
+P11_STA_TCB_D_LVL = 16
+P11_STA_TCB_E = 0.1
+P11_STA_TCB_E_SRC = {u_tcp_tx/u_fifo_b/wptr_reg\[.*\]/C}
+P11_STA_TCB_E_DST = {u_tcb/snd_wnd_r_reg\[.*\]/CE}
+P11_STA_TCB_E_LVL = 16
+P11_STA_TCB_F = 0.1
+P11_STA_TCB_F_SRC = {u_tcp_tx/u_fifo_b/rptr_reg\[.*\]/C}
+P11_STA_TCB_F_DST = {u_tcb/snd_wnd_r_reg\[.*\]/CE}
+P11_STA_TCB_F_LVL = 16
+P11_STA_TCB_A2 = NA (pins from=0 to=1)
+P11_STA_TCB_B2 = 0.1
+P11_STA_TCB_B2_SRC = {u_tcp_tx2/u_fifo_b/wptr_reg\[.*\]/C}
+P11_STA_TCB_B2_DST = {u_tcb2/snd_nxt_r_reg\[.*\]/CE}
+P11_STA_TCB_B2_LVL = 16
+P11_STA_TCB_C2 = 0.1
+P11_STA_TCB_C2_SRC = {u_tcp_tx2/u_fifo_b/rptr_reg\[.*\]/C}
+P11_STA_TCB_C2_DST = {u_tcb2/snd_una_r_reg\[.*\]/CE}
+P11_STA_TCB_C2_LVL = 16
+P11_STA_TCB_D2 = 0.1
+P11_STA_TCB_D2_SRC = {u_tcp_tx2/u_ackq/rptr_reg\[.*\]/C}
+P11_STA_TCB_D2_DST = {u_tcb2/rcv_wnd_r_reg\[.*\]/CE}
+P11_STA_TCB_D2_LVL = 16
+P11_STA_TCB_E2 = 0.1
+P11_STA_TCB_E2_SRC = {u_tcp_tx2/u_fifo_b/wptr_reg\[.*\]/C}
+P11_STA_TCB_E2_DST = {u_tcb2/snd_wnd_r_reg\[.*\]/CE}
+P11_STA_TCB_E2_LVL = 16
+P11_STA_TCB_F2 = 0.1
+P11_STA_TCB_F2_SRC = {u_tcp_tx2/u_fifo_b/rptr_reg\[.*\]/C}
+P11_STA_TCB_F2_DST = {u_tcb2/snd_wnd_r_reg\[.*\]/CE}
+P11_STA_TCB_F2_LVL = 16
+P11_STA_TCB_G2 = 0.019
+P11_STA_TCB_G2_SRC = {u_tcp_tx2/u_fifo_b/rptr_reg\[.*\]/C}
+P11_STA_TCB_G2_DST = {u_tcb2/rcv_wnd_r_reg\[.*\]/CE}
+P11_STA_TCB_G2_LVL = 16
+P11_STA_TCB_MIN = 0.019
+P11_STA_TCB_GATE = FAIL (family pins missing)
+P7B_BIT_QUARANTINED = C:\Users\zhxue\AppData\Local\Temp\p11_gate_unit_bop9qq9s/vivado_prj/p7b_ku5p_prj.runs/impl_1/wrapper_p4.bit.STA_FAMILY_FAIL
+P7B_VERDICT = STA_FAMILY_FAIL
+
+=== tcb_negative_slack : OK (rc=1 want=1)
+  needle P11_STA_TCB_GATE = FAIL (min=-0.01 < 0.0)     found
+SEC P11_STA_TCB_GATE
+P11_STA_TCB_A = -0.01
+P11_STA_TCB_A_SRC = {u_tcp_tx/u_fifo_a/rptr_reg\[.*\]/C}
+P11_STA_TCB_A_DST = {u_tcb/rcv_wnd_r_reg\[.*\]/CE}
+P11_STA_TCB_A_LVL = 16
+P11_STA_TCB_B = -0.01
+P11_STA_TCB_B_SRC = {u_tcp_tx/u_fifo_b/wptr_reg\[.*\]/C}
+P11_STA_TCB_B_DST = {u_tcb/snd_nxt_r_reg\[.*\]/CE}
+P11_STA_TCB_B_LVL = 16
+P11_STA_TCB_C = -0.01
+P11_STA_TCB_C_SRC = {u_tcp_tx/u_fifo_b/rptr_reg\[.*\]/C}
+P11_STA_TCB_C_DST = {u_tcb/snd_una_r_reg\[.*\]/CE}
+P11_STA_TCB_C_LVL = 16
+P11_STA_TCB_D = -0.01
+P11_STA_TCB_D_SRC = {u_tcp_tx/u_ackq/rptr_reg\[.*\]/C}
+P11_STA_TCB_D_DST = {u_tcb/rcv_wnd_r_reg\[.*\]/CE}
+P11_STA_TCB_D_LVL = 16
+P11_STA_TCB_E = -0.01
+P11_STA_TCB_E_SRC = {u_tcp_tx/u_fifo_b/wptr_reg\[.*\]/C}
+P11_STA_TCB_E_DST = {u_tcb/snd_wnd_r_reg\[.*\]/CE}
+P11_STA_TCB_E_LVL = 16
+P11_STA_TCB_F = -0.01
+P11_STA_TCB_F_SRC = {u_tcp_tx/u_fifo_b/rptr_reg\[.*\]/C}
+P11_STA_TCB_F_DST = {u_tcb/snd_wnd_r_reg\[.*\]/CE}
+P11_STA_TCB_F_LVL = 16
+P11_STA_TCB_A2 = -0.01
+P11_STA_TCB_A2_SRC = {u_tcp_tx2/u_fifo_a/rptr_reg\[.*\]/C}
+P11_STA_TCB_A2_DST = {u_tcb2/rcv_wnd_r_reg\[.*\]/CE}
+P11_STA_TCB_A2_LVL = 16
+P11_STA_TCB_B2 = -0.01
+P11_STA_TCB_B2_SRC = {u_tcp_tx2/u_fifo_b/wptr_reg\[.*\]/C}
+P11_STA_TCB_B2_DST = {u_tcb2/snd_nxt_r_reg\[.*\]/CE}
+P11_STA_TCB_B2_LVL = 16
+P11_STA_TCB_C2 = -0.01
+P11_STA_TCB_C2_SRC = {u_tcp_tx2/u_fifo_b/rptr_reg\[.*\]/C}
+P11_STA_TCB_C2_DST = {u_tcb2/snd_una_r_reg\[.*\]/CE}
+P11_STA_TCB_C2_LVL = 16
+P11_STA_TCB_D2 = -0.01
+P11_STA_TCB_D2_SRC = {u_tcp_tx2/u_ackq/rptr_reg\[.*\]/C}
+P11_STA_TCB_D2_DST = {u_tcb2/rcv_wnd_r_reg\[.*\]/CE}
+P11_STA_TCB_D2_LVL = 16
+P11_STA_TCB_E2 = -0.01
+P11_STA_TCB_E2_SRC = {u_tcp_tx2/u_fifo_b/wptr_reg\[.*\]/C}
+P11_STA_TCB_E2_DST = {u_tcb2/snd_wnd_r_reg\[.*\]/CE}
+P11_STA_TCB_E2_LVL = 16
+P11_STA_TCB_F2 = -0.01
+P11_STA_TCB_F2_SRC = {u_tcp_tx2/u_fifo_b/rptr_reg\[.*\]/C}
+P11_STA_TCB_F2_DST = {u_tcb2/snd_wnd_r_reg\[.*\]/CE}
+P11_STA_TCB_F2_LVL = 16
+P11_STA_TCB_G2 = -0.01
+P11_STA_TCB_G2_SRC = {u_tcp_tx2/u_fifo_b/rptr_reg\[.*\]/C}
+P11_STA_TCB_G2_DST = {u_tcb2/rcv_wnd_r_reg\[.*\]/CE}
+P11_STA_TCB_G2_LVL = 16
+P11_STA_TCB_MIN = -0.01
+P11_STA_TCB_GATE = FAIL (min=-0.01 < 0.0)
+P7B_BIT_QUARANTINED = C:\Users\zhxue\AppData\Local\Temp\p11_gate_unit_bop9qq9s/vivado_prj/p7b_ku5p_prj.runs/impl_1/wrapper_p4.bit.STA_FAMILY_FAIL
+P7B_VERDICT = STA_FAMILY_FAIL
+
+=== tcb_non_c4_skip : OK (rc=0 want=0)
+  needle P11_STA_TCB_GATE = SKIP (non-c4)              found
+  needle HARNESS_END                                   found
+SEC P11_STA_TCB_GATE
+P11_STA_TCB_GATE = SKIP (non-c4)
+HARNESS_END
+
+GATE_UNIT_TEST = PASS

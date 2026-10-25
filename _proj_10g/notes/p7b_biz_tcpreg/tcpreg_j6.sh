@@ -67,13 +67,14 @@ cd /tmp/p7b_biz || exit 9
 #   ⛔ 2026-10-10 (构建 C 门同步轮): 本轮之前门里只列了 61/8 与 63/9 两档, 而 `NW` 默认早已随
 #      构建抬到 65 ⇒ **默认跑必然 J6_GEOM_FAIL + exit 3** (新位流测不了)。现在档表是唯一来源。
 NW=${NW:-85}
-EXPECT_BID=${EXPECT_BID:-0x0000002D}   # 2026-10-18 0x2D backstop-2 (85 字; 原 0x2C = P2-甲未烧板 / 0x2B = P11 P1 / 0x2A = p9 孤儿修复 / 0x29 = 0x29 拆刀)
+EXPECT_BID=${EXPECT_BID:-0x00000032}   # 2026-10-18 0x2D backstop-2 (85 字; 原 0x2C = P2-甲未烧板 / 0x2B = P11 P1 / 0x2A = p9 孤儿修复 / 0x29 = 0x29 拆刀)
 export NW EXPECT_BID        # ⚠️ 必须 export: 取数器 p7b_snap.sh 读的是**它自己的环境**
 # 十六进制**大小写归一** (只用于比较, 打印仍用原样; 判据语义零改动 —— 先例 = p7b_snap.sh 的
 #   Stage C 订正 / j6_r6fix.sh 的 geom_gate 块: `reg_rw` 打小写而期望值写大写时字符串比较必假红)
 norm(){ printf "%s" "$1" | tr "A-F" "a-f"; }
 # 档表格式: "NW|BID|WEXTRA|说明"  (WEXTRA 空 = t0/t1 字表退回 5 20 43 53 54)
 GEOM_TIERS=(
+  "85|0x00000032|61 62|P11 0x32 (2026-10-26) 85 字 / BID 0x32 (HLS ROM 初始化修复; 几何同 0x2D; W83/W84 = 每口 TX 帧数; MIR 0x174..0x180; 未实现地址 0x184)"
   "85|0x0000002D|61 62|0x2D backstop-2 (2026-10-18) 85 字 / BID 0x2D (W85/W86/W87 已删; W83/W84 = 每口 TX 帧数保留; MIR 0x174..0x180; 未实现地址 0x184)"
   "88|0x0000002D|61 62|P11 F-21 修复 (2026-10-18) 88 字 / BID 0x2D (W83..W87 改经 p7bdp CDC; 几何同 0x2C: W83/W84 = 每口 TX 帧数 / W85 = classify 总帧 / W86 = ch0 FIFO ovf / W87 = ch0 MAC TX; 未实现地址 0x190)"
   "88|0x0000002C|61 62|P11 P2-甲 双口+双 IP (2026-10-18) 88 字 / BID 0x2C (双 SFP+ 数据面接入: W83/W84 = 每口 TX 帧数 / W85 = classify 总帧 / W86 = ch0 FIFO ovf / W87 = ch0 MAC TX; **几何变**: 83 -> 88 字, 未实现地址 0x17C -> 0x190)"

@@ -1,0 +1,12 @@
+QUARANTINED 2026-10-26: 0x31 bitstreams are functionally invalid.
+Reason: HLS $readmem .dat files were not copied into the imported HLS dir;
+  synth log had 3x "Synth 8-4445 could not open $readmem" and rom0 no-driver;
+  board 0x31: W7=0 / W20=0 / W18 increments per request => slow_tx_adp purges all HLS TX.
+Evidence: _proj_10g/notes/p11_fix_0x31_rom_0x32_20261026/evidence/0x31_SYNTH_ROM_HITS.txt
+Fix build: 0x32 (BID 0x32) with P11_HLS_DAT_COPIED=3 and P7B_HLS_ROM_LOG_HITS=0.
+Do NOT burn these files.
+Additional 0x31 copies quarantined 2026-10-26:
+  _proj_10g/notes/p11_board_p3_0x31_20261026/burn/wrapper_p4_0x31.bit.HLS_ROM_FAIL  (420ddad5…)
+  _proj_10g/notes/p7b_build_archive/20261026_014842/wrapper_p4.bit.HLS_ROM_FAIL       (420ddad5…)
+  _proj_10g/notes/p7b_build_archive/20261025_221252/wrapper_p4.bit.HLS_ROM_FAIL       (4dce8d99…)
+Any *.HLS_ROM_FAIL must not be programmed; the only valid candidate is bits/wrapper_p4_0x32.bit (cee8acfd…).

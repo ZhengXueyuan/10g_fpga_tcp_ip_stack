@@ -1,0 +1,9 @@
+0x31 hits = 6 (expect > 0); 8-3876 reads = 0 (expect 0)
+  HIT 1352: CRITICAL WARNING: [Synth 8-4445] could not open $readmem data file './udp_echo_mac_tx_process_preamble_ROM_AUTO_1R.dat'; please make sure the file is added to project and has read 
+  HIT 1358: CRITICAL WARNING: [Synth 8-4445] could not open $readmem data file './udp_echo_mac_tx_process_src_mac_ROM_AUTO_1R.dat'; please make sure the file is added to project and has read p
+  HIT 1548: CRITICAL WARNING: [Synth 8-4445] could not open $readmem data file './udp_echo_arp_dump_Pipeline_VITIS_LOOP_223_1_p_const_ZZL8arp_dumpRN3hls6streamI11gmii_bcud.dat'; please make su
+  HIT 1699: INFO: [Synth 8-3848] Net rom0 in module/entity udp_echo_mac_tx_process_preamble_ROM_AUTO_1R does not have driver. [D:/repo/XCKU5PMini/udp_hls_10g/vivado_prj/p7b_ku5p_prj.srcs/sourc
+  HIT 1700: INFO: [Synth 8-3848] Net rom0 in module/entity udp_echo_mac_tx_process_src_mac_ROM_AUTO_1R does not have driver. [D:/repo/XCKU5PMini/udp_hls_10g/vivado_prj/p7b_ku5p_prj.srcs/source
+  HIT 1732: INFO: [Synth 8-3848] Net rom0 in module/entity udp_echo_arp_dump_Pipeline_VITIS_LOOP_223_1_p_const_ZZL8arp_dumpRN3hls6streamI11gmii_bcud does not have driver. [D:/repo/XCKU5PMini/u
+0x32 hits = 0 (expect 0); 8-3876 reads = 3 (expect 3)
+HLS_ROM_GATE_CONTROL = PASS

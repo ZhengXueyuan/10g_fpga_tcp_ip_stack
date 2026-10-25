@@ -1,0 +1,15 @@
+SNAP_BEGIN D9_AFTER gen=10 status=0x000a0056
+SNAP_STATUS gen=10 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W51  0xEC   app_tx_bytes           0xa81b8f53
+W52  0xF0   app_tx_frames          0x00d106f9
+W54  0xF8   app_mismatch           0x00000000
+W55  0xFC   tx_stat_retx           0x000001ec
+W62  0x118  app_ctrl_rx_occ_bytes  0x00000000
+W63  0x11C  app_frmwait_cyc        0x00636895
+W64  0x120  app_bp_cyc             0x6120a70f
+W66  0x128  tx_stat_winstall       0x589185ee
+W67  0x12C  tx_winstall_cap        0x52fc17cc
+W69  0x134  tx_win_at_winstall     0xf53cf000
+W83  0x16C  tx_p0_frames           0x00d144b8
+W84  0x170  tx_p1_frames           0x016e0daa
+SNAP_END D9_AFTER nff=0 stale_words=0

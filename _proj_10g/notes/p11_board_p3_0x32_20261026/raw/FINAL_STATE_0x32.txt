@@ -1,0 +1,103 @@
+=== ID ===
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x00000032   (want 0x00000032 = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1792954699.733137206
+ID_RC=0
+=== FULL ===
+SNAP_BEGIN FINAL_0x32 gen=8 status=0x00080056
+SNAP_STATUS gen=8 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x000eaca9
+W1   0x24   rx_stat_bytes          0x03ab2af2
+W2   0x28   wl_last_lastframelen   0x0000005e
+W3   0x2C   rx_stat_crc_err        0x00000000
+W4   0x30   rx_stat_drop           0x00000000
+W5   0x34   gmii_free_FE           0xe3c0193e
+W6   0x38   srx_stat_commit        0x00000058
+W7   0x3C   stx_stat_frames        0x00000015
+W8   0x40   udpapp_tx_frames       0x00000000
+W9   0x44   udpapp_tx_bytes        0x00000000
+W10  0x48   udpapp_rx_frames       0x00000000
+W11  0x4C   udpapp_rx_bytes        0x00000000
+W12  0x50   udpapp_rx_null         0x00000000
+W13  0x54   udpapp_mismatch        0x00000000
+W14  0x58   tx_stat_frames_TCP     0x0068bb96
+W15  0x5C   tx_stat_bytes_TCP      0x554db960
+W16  0x60   srx_hls_bytes          0x0000192a
+W17  0x64   hr_cnt_hlsreset        0x00000000
+W18  0x68   stx_stat_purge         0x00000000
+W19  0x6C   srx_stat_drop          0x00000000
+W20  0x70   mac_tx_frames          0x0068bb9f
+W21  0x74   tx_stat_abort          0x00000000
+W22  0x78   rx_stat_pass_TCP       0x000eac93
+W23  0x7C   rx_stat_nonmatch_TCP   0x00000000
+W24  0x80   dp_free_DP             0xe3d87831
+W25  0x84   mmcm_locked            0x00000001
+W26  0x88   rxcdc_full_cycles      0x00000003
+W27  0x8C   rxcdc_occ_max          0x00000006
+W28  0x90   txcdc_occ_max          0x00000024
+W29  0x94   txwire_stall_cycles    0x00000000
+W30  0x98   rxcdc_out_frames       0x000eaca9
+W31  0x9C   rxcdc_out_bytes        0x0370784e
+W32  0xA0   rx_stat_drop_partial   0x00000000
+W33  0xA4   rx_stat_orphan_bytes   0x00000000
+W34  0xA8   rx_stat_drop_full      0x00000000
+W35  0xAC   rx_stat_fifo_ovf       0x00000000
+W36  0xB0   mrx_stat_rx_words      0xe3c0127c
+W37  0xB4   mrx_stat_rx_pay_bytes  0x0370784e
+W38  0xB8   rxcdc_ovf_cnt          0x00000000
+W39  0xBC   pcs_status_bundle      0x2000100c
+W40  0xC0   pcs_evt_bundle         0x000000ff
+W41  0xC4   mtx_stat_flush_words   0x00000000
+W42  0xC8   mtx_stat_flush_done    0x00000000
+W43  0xCC   mtx_stat_tx_words      0xe3bd56a2
+W44  0xD0   mtx_stat_tx_ctrl_char  0xae0553ab
+W45  0xD4   txcdc_ovf_cnt          0x00000000
+W46  0xD8   cls_dbg_stat_ovf       0x00000000
+W47  0xDC   cls_dbg_stat_route_ovf 0x00000000
+W48  0xE0   cls_dbg_stat_stall_in  0x00000000
+W49  0xE4   cls_dbg_occ            0x00000000
+W50  0xE8   tx_clk_act             0xe052d1c1
+W51  0xEC   app_tx_bytes           0x540ea938
+W52  0xF0   app_tx_frames          0x006883a4
+W53  0xF4   app_rx_bytes           0x00000000
+W54  0xF8   app_mismatch           0x00000000
+W55  0xFC   tx_stat_retx           0x000001b9
+W56  0x100  udpapp_tx_ovf          0x00000000
+W57  0x104  tx_retx_hi             0x37d902a7
+W58  0x108  tx_retx_active         0x00000000
+W59  0x10C  stx_stat_fifo_ovf      0x00000000
+W60  0x110  srx_stat_fifo_ovf      0x00000000
+W61  0x114  app_ctrl_stat_wu       0x00000000
+W62  0x118  app_ctrl_rx_occ_bytes  0x00000000
+W63  0x11C  app_frmwait_cyc        0x003ea9c1
+W64  0x120  app_bp_cyc             0x5a27ddf7
+W65  0x124  mac_tx_idle            0x94c7ecdb
+W66  0x128  tx_stat_winstall       0x5335d5d5
+W67  0x12C  tx_winstall_cap        0x4dfc66fc
+W68  0x130  rx_stat_ack_adv        0x000e798c
+W69  0x134  tx_win_at_winstall     0xf53cf000
+W70  0x138  mir_drop_bytes         0x00000000
+W71  0x13C  app_stat_up_ev         0x00000002
+W72  0x140  app_stat_sw_req        0x00000000
+W73  0x144  app_stat_sw_apply      0x00000002
+W74  0x148  app_stat_up_pend       0x00000000
+W75  0x14C  app_stat_orphan        0x00000000
+W76  0x150  ch0_pcs_status         0x2000100c
+W77  0x154  ch0_pcs_evt            0x00010026
+W78  0x158  ch0_los_mode           0x00000000
+W79  0x15C  ch0_rx_frames          0x0032d38b
+W80  0x160  ch0_rx_bytes           0x0be995ac
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+W83  0x16C  tx_p0_frames           0x0068bb9f
+W84  0x170  tx_p1_frames           0x010585bb
+SNAP_END FINAL_0x32 nff=0 stale_words=0
+=== PCIe ===
+	Region 0: Memory at df200000 (32-bit, non-prefetchable) [size=1M]
+	Region 1: Memory at df300000 (32-bit, non-prefetchable) [size=64K]
+		LnkSta:	Speed 5GT/s (downgraded), Width x4
+CARRIER_P1=1
+CARRIER_P0=1
+SCRATCH_0x08=0x00000000

@@ -52,11 +52,30 @@ import_files -norecurse ${root_dir}/rtl/crc32_8b.v \
 import_files -norecurse ${script_dir}/wrapper_p4.v ${script_dir}/util_gmii_to_rgmii.v \
                          ${script_dir}/uart_dbg.v
 import_files -norecurse [glob -nocomplain ${hls_dir}/*.v]
-set src_dir [file dirname [lindex [glob -nocomplain ${root_dir}/vivado_prj/${project_name}.srcs/sources_1/imports/verilog/udp_echo.v] 0]]
-if {$src_dir eq ""} {
-    set src_dir [file dirname [lindex [glob -nocomplain ${root_dir}/vivado_prj/${project_name}.srcs/sources_1/imports/*/udp_echo.v] 0]]
+# HLS $readmemh 系数文件必须与导入后的 verilog 同目录 (综合按相对路径找)
+# 2026-10-26: 旧回退式 `imports/verilog/udp_echo.v` 在归档式 HLS 目录下会把
+#   `file dirname ""` 变成 "." ⇒ .dat 拷到 CWD、综合读不到 (0x31 板级根因).
+#   改为"全 imports 唯一命中" + 硬失败, 不再有 "." 回退.
+set hls_imp_hits [glob -nocomplain ${root_dir}/vivado_prj/${project_name}.srcs/sources_1/imports/*/udp_echo.v]
+if {[llength $hls_imp_hits] != 1} {
+    puts "HLS_IMPORT_DIR_HITS = [llength $hls_imp_hits]"
+    puts "P7B_VERDICT = HLS_IMPORT_DIR_MISSING"
+    exit 1
 }
-foreach dat [glob -nocomplain ${hls_dir}/*.dat] { file copy -force $dat $src_dir/ }
+set src_dir [file dirname [lindex $hls_imp_hits 0]]
+foreach dat [glob -nocomplain ${hls_dir}/*.dat] {
+    set dst [file join $src_dir [file tail $dat]]
+    if {[catch {file copy -force $dat $dst} e]} {
+        puts "HLS_DAT_COPY_FAIL $dat -> $dst : $e"
+        puts "P7B_VERDICT = HLS_DAT_COPY_FAIL"
+        exit 1
+    }
+    if {![file exists $dst] || [file size $dst] != [file size $dat]} {
+        puts "HLS_DAT_COPY_VERIFY_FAIL $dst"
+        puts "P7B_VERDICT = HLS_DAT_COPY_VERIFY_FAIL"
+        exit 1
+    }
+}
 add_files -fileset constrs_1 ${script_dir}/eco_rgmii_phy1.xdc
 set_property verilog_define APP_MODE=1 [current_fileset]
 set_property top $top_module [current_fileset]

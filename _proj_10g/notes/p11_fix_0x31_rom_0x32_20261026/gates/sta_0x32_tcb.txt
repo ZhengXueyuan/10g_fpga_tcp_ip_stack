@@ -1,0 +1,163 @@
+
+****** Vivado v2025.2 (64-bit)
+  **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+  **** Start of session at: Mon Oct 26 02:37:09 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source {D:\repo\XCKU5PMini\udp_hls_10g\board\p11_sta_tcb_probe.tcl}
+# if {![info exists ::env(P11_STA_DCP)] || $::env(P11_STA_DCP) eq ""} {
+#     puts "P11_STA_DCP_MISSING"
+#     exit 2
+# }
+# set dcp $::env(P11_STA_DCP)
+# set minns 0.0
+# if {[info exists ::env(P11_STA_MIN_NS)] && $::env(P11_STA_MIN_NS) ne ""} {
+#     set minns [expr {double($::env(P11_STA_MIN_NS))}]
+# }
+# puts "P11_STA_DCP = $dcp"
+P11_STA_DCP = D:/repo/XCKU5PMini/udp_hls_10g/vivado_prj/p7b_ku5p_prj.runs/impl_1/wrapper_p4_routed.dcp
+# puts "P11_STA_MIN_NS = $minns"
+P11_STA_MIN_NS = 0.0
+# open_checkpoint $dcp
+Command: open_checkpoint D:/repo/XCKU5PMini/udp_hls_10g/vivado_prj/p7b_ku5p_prj.runs/impl_1/wrapper_p4_routed.dcp
+
+Starting open_checkpoint Task
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.025 . Memory (MB): peak = 328.844 ; gain = 6.613
+INFO: [Device 21-403] Loading part xcku5p-ffvb676-1-e
+Netlist sorting complete. Time (s): cpu = 00:00:01 ; elapsed = 00:00:01 . Memory (MB): peak = 1769.125 ; gain = 1.746
+INFO: [Netlist 29-17] Analyzing 12856 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 3 CPU seconds
+INFO: [Project 1-479] Netlist was created with Vivado 2025.2
+INFO: [Project 1-570] Preparing netlist for logic optimization
+Read ShapeDB Complete: Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.296 . Memory (MB): peak = 2039.992 ; gain = 54.652
+INFO: [Timing 38-478] Restoring timing data from binary archive.
+INFO: [Timing 38-479] Binary timing data restore complete.
+INFO: [Project 1-856] Restoring constraints from binary archive.
+INFO: [Constraints 18-5170] The checkpoint was created with non-default parameter values which do not match the current Vivado settings.  Mismatching parameters are:
+  general.maxThreads
+INFO: [Project 1-853] Binary constraint restore complete.
+INFO: [Designutils 20-5722] Start Reading Physical Databases.
+Reading placement.
+Read Netlist Cache: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.142 . Memory (MB): peak = 4404.891 ; gain = 0.000
+Reading placer database...
+Read Device Cache: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.024 . Memory (MB): peak = 4404.891 ; gain = 0.000
+Read PlaceDB: Time (s): cpu = 00:00:05 ; elapsed = 00:00:04 . Memory (MB): peak = 4404.891 ; gain = 0.000
+Read PulsedLatchDB: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 4404.891 ; gain = 0.000
+Reading routing.
+Read RouteStorage: Time (s): cpu = 00:00:03 ; elapsed = 00:00:02 . Memory (MB): peak = 4404.891 ; gain = 0.000
+Read Physdb Files: Time (s): cpu = 00:00:08 ; elapsed = 00:00:06 . Memory (MB): peak = 4404.891 ; gain = 0.000
+Restored from archive | CPU: 8.000000 secs | Memory: 0.000000 MB |
+Finished XDEF File Restore: Time (s): cpu = 00:00:08 ; elapsed = 00:00:07 . Memory (MB): peak = 4404.891 ; gain = 0.000
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.067 . Memory (MB): peak = 4404.891 ; gain = 0.000
+INFO: [Project 1-111] Unisim Transformation Summary:
+  A total of 2509 instances were transformed.
+  BUFG => BUFGCE: 1 instance 
+  DSP48E2 => DSP48E2 (DSP_ALU, DSP_A_B_DATA, DSP_C_DATA, DSP_MULTIPLIER, DSP_M_DATA, DSP_OUTPUT, DSP_PREADD, DSP_PREADD_DATA): 4 instances
+  IBUF => IBUF (IBUFCTRL, INBUF): 3 instances
+  IBUFDS => IBUFDS (DIFFINBUF, IBUFCTRL): 1 instance 
+  RAM16X1D => RAM32X1D (RAMD32(x2)): 35 instances
+  RAM16X1S => RAM32X1S (RAMS32): 208 instances
+  RAM256X1S => RAM256X1S (MUXF7(x2), MUXF8, RAMS64E(x4)): 8 instances
+  RAM32M => RAM32M (RAMD32(x6), RAMS32(x2)): 48 instances
+  RAM32M16 => RAM32M16 (RAMD32(x14), RAMS32(x2)): 185 instances
+  RAM32X1D => RAM32X1D (RAMD32(x2)): 13 instances
+  RAM64M => RAM64M (RAMD64E(x4)): 649 instances
+  RAM64M8 => RAM64M8 (RAMD64E(x8)): 1222 instances
+  RAM64X1D => RAM64X1D (RAMD64E(x2)): 132 instances
+
+INFO: [Project 1-604] Checkpoint was created with Vivado v2025.2 (64-bit) build 6299465
+WARNING: [Vivado 12-23575] Critical violations of the methodology design rules detected. Critical violations may contribute to timing failures or cause functional issues in hardware. Run report_methodology for more information.
+open_checkpoint: Time (s): cpu = 00:01:17 ; elapsed = 00:01:04 . Memory (MB): peak = 4404.891 ; gain = 4091.371
+get_timing_paths: Time (s): cpu = 00:01:05 ; elapsed = 00:00:42 . Memory (MB): peak = 4674.914 ; gain = 270.023
+# set gwns [get_property SLACK [get_timing_paths -delay_type max]]
+# puts "P11_STA_GLOBAL_WNS = $gwns"
+P11_STA_GLOBAL_WNS = 0.019
+# set fams [list \
+#     A {u_tcp_tx/u_fifo_a/rptr_reg\[.*\]/C} {u_tcb/rcv_wnd_r_reg\[.*\]/CE} \
+#     B {u_tcp_tx/u_fifo_b/wptr_reg\[.*\]/C} {u_tcb/snd_nxt_r_reg\[.*\]/CE} \
+#     C {u_tcp_tx/u_fifo_b/rptr_reg\[.*\]/C} {u_tcb/snd_una_r_reg\[.*\]/CE} \
+#     D {u_tcp_tx/u_ackq/rptr_reg\[.*\]/C} {u_tcb/rcv_wnd_r_reg\[.*\]/CE} \
+#     E {u_tcp_tx/u_fifo_b/wptr_reg\[.*\]/C} {u_tcb/snd_wnd_r_reg\[.*\]/CE} \
+#     F {u_tcp_tx/u_fifo_b/rptr_reg\[.*\]/C} {u_tcb/snd_wnd_r_reg\[.*\]/CE} \
+#     MGR_REL {u_app_ctrl/c_rcv_nxt_reg\[.*\]/C} {u_win_pool/.*/D} \
+#     MGR_UP0 {u_slow_cfg/ev_up_reg/C} {u_win_pool/.*/D} \
+#     MGR_UP1 {u_slow_cfg2/ev_up_reg/C} {u_win_pool/.*/D}]
+# set tcb_min 999.0
+# set tcb_na  0
+# foreach {tag fpat tpat} $fams {
+#     set fp [get_pins -hier -quiet -regexp $fpat]
+#     set tp [get_pins -hier -quiet -regexp $tpat]
+#     if {[llength $fp] > 0 && [llength $tp] > 0} {
+#         set path [get_timing_paths -from $fp -to $tp -max_paths 1 -delay_type max]
+#         if {[llength $path] > 0} {
+#             set sl [get_property SLACK [lindex $path 0]]
+#             puts "P11_STA_${tag} = $sl"
+#             puts "P11_STA_${tag}_SRC = [get_property STARTPOINT_PIN [lindex $path 0]]"
+#             puts "P11_STA_${tag}_DST = [get_property ENDPOINT_PIN [lindex $path 0]]"
+#             puts "P11_STA_${tag}_LVL = [get_property LOGIC_LEVELS [lindex $path 0]]"
+#             if {[lsearch -exact {A B C D E F} $tag] >= 0} {
+#                 if {$sl < $tcb_min} { set tcb_min $sl }
+#             }
+#         } else {
+#             puts "P11_STA_${tag} = NA (no path)"
+#             if {[lsearch -exact {A B C D E F} $tag] >= 0} { set tcb_na 1 }
+#         }
+#     } else {
+#         puts "P11_STA_${tag} = NA (pins from=[llength $fp] to=[llength $tp])"
+#         if {[lsearch -exact {A B C D E F} $tag] >= 0} { set tcb_na 1 }
+#     }
+# }
+P11_STA_A = 0.133
+P11_STA_A_SRC = u_tcp_tx/u_fifo_a/rptr_reg[2]/C
+P11_STA_A_DST = u_tcb/rcv_wnd_r_reg[0][0]/CE
+P11_STA_A_LVL = 16
+P11_STA_B = 0.115
+P11_STA_B_SRC = u_tcp_tx/u_fifo_b/wptr_reg[3]/C
+P11_STA_B_DST = u_tcb/snd_nxt_r_reg[12][21]/CE
+P11_STA_B_LVL = 16
+P11_STA_C = 0.164
+P11_STA_C_SRC = u_tcp_tx/u_fifo_b/rptr_reg[3]/C
+P11_STA_C_DST = u_tcb/snd_una_r_reg[8][11]/CE
+P11_STA_C_LVL = 16
+P11_STA_D = 0.607
+P11_STA_D_SRC = u_tcp_tx/u_ackq/rptr_reg[2]/C
+P11_STA_D_DST = u_tcb/rcv_wnd_r_reg[0][0]/CE
+P11_STA_D_LVL = 15
+P11_STA_E = 0.276
+P11_STA_E_SRC = u_tcp_tx/u_fifo_b/wptr_reg[3]/C
+P11_STA_E_DST = u_tcb/snd_wnd_r_reg[11][15]/CE
+P11_STA_E_LVL = 16
+P11_STA_F = 0.273
+P11_STA_F_SRC = u_tcp_tx/u_fifo_b/rptr_reg[3]/C
+P11_STA_F_DST = u_tcb/snd_wnd_r_reg[11][15]/CE
+P11_STA_F_LVL = 16
+P11_STA_MGR_REL = 1.113
+P11_STA_MGR_REL_SRC = u_app_ctrl/c_rcv_nxt_reg[0][1]/C
+P11_STA_MGR_REL_DST = u_win_pool/evq_reg[11][2]/D
+P11_STA_MGR_REL_LVL = 14
+P11_STA_MGR_UP0 = 1.083
+P11_STA_MGR_UP0_SRC = u_slow_cfg/ev_up_reg/C
+P11_STA_MGR_UP0_DST = u_win_pool/evq_reg[11][2]/D
+P11_STA_MGR_UP0_LVL = 10
+P11_STA_MGR_UP1 = 1.640
+P11_STA_MGR_UP1_SRC = u_slow_cfg2/ev_up_reg/C
+P11_STA_MGR_UP1_DST = u_win_pool/evq_cnt_reg[5]/D
+P11_STA_MGR_UP1_LVL = 10
+# puts "P11_STA_TCB_MIN = $tcb_min"
+P11_STA_TCB_MIN = 0.115
+# if {$tcb_na} {
+#     puts "P11_STA_TCB_GATE = FAIL (pins/path missing)"
+#     exit 1
+# }
+# if {$tcb_min < $minns} {
+#     puts "P11_STA_TCB_GATE = FAIL (min=$tcb_min < $minns)"
+#     exit 1
+# }
+# puts "P11_STA_TCB_GATE = PASS"
+P11_STA_TCB_GATE = PASS
+# exit 0
+INFO: [Common 17-206] Exiting Vivado at Mon Oct 26 02:39:10 2026...

@@ -128,7 +128,7 @@ BOARD_IP=192.168.100.2
 MYIP=192.168.100.100
 DEV=/dev/xdma0_user
 TOOLS=/home/a/xdma_test/dma_ip_drivers-patched/XDMA/linux-kernel/tools
-EXPECT_BID=${EXPECT_BID:-0x0000002D}      # P11 F-21 修复 = 0x2D (源码 board/wrapper_p4.v 的 BUILD_ID_V; 原 0x2C = P2-甲未烧板 / 0x2B = P11 P1 / 0x2A = p9 孤儿修复 / 0x29 = 0x29 拆刀 / 0x28 = P9 E12)
+EXPECT_BID=${EXPECT_BID:-0x00000032}      # P11 F-21 修复 = 0x2D (源码 board/wrapper_p4.v 的 BUILD_ID_V; 原 0x2C = P2-甲未烧板 / 0x2B = P11 P1 / 0x2A = p9 孤儿修复 / 0x29 = 0x29 拆刀 / 0x28 = P9 E12)
 # ⛔ 2026-10-07 Stage C 同步轮: 原句 = "P7B-WU 二轮 = 9"; 读 Build 2 (63 字 / BID 9) 覆盖 EXPECT_BID=0x00000009
 # ⛔ 2026-10-10 订正 (构建 C 门同步轮): 原默认 0x0000000A (P7b Stage C 63 字) ⇒ 现役 = **17 / 65 字**。
 #    ⚠️ 默认 `EXPECT_BID` 与默认 `SNAP_WORDS` **必须同代** (后者本轮已 = 65): 不同代 ⇒ G1 身份红 +

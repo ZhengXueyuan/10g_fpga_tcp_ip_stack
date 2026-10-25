@@ -35,6 +35,10 @@ open_checkpoint $dcp
 set gwns [get_property SLACK [get_timing_paths -delay_type max]]
 puts "P11_STA_GLOBAL_WNS = $gwns"
 
+# ⭐ 2026-10-26 review finding: 0x32 的全局 WNS 宿主是 **stack2** 的
+#   `u_tcp_tx2/u_fifo_b/rptr_reg[0] -> u_tcb2/rcv_wnd_r_reg[9][0]` (+0.019 ns),
+#   原 A–F 只覆盖 stack1 ⇒ 定向门对真实最差族是盲的. 这里加 A2–F2 + G2
+#   (G2 = stack2 的 u_fifo_b/rptr -> rcv_wnd, 即 0x32 全局 WNS 宿主).
 set fams [list \
     A {u_tcp_tx/u_fifo_a/rptr_reg\[.*\]/C} {u_tcb/rcv_wnd_r_reg\[.*\]/CE} \
     B {u_tcp_tx/u_fifo_b/wptr_reg\[.*\]/C} {u_tcb/snd_nxt_r_reg\[.*\]/CE} \
@@ -42,6 +46,13 @@ set fams [list \
     D {u_tcp_tx/u_ackq/rptr_reg\[.*\]/C} {u_tcb/rcv_wnd_r_reg\[.*\]/CE} \
     E {u_tcp_tx/u_fifo_b/wptr_reg\[.*\]/C} {u_tcb/snd_wnd_r_reg\[.*\]/CE} \
     F {u_tcp_tx/u_fifo_b/rptr_reg\[.*\]/C} {u_tcb/snd_wnd_r_reg\[.*\]/CE} \
+    A2 {u_tcp_tx2/u_fifo_a/rptr_reg\[.*\]/C} {u_tcb2/rcv_wnd_r_reg\[.*\]/CE} \
+    B2 {u_tcp_tx2/u_fifo_b/wptr_reg\[.*\]/C} {u_tcb2/snd_nxt_r_reg\[.*\]/CE} \
+    C2 {u_tcp_tx2/u_fifo_b/rptr_reg\[.*\]/C} {u_tcb2/snd_una_r_reg\[.*\]/CE} \
+    D2 {u_tcp_tx2/u_ackq/rptr_reg\[.*\]/C} {u_tcb2/rcv_wnd_r_reg\[.*\]/CE} \
+    E2 {u_tcp_tx2/u_fifo_b/wptr_reg\[.*\]/C} {u_tcb2/snd_wnd_r_reg\[.*\]/CE} \
+    F2 {u_tcp_tx2/u_fifo_b/rptr_reg\[.*\]/C} {u_tcb2/snd_wnd_r_reg\[.*\]/CE} \
+    G2 {u_tcp_tx2/u_fifo_b/rptr_reg\[.*\]/C} {u_tcb2/rcv_wnd_r_reg\[.*\]/CE} \
     MGR_REL {u_app_ctrl/c_rcv_nxt_reg\[.*\]/C} {u_win_pool/.*/D} \
     MGR_UP0 {u_slow_cfg/ev_up_reg/C} {u_win_pool/.*/D} \
     MGR_UP1 {u_slow_cfg2/ev_up_reg/C} {u_win_pool/.*/D}]
@@ -59,16 +70,16 @@ foreach {tag fpat tpat} $fams {
             puts "P11_STA_${tag}_SRC = [get_property STARTPOINT_PIN [lindex $path 0]]"
             puts "P11_STA_${tag}_DST = [get_property ENDPOINT_PIN [lindex $path 0]]"
             puts "P11_STA_${tag}_LVL = [get_property LOGIC_LEVELS [lindex $path 0]]"
-            if {[lsearch -exact {A B C D E F} $tag] >= 0} {
+            if {[lsearch -exact {A B C D E F A2 B2 C2 D2 E2 F2 G2} $tag] >= 0} {
                 if {$sl < $tcb_min} { set tcb_min $sl }
             }
         } else {
             puts "P11_STA_${tag} = NA (no path)"
-            if {[lsearch -exact {A B C D E F} $tag] >= 0} { set tcb_na 1 }
+            if {[lsearch -exact {A B C D E F A2 B2 C2 D2 E2 F2 G2} $tag] >= 0} { set tcb_na 1 }
         }
     } else {
         puts "P11_STA_${tag} = NA (pins from=[llength $fp] to=[llength $tp])"
-        if {[lsearch -exact {A B C D E F} $tag] >= 0} { set tcb_na 1 }
+        if {[lsearch -exact {A B C D E F A2 B2 C2 D2 E2 F2 G2} $tag] >= 0} { set tcb_na 1 }
     }
 }
 puts "P11_STA_TCB_MIN = $tcb_min"

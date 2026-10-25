@@ -887,3 +887,19 @@ _proj_10g/notes/p9_review_board_b4_20261016/raw/pcap/*.pcap*
 _proj_10g/notes/p11_p3_impl_20261018/gates/**/*.exe
 _proj_10g/notes/p11_p3_impl_20261018/gates/**/*.obj
 _proj_10g/notes/p11_p3_impl_20261018/gates/**/*.wdb
+
+# ---- 2026-10-26: P11 HLS 延迟研究 xsim 工作目录（TB/runner/READINGS 入库；xsim 产物不入库）----
+# 证据归档在 _proj_10g/notes/p11_hls_latency_20261026/；这里只忽略可由 runner 再生的中间件。
+sim/p11_hls_latency/xsim.dir/
+sim/p11_hls_latency/*.log
+sim/p11_hls_latency/*.jou
+sim/p11_hls_latency/*.pb
+sim/p11_hls_latency/*.wdb
+sim/p11_hls_latency/*.memh
+sim/p11_hls_latency/*.dat
+sim/p11_hls_latency/hls_files.f
+sim/p11_hls_latency/hls_latency_out.txt
+sim/p11_hls_latency/dfx_runtime.txt
+
+# 2026-10-26: 0x31 HLS ROM 失败位流隔离件（15 MB；只在盘上取证，不入库）
+*.HLS_ROM_FAIL

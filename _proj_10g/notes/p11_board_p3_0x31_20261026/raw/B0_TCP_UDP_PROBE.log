@@ -1,0 +1,16 @@
+--- TCP connect IP_A ---
+CONNECT_FAIL TimeoutError('timed out')
+TCP_RC=2
+--- UDP echo IP_A ---
+UDP_ECHO_FAIL TimeoutError('timed out')
+UDP_RC=2
+--- snapshot W0/W6/W7/W20/W83/W84 ---
+SNAP_BEGIN AFTER_TCPUDP gen=2 status=0x00020056
+SNAP_STATUS gen=2 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x0000003e
+W6   0x38   srx_stat_commit        0x00000073
+W7   0x3C   stx_stat_frames        0x00000000
+W20  0x70   mac_tx_frames          0x00000000
+W83  0x16C  tx_p0_frames           0x00000000
+W84  0x170  tx_p1_frames           0x00000000
+SNAP_END AFTER_TCPUDP nff=0 stale_words=0

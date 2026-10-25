@@ -1,0 +1,80 @@
+#!/bin/bash
+# burn_0x31_board.sh -- P11 P3 C4 (dual-stack 2x10G, contract 2x48KB) board round.
+#   JTAG volatile burn only; QSPI is never written. 1 MHz.
+#   Gates: sha256 before burn; HIGH + DONE + path + freshness + no ABORT;
+#          PCIe recovery (device-level first, escalate to parent root port for scenario C);
+#          identity gate BID=0x32 / NW=85 / UNIMPL=0x184 / MIR readable / NFF=0 / 2 BARs / x4;
+#          release controlled stop (0x08 <- 0).
+#   Usage: PEER_PW=<pw> bash burn_0x31_board.sh
+set -u
+OUT=/d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_board_p3_0x32_20261026
+export MSYS_NO_PATHCONV=1 PYTHONIOENCODING=utf-8
+PY=/c/Users/zhxue/anaconda3/python.exe
+SSH="$PY D:/repo/XCKU5PMini/udp_hls_10g/tools/peer_ssh.py"
+T=/home/a/xdma_test/dma_ip_drivers-patched/XDMA/linux-kernel/tools
+KO=/home/a/xdma_test/dma_ip_drivers-patched/XDMA/linux-kernel/xdma/xdma.ko
+S=/tmp/p2b_snap.sh
+[ -n "${PEER_PW:-}" ] || { echo "FATAL: PEER_PW required"; exit 3; }
+mkdir -p "$OUT/burn" "$OUT/raw"
+
+WANT=cee8acfd28511559df49fc0ce60eac293b154c2605f6e3083db3a9397f581950
+A1=/d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_fix_0x31_rom_0x32_20261026/bits/wrapper_p4_0x32.bit
+DST=$OUT/burn/wrapper_p4_0x32.bit
+NW=85; BID=0x00000032; UNIMPL=0x184
+
+exec > >(tee "$OUT/burn/BURN_0x32_$(date +%Y%m%d_%H%M%S).txt") 2>&1
+echo "=== BURN_BEGIN gen=0x32 $(date +%s.%N) $(date)"
+
+echo "--- 1) sha256 anchor check ---"
+stat -c 'LOCAL_BIT %n size=%s mtime=%y' "$A1"
+G1=$(sha256sum "$A1" | cut -d' ' -f1)
+echo "WANT=$WANT GOT=$G1"
+[ "$G1" = "$WANT" ] || { echo "SHA_MISMATCH anchor => REFUSE TO BURN"; exit 1; }
+cp -f "$A1" "$DST"
+G2=$(sha256sum "$DST" | cut -d' ' -f1)
+[ "$G2" = "$WANT" ] || { echo "SHA_MISMATCH local copy => REFUSE TO BURN"; exit 1; }
+echo "SHA_OK (copy is not an independent anchor)"
+stat -c 'BURN_BIT %n size=%s mtime=%y' "$DST"
+BIT_WIN="D:\\repo\\XCKU5PMini\\udp_hls_10g\\_proj_10g\\notes\\p11_board_p3_0x32_20261026\\burn\\$(basename $DST)"
+
+echo "--- 2) pre-burn peer state / hw_server / xdma ---"
+$SSH --sudo "systemctl is-active hw_server; lspci -vv -s 02:00.0 2>/dev/null | grep -E 'LnkSta:|Region [0-9]+:'; ls /dev/xdma* 2>&1 | head; lsmod | grep -w xdma || echo XDMA_NOT_LOADED"
+RP=$($SSH --sudo "readlink -f /sys/bus/pci/devices/0000:02:00.0 2>/dev/null | xargs -r dirname | xargs -r basename")
+echo "PARENT_ROOT_PORT=${RP:-UNKNOWN}"
+$SSH --sudo "if ! lsmod | grep -qw xdma; then insmod $KO; echo INSMOD_RC=\$?; fi; sleep 2; lsmod | grep -w xdma | head -1"
+
+echo "--- 3) burn via JTAG 192.168.0.38:3121 @1MHz $(date +%s) ---"
+T0=$(date +%s)
+( unset MSYS_NO_PATHCONV; TCPREG_BIT="$BIT_WIN" cmd //c "D:\\repo\\XCKU5PMini\\udp_hls_10g\\_proj_10g\\notes\\p7b_biz_tcpreg\\run_program_tcpreg.bat" ) >/dev/null 2>&1
+F=/d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p7b_biz_tcpreg/tcpreg_program_stdout.txt
+MT=$(stat -c %Y "$F")
+echo "BURN_STDOUT=$F mtime=$MT T0=$T0 age=$((MT-T0))s"
+cp "$F" "$OUT/burn/BURN_stdout_copy_$(date +%Y%m%d_%H%M%S).txt"
+grep -E "TCPREG_BIT =|TCPREG_BIT_EXISTS|TCPREG_BIT_MTIME|End of startup status|TCPREG_PROG_DONE|TCPREG-ABORT|TCPREG_PROG device" "$F"
+grep -q "End of startup status: HIGH" "$F" || { echo "BURN_FAIL (no HIGH)"; exit 1; }
+grep -v '^#' "$F" | grep -q "TCPREG_PROG_DONE" || { echo "BURN_FAIL (no DONE)"; exit 1; }
+grep -q "$(basename $DST)" "$F" || { echo "BURN_FAIL (bit path mismatch)"; exit 1; }
+grep -v '^#' "$F" | grep -q "TCPREG-ABORT" && { echo "BURN_FAIL (ABORT present)"; exit 1; }
+[ "$MT" -ge "$((T0-5))" ] || { echo "BURN_FAIL (stale stdout)"; exit 1; }
+echo "BURN_OK (HIGH + DONE + path + freshness + no-ABORT)"
+
+echo "--- 4) PCIe recovery $(date +%s) ---"
+$SSH --sudo "echo 1 > /sys/bus/pci/devices/0000:02:00.0/remove 2>/dev/null; sleep 2; echo 1 > /sys/bus/pci/rescan; sleep 5; lspci -vv -s 02:00.0 2>/dev/null | grep -E 'LnkSta:|Region [0-9]+:'; ls /dev/xdma0_user 2>&1"
+$SSH --sudo "test -e /dev/xdma0_user || { echo 'DEVICE_LEVEL_FAILED => escalate to root port'; RP='$RP'; test -n \"\$RP\" || exit 2; echo 1 > /sys/bus/pci/devices/\$RP/remove; sleep 2; echo 1 > /sys/bus/pci/rescan; sleep 10; lspci -vv -s 02:00.0 2>/dev/null | grep -E 'LnkSta:|Region [0-9]+:'; dmesg | grep -i xdma | grep -E 'identify_bars|probe err|BAR' | tail -6; ls /dev/xdma0_user 2>&1; }"
+$SSH --sudo "test -e /dev/xdma0_user && { echo -n 'BAR_COUNT='; lspci -vv -s 02:00.0 2>/dev/null | grep -cE '^[[:space:]]*Region [0-9]+: (Memory|I/O)'; dmesg | grep -i xdma | grep -E 'identify_bars' | tail -2; } || echo PCIE_FAIL"
+
+echo "--- 5) identity gate (0x32: NW=$NW BID=$BID UNIMPL=$UNIMPL) ---"
+$SSH --sudo "T=$T; for A in 0x00 0x04 0x14 $UNIMPL 0x08; do echo -n \"REG_\$A=\"; \$T/reg_rw /dev/xdma0_user \$A w 2>&1 | tail -1 | sed 's/.*: *//'; done"
+$SSH --sudo "T=$T; for A in 0x174 0x178 0x17C 0x180; do echo -n \"MIR_\$A=\"; \$T/reg_rw /dev/xdma0_user \$A w 2>&1 | tail -1 | sed 's/.*: *//'; done"
+$SSH --sudo "NW=$NW EXPECT_BID=$BID UNIMPL_ADDR=$UNIMPL bash $S id; echo ID_RC=\$?"
+
+echo "--- 6) window scan: NFF must be 0 over NW words ---"
+$SSH --sudo "T=$T; NFF=0; for i in \$(seq 0 $((NW-1))); do A=\$(printf '0x%X' \$((0x20+4*i))); V=\$(\$T/reg_rw /dev/xdma0_user \$A w 2>/dev/null | tail -1 | sed 's/.*: *//'); if [ \"\$V\" = \"0xffffffff\" ]; then echo \"NFF word\$i \$A = \$V\"; NFF=\$((NFF+1)); fi; done; echo WINDOW_SCAN_NFF=\$NFF"
+
+echo "--- 6b) PCIe link + BAR count + carrier ---"
+$SSH --sudo "lspci -vv -s 02:00.0 2>/dev/null | grep -E 'LnkSta:' | head -2; echo -n 'BAR_COUNT='; lspci -vv -s 02:00.0 2>/dev/null | grep -cE '^[[:space:]]*Region [0-9]+: (Memory|I/O)'; echo -n 'SYSFS_RESOURCE_NONZERO='; awk '\$1!=\"0x0000000000000000\" && NF>0 {n++} END{print n+0}' /sys/bus/pci/devices/0000:02:00.0/resource"
+$SSH --sudo "echo -n 'CARRIER_P1='; cat /sys/class/net/enp1s0f1np1/carrier; echo -n 'CARRIER_P0='; cat /sys/class/net/enp1s0f0np0/carrier"
+
+echo "--- 7) release controlled stop (0x08 <- 0) + final read ---"
+$SSH --sudo "T=$T; \$T/reg_rw /dev/xdma0_user 0x08 w 0x0 >/dev/null 2>&1; echo -n 'SCRATCH_0x08(after)='; \$T/reg_rw /dev/xdma0_user 0x08 w 2>&1 | tail -1 | sed 's/.*: *//'; echo -n 'CARRIER_P1='; cat /sys/class/net/enp1s0f1np1/carrier; echo -n 'CARRIER_P0='; cat /sys/class/net/enp1s0f0np0/carrier"
+echo "=== BURN_END gen=0x32 $(date +%s.%N) ==="

@@ -1,5 +1,5 @@
 #!/bin/bash
-# p7b_snap.sh -- 板侧快照窗口取数器 (**现役 = 85 字 / BID 0x2D**; 标题原文 = "板侧 **63** 字
+# p7b_snap.sh -- 板侧快照窗口取数器 (**现役 = 85 字 / BID 0x32**; 标题原文 = "板侧 **63** 字
 #   快照窗口的取数器 (P7b Stage C: BID=10 / SNAP_NW=63)" —— 那一代已过时, 见下逐代订正)
 #   ⭐ P11 P2-甲 (2026-10-18): **字长 83 → 88** (W83..W87 = 双口 TX 帧数/classify 总帧/ch0 FIFO ovf/ch0 MAC TX)
 #      + 身份 0x2B → **0x2C**; 未实现地址 **0x17C → 0x190**。
@@ -91,7 +91,7 @@ D=/dev/xdma0_user
 #      (0x200 在 7 位译码下回绕到 word 0 = MAGIC ⇒ 假 FAIL)。
 NW=${NW:-85}
 UNIMPL_ADDR=${UNIMPL_ADDR:-$(printf '0x%X' $(( 0x20 + 4*NW + 16 )))}   # 85 ⇒ 0x184 (0x2D backstop-2 起; 88 ⇒ 0x190 (0x2D 首跑/0x2C); 83 ⇒ 0x17C (P11 P1); 76 ⇒ 0x160 (p9 孤儿修复); 75 ⇒ 0x15C (P9 E12); 71 ⇒ 0x14C (M1 期B); 70 字及更早 = 0x138/0x12C/0x124/0x11C/0x114/0xEC —— 读旧位流须显式覆盖)
-EXPECT_BID=${EXPECT_BID:-0x0000002D}
+EXPECT_BID=${EXPECT_BID:-0x00000032}
 # ⛔ 2026-10-07 Stage C: 原默认值 = 0x00000009 (P7B-WU 二轮 = 9)。
 # ⛔ 2026-10-10 (构建 C 门同步轮): 再上一代的默认 = **0x0000000A** (Stage C 63 字) ——
 #    现役 = **0x00000017** (65 字; 源码 `board/wrapper_p4.v` 的 `BUILD_ID_V = 32'h00000017`)。

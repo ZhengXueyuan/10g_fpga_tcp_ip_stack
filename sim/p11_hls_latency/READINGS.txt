@@ -1,0 +1,56 @@
+P11 HLS-ONLY LATENCY (P3 archive hls_archive_p3_dual_ip_max8)
+clock = 6.4 ns (156.25 MHz); feed = held-valid, accepted on TREADY
+NOTE: HLS only (no slow_rx_adp/slow_tx_adp/tx_arb/MAC); lower bound for board path.
+1 B/cycle @156.25MHz = 156.25 MB/s = 1.25 Gbps.
+
+=== case arp ===
+RX_TOTAL accepts=68 valid=1567 wait=1499 cyc=201598
+RX_FRAME 0: first=32 last=1598 dur=1566 cyc (10.02 us)
+TX_FRAME 0: first=1757 last=3804 dur=2047 cyc (13.10 us) bytes=72 => 28.43 cyc/B, 44.0 Mbps
+LAT first->first = 1725 cyc (11.04 us); last->last = 2206 cyc (14.12 us)
+
+RX_TOTAL accepts=68 valid_cycles=1567 wait_cycles=1499 cyc=201598
+RX_FRAME idx=0 first=32 last=1598 dur=1566
+TX_FRAME idx=0 first=1757 last=3804 dur=2047 bytes=72
+END rx_frames=1 tx_frames=1 cyc=201598
+
+
+=== case udp ===
+RX_TOTAL accepts=74 valid=1711 wait=1637 cyc=201742
+RX_FRAME 0: first=32 last=1742 dur=1710 cyc (10.94 us)
+TX_FRAME 0: first=2731 last=4958 dur=2227 cyc (14.25 us) bytes=78 => 28.55 cyc/B, 43.8 Mbps
+LAT first->first = 2699 cyc (17.27 us); last->last = 3216 cyc (20.58 us)
+
+RX_TOTAL accepts=74 valid_cycles=1711 wait_cycles=1637 cyc=201742
+RX_FRAME idx=0 first=32 last=1742 dur=1710
+TX_FRAME idx=0 first=2731 last=4958 dur=2227 bytes=78
+END rx_frames=1 tx_frames=1 cyc=201742
+
+
+=== case udp1500 ===
+RX_TOTAL accepts=1522 valid=36463 wait=34941 cyc=236494
+RX_FRAME 0: first=32 last=36494 dur=36462 cyc (233.36 us)
+TX_FRAME 0: first=38207 last=83874 dur=45667 cyc (292.27 us) bytes=1526 => 29.93 cyc/B, 41.8 Mbps
+LAT first->first = 38175 cyc (244.32 us); last->last = 47380 cyc (303.23 us)
+
+RX_TOTAL accepts=1522 valid_cycles=36463 wait_cycles=34941 cyc=236494
+RX_FRAME idx=0 first=32 last=36494 dur=36462
+TX_FRAME idx=0 first=38207 last=83874 dur=45667 bytes=1526
+END rx_frames=1 tx_frames=1 cyc=236494
+
+
+=== case full ===
+RX_TOTAL accepts=142 valid=3750 wait=3608 cyc=203781
+RX_FRAME 0: first=32 last=1598 dur=1566 cyc (10.02 us)
+RX_FRAME 1: first=1622 last=3781 dur=2159 cyc (13.82 us)
+TX_FRAME 0: first=1757 last=3804 dur=2047 cyc (13.10 us) bytes=72 => 28.43 cyc/B, 44.0 Mbps
+TX_FRAME 1: first=3994 last=6221 dur=2227 cyc (14.25 us) bytes=78 => 28.55 cyc/B, 43.8 Mbps
+LAT first->first = 1725 cyc (11.04 us); last->last = 2206 cyc (14.12 us)
+
+RX_TOTAL accepts=142 valid_cycles=3750 wait_cycles=3608 cyc=203781
+RX_FRAME idx=0 first=32 last=1598 dur=1566
+RX_FRAME idx=1 first=1622 last=3781 dur=2159
+TX_FRAME idx=0 first=1757 last=3804 dur=2047 bytes=72
+TX_FRAME idx=1 first=3994 last=6221 dur=2227 bytes=78
+END rx_frames=2 tx_frames=2 cyc=203781
+

@@ -1,0 +1,9 @@
+tcpdump: listening on enp1s0f0np0, link-type EN10MB (Ethernet), snapshot length 262144 bytes
+02:57:17.101756 IP (tos 0x0, ttl 64, id 61262, offset 0, flags [DF], proto TCP (6), length 60)
+    192.168.100.101.38132 > 192.168.100.4.8080: Flags [S], cksum 0x49e9 (incorrect -> 0xdca0), seq 1034031976, win 64240, options [mss 1460,sackOK,TS val 1469368717 ecr 0,nop,wscale 10], length 0
+02:57:17.101809 IP (tos 0x0, ttl 128, id 0, offset 0, flags [DF], proto TCP (6), length 44)
+    192.168.100.4.8080 > 192.168.100.101.38132: Flags [S.], cksum 0x201f (correct), seq 305419896, ack 1034031977, win 49152, options [mss 1460], length 0
+
+2 packets captured
+2 packets received by filter
+0 packets dropped by kernel

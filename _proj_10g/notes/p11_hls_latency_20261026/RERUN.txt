@@ -1,0 +1,9 @@
+P11 HLS latency xsim rerun evidence (2026-10-26)
+run1 = READINGS_run1.txt + xvlog_*_run1.log + xelab_run1.log + xsim_*_run1.log
+run2 = READINGS_run2.txt + xvlog_*_run2.log + xelab_run2.log + xsim_*_run2.log
+diff READINGS_run1.txt READINGS_run2.txt = identical (byte-for-byte)
+Both runs: xvlog/xelab/xsim RC=0.
+Runner fix after review: 1 B/cycle @156.25MHz is 156.25 MB/s = 1.25 Gbps (NOT 1.5625 Gbps);
+  RX_TOTAL no longer derives a rate from total accepts/cycles (idle included).
+  The table uses RX_FRAME duration/fed bytes; those numbers are unchanged.
+TB label: RX_RATE -> RX_TOTAL (the line carries counts, not a rate); no data change.

@@ -2094,3 +2094,57 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - **提交**：主轮 `4ff43021`；回灌 follow-up = **`90c873c2`**。
 - **下一轮 RTL 队列（不进 0x31 位流）**：① `up_pend` 位图守卫（rel 门并上 pending）；② init 队列 timeout/看门狗；③ occ≠0 授予量定向 TB；④ wrapper 观测（`stat_init_*`/`ev_ovf` 进快照需新字，按观测预算另裁）。
 - **Tier B 交付纪律（用户 2026-10-26 采纳）**：① 自述数字必须挂工具输出锚点（文件:行 / 脚本+输出件；无原件标【未独立复核】）；② 被门拦截/改名位流的构建 reports 必归档（`ARCHIVE_REPORTS_ONLY` 已落地）；③ 定向 STA/dcp 查询脚本化 + 阈值 exit 门（top-N 不是 oracle，#66）；④ 判据/证据/裁定分层，#51。已写入 `CLAUDE.md` 的「交付纪律（Tier B）」节。
+
+## §10-162 2026-10-26 02:0x–03:0x：**0x31 板级定位 HLS ROM 未初始化 → 0x32 构建+板级收口；0x31 位流隔离**
+- **0x31 根因（已证）**：`board/build_p7b_ku5p.tcl` 旧 `.dat` 回退路径 `file dirname ""` = `"."`（非空）⇒ `.dat` 被拷到 `board/` 而非 HLS 导入目录；synth 日志 `p11_fix_0x30_0x31_20261025/build0x31_clean/p7b_ku5p_stdout.txt:1352/1358/1548` 3 条 `Synth 8-4445 could not open $readmem` + `:1699/1700/1732` `rom0 ... does not have driver`。板级 = HLS 前导 ROM 全 0 ⇒ `slow_tx_adp` 每帧 purge：`B0_SNAP.log` `W7=0 / W20=0 / W18` 随请求递增；TCP/UDP 全 timeout。**不是 board/RTL 行为缺陷**。0x2F `BUILD_STDOUT.txt:1353/1359/1549` 同缺陷；0x30 未逐行复核（原始报告不可恢复）。
+- **修法**：`board/build_p7b_ku5p.tcl:237-275` 改为确定 `imports/<hls_dir basename>` + 逐文件 copy/size 校验 + `P11_HLS_DAT_COPIED`；`:492-510` 新增 `P7B_HLS_ROM_LOG_GATE`（`8-4445|$readmem|rom0 no driver` 任一 ⇒ `HLS_ROM_UNINIT` 硬失败，impl 前）。0x32 构建 `P11_HLS_DAT_COPIED=3`（`build0x32/P7B_STDOUT.txt:614`）、`P7B_HLS_ROM_LOG_HITS=0`（`:4057`）。`board/wrapper_p4.v:6286` BID 0x31→0x32。
+- **0x32 构建**：`P11_CFG=c4` / `p3_dual_max8` / 合同 2（48KB）。**WNS +0.019 / TNS 0.000 / setup 0 / hold 0 / PW 0 / WHS +0.010**（`P7B_STDOUT.txt:5652/5657/5659/5661`）；TCB A–F = 0.133/0.115/0.164/0.607/0.276/0.273，`MIN=0.115`、`GATE=PASS`（`:5751-5776`）；独立 probe `gates/sta_0x32_tcb.txt:151/161` 同上，`MGR_REL=1.113/UP0=1.083/UP1=1.640`；placed LUT 122,056 / FF 98,583 / BRAM 109 / URAM 17 / DSP 4；DRC 0 Error/Critical；位流 **`cee8acfd28511559df49fc0ce60eac293b154c2605f6e3083db3a9397f581950`**（15,431,261 B）。时序余量 0.297%（比 0x31 +0.031 小 0.012）。
+- **板级 0x32（已烧）**：BID `0x32` / NW 85 / `0x184=0xffffffff` / 2 BARs / x4 / `0x08=0` / carrier 1/1；ping p1 3/3 rtt 0.092/0.118/0.148 ms、p0 3/3 0.073/0.093/0.132 ms；UDP echo 8080 两口 8 B match；**每口 TCP 下行 9G 级**：A(p1) 40GB **9.395 Gbps**（`raw/SP3_sink.txt`）、B(p0) 5GB **9.431/9.393 Gbps**（`raw/B1/B2`），`mism=0`、`stall=0`、`W54=0`；双口同时两口均有数据（清洁 A-first 7.01+5.30=12.31G；taskset 分核 5.08+7.54=12.62G；auto-pin 两进程撞 IO=7/work=4 ⇒ 3.94+3.94=7.87G）⇒ **2×9G 同时【未判定】**，按 B-P3-7 台架 caveat 分开写；合同 SYN-ACK `win=49152` / `mss 1460` / 无 wscale；TX_DIS bit0/bit1 单口隔离通过。
+- **隔离**：0x31 两个位流改名 `*.HLS_ROM_FAIL` + `bits/QUARANTINE_0x31.txt`；0x32 位流入库 `bits/wrapper_p4_0x32.bit`；QSPI 零写。
+- **未收口**：read-side 仍默认 0x2D（0x32 BID-only stage 未加）；8×12KB 合同/多连接 app 未做；双口 2×9G 同时受对端 4 物理核/IRQ 限制；早期 W54=6 未复现（重烧后 0）；0x30 原始报告永久缺口；ping RTT 73–188 µs 未分离（慢路径/HLS/对端软件）。
+- **原件**：`_proj_10g/notes/p11_fix_0x31_rom_0x32_20261026/README_FOR_TL.md` + `build0x32/` + `gates/sta_0x32_tcb.txt` + `bits/`；`_proj_10g/notes/p11_board_p3_0x32_20261026/raw/` + `burn/` + `raw/FINAL_STATE_0x32.txt`。
+- **§10-162 追加（03:1x / 04:4x 订正）**：双口同时 = **会话读数 8.8/8.9G（未独立复核）** —— sink A `taskset -c 0,1`、B `-c 2,3`、`--no-pin`；NIC IRQ 41–52 全移 CPU `4-7`（兄弟核）；各 10GB ⇒ 会话读 **A 8.798 / B 8.925 Gbps，聚合 17.72 Gbps，`mism=0`、无 STALL**；板侧 W83/W84 均前进、`W54=0`（`D9_AFTER` / `IRQ_AFF_2x9G` 有 raw）。⚠️ **`raw/D9_A.txt`/`D9_B.txt` = 0 B（03:09 capture failed）** ⇒ 速率/`mism=0` 没有 raw sink 锚点，降【会话读数/未独立复核】；板侧增量【已证·raw】。**2×9.4G 线速同时仍【未判定】**；不要把 8.8/8.9 写成板子上限。
+
+## §10-163 2026-10-26 03:0x–04:0x：**独立审查回灌 + stack2 TCB 门 + 读侧 0x32 同步 + 旧 build `.dat` 静态门；D9 双口会话读数 17.72G（sink raw 0B）**
+- **独立审查**（只读 agent，`p11_fix_0x31_rom_0x32_20261026/REVIEW_RESPONSE.md`）高档 4 / 中 3 / 低 4；已处置：
+  - **H1（stack2 盲区）**：0x32 全局 WNS 宿主 = `u_tcp_tx2/u_fifo_b/rptr_reg[0] → u_tcb2/rcv_wnd_r_reg[9][0]/CE` **+0.019 / 16 级**（`build0x32/p7b_ku5p_timing.rpt:2050-2052`），原 A–F 只覆盖 stack1（min +0.115）。`board/p11_sta_tcb_probe.tcl` 与 build tcl `P11_STA_TCB_GATE` 已加 **A2–F2 + G2**；v2 probe：A2 0.047 / C2 0.041 / **G2 0.019 = global WNS**、`TCB_MIN=0.019`、`GATE=PASS`（`gates/sta_0x32_tcb_v2.txt`）。**build tcl 新门未经过重建**（下一构建执行；本轮 probe 已证 pattern/path）。
+  - **H2（隔离）**：burn-dir + `p7b_build_archive/20261026_014842` + `20261025_221252` 三处 0x31 `.bit` 已改 `*.HLS_ROM_FAIL`；全仓按 15,431,261 B + sha 扫描无未隔离 0x31；`bits/SHA256.txt` 重写；`QUARANTINE_0x31.txt` 列全。
+  - **H3（锚点）**：ping/UDP echo → `raw/PING_UDPECHO_0x32.txt`（p1 0.073/0.093/0.117 ms；p0 0.064/0.066/0.070 ms）；TX_DIS → `raw/TX_DIS_0x32.txt`；W7/W20 改终态 `0x15/0x68bb9f`；删除无锚 CLEAN_AFIRST 12.31 行；逐跑 W83/W84 标未归档；0x31 purge 成分降【未定位】。
+  - **H4（0 B/低率臂）**：新增 §4.4a：BPORT/DP_A/STG_A_B 0 B 与 B_AFTER 8.384G 逐臂登记（PIN_THREAD 撞核见证；**未定位**；不作板级判据）。
+  - **M5** 12.62 是 host-side sum；D9 17.72 同；明确“聚合不是板内计数器”。
+  - **M6** build ROM 门加 `8-3876` 正读计数 ≥ `.dat` 数（`HLS_ROM_READ_MISSING`）；`check_hls_rom_gate.py` = 0x31 6 命中/0 正读 vs 0x32 0 命中/3 正读，PASS。
+  - **M7** 12 个 `board/*.tcl`（P7b + 10 个 review 列出的 + `timing_p5.tcl`）统一为“唯一 `imports/*/udp_echo.v` + 硬失败 + copy/size 校验”；静态门 `check_build_dat_pattern.py` = `OLD_PATTERN_HITS=none` / `ROBUST_FILES=12` / PASS（未逐脚本重建）。
+  - **M8** 读侧 0x32 已同步：`p7b_snap.sh`/`p6e_snap_check.sh`/`p7b_gate4_accept.sh`/`final_state.sh`/`tb_biz_win.v`/`tb_p6e_pcie_*.v`/`gen_inputs.py` 默认；`j6_r6fix.sh`+`tcpreg_j6.sh` **26 档 0x32 顶格**；`apply_readside_bid1c.py` 加 `0x32` 空阶段 + 历史轮 ALLOW；`--bid 0x32 --assert` **RC=0 / 0 fail**（`gates/readside_assert_0x32.log`）。
+  - **M9/M10/M11/L12–L15** 全部已修（W7/W20、逐跑 W83/W84、BURN 命名、BID 措辞、MGR 行号、imports 现读、ping 上限）。
+- **D9 双口同时 = 会话读数（8.8/8.9G，未独立复核）**：sink A `taskset -c 0,1`、B `-c 2,3`、`--no-pin`；NIC IRQ 41–52 移到 CPU `4-7`（兄弟核）；各 10GB ⇒ 会话读 **A 8.798 / B 8.925 Gbps，聚合 17.72 Gbps，`mism=0`、无 STALL**；板侧 `W83 0x68bb9f→0xd144b8`、`W84 0x010585bb→0x016e0daa`、`W54=0`（`D9_AFTER` / `IRQ_AFF_2x9G` 有 raw）。⚠️ **`D9_A/D9_B` = 0 B（capture failed）** ⇒ 速率/`mism=0` 降【会话读数/未独立复核】；板侧增量【已证·raw】。**2×9.4G 线速同时仍【未判定】**（host/SMT/4 物理核）。
+- **回归**：P11 子集 **17/17** + 其余非 BID **22/22** EXIT=0；`matrix_post_edit` 的 `p11_buildcfg`/`p11_static` EXIT=0（build tcl/读侧改动后复跑）。
+- **未收口**：build tcl 的 stack2/ROM 正读门**未经过新的 Vivado 构建**（下一构建执行）；12 个旧 build 脚本未重建；8×12KB 合同/多连接 app 未做；2×9.4G 同时未判定；0x31 逐请求 W18 不可重跑（0x31 无效且已不在板）。
+- **原件**：`p11_fix_0x31_rom_0x32_20261026/README_FOR_TL.md`、`REVIEW_RESPONSE.md`、`gates/sta_0x32_tcb_v2.txt`、`gates/readside_assert_0x32.log`、`gates/check_build_dat_pattern.txt`、`gates/matrix_rest_0x32.log`、`p11_board_p3_0x32_20261026/raw/`。
+
+## §10-164 2026-10-26 04:0x–05:0x：**HLS 慢路径延迟 xsim 实测（推翻 1 B/拍纸面）+ 独立审查回灌 + 证据完整性；仍未开工**
+- **用户口径**：0x32 问题已处理后“研究如何缩小延时；不要直接开工；从工程设计到具体实现持续研究”。本轮**未改任何 RTL/构建/位流**，只写研究件、xsim 测试与证据。
+- **xsim 实测（P3 HLS 归档 `hls_archive_p3_dual_ip_max8`；HLS-only，6.4ns，无适配器/仲裁/MAC）**：
+  - TB/复跑 = `sim/p11_hls_latency/{tb_hls_latency.v,run_hls_latency.py}`；证据归档 = `_proj_10g/notes/p11_hls_latency_20261026/`（`README.md`、`READINGS.txt`、`hls_latency_{arp,udp,udp1500,full}.txt`、日志、`SHA256SUMS.txt`）。
+  - **ARP 68B**：RX 1566 拍 = 10.02 µs（23.0 拍/B，54.3 Mbps）；TX 2047 拍 = 13.10 µs（72 B，28.43 拍/B，44.0 Mbps）；**last→last 14.12 µs**。
+  - **UDP 74B**：RX 1710 拍 = 10.94 µs（23.1 拍/B，54.1 Mbps）；TX 2227 拍 = 14.25 µs（78 B，28.55 拍/B，43.8 Mbps）；**last→last 20.58 µs**。
+  - **UDP 1500B（1522B fed）**：RX 36462 拍 = 233.36 µs（23.96 拍/B，52.2 Mbps）；TX 45667 拍 = 292.27 µs（1526 B，29.93 拍/B，41.8 Mbps）；**last→last 303.23 µs**。
+  - `rx_tready` 帧内约 95% 拍为低（wait/valid：ARP 1499/1567、UDP 1637/1711、1500B 34941/36463）；与 `rtl/slow_rx_adp.v:179-181` 的“~1B/20拍”同量级（probe TB 的 `k>=25` 是启动延迟，不是喂数节拍）。
+- **对原研究件的修订（`P11_LATENCY_RESEARCH_20261026.md` §0/§3.3/§3.4/§5.1/§5.2/§5.10/§7/§9/§11）**：
+  - **“HLS 1 B/拍 = 1.5625 Gbps”（错误换算；正确 1.25 Gbps）作废**：实际 ~23 拍/B RX、~28–30 拍/B TX；小帧 HLS-only 14–21 µs，不是 1–3 µs；1500B UDP echo 303 µs，不是 22–26 µs。
+  - **ping RTT 中 HLS 可能 ~8–32%（0x32 64–117 µs 端；188 µs 历史端更低）**；此前“板内 <5%、host >95%”**撤回**。硬件化 ARP/ICMP 收益下界至少 **~14–21 µs（HLS-only 下界）**；控制面硬件化优先级**回升**，但仍待 E1 板级。
+  - **1500B UDP 必须绕开 HLS**（fast path/8081 或 RTL echo）。
+  - **TCP echo 基线改为 ≈3.6 µs**（RX 1.2 + echo 读出 1.2 + TX 1.2；echo 读出与 tx FIFO 写同路并发，旧 4.8 重复计了 tx 填充）；缓冲合并省 ~1.2 µs ⇒ ~2.4 µs。
+  - **UDP cut-through 现状前提不成立**：`udp_tx_frame` 的 total_len/UDP len/IP checksum 在 TLAST 才得（`rtl/udp_tx_frame.v:537-571`），`cfg_csum_en=0` 只影响 UDP checksum（`:282,578`）且板级硬接 1（`board/wrapper_p4.v:3661,4078`），长度守卫整帧 abort（`:556-565`）；要做需新增长度 sideband/IP checksum/运行路径/超长语义/cfg 冻结，不是“加一个分支”。
+  - **per-pass 计数订正**：`TX_PACING_COUNT=625,000,000` 只在 `udp_tx_process` 每 pass +1（`hls/src/layer_udp.cpp:126`），不是每时钟；按 ~20 拍/pass，HELLO 约 **80–100 s**（纸面），不是 4.0 s；DHCP delay 同。UDP echo 立即回（`:111-123`）。
+  - **新增 §5.10 负载尾延迟**：`tx_arb` 无 aging（`rtl/tx_arb.v:2-4,42-50`）、窗口/BDP（A7 `ΔW66/ΔW65` 0.88–0.90）、CDC 占用、对端 coalescing；空载 xsim 不能外推满载 p99。
+  - **新增 E0.5 零构建**：用 0x32 现有 W65–W69/W27/W28 在 9G 下测窗口等待占比；**E11** 9G 负载下 ping/SYN p99。
+- **独立审查（只读 agent）10 条发现**：全部回灌 §3.4/§4.5/§5.1/§5.2/§5.10/§7/§9。已修 = 1B/拍、per-pass、staging `ceil((N−22)/4)`、TCP 3.6、UDP cut-through 前提、E1a 计数/无 grant/跨帧错配/无 p99/32 位 sum/96 FF/字/VIO 撕裂、`ping 5/5` 非延迟界；部分修 = 适配器/仲裁精确值、M6 往返标定/C4 port tag、顶层 idle/RX/TX pass 精确拍数（待 E1）。
+- **证据完整性**：
+  - `gates/SHA256SUMS.txt` 原先包含自身哈希 ⇒ 自检失败；已重新生成（排除自身），10/10 OK。
+  - 全仓 147 个 15,431,261 B 位流逐一 sha256：0x31 共 **5 份**（`420ddad5…`×3、`4dce8d99…`×2），**全部已改名 `.HLS_ROM_FAIL`**；0x32 `cee8acfd…` 3 份；无未隔离 0x31。
+  - **门逻辑单测**：`gates/gate_unit_test/` 用 `tclsh` 从 build tcl **按标记抽取真实门块**，stub Vivado 命令；ROM 四臂 + TCB 四臂 **8/8 PASS**（`RESULTS.txt`）。⚠️ 只证门逻辑/退出码/改名路径，**不证 Vivado 集成**；下一构建仍必须跑一次真门。
+- **D9 取证复核（2026-10-26 04:4x 提交前）**：`p11_board_p3_0x32_20261026/raw/D9_A.txt` 与 `D9_B.txt` 均为 **0 B**（03:09 创建，capture failed）⇒ 8.798/8.925、17.72 host-side、`mism=0` 全部降为 **【会话读数/未独立复核】**；`D9_AFTER`（W83/W84 增量、W54=0）与 `IRQ_AFF_2x9G` 仍有 raw。【已证·raw】只覆盖板侧计数/环境，不覆盖速率。README §0/§4.4/§6/§7、REVIEW_RESPONSE M5/H4、P11_REVIEW_QUEUE 两行已同步订正。
+- **终验（`FINAL_VERIFICATION.txt`，2026-10-26 04:37）**：门单测 **8/8 OK**；HLS xsim `READINGS_run1 == READINGS_run2`（byte-identical），25 件 manifest OK；四份 manifest = gates 10 / gate_unit_test 4 / bits 1 / board raw 22 全 OK；147 个 15,431,261 B 位流扫描：0x31 **5 份**（3×`420ddad5` + 2×`4dce8d99`）**全部 `.HLS_ROM_FAIL`**，0x32 `cee8acfd` 3 份；`HEAD=4cfa92e2`，工作树 370 行未提交。
+- **二次独立审查（只读 agent，2026-10-26 04:2x）13 条**：已修 = `1 B/cycle` 误算 1.5625/1.25 Gbps、`RX_RATE` 常数/分母（改为 `RX_TOTAL`，不推速率）、`k>=25` 交叉印证误读（改为 `slow_rx_adp` ~1B/20拍）、收益“上界”改“下界 ≥14–21 µs”、`tx_arb` 无 aging 的单一帧口径、§4.3 32 位 sum 与 §4.5 64 位冲突、`8 ns/B` 改 `0.8 ns/B`、`hls_latency_out.txt` 过期文件、run1/run2 日志归档、提交状态三处不一致、HLS 占比改 ~8–32%、`tcp_tx_frame` checksum 已并行、审查计数 8 完全修 + 2 部分修；部分项 = 适配器/仲裁精确值/M6 单向标定/顶层 idle-RX-TX pass 精确拍数仍待 E1。
+- **未做/未收口**：E1 观测构建未开工；build tcl 的 A2–G2/ROM 正读门仍未经过新的 Vivado 构建（下一构建执行；本轮只做日志/DCP 级验证）；8×12KB 合同/多连接 app 未做；本轮不提交（待用户授权）。
+- **原件**：`_proj_10g/notes/P11_LATENCY_RESEARCH_20261026.md`、`_proj_10g/notes/p11_hls_latency_20261026/`、`p11_fix_0x31_rom_0x32_20261026/gates/{SHA256SUMS.txt,gate_unit_test/}`。

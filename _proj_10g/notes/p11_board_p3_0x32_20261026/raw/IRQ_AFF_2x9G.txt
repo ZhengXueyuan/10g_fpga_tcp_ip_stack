@@ -1,0 +1,50 @@
+=== IRQ affinity (2x9G test env) ===
+IRQ 41 aff=4-7
+IRQ 42 aff=4-7
+IRQ 43 aff=4-7
+IRQ 44 aff=4-7
+IRQ 45 aff=4-7
+IRQ 46 aff=4-7
+IRQ 47 aff=4-7
+IRQ 48 aff=4-7
+IRQ 49 aff=4-7
+IRQ 50 aff=4-7
+IRQ 51 aff=4-7
+IRQ 52 aff=4-7
+=== ethertool coalescing ===
+Adaptive RX: off  TX: n/a
+rx-usecs:	0
+rx-frames:	n/a
+rx-usecs-irq:	0
+rx-frames-irq:	n/a
+tx-usecs:	0
+tx-frames:	n/a
+tx-usecs-irq:	0
+tx-frames-irq:	n/a
+rx-usecs-low:	n/a
+tx-usecs-low:	n/a
+rx-usecs-high:	n/a
+tx-usecs-high:	n/a
+Adaptive RX: off  TX: n/a
+rx-usecs:	0
+rx-frames:	n/a
+rx-usecs-irq:	0
+rx-frames-irq:	n/a
+tx-usecs:	0
+tx-frames:	n/a
+tx-usecs-irq:	0
+tx-frames-irq:	n/a
+rx-usecs-low:	n/a
+tx-usecs-low:	n/a
+rx-usecs-high:	n/a
+tx-usecs-high:	n/a
+=== CPU topo ===
+CPU CORE SOCKET ONLINE
+  0    0      0    yes
+  1    1      0    yes
+  2    2      0    yes
+  3    3      0    yes
+  4    0      0    yes
+  5    1      0    yes
+  6    2      0    yes
+  7    3      0    yes

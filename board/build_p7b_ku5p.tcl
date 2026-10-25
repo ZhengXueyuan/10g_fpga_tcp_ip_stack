@@ -234,11 +234,45 @@ import_files -norecurse ${script_dir}/wrapper_p4.v ${script_dir}/util_gmii_to_rg
                          ${script_dir}/util_gmii_to_rgmii.v ${script_dir}/uart_dbg.v
 import_files -norecurse [glob -nocomplain ${hls_dir}/*.v]
 # HLS $readmemh 系数文件必须与导入后的 verilog 同目录 (综合按相对路径找)
-set src_dir [file dirname [lindex [glob -nocomplain ${root_dir}/vivado_prj/${project_name}.srcs/sources_1/imports/verilog/udp_echo.v] 0]]
-if {$src_dir eq ""} {
-    set src_dir [file dirname [lindex [glob -nocomplain ${root_dir}/vivado_prj/${project_name}.srcs/sources_1/imports/*/udp_echo.v] 0]]
+# ⛔ 2026-10-26 修复 (0x31 板级定位): 旧代码先试 `imports/verilog/udp_echo.v`;
+#    该路径不存在时 `file dirname ""` 返回 "." (**不是空串**) ⇒ 下面的 if 不触发,
+#    `.dat` 被拷到构建 CWD (`board/`) 而不是导入目录 ⇒ 综合报
+#    `Synth 8-4445 could not open $readmem ...` + `rom0 ... does not have driver` ⇒
+#    preamble/src_mac/arp_dump ROM 全 0 ⇒ HLS 每帧前导 = 0x00 ⇒ slow_tx_adp 全 purge
+#    (0x31 板级: W7=0 / W18 随请求递增 / W20=0)。这里改为**确定路径 + 硬失败**,
+#    不再有 "." 回退; 并在 synth 日志门里复查 (见 P7B_HLS_ROM_LOG_GATE)。
+set hls_imp_dir [file join ${root_dir}/vivado_prj/${project_name}.srcs/sources_1/imports [file tail $hls_dir]]
+if {![file exists [file join $hls_imp_dir udp_echo.v]]} {
+    set hls_imp_hits [glob -nocomplain ${root_dir}/vivado_prj/${project_name}.srcs/sources_1/imports/*/udp_echo.v]
+    if {[llength $hls_imp_hits] != 1} {
+        puts "P11_HLS_IMPORT_DIR_HITS = [llength $hls_imp_hits]"
+        puts "P7B_VERDICT = HLS_IMPORT_DIR_MISSING"
+        exit 1
+    }
+    set hls_imp_dir [file dirname [lindex $hls_imp_hits 0]]
 }
-foreach dat [glob -nocomplain ${hls_dir}/*.dat] { file copy -force $dat $src_dir/ }
+set hls_dat_files [glob -nocomplain ${hls_dir}/*.dat]
+if {[llength $hls_dat_files] < 1} {
+    puts "P11_HLS_DAT_N = 0"
+    puts "P7B_VERDICT = HLS_DAT_MISSING"
+    exit 1
+}
+set hls_dat_copied 0
+foreach dat $hls_dat_files {
+    set dst [file join $hls_imp_dir [file tail $dat]]
+    if {[catch {file copy -force $dat $dst} e]} {
+        puts "P11_HLS_DAT_COPY_FAIL $dat -> $dst : $e"
+        puts "P7B_VERDICT = HLS_DAT_COPY_FAIL"
+        exit 1
+    }
+    if {![file exists $dst] || [file size $dst] != [file size $dat]} {
+        puts "P11_HLS_DAT_COPY_VERIFY_FAIL $dst"
+        puts "P7B_VERDICT = HLS_DAT_COPY_VERIFY_FAIL"
+        exit 1
+    }
+    incr hls_dat_copied
+}
+puts "P11_HLS_DAT_COPIED = $hls_dat_copied dir=$hls_imp_dir"
 
 # ---- XDMA (参数逐字复制 build_p6e_ku5p.tcl 那份已实测枚举通过的; ⭐ P9: 接口 = AXI4-Stream) ----
 sec "P7B_ADD_XDMA"
@@ -446,6 +480,44 @@ if {![file exists $synth_log]} {
 puts "P7B_BLACKBOX_LOG_HITS = $bb_hits"
 if {$bb_hits != 0} {
     puts "P7B_VERDICT = BLACKBOX_LOG_HIT"
+    exit 1
+}
+
+# ---- HLS $readmemh ROM 初始化硬门 (2026-10-26 0x31 板级定位) ----
+#   0x31 的 synth 日志实测: 3 条 `Synth 8-4445 could not open $readmem` +
+#   3 条 `Synth 8-3848 ... rom0 ... does not have driver`。后果 = preamble/src_mac/
+#   arp_dump ROM 全 0 ⇒ HLS TX 每帧前导 0x00 ⇒ slow_tx_adp 结构性全 purge
+#   (板级 W7 恒 0 / W18 随请求递增 / W20=0; 所有 TCP 建连走慢路径 ⇒ 全线不可用)。
+#   这条门必须在 impl 之前拦下: 只信"文件已拷"不够, 要信综合真的读到了。
+sec "P7B_HLS_ROM_LOG_GATE"
+set rom_hits 0
+set rom_read_ok 0
+if {![file exists $synth_log]} {
+    puts "P7B_HLS_ROM_LOG_MISSING $synth_log"
+    puts "P7B_VERDICT = HLS_ROM_LOG_MISSING"
+    exit 1
+}
+set fh [open $synth_log r]
+while {[gets $fh line] >= 0} {
+    if {[regexp -nocase {8-4445|could not open \$readmem|rom0.*does not have driver} $line]} {
+        incr rom_hits
+        if {$rom_hits <= 20} { puts "P7B_HLS_ROM_LOG_HIT $line" }
+    }
+    if {[regexp -nocase {8-3876.*read successfully} $line]} {
+        incr rom_read_ok
+    }
+}
+close $fh
+puts "P7B_HLS_ROM_LOG_HITS = $rom_hits"
+puts "P7B_HLS_ROM_READ_OK = $rom_read_ok (expect >= $hls_dat_copied)"
+if {$rom_hits != 0} {
+    puts "P7B_VERDICT = HLS_ROM_UNINIT"
+    exit 1
+}
+# kimi M-6 (2026-10-26 review): 只查失败会漏掉"读被跳过但没警告"的静默态；
+#   正读 `8-3876 ... read successfully` 必须 >= 本次拷贝的 .dat 数。
+if {$rom_read_ok < $hls_dat_copied} {
+    puts "P7B_VERDICT = HLS_ROM_READ_MISSING"
     exit 1
 }
 
@@ -720,13 +792,25 @@ set p11_sta_min 0.0
 if {[info exists ::env(P11_STA_MIN_NS)] && $::env(P11_STA_MIN_NS) ne ""} {
     set p11_sta_min [expr {double($::env(P11_STA_MIN_NS))}]
 }
+# ⭐ 2026-10-26 review finding: 0x32 的全局 WNS 宿主是 **stack2** 的
+#   `u_tcp_tx2/u_fifo_b/rptr[0] -> u_tcb2/rcv_wnd[9][0]` (+0.019); 原 A–F 只覆盖
+#   stack1 (min +0.115) ⇒ 本门对真实最差族是盲的。A2–F2 = stack2 同族;
+#   G2 = stack2 的 u_fifo_b/rptr -> rcv_wnd (0x32 全局 WNS 宿主)。
+#   0x32 routed DCP 实测: A2=0.047 / C2=0.041 / G2=0.019; MIN=0.019。
 set tcb_fams [list \
     A {u_tcp_tx/u_fifo_a/rptr_reg\[.*\]/C} {u_tcb/rcv_wnd_r_reg\[.*\]/CE} \
     B {u_tcp_tx/u_fifo_b/wptr_reg\[.*\]/C} {u_tcb/snd_nxt_r_reg\[.*\]/CE} \
     C {u_tcp_tx/u_fifo_b/rptr_reg\[.*\]/C} {u_tcb/snd_una_r_reg\[.*\]/CE} \
     D {u_tcp_tx/u_ackq/rptr_reg\[.*\]/C} {u_tcb/rcv_wnd_r_reg\[.*\]/CE} \
     E {u_tcp_tx/u_fifo_b/wptr_reg\[.*\]/C} {u_tcb/snd_wnd_r_reg\[.*\]/CE} \
-    F {u_tcp_tx/u_fifo_b/rptr_reg\[.*\]/C} {u_tcb/snd_wnd_r_reg\[.*\]/CE}]
+    F {u_tcp_tx/u_fifo_b/rptr_reg\[.*\]/C} {u_tcb/snd_wnd_r_reg\[.*\]/CE} \
+    A2 {u_tcp_tx2/u_fifo_a/rptr_reg\[.*\]/C} {u_tcb2/rcv_wnd_r_reg\[.*\]/CE} \
+    B2 {u_tcp_tx2/u_fifo_b/wptr_reg\[.*\]/C} {u_tcb2/snd_nxt_r_reg\[.*\]/CE} \
+    C2 {u_tcp_tx2/u_fifo_b/rptr_reg\[.*\]/C} {u_tcb2/snd_una_r_reg\[.*\]/CE} \
+    D2 {u_tcp_tx2/u_ackq/rptr_reg\[.*\]/C} {u_tcb2/rcv_wnd_r_reg\[.*\]/CE} \
+    E2 {u_tcp_tx2/u_fifo_b/wptr_reg\[.*\]/C} {u_tcb2/snd_wnd_r_reg\[.*\]/CE} \
+    F2 {u_tcp_tx2/u_fifo_b/rptr_reg\[.*\]/C} {u_tcb2/snd_wnd_r_reg\[.*\]/CE} \
+    G2 {u_tcp_tx2/u_fifo_b/rptr_reg\[.*\]/C} {u_tcb2/rcv_wnd_r_reg\[.*\]/CE}]
 set tcb_min 999.0
 set tcb_na  0
 if {$P11_CFG eq "c4"} {

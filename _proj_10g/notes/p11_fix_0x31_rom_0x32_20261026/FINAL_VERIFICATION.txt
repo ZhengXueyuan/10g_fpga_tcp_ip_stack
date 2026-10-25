@@ -1,0 +1,30 @@
+P11 0x32 ROUND FINAL VERIFICATION
+2026-10-26 04:37:19    
+HEAD=4cfa92e2
+
+== 1) gate unit test ==
+8
+HARNESS_END
+
+GATE_UNIT_TEST = PASS
+
+== 2) HLS xsim rerun ==
+READINGS_run1 == READINGS_run2 (byte-identical)
+25
+
+== 3) manifests ==
+10
+4
+1
+22
+
+== 4) bitstream scan (15,431,261 B) ==
+count=147
+0x31_420=3
+0x31_4dce=2
+0x32_cee8=3
+all_0x31_quarantined=0
+
+== 5) git ==
+370
+4cfa92e2 采纳 Tier B 交付纪律（自述数字挂工具锚点 / 失败构建必归档 / 定向 STA 脚本化 / 判据分层）

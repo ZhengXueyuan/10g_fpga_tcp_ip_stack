@@ -1,0 +1,22 @@
+=== P1 ===
+PING 192.168.100.2 (192.168.100.2) from 192.168.100.1 enp1s0f1np1: 56(84) bytes of data.
+64 bytes from 192.168.100.2: icmp_seq=1 ttl=128 time=0.089 ms
+64 bytes from 192.168.100.2: icmp_seq=2 ttl=128 time=0.117 ms
+64 bytes from 192.168.100.2: icmp_seq=3 ttl=128 time=0.073 ms
+
+--- 192.168.100.2 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2075ms
+rtt min/avg/max/mdev = 0.073/0.093/0.117/0.018 ms
+=== P0 ===
+PING 192.168.100.4 (192.168.100.4) from 192.168.100.101 enp1s0f0np0: 56(84) bytes of data.
+64 bytes from 192.168.100.4: icmp_seq=1 ttl=128 time=0.064 ms
+64 bytes from 192.168.100.4: icmp_seq=2 ttl=128 time=0.066 ms
+64 bytes from 192.168.100.4: icmp_seq=3 ttl=128 time=0.070 ms
+
+--- 192.168.100.4 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2044ms
+rtt min/avg/max/mdev = 0.064/0.066/0.070/0.002 ms
+=== UDP_A ===
+UDP_ECHO_OK from=192.168.100.2:8080 len=8 match=True data=b'HELLO32A'
+=== UDP_B ===
+UDP_ECHO_OK from=192.168.100.4:8080 len=8 match=True data=b'HELLO32B'
