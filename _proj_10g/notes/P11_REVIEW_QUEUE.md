@@ -74,6 +74,6 @@
 | 2026-10-25/26 | `p11_fix_0x30_0x31_20261025/README_FOR_TL.md` + `build0x31_clean/` + `bits/` + `gates/matrix_final.log` | 修复+构建 | 0x2F 时序根因（manager 四事件组合链）⇒ 事件 FIFO/三拍事件机 + grant-done/init 队列；0x30 −0.418（既存 TCB 族，0x2F 该族 −3.77）；TCB 写口 RTL 延拍两次被 txdrop50 判死并回退；0x31 `Performance_Explore` **WNS +0.031 / 0/0/0**，clean 位流 `420ddad5…`，41/41；时序硬门 + table 解析 + DRC token 假阳性修复 | 本次提交 | **待报送** |
 | 2026-10-25/26 | `P7B_TL_LEDGER_20261010.md` §10-160 | Tier B | 0x2F 修复 + 0x30/0x31 构建收口 + 未收口（板级/read-side/8×12KB/`up_pend` 边界/策略依赖） | 本次提交 | **待报送** |
 
-| 2026-10-26 | kimi `REVIEW_0X2F_0X31.md`（`%TEMP%/bridge/xr10/`）+ `P7B_TL_LEDGER_20261010.md` §10-161 | 审查回灌 | 无高档；中 5：M-1 0x30 无物证（归档块修）· M-2 TCB probe 入库（A–F 0x2F/0x31）· M-3 TCB 族 exit 门（0x31 DCP `MIN=+0.031` PASS）· M-4 churn 计数器断言 · M-5 init 看门狗挂下一轮；低 10 已处置/登记 | 本轮 follow-up | **待报送（回灌结果）** |
+| 2026-10-26 | kimi `REVIEW_0X2F_0X31.md`（`%TEMP%/bridge/xr10/`）+ `P7B_TL_LEDGER_20261010.md` §10-161 | 审查回灌 | 无高档；中 5：M-1 0x30 无物证（归档块修）· M-2 TCB probe 入库（A–F 0x2F/0x31）· M-3 TCB 族 exit 门（0x31 DCP `MIN=+0.031` PASS）· M-4 churn 计数器断言 · M-5 init 看门狗挂下一轮；低 10 已处置/登记 | `4ff43021` + `90c873c2` | **待报送（回灌结果）** |
 
 > 追加规则：每轮收口（TL 提交后）把新增文档写入本表；用户回来可按表逐条报送。

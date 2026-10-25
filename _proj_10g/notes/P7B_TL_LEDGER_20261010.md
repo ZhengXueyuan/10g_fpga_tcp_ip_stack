@@ -2091,5 +2091,5 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
   - **M-4** "TB 断言 0"不实：`tb_p3_churn` 接出 `stat_init_ovf/mismatch` 并断言 0（`p11_churn` 重跑 PASS）；wrapper 侧仍无快照字（登记）。
   - **M-5** init 队头阻塞无兜底：**下一轮 RTL**（与 `up_pend` 同轮）加 timeout/看门狗；0x31 位流不含。
 - **低项**：§1.6 四→六 token；synth LUT 106,926→**106,947**；`board/` 0x31 clean 报告随本轮入库；时序门 WNS 改用 Design Timing Summary 表值（DB/TABLE 双打印 + mismatch 报警）；`occ` S_LOAD 采样漂移边界写进报告（TB 无 occ 项 = 零覆盖）；tcl 注释数字/`p11_ext0` 三臂日志/TB 五缺口登记不逼修。
-- **提交**：主轮 `4ff43021`；回灌 follow-up = 见下条（hash 在提交后补）。
+- **提交**：主轮 `4ff43021`；回灌 follow-up = **`90c873c2`**。
 - **下一轮 RTL 队列（不进 0x31 位流）**：① `up_pend` 位图守卫（rel 门并上 pending）；② init 队列 timeout/看门狗；③ occ≠0 授予量定向 TB；④ wrapper 观测（`stat_init_*`/`ev_ovf` 进快照需新字，按观测预算另裁）。
