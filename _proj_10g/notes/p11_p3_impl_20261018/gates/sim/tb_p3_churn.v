@@ -41,6 +41,12 @@ module tb_p3_churn;
     wire [3:0]  wq0_rid, wq0_rid_ev, wq1_rid, wq1_rid_ev;
     wire [15:0] wq0_rd, wq0_rd_ev, wq1_rd, wq1_rd_ev;
     wire        qrel0, qrel1; wire [3:0] qrel0_slot, qrel1_slot;
+    wire        wp_done0, wp_done1;
+    wire [3:0]  wp_done_slot0, wp_done_slot1;
+    wire        wp_busy, wp_ev_commit;
+    wire [1:0]  wp_ev_type;
+    wire [3:0]  wp_ev_slot;
+    wire [31:0] st_ev_ovf;
     wire [31:0] app0_stat_wu, app1_stat_wu, app0_stat_slot_reuse, app1_stat_slot_reuse;
     wire [3:0]  a0_c0st, a1_c0st;
 
@@ -57,6 +63,8 @@ module tb_p3_churn;
         .o_winq_rd_id(wq0_rid), .i_winq_rd(wq0_rd),
         .o_winq_rd_id_ev(wq0_rid_ev), .i_winq_rd_ev(wq0_rd_ev),
         .o_quota_rel(qrel0), .o_quota_rel_slot(qrel0_slot),
+        .i_ev_up_done(wp_done0), .i_ev_up_done_slot(wp_done_slot0),
+        .stat_init_ovf(), .stat_init_mismatch(),
         .rx_occ_bytes(17'd0), .fin_sent(fin_sent0), .rst_sent(rst_sent0),
         .retx_active(retx_act), .retx_id(retx_id),
         .una_adv(1'b0), .una_adv_id(4'd0), .ack_obs(1'b0), .ack_obs_id(4'd0),
@@ -93,6 +101,8 @@ module tb_p3_churn;
         .o_winq_rd_id(wq1_rid), .i_winq_rd(wq1_rd),
         .o_winq_rd_id_ev(wq1_rid_ev), .i_winq_rd_ev(wq1_rd_ev),
         .o_quota_rel(qrel1), .o_quota_rel_slot(qrel1_slot),
+        .i_ev_up_done(wp_done1), .i_ev_up_done_slot(wp_done_slot1),
+        .stat_init_ovf(), .stat_init_mismatch(),
         .rx_occ_bytes(17'd0), .fin_sent(fin_sent1), .rst_sent(rst_sent1),
         .retx_active(retx_act), .retx_id(retx_id),
         .una_adv(1'b0), .una_adv_id(4'd0), .ack_obs(1'b0), .ack_obs_id(4'd0),
@@ -138,7 +148,12 @@ module tb_p3_churn;
         .stat_rel_dup(st_rdup), .stat_slot_oor(st_oor),
         .stat_c18_cross_port(st_c18x),
         .stat_port_win_underflow(st_pw_uw),
-        .stat_rel_stale_port(st_rel_stale)
+        .stat_rel_stale_port(st_rel_stale),
+        .o_ev_up_done0(wp_done0), .o_ev_up_done_slot0(wp_done_slot0),
+        .o_ev_up_done1(wp_done1), .o_ev_up_done_slot1(wp_done_slot1),
+        .stat_ev_ovf(st_ev_ovf),
+        .dbg_busy(wp_busy), .dbg_ev_commit(wp_ev_commit),
+        .dbg_ev_type(wp_ev_type), .dbg_ev_slot(wp_ev_slot)
     );
 
     // ---- 行为级 mini-TCB x2 (16 槽; 只实现 app_ctrl 消费的字段) ----
@@ -186,44 +201,67 @@ module tb_p3_churn;
         begin if(!cond) begin errors=errors+1; $display(" FAIL: %0s", msg); end end
     endtask
 
+    // 0x2F: 影子模型改为在 **DUT 的处理提交拍** (wp_ev_commit) 更新 ——
+    // manager 现在是串行事件机, 原始 ev_up/qrel 与本拍状态不再同沿。
+    // 影子与 DUT 用同一事件 (type/slot) 和同沿前状态独立算一遍, 逐拍对账。
+    reg [16:0] sh_g, sh_avail, sh_room, sh_pw_after;
     always @(posedge clk) begin
         if (!rst_n) begin
             sh_pool <= WIN_POOL; sh_pw0 <= 0; sh_pw1 <= 0; sh_own <= 8'd0;
             for (i=0;i<8;i=i+1) begin sh_w[i] <= 0; rel_cnt0[i] <= 0; rel_cnt1[i] <= 0; end
         end else begin
-            // rel 事件 (与本拍 app_ctrl 输出同沿) -> 先记数/更新影子
-            if (qrel0 && (sh_own[qrel0_slot] == 1'b0)) begin
-                rel_cnt0[qrel0_slot] <= rel_cnt0[qrel0_slot] + 1;
-                sh_pool <= sh_pool + sh_w[qrel0_slot];
-                sh_pw0  <= sh_pw0 - sh_w[qrel0_slot];
-                sh_w[qrel0_slot] <= 0;
+            if (wp_ev_commit && (wp_ev_slot < 4'd8)) begin
+                if (!wp_ev_type[0]) begin
+                    // ---- rel (只在属主口且 q != 0 时改状态) ----
+                    if ((sh_own[wp_ev_slot] == wp_ev_type[1]) &&
+                        (sh_w[wp_ev_slot] != 16'd0)) begin
+                        if (wp_ev_type[1]) begin
+                            rel_cnt1[wp_ev_slot] <= rel_cnt1[wp_ev_slot] + 1;
+                            sh_pool <= sh_pool + sh_w[wp_ev_slot];
+                            sh_pw1  <= sh_pw1 - sh_w[wp_ev_slot];
+                        end else begin
+                            rel_cnt0[wp_ev_slot] <= rel_cnt0[wp_ev_slot] + 1;
+                            sh_pool <= sh_pool + sh_w[wp_ev_slot];
+                            sh_pw0  <= sh_pw0 - sh_w[wp_ev_slot];
+                        end
+                        sh_w[wp_ev_slot] <= 16'd0;
+                    end
+                end else begin
+                    // ---- ev_up (C18: old 从授出端口扣, 再 min 授新) ----
+                    sh_avail = sh_pool + sh_w[wp_ev_slot];
+                    if (wp_ev_type[1]) begin
+                        sh_pw_after = sh_pw1 -
+                            ((sh_own[wp_ev_slot] == 1'b1) ? sh_w[wp_ev_slot] : 17'd0);
+                        sh_room = PCAP - sh_pw_after;
+                        sh_g = WQ;
+                        if (sh_avail < sh_g) sh_g = sh_avail;
+                        if (sh_room  < sh_g) sh_g = sh_room;
+                        sh_pool <= sh_avail - sh_g;
+                        if ((sh_own[wp_ev_slot] == 1'b0) && (sh_w[wp_ev_slot] != 16'd0))
+                            sh_pw0 <= sh_pw0 - sh_w[wp_ev_slot];
+                        sh_pw1 <= sh_pw_after + sh_g;
+                    end else begin
+                        sh_pw_after = sh_pw0 -
+                            ((sh_own[wp_ev_slot] == 1'b0) ? sh_w[wp_ev_slot] : 17'd0);
+                        sh_room = PCAP - sh_pw_after;
+                        sh_g = WQ;
+                        if (sh_avail < sh_g) sh_g = sh_avail;
+                        if (sh_room  < sh_g) sh_g = sh_room;
+                        sh_pool <= sh_avail - sh_g;
+                        if ((sh_own[wp_ev_slot] == 1'b1) && (sh_w[wp_ev_slot] != 16'd0))
+                            sh_pw1 <= sh_pw1 - sh_w[wp_ev_slot];
+                        sh_pw0 <= sh_pw_after + sh_g;
+                    end
+                    sh_w[wp_ev_slot]   <= sh_g[15:0];
+                    sh_own[wp_ev_slot] <= wp_ev_type[1];
+                end
             end
-            if (qrel1 && (sh_own[qrel1_slot] == 1'b1)) begin
-                rel_cnt1[qrel1_slot] <= rel_cnt1[qrel1_slot] + 1;
-                sh_pool <= sh_pool + sh_w[qrel1_slot];
-                sh_pw1  <= sh_pw1 - sh_w[qrel1_slot];
-                sh_w[qrel1_slot] <= 0;
-            end
-            // ev_up 授予 (C18: 旧额从**授出端口**回池, 再按 min 授新)
-            if (ev0_up) begin
-                sh_pool <= sh_pool + sh_w[ev0_slot] - WQ;
-                sh_pw0  <= sh_pw0 + WQ - ((sh_own[ev0_slot] == 1'b0) ? sh_w[ev0_slot] : 16'd0);
-                sh_pw1  <= sh_pw1      - ((sh_own[ev0_slot] == 1'b1) ? sh_w[ev0_slot] : 16'd0);
-                sh_w[ev0_slot] <= WQ;
-                sh_own[ev0_slot] <= 1'b0;
-            end
-            if (ev1_up) begin
-                sh_pool <= sh_pool + sh_w[ev1_slot] - WQ;
-                sh_pw0  <= sh_pw0      - ((sh_own[ev1_slot] == 1'b0) ? sh_w[ev1_slot] : 16'd0);
-                sh_pw1  <= sh_pw1 + WQ - ((sh_own[ev1_slot] == 1'b1) ? sh_w[ev1_slot] : 16'd0);
-                sh_w[ev1_slot] <= WQ;
-                sh_own[ev1_slot] <= 1'b1;
-            end
-            // 逐拍不变量 (影子 vs DUT 调试口)
+            // 逐拍不变量 (影子 vs DUT 调试口; 非阻塞 ⇒ 两侧都是沿前值)
             chk(dbg_pool == sh_pool, "inv: DUT pool == shadow pool");
             chk(dbg_pw0 == sh_pw0, "inv: DUT port_win0 == shadow");
             chk(dbg_pw1 == sh_pw1, "inv: DUT port_win1 == shadow");
             chk((sh_pw0 + sh_pw1) <= WIN_POOL, "inv: sum port_win <= WIN_POOL");
+            chk(st_ev_ovf == 32'd0, "inv: event FIFO no overflow");
             // DUT 内部逐拍不变量 (TB 专用层次读; 判据是方程本身)
             sumw = 17'd0;
             for (i=0;i<8;i=i+1) sumw = sumw + um.winq[i];
@@ -231,6 +269,13 @@ module tb_p3_churn;
             chk(sumw == (dbg_pw0 + dbg_pw1),   "inv: SUM port_win == SUM winq");
         end
     end
+
+    task wait_idle;
+        begin
+            while (wp_busy) @(negedge clk);
+            repeat (2) @(negedge clk);
+        end
+    endtask
 
     // ---- M-5: 双读口定向断言 (每拍; 负控 = 两读口接同一索引必红) ----
     //   ① manager 的扫描口/事件口同拍指向不同槽时, 各自返回自己槽的配额;
@@ -255,8 +300,8 @@ module tb_p3_churn;
         end
         pa_exp0 <= um.winq[u0.scan_id];
         pa_exp1 <= um.winq[u1.scan_id];
-        pa_init0 <= u0.init_pend;
-        pa_init1 <= u1.init_pend;
+        pa_init0 <= u0.init_valid;
+        pa_init1 <= u1.init_valid;
     end
     // 每拍结束时校验 DUT 不变量: Σwinq 通过 read 口逐一读 (每 8 拍一轮)
     reg [16:0] rd_sum; reg [2:0] rd_i=0;
@@ -316,52 +361,52 @@ module tb_p3_churn;
         // 1) 4+4 建连
         t_ev(0,4'd0); t_ev(0,4'd1); t_ev(0,4'd2); t_ev(0,4'd3);
         t_ev(1,4'd4); t_ev(1,4'd5); t_ev(1,4'd6); t_ev(1,4'd7);
-        repeat(4) @(negedge clk);
+        wait_idle;
         chk(dbg_pool==17'd0, "1) 8x12KB exhausts 96KB pool");
         chk(dbg_pw0==17'hC000 && dbg_pw1==17'hC000, "1) 4+4 distribution");
 
         // 2) 外部 DEL (port0 slot0 / port1 slot4)
         t_down(0,4'd0); t_down(1,4'd4);
-        repeat(4) @(negedge clk);
+        wait_idle;
         chk(rel_cnt0[0]==1 && rel_cnt1[4]==1, "2) DEL releases exactly once");
         chk(dbg_pool==17'h6000, "2) pool +2x12KB");
 
         // 3) 关闭超时 (port0 slot1, fin_sent=1, 无进展)
         fin_sent0[1] <= 1'b1;
         wait_rel(0, 4'd1, 4000);
-        repeat(4) @(negedge clk);
+        wait_idle;
         chk(rel_cnt0[1]==1, "3) timeout to_fire releases exactly once");
         rst_sent0[1] <= 1'b1;   // 让 st_req_now 正常收尾 (不会再 rel)
         repeat(80) @(negedge clk);
         t_down(0,4'd1);
-        repeat(4) @(negedge clk);
+        wait_idle;
         chk(rel_cnt0[1]==1, "3b) later DEL does NOT double-release");
 
         // 4) abort+state=0 (port0 slot2: rst_sent 上升 -> st_req_now)
         rst_sent0[2] <= 1'b1;
         wait_rel(0, 4'd2, 2000);
-        repeat(4) @(negedge clk);
+        wait_idle;
         chk(rel_cnt0[2]==1, "4) abort st_req_now releases exactly once");
         t_down(0,4'd2);
-        repeat(4) @(negedge clk);
+        wait_idle;
         chk(rel_cnt0[2]==1, "4b) later DEL does NOT double-release");
 
         // 5) C18 同槽复用 (port0 slot3 二次 ev_up)
         t_ev(0,4'd3);
-        repeat(4) @(negedge clk);
+        wait_idle;
         chk(rel_cnt0[3]==0, "5) C18 reuse emits no rel");
         chk(dbg_pool==17'hC000, "5) C18 re-grant keeps pool unchanged (0xC000)");
         t_down(0,4'd3);
-        repeat(4) @(negedge clk);
+        wait_idle;
         chk(rel_cnt0[3]==1, "5b) final DEL releases once");
 
         // 5c) H-1 跨口同槽复用 + 旧口 rel 延迟 (ev_up1 先于 rel0)
         //   ⚠️ 关键: ev_up1 到达时旧配额**仍在** (旧口的 rel 还没到) —— 这正是
         //   FINDINGS 的失效链; 若先把旧配额释放掉, C18 old=0, 跨口路径不被激励。
         t_ev(0,4'd3);                 // 旧连接重新占住 slot3 (port0)
-        repeat(4) @(negedge clk);
+        wait_idle;
         t_ev(1,4'd3);                 // 新连接在 port1 复用同一槽 (ev_up1 先于 rel0)
-        repeat(4) @(negedge clk);
+        wait_idle;
         chk(um.winq[3] == WQ, "5c) new quota present after cross-port reuse");
         chk(wp_gp[3] == 1'b1, "5c) grant_port[3] -> port1");
         chk(st_c18x >= 1, "5c) stat_c18_cross_port counted");
@@ -371,32 +416,32 @@ module tb_p3_churn;
         repeat(2) @(negedge clk);
         release um.rel0;
         release um.rel_slot0;
-        repeat(2) @(negedge clk);
+        wait_idle;
         chk(um.winq[3] == WQ, "5c) stale rel0 did not eat the new quota");
         chk(dbg_pw1 == pw1_before, "5c) stale rel0 did not touch port1 port_win");
         chk(st_rel_stale >= 1, "5c) stat_rel_stale_port counted");
         chk(st_pw_uw == 0, "5c) no port_win underflow");
         t_down(1,4'd3);
-        repeat(4) @(negedge clk);
+        wait_idle;
         chk(rel_cnt1[3] == 1, "5c) owner (port1) DEL releases once");
         t_down(0,4'd3);              // 清旧口 app_ctrl 的槽状态 (winq=0 ⇒ 不发 rel)
-        repeat(4) @(negedge clk);
+        wait_idle;
         chk(rel_cnt0[3] == 1, "5c) old-port DEL after release emits no extra rel");
 
         // 6) 孤儿回收 (port1 slot5): state ESTAB + 在飞 + retx 见证
         retx_act <= 1'b1; retx_id <= 4'd5;
         nxt1[5] <= 32'h2000; una1[5] <= 32'h0; sw1[5] <= 16'h1000; st1[5] <= 4'd1;
         wait_rel(1, 4'd5, 8000);
-        repeat(4) @(negedge clk);
+        wait_idle;
         chk(rel_cnt1[5]==1, "6) orphan recovery releases exactly once");
         retx_act <= 1'b0;
         t_down(1,4'd5);
-        repeat(4) @(negedge clk);
+        wait_idle;
         chk(rel_cnt1[5]==1, "6b) later DEL does NOT double-release");
 
         // 7) 收尾: 释放剩余 (p1 slot6/7), 校验每条非零配额恰一次
         t_down(1,4'd6); t_down(1,4'd7);
-        repeat(8) @(negedge clk);
+        wait_idle;
         chk(rel_cnt1[6]==1 && rel_cnt1[7]==1, "7) remaining slots release once");
         chk(st_rdup==0, "7) stat_rel_dup == 0");
         chk(st_oor==0, "7) stat_slot_oor == 0");
@@ -406,22 +451,22 @@ module tb_p3_churn;
         // 8) M-4: 8+0 分布 (8 条全在 port0)
         t_ev(0,4'd0); t_ev(0,4'd1); t_ev(0,4'd2); t_ev(0,4'd3);
         t_ev(0,4'd4); t_ev(0,4'd5); t_ev(0,4'd6); t_ev(0,4'd7);
-        repeat(4) @(negedge clk);
+        wait_idle;
         chk(dbg_pool==17'd0, "8) 8+0 exhausts pool");
         chk(dbg_pw0==WIN_POOL && dbg_pw1==17'd0, "8) 8+0 all quota on port0");
         for (j=0;j<8;j=j+1) t_down(0, j[3:0]);
-        repeat(8) @(negedge clk);
+        wait_idle;
         chk(dbg_pool==WIN_POOL, "8) 8+0 pool fully returned");
 
         // 9) M-4: 6+2 分布
         t_ev(0,4'd0); t_ev(0,4'd1); t_ev(0,4'd2); t_ev(0,4'd3);
         t_ev(0,4'd4); t_ev(0,4'd5);
         t_ev(1,4'd6); t_ev(1,4'd7);
-        repeat(4) @(negedge clk);
+        wait_idle;
         chk(dbg_pw0==17'h12000 && dbg_pw1==17'h6000, "9) 6+2 distribution");
         chk(dbg_pool==17'd0, "9) 6+2 exhausts pool");
         for (j=0;j<8;j=j+1) begin t_down(0, j[3:0]); t_down(1, j[3:0]); end
-        repeat(8) @(negedge clk);
+        wait_idle;
         chk(dbg_pool==WIN_POOL, "9) 6+2 pool fully returned");
         chk(st_pw_uw==0, "9) no port_win underflow (whole run)");
         chk(st_oor==0, "9) stat_slot_oor == 0 (whole run)");

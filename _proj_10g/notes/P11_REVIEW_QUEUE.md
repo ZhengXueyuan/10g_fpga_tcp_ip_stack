@@ -71,4 +71,7 @@
 | 2026-10-18 | `p9_dual_sfp_plan_20261017/DESIGN.md`（既有，60 KB） | 计划 | P11 总计划（P0→P1→P2-甲→P3→乙）；建议与 P3 设计件同批复审 | 既有 | **待报送（复审）** |
 | 2026-10-18+ | P2-甲 实施/构建/板级 | 后续 | A-1 + rx_merge2 + 双板 IP + HLS 两 IP | — | **待报送（完成后）** |
 
+| 2026-10-25/26 | `p11_fix_0x30_0x31_20261025/README_FOR_TL.md` + `build0x31_clean/` + `bits/` + `gates/matrix_final.log` | 修复+构建 | 0x2F 时序根因（manager 四事件组合链）⇒ 事件 FIFO/三拍事件机 + grant-done/init 队列；0x30 −0.418（既存 TCB 族，0x2F 该族 −3.77）；TCB 写口 RTL 延拍两次被 txdrop50 判死并回退；0x31 `Performance_Explore` **WNS +0.031 / 0/0/0**，clean 位流 `420ddad5…`，41/41；时序硬门 + table 解析 + DRC token 假阳性修复 | 本次提交 | **待报送** |
+| 2026-10-25/26 | `P7B_TL_LEDGER_20261010.md` §10-160 | Tier B | 0x2F 修复 + 0x30/0x31 构建收口 + 未收口（板级/read-side/8×12KB/`up_pend` 边界/策略依赖） | 本次提交 | **待报送** |
+
 > 追加规则：每轮收口（TL 提交后）把新增文档写入本表；用户回来可按表逐条报送。

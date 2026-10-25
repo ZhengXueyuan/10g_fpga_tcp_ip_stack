@@ -49,17 +49,41 @@
 //   TB 断言: 新配额仍在 winq[N]、port_win 落在新口、不变量成立、
 //   stat_rel_stale_port 递增、stat_port_win_underflow 恒 0。
 //
-// 同拍两口事件: 池算术按 **rel0 -> ev_up0 -> ev_up1(rel1 见下)** 的固定顺序
-//   组合计算 (§4.3 的 port0 -> port1 顺序; 同一口内 rel 先于 ev_up —— 两者
-//   同槽时与 C18 "旧配额先回池再授新"逐位等价)。同拍 ev_up 与 rel 落在
-//   **不同槽**时两者都处理 (旧实装的 `else if` 会静默丢 rel ⇒ 配额泄漏;
-//   M-4 修复)。
+// 同拍多事件的固定先后: **rel0 -> ev_up0 -> ev_up1 -> rel1** (§4.3 的
+//   port0 -> port1 顺序; 同一口内 rel 先于 ev_up —— 两者同槽时与 C18
+//   "旧配额先回池再授新"逐位等价)。同拍 ev_up 与 rel 落在**不同槽**时
+//   两者都处理 (旧实装的 `else if` 会静默丢 rel ⇒ 配额泄漏; M-4 修复)。
 //
-// 不变量 (G-P3-1 / G-P3-1b 逐拍断言):
-//   Σ winq + pool == WIN_POOL · Σ port_win == Σ winq · port_win[p] <= port_cap
+// ⭐⭐ 0x2F 时序缺陷修复 (2026-10-19; 根因 = 42 级组合链 13.137ns):
+//   旧实装把 **rel0 -> ev_up0 -> ev_up1 -> rel1** 四个事件 + 8 槽 winq 数组
+//   的下状态**全部塞进一个 always @(*) 组合块** —— 最差路径
+//   `u_app_ctrl/c_rcv_nxt_reg[9][4]/C -> u_win_pool/port_win1_reg[0]/D`
+//   13.137ns (42 级, WNS -6.456, 25,697 失败端点)。定向 STA 另证:
+//   **ev_up 自身路径仍有余量** (ev_up0 +0.323ns / ev_up1 +0.201ns) ⇒ 必须
+//   切断的是 "app_ctrl 扫描态 rel -> manager 算术" 这条组合链, 不是整个池。
 //
-// 槽号 >= 8 (M-3): 事件只计 stat_slot_oor, **不改任何状态** (旧实装的算术
-//   仍按 [2:0] 别名到 0..7 ⇒ 会静默改错槽)。
+//   新实装 = **事件 FIFO + 串行三拍事件机**:
+//     · 每个事件 (type+slot) 按固定先后压入 32 深 FIFO (最多 4 条/拍);
+//     · 事件机逐条处理, 每条三拍:
+//         S_LOAD  : 读 state (pool/port_win/winq[slot]/grant_port[slot]/occ)
+//         S_CALC  : pool_after = pool + old ; pw_after = sat_sub(pw, old) ;
+//                   avail/room
+//         S_COMMIT: g = min(wq_cap, avail, room); 提交 pool/winq/port_win/
+//                   grant_port; 打 stat; 对 ev_up 产生 done 脉冲 (见下)
+//     · 三拍之间状态不被别的写者碰 (本模块是唯一属主) ⇒ 逐位等价于旧组合算式;
+//       全局事件先后由 FIFO 保序 (同拍仍按 rel0/ev_up0/ev_up1/rel1 排队)。
+//     · **grant-done 握手**: ev_up 的提交发生在 S_COMMIT 沿, 下一拍
+//       `o_ev_up_doneN` 高 —— 该拍 winq[slot] 已是新配额。app_ctrl 的 init
+//       **必须**等到对应 done 再读 (否则读到旧配额 ⇒ 零窗死锁)。
+//       `o_ev_up_done_slotN` 让 app_ctrl 校验"这条 done 对应队列头事件"。
+//     · FIFO 溢出 (理论上不可达: 服务 1 条/3 拍, 上游 HLS 事件远低于此)
+//       不静默丢: `stat_ev_ovf` 计数, 且本拍所有 push 都不落地 (保序)。
+//
+//   不变量 (G-P3-1 / G-P3-1b 逐拍断言):
+//     Σ winq + pool == WIN_POOL · Σ port_win == Σ winq · port_win[p] <= port_cap
+//
+// 槽号 >= 8 (M-3): 事件照常入 FIFO/出 FIFO, 但**不改任何状态** (只计
+//   stat_slot_oor); ev_up 仍产生 done (app_ctrl 读到 0 配额, 与旧式一致)。
 //
 // 本模块是 C4 专用新件; C1/C2/C3 构建不例化 (设计件 §2.4)。
 //=============================================================================
@@ -111,9 +135,29 @@ module win_pool_mgr #(
     output reg  [31:0] stat_slot_oor,        // ev_up/rel 槽号 >= 8 (应恒 0; cfg demux 已守卫)
     output reg  [31:0] stat_c18_cross_port,  // C18 旧配额属主 != 事件端口 (跨口同槽复用)
     output reg  [31:0] stat_port_win_underflow, // port_win 饱和扣减 (应恒 0)
-    output reg  [31:0] stat_rel_stale_port   // 非属主口的 rel (跨口复用后的迟到事件; 应恒 0)
+    output reg  [31:0] stat_rel_stale_port,  // 非属主口的 rel (跨口复用后的迟到事件; 应恒 0)
+    // ---- 0x2F 时序修复新增: ev_up 提交完成握手 (app_ctrl init 用) ----
+    output reg         o_ev_up_done0,        // 1 拍脉冲; 高电平那拍 winq 已是新配额
+    output reg  [3:0]  o_ev_up_done_slot0,
+    output reg         o_ev_up_done1,
+    output reg  [3:0]  o_ev_up_done_slot1,
+    output reg  [31:0] stat_ev_ovf,          // 事件 FIFO 溢出 (理论不可达; 非静默)
+    // ---- TB 观测 ----
+    output wire        dbg_busy,             // 事件机忙或有事件待处理
+    output wire        dbg_ev_commit,        // 高 = 本拍在 S_COMMIT (TB 影子模型用)
+    output wire [1:0]  dbg_ev_type,
+    output wire [3:0]  dbg_ev_slot
 );
     localparam NSLOT = 8;
+
+    // 事件编码: 0=rel0, 1=ev_up0, 2=rel1, 3=ev_up1
+    //   bit0 = 1 -> ev_up; bit1 = 口 (0/1)
+    //   ⚠️ 不能按"0/1/2/3 = rel0/evup0/evup1/rel1"直排: 那样 bit0/bit1 的语义
+    //      会随编号翻转 (ev_up1=10 会被判成 rel, rel1=11 会被判成 ev_up)。
+    localparam [1:0] E_REL0  = 2'b00;
+    localparam [1:0] E_EVUP0 = 2'b01;
+    localparam [1:0] E_REL1  = 2'b10;
+    localparam [1:0] E_EVUP1 = 2'b11;
 
     reg  [16:0] pool;
     reg  [15:0] winq [0:NSLOT-1];
@@ -131,141 +175,105 @@ module win_pool_mgr #(
     assign winq_rd1  = (winq_rd_id1  < 4'd8) ? winq[winq_rd_id1]  : 16'd0;
     assign winq_rd1b = (winq_rd_id1b < 4'd8) ? winq[winq_rd_id1b] : 16'd0;
 
-    // ---- 组合下一状态 (rel0 -> ev_up0 -> ev_up1 -> rel1 固定顺序) ----
-    reg  [16:0] pool_n;
-    reg  [15:0] winq_n [0:NSLOT-1];
-    reg  [16:0] pw0_n, pw1_n;
-    reg  [7:0]  gp_n;
-    reg  [15:0] old_q;
-    reg         old_owner;
-    reg  [16:0] avail, room, g;
-    reg  [16:0] g0_c, g1_c;          // 本拍实际授予量 (stat_grant_zero 用; L-1)
-    reg  [1:0]  uw_cnt;              // 本拍 port_win 下溢次数
-    reg         dup0_c, dup1_c;      // 本拍 rel 撞 winq==0
-    reg         c18x0_c, c18x1_c;    // 本拍 C18 跨口
-    reg         stale0_c, stale1_c;  // 本拍 rel 来自非属主口 (迟到事件)
-    integer     i;
+    //=========================================================================
+    // 事件 FIFO (32 深 x 6 位; 最多 4 条 push/拍, 1 条 pop/拍)
+    //=========================================================================
+    localparam EDEPTH = 32;
+    localparam [5:0] EDEPTH_6 = 6'd32;
 
-    // 饱和扣减: pw >= q ? pw-q : 0 (后者同时置 uw_cnt)
-    reg  [16:0] sub_r;
-    task automatic sat_sub;
-        input [16:0] pw; input [15:0] q;
+    reg  [5:0]  evq [0:EDEPTH-1];
+    reg  [4:0]  evq_wr;
+    reg  [4:0]  evq_rd;
+    reg  [5:0]  evq_cnt;
+
+    wire [5:0]  evq_head = evq[evq_rd];
+
+    // 同拍 push 顺序 = rel0 -> ev_up0 -> ev_up1 -> rel1
+    // 同口同槽 rel+ev_up 同拍: C18 吸收 (rel 不单独入队; 与旧实装逐位一致)
+    //   同口同槽 rel+ev_up 同拍: C18 吸收 (rel 不单独入队; 与旧实装逐位一致)。
+    //   OOR 事件不参与该抑制 (旧实装只对 slot<8 的 rel 做吸收, OOR 仍计 stat)。
+    wire p_rel0 = rel0 && !(ev_up0 && (ev_up_slot0 < 4'd8) &&
+                            (rel_slot0 < 4'd8) && (ev_up_slot0 == rel_slot0));
+    wire p_up0  = ev_up0;
+    wire p_up1  = ev_up1;
+    wire p_rel1 = rel1 && !(ev_up1 && (ev_up_slot1 < 4'd8) &&
+                            (rel_slot1 < 4'd8) && (ev_up_slot1 == rel_slot1));
+
+    wire [2:0] push_cnt = {2'b0, p_rel0} + {2'b0, p_up0} +
+                          {2'b0, p_up1} + {2'b0, p_rel1};
+    wire [5:0] push_cnt_6 = {3'b0, push_cnt};
+
+    // 事件机状态
+    localparam [1:0] S_LOAD   = 2'd0;
+    localparam [1:0] S_CALC   = 2'd1;
+    localparam [1:0] S_COMMIT = 2'd2;
+
+    reg  [1:0]  eng_state;
+    reg  [1:0]  e_type;
+    reg  [3:0]  e_slot;
+    reg         e_port;
+    reg         e_oor;
+
+    // S_LOAD 采样的状态
+    reg  [16:0] s_pool;
+    reg  [16:0] s_pw0;
+    reg  [16:0] s_pw1;
+    reg  [15:0] s_q;
+    reg         s_owner;
+    reg  [16:0] s_occ;
+
+    // S_CALC 结果
+    reg  [16:0] s_pool_after;     // ev_up: pool + old ; rel: pool + q
+    reg  [16:0] s_pw_after_ev;    // 事件端口 port_win 扣掉 old 后
+    reg  [16:0] s_pw_after_own;   // 旧配额属主端口 port_win 扣掉 old 后
+    reg  [16:0] s_avail;
+    reg  [16:0] s_room;
+    reg         s_sub_under;      // 本事件旧配额扣减发生下溢 (应恒 0)
+
+    // 事件机 pop (S_LOAD 且 FIFO 非空)
+    wire        do_pop   = (eng_state == S_LOAD) && (evq_cnt != 6'd0);
+    wire [5:0]  room0    = EDEPTH_6 - evq_cnt + {5'b0, do_pop};
+    wire        push_ok  = (push_cnt_6 <= room0);
+
+    assign dbg_busy      = (eng_state != S_LOAD) || (evq_cnt != 6'd0);
+    assign dbg_ev_commit = (eng_state == S_COMMIT);
+    assign dbg_ev_type   = e_type;
+    assign dbg_ev_slot   = e_slot;
+
+    // 饱和扣减 (组合): pw > q ? pw-q : 0; 相等不算下溢
+    function [16:0] sat_sub17;
+        input [16:0] pw;
+        input [15:0] q;
         begin
-            if (pw > {1'b0, q}) begin
-                sub_r = pw - {1'b0, q};
-            end else begin
-                sub_r = 17'd0;
-                if (pw != {1'b0, q}) uw_cnt = uw_cnt + 2'd1;
-            end
+            if (pw > {1'b0, q}) sat_sub17 = pw - {1'b0, q};
+            else                sat_sub17 = 17'd0;
         end
-    endtask
+    endfunction
 
+    // S_CALC 的并行前级 (全部来自 S_LOAD 锁存, 不碰 live 输入)
+    wire [16:0] w_pool_add_q   = s_pool + {1'b0, s_q};
+    wire [16:0] w_pw_ev_sub    = sat_sub17(e_port ? s_pw1 : s_pw0, s_q);
+    wire [16:0] w_pw_own_sub   = sat_sub17(s_owner ? s_pw1 : s_pw0, s_q);
+    wire [16:0] w_pw_after_ev  = (s_owner == e_port) ? w_pw_ev_sub
+                                                      : (e_port ? s_pw1 : s_pw0);
+    wire [16:0] w_pw_after_own = w_pw_own_sub;
+    wire [16:0] w_avail        = (w_pool_add_q > s_occ) ? (w_pool_add_q - s_occ)
+                                                         : 17'd0;
+    wire [16:0] w_room         = (port_cap > w_pw_after_ev) ? (port_cap - w_pw_after_ev)
+                                                            : 17'd0;
+    wire        w_sub_under    = (s_q != 16'd0) &&
+                                 ((s_owner ? s_pw1 : s_pw0) != {1'b0, s_q}) &&
+                                 ((s_owner ? s_pw1 : s_pw0) <  {1'b0, s_q});
+
+    // S_COMMIT 的授予量
+    reg  [16:0] c_g;
     always @(*) begin
-        pool_n = pool;
-        for (i = 0; i < NSLOT; i = i + 1) winq_n[i] = winq[i];
-        pw0_n  = port_win0;
-        pw1_n  = port_win1;
-        gp_n   = grant_port;
-        g0_c   = 17'd0;
-        g1_c   = 17'd0;
-        uw_cnt = 2'd0;
-        dup0_c = 1'b0;
-        dup1_c = 1'b0;
-        c18x0_c = 1'b0;
-        c18x1_c = 1'b0;
-        stale0_c = 1'b0;
-        stale1_c = 1'b0;
-
-        // ================= port0 rel (同口内先于 ev_up; 同槽时等价 C18) ======
-        //   H-1: 只有**属主口**的 rel 才有意义。跨口复用后旧口的迟到 rel
-        //   (事件口 != grant_port) 一律忽略并计数 —— 否则它会把新口刚落地的
-        //   配额吞掉 ("新配额不被旧 rel 吞")。
-        if (rel0 && !rel_slot0[3] &&
-            !(ev_up0 && !ev_up_slot0[3] && (ev_up_slot0 == rel_slot0))) begin
-            if (gp_n[rel_slot0[2:0]] != 1'b0) begin
-                stale0_c = 1'b1;
-            end else begin
-                old_q = winq_n[rel_slot0[2:0]];
-                if (old_q != 16'd0) begin
-                    pool_n = pool_n + {1'b0, old_q};
-                    pw0_n  = pw0_n - {1'b0, old_q};   // 属主 = port0; 不变式保证 pw0 >= q
-                    winq_n[rel_slot0[2:0]] = 16'd0;
-                end else begin
-                end
-            end
-        end
-
-        // ================= port0 ev_up (C18: old 从**授出端口**扣) ==========
-        if (ev_up0 && !ev_up_slot0[3]) begin
-            old_q     = winq_n[ev_up_slot0[2:0]];
-            old_owner = gp_n[ev_up_slot0[2:0]];
-            if (old_q != 16'd0) begin
-                pool_n = pool_n + {1'b0, old_q};
-                if (old_owner != 1'b0) begin
-                    sat_sub(pw1_n, old_q);
-                    pw1_n = sub_r;
-                end else begin
-                    sat_sub(pw0_n, old_q);
-                    pw0_n = sub_r;
-                end
-                if (old_owner != 1'b0) c18x0_c = 1'b1;   // 旧属 port1, 新授 port0
-            end
-            avail  = (pool_n > occ0) ? (pool_n - occ0) : 17'd0;
-            room   = (port_cap > pw0_n) ? (port_cap - pw0_n) : 17'd0;
-            g      = {1'b0, wq_cap};
-            if (avail < g) g = avail;
-            if (room  < g) g = room;
-            winq_n[ev_up_slot0[2:0]] = g[15:0];
-            pool_n = pool_n - g;
-            pw0_n  = pw0_n + g;
-            gp_n[ev_up_slot0[2:0]] = 1'b0;
-            g0_c   = g;
-        end
-
-        // ================= port1 ev_up (使用 port0 之后的池) ===============
-        if (ev_up1 && !ev_up_slot1[3]) begin
-            old_q     = winq_n[ev_up_slot1[2:0]];
-            old_owner = gp_n[ev_up_slot1[2:0]];
-            if (old_q != 16'd0) begin
-                pool_n = pool_n + {1'b0, old_q};
-                if (old_owner) begin
-                    sat_sub(pw1_n, old_q);
-                    pw1_n = sub_r;
-                end else begin
-                    sat_sub(pw0_n, old_q);
-                    pw0_n = sub_r;
-                end
-                if (old_owner == 1'b0) c18x1_c = 1'b1;   // 旧属 port0, 新授 port1
-            end
-            avail  = (pool_n > occ1) ? (pool_n - occ1) : 17'd0;
-            room   = (port_cap > pw1_n) ? (port_cap - pw1_n) : 17'd0;
-            g      = {1'b0, wq_cap};
-            if (avail < g) g = avail;
-            if (room  < g) g = room;
-            winq_n[ev_up_slot1[2:0]] = g[15:0];
-            pool_n = pool_n - g;
-            pw1_n  = pw1_n + g;
-            gp_n[ev_up_slot1[2:0]] = 1'b1;
-            g1_c   = g;
-        end
-
-        // ================= port1 rel (only owner port; see H-1 above) =========
-        if (rel1 && !rel_slot1[3] &&
-            !(ev_up1 && !ev_up_slot1[3] && (ev_up_slot1 == rel_slot1))) begin
-            if (gp_n[rel_slot1[2:0]] != 1'b1) begin
-                stale1_c = 1'b1;
-            end else begin
-                old_q = winq_n[rel_slot1[2:0]];
-                if (old_q != 16'd0) begin
-                    pool_n = pool_n + {1'b0, old_q};
-                    pw1_n  = pw1_n - {1'b0, old_q};
-                    winq_n[rel_slot1[2:0]] = 16'd0;
-                end else begin
-                    dup1_c = 1'b1;
-                end
-            end
-        end
+        c_g = {1'b0, wq_cap};
+        if (s_avail < c_g) c_g = s_avail;
+        if (s_room  < c_g) c_g = s_room;
     end
+
+    integer i;
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -280,35 +288,155 @@ module win_pool_mgr #(
             stat_c18_cross_port <= 32'd0;
             stat_port_win_underflow <= 32'd0;
             stat_rel_stale_port <= 32'd0;
+            stat_ev_ovf     <= 32'd0;
             for (i = 0; i < NSLOT; i = i + 1) winq[i] <= 16'd0;
+            evq_wr    <= 5'd0;
+            evq_rd    <= 5'd0;
+            evq_cnt   <= 6'd0;
+            eng_state <= S_LOAD;
+            e_type    <= E_REL0;
+            e_slot    <= 4'd0;
+            e_port    <= 1'b0;
+            e_oor     <= 1'b0;
+            s_pool    <= 17'd0;
+            s_pw0     <= 17'd0;
+            s_pw1     <= 17'd0;
+            s_q       <= 16'd0;
+            s_owner   <= 1'b0;
+            s_occ     <= 17'd0;
+            s_pool_after   <= 17'd0;
+            s_pw_after_ev  <= 17'd0;
+            s_pw_after_own <= 17'd0;
+            s_avail        <= 17'd0;
+            s_room         <= 17'd0;
+            s_sub_under    <= 1'b0;
+            o_ev_up_done0 <= 1'b0; o_ev_up_done_slot0 <= 4'd0;
+            o_ev_up_done1 <= 1'b0; o_ev_up_done_slot1 <= 4'd0;
+            for (i = 0; i < EDEPTH; i = i + 1) evq[i] <= 6'd0;
         end else begin
-            pool       <= pool_n;
-            port_win0  <= pw0_n;
-            port_win1  <= pw1_n;
-            grant_port <= gp_n;
-            for (i = 0; i < NSLOT; i = i + 1) winq[i] <= winq_n[i];
+            // 脉冲型输出每拍默认清零 (工程铁律)
+            o_ev_up_done0 <= 1'b0;
+            o_ev_up_done1 <= 1'b0;
 
-            // 槽号越界: 只计数, 状态不变 (组合块已 gate `!slot[3]`)
-            if (ev_up0 && (ev_up_slot0 >= 4'd8)) stat_slot_oor <= stat_slot_oor + 32'd1;
-            if (ev_up1 && (ev_up_slot1 >= 4'd8)) stat_slot_oor <= stat_slot_oor + 32'd1;
-            if (rel0    && (rel_slot0    >= 4'd8)) stat_slot_oor <= stat_slot_oor + 32'd1;
-            if (rel1    && (rel_slot1    >= 4'd8)) stat_slot_oor <= stat_slot_oor + 32'd1;
+            //-----------------------------------------------------------------
+            // 事件 FIFO: push (多写) / pop (事件机 S_LOAD)
+            //-----------------------------------------------------------------
+            if (push_ok && (push_cnt != 3'd0) && (push_cnt_6 != 6'd0)) begin
+                // 四条写口; 索引按已入队的条数偏移 (固定顺序)
+                if (p_rel0) evq[evq_wr] <= {E_REL0,  rel_slot0};
+                if (p_up0)  evq[evq_wr + {4'b0, p_rel0}] <= {E_EVUP0, ev_up_slot0};
+                if (p_up1)  evq[evq_wr + {4'b0, p_rel0} + {4'b0, p_up0}]
+                                <= {E_EVUP1, ev_up_slot1};
+                if (p_rel1) evq[evq_wr + {4'b0, p_rel0} + {4'b0, p_up0} + {4'b0, p_up1}]
+                                <= {E_REL1,  rel_slot1};
+                evq_wr  <= evq_wr + {2'b0, push_cnt};
+                evq_cnt <= evq_cnt + push_cnt_6 - {5'b0, do_pop};
+            end else begin
+                if (push_cnt != 3'd0) stat_ev_ovf <= stat_ev_ovf + push_cnt_6;
+                evq_cnt <= evq_cnt - {5'b0, do_pop};
+            end
+            if (do_pop) evq_rd <= evq_rd + 5'd1;
 
-            if (ev_up0 && (ev_up_slot0 < 4'd8)) begin
-                if (g0_c == 17'd0) stat_grant_zero <= stat_grant_zero + 32'd1;
-                if (winq[ev_up_slot0] != 16'd0) stat_slot_reuse <= stat_slot_reuse + 32'd1;
-            end
-            if (ev_up1 && (ev_up_slot1 < 4'd8)) begin
-                if (g1_c == 17'd0) stat_grant_zero <= stat_grant_zero + 32'd1;
-                if (winq[ev_up_slot1] != 16'd0) stat_slot_reuse <= stat_slot_reuse + 32'd1;
-            end
-            if (dup0_c) stat_rel_dup <= stat_rel_dup + 32'd1;
-            if (dup1_c) stat_rel_dup <= stat_rel_dup + 32'd1;
-            if (stale0_c) stat_rel_stale_port <= stat_rel_stale_port + 32'd1;
-            if (stale1_c) stat_rel_stale_port <= stat_rel_stale_port + 32'd1;
-            if (c18x0_c) stat_c18_cross_port <= stat_c18_cross_port + 32'd1;
-            if (c18x1_c) stat_c18_cross_port <= stat_c18_cross_port + 32'd1;
-            if (uw_cnt != 2'd0) stat_port_win_underflow <= stat_port_win_underflow + {30'd0, uw_cnt};
+            //-----------------------------------------------------------------
+            // 事件机: S_LOAD -> S_CALC -> S_COMMIT -> S_LOAD
+            //-----------------------------------------------------------------
+            case (eng_state)
+                S_LOAD: begin
+                    if (evq_cnt != 6'd0) begin
+                        e_type <= evq_head[5:4];
+                        e_slot <= evq_head[3:0];
+                        e_port <= evq_head[5];          // type[1] = 口
+                        e_oor  <= (evq_head[3:0] >= 4'd8);
+                        s_pool <= pool;
+                        s_pw0  <= port_win0;
+                        s_pw1  <= port_win1;
+                        s_q    <= (evq_head[3:0] < 4'd8) ? winq[evq_head[3:0]]
+                                                         : 16'd0;
+                        s_owner<= (evq_head[3:0] < 4'd8) ? grant_port[evq_head[3:0]]
+                                                         : 1'b0;
+                        s_occ  <= evq_head[5] ? occ1 : occ0;
+                        eng_state <= S_CALC;
+                    end
+                end
+
+                S_CALC: begin
+                    // 旧配额先回池 (C18) / rel 的归还, 两者都是 pool + q
+                    s_pool_after   <= w_pool_add_q;
+                    s_pw_after_ev  <= w_pw_after_ev;
+                    s_pw_after_own <= w_pw_after_own;
+                    s_avail        <= w_avail;
+                    s_room         <= w_room;
+                    s_sub_under    <= w_sub_under;
+                    eng_state      <= S_COMMIT;
+                end
+
+                S_COMMIT: begin
+                    if (e_oor) begin
+                        // 槽号越界: 只计数, 状态逐项不变 (M-3)
+                        stat_slot_oor <= stat_slot_oor + 32'd1;
+                        if (e_type[0]) begin
+                            if (e_port) begin
+                                o_ev_up_done1      <= 1'b1;
+                                o_ev_up_done_slot1 <= e_slot;
+                            end else begin
+                                o_ev_up_done0      <= 1'b1;
+                                o_ev_up_done_slot0 <= e_slot;
+                            end
+                        end
+                    end else if (!e_type[0]) begin
+                        //========================= rel =========================
+                        if (s_owner != e_port) begin
+                            // 非属主口的迟到 rel: 忽略 (H-1)
+                            stat_rel_stale_port <= stat_rel_stale_port + 32'd1;
+                        end else if (s_q == 16'd0) begin
+                            ;
+                        end else begin
+                            pool   <= s_pool + {1'b0, s_q};
+                            if (e_port) port_win1 <= sat_sub17(s_pw1, s_q);
+                            else        port_win0 <= sat_sub17(s_pw0, s_q);
+                            winq[e_slot] <= 16'd0;
+                        end
+                        if (s_sub_under) stat_port_win_underflow <= stat_port_win_underflow + 32'd1;
+                    end else begin
+                        //======================== ev_up ========================
+                        // g = min(wq_cap, avail, room) (c_g 在组合块算好)
+                        pool <= s_pool_after - c_g;
+                        winq[e_slot] <= c_g[15:0];
+                        if (e_port) begin
+                            port_win1 <= s_pw_after_ev + c_g;
+                            if ((s_owner != 1'b1) && (s_q != 16'd0))
+                                port_win0 <= s_pw_after_own;
+                        end else begin
+                            port_win0 <= s_pw_after_ev + c_g;
+                            if ((s_owner != 1'b0) && (s_q != 16'd0))
+                                port_win1 <= s_pw_after_own;
+                        end
+                        grant_port[e_slot] <= e_port;
+
+                        if (c_g == 17'd0)
+                            stat_grant_zero <= stat_grant_zero + 32'd1;
+                        if (s_q != 16'd0) begin
+                            stat_slot_reuse <= stat_slot_reuse + 32'd1;
+                            if (s_owner != e_port)
+                                stat_c18_cross_port <= stat_c18_cross_port + 32'd1;
+                        end
+                        if (s_sub_under)
+                            stat_port_win_underflow <= stat_port_win_underflow + 32'd1;
+
+                        // grant 已在本沿提交; 下一拍 done 高 + winq 可读
+                        if (e_port) begin
+                            o_ev_up_done1      <= 1'b1;
+                            o_ev_up_done_slot1 <= e_slot;
+                        end else begin
+                            o_ev_up_done0      <= 1'b1;
+                            o_ev_up_done_slot0 <= e_slot;
+                        end
+                    end
+                    eng_state <= S_LOAD;
+                end
+
+                default: eng_state <= S_LOAD;
+            endcase
         end
     end
 

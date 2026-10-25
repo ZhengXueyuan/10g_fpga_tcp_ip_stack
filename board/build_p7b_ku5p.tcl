@@ -554,10 +554,63 @@ if {$f_hb < 1 || $f_sd != 0} {
     exit 1
 }
 puts "P7B_SNAP_TOP5_FANOUT_OK"
+
+# ---- P11 0x2F: 定向 STA 预检 (synth 后; 可 P11_STA_ONLY=1 单独跑) -----------
+#   0x2F 的 73 min 构建在最后才发现 42 级 rel 路径 (WNS -6.456)。本段在
+#   synth 网表上先把 "app_ctrl 扫描态 -> win_pool 状态" 与 ev_up 路径的
+#   估计 slack 打出来, 并给出全局最差几条, 便于在 impl 前发现形态错误。
+sec "P11_STA_PRECHECK"
+set wpm_rel_pins [get_pins -hier -quiet -regexp {u_app_ctrl.*c_rcv_nxt_reg.*/C}]
+set wpm_dst_pins [get_pins -hier -quiet -regexp {u_win_pool/.*/D}]
+puts "P11_STA_WPM_REL_PINS = [llength $wpm_rel_pins]"
+puts "P11_STA_WPM_DST_PINS = [llength $wpm_dst_pins]"
+if {[llength $wpm_rel_pins] > 0 && [llength $wpm_dst_pins] > 0} {
+    set tp_rel [get_timing_paths -from $wpm_rel_pins -to $wpm_dst_pins \
+                    -max_paths 1 -delay_type max]
+    if {[llength $tp_rel] > 0} {
+        puts "P11_STA_WPM_REL_WNS = [get_property SLACK [lindex $tp_rel 0]]"
+        puts "P11_STA_WPM_REL_SRC = [get_property STARTPOINT_PIN [lindex $tp_rel 0]]"
+        puts "P11_STA_WPM_REL_DST = [get_property ENDPOINT_PIN [lindex $tp_rel 0]]"
+        puts "P11_STA_WPM_REL_LEVELS = [get_property LOGIC_LEVELS [lindex $tp_rel 0]]"
+    } else {
+        puts "P11_STA_WPM_REL_WNS = NA"
+    }
+} else {
+    puts "P11_STA_WPM_REL_WNS = NA (pins not found)"
+}
+foreach {tag from_pat} {evup0 {u_slow_cfg/ev_up_reg/C} evup1 {u_slow_cfg2/ev_up_reg/C}} {
+    set fp [get_pins -quiet $from_pat]
+    if {[llength $fp] > 0 && [llength $wpm_dst_pins] > 0} {
+        set tp [get_timing_paths -from $fp -to $wpm_dst_pins -max_paths 1 -delay_type max]
+        if {[llength $tp] > 0} {
+            puts "P11_STA_WPM_${tag}_WNS = [get_property SLACK [lindex $tp 0]]"
+        } else {
+            puts "P11_STA_WPM_${tag}_WNS = NA"
+        }
+    } else {
+        puts "P11_STA_WPM_${tag}_WNS = NA (pins not found)"
+    }
+}
+set tp_top [get_timing_paths -max_paths 5 -delay_type max]
+puts "P11_STA_TOP_COUNT = [llength $tp_top]"
+foreach p $tp_top {
+    puts "P11_STA_TOP slack=[get_property SLACK $p] src=[get_property STARTPOINT_PIN $p] dst=[get_property ENDPOINT_PIN $p] lvl=[get_property LOGIC_LEVELS $p]"
+}
+if {[info exists ::env(P11_STA_ONLY)] && $::env(P11_STA_ONLY) == "1"} {
+    puts "P11_STA_ONLY_OK"
+    puts "P7B_VERDICT = OK"
+    close_design
+    exit 0
+}
 close_design
 
 sec "P7B_IMPL"
-set_property strategy Performance_ExtraTimingOpt [get_runs impl_1]
+# 0x30/0x31: 0x2F/0x30 的 TCB 写口族 (`u_tcp_tx/u_fifo_* -> u_tcb/*`) 是
+#   既存最差族: 0x2F -3.77 / 0x30 -0.418 (manager 修好后才显形)。RTL 侧任何
+#   TCB 写延迟都会破坏 retx 序列 (txdrop50 实测 3/5 帧失配)，因此改走 placement
+#   策略搜索 (P7B_MAC_TIMING_FIX §7.3: 同 RTL 换策略可摆动 0.2–0.46 ns，方向
+#   不可控；本轮用它争取 0.418 ns 的缺口，结果由构建门裁定)。
+set_property strategy Performance_Explore [get_runs impl_1]
 reset_run impl_1
 catch {launch_runs impl_1 -to_step write_bitstream -jobs 8} e2
 puts "P7B_IMPL_LAUNCH = $e2"
@@ -590,6 +643,59 @@ set whs   [get_property SLACK [get_timing_paths -delay_type min]]
 puts "P7B_WNS = $wns"
 puts "P7B_WHS = $whs"
 puts "P7B_WPWS = [get_property SLACK [get_timing_paths -delay_type min_max -max_paths 1 -sort_by group]]"
+
+# ---- P11 0x2F: 时序硬门 (WNS>0 ∧ setup/hold/PW 失败端点=0) ----------------
+#   ⛔ 0x2F 的 P7B_VERDICT=OK 只判"位流文件存在" ⇒ 时序 -6.456ns 的位流也拿了 OK。
+#   本段把报告里的三类失败端点数读出来, 不满足就把位流改名隔离 + 硬失败退出。
+sec "P7B_TIMING_GATE"
+set setup_fail -1
+set hold_fail  -1
+set pw_fail    -1
+set ts_report "${script_dir}/p7b_ku5p_timing.rpt"
+if {[file exists $ts_report]} {
+    set fh [open $ts_report r]
+    set ts_txt [read $fh]
+    close $fh
+    # ⚠️ 不能抓第一个 "Setup :" —— report_timing_summary 先给每个时钟组各一段,
+    #   第一段通常是某个子组 (0 失败), 而全局失败在最后/顶端表. 0x30 首跑实测:
+    #   全局 3126 失败 / WNS -0.418, 而第一个 "Setup :" 是 0 ⇒ 旧解析假绿.
+    #   正确来源 = "Design Timing Summary" 后的 12 列数据行
+    #   (WNS TNS setup_fail setup_total WHS THS hold_fail hold_total WPWS TPWS pw_fail pw_total).
+    set dts_idx [string first "Design Timing Summary" $ts_txt]
+    if {$dts_idx >= 0} {
+        set dts_txt [string range $ts_txt $dts_idx end]
+        if {[regexp {\s+(-?[0-9.]+)\s+(-?[0-9.]+)\s+(\d+)\s+(\d+)\s+(-?[0-9.]+)\s+(-?[0-9.]+)\s+(\d+)\s+(\d+)\s+(-?[0-9.]+)\s+(-?[0-9.]+)\s+(\d+)\s+(\d+)} $dts_txt -> \
+                ts_wns ts_tns setup_fail ts_setup_total ts_whs ts_ths hold_fail ts_hold_total \
+                ts_wpws ts_tpws pw_fail ts_pw_total]} {
+            puts "P7B_TIMING_TABLE_WNS = $ts_wns"
+            puts "P7B_TIMING_TABLE_TNS = $ts_tns"
+            puts "P7B_TIMING_TABLE_SETUP_TOTAL = $ts_setup_total"
+        } else {
+            puts "P7B_TIMING_TABLE_PARSE_FAIL"
+        }
+    } else {
+        puts "P7B_TIMING_TABLE_MISSING"
+    }
+} else {
+    puts "P7B_TIMING_REPORT_MISSING $ts_report"
+}
+if {![string is double -strict $wns]} { set wns -999.0 }
+puts "P7B_TIMING_SETUP_FAIL = $setup_fail"
+puts "P7B_TIMING_HOLD_FAIL = $hold_fail"
+puts "P7B_TIMING_PW_FAIL = $pw_fail"
+set timing_ok [expr {($wns > 0.0) && ($setup_fail == 0) && ($hold_fail == 0) && ($pw_fail == 0)}]
+if {$timing_ok} {
+    puts "P7B_TIMING_GATE = PASS"
+} else {
+    puts "P7B_TIMING_GATE = FAIL (wns=$wns setup=$setup_fail hold=$hold_fail pw=$pw_fail)"
+    set bitfile "${root_dir}/vivado_prj/${project_name}.runs/impl_1/${top_module}.bit"
+    if {[file exists $bitfile]} {
+        file rename -force $bitfile "${bitfile}.TIMING_FAIL"
+        puts "P7B_BIT_QUARANTINED = ${bitfile}.TIMING_FAIL"
+    }
+    puts "P7B_VERDICT = TIMING_FAIL"
+    exit 1
+}
 puts "P7B_BIT = ${root_dir}/vivado_prj/${project_name}.runs/impl_1/${top_module}.bit"
 puts "P7B_BIT_EXISTS = [file exists ${root_dir}/vivado_prj/${project_name}.runs/impl_1/${top_module}.bit]"
 if {![file exists ${root_dir}/vivado_prj/${project_name}.runs/impl_1/${top_module}.bit]} {

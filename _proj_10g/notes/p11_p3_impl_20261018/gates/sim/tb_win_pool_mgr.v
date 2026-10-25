@@ -36,6 +36,7 @@ module tb_win_pool_mgr;
     wire [7:0]  gp;
     wire [31:0] st_grant_zero, st_slot_reuse, st_rel_dup, st_slot_oor;
     wire [31:0] st_c18_cross, st_pw_under, st_rel_stale;
+    wire        dbg_busy;
 
     win_pool_mgr #(.WIN_POOL(WIN_POOL), .PORT_CAP(PCAP)) dut (
         .clk(clk), .rst_n(rst_n),
@@ -55,7 +56,11 @@ module tb_win_pool_mgr;
         .stat_rel_dup(st_rel_dup), .stat_slot_oor(st_slot_oor),
         .stat_c18_cross_port(st_c18_cross),
         .stat_port_win_underflow(st_pw_under),
-        .stat_rel_stale_port(st_rel_stale)
+        .stat_rel_stale_port(st_rel_stale),
+        .o_ev_up_done0(), .o_ev_up_done_slot0(),
+        .o_ev_up_done1(), .o_ev_up_done_slot1(),
+        .stat_ev_ovf(),
+        .dbg_busy(dbg_busy), .dbg_ev_commit(), .dbg_ev_type(), .dbg_ev_slot()
     );
 
     integer errors = 0;
@@ -89,8 +94,17 @@ module tb_win_pool_mgr;
         end
     endtask
 
+    // 0x2F: 事件机是串行三拍 ⇒ 任何状态检查前先等 FIFO/引擎排空
+    task wait_idle;
+        begin
+            while (dbg_busy) @(negedge clk);
+            @(negedge clk);
+        end
+    endtask
+
     task check_inv(input [255:0] tag);
         begin
+            wait_idle;
             read_all;
             chk((sum_w + dbg_pool) == WIN_POOL, "SUM winq + pool == WIN_POOL");
             chk((dbg_pw0 + dbg_pw1) == sum_w,    "SUM port_win == SUM winq");
@@ -99,10 +113,10 @@ module tb_win_pool_mgr;
         end
     endtask
 
-    task grant0(input [3:0] s); begin @(negedge clk); ev_up0=1; ev_slot0=s; @(negedge clk); ev_up0=0; @(negedge clk); end endtask
-    task grant1(input [3:0] s); begin @(negedge clk); ev_up1=1; ev_slot1=s; @(negedge clk); ev_up1=0; @(negedge clk); end endtask
-    task release0(input [3:0] s); begin @(negedge clk); rel0=1; rel_slot0=s; @(negedge clk); rel0=0; @(negedge clk); end endtask
-    task release1(input [3:0] s); begin @(negedge clk); rel1=1; rel_slot1=s; @(negedge clk); rel1=0; @(negedge clk); end endtask
+    task grant0(input [3:0] s); begin @(negedge clk); ev_up0=1; ev_slot0=s; @(negedge clk); ev_up0=0; @(negedge clk); wait_idle; end endtask
+    task grant1(input [3:0] s); begin @(negedge clk); ev_up1=1; ev_slot1=s; @(negedge clk); ev_up1=0; @(negedge clk); wait_idle; end endtask
+    task release0(input [3:0] s); begin @(negedge clk); rel0=1; rel_slot0=s; @(negedge clk); rel0=0; @(negedge clk); wait_idle; end endtask
+    task release1(input [3:0] s); begin @(negedge clk); rel1=1; rel_slot1=s; @(negedge clk); rel1=0; @(negedge clk); wait_idle; end endtask
 
     // 状态快照 (M-3: 槽号越界前后逐项相等)
     reg [16:0] s_pool, s_pw0, s_pw1;
@@ -110,6 +124,7 @@ module tb_win_pool_mgr;
     reg [7:0]  s_gp;
     task snap;
         begin
+            wait_idle;
             s_pool = dbg_pool; s_pw0 = dbg_pw0; s_pw1 = dbg_pw1; s_gp = gp;
             read_all;
             s_wq[0]=w0; s_wq[1]=w1; s_wq[2]=w2; s_wq[3]=w3;

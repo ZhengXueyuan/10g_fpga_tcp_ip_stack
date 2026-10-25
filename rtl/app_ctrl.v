@@ -380,7 +380,7 @@ module app_ctrl #(
     input  wire [15:0] rc_snd_wnd,
     input  wire [3:0]  rc_state,
     // ---- P11 P3: 外部共享配额 (EXT_QUOTA=1) ----
-    // 两个只读配额口: A = 扫描/init (id = init_pend?init_slot:scan_id),
+    // 两个只读配额口: A = 扫描/init (id = init_valid?init_head:scan_id),
     //                  B = 事件     (id = ev_down_i?ev_slot_i:ev_slot)。
     // 两口的必要性见 win_pool_mgr 端口注释 (同拍不同槽的扫描与事件)。
     output wire [3:0]  o_winq_rd_id,
@@ -390,6 +390,14 @@ module app_ctrl #(
     // 统一释放 (每条非零配额的槽恰好一次; EXT_QUOTA=0 时恒 0)
     output wire        o_quota_rel,
     output wire [3:0]  o_quota_rel_slot,
+    // ---- 0x2F 时序修复: ev_up 配额落地握手 (win_pool_mgr → app_ctrl) ----
+    //   win_pool_mgr 改为事件机后, ev_up 的授予不再"同沿可见": 授予在
+    //   S_COMMIT 沿落地, **下一拍** o_ev_up_done 高且 winq[slot] 已是新配额。
+    //   init (redge/wu_mark/fc_wq) 必须等这条 done 再读配额 —— 否则读到旧值
+    //   (通常 0) ⇒ 通告零窗 ⇒ 连接静默死锁。
+    //   EXT_QUOTA=0 (C1/C3) 时本输入被常数屏蔽 (init 仍按下拍立即执行, 零回归)。
+    input  wire        i_ev_up_done,
+    input  wire [3:0]  i_ev_up_done_slot,
     // ---- 状态输入 ----
     input  wire [16:0] rx_occ_bytes,   // app RX 可读字节 (echo frame_fifo 占用)
     input  wire [15:0] fin_sent,       // tcp_tx_frame.o_fin_sent
@@ -465,6 +473,10 @@ module app_ctrl #(
     // C18 观测: 该槽仍持旧配额时又来 ev_up (配额被归还而非蒸发) 的次数。
     // 正常 HLS 流程恒 0 (ADD 不会重发到已占用槽); 非 0 = 触发过防御路径。
     output reg  [31:0] stat_slot_reuse,
+    // 0x2F: init 等待 FIFO 观测 (均应恒 0; 非 0 = 事件率超出 FIFO 或
+    // manager 的 done 与 app_ctrl 队列头错配 —— 结构性不应发生)
+    output reg  [31:0] stat_init_ovf,
+    output reg  [31:0] stat_init_mismatch,
     // P5b 活性观测: fc 请求最长连续挂起拍数 (看门狗式)。规格 C1b 的 Δ 界
     // (通告右沿 = redge_old + Δ) 依赖"窗口写口不被长期饿死"这一活性假设 ——
     // 若该值 > 20480 拍 (131us @156.25MHz —— P6b 域下同**墙钟**的拍数; 125MHz 域
@@ -555,8 +567,32 @@ module app_ctrl #(
     // 写口 = 寄存器总线 0x0C (W): {16'b0, wq_cap_r} 读出。app 必须在建连 (cfg ADD)
     // **之前**写 WIN_POOL/N —— 已通告的窗口不可撤销, 事后调小不会收回 (见参数注释)。
     reg  [15:0] wq_cap_r;
-    reg         init_pend;
-    reg  [3:0]  init_slot;
+    // ---- 0x2F: init 等待队列 (每条 ev_up 一条; EXT_QUOTA=1 等 manager done) ----
+    //   旧实装 = 单寄存器 init_pend/init_slot + "ev_up 下一拍立即 init"。
+    //   manager 改事件机后授予在 ev_up 之后 3 拍才落地 ⇒ 必须排队等 done。
+    //   EXT_QUOTA=0 (C1/C3) 时 init_pop 恒为 1 ⇒ 退化成旧的"下一拍立即 init"
+    //   (队列深度 1 的行为逐位相同)。
+    localparam INIT_QD = 4;
+    reg  [3:0] init_q [0:INIT_QD-1];
+    reg  [1:0] init_wr;
+    reg  [1:0] init_rd;
+    reg  [2:0] init_cnt;
+    wire       init_valid = (init_cnt != 3'd0);
+    wire [3:0] init_head  = init_q[init_rd];
+    wire       init_slot_match = (i_ev_up_done_slot == init_head);
+    // EXT_QUOTA=0: 立即 pop (逐位退化为旧的 init_pend 下一拍 init)
+    // EXT_QUOTA=1: 等 manager 的 grant done, 且槽号必须等于队列头
+    wire       init_pop   = init_valid &&
+                            (EXT_QUOTA ? (i_ev_up_done && init_slot_match)
+                                       : 1'b1);
+    // 同时 push+pop 时计 pop 腾出的位置 (先声明 init_pop 再用, 避免隐式 1 位网)
+    wire       init_push  = ev_up && ((init_cnt - {2'b0, init_pop}) < 3'd4);
+    wire       init_done_mismatch = init_valid && EXT_QUOTA &&
+                                    i_ev_up_done && !init_slot_match;
+    // 兼容旧 TB 的只读层次引用 (仿真门用 u_dut.init_pend/init_slot 作观察点)。
+    // 语义 = 队列非空 / 队头; EXT_QUOTA=0 时与旧单寄存器版本逐拍相同。
+    wire        init_pend = init_valid;
+    wire [3:0]  init_slot = init_head;
     // ---- P5c-T3 G2/G3: 关闭超时 + state=0 写请求 ----
     reg  [17:0] fin_to    [0:15];    // FIN 已发且仍 ESTAB 的连续扫描轮数 (饱和)
     reg  [15:0] to_pend;             // (G2) 待投递的 CONN_DOWN 超时事件位图
@@ -589,9 +625,10 @@ module app_ctrl #(
     reg  [3:0]  ev1_slot;
 
 
-    // C3/C10: init_pend 拍 rc_id 旁路到 init_slot — 该拍读的是刚 cfg 完的新槽
+    // C3/C10: init 拍 rc_id 旁路到 init_head — 该拍读的是刚 cfg 完的新槽
     // (rcv_nxt 等七字段已落地), 用来初始化 redge/wu_mark/rcv_wnd 纠偏。
-    assign      rc_id = init_pend ? init_slot : scan_id;
+    // 0x2F: EXT_QUOTA=1 时 init 等 manager done (见 init_q 注释)。
+    assign      rc_id = init_valid ? init_head : scan_id;
     reg  [3:0]  c_state   [0:15];
     reg  [31:0] c_snd_nxt [0:15];
     reg  [31:0] c_snd_una [0:15];
@@ -629,10 +666,10 @@ module app_ctrl #(
     // P11 P3: 外部共享配额读口 (EXT_QUOTA=0 ⇒ 下面所有 winq_q_* 退化为内部
     // 阵列读, 逻辑与改动前逐位等价; EXT_QUOTA=1 ⇒ 只读 manager 的配额)。
     //=========================================================================
-    assign o_winq_rd_id    = init_pend ? init_slot : scan_id;   // 扫描/init 口
+    assign o_winq_rd_id    = init_valid ? init_head : scan_id;   // 扫描/init 口
     assign o_winq_rd_id_ev = ev_down_i ? ev_slot_i : ev_slot;   // 事件口
     wire [15:0] winq_q_scan = EXT_QUOTA ? i_winq_rd    : winq[scan_id];
-    wire [15:0] winq_q_init = EXT_QUOTA ? i_winq_rd    : winq[init_slot];
+    wire [15:0] winq_q_init = EXT_QUOTA ? i_winq_rd    : winq[init_head];
     wire [15:0] winq_q_ev   = EXT_QUOTA ? i_winq_rd_ev : winq[ev_slot];
     wire [15:0] winq_q_evd  = EXT_QUOTA ? i_winq_rd_ev : winq[ev_slot_i];
     // T+2 拍用扫描样本的**锁存**值 (单读口在 T+2 已指向别的槽; 见 pa_winq/pb_winq)
@@ -950,12 +987,12 @@ module app_ctrl #(
 
     //=========================================================================
     // p9 orphan fix: 判据组合量 / FSM 组合量 (设计件附录 B §1..§6)
-    //   scan_gate = scan_tick && !init_pend && !(本拍同槽事件)
+    //   scan_gate = scan_tick && !init_valid && !(本拍同槽事件)
     //   inflight  = snd_nxt - snd_una;  cap_eff = min(snd_wnd, WIN_CAP)
     //   win_closed= 在飞非空且 >= cap_eff (带 <2^31 回绕守卫, 有意超集)
     //   work      = 有未决数据 || 本槽重传会话进行中 (F5: retx 只是**必要见证**)
     //=========================================================================
-    wire        orph_scan_gate = scan_tick && !init_pend &&
+    wire        orph_scan_gate = scan_tick && !init_valid &&
                                  !(ev_blk && (ev_slot_i == scan_id));
     wire [31:0] orph_inflight  = rc_snd_nxt - rc_snd_una;
     wire [15:0] orph_cap_eff   = (rc_snd_wnd < WIN_CAP) ? rc_snd_wnd : WIN_CAP;
@@ -1017,7 +1054,7 @@ module app_ctrl #(
     //   到达), 旧计数可能已达阈值 ⇒ 会在一轮"有数据"的同拍误触发。带上 !act_now
     //   ⇒ 该轮改为清零重新计时 (与块内计数清零同拍、同判据, 无窗口错位)。
     //   触发拍之后对端再活跃也不改变已触发事实 (to_fired 保鲜), 见文件头 ③。
-    wire        to_fire = scan_tick && !init_pend && !ev_blk && !act_now &&
+    wire        to_fire = scan_tick && !init_valid && !ev_blk && !act_now &&
                           fin_sent[scan_id] && (rc_state == ST_ESTAB) &&
                           (fin_to[scan_id] >= FIN_TO_LIM) && !to_fired[scan_id];
     // st_req_now: 本拍要挂出 state=0 写请求 (两来源, 都只发一次):
@@ -1027,7 +1064,7 @@ module app_ctrl #(
     wire        st_grace  = to_fired[scan_id] && (fin_to[scan_id] >= fin_to_max);
     // !ev_blk (而不是"同槽事件") 的理由同 to_fire: 本块也要写 pool ⇒ 必须与
     // ev_up 的 C18 记账结构性互斥 (事件拍顺延 1 拍到下一次扫描打点, 零代价)。
-    wire        st_req_now = scan_tick && !init_pend && !ev_blk &&
+    wire        st_req_now = scan_tick && !init_valid && !ev_blk &&
                              (rc_state == ST_ESTAB) && !st_done[scan_id] &&
                              (rst_sent[scan_id] || st_grace);
     // ---- P11 P3: 统一释放 (EXT_QUOTA=1) ----
@@ -1068,7 +1105,9 @@ module app_ctrl #(
             stat_slot_reuse <= 32'd0;
             pool <= {1'b0, WIN_POOL};
             wq_cap_r <= WIN_Q_MAX;            // P5d D4: 复位默认 = 旧参数值 (零回归)
-            fc_rr <= 4'd0; init_pend <= 1'b0; init_slot <= 4'd0;
+            fc_rr <= 4'd0;
+            init_wr <= 2'd0; init_rd <= 2'd0; init_cnt <= 3'd0;
+            stat_init_ovf <= 32'd0; stat_init_mismatch <= 32'd0;
             fc_v <= 1'b0; fc_id_r <= 4'd0; fc_val_r <= 32'd0;
             fc_sel_r <= 3'd3;                 // P5c-T3: 复位默认 = rcv_wnd 纠偏写
             fc_wait <= 32'd0; stat_fc_wait_max <= 32'd0;
@@ -1111,44 +1150,58 @@ module app_ctrl #(
             // 会拿陈旧 pa_*/pb_* 每拍重放 (C15 补授/ fc / wu 会连拍狂发)。
             pa_v      <= 1'b0;
 
-            // ---- C3/C10: init 拍 (ev_up 的下一拍) ----
-            // 本拍 rc_id = init_slot ⇒ rc_* 是刚 cfg 完的新槽值 (rcv_nxt 等七字段
+            // ---- C3/C10: init 拍 (EXT_QUOTA=0: ev_up 下一拍; EXT_QUOTA=1: done 拍) ----
+            // 本拍 rc_id = init_head ⇒ rc_* 是刚 cfg 完的新槽值 (rcv_nxt 等七字段
             // 已落地; ev_up 在 cfg 序列最后一个字段 wscale 的授权拍)。
-            // **放在事件块之前**: 若同一拍又有 ev_up (背靠背 ADD), 由后面的事件块
-            // 覆盖 init_pend/init_slot (= 重新武装给新槽), 顺序不能反。
-            if (init_pend) begin
+            // **放在事件块之前**: 同一拍又有 ev_up (背靠背 ADD) 时, ev_up 只把新槽
+            // 压进 init_q; 本块仍处理队列头 —— 顺序由 FIFO 保证, 不能反。
+            // 0x2F: EXT_QUOTA=1 时 init_pop 只在 manager 的 grant done 且槽号
+            //       匹配时成立 (winq_q_init 才是刚授予的新配额, 见端口注释)。
+            if (init_pop) begin
                 // C14-②: init 拍的 redge 初始化**必须用 occ 修正** (与扫描同一
                 // 公式) —— 不得只写 rcv_nxt + winq: 零拷贝占用在 ev_down 时不释放
                 // (连接拆了 app 没读走的数据照样占槽), 同槽 DEL→ADD 时遗留占用
                 // 会同新配额叠加 ⇒ occ(遗留) + 49152 > 65536 (遗留 > 16KB 即溢出)。
                 // occ=0 时简并为 rcv_nxt + winq (C3 原式)。
-                redge[init_slot]   <= redge_calc(winq_q_init, rc_rcv_nxt,
+                redge[init_head]   <= redge_calc(winq_q_init, rc_rcv_nxt,
                                                  rx_occ_bytes);
                 // C10: wu_mark 取 winq (刚授予的配额), 不取采样的 rc_rcv_wnd —
                 // init 后 TCB 值即 winq (下面 fc_pend 立即纠正), 两者一致, 且免去
                 // 对采样值的时序依赖 ⇒ 连接刚建立不会多发一个 wu。
-                wu_mark[init_slot] <= winq_q_init;
+                wu_mark[init_head] <= winq_q_init;
                 // 让 warr[] 组合值与本次 redge 自洽 (fc 纠偏写的值 = winq):
                 // 否则 c_rcv_nxt 若还是旧会话/复位残留值, warr 会算出巨大窗口。
-                c_rcv_nxt[init_slot] <= rc_rcv_nxt;
-                wu_zero[init_slot]   <= 1'b0;
+                c_rcv_nxt[init_head] <= rc_rcv_nxt;
+                wu_zero[init_head]   <= 1'b0;
                 // C17: wu_pend 也纳入 init 拍清洁 —— 旧会话残留的窗口更新请求
                 // (wu_gnt 未回来就拆连) 不得落到新会话 (M1 类: 请求被吞/发错连接)
-                wu_pend[init_slot]   <= 1'b0;
+                wu_pend[init_head]   <= 1'b0;
                 // C10: **立即**纠偏 TCB.rcv_wnd — HLS ADD 序列 (slow_cfg_adp
                 // tcb_idx=3) 把 rcv_wnd 写死 0xC000, 池耗尽时 winq[c] < 0xC000 ⇒
                 // 通告窗口 > 实际配额 ⇒ 物理溢出。扫描纠正在 256 拍后才到, 而
                 // 对端拿到 SYN+ACK 就可能开始发 ⇒ 不能等扫描。
                 // 单连接 (winq=0xC000=原值) 时写与不写等价, 零行为差异。
-                fc_pend[init_slot]   <= 1'b1;
+                fc_pend[init_head]   <= 1'b1;
                 // 写值 = **该 init redge 蕴含的窗口** = redge_init - rc_rcv_nxt
                 // = fq = max(0, winq - occ) (与上面 redge 同一函数, 同源自洽)。
                 // occ=0 时 = winq ⇒ 与规格 C10 的字面值逐位相同 (单连接常态);
                 // occ>0 时若写 winq 会通告 > redge 的右沿 ⇒ 下一次扫描的 fc 写
                 // 变成"撤窗" (在飞数据被拒 ⇒ C16 病理) ⇒ 必须取空闲量。
-                fc_wq[init_slot]     <= fq_calc(winq_q_init, rx_occ_bytes);
-                init_pend <= 1'b0;
+                fc_wq[init_head]     <= fq_calc(winq_q_init, rx_occ_bytes);
             end
+
+            // ---- 0x2F: init 等待队列指针/计数 (单 push / 单 pop) ----
+            if (init_push) begin
+                init_q[init_wr] <= ev_slot;
+                init_wr <= init_wr + 2'd1;
+            end
+            if (init_pop) init_rd <= init_rd + 2'd1;
+            init_cnt <= init_cnt + (init_push ? 3'd1 : 3'd0)
+                                  - (init_pop  ? 3'd1 : 3'd0);
+            if (ev_up && !init_push)
+                stat_init_ovf <= stat_init_ovf + 32'd1;
+            if (init_done_mismatch)
+                stat_init_mismatch <= stat_init_mismatch + 32'd1;
 
             // ---- 事件 (源脉冲; p9: ev_down_i 含孤儿回收通知) ----
             if (ev_up || ev_down_i) begin
@@ -1178,9 +1231,9 @@ module app_ctrl #(
                         if (g_grant < wq_cap_r)
                             stat_pool_exhaust <= stat_pool_exhaust + 32'd1;
                     end
-                    // ---- C3/C10: 一拍的 init (读新槽 TCB 值) ----
-                    init_pend <= 1'b1;
-                    init_slot <= ev_slot;
+                    // ---- C3/C10: init 请求入队 (0x2F; EXT_QUOTA=1 等 done) ----
+                    // 配额落地 (win_pool_mgr S_COMMIT) 后 manager 打 done,
+                    // init_q 的 pop 逻辑在文件上方执行真正的 redge/fc 初始化。
                     // 同槽重连 (D1 类): 旧会话的挂起位/零窗标志不得污染新会话
                     wu_pend[ev_slot] <= 1'b0;
                     wu_zero[ev_slot] <= 1'b0;
@@ -1261,14 +1314,14 @@ module app_ctrl #(
             end
 
             // ---- 轮扫 拍 T: 采样该连接 TCB 状态 + 锁存流水 item ----
-            // C10: init_pend 与 scan_tick 同拍时必须**暂停一次采样** (该拍 rc_id
-            // 指向 init_slot, 采进 c_*[scan_id] 就是快照污染), scan_id 亦不推进
-            // (扫描周期少 1 拍无害)。
+            // C10: init 等待期间与 scan_tick 同拍时必须**暂停采样** (该拍 rc_id
+            // 指向 init_head, 采进 c_*[scan_id] 就是快照污染), scan_id 亦不推进
+            // (扫描周期少几拍无害; 0x2F 的 done 等待最多数拍)。
             // C17: ev_up/ev_down 落在同槽扫描拍时扫描**让位** —— 否则本块 (更靠后)
             // 会覆盖事件块的清理/授权 (旧版: winq 走增量补授而非 C14-① 的授予预留,
             // wu_zero 被清 0 覆盖等)。ev_down 本可依赖 `state != ESTAB` 天然为假,
             // 但 redge 更新/位图清理并不看 state, 故一并让位 (跳过一拍采样无害)。
-            if (scan_tick && !init_pend && !(ev_blk && (ev_slot_i == scan_id))) begin
+            if (scan_tick && !init_valid && !(ev_blk && (ev_slot_i == scan_id))) begin
                 scan_id <= scan_id + 4'd1;
                 if (scan_id == 4'd15) scan_round <= scan_round + 32'd1;
                 c_state  [scan_id] <= rc_state;

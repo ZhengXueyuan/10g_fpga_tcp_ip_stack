@@ -69,8 +69,13 @@ REM   SUCCESS = (1) rc==0 AND (2) log has 'P7B_VERDICT = OK' AND (3) none of the
 set "TRIP=0"
 findstr /I /C:"12-4739" p7b_ku5p_stdout.txt >NUL && (echo DROPPED-CONSTRAINT-FAIL & findstr /I /C:"12-4739" p7b_ku5p_stdout.txt & set "TRIP=1")
 findstr /I /C:"Synth 8-11241" /C:"undeclared symbol" /C:"VRFC 10-3091] actual bit length 1 differs from formal bit length" /C:"VRFC 10-2989" /C:"implicitly declared" p7b_ku5p_stdout.txt >NUL && (echo IMPLICIT-NET-FAIL & findstr /I /C:"Synth 8-11241" /C:"undeclared symbol" /C:"VRFC 10-3091] actual bit length 1 differs from formal bit length" /C:"VRFC 10-2989" /C:"implicitly declared" p7b_ku5p_stdout.txt & set "TRIP=1")
-findstr /I /C:"NSTD-1" /C:"UCIO-1" /C:"AVAL-326" /C:"Opt 31-155" /C:"Opt 31-67" /C:"Route 35-7" p7b_ku5p_stdout.txt >NUL && (echo DRC-KEY-FAIL & findstr /I /C:"NSTD-1" /C:"UCIO-1" /C:"AVAL-326" /C:"Opt 31-155" /C:"Opt 31-67" /C:"Route 35-7" p7b_ku5p_stdout.txt & set "TRIP=1")
-findstr /B /C:"P7B_VERDICT = SYNTH_FAIL" /C:"P7B_VERDICT = HLS_HASH_FAIL" /C:"P7B_VERDICT = BLACKBOX_LOG_HIT" /C:"P7B_VERDICT = BITSTREAM_MISSING" p7b_ku5p_stdout.txt >NUL && (echo P7B-VERDICT-FAIL & findstr /B /C:"P7B_VERDICT = SYNTH_FAIL" /C:"P7B_VERDICT = HLS_HASH_FAIL" /C:"P7B_VERDICT = BLACKBOX_LOG_HIT" /C:"P7B_VERDICT = BITSTREAM_MISSING" p7b_ku5p_stdout.txt & set "TRIP=1")
+REM   2026-10-25 (0x31): the bare token "Opt 31-155" also matches the benign
+REM      INFO "[Opt 31-1555] control_set_opt supports Versal devices only"
+REM      (Performance_Explore emits it) => false DRC-KEY-FAIL on a passing build.
+REM      The real critical messages carry a closing bracket: "[Opt 31-155]".
+REM      Anchor all six tokens with ']' so prefix collisions cannot trip the gate.
+findstr /I /C:"NSTD-1]" /C:"UCIO-1]" /C:"AVAL-326]" /C:"Opt 31-155]" /C:"Opt 31-67]" /C:"Route 35-7]" p7b_ku5p_stdout.txt >NUL && (echo DRC-KEY-FAIL & findstr /I /C:"NSTD-1]" /C:"UCIO-1]" /C:"AVAL-326]" /C:"Opt 31-155]" /C:"Opt 31-67]" /C:"Route 35-7]" p7b_ku5p_stdout.txt & set "TRIP=1")
+findstr /B /C:"P7B_VERDICT = SYNTH_FAIL" /C:"P7B_VERDICT = HLS_HASH_FAIL" /C:"P7B_VERDICT = BLACKBOX_LOG_HIT" /C:"P7B_VERDICT = BITSTREAM_MISSING" /C:"P7B_VERDICT = TIMING_FAIL" p7b_ku5p_stdout.txt >NUL && (echo P7B-VERDICT-FAIL & findstr /B /C:"P7B_VERDICT = SYNTH_FAIL" /C:"P7B_VERDICT = HLS_HASH_FAIL" /C:"P7B_VERDICT = BLACKBOX_LOG_HIT" /C:"P7B_VERDICT = BITSTREAM_MISSING" /C:"P7B_VERDICT = TIMING_FAIL" p7b_ku5p_stdout.txt & set "TRIP=1")
 REM   2026-10-18 (0x2C round F-73): the old unanchored findstr matched the tcl
 REM      source echo line ("# if {...} { puts ""P7B_MODULE_MISSING_OR_BLACKBOX"" ; exit 1 }")
 REM      => rc=1 false failure. Real tcl failure lines START with the token (no "# " prefix)
@@ -86,6 +91,12 @@ findstr /B /C:"HLS_SRC_HASH" /C:"HLS_NET_HASH" /C:"P7B_BLACKBOX_LOG_HITS" /C:"P7
 findstr /B /C:"P7B_SNAP_TOP5_" p7b_ku5p_stdout.txt
 
 if not "%TRIP%"=="0" (echo BUILD-GATE-FAIL & exit /b 1)
+REM ---- P11 STA_ONLY (0x2F 时序修复轮): synth 后定向 STA 预检, 不跑 impl ----
+if "%P11_STA_ONLY%"=="1" (
+  findstr /B /C:"P11_STA_ONLY_OK" p7b_ku5p_stdout.txt >NUL || (echo STA-ONLY-MISSING & exit /b 1)
+  echo STA-ONLY-DONE
+  exit /b 0
+)
 if not exist "..\vivado_prj\p7b_ku5p_prj.runs\impl_1\wrapper_p4.bit" (echo NO-BITSTREAM & exit /b 1)
 echo BITSTREAM-OK
 exit /b 0

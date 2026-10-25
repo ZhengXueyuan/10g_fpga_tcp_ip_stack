@@ -49,7 +49,7 @@ def main():
         ("P11_DUAL requires SFP2_MODE_A", "P11_DUAL_REQUIRES_SFP2_MODE_A" in w),
         ("retx non-owner read returns 0",
          "rd0_ok_d2 ? rd0_mux : 64'd0" in rp and "rd1_ok_d2 ? rd1_mux : 64'd0" in rp),
-        ("wpm grant_port ownership", "grant_port <= gp_n;" in wp),
+        ("wpm grant_port ownership", "grant_port[e_slot] <= e_port;" in wp),
         ("wpm stale rel instrumentation", "stat_rel_stale_port" in wp),
         ("wpm underflow instrumentation", "stat_port_win_underflow" in wp),
     ]

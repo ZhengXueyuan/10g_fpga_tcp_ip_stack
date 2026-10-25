@@ -4,12 +4,12 @@
 # SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
 # IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
 # SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
-# Start of session at: Mon Oct 19 04:17:31 2026
-# Process ID         : 34800
-# Current directory  : D:/repo/XCKU5PMini/udp_hls_10g/sim/p4gates/work_20261019_034527/p11_negctl_wpm
+# Start of session at: Sun Oct 25 22:04:37 2026
+# Process ID         : 30284
+# Current directory  : D:/repo/XCKU5PMini/udp_hls_10g/sim/p4gates/work_20261025_213211/p11_negctl_wpm
 # Command line       : xsim.exe -log xsim_wpm_mut.log -mode tcl -source {xsim.dir/tb_wpm_mut/xsim_script.tcl}
-# Log file           : D:/repo/XCKU5PMini/udp_hls_10g/sim/p4gates/work_20261019_034527/p11_negctl_wpm/xsim_wpm_mut.log
-# Journal file       : D:/repo/XCKU5PMini/udp_hls_10g/sim/p4gates/work_20261019_034527/p11_negctl_wpm\xsim.jou
+# Log file           : D:/repo/XCKU5PMini/udp_hls_10g/sim/p4gates/work_20261025_213211/p11_negctl_wpm/xsim_wpm_mut.log
+# Journal file       : D:/repo/XCKU5PMini/udp_hls_10g/sim/p4gates/work_20261025_213211/p11_negctl_wpm\xsim.jou
 # Running On         : xyz-intel
 # Platform           : Windows Server 2016 or Windows 10
 # Operating System   : 26300
@@ -20,31 +20,55 @@
 # Host memory        : 68053 MB
 # Swap memory        : 4294 MB
 # Total Virtual      : 72348 MB
-# Available Virtual  : 33779 MB
+# Available Virtual  : 45886 MB
 #-----------------------------------------------------------
 source xsim.dir/tb_wpm_mut/xsim_script.tcl
 # xsim {tb_wpm_mut} -autoloadwcfg -runall
 Time resolution is 1 ps
 run -all
 === G-P3-1 win_pool_mgr ===
- FAIL: SUM port_win == SUM winq (pool=15000 pw0=03000 pw1=03000 gp=f1)
- FAIL: ld deducted from grant port (p0) (pool=15000 pw0=03000 pw1=03000 gp=f1)
- FAIL: G stat_c18_cross_port = 1 (pool=15000 pw0=03000 pw1=03000 gp=f1)
- FAIL: SUM port_win == SUM winq (pool=15000 pw0=03000 pw1=03000 gp=f1)
- FAIL: G no port_win underflow (pool=15000 pw0=03000 pw1=03000 gp=f1)
- FAIL: SUM port_win == SUM winq (pool=18000 pw0=03000 pw1=00000 gp=f1)
- FAIL: _win underflow (after owner rel) (pool=18000 pw0=03000 pw1=00000 gp=f1)
- FAIL: SUM port_win == SUM winq (pool=17000 pw0=04000 pw1=00000 gp=f0)
- FAIL: SUM port_win == SUM winq (pool=18000 pw0=03000 pw1=00000 gp=f0)
- FAIL: SUM port_win == SUM winq (pool=15000 pw0=06000 pw1=00000 gp=f8)
- FAIL: SUM port_win == SUM winq (pool=15000 pw0=06000 pw1=00000 gp=f8)
- FAIL: SUM port_win == SUM winq (pool=15000 pw0=06000 pw1=00000 gp=f8)
- FAIL: SUM port_win == SUM winq (pool=03000 pw0=18000 pw1=00000 gp=00)
- FAIL: J 8+0 pool empty (pool=03000 pw0=18000 pw1=00000 gp=00)
- FAIL: SUM port_win == SUM winq (pool=00000 pw0=15000 pw1=06000 gp=c0)
- FAIL: J 6+2 distribution (pool=00000 pw0=15000 pw1=06000 gp=c0)
- FAIL: SUM port_win == SUM winq (pool=18000 pw0=03000 pw1=00000 gp=c0)
-WIN_POOL_MGR TB FAIL errors=17
-$finish called at time : 4709 ns : File "D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_p3_impl_20261018/gates/sim/tb_win_pool_mgr.v" Line 299
+ FAIL: A pool restored (pool=15000 pw0=03000 pw1=00000 gp=00)
+ FAIL: SUM port_win == SUM winq (pool=00000 pw0=0f000 pw1=0c000 gp=f0)
+ FAIL: B port0 = 4x12KB (pool=00000 pw0=0f000 pw1=0c000 gp=f0)
+ FAIL: SUM port_win == SUM winq (pool=00000 pw0=12000 pw1=09000 gp=f0)
+ FAIL: B C18 stat_slot_reuse = 1 (pool=00000 pw0=12000 pw1=09000 gp=f0)
+ FAIL: rt C18 does not count cross-port (pool=00000 pw0=12000 pw1=09000 gp=f0)
+ FAIL: SUM port_win == SUM winq (pool=0c000 pw0=12000 pw1=00000 gp=f0)
+ FAIL: SUM port_win == SUM winq (pool=12000 pw0=12000 pw1=00000 gp=f0)
+ FAIL: port0_win <= port_cap (pool=12000 pw0=12000 pw1=00000 gp=f0)
+ FAIL: C port0 capped at 0x4000 (pool=12000 pw0=12000 pw1=00000 gp=f0)
+ FAIL: SUM port_win == SUM winq (pool=15000 pw0=12000 pw1=00000 gp=f0)
+ FAIL: port0_win <= port_cap (pool=15000 pw0=12000 pw1=00000 gp=f0)
+ FAIL: SUM port_win == SUM winq (pool=12000 pw0=15000 pw1=03000 gp=f0)
+ FAIL: D both ports granted (pool=12000 pw0=15000 pw1=03000 gp=f0)
+ FAIL: SUM port_win == SUM winq (pool=12000 pw0=15000 pw1=03000 gp=f0)
+ FAIL: E stat_rel_dup = 1 (pool=12000 pw0=15000 pw1=03000 gp=f0)
+ FAIL: SUM port_win == SUM winq (pool=18000 pw0=15000 pw1=00000 gp=f0)
+ FAIL: G pre: p0 owns slot0 (pool=15000 pw0=18000 pw1=00000 gp=f0)
+ FAIL: SUM port_win == SUM winq (pool=15000 pw0=18000 pw1=03000 gp=f1)
+ FAIL: ld deducted from grant port (p0) (pool=15000 pw0=18000 pw1=03000 gp=f1)
+ FAIL: G stat_c18_cross_port = 1 (pool=15000 pw0=18000 pw1=03000 gp=f1)
+ FAIL: SUM port_win == SUM winq (pool=15000 pw0=18000 pw1=03000 gp=f1)
+ FAIL: G no port_win underflow (pool=15000 pw0=18000 pw1=03000 gp=f1)
+ FAIL: SUM port_win == SUM winq (pool=18000 pw0=18000 pw1=00000 gp=f1)
+ FAIL: _win underflow (after owner rel) (pool=18000 pw0=18000 pw1=00000 gp=f1)
+ FAIL: SUM port_win == SUM winq (pool=18000 pw0=18000 pw1=00000 gp=f0)
+ FAIL: H g = pool - occ = 0x1000 (pool=18000 pw0=18000 pw1=00000 gp=f0)
+ FAIL: SUM port_win == SUM winq (pool=18000 pw0=18000 pw1=00000 gp=f0)
+ FAIL: SUM port_win == SUM winq (pool=15000 pw0=18000 pw1=03000 gp=f8)
+ FAIL: H p0 granted full (occ0=0) (pool=15000 pw0=18000 pw1=03000 gp=f8)
+ FAIL: H p1 zero grant (occ1 eats pool) (pool=15000 pw0=18000 pw1=03000 gp=f8)
+ FAIL: SUM port_win == SUM winq (pool=18000 pw0=18000 pw1=00000 gp=f8)
+ FAIL: I rel and grant both processed (pool=18000 pw0=18000 pw1=00000 gp=f8)
+ FAIL: SUM port_win == SUM winq (pool=18000 pw0=18000 pw1=00000 gp=f8)
+ FAIL: I same-slot C18 net grant (pool=18000 pw0=18000 pw1=00000 gp=f8)
+ FAIL: SUM port_win == SUM winq (pool=18000 pw0=18000 pw1=00000 gp=00)
+ FAIL: J 8+0 pool empty (pool=18000 pw0=18000 pw1=00000 gp=00)
+ FAIL: SUM port_win == SUM winq (pool=12000 pw0=18000 pw1=06000 gp=c0)
+ FAIL: J 6+2 distribution (pool=12000 pw0=18000 pw1=06000 gp=c0)
+ FAIL: J 6+2 pool empty (pool=12000 pw0=18000 pw1=06000 gp=c0)
+ FAIL: SUM port_win == SUM winq (pool=18000 pw0=18000 pw1=00000 gp=c0)
+WIN_POOL_MGR TB FAIL errors=41
+$finish called at time : 9639 ns : File "D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_p3_impl_20261018/gates/sim/tb_win_pool_mgr.v" Line 314
 exit
-INFO: [Common 17-206] Exiting xsim at Mon Oct 19 04:17:33 2026...
+INFO: [Common 17-206] Exiting xsim at Sun Oct 25 22:04:38 2026...

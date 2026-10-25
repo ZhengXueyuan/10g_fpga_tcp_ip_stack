@@ -4,6 +4,17 @@
 施工策略 (2026-08-23 用户拍板): **1G 先行、10G-ready** — 数据面统一 64bit 宽流水 @125MHz,
 10G 时仅提时钟到 156.25MHz, 流水线不改。设计审查与总计划: `../udp_hls_eco/design_review/` (01-04)。
 
+## 当前状态与下一步（2026-10-25/26 · **P11 0x2F 时序失败修复 → 0x30/0x31 构建：0x31 通过构建门**）—— ⛔ 本块优先于下方全部历史块
+
+⭐⭐ **本轮 = 0x2F 的 −6.456 ns 修复 + 两个构建门缺陷修复；0x31（C4/P3/合同 2，BID 0x31）通过**（原件 `_proj_10g/notes/p11_fix_0x30_0x31_20261025/README_FOR_TL.md`；台账 §10-160）：
+- **0x2F 根因【已证·STA 定向】**：`win_pool_mgr` 把 rel0→ev_up0→ev_up1→rel1 + 8 槽 `winq` 下状态全组合 ⇒ `u_app_ctrl/c_rcv_nxt* → u_win_pool/port_win1*` 13.137 ns / 42 级；ev_up 自身仍 +0.323/+0.201。修法 = **32×6 事件 FIFO + 三拍串行事件机**（S_LOAD/S_CALC/S_COMMIT，固定事件序，全部原语义/stat 保留）+ **`o_ev_up_doneN` 握手**；`app_ctrl` 加 **4 深 init 队列**（EXT_QUOTA=1 等 done+槽匹配再 init；EXT_QUOTA=0 立即 pop，逐拍退化）。synth 定向 STA：rel **+2.344**（14 级，宿 `evq_reg[5][0]`）/ ev_up0 +2.902 / ev_up1 +3.148。
+- **0x30 构建**：`WNS −0.418 / setup 3126/372,939`；失败族 = **既存** `u_tcp_tx/u_fifo_* → u_tcb/*`（0x2F 时定向 **−3.772/−3.788/−3.797/−2.175**，被 manager 的 top-10 盖住）⇒ 这不是 manager 修复的回归，是 C4 双快路径同域问题（设计件 §12 已预登记）。位流被新增**时序硬门**改名隔离（无 sha；已被下一次构建清除）；**禁烧**。
+- **TCB 写口 RTL 延拍两次被 `txdrop50` 判死并回退**：① data/ctrl 延迟 + rew 旁路 ⇒ 4380 B/3 帧失配（snd_nxt 写序反转）；② 全部 tx 更新统一打一拍 ⇒ 7300 B/5 帧失配（写相位晚 1 拍）⇒ **TCB 写口不能延后**；`tcp_tx_frame.v` = HEAD。
+- **0x31 构建（`Performance_Explore`）通过**：**WNS +0.031 / WHS +0.010 / setup·hold·PW 0/0/0**；`All user specified timing constraints are met`；DRC 0 Error/Critical（85 Warning）；位流 **`420ddad5e7c018abefa9b3e1dea3942ab1d8ff0a6a24b8733f34fdb9fa8176b6`**（15,431,261 B / BID 0x31；首版 0x31 `4dce8d99…` 与 clean `cmp -l` 仅 7 字节头时间戳差 ⇒ 可编程镜像相同）；WNS 宿主 = `u_tcp_tx/u_fifo_b/rptr_reg[0] → u_tcb/snd_wnd_r_reg[6][5]/CE` +0.031（19 级）；placed LUT 122,058 / FF 98,472 / BRAM 109 / URAM 17 / DSP 4（纸面 267/1 不成立）。**clean build `BITSTREAM-OK` / bat exit 0**。
+- **门**：新增 `P7B_TIMING_GATE`（WNS>0 ∧ setup/hold/PW 端点=0；失败改名 `*.TIMING_FAIL` + `P7B_VERDICT=TIMING_FAIL`）；硬门端点数解析改为 **Design Timing Summary 表**（旧版抓第一段 `Setup :` 会假绿）；DRC token 加 `]` 锚定（`Opt 31-1555` 假阳性）。**41/41 矩阵 EXIT=0**（含 `txdrop50`/`p5_wrapper`/`p7b_chain`/`swc`/全部 P11 与负控；EXT=0 三臂全绿）。
+- **未收口**：**未烧板/未碰 QSPI**（0x31 位流在 `p11_fix_0x30_0x31_20261025/bits/` 与 archive `20261025_221252`）；read-side 仍默认 0x2D（需 `--bid 0x31`）；8×12KB 合同/多连接 app 未做；M-7/M-13/L-2..L-13 未做；**`up_pend` 配额释放窗口**（同槽 ev_up 后 ~3 拍内 DEL/超时/abort ⇒ rel 门 `winq!=0` 不生成，配额留死连接）**结构性未达、未做守卫**，下一轮若 app 可立即 abort 需加；**TCB 族余量 +0.031（0.48%）是策略补足**，后续任何 RTL 改动必须先定向 STA `u_tcp_tx/u_fifo_* → u_tcb/*` 再构建。
+- **续接**：台账 `_proj_10g/notes/P7B_TL_LEDGER_20261010.md` **§10-160**；审查队列 `P11_REVIEW_QUEUE.md`（本轮两行，**待报送 kimi**）；板级/read-side/8×12KB 为下一棒。
+
 ## 当前状态与下一步（2026-10-17 · **十二连轮全收口（收官→红队→T2三候选→P-3重设计→慢盆→C1工具→C1板级→0x29拆刀→孤儿设计→实施→构建 0x2A→板级）—— 见本块；⛔ 本块读法优先于下方全部历史块**）
 
 ⭐⭐ **2026-10-17 孤儿修复全链闭合（用户裁定「可以，就这么修」；提交 `0fad29b8`/`dff35f4d`/`aa9d6575`；台账 §10-104…§10-111）**：设计 v1→v4 三轮红队审 → 实施 → 构建 **0x2A**（`aa44a0ed…a3b6`，`WNS +0.039 / WHS +0.010 / 0/0/0`；backstop 未触发 ⇒ W75 保留）→ **板级正结果**（`p9_board_0x2A_20261017/`）：正臂 `ΔW75=+1` @ **t_rel=61.68 s**（设计 61.85 s，0.4 tick）**两次独立复现**（单边/双向 DROP）+ 槽恢复 **802.2 Mbps / 200,001,020 B / mism=0**；负臂（0x28）不回收 + 槽静默卡死；回归四臂全 `ΔW75=0`（快流 801 Mbps / 慢盆 1.554 Mbps 140 s / 零窗 200 s p99 IAT 60.000085 s / churn 12,000 连）；F1 自愈行为面成立。⭐ **D2 订正**：总黑洞下**无"20 ms 整窗重放不止"** —— 只重传 16–21 会话（~0.35–0.47 s）即静默（RTO 停止分支【未定位】）⇒ 负臂签名 = **不回收 + 槽静默卡死**；已回灌机制档案 §D2 + 设计件 v4.2；正臂判别力（ΔW75+槽恢复）不依赖 pcap。**板已收尾烧回 0x28**（`0x08=0`/`carrier=1`，QSPI 零写入）；**0x2A 已裁转现役（2026-10-17 19:17 烧录；板 = 0x2A）**。残照 = F1 自愈（选项①）/F6-a 未闭/F7 投递门竞态/单独立锚/B5c 未跑。

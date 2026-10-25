@@ -1536,6 +1536,16 @@ module wrapper_p4 #(
     wire [15:0] app_winq_rd, app_winq_rd_ev;
     wire        app_quota_rel;
     wire [3:0]  app_quota_rel_slot;
+    // 0x2F: win_pool_mgr 的 ev_up 授予完成握手 (EXT_QUOTA=1 时 init 等它)
+`ifdef P11_DUAL
+    wire        wp_ev_done0, wp_ev_done1;
+    wire [3:0]  wp_ev_done_slot0, wp_ev_done_slot1;
+`else
+    wire        wp_ev_done0 = 1'b0;
+    wire        wp_ev_done1 = 1'b0;
+    wire [3:0]  wp_ev_done_slot0 = 4'd0;
+    wire [3:0]  wp_ev_done_slot1 = 4'd0;
+`endif
 `endif
     // tcb 组合读口 C (app_ctrl 轮扫源; 默认模式恒读 0 号条目, 无副作用)
     wire [3:0]  rc_id;
@@ -1880,7 +1890,12 @@ module wrapper_p4 #(
         .o_winq_rd_id_ev(app_winq_rd_id_ev),
         .i_winq_rd_ev   (app_winq_rd_ev),
         .o_quota_rel    (app_quota_rel),
-        .o_quota_rel_slot(app_quota_rel_slot)
+        .o_quota_rel_slot(app_quota_rel_slot),
+        // 0x2F: EXT_QUOTA=1 时 init 等 manager 授予完成 (非 C4 常数 0)
+        .i_ev_up_done   (wp_ev_done0),
+        .i_ev_up_done_slot(wp_ev_done_slot0),
+        .stat_init_ovf  (),
+        .stat_init_mismatch()
     );
 
     // P5 寄存器总线默认静止 (板级无 CPU/AXI; 将来接 AXI-Lite 桥)
@@ -3211,6 +3226,8 @@ module wrapper_p4 #(
         .o_winq_rd_id(a2_winq_rd_id), .i_winq_rd(a2_winq_rd),
         .o_winq_rd_id_ev(a2_winq_rd_id_ev), .i_winq_rd_ev(a2_winq_rd_ev),
         .o_quota_rel(a2_quota_rel), .o_quota_rel_slot(a2_quota_rel_slot),
+        .i_ev_up_done(wp_ev_done1), .i_ev_up_done_slot(wp_ev_done_slot1),
+        .stat_init_ovf(), .stat_init_mismatch(),
         .rx_occ_bytes(app_rx_occ2),
         .fin_sent(a2_fin_sent), .rst_sent(a2_rst_sent),
         .retx_active(tx2_retx_active), .retx_id(tx2_retx_id),
@@ -3729,6 +3746,10 @@ module wrapper_p4 #(
 
     // ---- 共享窗口信用池 (96KB 单池; 两套 app_ctrl 只读) ----
     wire [16:0] pool_dbg, pw0_dbg, pw1_dbg;
+    wire [31:0] wp_rel_stale, wp_ev_ovf;
+    wire        wp_busy, wp_ev_commit;
+    wire [1:0]  wp_ev_type;
+    wire [3:0]  wp_ev_slot;
     wire [31:0] pool_grant_zero, pool_slot_reuse, pool_rel_dup, pool_slot_oor;
     wire [31:0] pool_c18_cross, pool_pw_under;
     wire [7:0]  wp_grant_port;      // H-2: 槽属主 = manager 的授出口 (ev_up 时更新)
@@ -3749,7 +3770,14 @@ module wrapper_p4 #(
         .stat_grant_zero(pool_grant_zero), .stat_slot_reuse(pool_slot_reuse),
         .stat_rel_dup(pool_rel_dup), .stat_slot_oor(pool_slot_oor),
         .stat_c18_cross_port(pool_c18_cross),
-        .stat_port_win_underflow(pool_pw_under)
+        .stat_port_win_underflow(pool_pw_under),
+        .stat_rel_stale_port(wp_rel_stale),
+        // 0x2F: 授予完成握手 + 事件机观测
+        .o_ev_up_done0(wp_ev_done0), .o_ev_up_done_slot0(wp_ev_done_slot0),
+        .o_ev_up_done1(wp_ev_done1), .o_ev_up_done_slot1(wp_ev_done_slot1),
+        .stat_ev_ovf(wp_ev_ovf),
+        .dbg_busy(wp_busy), .dbg_ev_commit(wp_ev_commit),
+        .dbg_ev_type(wp_ev_type), .dbg_ev_slot(wp_ev_slot)
     );
 
     // ---- 共享 8 槽重传环 (128 tile; 每槽属主口 = manager 的 grant_port) ----
@@ -6255,7 +6283,7 @@ module wrapper_p4 #(
 
     axi_regs #(
         .MAGIC_V    (32'h50360001),
-        .BUILD_ID_V (32'h0000002F),   // P11 P3 C4 双栈 2×10G (合同 2; 0x2E 留乙)     // ⚠️ 每次改动自增 (前置闸读这一项认位流; P1 = ch0 bring-up + W76..W82 = 0x2B)
+        .BUILD_ID_V (32'h00000031),   // P11 P3 C4 双栈 2×10G (合同 2; 0x2F/0x30 时序 FAIL 已隔离) // ⚠️ 每次改动自增 (前置闸读这一项认位流; P1 = ch0 bring-up + W76..W82 = 0x2B)
                                         //   ⭐ 本轮构建 (2026-10-15): **0x27 → 0x28** = **E12 观测计数器**
                                         //      (换流门四计数器: `stat_up_ev` / `stat_sw_req` /
                                         //       `stat_sw_apply` / `stat_up_pend` —— `rtl/app_pattern.v`
