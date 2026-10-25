@@ -19,7 +19,8 @@
    ev_up0 **+2.902** / ev_up1 **+3.148**。**routed 后同族** = **+0.960 ns / 14 级**
    （`sta_0x31_tcb.txt`；synth 值只作预检，签核用 routed）。
 2. **0x30 构建（manager 修好、未加策略）**：`WNS = -0.418 / TNS = -556.221 /
-   setup 失败端点 3126 / 372,939`；hold/PW 0。失败族 = **既存** `u_tcp_tx/u_fifo_* → u_tcb/*`
+   setup 失败端点 3126 / 372,939`；hold/PW 0（⚠️ 0x30 原始 timing report 未归档、**不可复核**；
+   3126 是当时读取值，见 §9 M-1；新工具锚点 = §5.1 的 probe 输出）。失败族 = **既存** `u_tcp_tx/u_fifo_* → u_tcb/*`
    （0x2F 时该族定向 STA 为 **-3.772 / -3.788 / -3.797**（A/B/C）与 **-2.175**（D）——
    0x2F 的 top-10 全是 manager 链，把这一族盖住了）。0x30 位流被时序硬门**改名隔离**，
    未记录 sha，随后被下一次构建 `create_project -force` 清除。**禁烧。**
@@ -127,6 +128,11 @@
 | hold / PW 失败 | 0 / 0 |
 | 最差路径 | `u_tcp_tx/u_fifo_a/rptr_reg[0]/C → u_tcb/rcv_wnd_r_reg[3][14]/CE`，6.701 ns（logic 1.957 / route 4.744），16 级 |
 | 位流 | 被时序硬门改名 `wrapper_p4.bit.TIMING_FAIL`；**未记录 sha**；下一次构建已清除 |
+
+> ⚠️ **本表 0x30 细读数无原始 report 可复核**（kimi M-1）：timing/util/drc 报告在 18:36 读取后，
+> 被 0x31 的 `create_project -force` 清除；3126/TNS 属【未独立复核】。归档块已改为
+> "无位流也归档 reports"（`ARCHIVE_REPORTS_ONLY`），下一失败构建不会再丢。0x2F 的 TCB 族
+> 数字已有工具原件（§5.1 / `sta_0x2F_tcb.txt`）。
 
 ### 4.2 时序硬门（新增，0x30 起生效）
 
