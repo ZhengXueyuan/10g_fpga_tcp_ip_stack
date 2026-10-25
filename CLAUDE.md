@@ -13,7 +13,23 @@
 - **0x31 构建（`Performance_Explore`）通过**：**WNS +0.031 / WHS +0.010 / setup·hold·PW 0/0/0**；`All user specified timing constraints are met`；DRC 0 Error/Critical（85 Warning）；位流 **`420ddad5e7c018abefa9b3e1dea3942ab1d8ff0a6a24b8733f34fdb9fa8176b6`**（15,431,261 B / BID 0x31；首版 0x31 `4dce8d99…` 与 clean `cmp -l` 仅 7 字节头时间戳差 ⇒ 可编程镜像相同）；WNS 宿主 = `u_tcp_tx/u_fifo_b/rptr_reg[0] → u_tcb/snd_wnd_r_reg[6][5]/CE` +0.031（19 级）；placed LUT 122,058 / FF 98,472 / BRAM 109 / URAM 17 / DSP 4（纸面 267/1 不成立）。**clean build `BITSTREAM-OK` / bat exit 0**。
 - **门**：新增 `P7B_TIMING_GATE`（WNS>0 ∧ setup/hold/PW 端点=0；失败改名 `*.TIMING_FAIL` + `P7B_VERDICT=TIMING_FAIL`）；硬门端点数解析改为 **Design Timing Summary 表**（旧版抓第一段 `Setup :` 会假绿）；DRC token 加 `]` 锚定（`Opt 31-1555` 假阳性）。**41/41 矩阵 EXIT=0**（含 `txdrop50`/`p5_wrapper`/`p7b_chain`/`swc`/全部 P11 与负控；EXT=0 三臂全绿）。
 - **未收口**：**未烧板/未碰 QSPI**（0x31 位流在 `p11_fix_0x30_0x31_20261025/bits/` 与 archive `20261025_221252`）；read-side 仍默认 0x2D（需 `--bid 0x31`）；8×12KB 合同/多连接 app 未做；M-7/M-13/L-2..L-13 未做；**`up_pend` 配额释放窗口**（同槽 ev_up 后 ~3 拍内 DEL/超时/abort ⇒ rel 门 `winq!=0` 不生成，配额留死连接）**结构性未达、未做守卫**，下一轮若 app 可立即 abort 需加；**TCB 族余量 +0.031（0.48%）是策略补足**，后续任何 RTL 改动必须先定向 STA `u_tcp_tx/u_fifo_* → u_tcb/*` 再构建。
-- **续接**：台账 `_proj_10g/notes/P7B_TL_LEDGER_20261010.md` **§10-160**；审查队列 `P11_REVIEW_QUEUE.md`（本轮两行，**待报送 kimi**）；板级/read-side/8×12KB 为下一棒。
+- **续接**：台账 `_proj_10g/notes/P7B_TL_LEDGER_20261010.md` **§10-160/§10-161**；审查队列 `P11_REVIEW_QUEUE.md`（本轮两行）；板级/read-side/8×12KB 为下一棒。
+
+### 交付纪律（Tier B，2026-10-26 用户采纳 kimi 审查建议）
+
+以下四条自本轮（0x2F/0x30/0x31 + kimi `REVIEW_0X2F_0X31.md`）起为**硬纪律**：
+
+1. **自述数字必须挂工具输出锚点**：报告/台账里每个关键读数（WNS/端点/资源/STA slack/速率/计数/门读数）
+   必须带 `文件:行`，或 `可复跑脚本 + 输出件`。无原件的数字一律标 **【未独立复核】**；不得用
+   "当时读到"当已证。本轮反例 = 0x30 的 3126/TNS（报告已清除，只能标未复核）。
+2. **被门拦截/改名位流的构建必须归档 reports**：timing/util/drc/route/runme/stdout 全归档；
+   `run_build_p7b_ku5p.bat` 的 `ARCHIVE_REPORTS_ONLY` 已落地。失败构建也是证据，不得
+   因 `wrapper_p4.bit` 不存在而跳过整个归档。
+3. **定向 STA / dcp 查询必须脚本化入库**：关键族（TCB A–F、manager rel 等）用可复跑脚本 +
+   带阈值 exit 门（`board/p11_sta_tcb_probe.tcl` / `P11_STA_TCB_GATE` / `P11_STA_MIN_NS`）；
+   **top-N 清单不是 oracle**（#66：端点清单"藏族"）。
+4. **判据/证据/裁定分层**：现象层读数、证据强度、PASS/FAIL 裁定分开写；判据层裁定权归
+   判据所有者（#51 先例），汇总者不代行。
 
 ## 当前状态与下一步（2026-10-17 · **十二连轮全收口（收官→红队→T2三候选→P-3重设计→慢盆→C1工具→C1板级→0x29拆刀→孤儿设计→实施→构建 0x2A→板级）—— 见本块；⛔ 本块读法优先于下方全部历史块**）
 

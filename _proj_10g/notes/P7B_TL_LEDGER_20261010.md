@@ -2093,3 +2093,4 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - **低项**：§1.6 四→六 token；synth LUT 106,926→**106,947**；`board/` 0x31 clean 报告随本轮入库；时序门 WNS 改用 Design Timing Summary 表值（DB/TABLE 双打印 + mismatch 报警）；`occ` S_LOAD 采样漂移边界写进报告（TB 无 occ 项 = 零覆盖）；tcl 注释数字/`p11_ext0` 三臂日志/TB 五缺口登记不逼修。
 - **提交**：主轮 `4ff43021`；回灌 follow-up = **`90c873c2`**。
 - **下一轮 RTL 队列（不进 0x31 位流）**：① `up_pend` 位图守卫（rel 门并上 pending）；② init 队列 timeout/看门狗；③ occ≠0 授予量定向 TB；④ wrapper 观测（`stat_init_*`/`ev_ovf` 进快照需新字，按观测预算另裁）。
+- **Tier B 交付纪律（用户 2026-10-26 采纳）**：① 自述数字必须挂工具输出锚点（文件:行 / 脚本+输出件；无原件标【未独立复核】）；② 被门拦截/改名位流的构建 reports 必归档（`ARCHIVE_REPORTS_ONLY` 已落地）；③ 定向 STA/dcp 查询脚本化 + 阈值 exit 门（top-N 不是 oracle，#66）；④ 判据/证据/裁定分层，#51。已写入 `CLAUDE.md` 的「交付纪律（Tier B）」节。
