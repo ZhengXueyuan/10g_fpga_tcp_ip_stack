@@ -683,11 +683,23 @@ if {![string is double -strict $wns]} { set wns -999.0 }
 puts "P7B_TIMING_SETUP_FAIL = $setup_fail"
 puts "P7B_TIMING_HOLD_FAIL = $hold_fail"
 puts "P7B_TIMING_PW_FAIL = $pw_fail"
-set timing_ok [expr {($wns > 0.0) && ($setup_fail == 0) && ($hold_fail == 0) && ($pw_fail == 0)}]
+# 口径对称 (kimi L-7): 判定用 Design Timing Summary 表值; get_timing_paths 值只作
+#   交叉核对. 两者不一致时打印 MISMATCH (不掩盖), 仍以表值为准.
+if {[info exists ts_wns] && [string is double -strict $ts_wns]} {
+    puts "P7B_TIMING_WNS_DB = $wns"
+    puts "P7B_TIMING_WNS_TABLE = $ts_wns"
+    if {abs($wns - $ts_wns) > 0.000001} {
+        puts "P7B_TIMING_WNS_MISMATCH db=$wns table=$ts_wns"
+    }
+    set wns_gate $ts_wns
+} else {
+    set wns_gate $wns
+}
+set timing_ok [expr {($wns_gate > 0.0) && ($setup_fail == 0) && ($hold_fail == 0) && ($pw_fail == 0)}]
 if {$timing_ok} {
     puts "P7B_TIMING_GATE = PASS"
 } else {
-    puts "P7B_TIMING_GATE = FAIL (wns=$wns setup=$setup_fail hold=$hold_fail pw=$pw_fail)"
+    puts "P7B_TIMING_GATE = FAIL (wns=$wns_gate setup=$setup_fail hold=$hold_fail pw=$pw_fail)"
     set bitfile "${root_dir}/vivado_prj/${project_name}.runs/impl_1/${top_module}.bit"
     if {[file exists $bitfile]} {
         file rename -force $bitfile "${bitfile}.TIMING_FAIL"
@@ -695,6 +707,74 @@ if {$timing_ok} {
     }
     puts "P7B_VERDICT = TIMING_FAIL"
     exit 1
+}
+
+# ---- P11 0x31: TCB 写口族定向 STA 硬门 (kimi M-3) --------------------------
+#   0x2F/0x30 的教训 = top-10 被 manager 链盖住, 真正的既存族
+#   `u_tcp_tx/u_fifo_* -> u_tcb/*` 只在定向查询里可见. 本段在 post-route 设计上
+#   强制查这 4 个族; C4 下任一族 slack < P11_STA_MIN_NS (默认 0.0) 或 pin 缺失
+#   => STA_FAMILY_FAIL + 位流改名隔离. 非 C4 只打印 SKIP.
+#   ⚠️ 本门是全局时序门的**补充**, 不替代 WNS/端点门.
+sec "P11_STA_TCB_GATE"
+set p11_sta_min 0.0
+if {[info exists ::env(P11_STA_MIN_NS)] && $::env(P11_STA_MIN_NS) ne ""} {
+    set p11_sta_min [expr {double($::env(P11_STA_MIN_NS))}]
+}
+set tcb_fams [list \
+    A {u_tcp_tx/u_fifo_a/rptr_reg\[.*\]/C} {u_tcb/rcv_wnd_r_reg\[.*\]/CE} \
+    B {u_tcp_tx/u_fifo_b/wptr_reg\[.*\]/C} {u_tcb/snd_nxt_r_reg\[.*\]/CE} \
+    C {u_tcp_tx/u_fifo_b/rptr_reg\[.*\]/C} {u_tcb/snd_una_r_reg\[.*\]/CE} \
+    D {u_tcp_tx/u_ackq/rptr_reg\[.*\]/C} {u_tcb/rcv_wnd_r_reg\[.*\]/CE} \
+    E {u_tcp_tx/u_fifo_b/wptr_reg\[.*\]/C} {u_tcb/snd_wnd_r_reg\[.*\]/CE} \
+    F {u_tcp_tx/u_fifo_b/rptr_reg\[.*\]/C} {u_tcb/snd_wnd_r_reg\[.*\]/CE}]
+set tcb_min 999.0
+set tcb_na  0
+if {$P11_CFG eq "c4"} {
+    foreach {tag fpat tpat} $tcb_fams {
+        set fp [get_pins -hier -quiet -regexp $fpat]
+        set tp [get_pins -hier -quiet -regexp $tpat]
+        if {[llength $fp] > 0 && [llength $tp] > 0} {
+            set tpath [get_timing_paths -from $fp -to $tp -max_paths 1 -delay_type max]
+            if {[llength $tpath] > 0} {
+                set tsl [get_property SLACK [lindex $tpath 0]]
+                puts "P11_STA_TCB_$tag = $tsl"
+                puts "P11_STA_TCB_${tag}_SRC = [get_property STARTPOINT_PIN [lindex $tpath 0]]"
+                puts "P11_STA_TCB_${tag}_DST = [get_property ENDPOINT_PIN [lindex $tpath 0]]"
+                puts "P11_STA_TCB_${tag}_LVL = [get_property LOGIC_LEVELS [lindex $tpath 0]]"
+                if {$tsl < $tcb_min} { set tcb_min $tsl }
+            } else {
+                puts "P11_STA_TCB_$tag = NA (no path)"
+                set tcb_na 1
+            }
+        } else {
+            puts "P11_STA_TCB_$tag = NA (pins from=[llength $fp] to=[llength $tp])"
+            set tcb_na 1
+        }
+    }
+    puts "P11_STA_TCB_MIN = $tcb_min"
+    if {$tcb_na} {
+        puts "P11_STA_TCB_GATE = FAIL (family pins missing)"
+        set bitfile "${root_dir}/vivado_prj/${project_name}.runs/impl_1/${top_module}.bit"
+        if {[file exists $bitfile]} {
+            file rename -force $bitfile "${bitfile}.STA_FAMILY_FAIL"
+            puts "P7B_BIT_QUARANTINED = ${bitfile}.STA_FAMILY_FAIL"
+        }
+        puts "P7B_VERDICT = STA_FAMILY_FAIL"
+        exit 1
+    }
+    if {$tcb_min < $p11_sta_min} {
+        puts "P11_STA_TCB_GATE = FAIL (min=$tcb_min < $p11_sta_min)"
+        set bitfile "${root_dir}/vivado_prj/${project_name}.runs/impl_1/${top_module}.bit"
+        if {[file exists $bitfile]} {
+            file rename -force $bitfile "${bitfile}.STA_FAMILY_FAIL"
+            puts "P7B_BIT_QUARANTINED = ${bitfile}.STA_FAMILY_FAIL"
+        }
+        puts "P7B_VERDICT = STA_FAMILY_FAIL"
+        exit 1
+    }
+    puts "P11_STA_TCB_GATE = PASS"
+} else {
+    puts "P11_STA_TCB_GATE = SKIP (non-c4)"
 }
 puts "P7B_BIT = ${root_dir}/vivado_prj/${project_name}.runs/impl_1/${top_module}.bit"
 puts "P7B_BIT_EXISTS = [file exists ${root_dir}/vivado_prj/${project_name}.runs/impl_1/${top_module}.bit]"

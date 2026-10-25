@@ -24,8 +24,16 @@ set STAMP=
 for /f %%i in ('powershell -NoProfile -Command "Get-Date -Format yyyyMMdd_HHmmss" 2^>NUL') do set STAMP=%%i
 if "%STAMP%"=="" set STAMP=nostamp
 set ARCDIR=%ARCROOT%\%STAMP%
-if not exist "%IMPL%\wrapper_p4.bit" (
-  echo ARCHIVE_SKIP no previous bitstream at "%IMPL%\wrapper_p4.bit"
+REM 2026-10-26 (kimi M-1): a build stopped by the timing gate renames the
+REM   bitstream to *.TIMING_FAIL.  The old guard keyed on wrapper_p4.bit and
+REM   skipped the WHOLE archive => the failed build's timing/util/drc reports
+REM   were lost when the next create_project -force wiped impl_1 (0x30 case).
+REM   New rule: reports are archived whenever they exist; the bitstream copy is
+REM   conditional.  A failed build is evidence too.
+set "HAVE_BIT=0"
+if exist "%IMPL%\wrapper_p4.bit" set "HAVE_BIT=1"
+if not exist "%IMPL%\wrapper_p4_timing_summary_routed.rpt" (
+  echo ARCHIVE_SKIP no previous routed reports at "%IMPL%"
   goto :arc_skip
 )
 mkdir "%ARCDIR%" 2>NUL
@@ -41,7 +49,11 @@ copy /Y "%IMPL%\wrapper_p4_drc_routed.rpt"            "%ARCDIR%\" >NUL 2>&1
 copy /Y "%IMPL%\wrapper_p4_power_routed.rpt"          "%ARCDIR%\" >NUL 2>&1
 copy /Y "%IMPL%\wrapper_p4_route_status.rpt"          "%ARCDIR%\" >NUL 2>&1
 copy /Y "%IMPL%\wrapper_p4_routed.dcp"                "%ARCDIR%\" >NUL 2>&1
-copy /Y "%IMPL%\wrapper_p4.bit"                       "%ARCDIR%\" >NUL 2>&1
+if "%HAVE_BIT%"=="1" (
+  copy /Y "%IMPL%\wrapper_p4.bit"                     "%ARCDIR%\" >NUL 2>&1
+) else (
+  echo ARCHIVE_REPORTS_ONLY no wrapper_p4.bit ^(failed/timing-gated build^)
+)
 copy /Y "%IMPL%\runme.log"                            "%ARCDIR%\runme_impl_1.log" >NUL 2>&1
 copy /Y "%SYN%\wrapper_p4_utilization_synth.rpt"      "%ARCDIR%\" >NUL 2>&1
 copy /Y "%SYN%\wrapper_p4.dcp"                        "%ARCDIR%\wrapper_p4_synth.dcp" >NUL 2>&1
@@ -75,7 +87,7 @@ REM      (Performance_Explore emits it) => false DRC-KEY-FAIL on a passing build
 REM      The real critical messages carry a closing bracket: "[Opt 31-155]".
 REM      Anchor all six tokens with ']' so prefix collisions cannot trip the gate.
 findstr /I /C:"NSTD-1]" /C:"UCIO-1]" /C:"AVAL-326]" /C:"Opt 31-155]" /C:"Opt 31-67]" /C:"Route 35-7]" p7b_ku5p_stdout.txt >NUL && (echo DRC-KEY-FAIL & findstr /I /C:"NSTD-1]" /C:"UCIO-1]" /C:"AVAL-326]" /C:"Opt 31-155]" /C:"Opt 31-67]" /C:"Route 35-7]" p7b_ku5p_stdout.txt & set "TRIP=1")
-findstr /B /C:"P7B_VERDICT = SYNTH_FAIL" /C:"P7B_VERDICT = HLS_HASH_FAIL" /C:"P7B_VERDICT = BLACKBOX_LOG_HIT" /C:"P7B_VERDICT = BITSTREAM_MISSING" /C:"P7B_VERDICT = TIMING_FAIL" p7b_ku5p_stdout.txt >NUL && (echo P7B-VERDICT-FAIL & findstr /B /C:"P7B_VERDICT = SYNTH_FAIL" /C:"P7B_VERDICT = HLS_HASH_FAIL" /C:"P7B_VERDICT = BLACKBOX_LOG_HIT" /C:"P7B_VERDICT = BITSTREAM_MISSING" /C:"P7B_VERDICT = TIMING_FAIL" p7b_ku5p_stdout.txt & set "TRIP=1")
+findstr /B /C:"P7B_VERDICT = SYNTH_FAIL" /C:"P7B_VERDICT = HLS_HASH_FAIL" /C:"P7B_VERDICT = BLACKBOX_LOG_HIT" /C:"P7B_VERDICT = BITSTREAM_MISSING" /C:"P7B_VERDICT = TIMING_FAIL" /C:"P7B_VERDICT = STA_FAMILY_FAIL" p7b_ku5p_stdout.txt >NUL && (echo P7B-VERDICT-FAIL & findstr /B /C:"P7B_VERDICT = SYNTH_FAIL" /C:"P7B_VERDICT = HLS_HASH_FAIL" /C:"P7B_VERDICT = BLACKBOX_LOG_HIT" /C:"P7B_VERDICT = BITSTREAM_MISSING" /C:"P7B_VERDICT = TIMING_FAIL" /C:"P7B_VERDICT = STA_FAMILY_FAIL" p7b_ku5p_stdout.txt & set "TRIP=1")
 REM   2026-10-18 (0x2C round F-73): the old unanchored findstr matched the tcl
 REM      source echo line ("# if {...} { puts ""P7B_MODULE_MISSING_OR_BLACKBOX"" ; exit 1 }")
 REM      => rc=1 false failure. Real tcl failure lines START with the token (no "# " prefix)

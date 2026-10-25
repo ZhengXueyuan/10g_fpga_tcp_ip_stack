@@ -47,6 +47,8 @@ module tb_p3_churn;
     wire [1:0]  wp_ev_type;
     wire [3:0]  wp_ev_slot;
     wire [31:0] st_ev_ovf;
+    // 0x2F/0x31 (kimi M-4): app_ctrl 的 init FIFO 计数器必须接出并断言 0
+    wire [31:0] st0_init_ovf, st0_init_mismatch, st1_init_ovf, st1_init_mismatch;
     wire [31:0] app0_stat_wu, app1_stat_wu, app0_stat_slot_reuse, app1_stat_slot_reuse;
     wire [3:0]  a0_c0st, a1_c0st;
 
@@ -64,7 +66,7 @@ module tb_p3_churn;
         .o_winq_rd_id_ev(wq0_rid_ev), .i_winq_rd_ev(wq0_rd_ev),
         .o_quota_rel(qrel0), .o_quota_rel_slot(qrel0_slot),
         .i_ev_up_done(wp_done0), .i_ev_up_done_slot(wp_done_slot0),
-        .stat_init_ovf(), .stat_init_mismatch(),
+        .stat_init_ovf(st0_init_ovf), .stat_init_mismatch(st0_init_mismatch),
         .rx_occ_bytes(17'd0), .fin_sent(fin_sent0), .rst_sent(rst_sent0),
         .retx_active(retx_act), .retx_id(retx_id),
         .una_adv(1'b0), .una_adv_id(4'd0), .ack_obs(1'b0), .ack_obs_id(4'd0),
@@ -102,7 +104,7 @@ module tb_p3_churn;
         .o_winq_rd_id_ev(wq1_rid_ev), .i_winq_rd_ev(wq1_rd_ev),
         .o_quota_rel(qrel1), .o_quota_rel_slot(qrel1_slot),
         .i_ev_up_done(wp_done1), .i_ev_up_done_slot(wp_done_slot1),
-        .stat_init_ovf(), .stat_init_mismatch(),
+        .stat_init_ovf(st1_init_ovf), .stat_init_mismatch(st1_init_mismatch),
         .rx_occ_bytes(17'd0), .fin_sent(fin_sent1), .rst_sent(rst_sent1),
         .retx_active(retx_act), .retx_id(retx_id),
         .una_adv(1'b0), .una_adv_id(4'd0), .ack_obs(1'b0), .ack_obs_id(4'd0),
@@ -470,6 +472,9 @@ module tb_p3_churn;
         chk(dbg_pool==WIN_POOL, "9) 6+2 pool fully returned");
         chk(st_pw_uw==0, "9) no port_win underflow (whole run)");
         chk(st_oor==0, "9) stat_slot_oor == 0 (whole run)");
+        chk(st0_init_ovf==0 && st0_init_mismatch==0 &&
+            st1_init_ovf==0 && st1_init_mismatch==0,
+            "init overflow/mismatch counters == 0 (whole run)");
 
         if (errors==0) $display("P3_CHURN TB PASS");
         else           $display("P3_CHURN TB FAIL errors=%0d", errors);

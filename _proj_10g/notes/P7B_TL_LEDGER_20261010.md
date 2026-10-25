@@ -2081,3 +2081,15 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - **门**：新增 `P7B_TIMING_GATE`（WNS>0 ∧ 三类端点=0；失败改名隔离 + `TIMING_FAIL`）；修正 timing table 解析；DRC token 加 `]` 锚定（`Opt 31-1555` 假阳性）。**41/41 矩阵 EXIT=0**（含 `txdrop50`/`p5_wrapper`/`p7b_chain`/`swc`/全部 P11 与负控；EXT_QUOTA=0 三臂全绿）。clean build `BITSTREAM-OK` / bat exit 0。
 - **未收口**：未烧板/未碰 QSPI（0x31 位流在 `p11_fix_0x30_0x31_20261025/bits/` 与 archive `20261025_221252`）；read-side 仍默认 0x2D（需 `--bid 0x31`）；8×12KB 合同/多连接 app 未做；M-7/M-13/L-2..L-13 未做；`up_pend` 配额释放窗口（3 拍内 DEL）结构性未达、未做守卫；TCB 族余量 0.48% 为策略补足，后续 RTL 改动必须先跑定向 STA。
 - **原件**：`_proj_10g/notes/p11_fix_0x30_0x31_20261025/README_FOR_TL.md` + `build0x31_clean/` + `bits/` + `gates/matrix_final.log`；`p11_build_0x2F_20261019/`；`p11_build_0x30_20261025_staonly.log`（synth STA 预检）。
+
+## §10-161 2026-10-26：**kimi 0x2F/0x31 审查回灌 —— 无高档（中 5 / 低 10）；主等价性成立；修证据/门/TB + 下一轮 RTL 挂账**
+- **审查件** = `%TEMP%/bridge/xr10/REVIEW_0X2F_0X31.md`（双路：事实核对 + 设计对抗）。亲核成立：0x31 clean 读数逐字、cmp 7 字节、0x2F 基线、0x30 门读数、TCB 写口零回退、41/41、6 负控、HLS 三方 hash、synth STA +2.344；对抗 wing 确认事件序/唯一写者/三条守恒；**§3.4 结构性不可达成立且更强**（scan 在 init_valid 期间冻结 = 隐式 up_pend 守卫）。
+- **中 5 处置**：
+  - **M-1** 0x30 细读数无物证：归档块改成**无位流也归档 reports**（`ARCHIVE_REPORTS_ONLY`）；0x30 原始 timing report 已不可恢复，报告 §4 的 3126/TNS 标注"当时读到的自述"，新锚点 = TCB probe 工具输出（0x2F/0x31）。
+  - **M-2** TCB 族/0x2F dcp 查询无工具输出：新 `board/p11_sta_tcb_probe.tcl`（A–F + manager 3 条，阈值 `P11_STA_MIN_NS`）；0x2F/0x31 routed DCP 重跑并入库 `sta_0x2F_tcb.txt` / `sta_0x31_tcb.txt`。0x2F A–F = −3.772/−3.788/−3.797/−2.175/**−3.857**/−3.782（min=E）；0x31 = +0.219/+0.295/+0.134/+0.295/+0.101/**+0.031**。
+  - **M-3** 定向 STA 无 exit 门：`build_p7b_ku5p.tcl` 增 post-route `P11_STA_TCB_GATE`（A–F，阈值默认 0.0；失败 `STA_FAMILY_FAIL` + 位流隔离）；在 0x31 clean routed DCP 上抽出块验证 `P11_STA_TCB_MIN=+0.031` PASS，timing 表/DB WNS 双 0.031 一致。
+  - **M-4** "TB 断言 0"不实：`tb_p3_churn` 接出 `stat_init_ovf/mismatch` 并断言 0（`p11_churn` 重跑 PASS）；wrapper 侧仍无快照字（登记）。
+  - **M-5** init 队头阻塞无兜底：**下一轮 RTL**（与 `up_pend` 同轮）加 timeout/看门狗；0x31 位流不含。
+- **低项**：§1.6 四→六 token；synth LUT 106,926→**106,947**；`board/` 0x31 clean 报告随本轮入库；时序门 WNS 改用 Design Timing Summary 表值（DB/TABLE 双打印 + mismatch 报警）；`occ` S_LOAD 采样漂移边界写进报告（TB 无 occ 项 = 零覆盖）；tcl 注释数字/`p11_ext0` 三臂日志/TB 五缺口登记不逼修。
+- **提交**：主轮 `4ff43021`；回灌 follow-up = 见下条（hash 在提交后补）。
+- **下一轮 RTL 队列（不进 0x31 位流）**：① `up_pend` 位图守卫（rel 门并上 pending）；② init 队列 timeout/看门狗；③ occ≠0 授予量定向 TB；④ wrapper 观测（`stat_init_*`/`ev_ovf` 进快照需新字，按观测预算另裁）。

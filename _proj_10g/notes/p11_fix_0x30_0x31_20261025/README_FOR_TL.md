@@ -16,7 +16,8 @@
    另测 **ev_up 自身路径仍有余量**（ev_up0 +0.323 / ev_up1 +0.201）。
    ⇒ 修法 = **事件 FIFO + 串行三拍事件机** + **grant-done 握手**（详见 §3）。
    synth 后定向 STA：`u_app_ctrl/c_rcv_nxt* → u_win_pool/evq_reg[5][0]/D` **+2.344 ns / 14 级**；
-   ev_up0 **+2.902** / ev_up1 **+3.148**。
+   ev_up0 **+2.902** / ev_up1 **+3.148**。**routed 后同族** = **+0.960 ns / 14 级**
+   （`sta_0x31_tcb.txt`；synth 值只作预检，签核用 routed）。
 2. **0x30 构建（manager 修好、未加策略）**：`WNS = -0.418 / TNS = -556.221 /
    setup 失败端点 3126 / 372,939`；hold/PW 0。失败族 = **既存** `u_tcp_tx/u_fifo_* → u_tcb/*`
    （0x2F 时该族定向 STA 为 **-3.772 / -3.788 / -3.797**（A/B/C）与 **-2.175**（D）——
@@ -40,7 +41,7 @@
    - 硬门的失败端点数解析改为 **Design Timing Summary 表**（旧版抓第一段 `Setup :`，
      0x30 实测第一段是子组 0、全局 3126 ⇒ 会假绿）。
    - DRC 文本门 `Opt 31-155` 会命中 `[Opt 31-1555] control_set_opt supports Versal devices only`
-     ⇒ 四个 token 加 `]` 锚定，消除 0x31 的 DRC-KEY-FAIL 假阳性。
+     ⇒ 六个 token 加 `]` 锚定，消除 0x31 的 DRC-KEY-FAIL 假阳性。
 
 ## 2. 0x2F 失败读数（基线）
 
@@ -70,6 +71,10 @@
   首版实现踩过，单测臂 B 立刻红。）
 - **32 深 × 6 位事件 FIFO**，每拍最多 4 条 push（固定顺序 **rel0 → ev_up0 → ev_up1 → rel1**，
   与原组合块顺序逐位一致）；同口同槽 rel+ev_up 同拍仍由 C18 吸收（不单独入队）。
+  ⚠️ **等价性边界（kimi L-6）**：`occ0/occ1` 在事件机的 `S_LOAD` 采样（比原组合块晚 1–2 拍）。
+  occ 在 1–2 拍内变化时，授予量与旧式可能不同（≤几十 B；池/端口守恒不变量不受影响）。
+  TB 的影子模型无 occ 项 ⇒ **occ≠0 的授予量路径零覆盖**；现有 churn/单元 TB 只用 occ=0。
+  本轮不改（产品 8×12KB 合同留有 32KB 物理余量），下一轮补 occ 项的定向 TB。
 - 事件机每条事件三拍：
   - `S_LOAD`：读 `pool/port_win/winq[slot]/grant_port[slot]/occ[port]` 并锁存；
   - `S_CALC`：`pool_after = pool + q`、`sat_sub` 扣旧配额、`avail/room`；
@@ -147,15 +152,23 @@ clean 构建已用此门通过。
 
 ## 5. TCB 族：0x2F → 0x30 → RTL 尝试（否定结果，必须登记）
 
-### 5.1 定向 STA（从归档 routed dcp 只读查询）
+### 5.1 定向 STA（从归档 routed dcp 只读查询；**工具原件** = `sta_0x2F_tcb.txt` / `sta_0x31_tcb.txt`）
 
-| 族 | 0x2F slack | 0x30 slack |
-|---|---|---|
-| A `u_tcp_tx/u_fifo_a/rptr → u_tcb/rcv_wnd_r/CE` | **-3.772**（20 级） | **-0.418**（16 级） |
-| B `u_tcp_tx/u_fifo_b/wptr → u_tcb/snd_nxt_r/CE` | **-3.788**（21 级） | — |
-| C `u_tcp_tx/u_fifo_b/rptr → u_tcb/snd_una_r/CE` | **-3.797**（21 级） | — |
-| D `u_tcp_tx/u_ackq/rptr → u_tcb/rcv_wnd_r/CE` | **-2.175**（16 级） | — |
+> ⚠️ **证据留存订正（kimi M-1/M-2）**：0x2F 的 A–F 六族与 0x31 的 A–F 六族现由
+> `board/p11_sta_tcb_probe.tcl` 在 routed DCP 上重跑并落盘（脚本可复跑、带阈值退出码）。
+> 0x30 的原始 timing report **未归档**（被时序门改名后又被下一次构建清除）；表中 0x30
+> 只有 A 的 -0.418 是当时读到的，其余格 **无原件 ⇒ 记"—"**。归档块已修（见 §10）。
 
+| 族 | 0x2F slack（级） | 0x30 slack | 0x31 slack（级） |
+|---|---|---|---|
+| A `u_tcp_tx/u_fifo_a/rptr → u_tcb/rcv_wnd_r/CE` | **-3.772**（20） | **-0.418**（16） | **+0.219**（18） |
+| B `u_tcp_tx/u_fifo_b/wptr → u_tcb/snd_nxt_r/CE` | **-3.788**（21） | — | **+0.295**（19） |
+| C `u_tcp_tx/u_fifo_b/rptr → u_tcb/snd_una_r/CE` | **-3.797**（21） | — | **+0.134**（19） |
+| D `u_tcp_tx/u_ackq/rptr → u_tcb/rcv_wnd_r/CE` | **-2.175**（16） | — | **+0.295**（15） |
+| E `u_tcp_tx/u_fifo_b/wptr → u_tcb/snd_wnd_r/CE` | **-3.857**（21） | — | **+0.101**（19） |
+| F `u_tcp_tx/u_fifo_b/rptr → u_tcb/snd_wnd_r/CE` | **-3.782**（21） | — | **+0.031**（19） |
+
+⇒ 0x2F 该族**最差 = E −3.857**；0x31 最差 = **F +0.031**（= 全局 WNS 宿主，逐字对上）。
 ⇒ 0x2F 的 25,697 失败端点里 **包含了这一既存族**（top-10 被 manager 盖住）；
 manager 修好后它**显形为 -0.418**。这不是 manager 修复引入的回归，是 **C4 双快路径的同域**问题
 （设计件 §12 已预登记：0x2D 余量 0.66%，双栈同域 +~30k LUT，这两族各出现第二份）。
@@ -204,7 +217,8 @@ manager 修好后它**显形为 -0.418**。这不是 manager 修复引入的回�
 
 - 与 0x2F 的 placed 资源几乎相同（manager 重写省下的 LUT 被 `phys_opt` 的复制/实现映射吃掉）；
   **设计纸面的 BRAM 267/395、URAM=1 不成立**，资源账按本表订正。
-- synth 资源（未 placed）为 LUT 106,926 / FF 76,766 / BRAM 73 / URAM 17；**不能当 placed 账**。
+- synth 资源（未 placed）为 LUT **106,947** / FF 76,766 / BRAM 73 / URAM 17；**不能当 placed 账**
+  （首版报告写 106,926，差 21；以盘上 `wrapper_p4_utilization_synth.rpt` 的 106,947 为准）。
 
 ### 6.3 可复现性
 
@@ -241,7 +255,9 @@ manager 修好后它**显形为 -0.418**。这不是 manager 修复引入的回�
    manager 修的确定性收益 = 族从 -3.77 → -0.418；最后 0.418 由策略补上。
    后续任何 RTL 改动必须**先跑定向 STA**（`u_tcp_tx/u_fifo_* → u_tcb/*`）再构建。
 3. **`up_pend` 边界**（§3.4）：未做；对 HLS 事件源结构性不可达，未观测到；未来 app 可立即
-   abort 时需补。
+   abort 时需补。**kimi M-5 同族**：init 队列若因 FIFO 溢出丢一条 ev_up，其 done 永不来
+   ⇒ init 队头永久阻塞（后续 init 静默丢弃，无看门狗）。可达性低（事件率余量 ≥6 拍），
+   但**下一轮 RTL 必须加 init timeout/看门狗**（超时 pop + 计数），与 `up_pend` 同轮。
 4. **0x30 位流无 sha**：被硬门改名后又被下一次 `create_project -force` 清除；只有
    timing/门读数（§4）。**禁烧**（已不存在）。
 5. **资源账**：BRAM 109 / URAM 17 / LUT 122,058 / FF 98,472；设计纸面 267/1 不成立。
@@ -251,7 +267,25 @@ manager 修好后它**显形为 -0.418**。这不是 manager 修复引入的回�
 7. **策略复核**：`Performance_Explore` 的 +0.031 是**本轮构建门读数**，不是"时序已解决"；
    若后续构建输入变化，需重跑并保留 `Slack (VIOLATED)` 0 行的证据。
 
-## 9. 证据地图
+## 9. kimi 审查回灌（2026-10-26；`%TEMP%/bridge/xr10/REVIEW_0X2F_0X31.md`）
+
+**总评：无高档；中 5 / 低 10；主等价性论证成立；主要短板 = 证据留存纪律。** 处置如下：
+
+| # | 发现 | 本轮处置 |
+|---|---|---|
+| M-1 | 0x30 细读数无物证 | 归档块改为**无位流也归档 reports**（`ARCHIVE_REPORTS_ONLY`；下一次被门拦截的构建不会再丢 report）。0x30 原始 report 已被 `create_project -force` 清除、**不可恢复**；§4 的 3126/TNS 标注为"当时读到的自述"，新工具原件见 `sta_0x2F_tcb.txt`（0x2F）/`sta_0x31_tcb.txt`（0x31）。 |
+| M-2 | TCB 5 条 + 0x2F dcp 查询无工具输出 | 新增 `board/p11_sta_tcb_probe.tcl`（A–F 六族 + manager 3 条，带阈值退出码）；在 0x2F 归档 routed DCP 与 0x31 clean routed DCP 上重跑，输出入库 `sta_0x2F_tcb.txt` / `sta_0x31_tcb.txt`。0x2F 实测 A–F = −3.772/−3.788/−3.797/−2.175/−3.857/−3.782，**min = E −3.857**；0x31 = +0.219/+0.295/+0.134/+0.295/+0.101/**+0.031**。 |
+| M-3 | TCB 族定向 STA 未编码进 tcl、无 exit | `build_p7b_ku5p.tcl` 增 **post-route `P11_STA_TCB_GATE`**：A–F 六族，任一族 `< P11_STA_MIN_NS`（默认 0.0）或 pin 缺失 ⇒ `STA_FAMILY_FAIL` + 位流改名隔离。0x31 clean DCP 上实测 `P11_STA_TCB_MIN = +0.031` ⇒ PASS（下一构建起门生效）。 |
+| M-4 | §3.4 "TB 断言 0"不实 | `tb_p3_churn` 接出 `stat_init_ovf/stat_init_mismatch` 并断言 0（`p11_churn` 重跑 PASS）；wrapper 侧仍只到 wire/未进快照（**无新观测字**，登记为下一构建可选项）。 |
+| M-5 | init 队头阻塞无兜底 | **下一轮 RTL**（与 `up_pend` 同轮）：init 队列 timeout/看门狗（超时 pop + 计数）；当前 0x31 位流**不含**，报告 §8 已登记。 |
+
+低项处置：
+- §1.6 "四个 token" → **六个**（已改）；synth LUT 106,926 → **106,947**（已改，盘上 rpt 为准）。
+- `board/p7b_ku5p_*.rpt` 的 HEAD 旧版：本轮把 **0x31 clean 报告**显式入库（`board/` 与 `build0x31_clean/` 逐字节同）；"board/ = 最近构建"从此成立。
+- 台账 §10-160/队列行补提交 hash；`p11_ext0` 三臂原始日志在 `p11_p3_fix_20261019/gates/logs/h5_*`（矩阵日志只留汇总）。
+- `occ` 采样漂移边界（§3.1 已加）；时序门 WNS 改用 Design Timing Summary 表值（§4.2 已改）；tcl 注释嵌数字/TB 五缺口 = **登记不逼修**。
+
+## 10. 证据地图
 
 | 件 | 路径 |
 |---|---|
@@ -261,6 +295,9 @@ manager 修好后它**显形为 -0.418**。这不是 manager 修复引入的回�
 | 0x31 clean 构建日志 | `build0x31_clean/p11_build_0x31_clean.log` |
 | 0x31 位流 + SHA + cmp | `bits/wrapper_p4_0x31.bit`（clean）· `bits/wrapper_p4_0x31_preclean.bit` · `bits/SHA256.txt` |
 | 41 门矩阵 | `gates/matrix_final.log` |
+| TCB 族定向 STA（0x2F） | `sta_0x2F_tcb.txt`（probe 在归档 routed DCP 上重跑） |
+| TCB 族定向 STA（0x31） | `sta_0x31_tcb.txt`（probe 在 clean routed DCP 上重跑；`TCB_MIN=+0.031` PASS） |
+| 定向 STA 工具 | `board/p11_sta_tcb_probe.tcl`（A–F + manager 3 条，阈值 `P11_STA_MIN_NS`） |
 | 本报告 | `README_FOR_TL.md` |
 | 台账 | `../P7B_TL_LEDGER_20261010.md` §10（本轮） |
 | 审查队列 | `../P11_REVIEW_QUEUE.md`（本轮行） |
