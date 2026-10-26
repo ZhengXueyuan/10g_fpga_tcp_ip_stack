@@ -1,0 +1,126 @@
+=== E05L_BEGIN tag=E05M 1793033493.471380559 Tue Oct 27 12:51:33 AM CST 2026
+ID_OK 1793033493.491701656
+TS_BEGIN E05M_PRE 1793033493.493076859
+SNAP_BEGIN E05M_PRE gen=28 status=0x001c0056
+SNAP_STATUS gen=28 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x013780ef
+W5   0x34   gmii_free_FE           0xedbe347b
+W20  0x70   mac_tx_frames          0x06c70a7f
+W43  0xCC   mtx_stat_tx_words      0xeda81773
+W65  0x124  mac_tx_idle            0xd1997428
+W66  0x128  tx_stat_winstall       0x1d31755e
+W67  0x12C  tx_winstall_cap        0x1af31f73
+W68  0x130  rx_stat_ack_adv        0x0137646b
+W69  0x134  tx_win_at_winstall     0xf53cf000
+W27  0x8C   rxcdc_occ_max          0x00000006
+W28  0x90   txcdc_occ_max          0x00000024
+SNAP_END E05M_PRE nff=0 stale_words=0
+TS_END E05M_PRE 1793033493.544239954
+TS_BEGIN E05M_L1 1793033498.563090329
+SNAP_BEGIN E05M_L1 gen=29 status=0x001d0056
+SNAP_STATUS gen=29 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x01446b5d
+W5   0x34   gmii_free_FE           0x1d55893d
+W20  0x70   mac_tx_frames          0x070570d4
+W43  0xCC   mtx_stat_tx_words      0x1d3f4d10
+W65  0x124  mac_tx_idle            0xd2258635
+W66  0x128  tx_stat_winstall       0x1d42ddb2
+W67  0x12C  tx_winstall_cap        0x1aff8ae2
+W68  0x130  rx_stat_ack_adv        0x01444ead
+W69  0x134  tx_win_at_winstall     0x00000000
+W27  0x8C   rxcdc_occ_max          0x00000006
+W28  0x90   txcdc_occ_max          0x00000024
+SNAP_END E05M_L1 nff=0 stale_words=0
+TS_END E05M_L1 1793033499.059559361
+TS_BEGIN E05M_L2 1793033509.077749974
+SNAP_BEGIN E05M_L2 gen=30 status=0x001e0056
+SNAP_STATUS gen=30 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x015ffbcb
+W5   0x34   gmii_free_FE           0x7eeaeb3c
+W20  0x70   mac_tx_frames          0x0786c5c6
+W43  0xCC   mtx_stat_tx_words      0x7ed46f53
+W65  0x124  mac_tx_idle            0xd239a1e4
+W66  0x128  tx_stat_winstall       0x1d4dbbd4
+W67  0x12C  tx_winstall_cap        0x1b01a5e9
+W68  0x130  rx_stat_ack_adv        0x015fdef3
+W69  0x134  tx_win_at_winstall     0x00000000
+W27  0x8C   rxcdc_occ_max          0x00000006
+W28  0x90   txcdc_occ_max          0x00000024
+SNAP_END E05M_L2 nff=0 stale_words=0
+TS_END E05M_L2 1793033509.417532638
+TS_BEGIN E05M_L3 1793033519.444736088
+SNAP_BEGIN E05M_L3 gen=31 status=0x001f0056
+SNAP_STATUS gen=31 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x017b6199
+W5   0x34   gmii_free_FE           0xdfd51836
+W20  0x70   mac_tx_frames          0x08072605
+W43  0xCC   mtx_stat_tx_words      0xdfbe5d26
+W65  0x124  mac_tx_idle            0xd25b036a
+W66  0x128  tx_stat_winstall       0x1d651601
+W67  0x12C  tx_winstall_cap        0x1b0f848a
+W68  0x130  rx_stat_ack_adv        0x017b447d
+W69  0x134  tx_win_at_winstall     0x00000000
+W27  0x8C   rxcdc_occ_max          0x00000006
+W28  0x90   txcdc_occ_max          0x00000024
+SNAP_END E05M_L3 nff=0 stale_words=0
+TS_END E05M_L3 1793033519.801721454
+TS_BEGIN E05M_L4 1793033529.820809016
+SNAP_BEGIN E05M_L4 gen=32 status=0x00200056
+SNAP_STATUS gen=32 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x019695a2
+W5   0x34   gmii_free_FE           0x404ba7c4
+W20  0x70   mac_tx_frames          0x0886fc2e
+W43  0xCC   mtx_stat_tx_words      0x4034ade2
+W65  0x124  mac_tx_idle            0xd270e2a1
+W66  0x128  tx_stat_winstall       0x1d71a9d7
+W67  0x12C  tx_winstall_cap        0x1b1351cf
+W68  0x130  rx_stat_ack_adv        0x01967845
+W69  0x134  tx_win_at_winstall     0x00000000
+W27  0x8C   rxcdc_occ_max          0x00000006
+W28  0x90   txcdc_occ_max          0x00000024
+SNAP_END E05M_L4 nff=0 stale_words=0
+TS_END E05M_L4 1793033530.205312294
+TS_BEGIN E05M_L5 1793033540.224797561
+SNAP_BEGIN E05M_L5 gen=33 status=0x00210056
+SNAP_STATUS gen=33 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x01b1f3ba
+W5   0x34   gmii_free_FE           0xa15a99a4
+W20  0x70   mac_tx_frames          0x09079a49
+W43  0xCC   mtx_stat_tx_words      0xa1436084
+W65  0x124  mac_tx_idle            0xd288670e
+W66  0x128  tx_stat_winstall       0x1d7fbe28
+W67  0x12C  tx_winstall_cap        0x1b187b1d
+W68  0x130  rx_stat_ack_adv        0x01b1d62f
+W69  0x134  tx_win_at_winstall     0x00000000
+W27  0x8C   rxcdc_occ_max          0x00000006
+W28  0x90   txcdc_occ_max          0x00000024
+SNAP_END E05M_L5 nff=0 stale_words=0
+TS_END E05M_L5 1793033540.656529833
+SINK_RC=0
+TS_BEGIN E05M_POST 1793033545.370347524
+SNAP_BEGIN E05M_POST gen=34 status=0x00220056
+SNAP_STATUS gen=34 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x01bcea68
+W5   0x34   gmii_free_FE           0xd0e7daa1
+W20  0x70   mac_tx_frames          0x093a1ef8
+W43  0xCC   mtx_stat_tx_words      0xd0d08281
+W65  0x124  mac_tx_idle            0xdbff8283
+W66  0x128  tx_stat_winstall       0x1d8a8e45
+W67  0x12C  tx_winstall_cap        0x1b1f7606
+W68  0x130  rx_stat_ack_adv        0x01bccccd
+W69  0x134  tx_win_at_winstall     0xf53cf000
+W27  0x8C   rxcdc_occ_max          0x00000006
+W28  0x90   txcdc_occ_max          0x00000024
+SNAP_END E05M_POST nff=0 stale_words=0
+TS_END E05M_POST 1793033545.421690448
+[A sink]
+PIN_RULE=none PIN_DEGRADED=n/a PIN_CPU=none PIN_CORES_ONLINE=0-7 PIN_NIC_IFACE=n/a PIN_NIC_CPUS=n/a PIN_NIC_EXCLUDED=n/a PIN_CORE_LOAD=n/a PIN_ALLOWED_MASK=3 PIN_GETCPU_START=1 PIN_FREQ_START_KHZ=3900275 PIN_GOV=schedutil UNPINNED=1 PIN_NIC_IRQLINES=n/a PIN_NIC_IFACE_SRC=n/a PIN_TUPLE_ORDER=n/a PIN_PAIR_RULE=none PIN_PAIR_DEGRADED=n/a PIN_CPU_IO=none PIN_CPU_WORK=none PIN_PC_IO=n/a PIN_PC_WORK=n/a PIN_PAIR_EXCL=n/a PIN_PAIR_REQ=none
+SINK_LIMITS maxbytes=60000000000 poll_ms=5000 stall_n=3 rcvbuf=1048576 conns=1 secs=60
+SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+PIN_THREAD name=work PIN_TID_WORK=11734 PIN_CPU_WORK=none PIN_ALLOWED_MASK_WORK=3 PIN_GETCPU_WORK=1 CPU_FREQ_WORK_KHZ=3895167
+PIN_THREAD name=io PIN_TID_IO=11733 PIN_CPU_IO=none PIN_ALLOWED_MASK_IO=3 PIN_GETCPU_IO=0 CPU_FREQ_IO_KHZ=3701853
+SINK_CONN 0 OK bytes=60000005025 first_mismatch=-1 mism_bytes=0 conn_ms=0.167 dur_ms=50818.785 Mbps=9445.327 reads=8741561 poll_tmo=0 CPU_FREQ_KHZ=3700239 THREADED=on q_full_push=8741561 q_full_pop=8741561 q_free_push=8741577 q_free_pop=8741561 slot_wait_spins=26868 checked_bytes=60000005025
+SINK_SUM conns=1 fail_conns=0 bytes=60000005025 clean_conns=1 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=50.819 net_s=50.819 agg_Mbps=9445.327 THREADED=on full_push=8741561 full_pop=8741561 free_push=8741577 free_pop=8741561 slot_wait_spins=26868 checked_bytes=60000005025 threads=2 check=lane8
+SINK_DONE
+PIN_GETCPU_END=1 PIN_FREQ_END_KHZ=3700204 UNPINNED=1
+=== E05L_END tag=E05M 1793033545.423645618 Tue Oct 27 12:52:25 AM CST 2026

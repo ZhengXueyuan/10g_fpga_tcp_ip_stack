@@ -1,0 +1,17 @@
+POST_SESSION_BEGIN 1793036534.520448350 Tue Oct 27 01:42:14 AM CST 2026
+NOTE post-session check; NOT contemporaneous with B (D9R); covers teardown after C/E05M
+NO_SINK_PROC
+NO_UDP_SRC_PROC
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x00000032   (want 0x00000032 = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1793036534.572778864
+SCRATCH_0x08=Read 32-bit value at address 0x8 (0x7c363f4d3008): 0x00000000
+LINK enp1s0f1np1
+	Speed: 10000Mb/s
+	Link detected: yes
+LINK enp1s0f0np0
+	Speed: 10000Mb/s
+	Link detected: yes
+POST_SESSION_END

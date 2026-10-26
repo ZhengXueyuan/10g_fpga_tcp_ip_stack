@@ -1,0 +1,111 @@
+=== D9R_BEGIN tag=D9R 1793032557.213978474 Tue Oct 27 12:35:57 AM CST 2026
+--- IRQ affinity: NIC IRQs -> CPU 4-7 (siblings) ---
+IRQ 40 aff=4-7
+IRQ 41 aff=4-7
+IRQ 42 aff=4-7
+IRQ 43 aff=4-7
+IRQ 44 aff=4-7
+IRQ 45 aff=4-7
+IRQ 47 aff=4-7
+IRQ 48 aff=4-7
+IRQ 49 aff=4-7
+IRQ 50 aff=4-7
+IRQ 51 aff=4-7
+IRQ 52 aff=4-7
+--- coalescing (both ports) ---
+--- board identity / stop state ---
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x00000032   (want 0x00000032 = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1793032557.245605252
+ID_RC=0
+SNAP_BEGIN D9R_PRE gen=1 status=0x00010056
+SNAP_STATUS gen=1 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x00000020
+W1   0x24   rx_stat_bytes          0x0000110b
+W4   0x30   rx_stat_drop           0x00000000
+W20  0x70   mac_tx_frames          0x00000007
+W21  0x74   tx_stat_abort          0x00000000
+W43  0xCC   mtx_stat_tx_words      0xde31e6ae
+W51  0xEC   app_tx_bytes           0x00000000
+W52  0xF0   app_tx_frames          0x00000000
+W53  0xF4   app_rx_bytes           0x00000000
+W54  0xF8   app_mismatch           0x00000000
+W55  0xFC   tx_stat_retx           0x00000000
+W62  0x118  app_ctrl_rx_occ_bytes  0x00000000
+W79  0x15C  ch0_rx_frames          0x00000020
+W80  0x160  ch0_rx_bytes           0x0000108b
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+W83  0x16C  tx_p0_frames           0x00000007
+W84  0x170  tx_p1_frames           0x00000003
+SNAP_END D9R_PRE nff=0 stale_words=0
+--- start two sinks (A: taskset 0,1; B: taskset 2,3; --no-pin; 10GB each) ---
+SNAP_BEGIN D9R_MID gen=2 status=0x00020056
+SNAP_STATUS gen=2 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x0003f497
+W1   0x24   rx_stat_bytes          0x00fd2ed9
+W4   0x30   rx_stat_drop           0x00000000
+W20  0x70   mac_tx_frames          0x0017a12c
+W21  0x74   tx_stat_abort          0x00000000
+W43  0xCC   mtx_stat_tx_words      0xf1b14b7d
+W51  0xEC   app_tx_bytes           0x86be0904
+W52  0xF0   app_tx_frames          0x0017a045
+W53  0xF4   app_rx_bytes           0x00000000
+W54  0xF8   app_mismatch           0x00000000
+W55  0xFC   tx_stat_retx           0x00000008
+W62  0x118  app_ctrl_rx_occ_bytes  0x00000000
+W79  0x15C  ch0_rx_frames          0x0003f7b3
+W80  0x160  ch0_rx_bytes           0x00ee170d
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+W83  0x16C  tx_p0_frames           0x0017a12c
+W84  0x170  tx_p1_frames           0x001794cf
+SNAP_END D9R_MID nff=0 stale_words=0
+SINK_A_RC=0 SINK_B_RC=0
+SNAP_BEGIN D9R_POST gen=3 status=0x00030056
+SNAP_STATUS gen=3 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x00119b74
+W1   0x24   rx_stat_bytes          0x0466e619
+W4   0x30   rx_stat_drop           0x00000000
+W20  0x70   mac_tx_frames          0x006887fb
+W21  0x74   tx_stat_abort          0x00000000
+W43  0xCC   mtx_stat_tx_words      0x3baed400
+W51  0xEC   app_tx_bytes           0x540cf183
+W52  0xF0   app_tx_frames          0x00688356
+W53  0xF4   app_rx_bytes           0x00000000
+W54  0xF8   app_mismatch           0x00000000
+W55  0xFC   tx_stat_retx           0x0000002f
+W62  0x118  app_ctrl_rx_occ_bytes  0x00000000
+W79  0x15C  ch0_rx_frames          0x0011b502
+W80  0x160  ch0_rx_bytes           0x04267591
+W81  0x164  ch0_rx_crc_err         0x00000000
+W82  0x168  ch0_rx_drop            0x00000000
+W83  0x16C  tx_p0_frames           0x006887fb
+W84  0x170  tx_p1_frames           0x006887e3
+SNAP_END D9R_POST nff=0 stale_words=0
+[A p1 sink]
+PIN_RULE=none PIN_DEGRADED=n/a PIN_CPU=none PIN_CORES_ONLINE=0-7 PIN_NIC_IFACE=n/a PIN_NIC_CPUS=n/a PIN_NIC_EXCLUDED=n/a PIN_CORE_LOAD=n/a PIN_ALLOWED_MASK=3 PIN_GETCPU_START=1 PIN_FREQ_START_KHZ=3896174 PIN_GOV=schedutil UNPINNED=1 PIN_NIC_IRQLINES=n/a PIN_NIC_IFACE_SRC=n/a PIN_TUPLE_ORDER=n/a PIN_PAIR_RULE=none PIN_PAIR_DEGRADED=n/a PIN_CPU_IO=none PIN_CPU_WORK=none PIN_PC_IO=n/a PIN_PC_WORK=n/a PIN_PAIR_EXCL=n/a PIN_PAIR_REQ=none
+SINK_LIMITS maxbytes=10000000000 poll_ms=5000 stall_n=3 rcvbuf=1048576 conns=1 secs=60
+SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+PIN_THREAD name=work PIN_TID_WORK=5691 PIN_CPU_WORK=none PIN_ALLOWED_MASK_WORK=3 PIN_GETCPU_WORK=1 CPU_FREQ_WORK_KHZ=3892686
+PIN_THREAD name=io PIN_TID_IO=5689 PIN_CPU_IO=none PIN_ALLOWED_MASK_IO=3 PIN_GETCPU_IO=0 CPU_FREQ_IO_KHZ=3705030
+SINK_CONN 0 OK bytes=10000006215 first_mismatch=-1 mism_bytes=0 conn_ms=0.115 dur_ms=8951.835 Mbps=8936.721 reads=1152728 poll_tmo=0 CPU_FREQ_KHZ=3700242 THREADED=on q_full_push=1152728 q_full_pop=1152728 q_free_push=1152744 q_free_pop=1152728 slot_wait_spins=2656 checked_bytes=10000006215
+SINK_SUM conns=1 fail_conns=0 bytes=10000006215 clean_conns=1 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=8.952 net_s=8.952 agg_Mbps=8936.721 THREADED=on full_push=1152728 full_pop=1152728 free_push=1152744 free_pop=1152728 slot_wait_spins=2656 checked_bytes=10000006215 threads=2 check=lane8
+SINK_DONE
+PIN_GETCPU_END=1 PIN_FREQ_END_KHZ=3700182 UNPINNED=1
+[B p0 sink]
+PIN_RULE=none PIN_DEGRADED=n/a PIN_CPU=none PIN_CORES_ONLINE=0-7 PIN_NIC_IFACE=n/a PIN_NIC_CPUS=n/a PIN_NIC_EXCLUDED=n/a PIN_CORE_LOAD=n/a PIN_ALLOWED_MASK=c PIN_GETCPU_START=3 PIN_FREQ_START_KHZ=3892611 PIN_GOV=schedutil UNPINNED=1 PIN_NIC_IRQLINES=n/a PIN_NIC_IFACE_SRC=n/a PIN_TUPLE_ORDER=n/a PIN_PAIR_RULE=none PIN_PAIR_DEGRADED=n/a PIN_CPU_IO=none PIN_CPU_WORK=none PIN_PC_IO=n/a PIN_PC_WORK=n/a PIN_PAIR_EXCL=n/a PIN_PAIR_REQ=none
+SINK_LIMITS maxbytes=10000000000 poll_ms=5000 stall_n=3 rcvbuf=1048576 conns=1 secs=60
+SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+PIN_THREAD name=io PIN_TID_IO=5690 PIN_CPU_IO=none PIN_ALLOWED_MASK_IO=c PIN_GETCPU_IO=2 CPU_FREQ_IO_KHZ=3699700
+PIN_THREAD name=work PIN_TID_WORK=5692 PIN_CPU_WORK=none PIN_ALLOWED_MASK_WORK=c PIN_GETCPU_WORK=3 CPU_FREQ_WORK_KHZ=3892637
+SINK_CONN 0 OK bytes=10000009135 first_mismatch=-1 mism_bytes=0 conn_ms=0.101 dur_ms=8953.360 Mbps=8935.202 reads=1159199 poll_tmo=0 CPU_FREQ_KHZ=3700267 THREADED=on q_full_push=1159199 q_full_pop=1159199 q_free_push=1159215 q_free_pop=1159199 slot_wait_spins=12052 checked_bytes=10000009135
+SINK_SUM conns=1 fail_conns=0 bytes=10000009135 clean_conns=1 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=8.954 net_s=8.953 agg_Mbps=8935.202 THREADED=on full_push=1159199 full_pop=1159199 free_push=1159215 free_pop=1159199 slot_wait_spins=12052 checked_bytes=10000009135 threads=2 check=lane8
+SINK_DONE
+PIN_GETCPU_END=3 PIN_FREQ_END_KHZ=3725375 UNPINNED=1
+--- NIC counters (settled) ---
+P1_RX port_rx_bytes:=10399125243 port_rx_packets:=6850555 
+P0_RX port_rx_bytes:=10399093499 port_rx_packets:=6850531 
+=== D9R_END tag=D9R 1793032567.365411988 Tue Oct 27 12:36:07 AM CST 2026

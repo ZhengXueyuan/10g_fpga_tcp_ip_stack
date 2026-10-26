@@ -1,0 +1,13 @@
+E0.5 sink build receipt (2026-10-27)
+====================================
+peer binary : /tmp/p7b_biz/p7b_tcp_sink
+              md5 f62299291fcb9e02afe109c4ea1f90ab, 173576 bytes
+              archived as artifacts/p7b_tcp_sink (same md5)
+source      : _proj_pcie/p7b_biz/p7b_tcp_sink.cpp
+              md5 dd3adfbe6d42547b412a5c410b9d1cb2, 34880 bytes
+              archived as artifacts/p7b_tcp_sink.cpp (same md5)
+build cmd   : g++ -O3 -pthread -o p7b_tcp_sink p7b_tcp_sink.cpp
+              (per _proj_10g/notes/p7b_affinity/BUILD.md; peer file mtime 2026-10-27 00:32)
+observed    : SINK_SUM THREADED=on check=lane8 threads=2
+note        : binary is an ELF artifact from the peer; exact rebuild provenance was not
+              re-run this round. SHA256SUMS.txt covers both archived files.

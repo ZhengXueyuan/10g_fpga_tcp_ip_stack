@@ -1,0 +1,42 @@
+E0.5 (0x32, zero-build) - 9G-class single-port TCP downlink, MID1->MID2 windows
+time base = dW43 / 156.25 MHz (tx-domain cycle counter), deltas mod 2^32; W5 cross-check = dW5/dW43
+
+tag   sinkG   fps_board  W43/W20  ACK/frm  idle%   win/idle%  cap/win%  win/clk%  peerwin/clk%  idle_ms  win_ms  peerwin_ms  dW27 dW28
+E05    9.4405   808431.2  193.276   0.2274   0.143      70.90     61.78    0.101         0.039    15.38   10.91        4.17     0    0
+E05B   9.2560   793111.6  197.009   0.1684   2.035      89.95     92.04    1.830         0.146   204.79  184.21       14.66     0    0
+E05C   9.0701   769284.3  203.111   0.1322   4.978      92.19     93.09    4.589         0.317   500.95  461.82       31.93     0    0
+E05D   9.4437   808438.3  193.274   0.2119   0.142      71.16     61.69    0.101         0.039    14.84   10.56        4.05     0    0
+
+raw deltas (MID1->MID2):
+  E05   dW5=1,685,350,254 dW20=8,719,852 dW43=1,685,334,392 dW65=2,403,893 dW66=1,704,359 dW67=1,053,003 dW68=1,983,072 sink_bytes=24,000,007,295 sink_s=20.338 dW5/dW43=1.000009412
+  E05B  dW5=1,572,448,575 dW20=7,981,538 dW43=1,572,433,598 dW65=31,997,703 dW66=28,782,388 dW67=26,491,300 dW68=1,344,103 sink_bytes=24,000,010,215 sink_s=20.744 dW5/dW43=1.000009525
+  E05C  dW5=1,572,385,619 dW20=7,741,440 dW43=1,572,370,550 dW65=78,273,475 dW66=72,159,009 dW67=67,170,571 dW68=1,023,339 sink_bytes=24,000,007,295 sink_s=21.169 dW5/dW43=1.000009584
+  E05D  dW5=1,636,321,767 dW20=8,466,256 dW43=1,636,306,053 dW65=2,319,521 dW66=1,650,521 dW67=1,018,249 dW68=1,793,838 sink_bytes=24,000,004,375 sink_s=20.331 dW5/dW43=1.000009603
+
+structural bound: WIN_CAP = 61,440 B => 42.08 frames of 1460 B; drain time at observed sink rate:
+  E05   52.07 us
+  E05B  53.10 us
+  E05C  54.19 us
+  E05D  52.05 us
+
+state label (descriptive): fast if idle% < 0.5 else slow
+  E05   fast
+  E05B  slow
+  E05C  slow
+  E05D  fast
+
+long run E05L (60 GB single connection; consecutive ~10 s windows, board time base)
+window   dW43          dW20       idle%   win/idle%  cap/win%  win/clk%  fps_board  cyc/frm  ACK/frm  dW27 dW28
+L1->L2  1,572,169,250  7,884,541   3.209      91.15     92.69     2.925   783604.9  199.399   0.1677     0    0
+L2->L3  1,573,401,797  7,916,546   2.892      90.98     92.57     2.632   786169.4  198.749   0.1672     0    0
+L3->L4  1,572,155,603  7,896,786   3.058      91.04     92.64     2.784   784828.7  199.088   0.1667     0    0
+L4->L5  1,572,771,691  7,903,454   3.014      91.00     92.62     2.743   785183.7  198.998   0.1680     0    0
+E05L sink: 60,000,005,025 B / 52.371 s = 9165.454 Mbps; mism=0 path per SINK_SUM
+
+long run E05M (60 GB single connection; consecutive ~10 s windows, board time base)
+window   dW43          dW20       idle%   win/idle%  cap/win%  win/clk%  fps_board  cyc/frm  ACK/frm  dW27 dW28
+L1->L2  1,637,163,587  8,475,890   0.080      54.05     19.37     0.044   808934.3  193.155   0.2131     0    0
+L2->L3  1,625,943,507  8,413,247   0.135      69.96     59.39     0.094   808496.6  193.260   0.2134     0    0
+L3->L4  1,618,366,652  8,377,897   0.089      57.51     30.23     0.051   808868.9  193.171   0.2128     0    0
+L4->L5  1,628,353,186  8,429,083   0.095      59.87     36.66     0.057   808819.8  193.183   0.2128     0    0
+E05M sink: 60,000,005,025 B / 50.819 s = 9445.327 Mbps; mism=0 path per SINK_SUM

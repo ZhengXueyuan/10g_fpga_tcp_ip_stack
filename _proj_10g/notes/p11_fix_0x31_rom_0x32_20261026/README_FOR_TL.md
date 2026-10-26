@@ -18,7 +18,7 @@
 | 0x32 身份 | 板上 | BID `0x00000032` / NW 85 / `0x184=0xffffffff` / 2 BARs / `LnkSta 5GT/s x4` / `0x08=0` / carrier p0=p1=1 | 【已证·板级】 |
 | 慢路径 | ARP/ICMP/UDP echo | p1 ping 3/3（0.073/0.093/0.117 ms）、p0 ping 3/3（0.064/0.066/0.070 ms）；UDP echo 8080 两口 8 B 逐字节匹配；`W18=0`、`W7=0x15`、`W20=0x68bb9f`（终态快照） | 【已证·板级】 |
 | 单口 TCP 下行 | 每口 40GB/5GB | A（p1/IP_A）**9.395 Gbps** / 40,000,005,735 B，`mism=0`、`stall=0`；B（p0/IP_B）5GB 两跑 **9.431 / 9.393 Gbps**，`mism=0` | 【已证·板级】 |
-| 双口同时 | 两连接同时 | **A 8.798 / B 8.925 Gbps，聚合 17.72 Gbps**（各 10GB，`mism=0`、无 STALL；sink `taskset -c 0,1/2,3` + NIC IRQ 41–52 移到兄弟核 4–7）；两口 W83/W84 均前进、W54=0。⚠️ **`D9_A/D9_B` sink 原始日志 = 0 B（03:09 capture failed）**；8.798/8.925、17.72、`mism=0` 是**会话读数，未独立复核**；板侧 W83/W84 增量 + W54=0 有 `D9_AFTER` raw | **速率【会话读数/未独立复核】；板侧计数【已证·板级】**（8.8/8.9G 同时；2×9.4G 未达，host/SMT 限制） |
+| 双口同时 | 两连接同时（D9R raw 重跑，各 10GB） | **A 8.9367 / B 8.9352 Gbps，聚合 17.8719 Gbps（host-side sum）**，`mism=0`、无 STALL；sink `taskset -c 0,1/2,3` + `--no-pin`；NIC IRQ 40–52 移到兄弟核 4–7；板侧 `W83 +6,850,548` / `W84 +6,850,528` 帧、`W54=0`、`W21=0`、`W4=0`、`W81=0`。⚠️ 旧 D9 会话读数 8.798/8.925 与 0 B 的 `D9_A/D9_B` 是历史（见 §4.4）；**D9R 有 raw sink 日志 + console/env** | **【已证·板级·raw D9R】**（8.9G 同时；2×9.4G 未达，host/SMT 限制） |
 | 合同 | SYN-ACK | `win=49152`（0xC000=48KB/连接）、options 仅 `mss 1460`（**无 wscale**）；2×48KB 合同 | 【已证·板级】 |
 | TX_DIS 隔离 | `0x08` bit0/bit1 | bit0 ⇒ p0 carrier 0、p1=1；bit1 ⇒ p1=0、p0=1；恢复 0 ⇒ 1/1（`raw/TX_DIS_0x32.txt`） | 【已证·板级】 |
 | 0x31 位流 | 功能无效 | 已改名 `*.HLS_ROM_FAIL` 并写 `QUARANTINE_0x31.txt`；**禁烧** | 【已证·构建+板级】 |
@@ -107,7 +107,7 @@ if {$src_dir eq ""} { ... }
 
 ### 4.1 身份 / 环境
 
-`raw/FINAL_STATE_0x32.txt`：`ID_BID=0x00000032`、`ID_UNIMPL=0xffffffff`、`ID_OK`、`NFF=0`（85 字）、2 BARs、`LnkSta 5GT/s x4`、`0x08=0`、carrier p1=p0=1。烧录 `BURN_*` 日志在 `burn/`：sha256 前后一致、`End of startup status: HIGH`、`TCPREG_PROG_DONE`、路径匹配、无 ABORT；**无 QSPI 写路径**。
+`raw/FINAL_STATE_0x32.txt`：`ID_BID=0x00000032`、`ID_UNIMPL=0xffffffff`、`ID_OK`、`NFF=0`（85 字）、2 BARs、`LnkSta 5GT/s x4`、`0x08=0`、carrier p1=p0=1。 ⚠️ **该件是 2026-10-26 02:58 的旧终态（早于 D9R），且无进程检查**；同会话 C 的 `p11_e05_latency_20261027/raw/E05_FINAL_STATE.txt` 三次收尾均含 `NO_SINK_PROC`，B `raw/POST_SESSION_20261027.txt` 是 **post-session**（非 B 时刻）补充检查（2026-10-27 01:42：BID 0x32 / 0x08=0 / carrier 1/1 / NO_SINK_PROC）。烧录 `BURN_*` 日志在 `burn/`：sha256 前后一致、`End of startup status: HIGH`、`TCPREG_PROG_DONE`、路径匹配、无 ABORT；**无 QSPI 写路径**。
 
 网络环境：`nsa` p1 `192.168.100.1/32 ↔ 192.168.100.2 (J8/ch1)`；`nsb` p0 `192.168.100.101/32 ↔ 192.168.100.4 (J7/ch0)`；`adaptive-rx off, rx-usecs 0`；真实 ARP 先 ping 预热。
 
@@ -137,12 +137,13 @@ if {$src_dir eq ""} { ... }
 | 同会话 auto-pin（`--core 6`/`--core 2`） | 3.936 Gbps | 3.936 Gbps | 7.87 Gbps | 两进程 **IO 都绑 7、work 都绑 4**（`PIN_THREAD` 逐字）⇒ 台架核冲突 | `raw/D_A.txt` / `raw/D_B.txt` |
 | 同会话 taskset 分核（A 2,3；B 0,1；`--no-pin`） | 5.081 Gbps | 7.538 Gbps | **12.62 Gbps** | 两口均 `mism=0`、无 STALL；`UNPINNED=1` + `PIN_ALLOWED_MASK` 见证 | `raw/SW_A.txt` / `raw/SW_B.txt` |
 | **IRQ 兄弟核 + taskset 分核**（各 10GB） | **8.798 Gbps**（会话读数） | **8.925 Gbps**（会话读数） | **17.72 Gbps**（host-side sum） | sink A `taskset -c 0,1`、B `-c 2,3`、`--no-pin`；NIC IRQ 41–52 全部移到 CPU `4-7`（兄弟核）；`adaptive-rx off / rx-usecs 0 / tx-usecs 0`；`mism=0`、无 STALL（**均为会话读数**）；板侧 `W83 0x68bb9f→0xd144b8`、`W84 0x010585bb→0x016e0daa`、`W54=0`（**有 raw**）。⚠️ `raw/D9_A.txt`/`D9_B.txt` = **0 B**（03:09 capture failed） | `raw/D9_A.txt`（0 B） / `raw/D9_B.txt`（0 B） / `raw/IRQ_AFF_2x9G.txt` / `raw/D9_AFTER.txt` |
+| **D9R raw 重跑**（2026-10-27，各 10GB） | **8.9367 Gbps** | **8.9352 Gbps** | **17.8719 Gbps（host-side sum）** | sink A `taskset -c 0,1`、B `-c 2,3`、`--no-pin`；IRQ 40–52→CPU 4–7；`adaptive-rx off / rx-usecs 0 / tx-usecs 0`；`mism=0`、无 STALL；板侧 `W83 0x7→0x6887fb`（+6,850,548）、`W84 0x3→0x6887e3`（+6,850,528）、`W54=0`、`W21=0`、`W4=0`、`W81=0`、`W82=0`；NIC `P1_RX ≈10.399 GB / 6.8505M pkts`、`P0_RX ≈10.399 GB / 6.8505M pkts` | `raw/D9R_A_sink.txt` / `raw/D9R_B_sink.txt` / `raw/D9R_CONSOLE_*.txt` / `raw/D9R_ENV.txt` / `raw/D9_AFTER.txt` |
 
 **结论口径**：
-- 表中“聚合”列一律 = 两个 sink 的 `Mbps` 相加（**host-side sum**），不是板内聚合计数器；板内只有 `W83/W84` 帧数增量。12.62/17.72 都是 host-side；D9 的板侧增量见上表。
+- 表中“聚合”列一律 = 两个 sink 的 `Mbps` 相加（**host-side sum**），不是板内聚合计数器；板内只有 `W83/W84` 帧数增量。12.62/17.72/17.8719 都是 host-side；D9R 的板侧增量见上表。
 - 板侧**每口 egress 9G 级**【已证】（A 40GB 9.395G；B 5GB 9.431/9.393G）。
-- **2×9G 同时 = 会话读数（速率未独立复核）**：在 NIC IRQ 移到兄弟核 + sink 分到 4 个物理核（0–3）后，A/B 各 **8.798/8.925 Gbps**、聚合 **17.72 Gbps**、`mism=0` —— 但 **`D9_A/D9_B` sink 原始日志为 0 B（capture failed）**，这些数字没有 raw sink 复查；**板侧** `W83/W84` 增量 + `W54=0` 有 `D9_AFTER` raw，证明两口确实各发了约 10GB 量级的帧。**未达到 2×9.4G 线速**：对端 4 物理核（E3-1275 v3，SMT 8T）+ 两个双线程 sink + NIC IRQ 的 SMT 争用是剩余限制；按 P3 B-P3-7 caveat，**8.8/8.9G 是台架会话下界，不写成“板子上限”**。
-- 所有同时臂都未见板侧 `W54` 增长（最终 `W54=0`）；D9 的 sink `mism=0` 是会话读数，未独立复核。
+- **2×9G 同时 = D9R raw【已证·板级】**：IRQ 40–52→CPU 4–7，sink A `taskset -c 0,1`、B `-c 2,3`、`--no-pin`；各 10GB ⇒ **A 8.9367 / B 8.9352 Gbps，聚合 17.8719 Gbps（host-side）**、`mism=0`、无 STALL；板侧 `W83/W84` 各 +6.85M 帧、`W54=0`、`W21=0`、`W4=0`、`W81=0`。旧 D9（8.798/8.925，`D9_A/D9_B` 0 B）保留为历史会话读数，**不再作为判据**。**未达到 2×9.4G 线速**：对端 4 物理核（E3-1275 v3，SMT 8T）+ 两个双线程 sink + NIC IRQ 的 SMT 争用是剩余限制；按 P3 B-P3-7 caveat，**8.9G 是台架可证的下界，不写成“板子上限”**。
+- 所有同时臂都未见板侧 `W54` 增长（最终 `W54=0`）；D9R 的 sink `mism=0` 有 raw。
 
 #### 4.4a 非清洁/低率臂登记（**不作为板级判据**）
 
@@ -153,7 +154,7 @@ if {$src_dir eq ""} { ... }
 | `raw/STG_A_B.txt` | 交错 A-first 中 p0 20GB 臂：connect OK，0 B | 两 sink 共享 IO=7/work=4 | **未定位**；B-first 清洁两跑 9.43/9.39G；D9 同时 8.8/8.9G |
 | `raw/B_AFTER.txt` | p0 5GB 8.384 Gbps（低于 9.4） | `PIN_CPU=2`，IO=7/work=4；同轮有前序连接 | 台架/核争用下的低率读数；内容 `mism=0`，不作为板级上限 |
 
-> 口径：这些臂的 **connect 成功但 0 B / 低率** 不能简单归因于板或台架；**未定位**。可复现的清洁证据是：`B1/B2`（单口 9.43/9.39G）、`SP3`（40GB 9.395G），均 `mism=0`；`D9`（双口 8.8/8.9G）只有会话读数（`D9_A/D9_B` sink raw = 0 B），**不作为独立复核**。**不把 0 B 臂写成“板子正常”或“板子故障”**；登记待后续同一环境拆刀（先看 `PIN_THREAD` 是否撞核 + 重烧后单口）。
+> 口径：这些臂的 **connect 成功但 0 B / 低率** 不能简单归因于板或台架；**未定位**。可复现的清洁证据是：`B1/B2`（单口 9.43/9.39G）、`SP3`（40GB 9.395G）、`D9R`（双口 8.9367/8.9352G，raw），均 `mism=0`；旧 `D9`（8.798/8.925，`D9_A/D9_B` 0 B）只作历史，不再作为判据。**不把 0 B 臂写成“板子正常”或“板子故障”**；登记待后续同一环境拆刀（先看 `PIN_THREAD` 是否撞核 + 重烧后单口）。
 
 ### 4.5 回归 / 门（构建后跑，非板级）
 
@@ -196,7 +197,7 @@ if {$src_dir eq ""} { ... }
 | 0x32 TCB 定向 STA（stack2 v2） | `.../gates/sta_0x32_tcb_v2.txt`（A2–G2，G2=0.019） |
 | 0x32 位流 | `.../bits/wrapper_p4_0x32.bit`（sha256 见上；15,431,261 B） |
 | 0x31 隔离 | `p11_fix_0x30_0x31_20261025/bits/QUARANTINE_0x31.txt` + `*.HLS_ROM_FAIL` |
-| 板级 sink 原始日志 | `p11_board_p3_0x32_20261026/raw/*.txt`（`SP3/B1/B2` = 单口 rate raw；**`D9_A/D9_B` = 0 B，capture failed**；`IRQ_AFF_2x9G.txt` = IRQ/coalescing 环境；`D9_AFTER` = 板侧 W83/W84/W54 增量） |
+| 板级 sink 原始日志 | `p11_board_p3_0x32_20261026/raw/*.txt`（`SP3/B1/B2` = 单口 rate raw；`D9R_A_sink.txt`/`D9R_B_sink.txt` = 双口 rate raw；`D9R_CONSOLE_*.txt`/`D9R_ENV.txt` = 环境/快照；**`D9_A/D9_B` = 0 B，历史 capture failed**；`D9_AFTER` = 旧 D9 板侧增量） |
 | P11 回归子集 17 门 | `.../gates/matrix_p11_subset_0x32.log` |
 | 其余非 BID 门 22 门 | `.../gates/matrix_rest_0x32.log` |
 | 读侧 0x32 断言 | `.../gates/readside_assert_0x32.log`（RC=0） |
@@ -214,7 +215,7 @@ if {$src_dir eq ""} { ... }
 
 1. ~~**read-side 0x32 阶段**~~ **已做（2026-10-26）**：默认值/J6 档表/TB 同步，`--bid 0x32 --assert` RC=0（见 §5.2）。
 2. **8×12KB 合同构建**（`P11_EXPECTED_CONNS=8`，新 BID，建议 0x33）+ 多连接 app；先跑 `P11_STA_TCB_GATE`。
-3. **2×9G 同时**：会话读数 8.8/8.9G（17.72G host-side），但 **D9_A/D9_B sink raw = 0 B（未独立复核）**；**2×9.4G** 仍需第二台对端 / DPDK 低开销 sink；按 B-P3-7 口径分开写。
+3. **2×9G 同时**：**D9R raw 8.9367/8.9352G（17.8719G host-side）**，`mism=0`、无 Stall；旧 D9 8.8/8.9G/0 B 只作历史。**2×9.4G** 仍需第二台对端 / DPDK 低开销 sink；按 B-P3-7 口径分开写。
 4. **延迟研究**（研究件，见 `_proj_10g/notes/P11_LATENCY_RESEARCH_20261026.md`）：先做 **E1a 板内驻留**（dp_clk 计数器；ICMP/SYN/1500B UDP echo 8080）。**2026-10-26 追加 xsim 实测**（`_proj_10g/notes/p11_hls_latency_20261026/`）：P3 HLS 实际 ~23 拍/B RX、~28–30 拍/B TX（52–54 / 42–44 Mbps），ARP HLS-only **14.1 µs**、UDP 74B **20.6 µs**、**1500B UDP echo 303 µs**（last→last，无适配器/仲裁）⇒ **“HLS 1 B/拍 / 小帧 1–3 µs / 1500B 24 µs”纸面被推翻**；控制面硬件化收益至少 ~14–21 µs（HLS-only 下界），1500B UDP 必须走 fast path/8081 或 RTL echo。cut-through（UDP `csum_en=0` 现状前提不成立）与 TCP echo 缓冲合并（≈3.6 → ≈2.4 µs）均为研究项，**未开工**。
 5. **0x31/0x2F/0x30 归档**：ROM 缺陷写入台账；0x30 原始报告不可恢复，保留【未独立复核】。
 

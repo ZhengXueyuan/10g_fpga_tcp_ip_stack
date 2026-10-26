@@ -1,0 +1,43 @@
+=== ENV_SETUP_BEGIN 1793032518.348401334 Tue Oct 27 12:35:18 AM CST 2026
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x00000032   (want 0x00000032 = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1793032518.365542601
+ID_RC=0
+MOVE_enp1s0f1np1_RC=0
+MOVE_enp1s0f0np0_RC=0
+--- real ARP priming (no static neigh) ---
+
+--- 192.168.100.2 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1015ms
+rtt min/avg/max/mdev = 0.071/0.121/0.171/0.050 ms
+
+--- 192.168.100.4 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1022ms
+rtt min/avg/max/mdev = 0.081/0.114/0.148/0.033 ms
+--- static neighbours for wrong-port controls (board MAC) ---
+--- nsa ---
+lo               DOWN           
+enp1s0f1np1      UP             192.168.100.1/32 fe80::20f:53ff:fe2c:6801/64 
+192.168.100.2 dev enp1s0f1np1 scope link 
+192.168.100.2 dev enp1s0f1np1 lladdr 00:0a:35:01:fe:c0 REACHABLE 
+192.168.100.4 dev enp1s0f1np1 lladdr 00:0a:35:01:fe:c0 PERMANENT 
+NSA_CARRIER=1
+NSA_SPEED=10000
+--- nsb ---
+lo               DOWN           
+enp1s0f0np0      UP             192.168.100.101/32 fe80::20f:53ff:fe2c:6800/64 
+192.168.100.4 dev enp1s0f0np0 scope link 
+192.168.100.2 dev enp1s0f0np0 lladdr 00:0a:35:01:fe:c0 PERMANENT 
+192.168.100.4 dev enp1s0f0np0 lladdr 00:0a:35:01:fe:c0 REACHABLE 
+NSB_CARRIER=1
+NSB_SPEED=10000
+--- board 0x08 / identity ---
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x00000032   (want 0x00000032 = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1793032524.567324243
+ID_RC=0
+=== ENV_SETUP_END 1793032524.568265629

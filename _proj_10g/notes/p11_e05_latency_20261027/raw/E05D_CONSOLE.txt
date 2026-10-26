@@ -1,0 +1,99 @@
+=== E05_BEGIN tag=E05D 1793032928.084774668 Tue Oct 27 12:42:08 AM CST 2026
+--- IRQ affinity: NIC IRQs -> CPU 4-7 ---
+IRQ 47 aff=4-7
+IRQ 48 aff=4-7
+IRQ 49 aff=4-7
+IRQ 50 aff=4-7
+IRQ 51 aff=4-7
+IRQ 52 aff=4-7
+--- coalescing off (port A) ---
+--- board identity ---
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x00000032   (want 0x00000032 = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1793032928.109729866
+ID_RC=0
+--- PRE (idle) ---
+TS_BEGIN E05D_PRE 1793032928.110942673
+SNAP_BEGIN E05D_PRE gen=17 status=0x00110056
+SNAP_STATUS gen=17 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x0097c734
+W5   0x34   gmii_free_FE           0x5c22f901
+W20  0x70   mac_tx_frames          0x03591277
+W43  0xCC   mtx_stat_tx_words      0x5c1a1c0b
+W65  0x124  mac_tx_idle            0xd5f35578
+W66  0x128  tx_stat_winstall       0x0f6d6450
+W67  0x12C  tx_winstall_cap        0x0e4191d9
+W68  0x130  rx_stat_ack_adv        0x0097b84d
+W69  0x134  tx_win_at_winstall     0xf53cf000
+W27  0x8C   rxcdc_occ_max          0x00000006
+W28  0x90   txcdc_occ_max          0x00000024
+SNAP_END E05D_PRE nff=0 stale_words=0
+TS_END E05D_PRE 1793032928.161867854
+--- start sink: port A, 24 GB, lane8, --no-pin, taskset 0,1 ---
+--- MID1 (t=3 s under load) ---
+TS_BEGIN E05D_MID1 1793032931.164751654
+SNAP_BEGIN E05D_MID1 gen=18 status=0x00120056
+SNAP_STATUS gen=18 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x00a02f97
+W5   0x34   gmii_free_FE           0x78ec9901
+W20  0x70   mac_tx_frames          0x037e9994
+W43  0xCC   mtx_stat_tx_words      0x78e3a9ed
+W65  0x124  mac_tx_idle            0xd6720898
+W66  0x128  tx_stat_winstall       0x0f745d2b
+W67  0x12C  tx_winstall_cap        0x0e45c2c0
+W68  0x130  rx_stat_ack_adv        0x00a020ae
+W69  0x134  tx_win_at_winstall     0x00000000
+W27  0x8C   rxcdc_occ_max          0x00000006
+W28  0x90   txcdc_occ_max          0x00000024
+SNAP_END E05D_MID1 nff=0 stale_words=0
+TS_END E05D_MID1 1793032931.494028029
+--- MID2 (t=13 s under load) ---
+TS_BEGIN E05D_MID2 1793032941.496980837
+SNAP_BEGIN E05D_MID2 gen=19 status=0x00130056
+SNAP_STATUS gen=19 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x00bb8eef
+W5   0x34   gmii_free_FE           0xda74e2e8
+W20  0x70   mac_tx_frames          0x03ffc8e4
+W43  0xCC   mtx_stat_tx_words      0xda6bb672
+W65  0x124  mac_tx_idle            0xd6956d39
+W66  0x128  tx_stat_winstall       0x0f8d8c84
+W67  0x12C  tx_winstall_cap        0x0e554c49
+W68  0x130  rx_stat_ack_adv        0x00bb7fdc
+W69  0x134  tx_win_at_winstall     0x00000000
+W27  0x8C   rxcdc_occ_max          0x00000006
+W28  0x90   txcdc_occ_max          0x00000024
+SNAP_END E05D_MID2 nff=0 stale_words=0
+TS_END E05D_MID2 1793032941.981446486
+SINK_RC=0
+--- POST (after sink) ---
+TS_BEGIN E05D_POST 1793032949.500749787
+SNAP_BEGIN E05D_POST gen=20 status=0x00140056
+SNAP_STATUS gen=20 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x00ce4f7e
+W5   0x34   gmii_free_FE           0x235942a7
+W20  0x70   mac_tx_frames          0x0453e75c
+W43  0xCC   mtx_stat_tx_words      0x234fe85f
+W65  0x124  mac_tx_idle            0xe00ea8d5
+W66  0x128  tx_stat_winstall       0x0f992e5d
+W67  0x12C  tx_winstall_cap        0x0e5af23b
+W68  0x130  rx_stat_ack_adv        0x00ce4054
+W69  0x134  tx_win_at_winstall     0xf53cf000
+W27  0x8C   rxcdc_occ_max          0x00000006
+W28  0x90   txcdc_occ_max          0x00000024
+SNAP_END E05D_POST nff=0 stale_words=0
+TS_END E05D_POST 1793032949.551449511
+[A sink]
+PIN_RULE=none PIN_DEGRADED=n/a PIN_CPU=none PIN_CORES_ONLINE=0-7 PIN_NIC_IFACE=n/a PIN_NIC_CPUS=n/a PIN_NIC_EXCLUDED=n/a PIN_CORE_LOAD=n/a PIN_ALLOWED_MASK=3 PIN_GETCPU_START=0 PIN_FREQ_START_KHZ=3893149 PIN_GOV=schedutil UNPINNED=1 PIN_NIC_IRQLINES=n/a PIN_NIC_IFACE_SRC=n/a PIN_TUPLE_ORDER=n/a PIN_PAIR_RULE=none PIN_PAIR_DEGRADED=n/a PIN_CPU_IO=none PIN_CPU_WORK=none PIN_PC_IO=n/a PIN_PC_WORK=n/a PIN_PAIR_EXCL=n/a PIN_PAIR_REQ=none
+SINK_LIMITS maxbytes=24000000000 poll_ms=5000 stall_n=3 rcvbuf=1048576 conns=1 secs=60
+SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+PIN_THREAD name=io PIN_TID_IO=9333 PIN_CPU_IO=none PIN_ALLOWED_MASK_IO=3 PIN_GETCPU_IO=1 CPU_FREQ_IO_KHZ=3712951
+PIN_THREAD name=work PIN_TID_WORK=9334 PIN_CPU_WORK=none PIN_ALLOWED_MASK_WORK=3 PIN_GETCPU_WORK=0 CPU_FREQ_WORK_KHZ=3878063
+SINK_CONN 0 OK bytes=24000004375 first_mismatch=-1 mism_bytes=0 conn_ms=0.134 dur_ms=20330.975 Mbps=9443.720 reads=3573131 poll_tmo=0 CPU_FREQ_KHZ=3700244 THREADED=on q_full_push=3573131 q_full_pop=3573131 q_free_push=3573147 q_free_pop=3573131 slot_wait_spins=41149 checked_bytes=24000004375
+SINK_SUM conns=1 fail_conns=0 bytes=24000004375 clean_conns=1 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=20.331 net_s=20.331 agg_Mbps=9443.720 THREADED=on full_push=3573131 full_pop=3573131 free_push=3573147 free_pop=3573131 slot_wait_spins=41149 checked_bytes=24000004375 threads=2 check=lane8
+SINK_DONE
+PIN_GETCPU_END=0 PIN_FREQ_END_KHZ=3700201 UNPINNED=1
+--- NIC counters (settled) ---
+P1_RX port_rx_bytes:=110218214317 port_rx_packets:=72607580 
+=== E05_END tag=E05D 1793032949.555595768 Tue Oct 27 12:42:29 AM CST 2026

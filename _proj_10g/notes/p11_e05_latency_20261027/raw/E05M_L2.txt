@@ -1,0 +1,16 @@
+TS_BEGIN E05M_L2 1793033509.077749974
+SNAP_BEGIN E05M_L2 gen=30 status=0x001e0056
+SNAP_STATUS gen=30 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x015ffbcb
+W5   0x34   gmii_free_FE           0x7eeaeb3c
+W20  0x70   mac_tx_frames          0x0786c5c6
+W43  0xCC   mtx_stat_tx_words      0x7ed46f53
+W65  0x124  mac_tx_idle            0xd239a1e4
+W66  0x128  tx_stat_winstall       0x1d4dbbd4
+W67  0x12C  tx_winstall_cap        0x1b01a5e9
+W68  0x130  rx_stat_ack_adv        0x015fdef3
+W69  0x134  tx_win_at_winstall     0x00000000
+W27  0x8C   rxcdc_occ_max          0x00000006
+W28  0x90   txcdc_occ_max          0x00000024
+SNAP_END E05M_L2 nff=0 stale_words=0
+TS_END E05M_L2 1793033509.417532638

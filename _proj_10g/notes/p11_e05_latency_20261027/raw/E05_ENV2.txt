@@ -1,0 +1,62 @@
+== nsa ethtool -c ==
+Coalesce parameters for enp1s0f1np1:
+Adaptive RX: off  TX: n/a
+stats-block-usecs:	n/a
+sample-interval:	n/a
+pkt-rate-low:		n/a
+pkt-rate-high:		n/a
+
+rx-usecs:	0
+rx-frames:	n/a
+rx-usecs-irq:	0
+rx-frames-irq:	n/a
+
+tx-usecs:	0
+tx-frames:	n/a
+tx-usecs-irq:	0
+tx-frames-irq:	n/a
+
+rx-usecs-low:	n/a
+rx-frame-low:	n/a
+tx-usecs-low:	n/a
+== nsb ethtool -c ==
+Coalesce parameters for enp1s0f0np0:
+Adaptive RX: off  TX: n/a
+stats-block-usecs:	n/a
+sample-interval:	n/a
+pkt-rate-low:		n/a
+pkt-rate-high:		n/a
+
+rx-usecs:	0
+rx-frames:	n/a
+rx-usecs-irq:	0
+rx-frames-irq:	n/a
+
+tx-usecs:	0
+tx-frames:	n/a
+tx-usecs-irq:	0
+tx-frames-irq:	n/a
+
+rx-usecs-low:	n/a
+rx-frame-low:	n/a
+tx-usecs-low:	n/a
+== IRQ aff ==
+IRQ 40 4-7
+IRQ 41 4-7
+IRQ 42 4-7
+IRQ 43 4-7
+IRQ 44 4-7
+IRQ 45 4-7
+IRQ 47 4-7
+IRQ 48 4-7
+IRQ 49 4-7
+IRQ 50 4-7
+IRQ 51 4-7
+IRQ 52 4-7
+== link ==
+	Speed: 10000Mb/s
+	Duplex: Full
+	Link detected: yes
+	Speed: 10000Mb/s
+	Duplex: Full
+	Link detected: yes

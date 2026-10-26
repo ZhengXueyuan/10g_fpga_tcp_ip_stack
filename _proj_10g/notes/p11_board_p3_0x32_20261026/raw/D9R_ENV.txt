@@ -1,0 +1,44 @@
+=== D9R ENV 1793032599.552794200 ===
+-- irq affinity --
+IRQ 40 aff=4-7
+IRQ 41 aff=4-7
+IRQ 42 aff=4-7
+IRQ 43 aff=4-7
+IRQ 44 aff=4-7
+IRQ 45 aff=4-7
+IRQ 47 aff=4-7
+IRQ 48 aff=4-7
+IRQ 49 aff=4-7
+IRQ 50 aff=4-7
+IRQ 51 aff=4-7
+IRQ 52 aff=4-7
+-- coalescing p1 --
+Adaptive RX: off  TX: n/a
+rx-usecs:	0
+rx-usecs-irq:	0
+tx-usecs:	0
+tx-usecs-irq:	0
+rx-usecs-low:	n/a
+tx-usecs-low:	n/a
+rx-usecs-high:	n/a
+tx-usecs-high:	n/a
+-- coalescing p0 --
+Adaptive RX: off  TX: n/a
+rx-usecs:	0
+rx-usecs-irq:	0
+tx-usecs:	0
+tx-usecs-irq:	0
+rx-usecs-low:	n/a
+tx-usecs-low:	n/a
+rx-usecs-high:	n/a
+tx-usecs-high:	n/a
+-- topo --
+8
+processor	: 0	physical id	: 0	core id		: 0
+processor	: 1	physical id	: 0	core id		: 1
+processor	: 2	physical id	: 0	core id		: 2
+processor	: 3	physical id	: 0	core id		: 3
+processor	: 4	physical id	: 0	core id		: 0
+processor	: 5	physical id	: 0	core id		: 1
+processor	: 6	physical id	: 0	core id		: 2
+processor	: 7	physical id	: 0	core id		: 3
