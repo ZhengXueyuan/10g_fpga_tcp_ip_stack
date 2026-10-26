@@ -1,0 +1,87 @@
+cat: /tmp/E1BASE5_tcp.txt: No such file or directory
+=== E1_BEGIN tag=E1BASE5 mode=baseline 1793038377.957924387 Tue Oct 27 02:12:57 AM CST 2026
+ID_OK 1793038377.980544582
+TS_BEGIN E1BASE5_PRE 1793038377.981881772
+SNAP_BEGIN E1BASE5_PRE gen=71 status=0x00470056
+SNAP_STATUS gen=71 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x041ca8a4
+W5   0x34   gmii_free_FE           0xa01523da
+W20  0x70   mac_tx_frames          0x1579ffc9
+W43  0xCC   mtx_stat_tx_words      0x9f88df38
+W65  0x124  mac_tx_idle            0x6e900065
+W66  0x128  tx_stat_winstall       0x910ef46b
+W67  0x12C  tx_winstall_cap        0x86ad0af2
+W68  0x130  rx_stat_ack_adv        0x041c1a96
+W69  0x134  tx_win_at_winstall     0xf53cf000
+W27  0x8C   rxcdc_occ_max          0x00000006
+W28  0x90   txcdc_occ_max          0x00000024
+SNAP_END E1BASE5_PRE nff=0 stale_words=0
+TS_END E1BASE5_PRE 1793038378.032525171
+TS_BEGIN E1BASE5_MID1 1793038381.035133389
+SNAP_BEGIN E1BASE5_MID1 gen=72 status=0x00480056
+SNAP_STATUS gen=72 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x041ca8a4
+W5   0x34   gmii_free_FE           0xbc86900a
+W20  0x70   mac_tx_frames          0x1579ffc9
+W43  0xCC   mtx_stat_tx_words      0xbbfa3854
+W65  0x124  mac_tx_idle            0x8b015981
+W66  0x128  tx_stat_winstall       0x910ef46b
+W67  0x12C  tx_winstall_cap        0x86ad0af2
+W68  0x130  rx_stat_ack_adv        0x041c1a96
+W69  0x134  tx_win_at_winstall     0xf53cf000
+W27  0x8C   rxcdc_occ_max          0x00000006
+W28  0x90   txcdc_occ_max          0x00000024
+SNAP_END E1BASE5_MID1 nff=0 stale_words=0
+TS_END E1BASE5_MID1 1793038381.086504984
+CPU2_FREQ_KHZ=1328157
+--- ping (2000 @ 5 ms) ---
+PING_RC=0
+--- udp echo 64 B (2000 @ 5 ms) ---
+UDP64_RC=0
+--- udp echo 996 B (1000 @ 10 ms, exact) ---
+UDP996_RC=0
+--- udp echo 1472 B (500 @ 10 ms, no-check; >996 is zero-filled) ---
+UDP1472_RC=0
+TS_BEGIN E1BASE5_MID2 1793038416.484537135
+SNAP_BEGIN E1BASE5_MID2 gen=73 status=0x00490056
+SNAP_STATUS gen=73 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x041ca8a4
+W5   0x34   gmii_free_FE           0x06a6c57e
+W20  0x70   mac_tx_frames          0x1579ffc9
+W43  0xCC   mtx_stat_tx_words      0x06199080
+W65  0x124  mac_tx_idle            0xd520b1ad
+W66  0x128  tx_stat_winstall       0x910ef46b
+W67  0x12C  tx_winstall_cap        0x86ad0af2
+W68  0x130  rx_stat_ack_adv        0x041c1a96
+W69  0x134  tx_win_at_winstall     0xf53cf000
+W27  0x8C   rxcdc_occ_max          0x00000006
+W28  0x90   txcdc_occ_max          0x00000024
+SNAP_END E1BASE5_MID2 nff=0 stale_words=0
+TS_END E1BASE5_MID2 1793038416.535631911
+TS_BEGIN E1BASE5_POST 1793038416.536992854
+SNAP_BEGIN E1BASE5_POST gen=74 status=0x004a0056
+SNAP_STATUS gen=74 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x041ca8a4
+W5   0x34   gmii_free_FE           0x0723a9b9
+W20  0x70   mac_tx_frames          0x1579ffc9
+W43  0xCC   mtx_stat_tx_words      0x06967467
+W65  0x124  mac_tx_idle            0xd59d9594
+W66  0x128  tx_stat_winstall       0x910ef46b
+W67  0x12C  tx_winstall_cap        0x86ad0af2
+W68  0x130  rx_stat_ack_adv        0x041c1a96
+W69  0x134  tx_win_at_winstall     0xf53cf000
+W27  0x8C   rxcdc_occ_max          0x00000006
+W28  0x90   txcdc_occ_max          0x00000024
+SNAP_END E1BASE5_POST nff=0 stale_words=0
+TS_END E1BASE5_POST 1793038416.587980857
+[ping summary]
+2000 packets transmitted, 2000 received, 0% packet loss, time 9993ms
+rtt min/avg/max/mdev = 0.045/0.047/0.099/0.007 ms
+[tcp]
+[udp64]
+LAT_SUMMARY mode=udp host=192.168.100.4 port=8080 count=2000 ok=2000 loss=0 bad=0 check=1 min_us=69 p50_us=215 p90_us=249 p99_us=262 max_us=281 mean_us=208.9
+[udp996]
+LAT_SUMMARY mode=udp host=192.168.100.4 port=8080 count=1000 ok=1000 loss=0 bad=0 check=1 min_us=427 p50_us=583 p90_us=589 p99_us=607 max_us=612 mean_us=574.2
+[udp1472]
+LAT_SUMMARY mode=udp host=192.168.100.4 port=8080 count=500 ok=500 loss=0 bad=0 check=0 min_us=596 p50_us=754 p90_us=763 p99_us=777 max_us=788 mean_us=745.6
+=== E1_END tag=E1BASE5 1793038416.592238844 Tue Oct 27 02:13:36 AM CST 2026

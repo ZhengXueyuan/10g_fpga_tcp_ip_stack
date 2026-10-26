@@ -2167,3 +2167,12 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - **本轮性质**：只改文档/证据；**未改 RTL、未构建、未烧板、QSPI 零写**；板 = 0x32 + `0x08=0` + carrier 1/1（POST_SESSION 01:42 复核）。
 - **原件**：`p11_e05_latency_20261027/REVIEW_RESPONSE.md` + 更新后的 `README_FOR_TL.md` + `artifacts/` + `SINK_BUILD.txt`；`p11_board_p3_0x32_20261026/raw/POST_SESSION_20261027.txt`。
 - **xr11 复核（2026-10-27）**：`REVIEW_VERIFICATION.md` = **回灌全部属实、无虚报**；新发现仅 **L-7**（raw manifest CWD 敏感）⇒ 已改裸文件名 + “run from this directory” 头，E0.5 raw/B raw/顶层三处复核通过；复核件已归档 `artifacts/REVIEW_VERIFICATION.md`。
+
+## §10-167 2026-10-27 01:5x–02:1x：**E1 零构建满载尾延迟（0x32）—— 9G 慢态下 HLS 控制面 p99 不升反降；fast-path 未测；HLS UDP echo 996 B 边界**
+- **构型**：5 个空载基线 + 5 个 60GB 单口下行（A 口 `192.168.100.2`，THREADED sink、lane8、taskset 0,1）；端口 B（`192.168.100.4`）探针 `taskset -c 2`：ping 2000@5ms、TCP connect 2000@5ms、UDP echo 64B/996B/1472B；IRQ 4–7、coalescing off；baseline/load 均在 MID1 前 3 s 预热。
+- **结果（p99，µs；base → load）**：ping **47–83 → 50–112**；TCP **300–336 → 110–187**；UDP64 **169–262 → 104–180**；UDP996 **607–612 → 434–505**；UDP1472 **777–782 → 602–671**；全部 **0 丢包**。5 个 load 全 **slow 态 8.5971–9.2539 Gbps**（无 fast 态）；合计 300,000,026,585 B、`mism=0`、`fail_conns=0`。
+- **结论**：**9G 慢态负载没有抬高 HLS 控制面 p99**（负载下反而更低；机理【未定位】，候选 HLS pass/状态/对端栈）；尾延迟主项 = HLS 服务时间（64B ~0.1ms、996B ~0.4ms、1472B ~0.6ms），不是 9G 排队。**fast-path 单包延迟仍未测**（探针走 B 口 HLS；A 口无逐包戳）⇒ E1a 仍必要；**快态 E1 / 同口探针 / fast-path p99 = 未测**。
+- **新发现（登记未修）**：**HLS UDP echo 精确上限 996 B** —— `TX_UDP_BASE=512` + `TX_UDP_SIZE=256` words = 1024 B，IP+UDP 头 28 B ⇒ payload 249 words = 996 B；`hls/src/udp_echo.cpp:203-207` 按 `(payload_len+3)>>2` 无界拷贝 ⇒ ≥997 B 回包长度不变但 offset ≥996 全 0（`E1_UDP_ECHO_SIZES.txt`：996 全对，997 起 1 B 起错，1472 有 476 B 为 0）。⇒ 此前“1500B UDP echo 303 µs”只测延迟、内容未校验；任何 1500B UDP 内容判据先修此边界（扩 TX 区/长度守卫/整帧丢弃，涉及 HLS 重综合）。
+- **方法订正**：E1 的 MID 窗 ~45 s > W43/W65 的 27.49 s 回卷周期 ⇒ 本件状态分类用 sink 速率，**不用该窗 W65 算 idle**（E0.5 的 10 s 窗才是 W65 参考）。
+- **原件**：`p11_e1_latency_20261027/README_FOR_TL.md` + `raw/`（5 base + 5 load 的 ping/TCP/UDP 逐样本 CSV + 快照 + sink + console + `E1_UDP_ECHO_SIZES.txt` + `E1_METRICS.txt`）+ `e1_metrics.py` + `e1_latency.sh` + `artifacts/p7b_lat_probe{,.cpp}` + `LAT_PROBE_BUILD.txt`；对端脚本 = `p11_board_p3_0x32_20261026/tools/e1_latency.sh`。
+- **板态**：0x32 / `0x08=0` / carrier 1/1；QSPI 零写；未构建/未烧板。

@@ -1,0 +1,93 @@
+=== E1_BEGIN tag=E1L3 mode=load 1793037871.196727581 Tue Oct 27 02:04:31 AM CST 2026
+ID_OK 1793037871.219337658
+TS_BEGIN E1L3_PRE 1793037871.220719093
+SNAP_BEGIN E1L3_PRE gen=55 status=0x00370056
+SNAP_STATUS gen=55 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x02b33cea
+W5   0x34   gmii_free_FE           0x30896266
+W20  0x70   mac_tx_frames          0x0e206dbf
+W43  0xCC   mtx_stat_tx_words      0x30094ee7
+W65  0x124  mac_tx_idle            0x89974d12
+W66  0x128  tx_stat_winstall       0x412843f6
+W67  0x12C  tx_winstall_cap        0x3c366100
+W68  0x130  rx_stat_ack_adv        0x02b2fbc9
+W69  0x134  tx_win_at_winstall     0xf53cf000
+W27  0x8C   rxcdc_occ_max          0x00000006
+W28  0x90   txcdc_occ_max          0x00000024
+SNAP_END E1L3_PRE nff=0 stale_words=0
+TS_END E1L3_PRE 1793037871.271570126
+--- start load: A port 60 GB ---
+TS_BEGIN E1L3_MID1 1793037874.288675787
+SNAP_BEGIN E1L3_MID1 gen=56 status=0x00380056
+SNAP_STATUS gen=56 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x02bb4cc7
+W5   0x34   gmii_free_FE           0x4d7bf6e5
+W20  0x70   mac_tx_frames          0x0e4630ae
+W43  0xCC   mtx_stat_tx_words      0x4cfbd058
+W65  0x124  mac_tx_idle            0x8a11da8a
+W66  0x128  tx_stat_winstall       0x412b99a8
+W67  0x12C  tx_winstall_cap        0x3c372529
+W68  0x130  rx_stat_ack_adv        0x02bb0ba4
+W69  0x134  tx_win_at_winstall     0x00000000
+W27  0x8C   rxcdc_occ_max          0x00000006
+W28  0x90   txcdc_occ_max          0x00000024
+SNAP_END E1L3_MID1 nff=0 stale_words=0
+TS_END E1L3_MID1 1793037874.654281192
+CPU2_FREQ_KHZ=3771057
+--- ping (2000 @ 5 ms) ---
+PING_RC=0
+--- tcp syn (2000 @ 5 ms) ---
+TCP_RC=0
+--- udp echo 64 B (2000 @ 5 ms) ---
+UDP64_RC=0
+--- udp echo 996 B (1000 @ 10 ms, exact) ---
+UDP996_RC=0
+--- udp echo 1472 B (500 @ 10 ms, no-check; >996 is zero-filled) ---
+UDP1472_RC=0
+TS_BEGIN E1L3_MID2 1793037920.123065657
+SNAP_BEGIN E1L3_MID2 gen=57 status=0x00390056
+SNAP_STATUS gen=57 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x032ef0fe
+W5   0x34   gmii_free_FE           0xf865332c
+W20  0x70   mac_tx_frames          0x105bc0ac
+W43  0xCC   mtx_stat_tx_words      0xf7e3f441
+W65  0x124  mac_tx_idle            0xa2b87da1
+W66  0x128  tx_stat_winstall       0x5783e758
+W67  0x12C  tx_winstall_cap        0x510a0c60
+W68  0x130  rx_stat_ack_adv        0x032e99e8
+W69  0x134  tx_win_at_winstall     0x00000000
+W27  0x8C   rxcdc_occ_max          0x00000006
+W28  0x90   txcdc_occ_max          0x00000024
+SNAP_END E1L3_MID2 nff=0 stale_words=0
+TS_END E1L3_MID2 1793037920.575363705
+SINK_RC=0
+TS_BEGIN E1L3_POST 1793037925.703062416
+SNAP_BEGIN E1L3_POST gen=58 status=0x003a0056
+SNAP_STATUS gen=58 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x033b2686
+W5   0x34   gmii_free_FE           0x2bf53502
+W20  0x70   mac_tx_frames          0x109399a7
+W43  0xCC   mtx_stat_tx_words      0x2b73d443
+W65  0x124  mac_tx_idle            0xac2dca56
+W66  0x128  tx_stat_winstall       0x578cd59b
+W67  0x12C  tx_winstall_cap        0x510eee4d
+W68  0x130  rx_stat_ack_adv        0x033acf5a
+W69  0x134  tx_win_at_winstall     0xf53cf000
+W27  0x8C   rxcdc_occ_max          0x00000006
+W28  0x90   txcdc_occ_max          0x00000024
+SNAP_END E1L3_POST nff=0 stale_words=0
+TS_END E1L3_POST 1793037925.754997628
+SINK_CONN 0 OK bytes=60000007945 first_mismatch=-1 mism_bytes=0 conn_ms=0.113 dur_ms=53424.620 Mbps=8984.623 reads=8895175 poll_tmo=0 CPU_FREQ_KHZ=3800254 THREADED=on q_full_push=8895175 q_full_pop=8895175 q_free_push=8895191 q_free_pop=8895175 slot_wait_spins=198622 checked_bytes=60000007945
+SINK_SUM conns=1 fail_conns=0 bytes=60000007945 clean_conns=1 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=53.425 net_s=53.425 agg_Mbps=8984.623 THREADED=on full_push=8895175 full_pop=8895175 free_push=8895191 free_pop=8895175 slot_wait_spins=198622 checked_bytes=60000007945 threads=2 check=lane8
+[ping summary]
+2000 packets transmitted, 2000 received, 0% packet loss, time 9993ms
+rtt min/avg/max/mdev = 0.047/0.061/0.109/0.006 ms
+[tcp]
+LAT_SUMMARY mode=tcp host=192.168.100.4 port=8080 count=2000 ok=2000 loss=0 bad=0 check=1 min_us=63 p50_us=73 p90_us=91 p99_us=110 max_us=119 mean_us=78.8
+[udp64]
+LAT_SUMMARY mode=udp host=192.168.100.4 port=8080 count=2000 ok=2000 loss=0 bad=0 check=1 min_us=69 p50_us=77 p90_us=96 p99_us=104 max_us=129 mean_us=81.8
+[udp996]
+LAT_SUMMARY mode=udp host=192.168.100.4 port=8080 count=1000 ok=1000 loss=0 bad=0 check=1 min_us=401 p50_us=406 p90_us=423 p99_us=435 max_us=454 mean_us=410.9
+[udp1472]
+LAT_SUMMARY mode=udp host=192.168.100.4 port=8080 count=500 ok=500 loss=0 bad=0 check=0 min_us=568 p50_us=574 p90_us=592 p99_us=602 max_us=620 mean_us=578.9
+=== E1_END tag=E1L3 1793037925.760110182 Tue Oct 27 02:05:25 AM CST 2026

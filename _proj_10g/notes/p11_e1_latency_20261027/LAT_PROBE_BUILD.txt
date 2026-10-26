@@ -1,0 +1,12 @@
+E1 latency probe build receipt (2026-10-27)
+==========================================
+peer binary : /tmp/p7b_biz/p7b_lat_probe
+              md5 a8c61af6300743ccff53aec35350926c
+              archived as artifacts/p7b_lat_probe (same md5)
+source      : _proj_pcie/p7b_biz/p7b_lat_probe.cpp
+              md5 db5792b299cda5d8fa70337bfe8d19d3
+              archived as artifacts/p7b_lat_probe.cpp (same md5)
+build cmd   : g++ -O2 -std=c++17 -o p7b_lat_probe p7b_lat_probe.cpp
+observed    : TCP connect handshake / UDP echo; --no-check accepts length-only echo
+note        : binary is an ELF artifact from the peer; exact rebuild provenance was
+              not re-run this round. SHA256SUMS.txt covers both archived files.

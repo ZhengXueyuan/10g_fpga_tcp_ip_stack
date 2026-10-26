@@ -1,0 +1,16 @@
+TS_BEGIN E1L1_MID1 1793037592.673826841
+SNAP_BEGIN E1L1_MID1 gen=40 status=0x00280056
+SNAP_STATUS gen=40 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x01c31aa1
+W5   0x34   gmii_free_FE           0x0e5c3be3
+W20  0x70   mac_tx_frames          0x095efa2b
+W43  0xCC   mtx_stat_tx_words      0x0de2e224
+W65  0x124  mac_tx_idle            0xfd48de29
+W66  0x128  tx_stat_winstall       0x1db8e932
+W67  0x12C  tx_winstall_cap        0x1b489f33
+W68  0x130  rx_stat_ack_adv        0x01c2fc8a
+W69  0x134  tx_win_at_winstall     0x00000000
+W27  0x8C   rxcdc_occ_max          0x00000006
+W28  0x90   txcdc_occ_max          0x00000024
+SNAP_END E1L1_MID1 nff=0 stale_words=0
+TS_END E1L1_MID1 1793037592.736941520

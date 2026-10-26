@@ -1,0 +1,81 @@
+E1 (0x32, zero-build) -- load-tail latency; probes on port B (192.168.100.4)
+load = 60 GB TCP downlink on port A (nsa -> 192.168.100.2), THREADED sink
+ping = ICMP echo 2000 @5 ms; tcp = connect() handshake 2000 @5 ms; udp = echo 64/996/1472
+probe process pinned to CPU2; NIC IRQ 4-7; coalescing off; baseline/load both 3 s before probes
+state = sink-rate based (fast >= 9.35 Gbps); 45 s MID window > 27.49 s W43 wrap => W65/W43 not used for state
+
+tag     mode  state   sinkG  ping50  ping99 tcp50 tcp99 u64_50 u64_99 u996_50 u996_99 u1472_50 u1472_99
+E1BASE  base  idle   0.0000    46.0    79.0   244   300    207    258     583     609      755      782
+E1BASE2 base  idle   0.0000    46.0    79.0   104   304    216    260     583     612      756      778
+E1BASE3 base  idle   0.0000    46.0    78.0   225   332    145    169     581     609      752      781
+E1BASE4 base  idle   0.0000    46.0    47.0   249   336    148    171     584     608      756      780
+E1BASE5 base  idle   0.0000    46.0    83.0    -1    -1    215    262     583     607      754      777
+E1L1    load  slow   9.2539    48.0    50.0   105   184    105    171     434     497      598      671
+E1L2    load  slow   8.9134    67.0   112.0    72   112     77    105     406     434      574      603
+E1L3    load  slow   8.9846    63.0    75.0    73   110     77    104     406     435      574      602
+E1L4    load  slow   8.5971    47.0    50.0   103   187    105    180     433     505      600      671
+E1L5    load  slow   9.1494    47.0    50.0    -1    -1     94    168     425     501      592      667
+
+per-run probe detail (p50/p90/p99/max/mean us; loss/bad):
+  E1BASE  ping n=2000 p50=46.0 p99=79.0 loss=0.0%
+    tcp     n=2000 ok=2000 loss=0 bad=0 p50=244 p90=282 p99=300 max=335 mean=225.0
+    udp64   n=2000 ok=2000 loss=0 bad=0 p50=207 p90=249 p99=258 max=281 mean=198.2
+    udp996  n=1000 ok=1000 loss=0 bad=0 p50=583 p90=589 p99=609 max=618 mean=573.1
+    udp1472 n=500 ok=500 loss=0 bad=0 p50=755 p90=760 p99=782 max=790 mean=739.6
+  E1BASE2 ping n=2000 p50=46.0 p99=79.0 loss=0.0%
+    tcp     n=2000 ok=2000 loss=0 bad=0 p50=104 p90=123 p99=304 max=343 mean=114.3
+    udp64   n=2000 ok=2000 loss=0 bad=0 p50=216 p90=250 p99=260 max=375 mean=209.1
+    udp996  n=1000 ok=1000 loss=0 bad=0 p50=583 p90=592 p99=612 max=628 mean=572.3
+    udp1472 n=500 ok=500 loss=0 bad=0 p50=756 p90=765 p99=778 max=785 mean=747.4
+  E1BASE3 ping n=2000 p50=46.0 p99=78.0 loss=0.0%
+    tcp     n=2000 ok=2000 loss=0 bad=0 p50=225 p90=288 p99=332 max=352 mean=210.6
+    udp64   n=2000 ok=2000 loss=0 bad=0 p50=145 p90=166 p99=169 max=180 mean=139.8
+    udp996  n=1000 ok=1000 loss=0 bad=0 p50=581 p90=588 p99=609 max=619 mean=560.4
+    udp1472 n=500 ok=500 loss=0 bad=0 p50=752 p90=760 p99=781 max=1024 mean=723.3
+  E1BASE4 ping n=2000 p50=46.0 p99=47.0 loss=0.0%
+    tcp     n=2000 ok=2000 loss=0 bad=0 p50=249 p90=307 p99=336 max=360 mean=231.7
+    udp64   n=2000 ok=2000 loss=0 bad=0 p50=148 p90=169 p99=171 max=192 mean=140.1
+    udp996  n=1000 ok=1000 loss=0 bad=0 p50=584 p90=590 p99=608 max=623 mean=575.1
+    udp1472 n=500 ok=500 loss=0 bad=0 p50=756 p90=761 p99=780 max=803 mean=746.8
+  E1BASE5 ping n=2000 p50=46.0 p99=83.0 loss=0.0%
+    udp64   n=2000 ok=2000 loss=0 bad=0 p50=215 p90=249 p99=262 max=281 mean=208.9
+    udp996  n=1000 ok=1000 loss=0 bad=0 p50=583 p90=589 p99=607 max=612 mean=574.2
+    udp1472 n=500 ok=500 loss=0 bad=0 p50=754 p90=763 p99=777 max=788 mean=745.6
+  E1L1    ping n=2000 p50=48.0 p99=50.0 loss=0.0%
+    tcp     n=2000 ok=2000 loss=0 bad=0 p50=105 p90=142 p99=184 max=221 mean=109.2
+    udp64   n=2000 ok=2000 loss=0 bad=0 p50=105 p90=144 p99=171 max=525 mean=110.4
+    udp996  n=1000 ok=1000 loss=0 bad=0 p50=434 p90=472 p99=497 max=530 mean=441.4
+    udp1472 n=500 ok=500 loss=0 bad=0 p50=598 p90=642 p99=671 max=681 mean=608.2
+  E1L2    ping n=2000 p50=67.0 p99=112.0 loss=0.0%
+    tcp     n=2000 ok=2000 loss=0 bad=0 p50=72 p90=91 p99=112 max=137 mean=78.3
+    udp64   n=2000 ok=2000 loss=0 bad=0 p50=77 p90=94 p99=105 max=140 mean=82.1
+    udp996  n=1000 ok=1000 loss=0 bad=0 p50=406 p90=423 p99=434 max=454 mean=411.0
+    udp1472 n=500 ok=500 loss=0 bad=0 p50=574 p90=592 p99=603 max=628 mean=579.8
+  E1L3    ping n=2000 p50=63.0 p99=75.0 loss=0.0%
+    tcp     n=2000 ok=2000 loss=0 bad=0 p50=73 p90=91 p99=110 max=119 mean=78.8
+    udp64   n=2000 ok=2000 loss=0 bad=0 p50=77 p90=96 p99=104 max=129 mean=81.8
+    udp996  n=1000 ok=1000 loss=0 bad=0 p50=406 p90=423 p99=435 max=454 mean=410.9
+    udp1472 n=500 ok=500 loss=0 bad=0 p50=574 p90=592 p99=602 max=620 mean=578.9
+  E1L4    ping n=2000 p50=47.0 p99=50.0 loss=0.0%
+    tcp     n=2000 ok=2000 loss=0 bad=0 p50=103 p90=146 p99=187 max=222 mean=109.2
+    udp64   n=2000 ok=2000 loss=0 bad=0 p50=105 p90=146 p99=180 max=208 mean=110.6
+    udp996  n=1000 ok=1000 loss=0 bad=0 p50=433 p90=471 p99=505 max=524 mean=441.4
+    udp1472 n=500 ok=500 loss=0 bad=0 p50=600 p90=635 p99=671 max=690 mean=608.4
+  E1L5    ping n=2000 p50=47.0 p99=50.0 loss=0.0%
+    udp64   n=2000 ok=2000 loss=0 bad=0 p50=94 p90=136 p99=168 max=184 mean=100.4
+    udp996  n=1000 ok=1000 loss=0 bad=0 p50=425 p90=471 p99=501 max=521 mean=433.7
+    udp1472 n=500 ok=500 loss=0 bad=0 p50=592 p90=637 p99=667 max=683 mean=600.6
+
+sink detail:
+  E1L1    60,000,002,105 B / 51.870 s = 9253.864 Mbps
+  E1L2    60,000,003,565 B / 53.852 s = 8913.414 Mbps
+  E1L3    60,000,007,945 B / 53.425 s = 8984.623 Mbps
+  E1L4    60,000,007,945 B / 55.833 s = 8597.101 Mbps
+  E1L5    60,000,005,025 B / 52.463 s = 9149.402 Mbps
+
+notes:
+- 1472 B UDP echo is run with --no-check: the HLS echo TX region is 1024 B total
+  (TX_UDP_BASE=512, TX_UDP_SIZE=256 words, header 7 words) => max exact payload 996 B;
+  >=997 B returns the requested length but bytes >=996 are zero-filled. 996 B is exact.
+- TCP SYN to port 8080 is a data-app connection, not a control-plane listener; it may perturb the load.
+- No fast-state load (>=9.35 Gbps) was captured in E1; load rows are slow-state (8.60-9.25 Gbps).
