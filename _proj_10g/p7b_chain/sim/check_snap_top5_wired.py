@@ -33,8 +33,8 @@ import sys
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-TOPN = 2                     # 0x2D backstop-2: W84/W83 (p7bdp 槽 40/39)
-ITEMS_WANT = ["p7bdp_dout[40*32 +: 32]", "p7bdp_dout[39*32 +: 32]"]
+TOPN = 14                    # P11 E1a-1: W96..W83 (p7bdp 槽 52..39)
+ITEMS_WANT = ["p7bdp_dout[%d*32 +: 32]" % s for s in range(52, 38, -1)]
 
 
 def _norm(s):
@@ -130,15 +130,32 @@ def main():
 
     # 3) p7bdp_din[39..40] = w83_dp/w84_dp
     miss = []
-    for slot in range(39, 39 + TOPN):
+    for slot in (39, 40):
         pat = r"assign\s+p7bdp_din\[%d\*32\s*\+:\s*32\]\s*=\s*w%d_dp\s*;" % (slot, slot + 44)
         if not re.search(pat, code):
             miss.append(slot)
     ok3 = not miss
-    print("%s [3] p7bdp_din[39..%d] = w83_dp/w84_dp (缺 %s)"
-          % ("[ok]" if ok3 else "[FAIL]", 38 + TOPN, miss if miss else "无"))
+    print("%s [3] p7bdp_din[39..40] = w83_dp/w84_dp (缺 %s)"
+          % ("[ok]" if ok3 else "[FAIL]", miss if miss else "无"))
     if not ok3:
         fails.append("din-wiring")
+
+    # 3b) P11 E1a-1: p7bdp_din[41..52] = e1a_hist[0..9]/sum/max
+    miss_e = []
+    for k in range(85, 95):
+        slot = 41 + (k - 85)
+        pat = r"assign\s+p7bdp_din\[%d\*32\s*\+:\s*32\]\s*=\s*e1a_hist\[%d\*32\s*\+:\s*32\]\s*;" % (slot, k - 85)
+        if not re.search(pat, code):
+            miss_e.append(k)
+    for k, slot, src in ((95, 51, "e1a_sum_total"), (96, 52, "e1a_max_total")):
+        pat = r"assign\s+p7bdp_din\[%d\*32\s*\+:\s*32\]\s*=\s*%s\s*;" % (slot, src)
+        if not re.search(pat, code):
+            miss_e.append(k)
+    ok3b = not miss_e
+    print("%s [3b] p7bdp_din[41..52] = e1a_hist/sum/max (缺 %s)"
+          % ("[ok]" if ok3b else "[FAIL]", miss_e if miss_e else "无"))
+    if not ok3b:
+        fails.append("e1a-din-wiring")
 
     # 4) N-10 tie-off 存在性 (非 DUAL 两支: w83/w84 = 0; W85..W87 已删, 不再检查)
     zero_hits = {k: len(re.findall(r"wire\s*\[31:0\]\s+w%d_dp\s*=\s*32'd0\s*;" % k, code))

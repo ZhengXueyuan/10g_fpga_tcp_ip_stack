@@ -1,0 +1,75 @@
+=== BURN_BEGIN gen=0x33 1793049326.062998800 Tue Oct 27 05:15:26     2026
+--- 1) sha256 anchor ---
+WANT=4e41a064d4b599b7f09902dc4c0435f50e6c29c660206ac03fe90b44329d0550 GOT=4e41a064d4b599b7f09902dc4c0435f50e6c29c660206ac03fe90b44329d0550
+SHA_OK (copy is not an independent anchor)
+--- 2) pre-burn peer state ---
+active
+	Region 0: Memory at df200000 (32-bit, non-prefetchable) [size=1M]
+	Region 1: Memory at df300000 (32-bit, non-prefetchable) [size=64K]
+		LnkSta:	Speed 5GT/s (downgraded), Width x4
+/dev/xdma0_c2h_0
+/dev/xdma0_control
+/dev/xdma0_events_0
+/dev/xdma0_events_1
+/dev/xdma0_events_10
+/dev/xdma0_events_11
+/dev/xdma0_events_12
+/dev/xdma0_events_13
+/dev/xdma0_events_14
+/dev/xdma0_events_15
+xdma                  110592  0
+PARENT_ROOT_PORT=0000:00:1c.0
+xdma                  110592  0
+--- 3) burn via JTAG 192.168.0.38:3121 @1MHz 1793049332 ---
+BURN_STDOUT=/d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p7b_biz_tcpreg/tcpreg_program_stdout.txt mtime=1793049464 T0=1793049332 age=132s
+# puts "TCPREG_BIT = $bit"
+TCPREG_BIT = D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p11_e1a_design_20261027\burn\wrapper_p4_0x33.bit
+# puts "TCPREG_BIT_EXISTS = [file exists $bit]"
+TCPREG_BIT_EXISTS = 1
+# puts "TCPREG_BIT_MTIME = [file mtime $bit]"
+TCPREG_BIT_MTIME = 1793049326
+# puts "TCPREG_PROG device=$dev freq=1MHz"
+TCPREG_PROG device=xcku5p_0 freq=1MHz
+# if {![file exists $bit]} { puts "TCPREG-ABORT: bitstream missing"; exit 1 }
+# if {[catch {program_hw_devices $dev} em]} { puts "TCPREG-ABORT PROGRAM FAILED: $em"; exit 1 }
+INFO: [Labtools 27-3164] End of startup status: HIGH
+# puts "TCPREG_PROG_DONE (检查上�? 'End of startup status: HIGH')"
+TCPREG_PROG_DONE (检查上�? 'End of startup status: HIGH')
+BURN_OK (HIGH + DONE + path + freshness + no-ABORT)
+--- 4) PCIe recovery ---
+	Region 0: Memory at df200000 (32-bit, non-prefetchable) [size=1M]
+	Region 1: Memory at df300000 (32-bit, non-prefetchable) [size=64K]
+		LnkSta:	Speed 5GT/s (downgraded), Width x4
+/dev/xdma0_user
+BAR_COUNT=2
+[  377.058837] xdma:identify_bars: 2 BARs: config 1, user 0, bypass -1.
+[17353.872013] xdma:identify_bars: 2 BARs: config 1, user 0, bypass -1.
+--- 5) identity (0x33: NW=97 BID=0x00000033 UNIMPL=0x1B4) ---
+REG_0x00=0x50360001
+REG_0x04=0x00000033
+REG_0x14=0xdeadbeef
+REG_0x1B4=0xffffffff
+REG_0x08=0x00000000
+MIR_0x1A4=0x00200000
+MIR_0x1A8=0x5a5a5a5a
+MIR_0x1AC=0x00000000
+MIR_0x1B0=0x00000000
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x00000033   (want 0x00000033 = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1793049483.120467790
+ID_RC=0
+--- 6) window scan: NFF must be 0 over NW words ---
+WINDOW_SCAN_NFF=0
+--- 6b) link/BAR/carrier ---
+		LnkSta:	Speed 5GT/s (downgraded), Width x4
+BAR_COUNT=2
+SYSFS_RESOURCE_NONZERO=2
+CARRIER_P1=1
+CARRIER_P0=1
+--- 7) release controlled stop (0x08 <- 0) ---
+SCRATCH_0x08(after)=0x00000000
+CARRIER_P1=1
+CARRIER_P0=1
+=== BURN_END gen=0x33 1793049491.044479900 ===

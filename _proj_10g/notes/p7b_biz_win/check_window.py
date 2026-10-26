@@ -278,11 +278,11 @@ def main():
     #   ⛔ P11 F-21 修复 (2026-10-18): 0x2C 的装配曾把顶端 5 项直连 `w8x_snap = w8x_dp`
     #      (裸多比特 CDC; 布后 hold_b 槽 39..43 = 0)。**现行装配 = 只读 `p7bdp_dout[43..39]`**
     #      ⇒ 本判据的期望必须是 p7bdp 槽 43..39 (原写 `w%d_snap` = 0x2C 的缺陷形态, 已订正)。
-    #   ⛔ 0x2D backstop-2 (2026-10-18): W85/W86/W87 已删 ⇒ 顶端只保留 **W84/W83**
-    #      (p7bdp 槽 40..39 = 2 项); 其下仍是 P1 的 ch0 束 4 项 + p7bdp 槽 38..26 (13 项)
-    #      ⇒ 顶端段合计 2 + 4 + 13 = **19 项** (原 22)。
-    nnew_top = 19                             # W84..W66 (p7bdp 40..39 = 2 + ch0 槽 3..0 = 4 + p7bdp 38..26 = 13)
-    np11_top = 2                              # 本轮保留的 p7bdp 槽 40..39 项数 (W84/W83)
+    #   ⭐ P11 E1a-1 (2026-10-27): W85..W96 = p7bdp 槽 41..52 (12 项) 插在 W84 之上
+    #      ⇒ 顶端段 = p7bdp 槽 52..39 (14 项: E1a 12 + W84/W83) + ch0 4 + p7bdp 38..26 (13)
+    #      = **31 项**。W96..W85 的 din 源 = e1a_hist[0..9] / e1a_sum_total / e1a_max_total。
+    nnew_top = 31                             # W96..W66 (p7bdp 52..39 = 14 + ch0 3..0 = 4 + p7bdp 38..26 = 13)
+    np11_top = 14                             # E1a 12 + W84/W83 2 = p7bdp 槽 52..39
     nch0_top = 4                              # 顶端 ch0 束项数 (= SNAP_CH0_NW, W82..W79)
     ntx = 1                                   # 其后的 tx 束项数 (W65)
     nnew = 14                                 # W64..W51 (槽 25..12) —— 历史段
@@ -292,8 +292,8 @@ def main():
                 ["p7bdp_dout[%d*32 +: 32]" % (pdp - 1 - np11_top - i)
                  for i in range(nnew_top - np11_top - nch0_top)])
     ck(topn == want_top,
-       "5a 最上面 %d 项 = W%d..W%d 的 p7bdp 槽 %s + ch0 槽 %s + p7bdp 槽 %s (P11 F-21 / 0x2D backstop-2)"
-       % (nnew_top, 84, 84 - np11_top + 1,
+       "5a 最上面 %d 项 = W%d..W%d 的 p7bdp 槽 %s + ch0 槽 %s + p7bdp 槽 %s (P11 E1a-1)"
+       % (nnew_top, 96, 96 - np11_top + 1,
           "/".join("%d" % (pdp - 1 - i) for i in range(np11_top)),
           "/".join("%d" % (ch0 - 1 - i) for i in range(nch0_top)),
           "/".join("%d" % (pdp - 1 - np11_top - i) for i in range(nnew_top - np11_top - nch0_top))),
@@ -350,6 +350,16 @@ def main():
     for k, slot, src_name in ((83, 39, "w83_dp"), (84, 40, "w84_dp")):
         pat = r"assign\s+p7bdp_din\[%d\*32\s*\+\:\s*32\]\s*=\s*%s\s*;" % (slot, src_name)
         ck(re.search(pat, src0) is not None, "5c 槽号映射 W%d (P11 P2-甲 / 0x2D 保留)" % k,
+           "(p7bdp_din[%d*32 +: 32] = %s)" % (slot, src_name))
+    # W85..W96: P11 E1a-1 (p7bdp 槽 41..52). W85..W94 = e1a_hist[0..9]; W95/W96 = sum/max.
+    for k in range(85, 95):
+        slot = 41 + (k - 85)
+        pat = r"assign\s+p7bdp_din\[%d\*32\s*\+\:\s*32\]\s*=\s*e1a_hist\[%d\*32\s*\+\:\s*32\]\s*;" % (slot, k - 85)
+        ck(re.search(pat, src0) is not None, "5c 槽号映射 W%d (P11 E1a-1)" % k,
+           "(p7bdp_din[%d*32 +: 32] = e1a_hist[%d*32 +: 32])" % (slot, k - 85))
+    for k, slot, src_name in ((95, 51, "e1a_sum_total"), (96, 52, "e1a_max_total")):
+        pat = r"assign\s+p7bdp_din\[%d\*32\s*\+\:\s*32\]\s*=\s*%s\s*;" % (slot, src_name)
+        ck(re.search(pat, src0) is not None, "5c 槽号映射 W%d (P11 E1a-1)" % k,
            "(p7bdp_din[%d*32 +: 32] = %s)" % (slot, src_name))
     # 5d: W65 的**跨文件一致性** (端口 ↔ 接线 ↔ 束槽). 防两种半成品:
     #     "端口加了但没接快照字" (被综合整条优化掉) 与 "只在 wrapper 接、`mac_tx_10g`

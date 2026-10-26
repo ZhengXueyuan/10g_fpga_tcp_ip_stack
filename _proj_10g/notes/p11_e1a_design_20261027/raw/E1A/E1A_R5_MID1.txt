@@ -1,0 +1,29 @@
+TS_BEGIN E1A_R5_MID1 1793049537.283798196
+SNAP_BEGIN E1A_R5_MID1 gen=16 status=0x00100056
+SNAP_STATUS gen=16 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x00590ef0
+W5   0x34   gmii_free_FE           0xa66c2080
+W14  0x58   tx_stat_frames_TCP     0x01c787d5
+W20  0x70   mac_tx_frames          0x01c787df
+W43  0xCC   mtx_stat_tx_words      0xa66b7818
+W52  0xF0   app_tx_frames          0x01c78545
+W65  0x124  mac_tx_idle            0x4efe1d04
+W66  0x128  tx_stat_winstall       0x01e37503
+W67  0x12C  tx_winstall_cap        0x01a8ddd6
+W68  0x130  rx_stat_ack_adv        0x00590ca9
+W69  0x134  tx_win_at_winstall     0x00000000
+W83  0x16C  tx_p0_frames           0x01c787df
+W85  0x174  e1a_bin0               0x00000000
+W86  0x178  e1a_bin1               0x00000000
+W87  0x17C  e1a_bin2               0x00000000
+W88  0x180  e1a_bin3               0x00000000
+W89  0x184  e1a_bin4               0x00000000
+W90  0x188  e1a_bin5               0x000000a0
+W91  0x18C  e1a_bin6               0x01c6657c
+W92  0x190  e1a_bin7               0x0000fbe5
+W93  0x194  e1a_bin8               0x000022b0
+W94  0x198  e1a_bin9               0x00000093
+W95  0x19C  e1a_sum_total          0xdc0be60a
+W96  0x1A0  e1a_max_total          0x0b3849ca
+SNAP_END E1A_R5_MID1 nff=0 stale_words=0
+TS_END E1A_R5_MID1 1793049537.963752752

@@ -1,0 +1,1005 @@
+=== E1A_BEGIN tag=E1A runs=10 bytes=10000000000 1793049493.073890850 Tue Oct 27 05:18:13 AM CST 2026
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x00000033   (want 0x00000033 = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1793049493.093431748
+--- idle negative control (2 s, no traffic) ---
+TS_BEGIN E1A_IDLE0 1793049493.094830570
+SNAP_BEGIN E1A_IDLE0 gen=1 status=0x00010056
+SNAP_STATUS gen=1 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x00000002
+W5   0x34   gmii_free_FE           0x0a985ddd
+W14  0x58   tx_stat_frames_TCP     0x00000000
+W20  0x70   mac_tx_frames          0x00000004
+W43  0xCC   mtx_stat_tx_words      0x0a98b297
+W52  0xF0   app_tx_frames          0x00000000
+W65  0x124  mac_tx_idle            0x0a98b1df
+W66  0x128  tx_stat_winstall       0x00000000
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x00000000
+W69  0x134  tx_win_at_winstall     0x00000000
+W83  0x16C  tx_p0_frames           0x00000004
+W85  0x174  e1a_bin0               0x00000000
+W86  0x178  e1a_bin1               0x00000000
+W87  0x17C  e1a_bin2               0x00000000
+W88  0x180  e1a_bin3               0x00000000
+W89  0x184  e1a_bin4               0x00000000
+W90  0x188  e1a_bin5               0x00000000
+W91  0x18C  e1a_bin6               0x00000000
+W92  0x190  e1a_bin7               0x00000000
+W93  0x194  e1a_bin8               0x00000000
+W94  0x198  e1a_bin9               0x00000000
+W95  0x19C  e1a_sum_total          0x00000000
+W96  0x1A0  e1a_max_total          0x00000000
+SNAP_END E1A_IDLE0 nff=0 stale_words=0
+TS_END E1A_IDLE0 1793049493.191614838
+TS_BEGIN E1A_IDLE1 1793049495.194235498
+SNAP_BEGIN E1A_IDLE1 gen=2 status=0x00020056
+SNAP_STATUS gen=2 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x00000002
+W5   0x34   gmii_free_FE           0x1e27a0aa
+W14  0x58   tx_stat_frames_TCP     0x00000000
+W20  0x70   mac_tx_frames          0x00000004
+W43  0xCC   mtx_stat_tx_words      0x1e27e9bb
+W52  0xF0   app_tx_frames          0x00000000
+W65  0x124  mac_tx_idle            0x1e27e903
+W66  0x128  tx_stat_winstall       0x00000000
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x00000000
+W69  0x134  tx_win_at_winstall     0x00000000
+W83  0x16C  tx_p0_frames           0x00000004
+W85  0x174  e1a_bin0               0x00000000
+W86  0x178  e1a_bin1               0x00000000
+W87  0x17C  e1a_bin2               0x00000000
+W88  0x180  e1a_bin3               0x00000000
+W89  0x184  e1a_bin4               0x00000000
+W90  0x188  e1a_bin5               0x00000000
+W91  0x18C  e1a_bin6               0x00000000
+W92  0x190  e1a_bin7               0x00000000
+W93  0x194  e1a_bin8               0x00000000
+W94  0x198  e1a_bin9               0x00000000
+W95  0x19C  e1a_sum_total          0x00000000
+W96  0x1A0  e1a_max_total          0x00000000
+SNAP_END E1A_IDLE1 nff=0 stale_words=0
+TS_END E1A_IDLE1 1793049495.291555566
+--- run 1/10: 10000000000 B downlink on port A ---
+TS_BEGIN E1A_R1_PRE 1793049495.293615175
+SNAP_BEGIN E1A_R1_PRE gen=3 status=0x00030056
+SNAP_STATUS gen=3 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x00000002
+W5   0x34   gmii_free_FE           0x1f1299a5
+W14  0x58   tx_stat_frames_TCP     0x00000000
+W20  0x70   mac_tx_frames          0x00000004
+W43  0xCC   mtx_stat_tx_words      0x1f12e228
+W52  0xF0   app_tx_frames          0x00000000
+W65  0x124  mac_tx_idle            0x1f12e170
+W66  0x128  tx_stat_winstall       0x00000000
+W67  0x12C  tx_winstall_cap        0x00000000
+W68  0x130  rx_stat_ack_adv        0x00000000
+W69  0x134  tx_win_at_winstall     0x00000000
+W83  0x16C  tx_p0_frames           0x00000004
+W85  0x174  e1a_bin0               0x00000000
+W86  0x178  e1a_bin1               0x00000000
+W87  0x17C  e1a_bin2               0x00000000
+W88  0x180  e1a_bin3               0x00000000
+W89  0x184  e1a_bin4               0x00000000
+W90  0x188  e1a_bin5               0x00000000
+W91  0x18C  e1a_bin6               0x00000000
+W92  0x190  e1a_bin7               0x00000000
+W93  0x194  e1a_bin8               0x00000000
+W94  0x198  e1a_bin9               0x00000000
+W95  0x19C  e1a_sum_total          0x00000000
+W96  0x1A0  e1a_max_total          0x00000000
+SNAP_END E1A_R1_PRE nff=0 stale_words=0
+TS_END E1A_R1_PRE 1793049495.390493471
+TS_BEGIN E1A_R1_MID1 1793049498.393087772
+SNAP_BEGIN E1A_R1_MID1 gen=4 status=0x00040056
+SNAP_STATUS gen=4 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x0007eae2
+W5   0x34   gmii_free_FE           0x3c328ae7
+W14  0x58   tx_stat_frames_TCP     0x002569f0
+W20  0x70   mac_tx_frames          0x002569f5
+W43  0xCC   mtx_stat_tx_words      0x3c32c1f1
+W52  0xF0   app_tx_frames          0x002569f1
+W65  0x124  mac_tx_idle            0x1ffde425
+W66  0x128  tx_stat_winstall       0x00035c9f
+W67  0x12C  tx_winstall_cap        0x0000d038
+W68  0x130  rx_stat_ack_adv        0x0007eadd
+W69  0x134  tx_win_at_winstall     0x00000000
+W83  0x16C  tx_p0_frames           0x002569f6
+W85  0x174  e1a_bin0               0x00000000
+W86  0x178  e1a_bin1               0x00000000
+W87  0x17C  e1a_bin2               0x00000000
+W88  0x180  e1a_bin3               0x00000000
+W89  0x184  e1a_bin4               0x00000000
+W90  0x188  e1a_bin5               0x0000000d
+W91  0x18C  e1a_bin6               0x002569bf
+W92  0x190  e1a_bin7               0x00000015
+W93  0x194  e1a_bin8               0x0000000b
+W94  0x198  e1a_bin9               0x00000004
+W95  0x19C  e1a_sum_total          0x384a8bbc
+W96  0x1A0  e1a_max_total          0x000056cc
+SNAP_END E1A_R1_MID1 nff=0 stale_words=0
+TS_END E1A_R1_MID1 1793049499.151261748
+SINK_RC=0
+TS_BEGIN E1A_R1_POST 1793049504.868272775
+SNAP_BEGIN E1A_R1_POST gen=5 status=0x00050056
+SNAP_STATUS gen=5 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x00169d4d
+W5   0x34   gmii_free_FE           0x78406465
+W14  0x58   tx_stat_frames_TCP     0x00688372
+W20  0x70   mac_tx_frames          0x00688378
+W43  0xCC   mtx_stat_tx_words      0x78407711
+W52  0xF0   app_tx_frames          0x00688355
+W65  0x124  mac_tx_idle            0x29755feb
+W66  0x128  tx_stat_winstall       0x000df190
+W67  0x12C  tx_winstall_cap        0x00068a65
+W68  0x130  rx_stat_ack_adv        0x00169d2b
+W69  0x134  tx_win_at_winstall     0xf53cf000
+W83  0x16C  tx_p0_frames           0x00688378
+W85  0x174  e1a_bin0               0x00000000
+W86  0x178  e1a_bin1               0x00000000
+W87  0x17C  e1a_bin2               0x00000000
+W88  0x180  e1a_bin3               0x00000000
+W89  0x184  e1a_bin4               0x00000000
+W90  0x188  e1a_bin5               0x00000025
+W91  0x18C  e1a_bin6               0x00688134
+W92  0x190  e1a_bin7               0x0000014b
+W93  0x194  e1a_bin8               0x000000a1
+W94  0x198  e1a_bin9               0x00000010
+W95  0x19C  e1a_sum_total          0x9d438aa7
+W96  0x1A0  e1a_max_total          0x00007cbc
+SNAP_END E1A_R1_POST nff=0 stale_words=0
+TS_END E1A_R1_POST 1793049504.966034321
+SINK_CONN 0 OK bytes=10000004755 first_mismatch=-1 mism_bytes=0 conn_ms=0.210 dur_ms=8469.557 Mbps=9445.599 reads=1481753 poll_tmo=0 CPU_FREQ_KHZ=3700238 THREADED=on q_full_push=1481753 q_full_pop=1481753 q_free_push=1481769 q_free_pop=1481753 slot_wait_spins=1281 checked_bytes=10000004755
+SINK_SUM conns=1 fail_conns=0 bytes=10000004755 clean_conns=1 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=8.470 net_s=8.470 agg_Mbps=9445.599 THREADED=on full_push=1481753 full_pop=1481753 free_push=1481769 free_pop=1481753 slot_wait_spins=1281 checked_bytes=10000004755 threads=2 check=lane8
+--- run 2/10: 10000000000 B downlink on port A ---
+TS_BEGIN E1A_R2_PRE 1793049504.968475833
+SNAP_BEGIN E1A_R2_PRE gen=6 status=0x00060056
+SNAP_STATUS gen=6 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x00169d4d
+W5   0x34   gmii_free_FE           0x792d4b7a
+W14  0x58   tx_stat_frames_TCP     0x00688372
+W20  0x70   mac_tx_frames          0x00688378
+W43  0xCC   mtx_stat_tx_words      0x792d5d96
+W52  0xF0   app_tx_frames          0x00688355
+W65  0x124  mac_tx_idle            0x2a624670
+W66  0x128  tx_stat_winstall       0x000df190
+W67  0x12C  tx_winstall_cap        0x00068a65
+W68  0x130  rx_stat_ack_adv        0x00169d2b
+W69  0x134  tx_win_at_winstall     0xf53cf000
+W83  0x16C  tx_p0_frames           0x00688378
+W85  0x174  e1a_bin0               0x00000000
+W86  0x178  e1a_bin1               0x00000000
+W87  0x17C  e1a_bin2               0x00000000
+W88  0x180  e1a_bin3               0x00000000
+W89  0x184  e1a_bin4               0x00000000
+W90  0x188  e1a_bin5               0x00000025
+W91  0x18C  e1a_bin6               0x00688134
+W92  0x190  e1a_bin7               0x0000014b
+W93  0x194  e1a_bin8               0x000000a1
+W94  0x198  e1a_bin9               0x00000010
+W95  0x19C  e1a_sum_total          0x9d438aa7
+W96  0x1A0  e1a_max_total          0x00007cbc
+SNAP_END E1A_R2_PRE nff=0 stale_words=0
+TS_END E1A_R2_PRE 1793049505.064961370
+TS_BEGIN E1A_R2_MID1 1793049508.075365348
+SNAP_BEGIN E1A_R2_MID1 gen=7 status=0x00070056
+SNAP_STATUS gen=7 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x001ea874
+W5   0x34   gmii_free_FE           0x96730f0c
+W14  0x58   tx_stat_frames_TCP     0x008e219e
+W20  0x70   mac_tx_frames          0x008e21a5
+W43  0xCC   mtx_stat_tx_words      0x96730f4e
+W52  0xF0   app_tx_frames          0x008e2182
+W65  0x124  mac_tx_idle            0x2b4bba32
+W66  0x128  tx_stat_winstall       0x00111958
+W67  0x12C  tx_winstall_cap        0x000725cf
+W68  0x130  rx_stat_ack_adv        0x001ea850
+W69  0x134  tx_win_at_winstall     0x00000000
+W83  0x16C  tx_p0_frames           0x008e21a5
+W85  0x174  e1a_bin0               0x00000000
+W86  0x178  e1a_bin1               0x00000000
+W87  0x17C  e1a_bin2               0x00000000
+W88  0x180  e1a_bin3               0x00000000
+W89  0x184  e1a_bin4               0x00000000
+W90  0x188  e1a_bin5               0x00000032
+W91  0x18C  e1a_bin6               0x008e1f42
+W92  0x190  e1a_bin7               0x00000151
+W93  0x194  e1a_bin8               0x000000a6
+W94  0x198  e1a_bin9               0x00000016
+W95  0x19C  e1a_sum_total          0xe11492c3
+W96  0x1A0  e1a_max_total          0x0b3849ca
+SNAP_END E1A_R2_MID1 nff=0 stale_words=0
+TS_END E1A_R2_MID1 1793049508.699282409
+SINK_RC=0
+TS_BEGIN E1A_R2_POST 1793049514.545127024
+SNAP_BEGIN E1A_R2_POST gen=8 status=0x00080056
+SNAP_STATUS gen=8 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x002d4daf
+W5   0x34   gmii_free_FE           0xd25ffe05
+W14  0x58   tx_stat_frames_TCP     0x00d106e3
+W20  0x70   mac_tx_frames          0x00d106ea
+W43  0xCC   mtx_stat_tx_words      0xd25fd984
+W52  0xF0   app_tx_frames          0x00d106a9
+W65  0x124  mac_tx_idle            0x34c9ad72
+W66  0x128  tx_stat_winstall       0x00226812
+W67  0x12C  tx_winstall_cap        0x00133180
+W68  0x130  rx_stat_ack_adv        0x002d4d73
+W69  0x134  tx_win_at_winstall     0xf53cf000
+W83  0x16C  tx_p0_frames           0x00d106ea
+W85  0x174  e1a_bin0               0x00000000
+W86  0x178  e1a_bin1               0x00000000
+W87  0x17C  e1a_bin2               0x00000000
+W88  0x180  e1a_bin3               0x00000000
+W89  0x184  e1a_bin4               0x00000000
+W90  0x188  e1a_bin5               0x0000004a
+W91  0x18C  e1a_bin6               0x00d101b7
+W92  0x190  e1a_bin7               0x000002e1
+W93  0x194  e1a_bin8               0x00000194
+W94  0x198  e1a_bin9               0x00000033
+W95  0x19C  e1a_sum_total          0x45c62615
+W96  0x1A0  e1a_max_total          0x0b3849ca
+SNAP_END E1A_R2_POST nff=0 stale_words=0
+TS_END E1A_R2_POST 1793049514.642909168
+SINK_CONN 0 OK bytes=10000001835 first_mismatch=-1 mism_bytes=0 conn_ms=0.112 dur_ms=8472.475 Mbps=9442.343 reads=1485837 poll_tmo=0 CPU_FREQ_KHZ=3800263 THREADED=on q_full_push=1485837 q_full_pop=1485837 q_free_push=1485853 q_free_pop=1485837 slot_wait_spins=53424 checked_bytes=10000001835
+SINK_SUM conns=1 fail_conns=0 bytes=10000001835 clean_conns=1 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=8.473 net_s=8.472 agg_Mbps=9442.343 THREADED=on full_push=1485837 full_pop=1485837 free_push=1485853 free_pop=1485837 slot_wait_spins=53424 checked_bytes=10000001835 threads=2 check=lane8
+--- run 3/10: 10000000000 B downlink on port A ---
+TS_BEGIN E1A_R3_PRE 1793049514.645365165
+SNAP_BEGIN E1A_R3_PRE gen=9 status=0x00090056
+SNAP_STATUS gen=9 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x002d4daf
+W5   0x34   gmii_free_FE           0xd34cf024
+W14  0x58   tx_stat_frames_TCP     0x00d106e3
+W20  0x70   mac_tx_frames          0x00d106ea
+W43  0xCC   mtx_stat_tx_words      0xd34ccb11
+W52  0xF0   app_tx_frames          0x00d106a9
+W65  0x124  mac_tx_idle            0x35b69eff
+W66  0x128  tx_stat_winstall       0x00226812
+W67  0x12C  tx_winstall_cap        0x00133180
+W68  0x130  rx_stat_ack_adv        0x002d4d73
+W69  0x134  tx_win_at_winstall     0xf53cf000
+W83  0x16C  tx_p0_frames           0x00d106ea
+W85  0x174  e1a_bin0               0x00000000
+W86  0x178  e1a_bin1               0x00000000
+W87  0x17C  e1a_bin2               0x00000000
+W88  0x180  e1a_bin3               0x00000000
+W89  0x184  e1a_bin4               0x00000000
+W90  0x188  e1a_bin5               0x0000004a
+W91  0x18C  e1a_bin6               0x00d101b7
+W92  0x190  e1a_bin7               0x000002e1
+W93  0x194  e1a_bin8               0x00000194
+W94  0x198  e1a_bin9               0x00000033
+W95  0x19C  e1a_sum_total          0x45c62615
+W96  0x1A0  e1a_max_total          0x0b3849ca
+SNAP_END E1A_R3_PRE nff=0 stale_words=0
+TS_END E1A_R3_PRE 1793049514.742259243
+TS_BEGIN E1A_R3_MID1 1793049517.744709156
+SNAP_BEGIN E1A_R3_MID1 gen=10 status=0x000a0056
+SNAP_STATUS gen=10 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x00339f21
+W5   0x34   gmii_free_FE           0xf02cd3b6
+W14  0x58   tx_stat_frames_TCP     0x00f59977
+W20  0x70   mac_tx_frames          0x00f5997f
+W43  0xCC   mtx_stat_tx_words      0xf02c9cd5
+W52  0xF0   app_tx_frames          0x00f598e8
+W65  0x124  mac_tx_idle            0x3703f01f
+W66  0x128  tx_stat_winstall       0x00802ec4
+W67  0x12C  tx_winstall_cap        0x0068d68d
+W68  0x130  rx_stat_ack_adv        0x00339e9b
+W69  0x134  tx_win_at_winstall     0x00000000
+W83  0x16C  tx_p0_frames           0x00f5997f
+W85  0x174  e1a_bin0               0x00000000
+W86  0x178  e1a_bin1               0x00000000
+W87  0x17C  e1a_bin2               0x00000000
+W88  0x180  e1a_bin3               0x00000000
+W89  0x184  e1a_bin4               0x00000000
+W90  0x188  e1a_bin5               0x00000057
+W91  0x18C  e1a_bin6               0x00f5542f
+W92  0x190  e1a_bin7               0x00003b45
+W93  0x194  e1a_bin8               0x000008d8
+W94  0x198  e1a_bin9               0x00000044
+W95  0x19C  e1a_sum_total          0x88650889
+W96  0x1A0  e1a_max_total          0x0b3849ca
+SNAP_END E1A_R3_MID1 nff=0 stale_words=0
+TS_END E1A_R3_MID1 1793049517.861129936
+SINK_RC=0
+TS_BEGIN E1A_R3_POST 1793049524.331240185
+SNAP_BEGIN E1A_R3_POST gen=11 status=0x000b0056
+SNAP_STATUS gen=11 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x003f2dab
+W5   0x34   gmii_free_FE           0x2d820b17
+W14  0x58   tx_stat_frames_TCP     0x01398b94
+W20  0x70   mac_tx_frames          0x01398b9c
+W43  0xCC   mtx_stat_tx_words      0x2d81ae34
+W52  0xF0   app_tx_frames          0x01398a01
+W65  0x124  mac_tx_idle            0x411f7bf6
+W66  0x128  tx_stat_winstall       0x0123e45d
+W67  0x12C  tx_winstall_cap        0x00fe1bf1
+W68  0x130  rx_stat_ack_adv        0x003f2c40
+W69  0x134  tx_win_at_winstall     0xf53cf000
+W83  0x16C  tx_p0_frames           0x01398b9c
+W85  0x174  e1a_bin0               0x00000000
+W86  0x178  e1a_bin1               0x00000000
+W87  0x17C  e1a_bin2               0x00000000
+W88  0x180  e1a_bin3               0x00000000
+W89  0x184  e1a_bin4               0x00000000
+W90  0x188  e1a_bin5               0x0000006e
+W91  0x18C  e1a_bin6               0x0138dfff
+W92  0x190  e1a_bin7               0x000093ed
+W93  0x194  e1a_bin8               0x00001540
+W94  0x198  e1a_bin9               0x00000067
+W95  0x19C  e1a_sum_total          0xef4689a1
+W96  0x1A0  e1a_max_total          0x0b3849ca
+SNAP_END E1A_R3_POST nff=0 stale_words=0
+TS_END E1A_R3_POST 1793049524.427750251
+SINK_CONN 0 OK bytes=10000007675 first_mismatch=-1 mism_bytes=0 conn_ms=0.073 dur_ms=8581.870 Mbps=9321.984 reads=1171087 poll_tmo=0 CPU_FREQ_KHZ=3800247 THREADED=on q_full_push=1171087 q_full_pop=1171087 q_free_push=1171103 q_free_pop=1171087 slot_wait_spins=26 checked_bytes=10000007675
+SINK_SUM conns=1 fail_conns=0 bytes=10000007675 clean_conns=1 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=8.582 net_s=8.582 agg_Mbps=9321.984 THREADED=on full_push=1171087 full_pop=1171087 free_push=1171103 free_pop=1171087 slot_wait_spins=26 checked_bytes=10000007675 threads=2 check=lane8
+--- run 4/10: 10000000000 B downlink on port A ---
+TS_BEGIN E1A_R4_PRE 1793049524.430058132
+SNAP_BEGIN E1A_R4_PRE gen=12 status=0x000c0056
+SNAP_STATUS gen=12 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x003f2dab
+W5   0x34   gmii_free_FE           0x2e6d3e76
+W14  0x58   tx_stat_frames_TCP     0x01398b94
+W20  0x70   mac_tx_frames          0x01398b9c
+W43  0xCC   mtx_stat_tx_words      0x2e6ce101
+W52  0xF0   app_tx_frames          0x01398a01
+W65  0x124  mac_tx_idle            0x420aaec3
+W66  0x128  tx_stat_winstall       0x0123e45d
+W67  0x12C  tx_winstall_cap        0x00fe1bf1
+W68  0x130  rx_stat_ack_adv        0x003f2c40
+W69  0x134  tx_win_at_winstall     0xf53cf000
+W83  0x16C  tx_p0_frames           0x01398b9c
+W85  0x174  e1a_bin0               0x00000000
+W86  0x178  e1a_bin1               0x00000000
+W87  0x17C  e1a_bin2               0x00000000
+W88  0x180  e1a_bin3               0x00000000
+W89  0x184  e1a_bin4               0x00000000
+W90  0x188  e1a_bin5               0x0000006e
+W91  0x18C  e1a_bin6               0x0138dfff
+W92  0x190  e1a_bin7               0x000093ed
+W93  0x194  e1a_bin8               0x00001540
+W94  0x198  e1a_bin9               0x00000067
+W95  0x19C  e1a_sum_total          0xef4689a1
+W96  0x1A0  e1a_max_total          0x0b3849ca
+SNAP_END E1A_R4_PRE nff=0 stale_words=0
+TS_END E1A_R4_PRE 1793049524.525906700
+TS_BEGIN E1A_R4_MID1 1793049527.528490562
+SNAP_BEGIN E1A_R4_MID1 gen=13 status=0x000d0056
+SNAP_STATUS gen=13 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x00456e6a
+W5   0x34   gmii_free_FE           0x4b4b65cd
+W14  0x58   tx_stat_frames_TCP     0x015e46d4
+W20  0x70   mac_tx_frames          0x015e46dd
+W43  0xCC   mtx_stat_tx_words      0x4b4af660
+W52  0xF0   app_tx_frames          0x015e44f4
+W65  0x124  mac_tx_idle            0x43379a77
+W66  0x128  tx_stat_winstall       0x0165ef1c
+W67  0x12C  tx_winstall_cap        0x0139bd1f
+W68  0x130  rx_stat_ack_adv        0x00456cb6
+W69  0x134  tx_win_at_winstall     0x00000000
+W83  0x16C  tx_p0_frames           0x015e46dd
+W85  0x174  e1a_bin0               0x00000000
+W86  0x178  e1a_bin1               0x00000000
+W87  0x17C  e1a_bin2               0x00000000
+W88  0x180  e1a_bin3               0x00000000
+W89  0x184  e1a_bin4               0x00000000
+W90  0x188  e1a_bin5               0x0000007b
+W91  0x18C  e1a_bin6               0x015d70a6
+W92  0x190  e1a_bin7               0x0000b964
+W93  0x194  e1a_bin8               0x000019f8
+W94  0x198  e1a_bin9               0x00000077
+W95  0x19C  e1a_sum_total          0x31fe53dd
+W96  0x1A0  e1a_max_total          0x0b3849ca
+SNAP_END E1A_R4_MID1 nff=0 stale_words=0
+TS_END E1A_R4_MID1 1793049527.647702412
+SINK_RC=0
+TS_BEGIN E1A_R4_POST 1793049534.083062561
+SNAP_BEGIN E1A_R4_POST gen=14 status=0x000e0056
+SNAP_STATUS gen=14 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x0050fcfc
+W5   0x34   gmii_free_FE           0x88548abf
+W14  0x58   tx_stat_frames_TCP     0x01a20feb
+W20  0x70   mac_tx_frames          0x01a20ff4
+W43  0xCC   mtx_stat_tx_words      0x8853f533
+W52  0xF0   app_tx_frames          0x01a20d5a
+W65  0x124  mac_tx_idle            0x4d2600a3
+W66  0x128  tx_stat_winstall       0x01deead1
+W67  0x12C  tx_winstall_cap        0x01a6f3c2
+W68  0x130  rx_stat_ack_adv        0x0050fab7
+W69  0x134  tx_win_at_winstall     0xf53cf000
+W83  0x16C  tx_p0_frames           0x01a20ff4
+W85  0x174  e1a_bin0               0x00000000
+W86  0x178  e1a_bin1               0x00000000
+W87  0x17C  e1a_bin2               0x00000000
+W88  0x180  e1a_bin3               0x00000000
+W89  0x184  e1a_bin4               0x00000000
+W90  0x188  e1a_bin5               0x00000093
+W91  0x18C  e1a_bin6               0x01a0edb1
+W92  0x190  e1a_bin7               0x0000fbdf
+W93  0x194  e1a_bin8               0x000022ab
+W94  0x198  e1a_bin9               0x0000008c
+W95  0x19C  e1a_sum_total          0x9874b9c5
+W96  0x1A0  e1a_max_total          0x0b3849ca
+SNAP_END E1A_R4_POST nff=0 stale_words=0
+TS_END E1A_R4_POST 1793049534.179451292
+SINK_CONN 0 OK bytes=10000009135 first_mismatch=-1 mism_bytes=0 conn_ms=0.118 dur_ms=8549.477 Mbps=9357.306 reads=1166926 poll_tmo=0 CPU_FREQ_KHZ=3800247 THREADED=on q_full_push=1166926 q_full_pop=1166926 q_free_push=1166942 q_free_pop=1166926 slot_wait_spins=31 checked_bytes=10000009135
+SINK_SUM conns=1 fail_conns=0 bytes=10000009135 clean_conns=1 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=8.550 net_s=8.549 agg_Mbps=9357.306 THREADED=on full_push=1166926 full_pop=1166926 free_push=1166942 free_pop=1166926 slot_wait_spins=31 checked_bytes=10000009135 threads=2 check=lane8
+--- run 5/10: 10000000000 B downlink on port A ---
+TS_BEGIN E1A_R5_PRE 1793049534.181842257
+SNAP_BEGIN E1A_R5_PRE gen=15 status=0x000f0056
+SNAP_STATUS gen=15 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x0050fcfc
+W5   0x34   gmii_free_FE           0x893f77b5
+W14  0x58   tx_stat_frames_TCP     0x01a20feb
+W20  0x70   mac_tx_frames          0x01a20ff4
+W43  0xCC   mtx_stat_tx_words      0x893ee195
+W52  0xF0   app_tx_frames          0x01a20d5a
+W65  0x124  mac_tx_idle            0x4e10ed05
+W66  0x128  tx_stat_winstall       0x01deead1
+W67  0x12C  tx_winstall_cap        0x01a6f3c2
+W68  0x130  rx_stat_ack_adv        0x0050fab7
+W69  0x134  tx_win_at_winstall     0xf53cf000
+W83  0x16C  tx_p0_frames           0x01a20ff4
+W85  0x174  e1a_bin0               0x00000000
+W86  0x178  e1a_bin1               0x00000000
+W87  0x17C  e1a_bin2               0x00000000
+W88  0x180  e1a_bin3               0x00000000
+W89  0x184  e1a_bin4               0x00000000
+W90  0x188  e1a_bin5               0x00000093
+W91  0x18C  e1a_bin6               0x01a0edb1
+W92  0x190  e1a_bin7               0x0000fbdf
+W93  0x194  e1a_bin8               0x000022ab
+W94  0x198  e1a_bin9               0x0000008c
+W95  0x19C  e1a_sum_total          0x9874b9c5
+W96  0x1A0  e1a_max_total          0x0b3849ca
+SNAP_END E1A_R5_PRE nff=0 stale_words=0
+TS_END E1A_R5_PRE 1793049534.279242495
+TS_BEGIN E1A_R5_MID1 1793049537.283798196
+SNAP_BEGIN E1A_R5_MID1 gen=16 status=0x00100056
+SNAP_STATUS gen=16 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x00590ef0
+W5   0x34   gmii_free_FE           0xa66c2080
+W14  0x58   tx_stat_frames_TCP     0x01c787d5
+W20  0x70   mac_tx_frames          0x01c787df
+W43  0xCC   mtx_stat_tx_words      0xa66b7818
+W52  0xF0   app_tx_frames          0x01c78545
+W65  0x124  mac_tx_idle            0x4efe1d04
+W66  0x128  tx_stat_winstall       0x01e37503
+W67  0x12C  tx_winstall_cap        0x01a8ddd6
+W68  0x130  rx_stat_ack_adv        0x00590ca9
+W69  0x134  tx_win_at_winstall     0x00000000
+W83  0x16C  tx_p0_frames           0x01c787df
+W85  0x174  e1a_bin0               0x00000000
+W86  0x178  e1a_bin1               0x00000000
+W87  0x17C  e1a_bin2               0x00000000
+W88  0x180  e1a_bin3               0x00000000
+W89  0x184  e1a_bin4               0x00000000
+W90  0x188  e1a_bin5               0x000000a0
+W91  0x18C  e1a_bin6               0x01c6657c
+W92  0x190  e1a_bin7               0x0000fbe5
+W93  0x194  e1a_bin8               0x000022b0
+W94  0x198  e1a_bin9               0x00000093
+W95  0x19C  e1a_sum_total          0xdc0be60a
+W96  0x1A0  e1a_max_total          0x0b3849ca
+SNAP_END E1A_R5_MID1 nff=0 stale_words=0
+TS_END E1A_R5_MID1 1793049537.963752752
+SINK_RC=0
+TS_BEGIN E1A_R5_POST 1793049543.765899871
+SNAP_BEGIN E1A_R5_POST gen=17 status=0x00110056
+SNAP_STATUS gen=17 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x0067aaa1
+W5   0x34   gmii_free_FE           0xe283b6ab
+W14  0x58   tx_stat_frames_TCP     0x020a9350
+W20  0x70   mac_tx_frames          0x020a935a
+W43  0xCC   mtx_stat_tx_words      0xe282e879
+W52  0xF0   app_tx_frames          0x020a90af
+W65  0x124  mac_tx_idle            0x5889e809
+W66  0x128  tx_stat_winstall       0x0202c199
+W67  0x12C  tx_winstall_cap        0x01c2050c
+W68  0x130  rx_stat_ack_adv        0x0067a841
+W69  0x134  tx_win_at_winstall     0xf53cf000
+W83  0x16C  tx_p0_frames           0x020a935a
+W85  0x174  e1a_bin0               0x00000000
+W86  0x178  e1a_bin1               0x00000000
+W87  0x17C  e1a_bin2               0x00000000
+W88  0x180  e1a_bin3               0x00000000
+W89  0x184  e1a_bin4               0x00000000
+W90  0x188  e1a_bin5               0x000000b8
+W91  0x18C  e1a_bin6               0x02096e5d
+W92  0x190  e1a_bin7               0x0000fd48
+W93  0x194  e1a_bin8               0x00002383
+W94  0x198  e1a_bin9               0x000000cf
+W95  0x19C  e1a_sum_total          0x4105f2b3
+W96  0x1A0  e1a_max_total          0x0b3849ca
+SNAP_END E1A_R5_POST nff=0 stale_words=0
+TS_END E1A_R5_POST 1793049543.863328926
+SINK_CONN 0 OK bytes=10000003295 first_mismatch=-1 mism_bytes=0 conn_ms=0.137 dur_ms=8479.333 Mbps=9434.707 reads=1483652 poll_tmo=0 CPU_FREQ_KHZ=3800273 THREADED=on q_full_push=1483652 q_full_pop=1483652 q_free_push=1483668 q_free_pop=1483652 slot_wait_spins=124328 checked_bytes=10000003295
+SINK_SUM conns=1 fail_conns=0 bytes=10000003295 clean_conns=1 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=8.480 net_s=8.479 agg_Mbps=9434.707 THREADED=on full_push=1483652 full_pop=1483652 free_push=1483668 free_pop=1483652 slot_wait_spins=124328 checked_bytes=10000003295 threads=2 check=lane8
+--- run 6/10: 10000000000 B downlink on port A ---
+TS_BEGIN E1A_R6_PRE 1793049543.865796504
+SNAP_BEGIN E1A_R6_PRE gen=18 status=0x00120056
+SNAP_STATUS gen=18 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x0067aaa1
+W5   0x34   gmii_free_FE           0xe370280f
+W14  0x58   tx_stat_frames_TCP     0x020a9350
+W20  0x70   mac_tx_frames          0x020a935a
+W43  0xCC   mtx_stat_tx_words      0xe36f5948
+W52  0xF0   app_tx_frames          0x020a90af
+W65  0x124  mac_tx_idle            0x597658d8
+W66  0x128  tx_stat_winstall       0x0202c199
+W67  0x12C  tx_winstall_cap        0x01c2050c
+W68  0x130  rx_stat_ack_adv        0x0067a841
+W69  0x134  tx_win_at_winstall     0xf53cf000
+W83  0x16C  tx_p0_frames           0x020a935a
+W85  0x174  e1a_bin0               0x00000000
+W86  0x178  e1a_bin1               0x00000000
+W87  0x17C  e1a_bin2               0x00000000
+W88  0x180  e1a_bin3               0x00000000
+W89  0x184  e1a_bin4               0x00000000
+W90  0x188  e1a_bin5               0x000000b8
+W91  0x18C  e1a_bin6               0x02096e5d
+W92  0x190  e1a_bin7               0x0000fd48
+W93  0x194  e1a_bin8               0x00002383
+W94  0x198  e1a_bin9               0x000000cf
+W95  0x19C  e1a_sum_total          0x4105f2b3
+W96  0x1A0  e1a_max_total          0x0b3849ca
+SNAP_END E1A_R6_PRE nff=0 stale_words=0
+TS_END E1A_R6_PRE 1793049543.963324234
+TS_BEGIN E1A_R6_MID1 1793049546.965769578
+SNAP_BEGIN E1A_R6_MID1 gen=19 status=0x00130056
+SNAP_STATUS gen=19 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x006dedd4
+W5   0x34   gmii_free_FE           0x0050b8ae
+W14  0x58   tx_stat_frames_TCP     0x022f2c64
+W20  0x70   mac_tx_frames          0x022f2c6f
+W43  0xCC   mtx_stat_tx_words      0x004fd7b0
+W52  0xF0   app_tx_frames          0x022f2971
+W65  0x124  mac_tx_idle            0x5abf7038
+W66  0x128  tx_stat_winstall       0x025af203
+W67  0x12C  tx_winstall_cap        0x021270cd
+W68  0x130  rx_stat_ack_adv        0x006deb23
+W69  0x134  tx_win_at_winstall     0x00000000
+W83  0x16C  tx_p0_frames           0x022f2c6f
+W85  0x174  e1a_bin0               0x00000000
+W86  0x178  e1a_bin1               0x00000000
+W87  0x17C  e1a_bin2               0x00000000
+W88  0x180  e1a_bin3               0x00000000
+W89  0x184  e1a_bin4               0x00000000
+W90  0x188  e1a_bin5               0x000000c5
+W91  0x18C  e1a_bin6               0x022dcccc
+W92  0x190  e1a_bin7               0x000131e9
+W93  0x194  e1a_bin8               0x00002911
+W94  0x198  e1a_bin9               0x000000e5
+W95  0x19C  e1a_sum_total          0x83a8fee9
+W96  0x1A0  e1a_max_total          0x0b38663c
+SNAP_END E1A_R6_MID1 nff=0 stale_words=0
+TS_END E1A_R6_MID1 1793049547.081527613
+SINK_RC=0
+TS_BEGIN E1A_R6_POST 1793049553.558038176
+SNAP_BEGIN E1A_R6_POST gen=20 status=0x00140056
+SNAP_STATUS gen=20 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x0079a84f
+W5   0x34   gmii_free_FE           0x3db5a8c1
+W14  0x58   tx_stat_frames_TCP     0x027317eb
+W20  0x70   mac_tx_frames          0x027317f6
+W43  0xCC   mtx_stat_tx_words      0x3db4a0f1
+W52  0xF0   app_tx_frames          0x02731402
+W65  0x124  mac_tx_idle            0x64efaaeb
+W66  0x128  tx_stat_winstall       0x030eebc7
+W67  0x12C  tx_winstall_cap        0x02b6f94f
+W68  0x130  rx_stat_ack_adv        0x0079a4dd
+W69  0x134  tx_win_at_winstall     0xf53cf000
+W83  0x16C  tx_p0_frames           0x027317f6
+W85  0x174  e1a_bin0               0x00000000
+W86  0x178  e1a_bin1               0x00000000
+W87  0x17C  e1a_bin2               0x00000000
+W88  0x180  e1a_bin3               0x00000000
+W89  0x184  e1a_bin4               0x00000000
+W90  0x188  e1a_bin5               0x000000dd
+W91  0x18C  e1a_bin6               0x0271430e
+W92  0x190  e1a_bin7               0x0001993a
+W93  0x194  e1a_bin8               0x000035dc
+W94  0x198  e1a_bin9               0x00000101
+W95  0x19C  e1a_sum_total          0xea91f100
+W96  0x1A0  e1a_max_total          0x0b38663c
+SNAP_END E1A_R6_POST nff=0 stale_words=0
+TS_END E1A_R6_POST 1793049553.655776588
+SINK_CONN 0 OK bytes=10000000375 first_mismatch=-1 mism_bytes=0 conn_ms=0.126 dur_ms=8586.751 Mbps=9316.679 reads=1178724 poll_tmo=0 CPU_FREQ_KHZ=3800238 THREADED=on q_full_push=1178724 q_full_pop=1178724 q_free_push=1178740 q_free_pop=1178724 slot_wait_spins=0 checked_bytes=10000000375
+SINK_SUM conns=1 fail_conns=0 bytes=10000000375 clean_conns=1 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=8.587 net_s=8.587 agg_Mbps=9316.679 THREADED=on full_push=1178724 full_pop=1178724 free_push=1178740 free_pop=1178724 slot_wait_spins=0 checked_bytes=10000000375 threads=2 check=lane8
+--- run 7/10: 10000000000 B downlink on port A ---
+TS_BEGIN E1A_R7_PRE 1793049553.658045038
+SNAP_BEGIN E1A_R7_PRE gen=21 status=0x00150056
+SNAP_STATUS gen=21 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x0079a84f
+W5   0x34   gmii_free_FE           0x3ea25272
+W14  0x58   tx_stat_frames_TCP     0x027317eb
+W20  0x70   mac_tx_frames          0x027317f6
+W43  0xCC   mtx_stat_tx_words      0x3ea14a0d
+W52  0xF0   app_tx_frames          0x02731402
+W65  0x124  mac_tx_idle            0x65dc5407
+W66  0x128  tx_stat_winstall       0x030eebc7
+W67  0x12C  tx_winstall_cap        0x02b6f94f
+W68  0x130  rx_stat_ack_adv        0x0079a4dd
+W69  0x134  tx_win_at_winstall     0xf53cf000
+W83  0x16C  tx_p0_frames           0x027317f6
+W85  0x174  e1a_bin0               0x00000000
+W86  0x178  e1a_bin1               0x00000000
+W87  0x17C  e1a_bin2               0x00000000
+W88  0x180  e1a_bin3               0x00000000
+W89  0x184  e1a_bin4               0x00000000
+W90  0x188  e1a_bin5               0x000000dd
+W91  0x18C  e1a_bin6               0x0271430e
+W92  0x190  e1a_bin7               0x0001993a
+W93  0x194  e1a_bin8               0x000035dc
+W94  0x198  e1a_bin9               0x00000101
+W95  0x19C  e1a_sum_total          0xea91f100
+W96  0x1A0  e1a_max_total          0x0b38663c
+SNAP_END E1A_R7_PRE nff=0 stale_words=0
+TS_END E1A_R7_PRE 1793049553.754986164
+TS_BEGIN E1A_R7_MID1 1793049556.757586302
+SNAP_BEGIN E1A_R7_MID1 gen=22 status=0x00160056
+SNAP_STATUS gen=22 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x00809678
+W5   0x34   gmii_free_FE           0x5bbd1c50
+W14  0x58   tx_stat_frames_TCP     0x02987abe
+W20  0x70   mac_tx_frames          0x02987aca
+W43  0xCC   mtx_stat_tx_words      0x5bbc017a
+W52  0xF0   app_tx_frames          0x029876d6
+W65  0x124  mac_tx_idle            0x66c78bbd
+W66  0x128  tx_stat_winstall       0x03127137
+W67  0x12C  tx_winstall_cap        0x02b7f03d
+W68  0x130  rx_stat_ack_adv        0x00809304
+W69  0x134  tx_win_at_winstall     0x00000000
+W83  0x16C  tx_p0_frames           0x02987aca
+W85  0x174  e1a_bin0               0x00000000
+W86  0x178  e1a_bin1               0x00000000
+W87  0x17C  e1a_bin2               0x00000000
+W88  0x180  e1a_bin3               0x00000000
+W89  0x184  e1a_bin4               0x00000000
+W90  0x188  e1a_bin5               0x000000ea
+W91  0x18C  e1a_bin6               0x0296a5b7
+W92  0x190  e1a_bin7               0x00019947
+W93  0x194  e1a_bin8               0x000035e8
+W94  0x198  e1a_bin9               0x00000105
+W95  0x19C  e1a_sum_total          0x2e0a71c2
+W96  0x1A0  e1a_max_total          0x0b38733a
+SNAP_END E1A_R7_MID1 nff=0 stale_words=0
+TS_END E1A_R7_MID1 1793049557.252815966
+SINK_RC=0
+TS_BEGIN E1A_R7_POST 1793049563.235309792
+SNAP_BEGIN E1A_R7_POST gen=23 status=0x00170056
+SNAP_STATUS gen=23 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x008d2df9
+W5   0x34   gmii_free_FE           0x97d69414
+W14  0x58   tx_stat_frames_TCP     0x02db9b79
+W20  0x70   mac_tx_frames          0x02db9b86
+W43  0xCC   mtx_stat_tx_words      0x97d5531a
+W52  0xF0   app_tx_frames          0x02db9755
+W65  0x124  mac_tx_idle            0x70453240
+W66  0x128  tx_stat_winstall       0x032383bd
+W67  0x12C  tx_winstall_cap        0x02c3bfd8
+W68  0x130  rx_stat_ack_adv        0x008d2a4f
+W69  0x134  tx_win_at_winstall     0xf53cf000
+W83  0x16C  tx_p0_frames           0x02db9b86
+W85  0x174  e1a_bin0               0x00000000
+W86  0x178  e1a_bin1               0x00000000
+W87  0x17C  e1a_bin2               0x00000000
+W88  0x180  e1a_bin3               0x00000000
+W89  0x184  e1a_bin4               0x00000000
+W90  0x188  e1a_bin5               0x00000102
+W91  0x18C  e1a_bin6               0x02d9c391
+W92  0x190  e1a_bin7               0x00019ac6
+W93  0x194  e1a_bin8               0x000036e6
+W94  0x198  e1a_bin9               0x00000116
+W95  0x19C  e1a_sum_total          0x93151d6e
+W96  0x1A0  e1a_max_total          0x0b38733a
+SNAP_END E1A_R7_POST nff=0 stale_words=0
+TS_END E1A_R7_POST 1793049563.333060335
+SINK_CONN 0 OK bytes=10000000375 first_mismatch=-1 mism_bytes=0 conn_ms=0.133 dur_ms=8472.586 Mbps=9442.218 reads=1276367 poll_tmo=0 CPU_FREQ_KHZ=3796783 THREADED=on q_full_push=1276367 q_full_pop=1276367 q_free_push=1276383 q_free_pop=1276367 slot_wait_spins=707 checked_bytes=10000000375
+SINK_SUM conns=1 fail_conns=0 bytes=10000000375 clean_conns=1 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=8.473 net_s=8.473 agg_Mbps=9442.218 THREADED=on full_push=1276367 full_pop=1276367 free_push=1276383 free_pop=1276367 slot_wait_spins=707 checked_bytes=10000000375 threads=2 check=lane8
+--- run 8/10: 10000000000 B downlink on port A ---
+TS_BEGIN E1A_R8_PRE 1793049563.335540892
+SNAP_BEGIN E1A_R8_PRE gen=24 status=0x00180056
+SNAP_STATUS gen=24 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x008d2df9
+W5   0x34   gmii_free_FE           0x98c353fd
+W14  0x58   tx_stat_frames_TCP     0x02db9b79
+W20  0x70   mac_tx_frames          0x02db9b86
+W43  0xCC   mtx_stat_tx_words      0x98c2126c
+W52  0xF0   app_tx_frames          0x02db9755
+W65  0x124  mac_tx_idle            0x7131f192
+W66  0x128  tx_stat_winstall       0x032383bd
+W67  0x12C  tx_winstall_cap        0x02c3bfd8
+W68  0x130  rx_stat_ack_adv        0x008d2a4f
+W69  0x134  tx_win_at_winstall     0xf53cf000
+W83  0x16C  tx_p0_frames           0x02db9b86
+W85  0x174  e1a_bin0               0x00000000
+W86  0x178  e1a_bin1               0x00000000
+W87  0x17C  e1a_bin2               0x00000000
+W88  0x180  e1a_bin3               0x00000000
+W89  0x184  e1a_bin4               0x00000000
+W90  0x188  e1a_bin5               0x00000102
+W91  0x18C  e1a_bin6               0x02d9c391
+W92  0x190  e1a_bin7               0x00019ac6
+W93  0x194  e1a_bin8               0x000036e6
+W94  0x198  e1a_bin9               0x00000116
+W95  0x19C  e1a_sum_total          0x93151d6e
+W96  0x1A0  e1a_max_total          0x0b38733a
+SNAP_END E1A_R8_PRE nff=0 stale_words=0
+TS_END E1A_R8_PRE 1793049563.432149047
+TS_BEGIN E1A_R8_MID1 1793049566.443267958
+SNAP_BEGIN E1A_R8_MID1 gen=25 status=0x00190056
+SNAP_STATUS gen=25 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x0093efdb
+W5   0x34   gmii_free_FE           0xb5d1d621
+W14  0x58   tx_stat_frames_TCP     0x0300ed18
+W20  0x70   mac_tx_frames          0x0300ed26
+W43  0xCC   mtx_stat_tx_words      0xb5d08218
+W52  0xF0   app_tx_frames          0x0300e8f5
+W65  0x124  mac_tx_idle            0x721dd9ee
+W66  0x128  tx_stat_winstall       0x03281e74
+W67  0x12C  tx_winstall_cap        0x02c5bbcd
+W68  0x130  rx_stat_ack_adv        0x0093ec2f
+W69  0x134  tx_win_at_winstall     0x00000000
+W83  0x16C  tx_p0_frames           0x0300ed26
+W85  0x174  e1a_bin0               0x00000000
+W86  0x178  e1a_bin1               0x00000000
+W87  0x17C  e1a_bin2               0x00000000
+W88  0x180  e1a_bin3               0x00000000
+W89  0x184  e1a_bin4               0x00000000
+W90  0x188  e1a_bin5               0x0000010f
+W91  0x18C  e1a_bin6               0x02ff14dd
+W92  0x190  e1a_bin7               0x00019ae4
+W93  0x194  e1a_bin8               0x00003704
+W94  0x198  e1a_bin9               0x00000120
+W95  0x19C  e1a_sum_total          0xd6748e2b
+W96  0x1A0  e1a_max_total          0x0b38733a
+SNAP_END E1A_R8_MID1 nff=0 stale_words=0
+TS_END E1A_R8_MID1 1793049567.027664788
+SINK_RC=0
+TS_BEGIN E1A_R8_POST 1793049572.912684970
+SNAP_BEGIN E1A_R8_POST gen=26 status=0x001a0056
+SNAP_STATUS gen=26 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x00a072a8
+W5   0x34   gmii_free_FE           0xf1f7414f
+W14  0x58   tx_stat_frames_TCP     0x03441f09
+W20  0x70   mac_tx_frames          0x03441f17
+W43  0xCC   mtx_stat_tx_words      0xf1f5c700
+W52  0xF0   app_tx_frames          0x03441aaa
+W65  0x124  mac_tx_idle            0x7b9a79db
+W66  0x128  tx_stat_winstall       0x03380ccf
+W67  0x12C  tx_winstall_cap        0x02d07865
+W68  0x130  rx_stat_ack_adv        0x00a06ed1
+W69  0x134  tx_win_at_winstall     0x00000000
+W83  0x16C  tx_p0_frames           0x03441f17
+W85  0x174  e1a_bin0               0x00000000
+W86  0x178  e1a_bin1               0x00000000
+W87  0x17C  e1a_bin2               0x00000000
+W88  0x180  e1a_bin3               0x00000000
+W89  0x184  e1a_bin4               0x00000000
+W90  0x188  e1a_bin5               0x00000127
+W91  0x18C  e1a_bin6               0x03424394
+W92  0x190  e1a_bin7               0x00019c94
+W93  0x194  e1a_bin8               0x00003827
+W94  0x198  e1a_bin9               0x00000134
+W95  0x19C  e1a_sum_total          0x3b97e5e9
+W96  0x1A0  e1a_max_total          0x0b38733a
+SNAP_END E1A_R8_POST nff=0 stale_words=0
+TS_END E1A_R8_POST 1793049573.010002178
+SINK_CONN 0 OK bytes=10000003295 first_mismatch=-1 mism_bytes=0 conn_ms=0.166 dur_ms=8472.555 Mbps=9442.255 reads=1258738 poll_tmo=0 CPU_FREQ_KHZ=3800258 THREADED=on q_full_push=1258738 q_full_pop=1258738 q_free_push=1258754 q_free_pop=1258738 slot_wait_spins=138 checked_bytes=10000003295
+SINK_SUM conns=1 fail_conns=0 bytes=10000003295 clean_conns=1 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=8.473 net_s=8.473 agg_Mbps=9442.255 THREADED=on full_push=1258738 full_pop=1258738 free_push=1258754 free_pop=1258738 slot_wait_spins=138 checked_bytes=10000003295 threads=2 check=lane8
+--- run 9/10: 10000000000 B downlink on port A ---
+TS_BEGIN E1A_R9_PRE 1793049573.012551853
+SNAP_BEGIN E1A_R9_PRE gen=27 status=0x001b0056
+SNAP_STATUS gen=27 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x00a072a8
+W5   0x34   gmii_free_FE           0xf2e30de4
+W14  0x58   tx_stat_frames_TCP     0x03441f09
+W20  0x70   mac_tx_frames          0x03441f17
+W43  0xCC   mtx_stat_tx_words      0xf2e19300
+W52  0xF0   app_tx_frames          0x03441aaa
+W65  0x124  mac_tx_idle            0x7c8645db
+W66  0x128  tx_stat_winstall       0x03380ccf
+W67  0x12C  tx_winstall_cap        0x02d07865
+W68  0x130  rx_stat_ack_adv        0x00a06ed1
+W69  0x134  tx_win_at_winstall     0x00000000
+W83  0x16C  tx_p0_frames           0x03441f17
+W85  0x174  e1a_bin0               0x00000000
+W86  0x178  e1a_bin1               0x00000000
+W87  0x17C  e1a_bin2               0x00000000
+W88  0x180  e1a_bin3               0x00000000
+W89  0x184  e1a_bin4               0x00000000
+W90  0x188  e1a_bin5               0x00000127
+W91  0x18C  e1a_bin6               0x03424394
+W92  0x190  e1a_bin7               0x00019c94
+W93  0x194  e1a_bin8               0x00003827
+W94  0x198  e1a_bin9               0x00000134
+W95  0x19C  e1a_sum_total          0x3b97e5e9
+W96  0x1A0  e1a_max_total          0x0b38733a
+SNAP_END E1A_R9_PRE nff=0 stale_words=0
+TS_END E1A_R9_PRE 1793049573.110236573
+TS_BEGIN E1A_R9_MID1 1793049576.131450023
+SNAP_BEGIN E1A_R9_MID1 gen=28 status=0x001c0056
+SNAP_STATUS gen=28 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x00a8d563
+W5   0x34   gmii_free_FE           0x103fed63
+W14  0x58   tx_stat_frames_TCP     0x0369d755
+W20  0x70   mac_tx_frames          0x0369d764
+W43  0xCC   mtx_stat_tx_words      0x103e5fc9
+W52  0xF0   app_tx_frames          0x0369d2f7
+W65  0x124  mac_tx_idle            0x7d73226d
+W66  0x128  tx_stat_winstall       0x033bb92c
+W67  0x12C  tx_winstall_cap        0x02d18e7e
+W68  0x130  rx_stat_ack_adv        0x00a8d18a
+W69  0x134  tx_win_at_winstall     0x00000000
+W83  0x16C  tx_p0_frames           0x0369d764
+W85  0x174  e1a_bin0               0x00000000
+W86  0x178  e1a_bin1               0x00000000
+W87  0x17C  e1a_bin2               0x00000000
+W88  0x180  e1a_bin3               0x00000000
+W89  0x184  e1a_bin4               0x00000000
+W90  0x188  e1a_bin5               0x00000134
+W91  0x18C  e1a_bin6               0x0367fbaf
+W92  0x190  e1a_bin7               0x00019c9e
+W93  0x194  e1a_bin8               0x00003835
+W94  0x198  e1a_bin9               0x00000140
+W95  0x19C  e1a_sum_total          0x7f91ea8b
+W96  0x1A0  e1a_max_total          0x0b395e06
+SNAP_END E1A_R9_MID1 nff=0 stale_words=0
+TS_END E1A_R9_MID1 1793049576.539673814
+SINK_RC=0
+TS_BEGIN E1A_R9_POST 1793049582.595661299
+SNAP_BEGIN E1A_R9_POST gen=29 status=0x001d0056
+SNAP_STATUS gen=29 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x00b7c057
+W5   0x34   gmii_free_FE           0x4c24de7f
+W14  0x58   tx_stat_frames_TCP     0x03aca29b
+W20  0x70   mac_tx_frames          0x03aca2aa
+W43  0xCC   mtx_stat_tx_words      0x4c232ab5
+W52  0xF0   app_tx_frames          0x03ac9e01
+W65  0x124  mac_tx_idle            0x86fcafc3
+W66  0x128  tx_stat_winstall       0x0357e27f
+W67  0x12C  tx_winstall_cap        0x02e7c97b
+W68  0x130  rx_stat_ack_adv        0x00b7bc5c
+W69  0x134  tx_win_at_winstall     0xf53cf000
+W83  0x16C  tx_p0_frames           0x03aca2aa
+W85  0x174  e1a_bin0               0x00000000
+W86  0x178  e1a_bin1               0x00000000
+W87  0x17C  e1a_bin2               0x00000000
+W88  0x180  e1a_bin3               0x00000000
+W89  0x184  e1a_bin4               0x00000000
+W90  0x188  e1a_bin5               0x0000014c
+W91  0x18C  e1a_bin6               0x03aabe79
+W92  0x190  e1a_bin7               0x0001a22b
+W93  0x194  e1a_bin8               0x00003ab1
+W94  0x198  e1a_bin9               0x00000160
+W95  0x19C  e1a_sum_total          0xe427e2c3
+W96  0x1A0  e1a_max_total          0x0b395e06
+SNAP_END E1A_R9_POST nff=0 stale_words=0
+TS_END E1A_R9_POST 1793049582.693284268
+SINK_CONN 0 OK bytes=10000001835 first_mismatch=-1 mism_bytes=0 conn_ms=0.068 dur_ms=8477.725 Mbps=9436.496 reads=1526811 poll_tmo=0 CPU_FREQ_KHZ=3800245 THREADED=on q_full_push=1526811 q_full_pop=1526811 q_free_push=1526827 q_free_pop=1526811 slot_wait_spins=1369 checked_bytes=10000001835
+SINK_SUM conns=1 fail_conns=0 bytes=10000001835 clean_conns=1 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=8.478 net_s=8.478 agg_Mbps=9436.496 THREADED=on full_push=1526811 full_pop=1526811 free_push=1526827 free_pop=1526811 slot_wait_spins=1369 checked_bytes=10000001835 threads=2 check=lane8
+--- run 10/10: 10000000000 B downlink on port A ---
+TS_BEGIN E1A_R10_PRE 1793049582.695676952
+SNAP_BEGIN E1A_R10_PRE gen=30 status=0x001e0056
+SNAP_STATUS gen=30 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x00b7c057
+W5   0x34   gmii_free_FE           0x4d11732f
+W14  0x58   tx_stat_frames_TCP     0x03aca29b
+W20  0x70   mac_tx_frames          0x03aca2aa
+W43  0xCC   mtx_stat_tx_words      0x4d0fbece
+W52  0xF0   app_tx_frames          0x03ac9e01
+W65  0x124  mac_tx_idle            0x87e943dc
+W66  0x128  tx_stat_winstall       0x0357e27f
+W67  0x12C  tx_winstall_cap        0x02e7c97b
+W68  0x130  rx_stat_ack_adv        0x00b7bc5c
+W69  0x134  tx_win_at_winstall     0xf53cf000
+W83  0x16C  tx_p0_frames           0x03aca2aa
+W85  0x174  e1a_bin0               0x00000000
+W86  0x178  e1a_bin1               0x00000000
+W87  0x17C  e1a_bin2               0x00000000
+W88  0x180  e1a_bin3               0x00000000
+W89  0x184  e1a_bin4               0x00000000
+W90  0x188  e1a_bin5               0x0000014c
+W91  0x18C  e1a_bin6               0x03aabe79
+W92  0x190  e1a_bin7               0x0001a22b
+W93  0x194  e1a_bin8               0x00003ab1
+W94  0x198  e1a_bin9               0x00000160
+W95  0x19C  e1a_sum_total          0xe427e2c3
+W96  0x1A0  e1a_max_total          0x0b395e06
+SNAP_END E1A_R10_PRE nff=0 stale_words=0
+TS_END E1A_R10_PRE 1793049582.792128246
+TS_BEGIN E1A_R10_MID1 1793049585.794690867
+SNAP_BEGIN E1A_R10_MID1 gen=31 status=0x001f0056
+SNAP_STATUS gen=31 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x00be01aa
+W5   0x34   gmii_free_FE           0x69f08df2
+W14  0x58   tx_stat_frames_TCP     0x03d109fc
+W20  0x70   mac_tx_frames          0x03d10a0c
+W43  0xCC   mtx_stat_tx_words      0x69eec724
+W52  0xF0   app_tx_frames          0x03d104e1
+W65  0x124  mac_tx_idle            0x89565d42
+W66  0x128  tx_stat_winstall       0x03d24ccd
+W67  0x12C  tx_winstall_cap        0x03584dda
+W68  0x130  rx_stat_ack_adv        0x00bdfd42
+W69  0x134  tx_win_at_winstall     0x00000000
+W83  0x16C  tx_p0_frames           0x03d10a0c
+W85  0x174  e1a_bin0               0x00000000
+W86  0x178  e1a_bin1               0x00000000
+W87  0x17C  e1a_bin2               0x00000000
+W88  0x180  e1a_bin3               0x00000000
+W89  0x184  e1a_bin4               0x00000000
+W90  0x188  e1a_bin5               0x00000158
+W91  0x18C  e1a_bin6               0x03ced2d9
+W92  0x190  e1a_bin7               0x0001eb06
+W93  0x194  e1a_bin8               0x0000442e
+W94  0x198  e1a_bin9               0x0000017b
+W95  0x19C  e1a_sum_total          0x26a3ed2a
+W96  0x1A0  e1a_max_total          0x0b395e06
+SNAP_END E1A_R10_MID1 nff=0 stale_words=0
+TS_END E1A_R10_MID1 1793049585.914780888
+SINK_RC=0
+TS_BEGIN E1A_R10_POST 1793049592.426947189
+SNAP_BEGIN E1A_R10_POST gen=32 status=0x00200056
+SNAP_STATUS gen=32 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x00c99748
+W5   0x34   gmii_free_FE           0xa7b486f4
+W14  0x58   tx_stat_frames_TCP     0x041527a1
+W20  0x70   mac_tx_frames          0x041527b1
+W43  0xCC   mtx_stat_tx_words      0xa7b298b1
+W52  0xF0   app_tx_frames          0x04152155
+W65  0x124  mac_tx_idle            0x93bfd77e
+W66  0x128  tx_stat_winstall       0x04ba834c
+W67  0x12C  tx_winstall_cap        0x042dc54e
+W68  0x130  rx_stat_ack_adv        0x00c991ea
+W69  0x134  tx_win_at_winstall     0xf53cf000
+W83  0x16C  tx_p0_frames           0x041527b1
+W85  0x174  e1a_bin0               0x00000000
+W86  0x178  e1a_bin1               0x00000000
+W87  0x17C  e1a_bin2               0x00000000
+W88  0x180  e1a_bin3               0x00000000
+W89  0x184  e1a_bin4               0x00000000
+W90  0x188  e1a_bin5               0x00000171
+W91  0x18C  e1a_bin6               0x04125ecd
+W92  0x190  e1a_bin7               0x000268ca
+W93  0x194  e1a_bin8               0x000056b5
+W94  0x198  e1a_bin9               0x00000198
+W95  0x19C  e1a_sum_total          0x8e0fd909
+W96  0x1A0  e1a_max_total          0x0b395e06
+SNAP_END E1A_R10_POST nff=0 stale_words=0
+TS_END E1A_R10_POST 1793049592.523934836
+SINK_CONN 0 OK bytes=10000001835 first_mismatch=-1 mism_bytes=0 conn_ms=0.143 dur_ms=8626.591 Mbps=9273.653 reads=1168705 poll_tmo=0 CPU_FREQ_KHZ=3800248 THREADED=on q_full_push=1168705 q_full_pop=1168705 q_free_push=1168721 q_free_pop=1168705 slot_wait_spins=0 checked_bytes=10000001835
+SINK_SUM conns=1 fail_conns=0 bytes=10000001835 clean_conns=1 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=8.627 net_s=8.627 agg_Mbps=9273.653 THREADED=on full_push=1168705 full_pop=1168705 free_push=1168721 free_pop=1168705 slot_wait_spins=0 checked_bytes=10000001835 threads=2 check=lane8
+TS_BEGIN E1A_FINAL 1793049592.526265847
+SNAP_BEGIN E1A_FINAL gen=33 status=0x00210056
+SNAP_STATUS gen=33 busy=0 done=1 seen=1 locked_axi=1 ch0_stale=0
+W0   0x20   rx_stat_frames         0x00c99748
+W5   0x34   gmii_free_FE           0xa89f56b2
+W14  0x58   tx_stat_frames_TCP     0x041527a1
+W20  0x70   mac_tx_frames          0x041527b1
+W43  0xCC   mtx_stat_tx_words      0xa89d67d9
+W52  0xF0   app_tx_frames          0x04152155
+W65  0x124  mac_tx_idle            0x94aaa6a6
+W66  0x128  tx_stat_winstall       0x04ba834c
+W67  0x12C  tx_winstall_cap        0x042dc54e
+W68  0x130  rx_stat_ack_adv        0x00c991ea
+W69  0x134  tx_win_at_winstall     0xf53cf000
+W83  0x16C  tx_p0_frames           0x041527b1
+W85  0x174  e1a_bin0               0x00000000
+W86  0x178  e1a_bin1               0x00000000
+W87  0x17C  e1a_bin2               0x00000000
+W88  0x180  e1a_bin3               0x00000000
+W89  0x184  e1a_bin4               0x00000000
+W90  0x188  e1a_bin5               0x00000171
+W91  0x18C  e1a_bin6               0x04125ecd
+W92  0x190  e1a_bin7               0x000268ca
+W93  0x194  e1a_bin8               0x000056b5
+W94  0x198  e1a_bin9               0x00000198
+W95  0x19C  e1a_sum_total          0x8e0fd909
+W96  0x1A0  e1a_max_total          0x0b395e06
+SNAP_END E1A_FINAL nff=0 stale_words=0
+TS_END E1A_FINAL 1793049592.622792784
+=== E1A_END tag=E1A 1793049592.623910486 Tue Oct 27 05:19:52 AM CST 2026

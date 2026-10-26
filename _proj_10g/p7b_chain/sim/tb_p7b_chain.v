@@ -1642,18 +1642,18 @@ module tb_p7b_chain;
         u_dut.u_pcie_xdma.axil_read(32'h160, v); chk("P1 W80 ch0 bytes",  v === 32'hA5A50080, "forced ch0 sink counter");
         u_dut.u_pcie_xdma.axil_read(32'h164, v); chk("P1 W81 ch0 crc_err", v === 32'hA5A50081, "forced mac_rx_ch0.stat_crc_err");
         u_dut.u_pcie_xdma.axil_read(32'h168, v); chk("P1 W82 ch0 drop",   v === 32'hA5A50082, "forced mac_rx_ch0.stat_drop");
-        // ---- P11 P2-甲: 几何 85 字 (0x2D backstop-2) / 非 DUAL tie-off (N-10) ----
-        //   ⛔ 0x2D backstop-2 (2026-10-18): W85/W86/W87 已删, 顶端只保留 W84/W83;
-        //      MIR 四字 = 0x174/0x178/0x17C/0x180; 未实现地址 = 0x184。
+        // ---- P11 E1a-1: 几何 97 字 (W0..W96) / 非 DUAL tie-off (N-10) ----
+        //   ⭐ E1a-1 (2026-10-27): W85..W96 = p7bdp 槽 41..52;
+        //      MIR 四字 = 0x1A4/0x1A8/0x1AC/0x1B0; 未实现地址 = 0x1B4。
         u_dut.u_pcie_xdma.axil_read(32'h16C, v);
         chk("P11 W83 TX port0 frames = 0 (non-DUAL tie-off)", v === 32'h00000000, "W83 @0x16C");
         u_dut.u_pcie_xdma.axil_read(32'h170, v);
         chk("P11 W84 TX port1 frames = 0 (non-DUAL tie-off)", v === 32'h00000000, "W84 @0x170");
-        u_dut.u_pcie_xdma.axil_read(32'h174, v); chk("P11 MIR_STATUS @0x174", v[22:19] === 4'd4, "MIR block auto-shifted by SNAP_NW=85");
-        u_dut.u_pcie_xdma.axil_read(32'h184, v);
-        chk("7b 0x184 reads 0 no wrap",
+        u_dut.u_pcie_xdma.axil_read(32'h1A4, v); chk("P11 MIR_STATUS @0x1A4", v[22:19] === 4'd4, "MIR block auto-shifted by SNAP_NW=97");
+        u_dut.u_pcie_xdma.axil_read(32'h1B4, v);
+        chk("7b 0x1B4 reads 0 no wrap",
             (v === 32'h00000000) && (u_dut.u_pcie_xdma.last_rresp === 2'd2),
-            "axi_regs decode; 85-word bound (0x2D backstop-2: 0x184 = 0x20+4*85+16; 原 88 字/0x190)");
+            "axi_regs decode; 97-word bound (E1a-1: 0x1B4 = 0x20+4*97+16; 原 85 字/0x184)");
 
         // =============================================================
         // F2X-PATCH: F-2 归因实验 (窗口 = 快照基准, 判据 = 线上逐帧内容)

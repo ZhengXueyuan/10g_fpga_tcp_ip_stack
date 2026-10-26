@@ -1,0 +1,56 @@
+P11 E1a-1 构建 2 读数（0x33 / c4 / p3_dual_max8 / 合同 2 / Performance_ExtraTimingOpt）
+日期：2026-10-27 05:14 收口；证据目录 = 本目录（stdout/timing/util/drc/routed summary）
+
+[构建输入]
+P11_CFG_INPUT = c4 (env) ; HLS_VARIANT = p3_dual_max8        p7b_ku5p_stdout.txt:125
+P11_IMPL_STRATEGY = Performance_ExtraTimingOpt               p7b_ku5p_stdout.txt（顶部 puts）
+BID = 0x33 ; SNAP_NW_P6E = 97 ; SNAP_P7BDP_NW = 53           board/wrapper_p4.v
+
+[时序]
+WNS = +0.008 ns                                              p7b_ku5p_stdout.txt:5567
+WHS = +0.010 ns                                              p7b_ku5p_stdout.txt:5569
+WPWS(per-clock min) = 0.008                                  p7b_ku5p_stdout.txt:5571
+setup/hold/PW failing endpoints = 0 / 0 / 0                  wrapper_p4_timing_summary_routed.rpt:155
+  （Design Timing Summary: WNS 0.008 / TNS 0.000 / 0 ; WHS 0.010 / THS 0.000 / 0 ;
+    WPWS 0.000 / TPWS 0.000 / 0 —— 表内 WPWS 0.000 但 0 failing）
+All user specified timing constraints are met                 wrapper_p4_timing_summary_routed.rpt:158
+P7B_TIMING_GATE = PASS                                       p7b_ku5p_stdout.txt:5641
+
+[WNS 宿主]
+u_tcp_tx2/u_fifo_b/rptr_reg[3]/C -> u_retx_pool/g_slot[4].u_ram/ra_e_r_reg[0]/CE
+  组 g_hw.clk_out0（DP 域）；15 级；logic 1.514 / route 4.528 ns（route 74.9%）
+  wrapper_p4_timing_summary_routed.rpt:14031-14043
+  => port2 TX 既存族，不是 E1a hist 路径。
+
+[TCB 定向 STA]
+A 0.283 / B 0.308 / C 0.234 / D 0.250 / E 0.267 / F 0.223
+A2 0.340 / B2 0.254 / C2 0.375 / D2 0.451 / E2 0.294 / F2 0.292 / G2 0.286
+MIN = 0.223  =>  P11_STA_TCB_GATE = PASS
+  p7b_ku5p_stdout.txt:5712-5765
+
+[资源（placed）]
+LUT 121,295 (55.91%) / FF 100,050 (23.06%) / BRAM 109 (22.71%)
+URAM 17 (26.56%) / DSP 4 (0.22%)
+  wrapper_p4_utilization_placed.rpt:36,41,109,114,125
+
+[DRC]
+0 Error / 0 Critical / 85 Warning                             p7b_ku5p_drc.rpt
+
+[快照结构门]
+P7B_SNAP_TOP5_E1A_ON = 1 (slots 39..52)                      p7b_ku5p_stdout.txt:4246
+P7B_SNAP_TOP5_SLOTS_OK = 14                                  p7b_ku5p_stdout.txt:4279
+P7B_BLACKBOX_LOG_HITS = 0                                    p7b_ku5p_stdout.txt:4075
+
+[位流]
+path = bits/wrapper_p4_0x33.bit ; 15,431,261 B
+sha256 = 4e41a064d4b599b7f09902dc4c0435f50e6c29c660206ac03fe90b44329d0550
+P7B_BIT_EXISTS = 1 ; P7B_VERDICT = OK                        p7b_ku5p_stdout.txt:5769,5775
+
+[构建 1（对照，禁烧）]
+Performance_Explore: WNS -0.023 / WHS +0.004 / WPWS 0.010 ; setup 145 / hold 0 / PW 0
+=> TIMING_GATE = FAIL；位流改名 .TIMING_FAIL；报告见 ../build_fail1/
+最差路径 = u_tcp_tx/FSM_sequential_rx_state_reg[0]_replica -> u_app/tx_lfsr_reg[61]/D（21 级）
+
+备注：
+- 构建 2 与构建 1 的 RTL/宏/BID 逐字相同，唯一差异 = implementation strategy（另一个构建输入）。
+- WNS 0.008 = 周期 6.400 ns 的 0.125% => 后续任何 RTL 改动须重新定向 STA 并一次构建收口。

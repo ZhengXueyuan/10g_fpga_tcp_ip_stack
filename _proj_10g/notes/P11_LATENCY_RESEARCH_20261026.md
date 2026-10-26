@@ -246,6 +246,8 @@ PCIe ── pcie_axi_aclk ──► 观测/快照/XDMA
 - 时序：0x32 全局 WNS 仅 **+0.019 ns**；E1a 计数器 + 6 个 64 位事件采样 + 4 组统计 + 快照字远超“几百 FF”，必须跑**完整 timing gate**（不只 `P11_STA_TCB_GATE`），并定向看 DP/pcie 异步复位族。
 - 覆盖边界：E1a 不含 MAC/PCS/PHY/SFP；**M6 板内 MAC 环回标定的是 RX+TX 往返**（还含环回路径），不能直接加到 E1a 得到单程 `L_board`。要么用 E1b 的 FE SOP/TLAST 时间戳，要么分别标定 RX/TX 单向固定延迟。
 
+**E1a-1 实施/审查/单元门（2026-10-27，未构建/未上板）**：缩窄版设计件 = `_proj_10g/notes/p11_e1a_design_20261027/DESIGN.md`；只测 port0/u_tcp_tx 的逐帧总延迟 `L = T_DONE 接受拍 − 帧首字呈现拍`（不要求 RX_IDLE；34 位时间戳跨回卷；10 桶 0:0-127…3:192-223…9:≥4096 + sum + 全局 max）；12 字 W85..W96 / NW 97 / p7bdp 53 / BID 0x33 / 未实现 0x1B4。独立审查 5 高/11 中/低若干，处置见 `REVIEW_RESPONSE.md`；单元门 A/B/C/D `TB_E1A_PASS`；`check_window.py` 122/0、`check_snap_top5_wired.py` PASS。**构建 2 通过（0x33；WNS +0.008 / 0/0/0 / TCB min 0.223；位流 `4e41a064…`）并已上板**：10×10 GB / 68,493,653 帧，`hist==ΔW52` 10/10，**p50 与 p99 全落 bin6（2.46–3.27 µs）**，bin3（纯帧器服务）恒空，meanX 2.47–2.49 µs，tail(≥3.28 µs)=0.007–0.031%（快）/0.44–0.85%（退化）；`max_total` 被**会话边界帧**污染（跨关闭期等待，1.2047–1.2052 s）⇒ **E1a-2 首项 = 首帧标签/pending 清理**。矩阵首轮 40/41（唯一红 = `tb_biz_win.v:158` BID 期望 0x32，测试债，已修）。本段 §4.5 的完整多事件/64 位/采样环/RX 分段留 E1a-2/3。
+
 **E1b（跨域，后做）**
 - FE RX/TX 域（`rx_clk_out_*` / `tx_mii_clk_*`，156.25MHz 恢复钟）需要 `mac_rx_10g` SOP/TLAST 和 `mac_tx_10g` SOP/TLAST 的时间戳。
 - 跨域方案二选一：① **64 位 Gray 码计数器**从 `dp_clk` 同步到 FE 域（同频异相，2 级同步 + Gray 保证多比特一致）；② **事件握手**（FE 域锁存事件，`dp_clk` 侧读走并回 ack），事件率 <1M/s，握手开销可接受。**不要**直接对 64 位二进制计数器做 2 级同步（多比特不一致）。

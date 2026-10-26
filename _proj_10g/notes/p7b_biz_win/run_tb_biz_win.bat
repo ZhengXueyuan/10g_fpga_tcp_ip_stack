@@ -1,7 +1,7 @@
 @echo off
 REM ===========================================================================
 REM run_tb_biz_win.bat -- P7B-BIZ per-word readback gate for the snapshot window
-REM   DUT: _proj_pcie/rtl/axi_regs.v with SNAP_NW=85 (the wrapper's SNAP_NW_P6E;
+REM   DUT: _proj_pcie/rtl/axi_regs.v with SNAP_NW=97 (the wrapper's SNAP_NW_P6E;
 REM        88 = 0x2D first run / 83 = P11 P1 / 76 = p9 orphan fix / 75 = P9 E12 / 71 = M1
 REM        were earlier generations).
 REM   TB : _proj_10g/notes/p7b_biz_win/tb_biz_win.v
@@ -27,7 +27,7 @@ REM 2026-10-10 (build E): fingerprint 66 -> 67.
 REM 2026-10-10 (P7B-GAP9-TX): fingerprint 61 -> 65. It had already gone stale at 63
 REM   (P7B-WU round) => like its sibling (run_xvlog_wrapper.bat) this gate was DEAD (exit 92).
 REM 2026-10-18 (0x2D backstop-2): fingerprint 88 -> 85 (W85..W87 deleted).
-findstr /C:"SNAP_NW_P6E = 85" "%ROOT%\board\wrapper_p4.v" >NUL || ( echo [FINGERPRINT FAIL] wrapper is not 85-word & exit /b 92 )
+findstr /C:"SNAP_NW_P6E = 97" "%ROOT%\board\wrapper_p4.v" >NUL || ( echo [FINGERPRINT FAIL] wrapper is not 97-word & exit /b 92 )
 
 call "%XV%\xvlog.bat" -work xil_defaultlib "%RTL%" "%TB%" > xvlog_biz.log 2>&1 || ( type xvlog_biz.log & exit /b 1 )
 call "%XV%\xvlog.bat" -work xil_defaultlib "%XV%\..\data\verilog\src\glbl.v" >> xvlog_biz.log 2>&1

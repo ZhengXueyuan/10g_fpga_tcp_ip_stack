@@ -69,6 +69,15 @@ switch -- $P11_CFG {
 set P11_IS_DUAL [expr {[lsearch -exact $P11_DEFS "P11_DUAL=1"] >= 0}]
 if {$P11_IS_DUAL} { lappend P11_DEFS P11_HLS_ADV_WND=1 }
 
+# ⭐ 2026-10-27 E1a 0x33: implementation strategy is a build input (default = the
+#    0x31/0x32 Performance_Explore). A retry with a different strategy is a NEW INPUT,
+#    not "rerun until pass"; used only if the first build's timing gate fails.
+set P11_IMPL_STRATEGY "Performance_Explore"
+if {[info exists ::env(P11_IMPL_STRATEGY)] && ($::env(P11_IMPL_STRATEGY) ne "")} {
+    set P11_IMPL_STRATEGY $::env(P11_IMPL_STRATEGY)
+}
+puts "P11_IMPL_STRATEGY = $P11_IMPL_STRATEGY"
+
 set CFG_HLS_VARIANT ""
 if {[info exists ::env(P11_HLS_VARIANT)] && ($::env(P11_HLS_VARIANT) ne "")} {
     set CFG_HLS_VARIANT $::env(P11_HLS_VARIANT)
@@ -576,10 +585,12 @@ if {$P11_IS_DUAL} {
 #   `tx_p0_frames_r_reg[0]/Q` 直接进 `u_pcie_regs/snap_din` (裸多比特 CDC)。
 #   ⛔ P11 0x2D backstop-1 (2026-10-18): W86/W87 已删 ⇒ 剩余槽集 = 39..41;
 #      ⛔ backstop-2: 再删 W85 ⇒ 剩余槽集 = 39..40 (位 1248..1311; 对应 W83/W84)。
+#      ⭐ P11 E1a-1 (2026-10-27): E1A_EN=1 (P11_DUAL/c4) 时槽集 = **39..52** (14 槽);
+#      非 E1A 构建 (c1/c3) 新槽是常量 0 ⇒ 只查 39..40 (2 槽), 避免假红。
 #      门**必须**按剩余槽集检查, 否则会因已删槽位不存在而假红。改动属新输入,
 #      已在 0x2D retry 报告登记。
 #   本段是**综合后 (post-synth) 结构门** (open_run synth_1 = 综合网表; 构建轮执行):
-#     ① 槽 39..40 (位 1248..1311) 每个槽至少 1 个 hold_b 寄存器;
+#     ① 槽 39..top_hi (E1A: 52, 位 1248..1695; 非 E1A: 40) 每槽至少 1 个 hold_b 寄存器;
 #     ② `tx_p0_frames_r_reg[0]/Q` 的负载里**必须**有 u_snap_p7bdp/hold_b,
 #        且**不得**有 u_pcie_regs/snap_din (综合名) / snap_words_r (布局名)。
 #   ⚠️ 负载枚举必须 `get_pins -leaf`: 层次边界 pin
@@ -587,8 +598,14 @@ if {$P11_IS_DUAL} {
 #      `u_snap_p7bdp/hold_b_reg[1248]/D` ⇒ 假红 (0x2D 首跑即此)。
 #   失败 = `P7B_SNAP_TOP5_CDC_MISSING` / `P7B_SNAP_TOP5_FANOUT_BAD` + exit 1。
 sec "P7B_SNAP_TOP5_CDC"
+# ⭐ E1a-1: slots 41..52 exist only when E1A_EN=1 (P11_DUAL). In c1/c3 the sources are
+#    constant 0, so hold_b cells may be optimized away; checking them would be a false red.
+set e1a_on 0
+if {[lsearch -exact $P11_DEFS "P11_DUAL=1"] >= 0} { set e1a_on 1 }
+set top_hi [expr {$e1a_on ? 52 : 40}]
+puts "P7B_SNAP_TOP5_E1A_ON = $e1a_on (slots 39..$top_hi)"
 set top5_bad 0
-for {set s 39} {$s <= 40} {incr s} {
+for {set s 39} {$s <= $top_hi} {incr s} {
     set lo [expr {$s * 32}]
     set hi [expr {$s * 32 + 31}]
     set nc 0
@@ -604,7 +621,7 @@ if {$top5_bad != 0} {
     puts "P7B_SNAP_TOP5_CDC_MISSING slots_with_zero_cells=$top5_bad"
     exit 1
 }
-puts "P7B_SNAP_TOP5_SLOTS_OK = 2"
+puts "P7B_SNAP_TOP5_SLOTS_OK = [expr {$top_hi - 39 + 1}]"
 set f_pin [get_pins -quiet -filter "NAME == tx_p0_frames_r_reg\[0\]/Q"]
 if {[llength $f_pin] != 1} {
     puts "P7B_SNAP_TOP5_FANOUT_BAD pin_not_found tx_p0_frames_r_reg\[0\]/Q"
@@ -682,7 +699,7 @@ sec "P7B_IMPL"
 #   TCB 写延迟都会破坏 retx 序列 (txdrop50 实测 3/5 帧失配)，因此改走 placement
 #   策略搜索 (P7B_MAC_TIMING_FIX §7.3: 同 RTL 换策略可摆动 0.2–0.46 ns，方向
 #   不可控；本轮用它争取 0.418 ns 的缺口，结果由构建门裁定)。
-set_property strategy Performance_Explore [get_runs impl_1]
+set_property strategy $P11_IMPL_STRATEGY [get_runs impl_1]
 reset_run impl_1
 catch {launch_runs impl_1 -to_step write_bitstream -jobs 8} e2
 puts "P7B_IMPL_LAUNCH = $e2"

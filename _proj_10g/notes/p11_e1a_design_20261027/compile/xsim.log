@@ -1,0 +1,39 @@
+#-----------------------------------------------------------
+# xsim v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Tue Oct 27 02:39:58 2026
+# Process ID         : 27240
+# Current directory  : D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_e1a_design_20261027/compile
+# Command line       : xsim.exe -log xsim.log -mode tcl -source {xsim.dir/tb_e1a_draft/xsim_script.tcl}
+# Log file           : D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_e1a_design_20261027/compile/xsim.log
+# Journal file       : D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_e1a_design_20261027/compile\xsim.jou
+# Running On         : xyz-intel
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26300
+# Processor Detail   : Intel(R) Core(TM) Ultra 7 265K
+# CPU Frequency      : 3878 MHz
+# CPU Physical cores : 20
+# CPU Logical cores  : 20
+# Host memory        : 68053 MB
+# Swap memory        : 4294 MB
+# Total Virtual      : 72348 MB
+# Available Virtual  : 48934 MB
+#-----------------------------------------------------------
+source xsim.dir/tb_e1a_draft/xsim_script.tcl
+# xsim {tb_e1a_draft} -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+DBG_TD ctrl=0 isapp=1 bank=0 frames=0 ack=0
+E1A_A hist_total=1 sum=219 max=219 stat_frames=1
+DBG_TD ctrl=0 isapp=1 bank=1 frames=1 ack=0
+E1A_B hist_total=2 sum=236 max=219 frames=2
+DBG_TD ctrl=1 isapp=1 bank=0 frames=2 ack=0
+E1A_C hist_total=2 (before=2) stat_ack=1
+DBG_TD ctrl=0 isapp=1 bank=0 frames=3 ack=1
+E1A_D hist_total=3 sum=255 max=219 frames=4
+TB_E1A_PASS
+$finish called at time : 2618400 ps : File "D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_e1a_design_20261027/tb_e1a_draft.v" Line 281
+exit
+INFO: [Common 17-206] Exiting xsim at Tue Oct 27 02:40:00 2026...

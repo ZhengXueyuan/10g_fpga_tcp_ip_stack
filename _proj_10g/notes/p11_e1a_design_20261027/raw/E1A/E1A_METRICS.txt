@@ -1,0 +1,39 @@
+E1a-1 (0x33 geometry): per-frame DP TX latency hist; W85..W96
+edges(cyc): 0:0-127, 1:128-159, 2:160-191, 3:192-223, 4:224-255, 5:256-383, 6:384-511, 7:512-1023, 8:1024-4095, 9:4096-inf
+W95=sum_total (window delta); W96=max_total (GLOBAL since reset, NOT a delta)
+
+IDLE negative control: d_hist=0 d_sum=0 d_max=0 (W43 +328152868, W65 +328152868) => PASS
+
+run        state      sinkG     frames       dW14   gap dW52-h  mean_us meanX_us                   p50                   p99   tail%    max_cyc
+E1A_R1     fast      9.4456    6849365    6849394    29      0     2.47     2.47 bin6 384-511cyc(2.46-3.27us) bin6 384-511cyc(2.46-3.27us)   0.007      31932
+  bins: [0, 0, 0, 0, 0, 37, 6848820, 331, 161, 16]  sum=2638449319
+E1A_R2     fast      9.4423    6849364    6849393    29      0     2.64     2.47 bin6 384-511cyc(2.46-3.27us) bin6 384-511cyc(2.46-3.27us)   0.010  188238282
+  bins: [0, 0, 0, 0, 0, 37, 6848643, 406, 243, 35]  sum=2827131758
+E1A_R3     degraded  9.3220    6849368    6849713   345      0     2.66     2.48 bin6 384-511cyc(2.46-3.27us) bin6 384-511cyc(2.46-3.27us)   0.616  188238282
+  bins: [0, 0, 0, 0, 0, 36, 6807112, 37132, 5036, 52]  sum=2843763596
+E1A_R4     fast      9.3573    6849369    6849623   254      0     2.65     2.48 bin6 384-511cyc(2.46-3.27us) bin6 384-511cyc(2.46-3.27us)   0.439  188238282
+  bins: [0, 0, 0, 0, 0, 37, 6819250, 26610, 3435, 37]  sum=2838376484
+E1A_R5     fast      9.4347    6849365    6849381    16      0     2.64     2.47 bin6 384-511cyc(2.46-3.27us) bin6 384-511cyc(2.46-3.27us)   0.009  188238282
+  bins: [0, 0, 0, 0, 0, 37, 6848684, 361, 216, 67]  sum=2828089582
+E1A_R6     degraded  9.3167    6849363    6849691   328      0     2.66     2.48 bin6 384-511cyc(2.46-3.27us) bin6 384-511cyc(2.46-3.27us)   0.652  188245564
+  bins: [0, 0, 0, 0, 0, 37, 6804657, 39922, 4697, 50]  sum=2844524109
+E1A_R7     fast      9.4422    6849363    6849422    59      0     2.64     2.47 bin6 384-511cyc(2.46-3.27us) bin6 384-511cyc(2.46-3.27us)   0.010  188248890
+  bins: [0, 0, 0, 0, 0, 37, 6848643, 396, 266, 21]  sum=2827168878
+E1A_R8     fast      9.4423    6849365    6849424    59      0     2.64     2.47 bin6 384-511cyc(2.46-3.27us) bin6 384-511cyc(2.46-3.27us)   0.012  188248890
+  bins: [0, 0, 0, 0, 0, 37, 6848515, 462, 321, 30]  sum=2827143291
+E1A_R9     fast      9.4365    6849367    6849426    59      0     2.64     2.47 bin6 384-511cyc(2.46-3.27us) bin6 384-511cyc(2.46-3.27us)   0.031  188308998
+  bins: [0, 0, 0, 0, 0, 37, 6847205, 1431, 650, 44]  sum=2828008666
+E1A_R10    degraded  9.2737    6849364    6849798   434      0     2.66     2.49 bin6 384-511cyc(2.46-3.27us) bin6 384-511cyc(2.46-3.27us)   0.848  188308998
+  bins: [0, 0, 0, 0, 0, 37, 6791252, 50847, 7172, 56]  sum=2850551366
+TOTAL runs=10 hist=68493653 dW14=68495265 (gap 1612) dW52=68493653 (dW52-hist 0)
+
+notes:
+- state bands: fast >=9.35 Gbps; degraded 9.26-9.35; slow <=9.26 (E0.5 clusters).
+- meanX_us = mean with ONE global-max frame subtracted (see W96 note); raw mean includes it.
+- tail% = frames in bin7..bin9 (>=512 cyc = >=3.28 us).
+- p50/p99 are bin intervals, not point estimates; W96 is GLOBAL max since reset, so it is
+  an upper bound for every window. max is polluted by the first frame of each session
+  (presented before the connection opens; it then waits the whole idle gap ~1.2 s).
+- If frames==0 with a nonzero sink, the instrument is not wired/triggered => FAIL (instrument).
+- Primary denominator: hist_total <= dW14 (port0 tcp_tx_frame.stat_frames);
+  dW14-hist_total = control/ring/probe/too-long frames. Same-module check: hist == dW52.

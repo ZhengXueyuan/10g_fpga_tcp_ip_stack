@@ -2176,3 +2176,37 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - **方法订正**：E1 的 MID 窗 ~45 s > W43/W65 的 27.49 s 回卷周期 ⇒ 本件状态分类用 sink 速率，**不用该窗 W65 算 idle**（E0.5 的 10 s 窗才是 W65 参考）。
 - **原件**：`p11_e1_latency_20261027/README_FOR_TL.md` + `raw/`（5 base + 5 load 的 ping/TCP/UDP 逐样本 CSV + 快照 + sink + console + `E1_UDP_ECHO_SIZES.txt` + `E1_METRICS.txt`）+ `e1_metrics.py` + `e1_latency.sh` + `artifacts/p7b_lat_probe{,.cpp}` + `LAT_PROBE_BUILD.txt`；对端脚本 = `p11_board_p3_0x32_20261026/tools/e1_latency.sh`。
 - **板态**：0x32 / `0x08=0` / carrier 1/1；QSPI 零写；未构建/未烧板。
+
+## §10-168 2026-10-27 02:2x–02:4x：**E1a-1 设计 + 独立审查 + 实施 + 单元门（未构建/未上板）**
+- **目标**：补 E1 的空白 —— **A 口（port0 / `u_tcp_tx`）TCP fast-path 逐帧 TX 延迟** `L = T_DONE 接受拍 − 帧首字呈现拍`（`recv_first && s_axis_tvalid && !start_data`）；含窗口/启动门/帧器/tx_arb 气泡/txcdc 反压，不含 app 首字前生成、FE/MAC/PCS/PHY、控制/重放帧。
+- **设计**：`_proj_10g/notes/p11_e1a_design_20261027/DESIGN.md`（E1a-1 缩窄版；完整多事件/64 位/采样环留 E1a-2/3）。10 桶 + `sum_total` + **全局** `max_total`；桶 0:0-127、1:128-159、2:160-191、**3:192-223（1460B 服务 ~193）**、4:224-255、5:256-383、6:384-511、7:512-1023、8:1024-4095、9:≥4096；`{ts_wrap,ts_ctr}` 34 位时间戳，`lat_ok=0`（>27.487 s，零窗 persist）跳过。
+- **实施**：`rtl/tcp_tx_frame.v` 参数 `E1A_EN`（默认 0）+ 三输出 + OVL 支 `g_e1a` + serial 支 tie-off；`board/wrapper_p4.v` u_tcp_tx `.E1A_EN(P11_DUAL_DEF)`、12 字 → p7bdp 槽 41..52 → **W85..W96**、`SNAP_P7BDP_NW 41→53`、`SNAP_NW_P6E 85→97`、**BID 0x33**、未实现 **0x1B4**（MIR 0x1A4..0x1B0）。
+- **独立审查**：Claude agent 只读；**高 5 / 中 11 / 低若干**；快照算术/拼接顺序核对无误。处置见 `p11_e1a_design_20261027/REVIEW_RESPONSE.md`：H-1 pending 陈旧（已加 `!s_axis_tvalid` 清 + TB D）、H-2 RX_RING/RX_FIN 漏计（已去掉 `RX_IDLE` 条件）、H-3 tx_arb 非纯组合（已订正表述/1 拍气泡）、H-4 三个 TB 几何（p7b_chain/biz_win 已修，p6e 登记债）、H-5 E1A_EN 参数/宏门（已改 `P11_DUAL_DEF`）；M-1..M-11 逐条处置（W14 分母、max 全局口径、34 位时间戳、细桶、静态门扩展等）。
+- **单元门**：`tb_e1a_draft.v` A（200 拍等待）/ B（无等待）/ C（控制帧不计）/ **D（撤字后重呈交，H-1）** ⇒ **TB_E1A_PASS**，`compile/xsim.log`。
+- **静态门**：`check_window.py` **PASS=122 / FAIL=0**（NW 97、W85..W96 din 映射、未实现 0x1B4）；`check_snap_top5_wired.py` **PASS**（TOPN=14 + E1a din 3b）。`p7b_snap.sh` 增 W85..W96 标签；`build_p7b_ku5p.tcl` `P7B_SNAP_TOP5_CDC` 槽集 39..52（14 槽）。
+- **状态**：**未构建 / 未上板**；构建前 41 门矩阵在跑。板仍 0x32 / `0x08=0` / carrier 1/1；QSPI 零写。构建结果与板级另列 §10-169。
+
+## §10-169 2026-10-27 04:3x–06:xx：**E1a-1 构建 2 通过 + 0x33 上板 + 板级延迟读数（p50/p99 全落 bin6）**
+
+- **构建 1（Performance_Explore）**：WNS **−0.023** / WHS +0.004 / setup **145** ⇒ `P7B_TIMING_GATE=FAIL`；位流改名 `.TIMING_FAIL`，禁烧；报告 `p11_e1a_design_20261027/build_fail1/`。最差路径 = `u_tcp_tx/FSM_sequential_rx_state_reg[0]_replica → u_app/tx_lfsr_reg[61]/D`（21 级，route 4.302 ns），**不是 E1a hist 路径**。
+- **构建 2（同 RTL/宏/BID，仅 `P11_IMPL_STRATEGY=Performance_ExtraTimingOpt`）= PASS**：WNS **+0.008** / WHS +0.010 / WPWS 0.000（0 failing）；**三类失败端点 0/0/0**；`All user specified timing constraints are met`；TCB A..G2 = 0.283/0.308/0.234/0.250/0.267/0.223/0.340/0.254/0.375/0.451/0.294/0.292/0.286 ⇒ **MIN 0.223 PASS**；DRC **0 Error / 0 Critical / 85 Warning**；top5 槽 39..52 / `SLOTS_OK=14`；`P7B_BIT_EXISTS=1` / `P7B_VERDICT=OK`。
+  WNS 宿主 = `u_tcp_tx2/u_fifo_b/rptr_reg[3]/C → u_retx_pool/g_slot[4].u_ram/ra_e_r_reg[0]/CE`（DP 域 port2 TX 既存族；15 级 / route 74.9%）—— **不是 E1a hist 路径**。资源 LUT 121,295 / FF 100,050 / BRAM 109 / URAM 17 / DSP 4。
+  位流 = `bits/wrapper_p4_0x33.bit`，15,431,261 B，sha256 **`4e41a064d4b599b7f09902dc4c0435f50e6c29c660206ac03fe90b44329d0550`**。读数锚 = `build2/READINGS.txt`（逐条带文件:行）。
+  ⚠️ WNS 仅 +0.008（0.125%）⇒ 后续任何 RTL 改动须重新定向 STA 并一次构建收口。
+- **板级（0x33 已烧；JTAG 1 MHz，`End of startup status: HIGH`，QSPI 零写）**：身份 `ID_MAGIC 0x50360001` / BID **0x33** / marker `0xdeadbeef` / `0x1B4=0xffffffff` / **97 字 NFF=0** / 2 BARs / x4 / carrier 1/1 / `0x08=0`。
+  **空载负对照 PASS**：2 s 内 Δhist=Δsum=Δmax=0；同窗 W43/W65 各 +328,152,868。
+- **负载（10×10 GB 单连接 A 口下行，THREADED sink + lane8 + 1 MB rcvbuf；`taskset -c 0,1` + `--no-pin` ⇒ `UNPINNED=1`，无 `PIN_CPU=` 见证 ⇒ 速率只作形态分类）**：
+  - **68,493,653 帧**；`hist_total == ΔW52` **10/10 逐字相等**；`hist_total ≤ ΔW14` 10/10（差 16–434，合计 1,612 = 0.0024%）；`mism_bytes=0` / `fail_conns=0` / `stall=0`；sink 合计 100,000,034,410 B（1459.955 B/帧）。
+  - **p50 与 p99 在全部 10 跑都落 bin6（384–511 cyc = 2.46–3.27 µs）**；bin0–bin4 ≡ 0，**bin3（192–223，纯帧器服务）≡ 0**；bin5 仅 16–37 帧/跑；meanX（扣 1 个污染帧）= 2.47–2.49 µs（原始 mean 2.64–2.66 µs）。
+  - **尾部**：≥512 cyc 占比 = 0.007–0.031%（7 个快跑，9.357–9.446 Gbps）vs 0.44–0.85%（3 个退化跑，9.274–9.322 Gbps）；tail% 与速率亏损近似成比例（≈5×，仅形态描述）。
+  - **`max_total` = 1.2047–1.2052 s 属仪器污染**：W96 在 R2 MID1 从 31,932 跳到 188,238,282，之后仅微升；R1（复位后第一跑）max = 31,932 cyc = **204 µs**。机理（**推断**，H-1 同族）：`TX_CONTINUOUS=1` 下**会话边界帧**（连接关闭前后呈现、跨关闭期等待）因 `s_axis_tvalid` 不落而不清 pending ⇒ **每次会话边界恰 1 帧**把会话间空闲计入 L ⇒ bin9 +1 帧，**p50/p99 不受影响**，原始 mean +0.17 µs。
+  - **与预注册预期差**：DESIGN §7.3 预期 p50 1.2–1.6 µs（bin0–bin3），实测 bin6（≈2× 帧周期）。**bin3 恒空 ⇒ L 从不等于纯帧器服务**，始终含约 1 帧槽等待。候选（**未证**）：OVL 乒乓使 app 领先帧器约 1 帧。⇒ **E1a-2 首要项 = wait/service 分解 + 首帧标签/pending 清理**。
+  - **状态面**：E0.5 的慢态带（8.60–9.26 Gbps）本轮**未复现** ⇒ 不能写"慢态已测"；退化跑是否等价于慢态**未判定**。
+- **矩阵（41 门复跑）**：首轮 **40/41 EXIT=0**；唯一红 = `biz_win` EXIT=1 —— **TB 期望陈旧**
+  （`tb_biz_win.v:158` 仍 `chk("1b BUILD_ID", 32'h00000032)`，DUT/参数 = 0x33；同门 check_window 122/0 全过）。
+  改该行→0x33 后单门复跑 **`BIZ_WIN_CHECK_PASS` / `TB_BIZ_WIN_PASS`(40 项) / RC=0**；
+  随后**全矩阵复跑 41/41 EXIT=0 / `MATRIX_FINAL_RC=0`**（`gates/matrix_e1a_final.log`）⇒ **最终口径 41/41（单次全绿）**。
+  ⚠️ **顺序偏离**：烧板先于全矩阵（DESIGN §6.1-5），如实登记；该修复只改 TB，未改 RTL/位流。
+  日志 = `gates/matrix_e1a.log` + `gates/biz_win_rerun.log`。
+- **原件**：`_proj_10g/notes/p11_e1a_design_20261027/`（README_FOR_TL / DESIGN §12 / build2/READINGS.txt / build_fail1/ / bits/ / raw/E1A/E1A_METRICS.txt + 56 件 raw + 双 SHA manifest / burn/）。
+- **板收尾态**：**0x33 现役**，`0x08=0`，carrier 1/1，QSPI 零写。

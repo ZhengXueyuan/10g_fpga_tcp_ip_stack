@@ -26,13 +26,13 @@ module tb_biz_win;
     // ⭐ M1 (2026-10-11): 70 -> 71 (= wrapper 的 SNAP_NW_P6E; 新末字 W70 = app_rx_mirror.drop_bytes)。
     //   ⚠️ 本 TB 的 NW 必须**跟住 wrapper 的地图** —— 它是『地址 <-> 字』这一半的单元门
     //   (另一半 = check_window.py 的装配静态核对)。
-    localparam integer NW = 85;  // = wrapper 的 SNAP_NW_P6E (0x2D backstop-2; 原 88 = 0x2D 首跑 / 83 = P11 P1 / 76 = p9 孤儿修复 / 75 = P9 E12 / 71 = M1)
+    localparam integer NW = 97;  // = wrapper 的 SNAP_NW_P6E (P11 E1a-1; 原 85 = 0x2D backstop-2)
     // ⭐ p9 孤儿修复 (2026-10-17): MIR 地址**由 NW 派生** (不再写死; 每代自动跟随)
-    localparam [31:0] MIR_STATUS_A = 32'h20 + NW*4;       // 0x174 @NW=85 (快照末字后第一格; +16 是 UNIMPL)
-    localparam [31:0] MIR_DATA_A   = MIR_STATUS_A + 4;    // 0x178
-    localparam [31:0] MIR_CTRL_A   = MIR_STATUS_A + 8;    // 0x17C
-    localparam [31:0] MIR_DMA_A    = MIR_STATUS_A + 12;   // 0x180
-    localparam [31:0] UNIMPL_A     = MIR_STATUS_A + 16;   // 0x184
+    localparam [31:0] MIR_STATUS_A = 32'h20 + NW*4;       // 0x1A4 @NW=97 (快照末字后第一格; +16 是 UNIMPL)
+    localparam [31:0] MIR_DATA_A   = MIR_STATUS_A + 4;    // 0x1A8
+    localparam [31:0] MIR_CTRL_A   = MIR_STATUS_A + 8;    // 0x1AC
+    localparam [31:0] MIR_DMA_A    = MIR_STATUS_A + 12;   // 0x1B0
+    localparam [31:0] UNIMPL_A     = MIR_STATUS_A + 16;   // 0x1B4
 
     reg clk = 0, rst_n = 0;
     always #5 clk = ~clk;
@@ -58,7 +58,7 @@ module tb_biz_win;
     reg  [2:0]  fe_state   = 3'b101;      // → SNAP_STATUS[5:3]
     reg         locked_axi = 1'b1;        // → SNAP_STATUS[6]
 
-    axi_regs #(.MAGIC_V(32'h50360001), .BUILD_ID_V(32'h00000032), .SNAP_NW(NW)) u_dut (
+    axi_regs #(.MAGIC_V(32'h50360001), .BUILD_ID_V(32'h00000033), .SNAP_NW(NW)) u_dut (
         .clk(clk), .rst_n(rst_n),
         .s_axil_awaddr(awaddr), .s_axil_awprot(awprot), .s_axil_awvalid(awvalid), .s_axil_awready(awready),
         .s_axil_wdata(wdata), .s_axil_wstrb(wstrb), .s_axil_wvalid(wvalid), .s_axil_wready(wready),
@@ -155,7 +155,7 @@ module tb_biz_win;
 
         // ---- 判据 1: 身份 (前置闸读的那两项) ----
         axil_rd(32'h00, v, resp); chk("1a MAGIC", v, 32'h50360001);
-        axil_rd(32'h04, v, resp); chk("1b BUILD_ID", v, 32'h00000032);
+        axil_rd(32'h04, v, resp); chk("1b BUILD_ID", v, 32'h00000033);
         axil_rd(32'h14, v, resp); chk("1c MARKER (地址译码)", v, 32'hDEADBEEF);
 
         // ---- 判据 2: 触发 + 注入一束**逐字唯一**的数据 ----
@@ -188,7 +188,7 @@ module tb_biz_win;
 
         // ---- 判据 5: 末字**恰好**是最后一个已实现字 (边界一侧) ----
         axil_rd(32'h20 + (NW-1)*4, v, resp);
-        chk("5a 末字 (0x20+4*(NW-1) = 0x170 @NW=85) 读得到", v, code_of(NW-1));
+        chk("5a 末字 (0x20+4*(NW-1) = 0x1A0 @NW=97) 读得到", v, code_of(NW-1));
         chkresp("5b 末字 rresp = OKAY", resp, 2'b00);
 
         // ---- 判据 6 (⭐): 下一个地址**恰好**未实现 (边界另一侧) ----
@@ -199,7 +199,7 @@ module tb_biz_win;
         // ⭐ 期 B (2026-10-11): 再插第 4 个字 MIR_DMA_CNT@0x148 ⇒ 后移 **16 B**;
         //   未实现地址 = 0x20+4*NW+16 = **0x14C** (@NW=71)。
         axil_rd(32'h20 + NW*4 + 16, v, resp);
-        chk("6a 未实现地址 (0x20+4*NW+16 = 0x184 @NW=85) 回 0", v, 32'h0000_0000);
+        chk("6a 未实现地址 (0x20+4*NW+16 = 0x1B4 @NW=97) 回 0", v, 32'h0000_0000);
         chkresp("6b 未实现地址 rresp = SLVERR", resp, 2'b10);
 
         // ---- 判据 7: **回绕红线的实测位置** (本轮把译码 6 位 → 7 位的直接后果) ----
@@ -275,15 +275,15 @@ module tb_biz_win;
         chk("11f MIR_CTRL 读回 == 0x3 ([0]cap [1]clr)", v, 32'h0000_0003);
         axil_rd(MIR_STATUS_A, v, resp);
         chk("11g 写 0x3 后: capture_on==1 且 unf 已清", {v[18], v[16]}, 2'b10);
-        // ---- 未实现地址边界 (0x2D backstop-2: @NW=85 ⇒ 0x184) ----
+        // ---- 未实现地址边界 (P11 E1a-1: @NW=97 ⇒ 0x1B4) ----
         axil_rd(UNIMPL_A, v, resp);
-        chk("11h 读 0x184 (未实现) 回 0", v, 32'h0000_0000);
-        chkresp("11h2 读 0x184 rresp = SLVERR", resp, 2'b10);
+        chk("11h 读 0x1B4 (未实现) 回 0", v, 32'h0000_0000);
+        chkresp("11h2 读 0x1B4 rresp = SLVERR", resp, 2'b10);
         axil_wr(UNIMPL_A, 32'hDEAD_0000, 4'hF, resp);
-        chkresp("11i 写 0x184 = SLVERR (白名单仍只有 SCRATCH/TRIGGER/MIR_CTRL)", resp, 2'b10);
-        // ---- ⭐ 期 B: MIR_DMA_CNT (0x2D backstop-2: @NW=85 ⇒ 0x180) 的"地址↔值"映射 + bit3 (dma_en) 写读回 ----
+        chkresp("11i 写 0x1B4 = SLVERR (白名单仍只有 SCRATCH/TRIGGER/MIR_CTRL)", resp, 2'b10);
+        // ---- ⭐ 期 B: MIR_DMA_CNT (P11 E1a-1: @NW=97 ⇒ 0x1B0) 的"地址↔值"映射 + bit3 (dma_en) 写读回 ----
         axil_rd(MIR_DMA_A, v, resp);
-        chk("11j MIR_DMA_CNT @0x180 读回 tie-off 常数 (地址映射对)", v, 32'hD0C0_015C);
+        chk("11j MIR_DMA_CNT @0x1B0 读回 tie-off 常数 (地址映射对)", v, 32'hD0C0_015C);
         chkresp("11k MIR_DMA_CNT rresp = OKAY (它是**已实现**字)", resp, 2'b00);
         axil_wr(MIR_CTRL_A, 32'h8 | 32'h3, 4'hF, resp);        // [3]dma_en=1 + [0]cap + [1]clr
         chkresp("11l 写 MIR_CTRL=0xB rresp = OKAY", resp, 2'b00);

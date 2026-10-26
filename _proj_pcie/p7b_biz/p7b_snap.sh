@@ -192,6 +192,11 @@ declare -A NAME=(
 # ⭐ P11 P2-甲 (2026-10-18): W83..W87 (p7bdp 槽 39..43; b 域 = dp_clk)
 # ⛔ 0x2D backstop-2 (2026-10-18): W85/W86/W87 已删 (不可读) ⇒ 只保留 W83/W84。
 [83]=tx_p0_frames   [84]=tx_p1_frames
+# ⭐ P11 E1a-1 (2026-10-27): W85..W96 = port0 DP TX 逐帧延迟直方图 (p7bdp 槽 41..52)
+[85]=e1a_bin0        [86]=e1a_bin1        [87]=e1a_bin2
+[88]=e1a_bin3        [89]=e1a_bin4        [90]=e1a_bin5
+[91]=e1a_bin6        [92]=e1a_bin7        [93]=e1a_bin8
+[94]=e1a_bin9        [95]=e1a_sum_total   [96]=e1a_max_total
 )
 
 id_check(){

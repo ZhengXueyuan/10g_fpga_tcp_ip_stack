@@ -208,6 +208,14 @@ module tcp_tx_frame (
     //      (与 W57 `retx_hi` 的「只在 retx_active=1 时有效」同款口径)。
     //   ⚠️ 纯观测: 只多 `stat_winstall_ev` 的 32 个 CE 扇出, 不碰功能路径。
     output reg  [31:0] o_win_at_winstall,
+    // ---- ⭐ P11 E1a-1: DP fast-path TX 逐帧延迟直方图 (纯观测; E1A_EN=0 ⇒ 0) ----
+    //   e1a_hist[31:0]=bin0 ... [319:288]=bin9; 桶边界 = DESIGN.md §3.1.
+    //   L = T_DONE 接受拍 − 帧首字呈现拍 (recv_first && s_axis_tvalid && !start_data);
+    //   只统计 app 数据帧 (f_is_app[tx_bank]=1, !tx_is_ctrl); 不含控制/重放/中止帧.
+    //   e1a_sum_total = ΣL (32 位自然回卷); e1a_max_total = 复位以来全局 max.
+    output wire [319:0] e1a_hist,
+    output wire [31:0]  e1a_sum_total,
+    output wire [31:0]  e1a_max_total,
     // ---- P4b-7-P6 调试探针 (纯 assign 线束输出, 不动任何逻辑) ----
     output wire        dbg_wnd_open,   // 窗口门控开 (wnd_open, S_IDLE 决策)
     output wire        dbg_pay_full,   // 载荷 FIFO 满 (pay_full)
@@ -327,6 +335,12 @@ module tcp_tx_frame (
     parameter        PERSIST_EN = 1'b0;              // 默认关 (开 = wrapper 显式传 1'b1)
     parameter [25:0] PS_BASE    = 26'd3_051_758;     // 5.0 s  (阶梯第 1 档)
     parameter [25:0] PS_MAX     = 26'd36_621_094;    // 60.0 s (阶梯封顶, 永不放弃)
+
+    // ⭐ P11 E1a-1 (2026-10-27): DP fast-path 逐帧 TX 延迟直方图 (纯观测).
+    //   默认 0 ⇒ 其它构建/单元 TB 零逻辑 (serial 支三个输出恒 0).
+    //   板构建在 u_tcp_tx 上显式 .E1A_EN(1'b1); u_tcp_tx2 不传 (默认 0).
+    //   语义/桶边界/快照槽 = _proj_10g/notes/p11_e1a_design_20261027/DESIGN.md.
+    parameter        E1A_EN    = 1'b0;
 
     // =========================================================================
     // P11 P3 (2026-10-18): 重传环外部化 (设计件 §4.7 / §6.2 / §14.3-2)
@@ -1642,6 +1656,116 @@ module tcp_tx_frame (
         end
     end
 
+    // ================= ⭐ P11 E1a-1: DP TX 逐帧延迟直方图 (纯观测) =========
+    //   设计件 = _proj_10g/notes/p11_e1a_design_20261027/DESIGN.md.
+    //   L = T_DONE 接受拍 − 帧首字呈现拍; 只统计 app 数据帧 (非控制/非重放).
+    //   ⚠️ 不要求 rx_state==RX_IDLE: RX_RING/RX_FIN/RX_FLUSH 期间 app 首字的
+    //      等待同样是 L 的一部分 (设计件 §2.1). 因此 present_pending 只在
+    //      start_data / !s_axis_tvalid / 复位 清; **不在 ring_start/rx_state!=IDLE 清**.
+    //   ⚠️ 本块只读功能信号, 不驱动任何功能门; E1A_EN=0 时整块被裁掉.
+    generate if (E1A_EN) begin : g_e1a
+        reg [31:0] ts_ctr;
+        reg [1:0]  ts_wrap;              // ts_ctr 回卷次数; {ts_wrap,ts_ctr} = 34 位时间
+        reg        present_pending;
+        reg [33:0] present_ts;           // 34 位 (可跨 32 位回卷)
+        reg [33:0] f_present_ts0, f_present_ts1;
+        reg        f_is_app0, f_is_app1;
+        reg [31:0] hist0, hist1, hist2, hist3, hist4;
+        reg [31:0] hist5, hist6, hist7, hist8, hist9;
+        reg [31:0] sum_total, max_total;
+
+        wire [33:0] ts64              = {ts_wrap, ts_ctr};
+        wire [33:0] f_present_ts_tx   = tx_bank ? f_present_ts1 : f_present_ts0;
+        wire        f_is_app_tx       = tx_bank ? f_is_app1 : f_is_app0;
+        wire        first_present     = recv_first && s_axis_tvalid && !start_data;
+        wire [33:0] lat64             = ts64 - f_present_ts_tx;
+        wire        lat_ok            = !lat64[33] && !lat64[32]; // L < 2^32 (27.487s)
+        wire        done_ev           = (tx_state == T_DONE) &&
+                                        (!m_axis_tvalid || m_axis_tready) &&
+                                        !tx_is_ctrl && f_is_app_tx && lat_ok;
+        wire [31:0] lat               = lat64[31:0];
+        // ⚠️ lat_ok=0 ⇒ 本帧等待 >27.487s (例如零窗 persist 60 s) ⇒ **不计入**
+        //    hist/sum/max, 避免 32 位别名把 30 s 读成 2.5 s。这类帧可用
+        //    `ΔW14 − hist_total` 与 ΔW52 的差额发现; E1a-2 再加 too_long 专字。
+
+        reg [3:0] bin;
+        always @* begin
+            if      (lat < 32'd128)  bin = 4'd0;   // 0..127
+            else if (lat < 32'd160)  bin = 4'd1;   // 128..159
+            else if (lat < 32'd192)  bin = 4'd2;   // 160..191
+            else if (lat < 32'd224)  bin = 4'd3;   // 192..223  (1460B 服务 ~193)
+            else if (lat < 32'd256)  bin = 4'd4;   // 224..255
+            else if (lat < 32'd384)  bin = 4'd5;   // 256..383
+            else if (lat < 32'd512)  bin = 4'd6;   // 384..511
+            else if (lat < 32'd1024) bin = 4'd7;   // 512..1023
+            else if (lat < 32'd4096) bin = 4'd8;   // 1024..4095
+            else                     bin = 4'd9;   // >=4096
+        end
+
+        always @(posedge clk or negedge rst_n) begin
+            if (!rst_n) begin
+                ts_ctr <= 32'd0; ts_wrap <= 2'd0; present_pending <= 1'b0; present_ts <= 34'd0;
+                f_present_ts0 <= 34'd0; f_present_ts1 <= 34'd0;
+                f_is_app0 <= 1'b0; f_is_app1 <= 1'b0;
+                hist0 <= 32'd0; hist1 <= 32'd0; hist2 <= 32'd0;
+                hist3 <= 32'd0; hist4 <= 32'd0; hist5 <= 32'd0;
+                hist6 <= 32'd0; hist7 <= 32'd0; hist8 <= 32'd0;
+                hist9 <= 32'd0; sum_total <= 32'd0; max_total <= 32'd0;
+            end else begin
+                ts_ctr <= ts_ctr + 32'd1;
+                if (ts_ctr == 32'hFFFF_FFFF) ts_wrap <= ts_wrap + 2'd1;
+
+                if (start_data) begin
+                    // 首字被接受: 把本帧的"首个呈现时刻"记到本 bank; 等待=0 时用当前拍
+                    if (rx_bank) begin
+                        f_present_ts1 <= present_pending ? present_ts : ts64;
+                        f_is_app1     <= 1'b1;
+                    end else begin
+                        f_present_ts0 <= present_pending ? present_ts : ts64;
+                        f_is_app0     <= 1'b1;
+                    end
+                    present_pending <= 1'b0;
+                end else if (ring_start) begin
+                    // ring 重放帧不计数; 只清该 bank 的 app 标签, **不动 pending**
+                    if (rx_bank) f_is_app1 <= 1'b0;
+                    else         f_is_app0 <= 1'b0;
+                end else if (first_present && !present_pending) begin
+                    present_ts      <= ts64;
+                    present_pending <= 1'b1;
+                end else if (!s_axis_tvalid) begin
+                    // app 已不再呈现该首字 (撤回/换帧); 不把陈旧等待带进下一帧
+                    present_pending <= 1'b0;
+                end
+
+                if (done_ev) begin
+                    sum_total <= sum_total + lat;
+                    if (lat > max_total) max_total <= lat;
+                    case (bin)
+                        4'd0: hist0 <= hist0 + 32'd1;
+                        4'd1: hist1 <= hist1 + 32'd1;
+                        4'd2: hist2 <= hist2 + 32'd1;
+                        4'd3: hist3 <= hist3 + 32'd1;
+                        4'd4: hist4 <= hist4 + 32'd1;
+                        4'd5: hist5 <= hist5 + 32'd1;
+                        4'd6: hist6 <= hist6 + 32'd1;
+                        4'd7: hist7 <= hist7 + 32'd1;
+                        4'd8: hist8 <= hist8 + 32'd1;
+                        default: hist9 <= hist9 + 32'd1;
+                    endcase
+                end
+            end
+        end
+
+        assign e1a_hist = {hist9, hist8, hist7, hist6, hist5,
+                           hist4, hist3, hist2, hist1, hist0};
+        assign e1a_sum_total = sum_total;
+        assign e1a_max_total = max_total;
+    end else begin : g_e1a_off
+        assign e1a_hist      = 320'd0;
+        assign e1a_sum_total = 32'd0;
+        assign e1a_max_total = 32'd0;
+    end endgenerate
+
     // ---- 调试探针 (纯线束; 乒乓版的语义见 P7B_STAGEC_TX.md) ----
     assign dbg_wnd_open     = wnd_open;
     assign dbg_pay_full     = fifo_full;
@@ -2711,6 +2835,10 @@ module tcp_tx_frame (
     assign dbg_plen_r   = plen_r;
     assign dbg_state    = state;
     assign dbg_plen     = plen;
+    // P11 E1a-1: serial branch has no instrumentation (board uses TCP_TX_OVL).
+    assign e1a_hist      = 320'd0;
+    assign e1a_sum_total = 32'd0;
+    assign e1a_max_total = 32'd0;
 `endif
 
 endmodule

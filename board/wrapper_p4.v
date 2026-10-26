@@ -2134,6 +2134,11 @@ module wrapper_p4 #(
     //   隐式 1 位网 ⇒ 静默截断, 工程坑 24)。
     wire [31:0] tx_stat_winstall_cap;   // 槽 27 → W67 (板帽侧等窗拍数)
     wire [31:0] tx_win_at_winstall;     // 槽 29 → W69 (等窗拍操作点锁存)
+    // ⭐ P11 E1a-1 (2026-10-27): port0 (u_tcp_tx) 的逐帧延迟直方图 (纯观测)
+    //   12 字 → p7bdp 槽 41..52 → W85..W96; 源全部是 dp 域寄存器输出.
+    //   声明在 ifdef 外 (坑 24: 例化在 ifdef 内, 只在分支里声明会退化成隐式 1 位).
+    wire [319:0] e1a_hist;
+    wire [31:0]  e1a_sum_total, e1a_max_total;
     // P6e: `mac_tx_64.stat_frames` 原来**悬空** (线上真发出去多少帧, 以前全设计没有这个数)
     //   ⇒ 接出来当观测 (PCIE_OBS 作快照 W20)。声明在 ifdef **外**: 例化点在 ifdef 外,
     //   若只在分支里声明, 默认构建会退化成"隐式 1 位线 ⇒ 静默截断"(工程坑 24)。
@@ -2831,7 +2836,8 @@ module wrapper_p4 #(
                    // P11 P3: C4 = 每口 tcp_tx_frame 用本口常量源 IP (PER_CONN_SRC_IP=0)
                    //   + 共享 8 槽 retx (EXTERNAL_RETX=1); C3 保持每连接源 IP。
                    .PER_CONN_SRC_IP(P11_DUAL_DEF ? 1'b0 : DUAL_SFP_A_DEF),
-                   .EXTERNAL_RETX(P11_DUAL_DEF)) u_tcp_tx (
+                   .EXTERNAL_RETX(P11_DUAL_DEF),
+                   .E1A_EN(P11_DUAL_DEF)) u_tcp_tx (
         .clk            (dp_clk),
         .rst_n          (dp_rst_n),
         .s_axis_tdata   (txin_tdata),
@@ -2913,6 +2919,10 @@ module wrapper_p4 #(
         .stat_winstall  (tx_stat_winstall),   // 构建 E: W66 的源 (窗口门停顿)
         .stat_winstall_cap (tx_stat_winstall_cap), // 构建 F: W67 的源 (板帽侧那一份)
         .o_win_at_winstall (tx_win_at_winstall),   // 构建 F: W69 的源 (操作点锁存)
+        // ⭐ P11 E1a-1: 12 字 (W85..W96; p7bdp 槽 41..52)
+        .e1a_hist       (e1a_hist),
+        .e1a_sum_total  (e1a_sum_total),
+        .e1a_max_total  (e1a_max_total),
         .o_retx_hi      (tx_retx_hi),
         .o_retx_active  (tx_retx_active),
         .dbg_wnd_open   (tx_dbg_wnd_open),
@@ -4932,7 +4942,7 @@ module wrapper_p4 #(
     //   失败端点 (仍 <0) ⇒ 按同一预登记阶梯删 W85 (classify 总帧数), 只保留 W83/W84。
     //   快照 W0..W84; MIR 四字自动 = 0x174/0x178/0x17C/0x180; **未实现地址 = 0x184**
     //   (word 97); {snap_idx,5'b0} 最大 = (85-1)<<5 = 2688 < 4096 ✓.
-    localparam SNAP_NW_P6E = 85;        // 总字数 W0..W84 (未实现地址 = 0x184 = word 97; backstop-2)
+    localparam SNAP_NW_P6E = 97;        // 总字数 W0..W96 (未实现地址 = 0x1B4 = word 109; E1a-1)
     // ⭐ P7B-GAP9-TX (2026-10-10): 63 → **65** (W63/W64 = app_pattern 的两个停滞计数器)。
     //   预算复算: 65 ≤ 119 (7 位译码上限) ✓; 未实现地址 = 0x20+4*65 = **0x124** (word 73, 真正未实现);
     //   `{snap_idx,5'b0}` 最大 = (65-1)<<5 = 2048 < 4096 ⇒ `axi_regs.snap_base` 仍是 [11:0] (**不动**);
@@ -4953,7 +4963,7 @@ module wrapper_p4 #(
     localparam SNAP_DP_NW  = 22;        // DP 束字数 (b 域 = dp_clk)
     // P7b 三条新束的字数 (与上面同源: 装配段 `snap_dout_all` 的项数必须与之对账)
     localparam SNAP_P7BFE_NW = 3;       // W36..W38 (b 域 = gmii_clk)
-    localparam SNAP_P7BDP_NW = 41;      // P11: 39 → 41 (槽 39..40 = W83/W84; backstop-2 再删槽 41 = W85)
+    localparam SNAP_P7BDP_NW = 53;      // P11 E1a-1: 41 → 53 (槽 41..52 = W85..W96)
                                         // W39/W40, W45..W50 + W51..W60 (BIZ) + W61/W62 (WU)
                                         //   + **W63/W64 (P7B-GAP9-TX 的两个停滞计数器)**
                                         //   + **W66 (构建 E: tcp_tx_frame.stat_winstall)**
@@ -5886,6 +5896,19 @@ module wrapper_p4 #(
 `endif
     assign p7bdp_din[39*32 +: 32] = w83_dp;   // 槽 39 → W83
     assign p7bdp_din[40*32 +: 32] = w84_dp;   // 槽 40 → W84
+    // ---- P11 E1a-1: 槽 41..52 = W85..W96 (源 = u_tcp_tx 的 dp 域寄存器输出) ----
+    assign p7bdp_din[41*32 +: 32] = e1a_hist[0*32 +: 32];  // W85 bin0
+    assign p7bdp_din[42*32 +: 32] = e1a_hist[1*32 +: 32];  // W86 bin1
+    assign p7bdp_din[43*32 +: 32] = e1a_hist[2*32 +: 32];  // W87 bin2
+    assign p7bdp_din[44*32 +: 32] = e1a_hist[3*32 +: 32];  // W88 bin3
+    assign p7bdp_din[45*32 +: 32] = e1a_hist[4*32 +: 32];  // W89 bin4
+    assign p7bdp_din[46*32 +: 32] = e1a_hist[5*32 +: 32];  // W90 bin5
+    assign p7bdp_din[47*32 +: 32] = e1a_hist[6*32 +: 32];  // W91 bin6
+    assign p7bdp_din[48*32 +: 32] = e1a_hist[7*32 +: 32];  // W92 bin7
+    assign p7bdp_din[49*32 +: 32] = e1a_hist[8*32 +: 32];  // W93 bin8
+    assign p7bdp_din[50*32 +: 32] = e1a_hist[9*32 +: 32];  // W94 bin9
+    assign p7bdp_din[51*32 +: 32] = e1a_sum_total;         // W95 sum_total
+    assign p7bdp_din[52*32 +: 32] = e1a_max_total;         // W96 max_total (since reset)
 
     snap_cdc #(.W(32), .NW(SNAP_P7BFE_NW)) u_snap_p7bfe (
         .clk_a(pcie_axi_aclk), .rst_n(pcie_axi_aresetn), .req_a(snap_req),
@@ -6059,6 +6082,19 @@ module wrapper_p4 #(
     //    ⚠️ 该门要按 backstop 几何另行同步, 不在本构建执行面);
     //    布后门 = `board/build_p7b_ku5p.tcl` 的 P7B_SNAP_TOP5_CDC 段 (已同步为槽 39..40)。
     wire [SNAP_NW_P6E*32-1:0] snap_dout_all = {
+        // ---- P11 E1a-1: W96..W85 (p7bdp 槽 52..41; MSB 端先写) ----
+        p7bdp_dout[52*32 +: 32],   // W96 max_total (since reset)
+        p7bdp_dout[51*32 +: 32],   // W95 sum_total
+        p7bdp_dout[50*32 +: 32],   // W94 bin9 (>=8192 cyc)
+        p7bdp_dout[49*32 +: 32],   // W93 bin8 (4096..8191)
+        p7bdp_dout[48*32 +: 32],   // W92 bin7 (2048..4095)
+        p7bdp_dout[47*32 +: 32],   // W91 bin6 (1024..2047)
+        p7bdp_dout[46*32 +: 32],   // W90 bin5 (768..1023)
+        p7bdp_dout[45*32 +: 32],   // W89 bin4 (512..767)
+        p7bdp_dout[44*32 +: 32],   // W88 bin3 (384..511)
+        p7bdp_dout[43*32 +: 32],   // W87 bin2 (256..383)
+        p7bdp_dout[42*32 +: 32],   // W86 bin1 (128..255)
+        p7bdp_dout[41*32 +: 32],   // W85 bin0 (0..127)
         p7bdp_dout[40*32 +: 32],   // W84 TX port1 (ch0) 帧数 (P11; 槽 40)
         p7bdp_dout[39*32 +: 32],   // W83 TX port0 (ch1) 帧数 (P11; 槽 39)
         ch0snap_dout[3*32 +: 32],  // W82 ch0 RX 丢帧数 (mac_rx_ch0.stat_drop; P1; 槽 3)
@@ -6283,7 +6319,7 @@ module wrapper_p4 #(
 
     axi_regs #(
         .MAGIC_V    (32'h50360001),
-        .BUILD_ID_V (32'h00000032),   // P11 P3 C4 双栈 2×10G (合同 2; 0x31 = HLS ROM 未初始化构建, 作废) // ⚠️ 每次改动自增 (前置闸读这一项认位流; P1 = ch0 bring-up + W76..W82 = 0x2B)
+        .BUILD_ID_V (32'h00000033),   // P11 E1a-1 (W85..W96; 0x32 = P3 C4 双栈) // ⚠️ 每次改动自增
                                         //   ⭐ 本轮构建 (2026-10-15): **0x27 → 0x28** = **E12 观测计数器**
                                         //      (换流门四计数器: `stat_up_ev` / `stat_sw_req` /
                                         //       `stat_sw_apply` / `stat_up_pend` —— `rtl/app_pattern.v`
