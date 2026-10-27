@@ -28,7 +28,7 @@
 | [P6B_REVIEW.md](../agent_docs/P6B_REVIEW.md) | 1G 验收的对抗审查 |
 | [P6B_INTEGRATION_REVIEW.md](../agent_docs/P6B_INTEGRATION_REVIEW.md) | 集成评审与"空门"核实 |
 | [P6B_COMMIT_PLAN.md](../agent_docs/P6B_COMMIT_PLAN.md) | 1G 轮的提交计划（历史） |
-| [P6E_OBS.md](../agent_docs/P6E_OBS.md) | 36 字观测窗表（**历史口径**；现役 **76 字**，权威源 = `board/wrapper_p4.v` 装配段 / `p9_impl_e12_20261015/REPORT.md`） |
+| [P6E_OBS.md](../agent_docs/P6E_OBS.md) | 36 字观测窗表（**历史口径**；现役 **85 字**〔0x32，W0..W84〕，权威源 = `board/wrapper_p4.v` 装配段 / `P7B_BIZ_WINDOW.md` §1 的 2026-10-18 更新块） |
 | [P7A_SPEC.md](../agent_docs/P7A_SPEC.md) | 10G 物理层施工规格（阶段关卡 0） |
 | [P7A_RESULT.md](../agent_docs/P7A_RESULT.md) | 10G 物理层板级验收原件（BER 4.997e-13） |
 | [P7A_COMMIT_PLAN.md](../agent_docs/P7A_COMMIT_PLAN.md) | P7a 提交计划（历史） |
@@ -40,16 +40,17 @@
 
 | 想找什么 | 去哪 |
 |---|---|
-| **权威台账 / 最新续接点** | `_proj_10g/notes/P7B_TL_LEDGER_20261010.md`（§10-117 最新；时点 2026-10-17） |
-| 未解决项总表 | `_proj_10g/notes/P7B_OPEN_ITEMS.md`（§0 一张表；2026-10-16 刷新到终态、2026-10-17 追加孤儿会话修复完成〔§0-57/A35〕与 0x2A 转现役；新开项到 §0-57） |
-| 观测窗现役表（**76 字**，W0..W75） | 权威源 = `board/wrapper_p4.v` 装配段 / `p9_build_0x2A_20261017/README_FOR_TL.md`（`P7B_BIZ_WINDOW.md` §1 已同步补到 76 字档〔含 W70..W75 逐代回溯〕，读历史亦可用） |
-| 下一轮开工入口（对端/板卡环境） | `_proj_10g/notes/P7B_LOOP_HANDOFF.md` §6（恢复清单，最新自含块 = 2026-10-13）；板级现场交接见 `p9_board_0x2A_20261017/FINAL_STATE.txt`（现役 0x2A 轮）/ `p9_board_0x28_k0_20261016/REPORT.md`（0x28 轮） |
-| 里程碑落库件（措辞权威） | `P7B_STAGE{A,B,C}_MILESTONE.md` · `P7B_WU_MILESTONE.md` |
+| **权威台账 / 最新续接点** | `_proj_10g/notes/P7B_TL_LEDGER_20261010.md`（§10-166 最新；时点 2026-10-27） |
+| 未解决项总表 | `_proj_10g/notes/P7B_OPEN_ITEMS.md`（§0 一张表；每条四格：现状 / 依据 / 为什么没解决 / 下一步） |
+| 观测窗现役表（**85 字**，W0..W84） | 权威源 = `board/wrapper_p4.v` 装配段 / `_proj_10g/notes/P7B_BIZ_WINDOW.md` §1（2026-10-18 更新块含 W76..W84 逐字表与逐代回溯） |
+| 下一轮开工入口（对端/板卡环境） | `_proj_10g/notes/P7B_LOOP_HANDOFF.md` §6（恢复清单）；板级现场交接见 `p11_board_p3_0x32_20261026/burn/BURN_0x32_20261027_003211.txt` + `raw/POST_SESSION_20261027.txt`（现役 0x32 轮） |
+| 里程碑落库件（措辞权威） | `P7B_STAGE{A,B,C}_MILESTONE.md` · `P7B_WU_MILESTONE.md` · `P11_LATENCY_RESEARCH_20261026.md`（延迟研究主线） |
 | 独立验收原件 | `P7B_BOARD_STAGEA_ACCEPT.md` · `P7B_BOARD_STAGEB_ACCEPT.md` · `P7B_WU_ACCEPT.md` · `P7B_GATE4_ACCEPT3.md` · `P7B_LONGSEND_ACCEPT.md` |
 | 资源研究 | `P7B_BRAM_REPORT.md` · `P7B_BRAM_INVENTORY.md` · `P7B_BRAM_URAM_FEASIBILITY.md` · `P7B_BRAM_TIMING_LATENCY.md` |
-| 时延实测 | `P7B_LATENCY.md` |
-| 板级原件目录（按轮次） | `p7b_*board*` / `p8_*` / `p9_board_*` 各目录（`REPORT.md` + `runs/`） |
-| 构建读数（按位流版本） | `p7b_build*/READINGS.txt` · `p7b_build_0x1C…0x1F/REPORT.md` · `p8_build_0x20/0x21/` · `p9_build_0x22/…/0x28/0x2A_20261017/` |
+| 时延实测 | `P7B_LATENCY.md`（分段流水延迟）；满载占空 / 窗口归因 = `p11_e05_latency_20261027/README_FOR_TL.md`（E0.5） |
+| 板级原件目录（按轮次） | `p7b_*board*` / `p8_*` / `p9_board_*` / `p11_board_*` 各目录（`REPORT.md` / `raw/`） |
+| 构建读数（按位流版本） | `p7b_build*/READINGS.txt` · `p8_build_0x20/0x21/` · `p9_build_0x22/…/0x2A_20261017/` · `p11_build_0x2{C,D}_20261018/` · `p11_fix_0x30_0x31_20261025/` · `p11_fix_0x31_rom_0x32_20261026/` |
+| P11 设计/实施/审查链（2026-10-18 起） | `p9_dual_sfp_plan_20261017/` · `p11_p3_dualstack_design_20261018/` · `p11_p3_impl_20261018/` · `p11_e05_latency_20261027/`（含 kimi 审查原件副本 `artifacts/REVIEW_BOARD_0X32_E05.md` 与回灌 `REVIEW_RESPONSE.md`） |
 | 四条真实缺陷（F-3 / RFC 序号 / 换流时序 / MDIO）的设计与实施件 | `p9_fix_{f3,rfcseq,upok,mdio}_design_20261014/`（设计链）· `p9_impl_{f3,rfc,upok,e12}_20261015/` · `p9_fix_mdio_impl_20261015/`（实施） |
 | 独立审查件（自对抗审查模式，2026-10-15 起） | `p9_review_*/FINDINGS.md`（折叠-4 / 板级三轮 / 0x28 构建 / B4 板级 / MDIO A+ 五份） |
 
