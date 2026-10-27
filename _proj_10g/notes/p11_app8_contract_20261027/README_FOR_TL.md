@@ -2,7 +2,7 @@
 
 - 日期：2026-10-27
 - 基线：HEAD `f986acf1`（E1a-1：0x33 / NW 97 / WNS +0.008）
-- 状态词：【设计 v6 已实施】【已证·单元 TB（APP8 app；tcp_echo OCC 20,146 checks + 8 变异全红；F1 slow_cfg；app_ctrl OCC；既有 app_fc 回归）】【synth 检查点已跑（数据见 §3）】【v5 独立审查 = 附条件可实现（`REVIEW_V5.md`，F1–F8 已按 v6 处置）】【**0x34 构建 #2 = TIMING_FAIL（WNS −0.337 / setup 6642 / hold·PW 0；证据 `build_fail1/FAILURE.md`）；app8 pblock 实验构建中（新输入）**】【0x35 未构建】【未上板】
+- 状态词：【设计 v6 已实施】【已证·单元 TB（APP8 app；tcp_echo OCC 20,146 checks + 8 变异全红；F1 slow_cfg；app_ctrl OCC；既有 app_fc 回归）】【synth 检查点已跑（数据见 §3）】【v5 独立审查 = 附条件可实现（`REVIEW_V5.md`，F1–F8 已按 v6 处置）】【**0x34 构建 #2 = TIMING_FAIL（WNS −0.337 / setup 6642；`build_fail1/`）；#3 app8 pblock 实验 = 更差（−0.644 / 13,282；`build_fail2/`，pblock 已默认关闭）；#4 `Congestion_SpreadLogic_high` = 改善但仍 FAIL（−0.205 / 5,162；`build_fail3/`）；#5 `Performance_NetDelay_high`（无 pblock，新输入）构建在飞**】【0x35 未构建】【未上板】
 
 ---
 
@@ -180,6 +180,20 @@
     位流已 quarantine（`.TIMING_FAIL`，**禁烧**），全量报告/日志 + SHA256 = `build_fail1/`。
     首个修复实验（**新输入**）= `board/ku5p_p7b_app8.xdc`：`u_app` 组 pblock `SLICE_X0Y0:SLICE_X49Y79`；
     判决仍为全构建时序门；**0x35 不同批、板级 A/B 暂停到 0x34 过门**。
+    **pblock 构建 #3 = 实测否定**：WNS **−0.644 / TNS −4357.255 / setup 13,282 / WHS +0.001 / hold·PW 0**
+    （对照 #2 = −0.337 / 6,642，**反而更差**）⇒ 隔离 8×app 压小可选布局、且与 DP 争同一区域。
+    归档 = `build_fail2/`（FAILURE.md + 全量报告 + SHA256；位流 quarantine）。
+    构建脚本已改为 **默认不加该 XDC**（只有 `P11_APP8_PBLOCK=1` 才重新启用，保留为可复跑负实验）。
+    **#4 = `Congestion_SpreadLogic_high`（落为 `place_design -directive AltSpreadLogic_high`，无 pblock）
+    = 改善但仍 FAIL**：WNS **−0.205 / TNS −506.882 / setup 5,162 / WHS +0.005 / hold·PW 0**；
+    最差路径换族 = `u_tcp_tx/bank_rdy_reg[1]_replica → u_app/g_app[4].u_app_i/pw_data_reg[29]/CE`
+    （22 级 / logic 2.098 / **route 4.381 = 67.6%**）⇒ 打散布局方向有效（−0.132 ns / −1,480 端点），
+    但不足以补 8×app 的边际。归档 = `build_fail3/`（含 routed dcp）。**仍不烧板**。
+    **#5 = `Performance_NetDelay_high`（无 pblock，新输入）构建中**（直接压 route）；
+    判决仍为全构建时序门；失败则再归档、**仍不烧板**。
+  - 结构结论（登记，未实施）：0x33（2 app，同族 +0.008）→ 0x34（9 app，−0.337）的边际 ≈ **0.345 ns / 7 个 app**
+    ⇒ **不是"再挤一点余量"能解决**；下一轮首选 = **8×app 组独立 156.25 MHz 域 + AXIS CDC**（把 15,328 LUT
+    移出 DP 的 route 竞争），次选 = app 图案逻辑降面积/共享。两条都要独立设计 + 审查，不在本窗口。
   - 下一步 = 0x34 门结果 → 0x35（`P11_APP8_OCC=1`）→ 板级 A/B（B0 端口映射 + B5 连续下行帧 window）。
 
 ---

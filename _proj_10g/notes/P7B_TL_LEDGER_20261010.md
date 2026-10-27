@@ -2210,3 +2210,17 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
   日志 = `gates/matrix_e1a.log` + `gates/biz_win_rerun.log`。
 - **原件**：`_proj_10g/notes/p11_e1a_design_20261027/`（README_FOR_TL / DESIGN §12 / build2/READINGS.txt / build_fail1/ / bits/ / raw/E1A/E1A_METRICS.txt + 56 件 raw + 双 SHA manifest / burn/）。
 - **板收尾态**：**0x33 现役**，`0x08=0`，carrier 1/1，QSPI 零写。
+
+## §10-170 2026-10-28 02:4x–06:xx：**P11 APP8（8×12KB）OCC v6 实施 + 0x34 四次构建全部 TIMING_FAIL（pblock 否定 / spread 改善但仍差）；0x35/板级未做**
+
+- **实施（A 设计 v6）**：F1 `slow_cfg_adp.RCV_WND_INIT`（ADD 期 TCB `rcv_wnd = WQ_CAP_5 = 12KB`）；`tcp_echo` per-conn occ（14 位 / 内部 18 位 / 中间和 20 位；occ 读口寄存 + id；帧首门 `fq < CQ_DEPTH-2` = 126；回卷写保护 `!rback`）；`app_ctrl` `occ_fq` + 扫描 id 匹配门；wrapper 接线 + `0x08 bit2` RX 双门（`app_rx_tvalid`/`eco2_tready`）+ 2FF CDC；build tcl `P11_APP8_OCC` 硬门（要求 APP8 && P11_DUAL）。
+- **单元门（全部有读数）**：`tb_echo_occ` **PASS**（20,146 checks / 133 帧 / 137 beats / gate 13 / drop 3；逐拍 `Σocc == (wptr−rptr)<<3`）+ **8 个变异全 RED**；`tb_slow_cfg_init` PASS + F1 变异 RED；`tb_app_ctrl_occ` PASS + 全局 occ 变异 RED；既有 `tb_app_fc` 回归 PASS。
+- **构建（同一 RTL/合同，四次不同布局/策略输入）**：
+  - **#2** `Performance_ExtraTimingOpt`（0x33 通过臂）：**WNS −0.337 / TNS −973.039 / setup 6,642 / WHS +0.008 / hold·PW 0**；最差 = 既存 DP 族 `u_tcp_tx2/u_fifo_b/rptr_reg[0]_replica → u_tcb2/rcv_nxt_r_reg[9][11]/CE`（18 级 / route 4.907 = 74.4%）。归档 `build_fail1/`。
+  - **#3** 同 #2 + `u_app` pblock `SLICE_X0Y0:X49Y79`：**−0.644 / 13,282**（**更差 ⇒ 实测否定**）。归档 `build_fail2/`；pblock XDC 保留为可复跑负实验，构建脚本**默认关闭**（`P11_APP8_PBLOCK=1` 才启用）。
+  - **#4** `Congestion_SpreadLogic_high`（落为 `place_design -directive AltSpreadLogic_high`，无 pblock）：**−0.205 / TNS −506.882 / setup 5,162 / WHS +0.005 / hold·PW 0**；最差族换到 `u_tcp_tx/bank_rdy_reg[1]_replica → u_app/g_app[4].u_app_i/pw_data_reg[29]/CE`（22 级 / logic 2.098 / route 4.381 = 67.6%）⇒ **打散布局方向有效（−0.132 ns / −1,480 端点）但仍不够**。归档 `build_fail3/`（含 routed dcp）。
+  - **#5** `Performance_NetDelay_high`（无 pblock）**在飞**；判决仍为全构建 `P7B_TIMING_GATE`。
+- **结构结论（新登记）**：0x33（2 app，同族 +0.008）→ 0x34（9 app，−0.337）的边际 ≈ **0.345 ns / 7 个额外 app** ⇒ 布局/策略天花板不高。下一轮首选 = **8×app 组独立 156.25 MHz 域（第二个 MMCM）+ TX/RX 77-bit AXIS CDC + 事件/close/ready/统计 CDC + app 区 pblock**；备选 = app 图案引擎共享（每连接 1 B/cycle，8 连接聚合 8 B/cycle = 10G，面积可省 ~9k LUT）。研究件 = `p11_app8_contract_20261027/NEXT_TIMING_STUDY.md`（**研究，不是实施授权**）。
+- **台架/端口映射（现核）**：`p7b_tcp_sink_multi` 已支持 `--send-conns/--send-bytes/--send-pattern`（send 0x28 偏移语义）；`SO_RCVBUF` 必须 connect 前；对端 nsb = `enp1s0f0np0` **192.168.100.101/32** ↔ 板 port0/J7 **192.168.100.4**，nsa = `enp1s0f1np1` **192.168.100.1/32** ↔ 板 port1/J8 **192.168.100.2**（DESIGN_OCC_V6 §6.6 已订正地址归属）。
+- **未做**：0x35（OCC=1）未构建；板级 A/B、F1/OCC 板级全部未做；新 OCC 门未登记进常驻矩阵（第 42/43 门）；pblock 数据驱动 placement 查询未做（#4 dcp 已归档，可复跑）。
+- **原件**：`_proj_10g/notes/p11_app8_contract_20261027/`（README_FOR_TL · DESIGN_OCC_V6 · REVIEW_V5 · build_fail{1,2,3}/ · NEXT_TIMING_STUDY.md）。

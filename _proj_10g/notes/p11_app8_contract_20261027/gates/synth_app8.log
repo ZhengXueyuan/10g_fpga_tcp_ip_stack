@@ -1,0 +1,31 @@
+ARCHIVE_SHA256_OK
+ARCHIVE_DONE 20261027_223520 files=19 dir=D:\repo\XCKU5PMini\udp_hls_10g\board\..\_proj_10g\notes\p7b_build_archive\20261027_223520
+BUILD_EXIT=0
+HLS_SRC_HASH = b7dd1542deab0d5fdbfc5820dc5db08dbde56133a2d06f99e9daeb3a2b7d1728  (n=15 files: hls/src/*.cpp|*.h + hls/run_hls.tcl)
+HLS_NET_HASH = 125a71f8740cb9bbbb577f37a46693f06740054cc87674c5d5f67360269af8c3  (n=176 files: hls/slowstack_prj/solution1/syn/verilog/*.v|*.dat)
+P7B_CONVERGED_AT_ROUND = 2
+P7B_IS_LOCKED_POSTGEN = 0
+P7B_BLACKBOX_LOG_HITS = 0
+P7B_MODULE_RESOLVED rx_merge2=0 tx_demux2=0 maccnt_sync=0
+P7B_BLACKBOX_COUNT 0
+P7B_VERDICT = OK
+P7B_SNAP_TOP5_E1A_ON = 1 (slots 39..52)
+P7B_SNAP_TOP5_SLOT slot=39 bits=1248..1279 cells=32
+P7B_SNAP_TOP5_SLOT slot=40 bits=1280..1311 cells=32
+P7B_SNAP_TOP5_SLOT slot=41 bits=1312..1343 cells=32
+P7B_SNAP_TOP5_SLOT slot=42 bits=1344..1375 cells=32
+P7B_SNAP_TOP5_SLOT slot=43 bits=1376..1407 cells=32
+P7B_SNAP_TOP5_SLOT slot=44 bits=1408..1439 cells=32
+P7B_SNAP_TOP5_SLOT slot=45 bits=1440..1471 cells=32
+P7B_SNAP_TOP5_SLOT slot=46 bits=1472..1503 cells=32
+P7B_SNAP_TOP5_SLOT slot=47 bits=1504..1535 cells=32
+P7B_SNAP_TOP5_SLOT slot=48 bits=1536..1567 cells=32
+P7B_SNAP_TOP5_SLOT slot=49 bits=1568..1599 cells=32
+P7B_SNAP_TOP5_SLOT slot=50 bits=1600..1631 cells=32
+P7B_SNAP_TOP5_SLOT slot=51 bits=1632..1663 cells=32
+P7B_SNAP_TOP5_SLOT slot=52 bits=1664..1695 cells=32
+P7B_SNAP_TOP5_SLOTS_OK = 14
+P7B_SNAP_TOP5_FANOUT tx_p0_frames_r_reg[0]/Q loads=2 hold_b=1 snap_din=0
+P7B_SNAP_TOP5_FANOUT_OK
+STA-ONLY-DONE
+SYNTH_RC=0

@@ -171,6 +171,18 @@ fc_wq[init_head] <= fq_calc(winq_q_init, occ_fq);
   `{pa_sid, pa_winq, pa_occ, pa_rcv_nxt, pa_rwnd, pa_state}` 一拍，fq/redge 在 T+1 计算，
   redge/pb 顺延一拍；事件让位窗延长一拍（ev1/ev2）。此方案需另写门，**默认不启用**。
 - 构建策略预登记 `Performance_ExtraTimingOpt`（0x33 通过臂；作为新输入）。
+- ⭐ **2026-10-28 实测登记（策略/布局实验）**：
+  | 构建 | 策略 / 布局 | WNS | setup 端点 | 结论 |
+  |---|---|---|---|---|
+  | 0x33 | Extra（通过臂） | +0.008 | 0 | 基线 |
+  | 0x34 #2 | ExtraTimingOpt | −0.337 | 6,642 | 8×app 进 DP ⇒ 拥塞 |
+  | 0x34 #3 | Extra + `u_app` pblock | **−0.644** | **13,282** | **否定**（压小布局 + 与 DP 争区） |
+  | 0x34 #4 | `Congestion_SpreadLogic_high`（无 pblock；落为 `AltSpreadLogic_high`） | **−0.205** | **5,162** | 改善但仍 FAIL；最差族换到 `u_tcp_tx/bank_rdy → app/tcb CE` |
+  | 0x34 #5 | `Performance_NetDelay_high`（无 pblock） | 待判 | 待判 | 新输入（构建在飞） |
+  - pblock 文件保留为**可复跑负实验**，构建脚本默认关闭（`P11_APP8_PBLOCK=1` 才启用）。
+  - 结构结论：0x33→0x34 的边际 ≈ **0.345 ns / 7 个额外 app** ⇒ 余量问题不是布局能补的；
+    下一轮首选 = **8×app 组独立 156.25 MHz 域 + AXIS CDC**，次选 = app 图案逻辑降面积/共享
+    （两者均需独立设计 + 审查，未实施）。
 
 ---
 
@@ -180,10 +192,11 @@ fc_wq[init_head] <= fq_calc(winq_q_init, occ_fq);
 （每连接从偏移 0 xorshift；conn0 臂 16,384 B；8 连接臂 12,288 B/连接）；
 `SO_RCVBUF` 必须在 **connect 之前**；8 线程 send+recv 非阻塞；输出 `MULTI_SEND/MULTI_SUM`。
 - **⭐ 端口映射（2026-10-28 现核，必须先钉死）**：8×12KB/多连接 app 在 **RTL port0**
-  = `u_app`(app_multi8)/`u_tcp_echo`/`u_app_ctrl` = **SFP A(J7)** = 对端 **nsb
-  `enp1s0f0np0` 192.168.100.4**（`b0_env_setup.sh:3-4` 的 IP_B/J7/ch0）。
-  对端 **nsa `enp1s0f1np1` 192.168.100.2** 是 **port1(J8)**（单 app `q1_app`）——
-  **8 连接测试绝不能打到 nsa**（那里只有单实例 app，8 连接必失败）。
+  = `u_app`(app_multi8)/`u_tcp_echo`/`u_app_ctrl` = **SFP A(J7) = ch0 = 板 IP 192.168.100.4**（`IP_B_5`）；
+  从对端 **nsb `enp1s0f0np0` = 192.168.100.101/32** 发（`b0_env_setup.sh:3-4` 的 IP_B/J7/ch0）。
+  板 **port1(J8) = ch1 = 板 IP 192.168.100.2**（`IP_A_5`）= 对端 **nsa `enp1s0f1np1` = 192.168.100.1/32**，
+  那里只有单 app `q1_app` —— **8 连接测试绝不能打到 nsa**（8 连接必失败）。
+  ⚠️ **地址归属别读反**：`.101`/`.1` 是对端两个口，`.4`/`.2` 是板上两个口的 IP。
   `0x08 bit2` 的 RX 停读只门 **port0 app**（`app_rx_*` = `eco2_*`），正对应 8+0。
 - `sent=` = 内核已接受；`unsent=` = `SIOCOUTQNSD`；**线上字节 = sent − unsent**。
   conn0 臂的 16,384 B 可能只上线 ~12KB（板窗关）——这是设计预期，不记为失败；

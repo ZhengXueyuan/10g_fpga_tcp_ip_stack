@@ -470,11 +470,17 @@ add_files -fileset constrs_1 ${script_dir}/ku5p_p6e_pcie.xdc
 add_files -fileset constrs_1 ${script_dir}/ku5p_p6b_sysclk.xdc
 add_files -fileset constrs_1 ${script_dir}/ku5p_p7b_cdc.xdc
 set_property used_in_synthesis false [get_files ${script_dir}/ku5p_p7b_cdc.xdc]
-# P11 APP8 0x34 TIMING_FAIL 实验: 8×app 组 pblock (仅 P11_APP8 构建有 u_app=app_multi8;
-# 非 APP8 构建里 u_app 是 app_pattern —— 同名但 pblock 仍只约束该实例, 无行为影响).
-# 见 ku5p_p7b_app8.xdc 头注释; 新输入, 不是"重跑到过".
-add_files -fileset constrs_1 ${script_dir}/ku5p_p7b_app8.xdc
-set_property used_in_synthesis false [get_files ${script_dir}/ku5p_p7b_app8.xdc]
+# P11 APP8 0x34 pblock 实验 (2026-10-28): **实测否定** —— build_fail2 读数
+#   WNS -0.644 / setup 13,282 vs 无 pblock 的 -0.337 / 6,642 ⇒ 隔离 u_app 反而更差.
+# ⇒ 默认 **关闭**; 只有显式 P11_APP8_PBLOCK=1 才重新引入 (保留为可复跑实验).
+# 见 ku5p_p7b_app8.xdc 头注释 + build_fail2/FAILURE.md.
+if {[info exists ::env(P11_APP8_PBLOCK)] && ($::env(P11_APP8_PBLOCK) eq "1")} {
+    add_files -fileset constrs_1 ${script_dir}/ku5p_p7b_app8.xdc
+    set_property used_in_synthesis false [get_files ${script_dir}/ku5p_p7b_app8.xdc]
+    puts "P11_APP8_PBLOCK = 1 (negative experiment re-enabled)"
+} else {
+    puts "P11_APP8_PBLOCK = 0 (pblock experiment disabled; see build_fail2/FAILURE.md)"
+}
 
 # ⚠️ 这一版是为了**线速测量**而打开 `UDP_TX_OVL`（组帧器乒乓重叠）：
 #   `rtl/udp_tx_frame.v` 的 body 一分为二，`ifdef UDP_TX_OVL` = 乒乓双 bank 版（343 insertion / 0 deletion），
