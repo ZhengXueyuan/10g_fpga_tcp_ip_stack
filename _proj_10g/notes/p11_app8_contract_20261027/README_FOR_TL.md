@@ -2,7 +2,7 @@
 
 - 日期：2026-10-27
 - 基线：HEAD `f986acf1`（E1a-1：0x33 / NW 97 / WNS +0.008）
-- 状态词：【设计 v6 已实施】【已证·单元 TB（APP8 app；tcp_echo OCC 20,146 checks + 8 变异全红；F1 slow_cfg；app_ctrl OCC；既有 app_fc 回归）】【synth 检查点已跑（数据见 §3）】【v5 独立审查 = 附条件可实现（`REVIEW_V5.md`，F1–F8 已按 v6 处置）】【**0x34 构建 #2 = TIMING_FAIL（WNS −0.337 / setup 6642；`build_fail1/`）；#3 app8 pblock 实验 = 更差（−0.644 / 13,282；`build_fail2/`，pblock 已默认关闭）；#4 `Congestion_SpreadLogic_high` = 改善但仍 FAIL（−0.205 / 5,162；`build_fail3/`）；#5 `Performance_NetDelay_high`（无 pblock，新输入）构建在飞**】【0x35 未构建】【未上板】
+- 状态词：【设计 v6 已实施】【已证·单元 TB（APP8 app；tcp_echo OCC 20,146 checks + 8 变异全红；F1 slow_cfg；app_ctrl OCC；既有 app_fc 回归）】【synth 检查点已跑（数据见 §3）】【v5 独立审查 = 附条件可实现（`REVIEW_V5.md`，F1–F8 已按 v6 处置）】【**0x34 构建 #2 = TIMING_FAIL（WNS −0.337 / setup 6642；`build_fail1/`）；#3 app8 pblock 实验 = 更差（−0.644 / 13,282；`build_fail2/`，pblock 已默认关闭）；#4 `Congestion_SpreadLogic_high` = 改善但仍 FAIL（−0.205 / 5,162；`build_fail3/`）；#5 `Performance_NetDelay_high` = **显著更差（−0.886 / 14,630；`build_fail4/`，方向否定）** ⇒ **最好的已知输入 = #4（−0.205）但仍 FAIL**】【0x35 未构建】【未上板】
 
 ---
 
@@ -189,8 +189,11 @@
     最差路径换族 = `u_tcp_tx/bank_rdy_reg[1]_replica → u_app/g_app[4].u_app_i/pw_data_reg[29]/CE`
     （22 级 / logic 2.098 / **route 4.381 = 67.6%**）⇒ 打散布局方向有效（−0.132 ns / −1,480 端点），
     但不足以补 8×app 的边际。归档 = `build_fail3/`（含 routed dcp）。**仍不烧板**。
-    **#5 = `Performance_NetDelay_high`（无 pblock，新输入）构建中**（直接压 route）；
-    判决仍为全构建时序门；失败则再归档、**仍不烧板**。
+    **#5 = `Performance_NetDelay_high`（无 pblock）= 显著更差**：WNS **−0.886 / TNS −6,930.864 /
+    setup 14,630 / WHS +0.008 / hold·PW 0**；最差路径回到 `u_tcp_tx/u_fifo_a/rptr_reg[4] →
+    u_tcb/snd_nxt_r_reg[10][13]/CE` ⇒ **`ExtraNetDelay_high` 放置方向被否定**。归档 = `build_fail4/`。
+    **策略/布局搜索到此为止**：最好的已知输入 = #4（−0.205），仍差 0.205 ns；
+    下一轮只做架构改动（`NEXT_TIMING_STUDY.md` 方案 A/B），不再"换策略重跑"。**全程未烧板**。
   - 结构结论（登记，未实施）：0x33（2 app，同族 +0.008）→ 0x34（9 app，−0.337）的边际 ≈ **0.345 ns / 7 个 app**
     ⇒ **不是"再挤一点余量"能解决**；下一轮首选 = **8×app 组独立 156.25 MHz 域 + AXIS CDC**（把 15,328 LUT
     移出 DP 的 route 竞争），次选 = app 图案逻辑降面积/共享。两条都要独立设计 + 审查，不在本窗口。

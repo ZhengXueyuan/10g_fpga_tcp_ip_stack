@@ -178,7 +178,7 @@ fc_wq[init_head] <= fq_calc(winq_q_init, occ_fq);
   | 0x34 #2 | ExtraTimingOpt | −0.337 | 6,642 | 8×app 进 DP ⇒ 拥塞 |
   | 0x34 #3 | Extra + `u_app` pblock | **−0.644** | **13,282** | **否定**（压小布局 + 与 DP 争区） |
   | 0x34 #4 | `Congestion_SpreadLogic_high`（无 pblock；落为 `AltSpreadLogic_high`） | **−0.205** | **5,162** | 改善但仍 FAIL；最差族换到 `u_tcp_tx/bank_rdy → app/tcb CE` |
-  | 0x34 #5 | `Performance_NetDelay_high`（无 pblock） | 待判 | 待判 | 新输入（构建在飞） |
+  | 0x34 #5 | `Performance_NetDelay_high`（无 pblock） | **−0.886** | **14,630** | **显著更差 ⇒ 方向否定**；最好仍是 #4 |
   - pblock 文件保留为**可复跑负实验**，构建脚本默认关闭（`P11_APP8_PBLOCK=1` 才启用）。
   - 结构结论：0x33→0x34 的边际 ≈ **0.345 ns / 7 个额外 app** ⇒ 余量问题不是布局能补的；
     下一轮首选 = **8×app 组独立 156.25 MHz 域 + AXIS CDC**，次选 = app 图案逻辑降面积/共享
