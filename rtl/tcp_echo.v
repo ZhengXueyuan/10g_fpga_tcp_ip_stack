@@ -18,7 +18,10 @@
 //   D 必须是 2 的幂 (frame_fifo 的 NB=D/512 与指针回绕逻辑要求)。
 module tcp_echo #(
     parameter integer D  = 8192,
-    parameter integer AW = 13
+    parameter integer AW = 13,
+    // P11 APP8 v6 (REVIEW_V5): 每连接接收占用。默认 0 = 与现役逐位等价；
+    // C4 8×12KB 修复臂 (0x35) = 1。参数必须由 wrapper 的 P11_APP8_OCC 宏下发。
+    parameter         PER_CONN_OCC = 1'b0
 ) (
     input  wire        clk,
     input  wire        rst_n,
@@ -61,13 +64,22 @@ module tcp_echo #(
     // P4b-7-P6 tlast 位图转储 (UART 侧): 边存槽址 -> 该槽边存值 (bit8 = tlast);
     // 组合读, 上游 u_fifo mem_s (LUTRAM) 直通, 与 echo 逻辑零耦合
     input  wire [AW-1:0] dbg_rd_addr,      // frame_fifo 边存读址 (默认 AW=13: 13 位)
-    output wire [8:0]  dbg_rd_side         // 该址边存值 [8]=tlast [7:0]=tkeep
+    output wire [8:0]  dbg_rd_side,        // 该址边存值 [8]=tlast [7:0]=tkeep
+    // ---- P11 APP8 v6: 每连接占用 (PER_CONN_OCC=1) ----
+    // 读口地址 = app_ctrl 的 o_winq_rd_id（与 winq 读口同址同拍）；输出在模块内
+    // 打一拍并带 id（REVIEW_V5 F5），app_ctrl 用 id 匹配后再算 fq。
+    input  wire [3:0]  i_occ_rd_id,
+    output wire [16:0] o_occ_rd,          // 饱和到 17 位 (131,071)
+    output wire [3:0]  o_occ_rd_id,       // 与 o_occ_rd 同拍的 id
+    output wire [31:0] stat_occ_underflow,
+    output wire [31:0] stat_cq_ovf
 );
 
     localparam [1:0] S_IDLE = 2'd0, S_FWD = 2'd1;
     // 深度相关的计数宽度 (默认 8192 字 = 今天的 6 位; 16384 字 = 7 位)
     localparam integer FQW   = (D <= 8192) ? 6 : 7;   // 已判定好帧队列深度位宽
     localparam integer CQ_AW = (D <= 8192) ? 6 : 7;   // conn_id 队列深度/位宽
+    localparam integer CQ_DEPTH = (1 << CQ_AW);       // 128 (D=16384) / 64 (D=8192)
 
     reg  [1:0]  state;
     reg         first_b;
@@ -87,7 +99,7 @@ module tcp_echo #(
     wire        fwd_rd  = (state == S_FWD) && m_axis_tvalid && m_axis_tready;
     wire        judged  = pend && (accept && s_axis_tlast);
 
-    assign s_axis_tready = !fifo_full;
+    // s_axis_tready 由文件末尾 generate 按 PER_CONN_OCC 生成（默认分支逐字 = !fifo_full）
     assign m_axis_tdata  = (state == S_FWD) ? fdout[63:0] : 64'h0;
     assign m_axis_tkeep  = (state == S_FWD) ? fdout[71:64] : 8'h00;
     assign m_axis_tlast  = (state == S_FWD) ? fdout[72] : 1'b0;
@@ -185,5 +197,91 @@ module tcp_echo #(
     assign dbg_state     = {1'b0, state};
     // dbg_fifo_empty/dbg_fifo_wptr/dbg_fifo_rptr: u_fifo 的 dbg_* 输出直通模块口
     // (实例输出 net == 模块输出 net, 无额外驱动)
+
+    //=========================================================================
+    // P11 APP8 v6: 每连接占用 (PER_CONN_OCC)
+    //   occ[c] = 连接 c 在本口 echo FIFO 中未消费的物理字数 x 8。
+    //   写 +8 = accept (与 frame_fifo.wr 同拍, tready = !fifo_full ⇒ accept ⇒ wr_ok)
+    //   读 -8 = fwd_rd (与 frame_fifo.rd 同拍)
+    //   回卷 -8*rb_words = rback 拍 (frame_fifo 同拍 wptr<=wsnap), 含末字
+    //   ★ 主判据 (TB): 逐拍 sum(occ) == (wptr-rptr)<<3; 另配逐 tid 参考模型。
+    //   ★ 读口在模块内寄存并带 id (REVIEW_V5 F5); app_ctrl 用 id 匹配后再算 fq。
+    //   ★ 帧首门: fq<CQ_DEPTH-2 ⇒ 启动时 fq<=125, push 后 <=126 < 128; cq 永不满。
+    //=========================================================================
+    generate if (PER_CONN_OCC) begin : g_occ
+        assign s_axis_tready = !fifo_full && !rback &&
+                               (!first_b || (fq < CQ_DEPTH - 2));
+
+        reg [17:0] occ [0:15];
+        reg [3:0]  cur_cid, rb_cid, occ_id_q;
+        reg [13:0] cur_words, rb_words;
+        reg [17:0] occ_rd_q;
+        reg [31:0] stat_occ_underflow_r, stat_cq_ovf_r;
+
+        wire [3:0]  cid_w  = first_b ? meta_conn_id : cur_cid;
+        wire [13:0] cw_n   = first_b ? 14'd1 : cur_words + 14'd1;
+        wire        wr_ev  = accept;
+        wire        rd_ev  = fwd_rd;
+        wire        rb_ev  = rback;
+        wire [3:0]  rd_cid = cq_dout;
+
+        integer k;
+        reg signed [19:0] delta_k;
+        reg signed [19:0] sum_k;
+
+        always @(posedge clk or negedge rst_n) begin
+            if (!rst_n) begin
+                cur_cid <= 4'd0; cur_words <= 14'd0;
+                rb_cid  <= 4'd0; rb_words  <= 14'd0;
+                occ_rd_q <= 18'd0; occ_id_q <= 4'd0;
+                stat_occ_underflow_r <= 32'd0; stat_cq_ovf_r <= 32'd0;
+                for (k = 0; k < 16; k = k + 1) occ[k] <= 18'd0;
+            end else begin
+                if (accept && first_b) cur_cid <= meta_conn_id;
+                if (accept) begin
+                    if (judged) cur_words <= 14'd0;
+                    else        cur_words <= cw_n;
+                end
+                if (judged) begin
+                    rb_cid   <= cid_w;
+                    rb_words <= cw_n;          // 含末字; 单字帧 cw_n=1
+                end
+                if (judged && cq_full)         // 构造不可达 (帧首门); 只计数
+                    stat_cq_ovf_r <= stat_cq_ovf_r + 32'd1;
+
+                for (k = 0; k < 16; k = k + 1) begin
+                    delta_k = 20'sd0;
+                    if (wr_ev && (cid_w  == k[3:0])) delta_k = delta_k + 20'sd8;
+                    if (rd_ev && (rd_cid == k[3:0])) delta_k = delta_k - 20'sd8;
+                    if (rb_ev && (rb_cid == k[3:0]))
+                        delta_k = delta_k - (20'sd8 * $signed({1'b0, rb_words}));
+                    sum_k = $signed({2'b0, occ[k]}) + delta_k;
+                    if (sum_k < 20'sd0) begin
+                        occ[k] <= 18'd0;
+                        stat_occ_underflow_r <= stat_occ_underflow_r + 32'd1;
+                    end else if (sum_k > 20'sd262143) begin
+                        occ[k] <= 18'h3FFFF;
+                    end else begin
+                        occ[k] <= sum_k[17:0];
+                    end
+                end
+
+                // 读口寄存 (1 拍延迟) + id; app_ctrl 用 id 匹配
+                occ_rd_q <= occ[i_occ_rd_id];
+                occ_id_q <= i_occ_rd_id;
+            end
+        end
+
+        assign o_occ_rd    = occ_rd_q[17] ? 17'h1FFFF : occ_rd_q[16:0];
+        assign o_occ_rd_id = occ_id_q;
+        assign stat_occ_underflow = stat_occ_underflow_r;
+        assign stat_cq_ovf        = stat_cq_ovf_r;
+    end else begin : g_noocc
+        assign s_axis_tready = !fifo_full;   // 与 0x34 (OCC 关) 逐位等价
+        assign o_occ_rd = 17'd0;
+        assign o_occ_rd_id = 4'd0;
+        assign stat_occ_underflow = 32'd0;
+        assign stat_cq_ovf = 32'd0;
+    end endgenerate
 
 endmodule

@@ -69,6 +69,43 @@ switch -- $P11_CFG {
 set P11_IS_DUAL [expr {[lsearch -exact $P11_DEFS "P11_DUAL=1"] >= 0}]
 if {$P11_IS_DUAL} { lappend P11_DEFS P11_HLS_ADV_WND=1 }
 
+# ---- P11 APP8 (2026-10-27): 8 连接 app（8x app_pattern + 帧级 mux/demux）----
+#   默认关 ⇒ 既有构建逐位不变；只在 c4（双口/共享池）下允许。
+set P11_APP8_ON 0
+if {[info exists ::env(P11_APP8)] && ($::env(P11_APP8) ne "") && ($::env(P11_APP8) ne "0")} {
+    if {!$P11_IS_DUAL} {
+        puts "P11_APP8_REQUIRES_C4"
+        puts "P7B_VERDICT = P11_APP8_REQUIRES_C4"
+        exit 1
+    }
+    lappend P11_DEFS P11_APP8=1
+    set P11_APP8_ON 1
+}
+puts "P11_APP8 = $P11_APP8_ON"
+
+# ---- P11 APP8 OCC (2026-10-28, REVIEW_V5 F10): 每连接接收占用 ----
+#   默认 0（本文件的所有构建都定义该宏；wrapper 用宏值，不用 ifdef）。
+#   1 = 0x35 修复臂，必须同时 P11_APP8=1 且 c4（P11_DUAL）。
+set P11_APP8_OCC_ON 0
+if {[info exists ::env(P11_APP8_OCC)] && ($::env(P11_APP8_OCC) ne "")} {
+    if {$::env(P11_APP8_OCC) eq "1"} {
+        set P11_APP8_OCC_ON 1
+    } elseif {$::env(P11_APP8_OCC) eq "0"} {
+        set P11_APP8_OCC_ON 0
+    } else {
+        puts "P11_APP8_OCC_BAD_VALUE"
+        puts "P7B_VERDICT = P11_APP8_OCC_BAD_VALUE"
+        exit 1
+    }
+}
+if {$P11_APP8_OCC_ON && ((!$P11_APP8_ON) || (!$P11_IS_DUAL))} {
+    puts "P11_APP8_OCC_REQUIRES_APP8_C4"
+    puts "P7B_VERDICT = P11_APP8_OCC_REQUIRES_APP8_C4"
+    exit 1
+}
+lappend P11_DEFS P11_APP8_OCC=$P11_APP8_OCC_ON
+puts "P11_APP8_OCC = $P11_APP8_OCC_ON"
+
 # ⭐ 2026-10-27 E1a 0x33: implementation strategy is a build input (default = the
 #    0x31/0x32 Performance_Explore). A retry with a different strategy is a NEW INPUT,
 #    not "rerun until pass"; used only if the first build's timing gate fails.
@@ -217,6 +254,8 @@ import_files -norecurse \
     ${root_dir}/rtl/udp_rx.v ${root_dir}/rtl/udp_split.v ${root_dir}/rtl/udp_tx_cfg.v \
     ${root_dir}/rtl/udp_tx_frame.v ${root_dir}/rtl/tx_arb.v ${root_dir}/rtl/app_ctrl.v \
     ${root_dir}/rtl/app_pattern.v ${root_dir}/rtl/app_udp_pattern.v \
+    ${root_dir}/rtl/app_multi8.v ${root_dir}/rtl/axis_frame_mux8.v \
+    ${root_dir}/rtl/axis_tid_demux8.v ${root_dir}/rtl/app_close_arb8.v \
     ${root_dir}/rtl/app_status_uart.v     ${root_dir}/rtl/rx_merge2.v ${root_dir}/rtl/tx_demux2.v ${root_dir}/rtl/maccnt_sync.v \
     ${root_dir}/rtl/win_pool_mgr.v ${root_dir}/rtl/retx_pool_shared.v \
     ${root_dir}/rtl/slow_merge2.v ${root_dir}/rtl/slow_demux2.v ${root_dir}/rtl/slow_cfg_demux.v
@@ -431,6 +470,11 @@ add_files -fileset constrs_1 ${script_dir}/ku5p_p6e_pcie.xdc
 add_files -fileset constrs_1 ${script_dir}/ku5p_p6b_sysclk.xdc
 add_files -fileset constrs_1 ${script_dir}/ku5p_p7b_cdc.xdc
 set_property used_in_synthesis false [get_files ${script_dir}/ku5p_p7b_cdc.xdc]
+# P11 APP8 0x34 TIMING_FAIL 实验: 8×app 组 pblock (仅 P11_APP8 构建有 u_app=app_multi8;
+# 非 APP8 构建里 u_app 是 app_pattern —— 同名但 pblock 仍只约束该实例, 无行为影响).
+# 见 ku5p_p7b_app8.xdc 头注释; 新输入, 不是"重跑到过".
+add_files -fileset constrs_1 ${script_dir}/ku5p_p7b_app8.xdc
+set_property used_in_synthesis false [get_files ${script_dir}/ku5p_p7b_app8.xdc]
 
 # ⚠️ 这一版是为了**线速测量**而打开 `UDP_TX_OVL`（组帧器乒乓重叠）：
 #   `rtl/udp_tx_frame.v` 的 body 一分为二，`ifdef UDP_TX_OVL` = 乒乓双 bank 版（343 insertion / 0 deletion），
@@ -564,6 +608,28 @@ if {$P11_IS_DUAL} {
             if {[get_property IS_BLACKBOX $c]} { incr bb }
         }
     }
+    # P11 APP8 (v6): 4 个新件必须解析且非黑盒（REVIEW_RESPONSE M12；0x24 URAM 先例）
+    #   ⚠️ app_close_arb8 在 0x34/0x35 的连续 app (TX_CONTINUOUS=1) 下输入 close_req
+    #   恒 0 ⇒ 综合合法折叠为 0 个 cell；0x34 首跑即此假红（其余 3 件 =1，
+    #   P7B_BLACKBOX_LOG_HITS=0）。⇒ 硬门只要求前 3 件 ≥1；close arb 计数只登记，
+    #   若存在则查黑盒。模块功能由 tb_app_multi8 的 C 段单元门覆盖。
+    if {$P11_APP8_ON} {
+        foreach nm {app_multi8 axis_frame_mux8 axis_tid_demux8} {
+            set cc [get_cells -hier -quiet -filter "REF_NAME =~ $nm"]
+            set nn [llength $cc]
+            puts "P7B_APP8_MODULE $nm=$nn"
+            if {$nn < 1} { set p3ok 0 }
+            foreach c $cc {
+                if {[get_property IS_BLACKBOX $c]} { incr bb }
+            }
+        }
+        set cc [get_cells -hier -quiet -filter "REF_NAME =~ app_close_arb8"]
+        set nn [llength $cc]
+        puts "P7B_APP8_MODULE app_close_arb8=$nn (0 expected: continuous app closes never)"
+        foreach c $cc {
+            if {[get_property IS_BLACKBOX $c]} { incr bb }
+        }
+    }
     puts "P7B_BLACKBOX_COUNT $bb"
     if {$n1 != 0 || $n2 != 0 || !$p3ok || $bb != 0} {
         puts "P7B_MODULE_MISSING_OR_BLACKBOX" ; exit 1
@@ -686,6 +752,9 @@ foreach p $tp_top {
     puts "P11_STA_TOP slack=[get_property SLACK $p] src=[get_property STARTPOINT_PIN $p] dst=[get_property ENDPOINT_PIN $p] lvl=[get_property LOGIC_LEVELS $p]"
 }
 if {[info exists ::env(P11_STA_ONLY)] && $::env(P11_STA_ONLY) == "1"} {
+    # synth 检查点也留资源报告（P11 APP8 估 LUT 预算用；不改变任何设计）
+    report_utilization -hierarchical -hierarchical_depth 2         -file ${root_dir}/board/p11_synth_util.rpt
+    puts "P11_SYNTH_UTIL_RPT = ${root_dir}/board/p11_synth_util.rpt"
     puts "P11_STA_ONLY_OK"
     puts "P7B_VERDICT = OK"
     close_design

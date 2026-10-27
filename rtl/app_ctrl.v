@@ -333,6 +333,9 @@ module app_ctrl #(
     parameter        ORPHAN_ZW_EN = 1'b0,
     parameter [7:0]  ORPHAN_ZW_LIM = 8'd105,
     parameter integer ORPHAN_ZW_TICK_BITS = 20,
+    // P11 APP8 v6 (REVIEW_V5 F5): 1 = fq 用 tcp_echo 的每连接 occ 寄存读口
+    // (i_occ_rd/i_occ_rd_id); 0 = 原 rx_occ_bytes (逐位不变)。
+    parameter        PER_CONN_OCC = 1'b0,
     // P5c-T3 G2: 关闭超时阈值 (单位 = 该槽被扫描到的轮次; 见文件头换算 —
     // 生产值 195313 轮 = 400ms = 4xRTO @125MHz)。18 位 (195313 < 2^18)。
     // ⚠️ P6b: 消费者搬到 156.25MHz 数据面域 ⇒ 维持同一墙钟需 ×1.25 = 244141 轮。
@@ -481,7 +484,12 @@ module app_ctrl #(
     // (通告右沿 = redge_old + Δ) 依赖"窗口写口不被长期饿死"这一活性假设 ——
     // 若该值 > 20480 拍 (131us @156.25MHz —— P6b 域下同**墙钟**的拍数; 125MHz 域
     // 对应的旧值是 16384 拍, 见 agent_docs/P6B_SPEC §5.1 末行)。
-    output reg  [31:0] stat_fc_wait_max
+    output reg  [31:0] stat_fc_wait_max,
+    // ---- P11 APP8 v6: 每连接占用读口 (REVIEW_V5 F5) ----
+    //   i_occ_rd/o_occ_rd_id 来自 tcp_echo 的寄存输出 (1 拍延迟);
+    //   PER_CONN_OCC=0 时本输入被常数屏蔽 (rx_occ_bytes 原路径)。
+    input  wire [16:0] i_occ_rd,
+    input  wire [3:0]  i_occ_rd_id
 );
     // ESTABLISHED = state 1 (slow_cfg_adp ADD 写 state=1; DEL 写 0)
     localparam [3:0] ST_ESTAB = 4'd1;
@@ -970,7 +978,10 @@ module app_ctrl #(
     // 只剩一级 17 位饱和减法 (fq) + 一级 32 位加法 (redge_n)。原来是四级串联
     // (fq -> redge_n -> sdelta -> wcalc -> wu_mark 比较), 实测 22 CARRY4 / 37 级
     // 逻辑 / WNS -3.089ns。fq 同时供 redge_n 与 fq_r 锁存 (wscan 由它直接得到)。
-    wire [16:0] fq_scan  = fq_calc(winq_q_scan, rx_occ_bytes);
+    // P11 APP8 v6 (REVIEW_V5 F5): occ 来源。PER_CONN_OCC=1 时用 tcp_echo 的
+    // 寄存读口 (带 id, 见扫描 tick 的 id 匹配门); =0 时逐字是原 rx_occ_bytes。
+    wire [16:0] occ_fq   = PER_CONN_OCC ? i_occ_rd : rx_occ_bytes;
+    wire [16:0] fq_scan  = fq_calc(winq_q_scan, occ_fq);
     wire [31:0] redge_n  = rc_rcv_nxt + {15'b0, fq_scan};
     // 拍 T+1 的单调判据 (对寄存值做一次 32 位序比较)
     wire signed [31:0] sdelta_b = $signed(pa_redge_n - redge[pa_sid]);
@@ -1164,7 +1175,7 @@ module app_ctrl #(
                 // 会同新配额叠加 ⇒ occ(遗留) + 49152 > 65536 (遗留 > 16KB 即溢出)。
                 // occ=0 时简并为 rcv_nxt + winq (C3 原式)。
                 redge[init_head]   <= redge_calc(winq_q_init, rc_rcv_nxt,
-                                                 rx_occ_bytes);
+                                                 occ_fq);
                 // C10: wu_mark 取 winq (刚授予的配额), 不取采样的 rc_rcv_wnd —
                 // init 后 TCB 值即 winq (下面 fc_pend 立即纠正), 两者一致, 且免去
                 // 对采样值的时序依赖 ⇒ 连接刚建立不会多发一个 wu。
@@ -1187,7 +1198,7 @@ module app_ctrl #(
                 // occ=0 时 = winq ⇒ 与规格 C10 的字面值逐位相同 (单连接常态);
                 // occ>0 时若写 winq 会通告 > redge 的右沿 ⇒ 下一次扫描的 fc 写
                 // 变成"撤窗" (在飞数据被拒 ⇒ C16 病理) ⇒ 必须取空闲量。
-                fc_wq[init_head]     <= fq_calc(winq_q_init, rx_occ_bytes);
+                fc_wq[init_head]     <= fq_calc(winq_q_init, occ_fq);
             end
 
             // ---- 0x2F: init 等待队列指针/计数 (单 push / 单 pop) ----
@@ -1321,7 +1332,9 @@ module app_ctrl #(
             // 会覆盖事件块的清理/授权 (旧版: winq 走增量补授而非 C14-① 的授予预留,
             // wu_zero 被清 0 覆盖等)。ev_down 本可依赖 `state != ESTAB` 天然为假,
             // 但 redge 更新/位图清理并不看 state, 故一并让位 (跳过一拍采样无害)。
-            if (scan_tick && !init_valid && !(ev_blk && (ev_slot_i == scan_id))) begin
+            if (scan_tick && !init_valid &&
+                (!PER_CONN_OCC || (i_occ_rd_id == scan_id)) &&
+                !(ev_blk && (ev_slot_i == scan_id))) begin
                 scan_id <= scan_id + 4'd1;
                 if (scan_id == 4'd15) scan_round <= scan_round + 32'd1;
                 c_state  [scan_id] <= rc_state;

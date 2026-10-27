@@ -1,0 +1,32 @@
+#-----------------------------------------------------------
+# xsim v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Wed Oct 28 00:23:27 2026
+# Process ID         : 16936
+# Current directory  : D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_app8_contract_20261027/compile
+# Command line       : xsim.exe -log xsim_mut_slow.log -mode tcl -source {xsim.dir/snap_mut_slow/xsim_script.tcl}
+# Log file           : D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_app8_contract_20261027/compile/xsim_mut_slow.log
+# Journal file       : D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_app8_contract_20261027/compile\xsim.jou
+# Running On         : xyz-intel
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26300
+# Processor Detail   : Intel(R) Core(TM) Ultra 7 265K
+# CPU Frequency      : 3878 MHz
+# CPU Physical cores : 20
+# CPU Logical cores  : 20
+# Host memory        : 68053 MB
+# Swap memory        : 4294 MB
+# Total Virtual      : 72348 MB
+# Available Virtual  : 48168 MB
+#-----------------------------------------------------------
+source xsim.dir/snap_mut_slow/xsim_script.tcl
+# xsim {snap_mut_slow} -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+FAIL A(0x3000) rcv_wnd got=0000c000 exp=00003000
+TB_SLOW_CFG_FAIL errors=1
+$finish called at time : 465 ns : File "D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_app8_contract_20261027/tb_slow_cfg_init.v" Line 83
+exit
+INFO: [Common 17-206] Exiting xsim at Wed Oct 28 00:23:29 2026...

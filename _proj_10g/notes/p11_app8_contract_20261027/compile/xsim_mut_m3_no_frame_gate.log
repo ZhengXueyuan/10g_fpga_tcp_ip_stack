@@ -1,0 +1,72 @@
+#-----------------------------------------------------------
+# xsim v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Wed Oct 28 00:21:56 2026
+# Process ID         : 12676
+# Current directory  : D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_app8_contract_20261027/compile
+# Command line       : xsim.exe -log xsim_mut_m3_no_frame_gate.log -mode tcl -source {xsim.dir/snap_m3_no_frame_gate/xsim_script.tcl}
+# Log file           : D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_app8_contract_20261027/compile/xsim_mut_m3_no_frame_gate.log
+# Journal file       : D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_app8_contract_20261027/compile\xsim.jou
+# Running On         : xyz-intel
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26300
+# Processor Detail   : Intel(R) Core(TM) Ultra 7 265K
+# CPU Frequency      : 3878 MHz
+# CPU Physical cores : 20
+# CPU Logical cores  : 20
+# Host memory        : 68053 MB
+# Swap memory        : 4294 MB
+# Total Virtual      : 72348 MB
+# Available Virtual  : 47952 MB
+#-----------------------------------------------------------
+source xsim.dir/snap_m3_no_frame_gate/xsim_script.tcl
+# xsim {snap_m3_no_frame_gate} -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+P_T1_SEND_START t=75000
+P_T1_SENT t=310000 fq=3 occ2=40 occ5=8
+P_T1_READ t=460000 beats=6 frames=3 bytes=34
+P_T2_SEND_START t=490000
+Error: [Unisim RAMB36E2-11] Memory Collision at time 535.001 ns.
+A simultaneous WRITE on port B (01c0) and READ on port A (0180) occured.
+The WRITE was successful but the READ may be corrupted. Instance: tb_echo_occ.u_dut.u_fifo.gen_mem[0].u_main
+Error: [Unisim RAMB36E2-11] Memory Collision at time 635.001 ns.
+A simultaneous WRITE on port B (01c0) and READ on port A (0180) occured.
+The WRITE was successful but the READ may be corrupted. Instance: tb_echo_occ.u_dut.u_fifo.gen_mem[0].u_main
+P_T2_SENT t=650000 occ7=8 fq=1 drop=1
+P_T2_READ t=720000 frames=4 occ7=0
+Error: [Unisim RAMB36E2-11] Memory Collision at time 875.001 ns.
+A simultaneous WRITE on port B (0200) and READ on port A (01c0) occured.
+The WRITE was successful but the READ may be corrupted. Instance: tb_echo_occ.u_dut.u_fifo.gen_mem[0].u_main
+Error: [Unisim RAMB36E2-11] Memory Collision at time 915.001 ns.
+A simultaneous WRITE on port B (0200) and READ on port A (01c0) occured.
+The WRITE was successful but the READ may be corrupted. Instance: tb_echo_occ.u_dut.u_fifo.gen_mem[0].u_main
+P_T2B_DONE t=965000 occ9=16 occ6=0 fq=1
+Error: [Unisim RAMB36E2-11] Memory Collision at time 1065.001 ns.
+A simultaneous WRITE on port B (0280) and READ on port A (0240) occured.
+The WRITE was successful but the READ may be corrupted. Instance: tb_echo_occ.u_dut.u_fifo.gen_mem[0].u_main
+P_T3_126 t=8580000 fq=126 occ1=1008 good_n=131
+FAIL_FQ t=8650000 fq=127
+FAIL_FQ t=8660000 fq=127
+FAIL_FQ t=8670000 fq=127
+FAIL_FQ t=8680000 fq=127
+FAIL_TASK t=8685000 T3 gate did not block first beat
+P_T3_FORK_DONE t=8690000 fq=127 gate_cycles=0
+FAIL_FQ t=8690000 fq=127
+P_T3_128 t=8750000 fq=122 good_n=133
+P_T3_RD t=8800000 frames=16 beats=20
+P_T3_RD t=8960000 frames=32 beats=36
+P_T3_RD t=9120000 frames=48 beats=52
+P_T3_RD t=9280000 frames=64 beats=68
+P_T3_RD t=9440000 frames=80 beats=84
+P_T3_RD t=9600000 frames=96 beats=100
+P_T3_RD t=9760000 frames=112 beats=116
+P_T3_RD t=9920000 frames=128 beats=132
+FAIL_TASK t=10065000 cles==0 (no gate close observed)
+TB_ECHO_OCC_FAIL errors=7 checks=20146
+$finish called at time : 10115 ns : File "D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_app8_contract_20261027/tb_echo_occ.v" Line 434
+exit
+INFO: xsimkernel Simulation Memory Usage: 155776 KB (Peak: 155776 KB), Simulation CPU Usage: 234 ms
+INFO: [Common 17-206] Exiting xsim at Wed Oct 28 00:21:58 2026...

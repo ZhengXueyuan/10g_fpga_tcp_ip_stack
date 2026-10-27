@@ -1,4 +1,9 @@
 `timescale 1ns/1ps
+// P11 APP8 v6: 默认关。构建脚本 (board/build_p7b_ku5p.tcl) 对所有构建显式定义
+// 0/1；其它构建脚本/TB 未定义时兜底 0（保证宏可用、参数恒定）。
+`ifndef P11_APP8_OCC
+  `define P11_APP8_OCC 0
+`endif
 //=============================================================================
 // wrapper_p4.v — udp_hls_10g 板上 P4a 顶层 (1G RGMII): TCP fast path + HLS 慢路径
 //=============================================================================
@@ -445,13 +450,23 @@ module wrapper_p4 #(
 `endif
 
     // ---- P11 P3: C4 合同常量 (一个 bitstream 一个合同) ----
-    //   0x2F 构建 = 2 连接合同 (wq_cap = 96KB/2 = 48KB = 0xC000; 2×10G 主判据);
-    //   8 连接合同 (8×12KB = 0x3000) 为 0x30 构建 (多连接 app 交付后)。
+    //   0x2F/0x31/0x33 = 2 连接合同 (wq_cap = 96KB/2 = 48KB = 0xC000; 2×10G 主判据);
+    //   ⭐ 2026-10-27 APP8 = **8 连接合同** (8×12KB = 0x3000; port0 8+0) ——
+    //      多连接 app 交付后启用；HLS adv_wnd 同值（P11_HLS_ADV_WND 已接线）。
     //   host 配额寄存器不在 P3 范围。
-    localparam integer P11_EXPECTED_CONNS = 2;
+    localparam integer P11_EXPECTED_CONNS = 8;
     localparam [16:0]  WIN_POOL_5   = 17'h18000;                    // 96KB 单共享池
-    localparam [15:0]  WQ_CAP_5     = WIN_POOL_5 / P11_EXPECTED_CONNS; // 0x3000
+    localparam [15:0]  WQ_CAP_5     = WIN_POOL_5 / P11_EXPECTED_CONNS; // 8 conns => 0x3000
     localparam [16:0]  PORT_CAP_5   = 17'h18000;                    // 每口上限 = 全池
+    // F1 (P11 APP8 v6): ADD 期 TCB rcv_wnd 初值必须与 HLS SYN-ACK 的 adv_wnd 同值。
+    //   c4 (P11_HLS_ADV_WND) = WQ_CAP_5（0x34/0x35 = 0x3000；旧 2×48KB 构建 = 0xC000）；
+    //   非 c4 = 0xC000（历史值，零回归）。此前 slow_cfg_adp 写死 0xC000 ⇒ 8×12KB 合同
+    //   下 opener 首帧可能通告 48KB（REVIEW_V5 F1，阻断级）。
+`ifdef P11_HLS_ADV_WND
+    localparam [15:0]  RCV_WND_INIT_5 = WQ_CAP_5;
+`else
+    localparam [15:0]  RCV_WND_INIT_5 = 16'hC000;
+`endif
 
     // ---- P5: 窗口/ring 帽单一来源 (W5) ----
     // 三处必须同值: tcp_tx_frame.RING_CAP (ring 门控帽) = tcb.WIN_CAP (注册窗口
@@ -1534,6 +1549,9 @@ module wrapper_p4 #(
     // ---- P11 P3 (C4): 外部共享配额口 (EXT_QUOTA=1; 非 C4 构建由 app_ctrl 忽略) ----
     wire [3:0]  app_winq_rd_id, app_winq_rd_id_ev;
     wire [15:0] app_winq_rd, app_winq_rd_ev;
+    // P11 APP8 v6: tcp_echo 每连接 occ 寄存读口 (OCC=0 时输出恒 0)
+    wire [16:0] app_occ_rd;
+    wire [3:0]  app_occ_rd_id;
     wire        app_quota_rel;
     wire [3:0]  app_quota_rel_slot;
     // 0x2F: win_pool_mgr 的 ev_up 授予完成握手 (EXT_QUOTA=1 时 init 等它)
@@ -1571,11 +1589,15 @@ module wrapper_p4 #(
 `ifdef APP_MODE
     wire [63:0] app_rx_tdata  = eco2_tdata;
     wire [7:0]  app_rx_tkeep  = eco2_tkeep;
-    wire        app_rx_tvalid = eco2_tvalid;
+    // P11 APP8 v6 (REVIEW_V5 H-1): 测试专用 RX 停顿 —— 双门。停读期间两侧同时
+    // 看不见该字：app 侧 tvalid=0（不消费），echo 侧 tready=0（pipe/FIFO 保持）。
+    // 只在 PCIE_OBS ∧ APP_MODE ∧ P11_APP8 生效；其余构建 app_rx_stall 恒 0。
+    wire        app_rx_stall;
+    wire        app_rx_tvalid = eco2_tvalid && !app_rx_stall;
     wire        app_rx_tready;
     wire        app_rx_tlast  = eco2_tlast;
     wire [3:0]  app_rx_tid    = eco2_tid;
-    assign eco2_tready = app_rx_tready;
+    assign eco2_tready = app_rx_tready && !app_rx_stall;
 
     wire [63:0] app_tx_tdata, app2_tdata;
     wire [7:0]  app_tx_tkeep, app2_tkeep;
@@ -1728,6 +1750,54 @@ module wrapper_p4 #(
     //   (会话永不结束 ⇒ 只由对端 FIN/复位结束; 见 P7B_LONGSEND_DESIGN.md §1.7)。
     //   ⚠️ 其余全部例化点 (含 sim/ 下 71 个镜像件) 不传该参数 ⇒ 默认 1'b0 ⇒ 逐位不变。
     //   ⚠️ `.TX_BYTES` 必须非 0 (连续模式的非法配置 = 0; 设计件 §1.3①)。
+`ifdef P11_APP8
+    // P11 APP8 (2026-10-27): 8 连接 app —— 8x app_pattern + 帧级 mux/demux/close 仲裁。
+    //   只在 P11_APP8 构建里启用；默认（未定义）走下面的原单实例路径（逐字不变）。
+    app_multi8 #(.TX_BYTES(32'h0FFFFFFF), .TX_SEGSZ(12'd1460),
+                  .TX_CONTINUOUS(1'b1), .TX_SWCLOSE(1'b1)) u_app (
+        .clk            (dp_clk),
+        .rst_n          (dp_rst_n),
+        .ev_up          (app_ev_up),
+        .ev_down        (app_ev_down),
+        .ev_slot        (app_ev_slot),
+        .m_tdata        (app_tx_tdata),
+        .m_tkeep        (app_tx_tkeep),
+        .m_tvalid       (app_tx_tvalid),
+        .m_tready       (app_tx_tready),
+        .m_tlast        (app_tx_tlast),
+        .m_tid          (app_tx_tid),
+        .app_tx_ready   (app_tx_ready),
+        .close_req      (app_close_req),
+        .close_id       (app_close_id),
+        .rx_tdata       (app_rx_tdata),
+        .rx_tkeep       (app_rx_tkeep),
+        .rx_tvalid      (app_rx_tvalid),
+        .rx_tready      (app_rx_tready),
+        .rx_tlast       (app_rx_tlast),
+        .rx_tid         (app_rx_tid),
+        .i_bad_frame    (128'd0),
+        .stat_tx_bytes  (app_tx_bytes),
+        .stat_tx_frames (app_tx_frames),
+        .stat_rx_bytes  (app_rx_bytes),
+        .stat_mismatch  (app_mismatch),
+        .active         (),
+        .act_id         (),
+        .done           (),
+        .dbg_lfsr       (),
+        .led            (app_led),
+        .stat_frmwait_cyc(app_frmwait_cyc),
+        .stat_bp_cyc     (app_bp_cyc),
+        .stat_up_ev      (app_up_ev),
+        .stat_sw_req     (app_sw_req),
+        .stat_sw_apply   (app_sw_apply),
+        .stat_up_pend    (app_up_pend),
+        .stat_arb_frames (),
+        .stat_rx_orphan_frames(),
+        .stat_rx_orphan_bytes (),
+        .stat_close_pend_max  (),
+        .dbg_inst_mismatch    ()
+    );
+`else
     app_pattern #(.TX_BYTES(32'h0FFFFFFF), .TX_SEGSZ(12'd1460),
                   .TX_CONTINUOUS(1'b1),
                   // ⭐ P7B-GAP9-TX: 尾字 carry (整字网 1 拍出尾字; 默认关 ⇒ 其余例化不变)。
@@ -1787,6 +1857,7 @@ module wrapper_p4 #(
         .stat_sw_apply    (app_sw_apply),      // W73: 换流应用数 (sw_apply)
         .stat_up_pend     (app_up_pend)        // W74: A3 登记数 (ev_other_act)
     );
+`endif
 
     axis_pipe #(.W(77)) u_app_pipe (
         .clk            (dp_clk),
@@ -1809,7 +1880,8 @@ module wrapper_p4 #(
         .ORPHAN_TICK_BITS(ORPHAN_TICK_BITS_5),
         .ORPHAN_ZW_EN(ORPHAN_ZW_EN_5),
         .ORPHAN_ZW_LIM(ORPHAN_ZW_LIM_5),
-        .ORPHAN_ZW_TICK_BITS(ORPHAN_ZW_TICK_BITS_5)
+        .ORPHAN_ZW_TICK_BITS(ORPHAN_ZW_TICK_BITS_5),
+        .PER_CONN_OCC(`P11_APP8_OCC)
     ) u_app_ctrl (
         .clk            (dp_clk),
         .rst_n          (dp_rst_n),
@@ -1895,7 +1967,9 @@ module wrapper_p4 #(
         .i_ev_up_done   (wp_ev_done0),
         .i_ev_up_done_slot(wp_ev_done_slot0),
         .stat_init_ovf  (),
-        .stat_init_mismatch()
+        .stat_init_mismatch(),
+        .i_occ_rd       (app_occ_rd),
+        .i_occ_rd_id    (app_occ_rd_id)
     );
 
     // P5 寄存器总线默认静止 (板级无 CPU/AXI; 将来接 AXI-Lite 桥)
@@ -2511,6 +2585,7 @@ module wrapper_p4 #(
 `else
         .D(8192),  .AW(13)          // 历史 64KB (C1/C3 行为回归)
 `endif
+        , .PER_CONN_OCC(`P11_APP8_OCC)   // v6: 0x34=0 / 0x35=1
     ) u_tcp_echo (
         .clk            (dp_clk),
         .rst_n          (dp_rst_n),
@@ -2541,7 +2616,12 @@ module wrapper_p4 #(
         .dbg_fifo_wptr  (eco_dbg_fifo_wptr),
         .dbg_fifo_rptr  (eco_dbg_fifo_rptr),
         .dbg_rd_addr    (eco_dbg_fifo_tladdr),     // P4c: [12:0] 直连 (AW=13)
-        .dbg_rd_side    (eco_dbg_fifo_tlside)
+        .dbg_rd_side    (eco_dbg_fifo_tlside),
+        .i_occ_rd_id    (app_winq_rd_id),
+        .o_occ_rd       (app_occ_rd),
+        .o_occ_rd_id    (app_occ_rd_id),
+        .stat_occ_underflow (),
+        .stat_cq_ovf        ()
     );
 
     // ---- P4b-7-P6: tcp_echo -> tcp_tx_frame 1-deep 全速流水寄存器 (拆临界
@@ -2714,7 +2794,7 @@ module wrapper_p4 #(
     assign cfg_stat_port_mismatch = 32'd0;
 `endif
 
-    slow_cfg_adp u_slow_cfg (
+    slow_cfg_adp #(.RCV_WND_INIT(RCV_WND_INIT_5)) u_slow_cfg (
         .clk            (dp_clk),
         .rst_n          (reset_n & hls_rst_n),
         .s_axis_tdata   (cfg0_tdata),
@@ -3074,6 +3154,12 @@ module wrapper_p4 #(
     );
 
     // port1 echo (128KB) + 1-deep pipe
+    // P11 APP8 v6: a2 winq/occ 读口线束必须先声明 (u_tcp_echo2 在 u_app_ctrl2 之前;
+    // xvlog 对后声明会静默当 1 位隐式网 —— 见 P5e-T2 坑 24)。
+    wire [3:0]  a2_winq_rd_id, a2_winq_rd_id_ev;
+    wire [15:0] a2_winq_rd, a2_winq_rd_ev;
+    wire [16:0] a2_occ_rd;
+    wire [3:0]  a2_occ_rd_id;
     wire [63:0] e2b_tdata; wire [7:0] e2b_tkeep;
     wire        e2b_tvalid, e2b_tready, e2b_tlast;
     wire [3:0]  e2b_tid;
@@ -3083,7 +3169,7 @@ module wrapper_p4 #(
     wire [3:0]  e2c_tid;
     wire [76:0] e2c_pack;
     assign {e2c_tkeep, e2c_tlast, e2c_tdata, e2c_tid} = e2c_pack;
-    tcp_echo #(.D(16384), .AW(14)) u_tcp_echo2 (
+    tcp_echo #(.D(16384), .AW(14), .PER_CONN_OCC(`P11_APP8_OCC)) u_tcp_echo2 (
         .clk(dp_clk), .rst_n(dp_rst_n),
         .s_axis_tdata(pay2_tdata), .s_axis_tkeep(pay2_tkeep),
         .s_axis_tvalid(pay2_tvalid), .s_axis_tready(pay2_tready),
@@ -3097,7 +3183,11 @@ module wrapper_p4 #(
         .stat_echo(), .stat_drop_crc(), .stat_tlast_wr(), .stat_tlast_fwd(),
         .dbg_fifo_full(), .dbg_state(), .dbg_fifo_empty(),
         .dbg_fifo_wptr(e2b_wptr), .dbg_fifo_rptr(e2b_rptr),
-        .dbg_rd_addr(14'd0), .dbg_rd_side()
+        .dbg_rd_addr(14'd0), .dbg_rd_side(),
+        .i_occ_rd_id(a2_winq_rd_id),
+        .o_occ_rd(a2_occ_rd),
+        .o_occ_rd_id(a2_occ_rd_id),
+        .stat_occ_underflow(), .stat_cq_ovf()
     );
     axis_pipe #(.W(77)) u_eco_pipe2 (
         .clk(dp_clk), .rst_n(dp_rst_n),
@@ -3207,8 +3297,7 @@ module wrapper_p4 #(
     wire        a2_wu_req, a2_wu_gnt;
     wire [3:0]  a2_wu_id;
     wire [31:0] a2_wu_val;
-    wire [3:0]  a2_winq_rd_id, a2_winq_rd_id_ev;
-    wire [15:0] a2_winq_rd, a2_winq_rd_ev;
+    // a2_winq_rd_* / a2_occ_rd*: 已在 port1 echo 段提前声明 (v6)
     wire        a2_quota_rel;
     wire [3:0]  a2_quota_rel_slot;
     wire [3:0]  a2_c0_state;
@@ -3224,7 +3313,8 @@ module wrapper_p4 #(
         .ORPHAN_TICK_BITS(ORPHAN_TICK_BITS_5),
         .ORPHAN_ZW_EN(ORPHAN_ZW_EN_5),
         .ORPHAN_ZW_LIM(ORPHAN_ZW_LIM_5),
-        .ORPHAN_ZW_TICK_BITS(ORPHAN_ZW_TICK_BITS_5)
+        .ORPHAN_ZW_TICK_BITS(ORPHAN_ZW_TICK_BITS_5),
+        .PER_CONN_OCC(`P11_APP8_OCC)
     ) u_app_ctrl2 (
         .clk(dp_clk), .rst_n(dp_rst_n),
         .ev_up(scfg2_ev_up), .ev_down(scfg2_ev_down), .ev_slot(scfg2_ev_slot),
@@ -3262,7 +3352,8 @@ module wrapper_p4 #(
         .stat_ev_up(), .stat_ev_down(), .stat_ev_drop(a2_ev_drop),
         .stat_cmd_close(), .stat_cmd_abort(), .stat_wu(a2_stat_wu),
         .stat_pool_exhaust(a2_stat_pool_exh), .stat_fc_upd(),
-        .stat_slot_reuse(a2_stat_slot_reuse), .stat_fc_wait_max()
+        .stat_slot_reuse(a2_stat_slot_reuse), .stat_fc_wait_max(),
+        .i_occ_rd(a2_occ_rd), .i_occ_rd_id(a2_occ_rd_id)
     );
 
     // ---- port1 app (TCP 图案 app, 每口一份; 设计件 §9.4) ----
@@ -3736,7 +3827,7 @@ module wrapper_p4 #(
 
     // ---- port1 cfg_adp ----
     wire [31:0] scfg2_stat_add_unused, scfg2_stat_del_unused;
-    slow_cfg_adp u_slow_cfg2 (
+    slow_cfg_adp #(.RCV_WND_INIT(RCV_WND_INIT_5)) u_slow_cfg2 (
         .clk(dp_clk), .rst_n(reset_n & hls_rst_n),
         .s_axis_tdata(cfg1_tdata), .s_axis_tvalid(cfg1_tvalid),
         .s_axis_tready(cfg1_tready),
@@ -5013,6 +5104,26 @@ module wrapper_p4 #(
     //    同族结论: **拼接项数/位宽错一处都不会被 xvlog 报出来** —— 只有逐字读回的门能抓。
     wire [SNAP_FE_NW*32 + SNAP_DP_NW*32 - 1:0] snap_dout;   // = snap_seq 装配好的 36 字 (同 axi 域)
     wire [31:0]  pcie_hw_status, pcie_scratch, pcie_wr_cnt;
+
+    // ---- P11 APP8 v6: 测试专用 RX 停顿 (0x08 bit2; REVIEW_V5 F5/H-1) ----
+    //   只在 APP_MODE ∧ PCIE_OBS ∧ P11_APP8 存在；其余构建 app_rx_stall 恒 0。
+    //   pcie_axi_aclk → dp_clk 2FF 同步。停读双门在 eco2 单点施加 (见 app_rx_* 别名)。
+`ifdef APP_MODE
+`ifdef PCIE_OBS
+`ifdef P11_APP8
+    reg [1:0] app_rx_stall_sr;
+    always @(posedge dp_clk or negedge dp_rst_n) begin
+        if (!dp_rst_n) app_rx_stall_sr <= 2'b00;
+        else           app_rx_stall_sr <= {app_rx_stall_sr[0], pcie_scratch[2]};
+    end
+    assign app_rx_stall = app_rx_stall_sr[1];
+`else
+    assign app_rx_stall = 1'b0;
+`endif
+`else
+    assign app_rx_stall = 1'b0;
+`endif
+`endif
     wire         pcie_decode_err;
     // (快照字数 localparam 见本段开头的声明区 —— 必须在那里, xvlog 先声明后用)
     wire [SNAP_FE_NW*32-1:0] fe_src;
@@ -6319,7 +6430,7 @@ module wrapper_p4 #(
 
     axi_regs #(
         .MAGIC_V    (32'h50360001),
-        .BUILD_ID_V (32'h00000033),   // P11 E1a-1 (W85..W96; 0x32 = P3 C4 双栈) // ⚠️ 每次改动自增
+        .BUILD_ID_V (32'h00000034),   // P11 E1a-1 (W85..W96; 0x32 = P3 C4 双栈) // ⚠️ 每次改动自增
                                         //   ⭐ 本轮构建 (2026-10-15): **0x27 → 0x28** = **E12 观测计数器**
                                         //      (换流门四计数器: `stat_up_ev` / `stat_sw_req` /
                                         //       `stat_sw_apply` / `stat_up_pend` —— `rtl/app_pattern.v`

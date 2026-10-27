@@ -1,0 +1,93 @@
+#-----------------------------------------------------------
+# xsim v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Wed Oct 28 00:22:11 2026
+# Process ID         : 18428
+# Current directory  : D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_app8_contract_20261027/compile
+# Command line       : xsim.exe -log xsim_mut_m5_rd_no_sub.log -mode tcl -source {xsim.dir/snap_m5_rd_no_sub/xsim_script.tcl}
+# Log file           : D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_app8_contract_20261027/compile/xsim_mut_m5_rd_no_sub.log
+# Journal file       : D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_app8_contract_20261027/compile\xsim.jou
+# Running On         : xyz-intel
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26300
+# Processor Detail   : Intel(R) Core(TM) Ultra 7 265K
+# CPU Frequency      : 3878 MHz
+# CPU Physical cores : 20
+# CPU Logical cores  : 20
+# Host memory        : 68053 MB
+# Swap memory        : 4294 MB
+# Total Virtual      : 72348 MB
+# Available Virtual  : 47988 MB
+#-----------------------------------------------------------
+source xsim.dir/snap_m5_rd_no_sub/xsim_script.tcl
+# xsim {snap_m5_rd_no_sub} -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+P_T1_SEND_START t=75000
+P_T1_SENT t=310000 fq=3 occ2=40 occ5=8
+FAIL_OCC t=410000 cid=2 dut=40 exp=32
+FAIL_SUM t=410000 sum=48 fifo=40 (w=6 r=1)
+FAIL_OCC t=420000 cid=2 dut=40 exp=24
+FAIL_SUM t=420000 sum=48 fifo=32 (w=6 r=2)
+FAIL_OCC t=430000 cid=2 dut=40 exp=16
+FAIL_SUM t=430000 sum=48 fifo=24 (w=6 r=3)
+FAIL_OCC t=440000 cid=2 dut=40 exp=8
+FAIL_SUM t=440000 sum=48 fifo=16 (w=6 r=4)
+FAIL_OCC t=450000 cid=2 dut=40 exp=8
+FAIL_OCC t=450000 cid=5 dut=8 exp=0
+FAIL_SUM t=450000 sum=48 fifo=8 (w=6 r=5)
+FAIL_OCC t=460000 cid=2 dut=40 exp=0
+FAIL_OCC t=460000 cid=5 dut=8 exp=0
+FAIL_SUM t=460000 sum=48 fifo=0 (w=6 r=6)
+P_T1_READ t=460000 beats=6 frames=3 bytes=34
+FAIL_OCC t=470000 cid=2 dut=40 exp=0
+FAIL_OCC t=470000 cid=5 dut=8 exp=0
+FAIL_SUM t=470000 sum=48 fifo=0 (w=6 r=6)
+FAIL_OCC t=480000 cid=2 dut=40 exp=0
+FAIL_OCC t=480000 cid=5 dut=8 exp=0
+FAIL_SUM t=480000 sum=48 fifo=0 (w=6 r=6)
+FAIL_OCC t=490000 cid=2 dut=40 exp=0
+FAIL_OCC t=490000 cid=5 dut=8 exp=0
+FAIL_SUM t=490000 sum=48 fifo=0 (w=6 r=6)
+FAIL_CHK t=490000 T1 occ2 drained got=40 exp=0
+FAIL_CHK t=490000 T1 occ5 drained got=8 exp=0
+P_T2_SEND_START t=490000
+Error: [Unisim RAMB36E2-11] Memory Collision at time 535.001 ns.
+A simultaneous WRITE on port B (01c0) and READ on port A (0180) occured.
+The WRITE was successful but the READ may be corrupted. Instance: tb_echo_occ.u_dut.u_fifo.gen_mem[0].u_main
+Error: [Unisim RAMB36E2-11] Memory Collision at time 635.001 ns.
+A simultaneous WRITE on port B (01c0) and READ on port A (0180) occured.
+The WRITE was successful but the READ may be corrupted. Instance: tb_echo_occ.u_dut.u_fifo.gen_mem[0].u_main
+P_T2_SENT t=650000 occ7=8 fq=1 drop=1
+P_T2_READ t=720000 frames=4 occ7=8
+FAIL_CHK t=750000 T2 occ7 drained got=8 exp=0
+Error: [Unisim RAMB36E2-11] Memory Collision at time 875.001 ns.
+A simultaneous WRITE on port B (0200) and READ on port A (01c0) occured.
+The WRITE was successful but the READ may be corrupted. Instance: tb_echo_occ.u_dut.u_fifo.gen_mem[0].u_main
+Error: [Unisim RAMB36E2-11] Memory Collision at time 915.001 ns.
+A simultaneous WRITE on port B (0200) and READ on port A (01c0) occured.
+The WRITE was successful but the READ may be corrupted. Instance: tb_echo_occ.u_dut.u_fifo.gen_mem[0].u_main
+P_T2B_DONE t=965000 occ9=16 occ6=0 fq=1
+FAIL_CHK t=1010000 T2b occ9 drained got=16 exp=0
+Error: [Unisim RAMB36E2-11] Memory Collision at time 1065.001 ns.
+A simultaneous WRITE on port B (0280) and READ on port A (0240) occured.
+The WRITE was successful but the READ may be corrupted. Instance: tb_echo_occ.u_dut.u_fifo.gen_mem[0].u_main
+P_T3_126 t=8580000 fq=126 occ1=1008 good_n=131
+P_T3_FORK_DONE t=8720000 fq=124 gate_cycles=13
+P_T3_128 t=8780000 fq=119 good_n=133
+P_T3_RD t=8800000 frames=16 beats=20
+P_T3_RD t=8960000 frames=32 beats=36
+P_T3_RD t=9120000 frames=48 beats=52
+P_T3_RD t=9280000 frames=64 beats=68
+P_T3_RD t=9440000 frames=80 beats=84
+P_T3_RD t=9600000 frames=96 beats=100
+P_T3_RD t=9760000 frames=112 beats=116
+P_T3_RD t=9920000 frames=128 beats=132
+FAIL_CHK t=10065000 T3 occ1 drained got=1024 exp=0
+TB_ECHO_OCC_FAIL errors=4910 checks=20146
+$finish called at time : 10115 ns : File "D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_app8_contract_20261027/tb_echo_occ.v" Line 434
+exit
+INFO: xsimkernel Simulation Memory Usage: 155700 KB (Peak: 155700 KB), Simulation CPU Usage: 233 ms
+INFO: [Common 17-206] Exiting xsim at Wed Oct 28 00:22:13 2026...

@@ -118,6 +118,34 @@ static inline int p7b_io_connect_to(const char *host, int port, int secs, int *w
 }
 
 // ---------------------------------------------------------------------------
+// ⭐ 同 connect_to，但 **SO_RCVBUF 在 connect 之前** 设置（P11 APP8 v6 / REVIEW M8）：
+//   接收窗口由 SYN 携带 ⇒ 连接后设 rcvbuf 只影响后续窗口、SYN 首窗仍是默认 64K。
+//   板级 8 连接测试要在握手前把本端 rcvbuf 定死，否则板→PC 方向的窗口与预期不符。
+//   setsockopt 失败 = 硬失败（返回 -1 + why），不许“静默用默认窗”继续。
+// ---------------------------------------------------------------------------
+static inline int p7b_io_connect_to_rcvbuf(const char *host, int port, int secs,
+                                           int rcvbuf, int *why) {
+    int fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (fd < 0) { *why = errno; return -1; }
+    struct sockaddr_in a{};
+    a.sin_family = AF_INET;
+    a.sin_port = htons((uint16_t)port);
+    if (inet_pton(AF_INET, host, &a.sin_addr) != 1) { *why = EINVAL; close(fd); return -1; }
+    if (rcvbuf > 0) {
+        int rv = rcvbuf;
+        if (setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &rv, sizeof(rv)) < 0) {
+            *why = errno; close(fd); return -1;
+        }
+    }
+    p7b_io_set_nonblock(fd);
+    if (p7b_io_connect_nb(fd, (struct sockaddr *)&a, sizeof(a), secs * 1000, why) < 0) {
+        close(fd);
+        return -1;
+    }
+    return fd;
+}
+
+// ---------------------------------------------------------------------------
 // 等待原语 (电平触发 = 默认语义; ⛔ 无 EPOLLET / 无 select)
 // ---------------------------------------------------------------------------
 // 等可读; 返回 poll 的返回值 (1=可读 0=超时 -1=出错, errno 已置); EINTR 内部重试

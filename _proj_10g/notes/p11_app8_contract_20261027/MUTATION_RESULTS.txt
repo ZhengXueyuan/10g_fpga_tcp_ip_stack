@@ -1,0 +1,12 @@
+P11 APP8 v6 tcp_echo OCC mutation gate (tb_echo_occ)
+expected: every mutant RED (TB must fail); control (unmutated) PASS
+m1_rdport_occ0           RED(caught)      FAIL_CHK t=360000 o_occ_rd got=0 exp=40
+m2_rbwords_last          RED(caught)      FAIL_OCC t=590000 cid=7 dut=8 exp=0
+m3_no_frame_gate         RED(caught)      FAIL_FQ t=8650000 fq=127
+m4_rbcid_cur             RED(caught)      FAIL_OCC t=810000 cid=4 dut=8 exp=0
+m5_rd_no_sub             RED(caught)      FAIL_OCC t=410000 cid=2 dut=40 exp=32
+m6_tready_no_rback       RED(caught)      FAIL_SUM t=910000 sum=8 fifo=0 (w=7 r=7)
+m7_gate_thresh           RED(caught)      FAIL_FQ t=8650000 fq=127
+OVERALL=PASS
+m0_slowcfg_fixed48       RED(caught)      FAIL A(0x3000) rcv_wnd got=0000c000 exp=00003000
+m8_appocc_global         RED(caught)      FAIL O5 redge[2] = rcv_nxt (occ=winq) got=00004000 exp=00001000
