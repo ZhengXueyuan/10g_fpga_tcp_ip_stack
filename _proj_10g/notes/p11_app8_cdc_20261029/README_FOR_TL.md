@@ -25,7 +25,11 @@
   P8 镜像 DP 侧修复）；`board/build_p7b_ku5p.tcl` env 门/导入/XDC/`top_hi=53`/模块门；
   `board/ku5p_p7b_app8_cdc.xdc`。
 - 门：`tb_app_multi8_cdc` **PASS**（两种时钟比：6.23/6.4 与 6.4/6.4）；C4 全链 elaborate **PASS**；
-  `check_cdc_wiring.py` 19 项 **PASS**；`check_build_0x36.py` 构建后机械门 **PASS**。
+  `check_cdc_wiring.py` 19 项 **PASS**；`check_build_0x36.py` 构建后机械门 **PASS**；
+  **常驻矩阵 41/41 EXIT=0（gates failed 0，VERDICT: FROZEN，400 文件内容哈希不变）**
+  （`sim/p4sim/matrix_p4dfix.log`；日志副本 `matrix_cdc_round.log`）。
+  几何文本门 `check_snap_top5_wired.py` / `check_window.py` 已加 `--cdc on|off`：两套各 PASS，
+  且 `drop` 与"槽 53 脱离 ifdef"两个变异 RC=1（有牙）。
 
 ## 3. 构建
 

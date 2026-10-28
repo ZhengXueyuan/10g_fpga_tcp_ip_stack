@@ -4,6 +4,19 @@
 施工策略 (2026-08-23 用户拍板): **1G 先行、10G-ready** — 数据面统一 64bit 宽流水 @125MHz,
 10G 时仅提时钟到 156.25MHz, 流水线不改。设计审查与总计划: `../udp_hls_eco/design_review/` (01-04)。
 
+## 当前状态与下一步（2026-10-29 · **P11 APP8 CDC：0x36 构建+板级通过；0x37(OCC=1) TIMING_FAIL；两个新缺陷**）—— ⛔ 本块优先于下方全部历史块
+
+⭐⭐ 本轮 = 第三轮独立审查 V4-01…V4-27 → DESIGN v5（§11）+ 实施 + 0x36 构建/板级（原件 `_proj_10g/notes/p11_app8_cdc_20261029/README_FOR_TL.md`、`BOARD_0X36_REPORT.md`；台账 §10-171…§10-174；提交 `9c6b6e6a` 已推）：
+- **审查**：v4 未闭合（阻断 1 / 高 6 / 中 9 / 低 11）；阻断 = §3 文字写反（RTL 本已把 `dbg_inst_mismatch` 接进 W97[15:8]）；v5 逐条处置。
+- **RTL**：`rtl/app_clk_gen.v`（第二 MMCM 156.25 MHz）+ `rtl/app_multi8_cdc.v`（4×异步 FIFO + stats hold/toggle + W97）；wrapper CDC 分支（**P8 镜像的 `app_rx_*` 仍是 DP 侧**）；build env 门 + CDC XDC（引脚名必须是**综合后**的 `u_appclkgen/g_real.u_mmcm/CLKOUT0` / `u_clkgen/g_hw.u_mmcm/CLKOUT0`）；快照 **NW 98 / 槽 53 / top_hi 53 / 模块解析门**。
+- **0x36 构建 PASS**：**WNS +0.017 / WHS +0.010 / 三类端点 0/0/0**；app 自域 +0.39；dp↔app **False Path**（双向）；位流 **`d80bdb28…9adde9`**（15,431,261 B）。构建 #1 因 XDC 源码级引脚名（12-4739）作废归档 `build_fail1_0x36/`。
+- **0x36 板级**：身份 BID `0x36` / NW 98 / UNIMPL `0x1B8` / 98 字 NFF=0；**W97=0x20 干净**；`p7b_tcp_sink` **100 连接 107,052,876 B `mismatch=0`**；8 连接 seq 8/8 过；上行 8×12,288 B ⇒ **W97[15:8]=0**。**板现态 = 0x36**（`0x08=0`，两 BAR）。
+- ⚠️ **新缺陷 ①（未定位·观测面）**：app 统计字 **W51–W54 / W71–W74 恒 0**（流量中/后均如此；W97 干净、内容全过）⇒ **不得用作判据**；`P7B_OPEN_ITEMS §0-80`。
+- ⛔ **新缺陷 ②（OCC A/B 阻断）**：`0x08 bit2` RX 停顿钩子**无效**（置位回读 0x4 后仍收 512 KB `unsent=0`、窗口恒 12288、触发快照 W62=0）⇒ **OCC A/B【未执行/空判据】**；`§0-81`。
+- **0x37（CDC+OCC=1）= TIMING_FAIL**：**WNS −0.629 / WHS +0.010**、**拥塞级 5**、最差 `u_tcp_tx2/u_fifo_b/rptr → u_app2/stg`（OCC 逻辑，不是 CDC）；位流 `.TIMING_FAIL` 禁烧；`build_fail2_0x37/`；**本轮不重试**（§0-82）。
+- **未闭合**：H4 真 wrapper 全链门未写；`apply_readside_bid1c.py` STAGES 未加 0x36/0x37；矩阵 42/43/44 未注册；几何文本门已加 `--cdc on|off`（两套 PASS + 负控有牙）。
+- **下一棒**：解 §0-80/§0-81（需 ILA/新仪器或一次构建），再做 OCC A/B；0x37 按新输入重试（Spread 或 OCC 面积/布局）。
+
 ## 当前状态与下一步（2026-10-25/26 · **P11 0x2F 时序失败修复 → 0x30/0x31 构建：0x31 通过构建门**）—— ⛔ 本块优先于下方全部历史块
 
 ⭐⭐ **本轮 = 0x2F 的 −6.456 ns 修复 + 两个构建门缺陷修复；0x31（C4/P3/合同 2，BID 0x31）通过**（原件 `_proj_10g/notes/p11_fix_0x30_0x31_20261025/README_FOR_TL.md`；台账 §10-160）：

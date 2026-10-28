@@ -2310,3 +2310,18 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
   下一轮按新输入处理（`Congestion_SpreadLogic_high` 或 OCC 侧面积/布局改动）。
 - **板现态 = 0x36**（BID 0x36；两 BAR；`0x08=0`）；**0x37 未烧**。
 - 原件：`p11_app8_cdc_20261029/README_FOR_TL.md` · `BOARD_0X36_REPORT.md` §4/§5 · `occ_stallchk.sh`/`occ_w9.sh` · `raw/B2_OCC_*`。
+
+## §10-175 2026-10-29 05:31–06:01：**常驻矩阵 41/41 EXIT=0（FROZEN）+ 几何文本门 CDC 化**
+
+- **矩阵**：`sim/p4gates/run_matrix_p4dfix.bat` 全跑（无 -only）⇒ **gates run 41/41、gates failed 0、
+  VERDICT: FROZEN**（400 个哈希文件内容逐字节不变；`DIGEST_ALL(content)=8f3b9a7a…78650`）；
+  日志 = `sim/p4sim/matrix_p4dfix.log`（副本 `p11_app8_cdc_20261029/matrix_cdc_round.log`）。
+  - ⚠️ 如实登记：矩阵跑动期间我只改了 **`CLAUDE.md`（文档，不在 400 文件指纹宇宙内）**；
+    FROZEN 判词覆盖的是 rtl/sim/tb 等 400 件，**未受影响**（"改 RTL 与在跑回归互斥"未被违反）。
+- **几何文本门 CDC 化（V4-05/V4-16 部分收口）**：
+  - `_proj_10g/p7b_chain/sim/check_snap_top5_wired.py`：新增 `--cdc on|off|auto` + `apply_cdc_ifdef`
+    （on=槽 53..39 共 15 项 / off=52..39 共 14 项）⇒ **两套 SNAP_TOP5_STATIC_PASS**；
+    变异（把槽 53 的 ifdef 去掉后用 off 跑）**RC=1**。
+  - `_proj_10g/notes/p7b_biz_win/check_window.py`：`--cdc` + `cdc_strip` + 双值 localparam 取 max/min
+    + 槽 53 din 计数豁免 ⇒ **两套 CHECK_WINDOW_PASS（PASS=122/FAIL=0）**；`--mutate drop` **RC=1**。
+  - 仍未做：`apply_readside_bid1c.py` STAGES 加 0x36/0x37；`tb_biz_win` 参数化；矩阵 42/43/44 注册。
