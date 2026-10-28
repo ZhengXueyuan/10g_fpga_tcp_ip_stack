@@ -1,0 +1,13 @@
+PIN_RULE=avoid-nic PIN_DEGRADED=none PIN_CPU=6 PIN_CORES_ONLINE=0-7 PIN_NIC_IFACE=enp1s0f0np0 PIN_NIC_CPUS=0,1,2,3,4,5 PIN_NIC_EXCLUDED=none PIN_CORE_LOAD=934684 PIN_ALLOWED_MASK=40 PIN_GETCPU_START=6 PIN_FREQ_START_KHZ=3798525 PIN_GOV=schedutil PIN_NIC_IRQLINES=6 PIN_NIC_IFACE_SRC=auto PIN_TUPLE_ORDER=own_sib_t PIN_PAIR_RULE=load-only PIN_PAIR_DEGRADED=nic0-0 PIN_CPU_IO=4 PIN_CPU_WORK=5 PIN_PC_IO=0 PIN_PC_WORK=1 PIN_PAIR_EXCL=2 PIN_PAIR_REQ=want
+SINK_CHECK check=seq
+SINK_LIMITS maxbytes=268435456 poll_ms=5000 stall_n=3 rcvbuf=8388608 conns=100 secs=10
+SINK_RCVBUF_ORDER RCVBUF_ORDER=before_connect rcvbuf=8388608
+SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+SINK_CONN 0 FAIL_CONNECT why=110 (Connection timed out) (t=5.005057)
+SINK_CONN 1 OK bytes=268447135 first_mismatch=-1 mism_bytes=0 conn_ms=2061.947 dur_ms=733.725 Mbps=2926.950 reads=6056 poll_tmo=0 CPU_FREQ_KHZ=3699847 THREADED=on q_full_push=6056 q_full_pop=6056 q_free_push=6072 q_free_pop=6056 slot_wait_spins=627040 checked_bytes=268447135
+SINK_CONN 2 OK bytes=268439835 first_mismatch=-1 mism_bytes=0 conn_ms=0.078 dur_ms=904.499 Mbps=2374.264 reads=7108 poll_tmo=0 CPU_FREQ_KHZ=3699841 THREADED=on q_full_push=7108 q_full_pop=7108 q_free_push=7124 q_free_pop=7108 slot_wait_spins=623925 checked_bytes=268439835
+SINK_CONN 3 OK bytes=268498235 first_mismatch=-1 mism_bytes=0 conn_ms=0.079 dur_ms=859.444 Mbps=2499.273 reads=5975 poll_tmo=0 CPU_FREQ_KHZ=3799847 THREADED=on q_full_push=5975 q_full_pop=5975 q_free_push=5991 q_free_pop=5975 slot_wait_spins=613053 checked_bytes=268498235
+SINK_CONN 4 OK bytes=268442755 first_mismatch=-1 mism_bytes=0 conn_ms=0.091 dur_ms=859.142 Mbps=2499.635 reads=5970 poll_tmo=0 CPU_FREQ_KHZ=3799844 THREADED=on q_full_push=5970 q_full_pop=5970 q_free_push=5986 q_free_pop=5970 slot_wait_spins=625175 checked_bytes=268442755
+SINK_SUM conns=4 fail_conns=1 bytes=1073827960 clean_conns=4 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=10.424 net_s=22977.404 agg_Mbps=0.374 THREADED=on full_push=25109 full_pop=25109 free_push=25173 free_pop=25109 slot_wait_spins=2489193 checked_bytes=1073827960 threads=8 check=seq
+SINK_DONE
+PIN_GETCPU_END=6 PIN_FREQ_END_KHZ=800000
