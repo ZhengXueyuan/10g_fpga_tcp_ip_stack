@@ -102,3 +102,18 @@ QSPI：**零写入**（只 JTAG 易失烧录；烧前/烧后 sha 已核）
 - 对端：xdma 已加载；nsb/nsa carrier 均 = 1；**无残留 `p7b_tcp_sink*` 进程**。
 - **QSPI 零写入**（全程只 JTAG 易失烧录；烧前/烧后 sha 核对）。
 - 未烧：0x37（TIMING_FAIL，`.TIMING_FAIL` 隔离，禁烧）。
+
+## 8. 订正/新增：8 连接**并发保持**严重不足（2026-10-29 06:2x，3 跑）
+
+- §3.2 的"8 连接 seq 8/8 status=0"**只对"小 maxbytes、连接快速关闭"成立**（每条连接收 ~12–64 KB 后关闭，
+  并发压力低）。**连续洪泛 + 8 条并发保持**的构型另测（`multi_tx_check.sh` / `multi_tx_check2.sh`）：
+  - 3 跑并发 connect 8：**只有 2 / 4 / 4 条成功**；其余 `status=4 err=110 (ETIMEDOUT)` 或
+    `status=2`（建立但 5 s 内零数据）；
+  - 下行集中在 1–2 条连接：单条 ~4.5 Gbps，聚合 ~4.4 Gbps；两段各 2 s 的 tcpdump 均**只看到 1 个 4-tuple**；
+  - 已收到数据的字节 **mism=0**（内容正确）。
+- 对照：**串行单连接**（`p7b_tcp_sink`，100 连接串行）全部 OK ⇒ 不是"连接打不开"，是**并发保持**不行。
+- 候选（未证）：① HLS 慢路径 SYN-ACK 在 8×app 连续 TX 下被饿死（旧"慢路径饿死"证伪只覆盖单 UDP app 构型）；
+  ② win_pool 配额/槽（`RCV_WND_INIT_5 = WQ_CAP_5 = 12KB` 源码已核，8×12=96KB 恰好，理论上应容 8）；
+  ③ app 的 ev_up/槽分配上限。判别实验见 `P7B_OPEN_ITEMS §0-83`（关 app TX 后并发 connect / 交错 connect）。
+- ⚠️ 这条**不影响**本轮"CDC 数据面正确"的结论（内容 oracle 成立），但**直接影响 8 连接产品目标**，
+  且与 OCC A/B 的"8 连接前件"相关（A/B 前件本身已被 §0-81 阻断）。

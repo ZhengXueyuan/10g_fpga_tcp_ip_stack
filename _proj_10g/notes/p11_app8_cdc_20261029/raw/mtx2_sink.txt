@@ -1,0 +1,12 @@
+MULTI_BEGIN conns=8 host=192.168.100.4 port=8080 maxbytes=4294967296 seconds=20
+MULTI_LIMITS conns=8 maxbytes=4294967296 rcvbuf=1048576 poll_ms=5000 stall_n=3 check=seq send_conns=0 send_bytes=0 send_pattern=xorshift
+PIN_RULE=none UNPINNED=1 ALLOWED_MASK=0xff
+MULTI_CONN id=0 status=0 err=0 got=4295025680 want=4294967296 mism=0 first=-1 wall=7.515 Mbps=4572.4 lport=48998 sent=0 unsent=0
+MULTI_CONN id=1 status=0 err=0 got=4295018380 want=4294967296 mism=0 first=-1 wall=15.184 Mbps=2262.8 lport=49010 sent=0 unsent=0
+MULTI_CONN id=2 status=4 err=110 got=0 want=4294967296 mism=0 first=-1 wall=0.000 Mbps=0.0 lport=0 sent=0 unsent=0
+MULTI_CONN id=3 status=4 err=110 got=0 want=4294967296 mism=0 first=-1 wall=0.000 Mbps=0.0 lport=0 sent=0 unsent=0
+MULTI_CONN id=4 status=4 err=110 got=0 want=4294967296 mism=0 first=-1 wall=0.000 Mbps=0.0 lport=0 sent=0 unsent=0
+MULTI_CONN id=5 status=4 err=110 got=0 want=4294967296 mism=0 first=-1 wall=0.000 Mbps=0.0 lport=0 sent=0 unsent=0
+MULTI_CONN id=6 status=4 err=110 got=0 want=4294967296 mism=0 first=-1 wall=0.000 Mbps=0.0 lport=0 sent=0 unsent=0
+MULTI_CONN id=7 status=4 err=110 got=0 want=4294967296 mism=0 first=-1 wall=0.000 Mbps=0.0 lport=0 sent=0 unsent=0
+MULTI_SUM conns=8 ok=0 eof_short=0 stall=0 err=8 bytes=8590044060 mism=0 wall=15.185 agg_Mbps=4525.6 check=seq sent=0 unsent=0

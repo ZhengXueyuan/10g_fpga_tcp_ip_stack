@@ -54,7 +54,9 @@
 - **W97 = 0x20**：locked_app=1、无 drop/stale/超时/复位、per-slot mismatch=0。
 - 数据面：
   - `p7b_tcp_sink` **100 连接 × ~1 MiB = 107,052,876 B，mismatch=0、stall=0**；
-  - 8 连接 `seq`：8/8 status=0、mism=0、stall=0（`got>maxbytes` 是工具 64K 块过冲）；
+  - 8 连接 `seq`（小 maxbytes、连接快速关闭）：8/8 status=0、mism=0、stall=0（`got>maxbytes` 是工具 64K 块过冲）；
+    ⛔ **但"8 连接并发保持"另测 = 严重不足**：连续洪泛下 3 跑只有 **2/4/4 条** 能建立（其余 ETIMEDOUT），
+    下行集中在 1–2 条（聚合 ~4.4 Gbps）；内容仍 `mism=0`。详见 `BOARD_0X36_REPORT.md §8` / `P7B_OPEN_ITEMS §0-83`；
   - 上行 8×12,288 B（unsent=0）⇒ **W97[15:8]=0**（app 域直连粘滞）= 上行零失配。
 - **新缺陷 ①（观测面，未定位）**：W51–W54/W71–W74 恒 0 —— 流量中/后均如此，W97 干净、
   内容全过；网表事实已记（st_hold/st_shadow 时钟与 CE、计数器 CE=`pw_take`）；

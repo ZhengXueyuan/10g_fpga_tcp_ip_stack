@@ -2337,3 +2337,19 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
   - 首选判别 = 把 `{st_ack_sync[1], st_req}` 接到 **W97[1:0]**（现保留 0，零新增字），**空载**多次读即可
     判"统计握手有没有在动"（统计机不看业务）——一次构建 + 一次上板，成本最低。
 - 本文件与 `README_FOR_TL.md` / `BOARD_0X36_REPORT.md` 的最终版随下一次提交入库。
+
+## §10-177 2026-10-29 06:2x：**板级新发现：8 连接"并发保持"严重不足（2–4/8 建立；内容仍 mism=0）**
+
+- **3 跑**（`multi_tx_check.sh` / `multi_tx_check2.sh` + 2 次重复；`p7b_tcp_sink_multi --conns 8` 并发 connect）：
+  **只有 2 / 4 / 4 条连接建立**，其余 `status=4 err=110 (ETIMEDOUT)` 或 `status=2`（建立后 5 s 零数据）；
+  两段 2 s tcpdump 各**只看到 1 个 4-tuple**；下行集中在 1–2 条（单条 ~4.5 Gbps、聚合 ~4.4 Gbps）；
+  **已收到数据 `mism=0`**。对照：串行单连接 100 连接全 OK；8 连接 + 小 maxbytes（快速关闭）8/8 过
+  ⇒ **问题在并发保持，不在内容/连接能力**。
+- **候选（未证）**：① HLS 慢路径 SYN-ACK 在 8×app 连续 TX 洪泛下被饿死（旧"饿死被证伪"只覆盖单 UDP app
+  809k fps 构型；8 源 TCP 洪泛更密）；② win_pool 配额/槽（`RCV_WND_INIT_5 = WQ_CAP_5 = 12KB` 源码已核，
+  8×12=96KB 恰好，理论上应容 8）；③ app ev_up/槽分配上限。
+- **下一轮判别**（写在 §0-83）：A) 关 app TX（一次构建）后并发 connect 8 ⇒ 8/8 = 慢路径饿死；
+  B) 交错 connect（间隔 200 ms）⇒ 若仍 ≤4 = 槽/配额；C) HLS `stat_no_slot`/慢路径计数进快照。
+- 不影响"CDC 数据面正确"结论（内容 oracle 成立），但**直接影响 8 连接产品目标**，并与 OCC A/B 的
+  "8 连接前件"相关（该前件本身已被 §0-81 阻断）。
+- 原件：`BOARD_0X36_REPORT.md §8`、`P7B_OPEN_ITEMS §0-83`、`multi_tx_check*.sh`。
