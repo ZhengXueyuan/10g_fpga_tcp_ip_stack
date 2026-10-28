@@ -1,0 +1,727 @@
+
+****** Vivado v2025.2 (64-bit)
+  **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+  **** Start of session at: Thu Oct 29 03:40:22 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source {D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p11_app8_cdc_20261029\sta\query_stats3.tcl}
+# open_checkpoint D:/repo/XCKU5PMini/udp_hls_10g/vivado_prj/p7b_ku5p_prj.runs/impl_1/wrapper_p4_routed.dcp
+Command: open_checkpoint D:/repo/XCKU5PMini/udp_hls_10g/vivado_prj/p7b_ku5p_prj.runs/impl_1/wrapper_p4_routed.dcp
+
+Starting open_checkpoint Task
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.025 . Memory (MB): peak = 329.297 ; gain = 6.340
+INFO: [Device 21-403] Loading part xcku5p-ffvb676-1-e
+Netlist sorting complete. Time (s): cpu = 00:00:01 ; elapsed = 00:00:01 . Memory (MB): peak = 1787.844 ; gain = 0.785
+INFO: [Netlist 29-17] Analyzing 13665 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 3 CPU seconds
+INFO: [Project 1-479] Netlist was created with Vivado 2025.2
+INFO: [Project 1-570] Preparing netlist for logic optimization
+Read ShapeDB Complete: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.270 . Memory (MB): peak = 2058.879 ; gain = 48.891
+INFO: [Timing 38-478] Restoring timing data from binary archive.
+INFO: [Timing 38-479] Binary timing data restore complete.
+INFO: [Project 1-856] Restoring constraints from binary archive.
+INFO: [Constraints 18-5170] The checkpoint was created with non-default parameter values which do not match the current Vivado settings.  Mismatching parameters are:
+  general.maxThreads
+INFO: [Project 1-853] Binary constraint restore complete.
+INFO: [Designutils 20-5722] Start Reading Physical Databases.
+Reading placement.
+Read Netlist Cache: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.156 . Memory (MB): peak = 4457.961 ; gain = 0.000
+Reading placer database...
+Read Device Cache: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.024 . Memory (MB): peak = 4457.961 ; gain = 0.000
+Read PlaceDB: Time (s): cpu = 00:00:04 ; elapsed = 00:00:04 . Memory (MB): peak = 4457.961 ; gain = 0.000
+Read PulsedLatchDB: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 4457.961 ; gain = 0.000
+Reading routing.
+Read RouteStorage: Time (s): cpu = 00:00:04 ; elapsed = 00:00:02 . Memory (MB): peak = 4457.961 ; gain = 0.000
+Read Physdb Files: Time (s): cpu = 00:00:08 ; elapsed = 00:00:07 . Memory (MB): peak = 4457.961 ; gain = 0.000
+Restored from archive | CPU: 9.000000 secs | Memory: 0.000000 MB |
+Finished XDEF File Restore: Time (s): cpu = 00:00:08 ; elapsed = 00:00:07 . Memory (MB): peak = 4457.961 ; gain = 0.000
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.075 . Memory (MB): peak = 4457.961 ; gain = 0.000
+INFO: [Project 1-111] Unisim Transformation Summary:
+  A total of 2600 instances were transformed.
+  BUFG => BUFGCE: 1 instance 
+  DSP48E2 => DSP48E2 (DSP_ALU, DSP_A_B_DATA, DSP_C_DATA, DSP_MULTIPLIER, DSP_M_DATA, DSP_OUTPUT, DSP_PREADD, DSP_PREADD_DATA): 4 instances
+  IBUF => IBUF (IBUFCTRL, INBUF): 3 instances
+  IBUFDS => IBUFDS (DIFFINBUF, IBUFCTRL): 1 instance 
+  RAM16X1D => RAM32X1D (RAMD32(x2)): 35 instances
+  RAM16X1S => RAM32X1S (RAMS32): 208 instances
+  RAM256X1S => RAM256X1S (MUXF7(x2), MUXF8, RAMS64E(x4)): 8 instances
+  RAM32M => RAM32M (RAMD32(x6), RAMS32(x2)): 49 instances
+  RAM32M16 => RAM32M16 (RAMD32(x14), RAMS32(x2)): 185 instances
+  RAM32X1D => RAM32X1D (RAMD32(x2)): 13 instances
+  RAM64M => RAM64M (RAMD64E(x4)): 649 instances
+  RAM64M8 => RAM64M8 (RAMD64E(x8)): 1312 instances
+  RAM64X1D => RAM64X1D (RAMD64E(x2)): 132 instances
+
+INFO: [Project 1-604] Checkpoint was created with Vivado v2025.2 (64-bit) build 6299465
+WARNING: [Vivado 12-23575] Critical violations of the methodology design rules detected. Critical violations may contribute to timing failures or cause functional issues in hardware. Run report_methodology for more information.
+open_checkpoint: Time (s): cpu = 00:01:20 ; elapsed = 00:01:07 . Memory (MB): peak = 4457.961 ; gain = 4144.949
+# proc pincell {pat pin} {
+#   set cs [get_cells -hier -quiet -filter "NAME =~ $pat"]
+#   foreach c $cs {
+#     set nm [get_property NAME $c]
+#     set ps [get_pins -quiet -of_objects $c -filter "REF_PIN_NAME == $pin"]
+#     if {[llength $ps] > 0} {
+#       set p [lindex $ps 0]
+#       set clk_pin [get_pins -quiet -of_objects $c -filter {REF_PIN_NAME == "C"}]
+#       set clk ""
+#       if {[llength $clk_pin] > 0} {
+#         set n [get_nets -quiet -of_objects [lindex $clk_pin 0]]
+#         if {[llength $n] > 0} { set clk [get_property NAME [lindex $n 0]] }
+#       }
+#       puts "$nm pin=$pin net=[get_property NAME [lindex [get_nets -quiet -of_objects $p] 0]] clk=$clk"
+#     }
+#   }
+# }
+# puts "=== st_hold first/last ==="
+=== st_hold first/last ===
+# pincell "*u_app/st_hold_reg*" "D"
+u_app/st_hold_reg[0] pin=D net=u_app/core_tx_bytes[0] clk=u_app/clk_app
+u_app/st_hold_reg[100] pin=D net=u_app/core_mismatch[4] clk=u_app/clk_app
+u_app/st_hold_reg[101] pin=D net=u_app/core_mismatch[5] clk=u_app/clk_app
+u_app/st_hold_reg[102] pin=D net=u_app/core_mismatch[6] clk=u_app/clk_app
+u_app/st_hold_reg[103] pin=D net=u_app/core_mismatch[7] clk=u_app/clk_app
+u_app/st_hold_reg[104] pin=D net=u_app/core_mismatch[8] clk=u_app/clk_app
+u_app/st_hold_reg[105] pin=D net=u_app/core_mismatch[9] clk=u_app/clk_app
+u_app/st_hold_reg[106] pin=D net=u_app/core_mismatch[10] clk=u_app/clk_app
+u_app/st_hold_reg[107] pin=D net=u_app/core_mismatch[11] clk=u_app/clk_app
+u_app/st_hold_reg[108] pin=D net=u_app/core_mismatch[12] clk=u_app/clk_app
+u_app/st_hold_reg[109] pin=D net=u_app/core_mismatch[13] clk=u_app/clk_app
+u_app/st_hold_reg[10] pin=D net=u_app/core_tx_bytes[10] clk=u_app/clk_app
+u_app/st_hold_reg[110] pin=D net=u_app/core_mismatch[14] clk=u_app/clk_app
+u_app/st_hold_reg[111] pin=D net=u_app/core_mismatch[15] clk=u_app/clk_app
+u_app/st_hold_reg[112] pin=D net=u_app/core_mismatch[16] clk=u_app/clk_app
+u_app/st_hold_reg[113] pin=D net=u_app/core_mismatch[17] clk=u_app/clk_app
+u_app/st_hold_reg[114] pin=D net=u_app/core_mismatch[18] clk=u_app/clk_app
+u_app/st_hold_reg[115] pin=D net=u_app/core_mismatch[19] clk=u_app/clk_app
+u_app/st_hold_reg[116] pin=D net=u_app/core_mismatch[20] clk=u_app/clk_app
+u_app/st_hold_reg[117] pin=D net=u_app/core_mismatch[21] clk=u_app/clk_app
+u_app/st_hold_reg[118] pin=D net=u_app/core_mismatch[22] clk=u_app/clk_app
+u_app/st_hold_reg[119] pin=D net=u_app/core_mismatch[23] clk=u_app/clk_app
+u_app/st_hold_reg[11] pin=D net=u_app/core_tx_bytes[11] clk=u_app/clk_app
+u_app/st_hold_reg[120] pin=D net=u_app/core_mismatch[24] clk=u_app/clk_app
+u_app/st_hold_reg[121] pin=D net=u_app/core_mismatch[25] clk=u_app/clk_app
+u_app/st_hold_reg[122] pin=D net=u_app/core_mismatch[26] clk=u_app/clk_app
+u_app/st_hold_reg[123] pin=D net=u_app/core_mismatch[27] clk=u_app/clk_app
+u_app/st_hold_reg[124] pin=D net=u_app/core_mismatch[28] clk=u_app/clk_app
+u_app/st_hold_reg[125] pin=D net=u_app/core_mismatch[29] clk=u_app/clk_app
+u_app/st_hold_reg[126] pin=D net=u_app/core_mismatch[30] clk=u_app/clk_app
+u_app/st_hold_reg[127] pin=D net=u_app/core_mismatch[31] clk=u_app/clk_app
+u_app/st_hold_reg[128] pin=D net=u_app/core_frmwait[0] clk=u_app/clk_app
+u_app/st_hold_reg[129] pin=D net=u_app/core_frmwait[1] clk=u_app/clk_app
+u_app/st_hold_reg[12] pin=D net=u_app/core_tx_bytes[12] clk=u_app/clk_app
+u_app/st_hold_reg[130] pin=D net=u_app/core_frmwait[2] clk=u_app/clk_app
+u_app/st_hold_reg[131] pin=D net=u_app/core_frmwait[3] clk=u_app/clk_app
+u_app/st_hold_reg[132] pin=D net=u_app/core_frmwait[4] clk=u_app/clk_app
+u_app/st_hold_reg[133] pin=D net=u_app/core_frmwait[5] clk=u_app/clk_app
+u_app/st_hold_reg[134] pin=D net=u_app/core_frmwait[6] clk=u_app/clk_app
+u_app/st_hold_reg[135] pin=D net=u_app/core_frmwait[7] clk=u_app/clk_app
+u_app/st_hold_reg[136] pin=D net=u_app/core_frmwait[8] clk=u_app/clk_app
+u_app/st_hold_reg[137] pin=D net=u_app/core_frmwait[9] clk=u_app/clk_app
+u_app/st_hold_reg[138] pin=D net=u_app/core_frmwait[10] clk=u_app/clk_app
+u_app/st_hold_reg[139] pin=D net=u_app/core_frmwait[11] clk=u_app/clk_app
+u_app/st_hold_reg[13] pin=D net=u_app/core_tx_bytes[13] clk=u_app/clk_app
+u_app/st_hold_reg[140] pin=D net=u_app/core_frmwait[12] clk=u_app/clk_app
+u_app/st_hold_reg[141] pin=D net=u_app/core_frmwait[13] clk=u_app/clk_app
+u_app/st_hold_reg[142] pin=D net=u_app/core_frmwait[14] clk=u_app/clk_app
+u_app/st_hold_reg[143] pin=D net=u_app/core_frmwait[15] clk=u_app/clk_app
+u_app/st_hold_reg[144] pin=D net=u_app/core_frmwait[16] clk=u_app/clk_app
+u_app/st_hold_reg[145] pin=D net=u_app/core_frmwait[17] clk=u_app/clk_app
+u_app/st_hold_reg[146] pin=D net=u_app/core_frmwait[18] clk=u_app/clk_app
+u_app/st_hold_reg[147] pin=D net=u_app/core_frmwait[19] clk=u_app/clk_app
+u_app/st_hold_reg[148] pin=D net=u_app/core_frmwait[20] clk=u_app/clk_app
+u_app/st_hold_reg[149] pin=D net=u_app/core_frmwait[21] clk=u_app/clk_app
+u_app/st_hold_reg[14] pin=D net=u_app/core_tx_bytes[14] clk=u_app/clk_app
+u_app/st_hold_reg[150] pin=D net=u_app/core_frmwait[22] clk=u_app/clk_app
+u_app/st_hold_reg[151] pin=D net=u_app/core_frmwait[23] clk=u_app/clk_app
+u_app/st_hold_reg[152] pin=D net=u_app/core_frmwait[24] clk=u_app/clk_app
+u_app/st_hold_reg[153] pin=D net=u_app/core_frmwait[25] clk=u_app/clk_app
+u_app/st_hold_reg[154] pin=D net=u_app/core_frmwait[26] clk=u_app/clk_app
+u_app/st_hold_reg[155] pin=D net=u_app/core_frmwait[27] clk=u_app/clk_app
+u_app/st_hold_reg[156] pin=D net=u_app/core_frmwait[28] clk=u_app/clk_app
+u_app/st_hold_reg[157] pin=D net=u_app/core_frmwait[29] clk=u_app/clk_app
+u_app/st_hold_reg[158] pin=D net=u_app/core_frmwait[30] clk=u_app/clk_app
+u_app/st_hold_reg[159] pin=D net=u_app/core_frmwait[31] clk=u_app/clk_app
+u_app/st_hold_reg[15] pin=D net=u_app/core_tx_bytes[15] clk=u_app/clk_app
+u_app/st_hold_reg[160] pin=D net=u_app/core_bp[0] clk=u_app/clk_app
+u_app/st_hold_reg[161] pin=D net=u_app/core_bp[1] clk=u_app/clk_app
+u_app/st_hold_reg[162] pin=D net=u_app/core_bp[2] clk=u_app/clk_app
+u_app/st_hold_reg[163] pin=D net=u_app/core_bp[3] clk=u_app/clk_app
+u_app/st_hold_reg[164] pin=D net=u_app/core_bp[4] clk=u_app/clk_app
+u_app/st_hold_reg[165] pin=D net=u_app/core_bp[5] clk=u_app/clk_app
+u_app/st_hold_reg[166] pin=D net=u_app/core_bp[6] clk=u_app/clk_app
+u_app/st_hold_reg[167] pin=D net=u_app/core_bp[7] clk=u_app/clk_app
+u_app/st_hold_reg[168] pin=D net=u_app/core_bp[8] clk=u_app/clk_app
+u_app/st_hold_reg[169] pin=D net=u_app/core_bp[9] clk=u_app/clk_app
+u_app/st_hold_reg[16] pin=D net=u_app/core_tx_bytes[16] clk=u_app/clk_app
+u_app/st_hold_reg[170] pin=D net=u_app/core_bp[10] clk=u_app/clk_app
+u_app/st_hold_reg[171] pin=D net=u_app/core_bp[11] clk=u_app/clk_app
+u_app/st_hold_reg[172] pin=D net=u_app/core_bp[12] clk=u_app/clk_app
+u_app/st_hold_reg[173] pin=D net=u_app/core_bp[13] clk=u_app/clk_app
+u_app/st_hold_reg[174] pin=D net=u_app/core_bp[14] clk=u_app/clk_app
+u_app/st_hold_reg[175] pin=D net=u_app/core_bp[15] clk=u_app/clk_app
+u_app/st_hold_reg[176] pin=D net=u_app/core_bp[16] clk=u_app/clk_app
+u_app/st_hold_reg[177] pin=D net=u_app/core_bp[17] clk=u_app/clk_app
+u_app/st_hold_reg[178] pin=D net=u_app/core_bp[18] clk=u_app/clk_app
+u_app/st_hold_reg[179] pin=D net=u_app/core_bp[19] clk=u_app/clk_app
+u_app/st_hold_reg[17] pin=D net=u_app/core_tx_bytes[17] clk=u_app/clk_app
+u_app/st_hold_reg[180] pin=D net=u_app/core_bp[20] clk=u_app/clk_app
+u_app/st_hold_reg[181] pin=D net=u_app/core_bp[21] clk=u_app/clk_app
+u_app/st_hold_reg[182] pin=D net=u_app/core_bp[22] clk=u_app/clk_app
+u_app/st_hold_reg[183] pin=D net=u_app/core_bp[23] clk=u_app/clk_app
+u_app/st_hold_reg[184] pin=D net=u_app/core_bp[24] clk=u_app/clk_app
+u_app/st_hold_reg[185] pin=D net=u_app/core_bp[25] clk=u_app/clk_app
+u_app/st_hold_reg[186] pin=D net=u_app/core_bp[26] clk=u_app/clk_app
+u_app/st_hold_reg[187] pin=D net=u_app/core_bp[27] clk=u_app/clk_app
+u_app/st_hold_reg[188] pin=D net=u_app/core_bp[28] clk=u_app/clk_app
+u_app/st_hold_reg[189] pin=D net=u_app/core_bp[29] clk=u_app/clk_app
+u_app/st_hold_reg[18] pin=D net=u_app/core_tx_bytes[18] clk=u_app/clk_app
+u_app/st_hold_reg[190] pin=D net=u_app/core_bp[30] clk=u_app/clk_app
+u_app/st_hold_reg[191] pin=D net=u_app/core_bp[31] clk=u_app/clk_app
+u_app/st_hold_reg[192] pin=D net=u_app/core_up_ev[0] clk=u_app/clk_app
+u_app/st_hold_reg[193] pin=D net=u_app/core_up_ev[1] clk=u_app/clk_app
+u_app/st_hold_reg[194] pin=D net=u_app/core_up_ev[2] clk=u_app/clk_app
+u_app/st_hold_reg[195] pin=D net=u_app/core_up_ev[3] clk=u_app/clk_app
+u_app/st_hold_reg[196] pin=D net=u_app/core_up_ev[4] clk=u_app/clk_app
+u_app/st_hold_reg[197] pin=D net=u_app/core_up_ev[5] clk=u_app/clk_app
+u_app/st_hold_reg[198] pin=D net=u_app/core_up_ev[6] clk=u_app/clk_app
+u_app/st_hold_reg[199] pin=D net=u_app/core_up_ev[7] clk=u_app/clk_app
+u_app/st_hold_reg[19] pin=D net=u_app/core_tx_bytes[19] clk=u_app/clk_app
+u_app/st_hold_reg[1] pin=D net=u_app/core_tx_bytes[1] clk=u_app/clk_app
+u_app/st_hold_reg[200] pin=D net=u_app/core_up_ev[8] clk=u_app/clk_app
+u_app/st_hold_reg[201] pin=D net=u_app/core_up_ev[9] clk=u_app/clk_app
+u_app/st_hold_reg[202] pin=D net=u_app/core_up_ev[10] clk=u_app/clk_app
+u_app/st_hold_reg[203] pin=D net=u_app/core_up_ev[11] clk=u_app/clk_app
+u_app/st_hold_reg[204] pin=D net=u_app/core_up_ev[12] clk=u_app/clk_app
+u_app/st_hold_reg[205] pin=D net=u_app/core_up_ev[13] clk=u_app/clk_app
+u_app/st_hold_reg[206] pin=D net=u_app/core_up_ev[14] clk=u_app/clk_app
+u_app/st_hold_reg[207] pin=D net=u_app/core_up_ev[15] clk=u_app/clk_app
+u_app/st_hold_reg[208] pin=D net=u_app/core_up_ev[16] clk=u_app/clk_app
+u_app/st_hold_reg[209] pin=D net=u_app/core_up_ev[17] clk=u_app/clk_app
+u_app/st_hold_reg[20] pin=D net=u_app/core_tx_bytes[20] clk=u_app/clk_app
+u_app/st_hold_reg[210] pin=D net=u_app/core_up_ev[18] clk=u_app/clk_app
+u_app/st_hold_reg[211] pin=D net=u_app/core_up_ev[19] clk=u_app/clk_app
+u_app/st_hold_reg[212] pin=D net=u_app/core_up_ev[20] clk=u_app/clk_app
+u_app/st_hold_reg[213] pin=D net=u_app/core_up_ev[21] clk=u_app/clk_app
+u_app/st_hold_reg[214] pin=D net=u_app/core_up_ev[22] clk=u_app/clk_app
+u_app/st_hold_reg[215] pin=D net=u_app/core_up_ev[23] clk=u_app/clk_app
+u_app/st_hold_reg[216] pin=D net=u_app/core_up_ev[24] clk=u_app/clk_app
+u_app/st_hold_reg[217] pin=D net=u_app/core_up_ev[25] clk=u_app/clk_app
+u_app/st_hold_reg[218] pin=D net=u_app/core_up_ev[26] clk=u_app/clk_app
+u_app/st_hold_reg[219] pin=D net=u_app/core_up_ev[27] clk=u_app/clk_app
+u_app/st_hold_reg[21] pin=D net=u_app/core_tx_bytes[21] clk=u_app/clk_app
+u_app/st_hold_reg[220] pin=D net=u_app/core_up_ev[28] clk=u_app/clk_app
+u_app/st_hold_reg[221] pin=D net=u_app/core_up_ev[29] clk=u_app/clk_app
+u_app/st_hold_reg[222] pin=D net=u_app/core_up_ev[30] clk=u_app/clk_app
+u_app/st_hold_reg[223] pin=D net=u_app/core_up_ev[31] clk=u_app/clk_app
+u_app/st_hold_reg[224] pin=D net=u_app/core_sw_req[0] clk=u_app/clk_app
+u_app/st_hold_reg[225] pin=D net=u_app/core_sw_req[1] clk=u_app/clk_app
+u_app/st_hold_reg[226] pin=D net=u_app/core_sw_req[2] clk=u_app/clk_app
+u_app/st_hold_reg[227] pin=D net=u_app/core_sw_req[3] clk=u_app/clk_app
+u_app/st_hold_reg[228] pin=D net=u_app/core_sw_req[4] clk=u_app/clk_app
+u_app/st_hold_reg[229] pin=D net=u_app/core_sw_req[5] clk=u_app/clk_app
+u_app/st_hold_reg[22] pin=D net=u_app/core_tx_bytes[22] clk=u_app/clk_app
+u_app/st_hold_reg[230] pin=D net=u_app/core_sw_req[6] clk=u_app/clk_app
+u_app/st_hold_reg[231] pin=D net=u_app/core_sw_req[7] clk=u_app/clk_app
+u_app/st_hold_reg[232] pin=D net=u_app/core_sw_req[8] clk=u_app/clk_app
+u_app/st_hold_reg[233] pin=D net=u_app/core_sw_req[9] clk=u_app/clk_app
+u_app/st_hold_reg[234] pin=D net=u_app/core_sw_req[10] clk=u_app/clk_app
+u_app/st_hold_reg[235] pin=D net=u_app/core_sw_req[11] clk=u_app/clk_app
+u_app/st_hold_reg[236] pin=D net=u_app/core_sw_req[12] clk=u_app/clk_app
+u_app/st_hold_reg[237] pin=D net=u_app/core_sw_req[13] clk=u_app/clk_app
+u_app/st_hold_reg[238] pin=D net=u_app/core_sw_req[14] clk=u_app/clk_app
+u_app/st_hold_reg[239] pin=D net=u_app/core_sw_req[15] clk=u_app/clk_app
+u_app/st_hold_reg[23] pin=D net=u_app/core_tx_bytes[23] clk=u_app/clk_app
+u_app/st_hold_reg[240] pin=D net=u_app/core_sw_req[16] clk=u_app/clk_app
+u_app/st_hold_reg[241] pin=D net=u_app/core_sw_req[17] clk=u_app/clk_app
+u_app/st_hold_reg[242] pin=D net=u_app/core_sw_req[18] clk=u_app/clk_app
+u_app/st_hold_reg[243] pin=D net=u_app/core_sw_req[19] clk=u_app/clk_app
+u_app/st_hold_reg[244] pin=D net=u_app/core_sw_req[20] clk=u_app/clk_app
+u_app/st_hold_reg[245] pin=D net=u_app/core_sw_req[21] clk=u_app/clk_app
+u_app/st_hold_reg[246] pin=D net=u_app/core_sw_req[22] clk=u_app/clk_app
+u_app/st_hold_reg[247] pin=D net=u_app/core_sw_req[23] clk=u_app/clk_app
+u_app/st_hold_reg[248] pin=D net=u_app/core_sw_req[24] clk=u_app/clk_app
+u_app/st_hold_reg[249] pin=D net=u_app/core_sw_req[25] clk=u_app/clk_app
+u_app/st_hold_reg[24] pin=D net=u_app/core_tx_bytes[24] clk=u_app/clk_app
+u_app/st_hold_reg[250] pin=D net=u_app/core_sw_req[26] clk=u_app/clk_app
+u_app/st_hold_reg[251] pin=D net=u_app/core_sw_req[27] clk=u_app/clk_app
+u_app/st_hold_reg[252] pin=D net=u_app/core_sw_req[28] clk=u_app/clk_app
+u_app/st_hold_reg[253] pin=D net=u_app/core_sw_req[29] clk=u_app/clk_app
+u_app/st_hold_reg[254] pin=D net=u_app/core_sw_req[30] clk=u_app/clk_app
+u_app/st_hold_reg[255] pin=D net=u_app/core_sw_req[31] clk=u_app/clk_app
+u_app/st_hold_reg[256] pin=D net=u_app/core_sw_apply[0] clk=u_app/clk_app
+u_app/st_hold_reg[257] pin=D net=u_app/core_sw_apply[1] clk=u_app/clk_app
+u_app/st_hold_reg[258] pin=D net=u_app/core_sw_apply[2] clk=u_app/clk_app
+u_app/st_hold_reg[259] pin=D net=u_app/core_sw_apply[3] clk=u_app/clk_app
+u_app/st_hold_reg[25] pin=D net=u_app/core_tx_bytes[25] clk=u_app/clk_app
+u_app/st_hold_reg[260] pin=D net=u_app/core_sw_apply[4] clk=u_app/clk_app
+u_app/st_hold_reg[261] pin=D net=u_app/core_sw_apply[5] clk=u_app/clk_app
+u_app/st_hold_reg[262] pin=D net=u_app/core_sw_apply[6] clk=u_app/clk_app
+u_app/st_hold_reg[263] pin=D net=u_app/core_sw_apply[7] clk=u_app/clk_app
+u_app/st_hold_reg[264] pin=D net=u_app/core_sw_apply[8] clk=u_app/clk_app
+u_app/st_hold_reg[265] pin=D net=u_app/core_sw_apply[9] clk=u_app/clk_app
+u_app/st_hold_reg[266] pin=D net=u_app/core_sw_apply[10] clk=u_app/clk_app
+u_app/st_hold_reg[267] pin=D net=u_app/core_sw_apply[11] clk=u_app/clk_app
+u_app/st_hold_reg[268] pin=D net=u_app/core_sw_apply[12] clk=u_app/clk_app
+u_app/st_hold_reg[269] pin=D net=u_app/core_sw_apply[13] clk=u_app/clk_app
+u_app/st_hold_reg[26] pin=D net=u_app/core_tx_bytes[26] clk=u_app/clk_app
+u_app/st_hold_reg[270] pin=D net=u_app/core_sw_apply[14] clk=u_app/clk_app
+u_app/st_hold_reg[271] pin=D net=u_app/core_sw_apply[15] clk=u_app/clk_app
+u_app/st_hold_reg[272] pin=D net=u_app/core_sw_apply[16] clk=u_app/clk_app
+u_app/st_hold_reg[273] pin=D net=u_app/core_sw_apply[17] clk=u_app/clk_app
+u_app/st_hold_reg[274] pin=D net=u_app/core_sw_apply[18] clk=u_app/clk_app
+u_app/st_hold_reg[275] pin=D net=u_app/core_sw_apply[19] clk=u_app/clk_app
+u_app/st_hold_reg[276] pin=D net=u_app/core_sw_apply[20] clk=u_app/clk_app
+u_app/st_hold_reg[277] pin=D net=u_app/core_sw_apply[21] clk=u_app/clk_app
+u_app/st_hold_reg[278] pin=D net=u_app/core_sw_apply[22] clk=u_app/clk_app
+u_app/st_hold_reg[279] pin=D net=u_app/core_sw_apply[23] clk=u_app/clk_app
+u_app/st_hold_reg[27] pin=D net=u_app/core_tx_bytes[27] clk=u_app/clk_app
+u_app/st_hold_reg[280] pin=D net=u_app/core_sw_apply[24] clk=u_app/clk_app
+u_app/st_hold_reg[281] pin=D net=u_app/core_sw_apply[25] clk=u_app/clk_app
+u_app/st_hold_reg[282] pin=D net=u_app/core_sw_apply[26] clk=u_app/clk_app
+u_app/st_hold_reg[283] pin=D net=u_app/core_sw_apply[27] clk=u_app/clk_app
+u_app/st_hold_reg[284] pin=D net=u_app/core_sw_apply[28] clk=u_app/clk_app
+u_app/st_hold_reg[285] pin=D net=u_app/core_sw_apply[29] clk=u_app/clk_app
+u_app/st_hold_reg[286] pin=D net=u_app/core_sw_apply[30] clk=u_app/clk_app
+u_app/st_hold_reg[287] pin=D net=u_app/core_sw_apply[31] clk=u_app/clk_app
+u_app/st_hold_reg[288] pin=D net=u_app/core_up_pend[0] clk=u_app/clk_app
+u_app/st_hold_reg[289] pin=D net=u_app/core_up_pend[1] clk=u_app/clk_app
+u_app/st_hold_reg[28] pin=D net=u_app/core_tx_bytes[28] clk=u_app/clk_app
+u_app/st_hold_reg[290] pin=D net=u_app/core_up_pend[2] clk=u_app/clk_app
+u_app/st_hold_reg[291] pin=D net=u_app/core_up_pend[3] clk=u_app/clk_app
+u_app/st_hold_reg[292] pin=D net=u_app/core_up_pend[4] clk=u_app/clk_app
+u_app/st_hold_reg[293] pin=D net=u_app/core_up_pend[5] clk=u_app/clk_app
+u_app/st_hold_reg[294] pin=D net=u_app/core_up_pend[6] clk=u_app/clk_app
+u_app/st_hold_reg[295] pin=D net=u_app/core_up_pend[7] clk=u_app/clk_app
+u_app/st_hold_reg[296] pin=D net=u_app/core_up_pend[8] clk=u_app/clk_app
+u_app/st_hold_reg[297] pin=D net=u_app/core_up_pend[9] clk=u_app/clk_app
+u_app/st_hold_reg[298] pin=D net=u_app/core_up_pend[10] clk=u_app/clk_app
+u_app/st_hold_reg[299] pin=D net=u_app/core_up_pend[11] clk=u_app/clk_app
+u_app/st_hold_reg[29] pin=D net=u_app/core_tx_bytes[29] clk=u_app/clk_app
+u_app/st_hold_reg[2] pin=D net=u_app/core_tx_bytes[2] clk=u_app/clk_app
+u_app/st_hold_reg[300] pin=D net=u_app/core_up_pend[12] clk=u_app/clk_app
+u_app/st_hold_reg[301] pin=D net=u_app/core_up_pend[13] clk=u_app/clk_app
+u_app/st_hold_reg[302] pin=D net=u_app/core_up_pend[14] clk=u_app/clk_app
+u_app/st_hold_reg[303] pin=D net=u_app/core_up_pend[15] clk=u_app/clk_app
+u_app/st_hold_reg[304] pin=D net=u_app/core_up_pend[16] clk=u_app/clk_app
+u_app/st_hold_reg[305] pin=D net=u_app/core_up_pend[17] clk=u_app/clk_app
+u_app/st_hold_reg[306] pin=D net=u_app/core_up_pend[18] clk=u_app/clk_app
+u_app/st_hold_reg[307] pin=D net=u_app/core_up_pend[19] clk=u_app/clk_app
+u_app/st_hold_reg[308] pin=D net=u_app/core_up_pend[20] clk=u_app/clk_app
+u_app/st_hold_reg[309] pin=D net=u_app/core_up_pend[21] clk=u_app/clk_app
+u_app/st_hold_reg[30] pin=D net=u_app/core_tx_bytes[30] clk=u_app/clk_app
+u_app/st_hold_reg[310] pin=D net=u_app/core_up_pend[22] clk=u_app/clk_app
+u_app/st_hold_reg[311] pin=D net=u_app/core_up_pend[23] clk=u_app/clk_app
+u_app/st_hold_reg[312] pin=D net=u_app/core_up_pend[24] clk=u_app/clk_app
+u_app/st_hold_reg[313] pin=D net=u_app/core_up_pend[25] clk=u_app/clk_app
+u_app/st_hold_reg[314] pin=D net=u_app/core_up_pend[26] clk=u_app/clk_app
+u_app/st_hold_reg[315] pin=D net=u_app/core_up_pend[27] clk=u_app/clk_app
+u_app/st_hold_reg[316] pin=D net=u_app/core_up_pend[28] clk=u_app/clk_app
+u_app/st_hold_reg[317] pin=D net=u_app/core_up_pend[29] clk=u_app/clk_app
+u_app/st_hold_reg[318] pin=D net=u_app/core_up_pend[30] clk=u_app/clk_app
+u_app/st_hold_reg[319] pin=D net=u_app/core_up_pend[31] clk=u_app/clk_app
+u_app/st_hold_reg[31] pin=D net=u_app/core_tx_bytes[31] clk=u_app/clk_app
+u_app/st_hold_reg[32] pin=D net=u_app/core_tx_frames[0] clk=u_app/clk_app
+u_app/st_hold_reg[33] pin=D net=u_app/core_tx_frames[1] clk=u_app/clk_app
+u_app/st_hold_reg[34] pin=D net=u_app/core_tx_frames[2] clk=u_app/clk_app
+u_app/st_hold_reg[35] pin=D net=u_app/core_tx_frames[3] clk=u_app/clk_app
+u_app/st_hold_reg[36] pin=D net=u_app/core_tx_frames[4] clk=u_app/clk_app
+u_app/st_hold_reg[37] pin=D net=u_app/core_tx_frames[5] clk=u_app/clk_app
+u_app/st_hold_reg[38] pin=D net=u_app/core_tx_frames[6] clk=u_app/clk_app
+u_app/st_hold_reg[39] pin=D net=u_app/core_tx_frames[7] clk=u_app/clk_app
+u_app/st_hold_reg[3] pin=D net=u_app/core_tx_bytes[3] clk=u_app/clk_app
+u_app/st_hold_reg[40] pin=D net=u_app/core_tx_frames[8] clk=u_app/clk_app
+u_app/st_hold_reg[41] pin=D net=u_app/core_tx_frames[9] clk=u_app/clk_app
+u_app/st_hold_reg[42] pin=D net=u_app/core_tx_frames[10] clk=u_app/clk_app
+u_app/st_hold_reg[43] pin=D net=u_app/core_tx_frames[11] clk=u_app/clk_app
+u_app/st_hold_reg[44] pin=D net=u_app/core_tx_frames[12] clk=u_app/clk_app
+u_app/st_hold_reg[45] pin=D net=u_app/core_tx_frames[13] clk=u_app/clk_app
+u_app/st_hold_reg[46] pin=D net=u_app/core_tx_frames[14] clk=u_app/clk_app
+u_app/st_hold_reg[47] pin=D net=u_app/core_tx_frames[15] clk=u_app/clk_app
+u_app/st_hold_reg[48] pin=D net=u_app/core_tx_frames[16] clk=u_app/clk_app
+u_app/st_hold_reg[49] pin=D net=u_app/core_tx_frames[17] clk=u_app/clk_app
+u_app/st_hold_reg[4] pin=D net=u_app/core_tx_bytes[4] clk=u_app/clk_app
+u_app/st_hold_reg[50] pin=D net=u_app/core_tx_frames[18] clk=u_app/clk_app
+u_app/st_hold_reg[51] pin=D net=u_app/core_tx_frames[19] clk=u_app/clk_app
+u_app/st_hold_reg[52] pin=D net=u_app/core_tx_frames[20] clk=u_app/clk_app
+u_app/st_hold_reg[53] pin=D net=u_app/core_tx_frames[21] clk=u_app/clk_app
+u_app/st_hold_reg[54] pin=D net=u_app/core_tx_frames[22] clk=u_app/clk_app
+u_app/st_hold_reg[55] pin=D net=u_app/core_tx_frames[23] clk=u_app/clk_app
+u_app/st_hold_reg[56] pin=D net=u_app/core_tx_frames[24] clk=u_app/clk_app
+u_app/st_hold_reg[57] pin=D net=u_app/core_tx_frames[25] clk=u_app/clk_app
+u_app/st_hold_reg[58] pin=D net=u_app/core_tx_frames[26] clk=u_app/clk_app
+u_app/st_hold_reg[59] pin=D net=u_app/core_tx_frames[27] clk=u_app/clk_app
+u_app/st_hold_reg[5] pin=D net=u_app/core_tx_bytes[5] clk=u_app/clk_app
+u_app/st_hold_reg[60] pin=D net=u_app/core_tx_frames[28] clk=u_app/clk_app
+u_app/st_hold_reg[61] pin=D net=u_app/core_tx_frames[29] clk=u_app/clk_app
+u_app/st_hold_reg[62] pin=D net=u_app/core_tx_frames[30] clk=u_app/clk_app
+u_app/st_hold_reg[63] pin=D net=u_app/core_tx_frames[31] clk=u_app/clk_app
+u_app/st_hold_reg[64] pin=D net=u_app/core_rx_bytes[0] clk=u_app/clk_app
+u_app/st_hold_reg[65] pin=D net=u_app/core_rx_bytes[1] clk=u_app/clk_app
+u_app/st_hold_reg[66] pin=D net=u_app/core_rx_bytes[2] clk=u_app/clk_app
+u_app/st_hold_reg[67] pin=D net=u_app/core_rx_bytes[3] clk=u_app/clk_app
+u_app/st_hold_reg[68] pin=D net=u_app/core_rx_bytes[4] clk=u_app/clk_app
+u_app/st_hold_reg[69] pin=D net=u_app/core_rx_bytes[5] clk=u_app/clk_app
+u_app/st_hold_reg[6] pin=D net=u_app/core_tx_bytes[6] clk=u_app/clk_app
+u_app/st_hold_reg[70] pin=D net=u_app/core_rx_bytes[6] clk=u_app/clk_app
+u_app/st_hold_reg[71] pin=D net=u_app/core_rx_bytes[7] clk=u_app/clk_app
+u_app/st_hold_reg[72] pin=D net=u_app/core_rx_bytes[8] clk=u_app/clk_app
+u_app/st_hold_reg[73] pin=D net=u_app/core_rx_bytes[9] clk=u_app/clk_app
+u_app/st_hold_reg[74] pin=D net=u_app/core_rx_bytes[10] clk=u_app/clk_app
+u_app/st_hold_reg[75] pin=D net=u_app/core_rx_bytes[11] clk=u_app/clk_app
+u_app/st_hold_reg[76] pin=D net=u_app/core_rx_bytes[12] clk=u_app/clk_app
+u_app/st_hold_reg[77] pin=D net=u_app/core_rx_bytes[13] clk=u_app/clk_app
+u_app/st_hold_reg[78] pin=D net=u_app/core_rx_bytes[14] clk=u_app/clk_app
+u_app/st_hold_reg[79] pin=D net=u_app/core_rx_bytes[15] clk=u_app/clk_app
+u_app/st_hold_reg[7] pin=D net=u_app/core_tx_bytes[7] clk=u_app/clk_app
+u_app/st_hold_reg[80] pin=D net=u_app/core_rx_bytes[16] clk=u_app/clk_app
+u_app/st_hold_reg[81] pin=D net=u_app/core_rx_bytes[17] clk=u_app/clk_app
+u_app/st_hold_reg[82] pin=D net=u_app/core_rx_bytes[18] clk=u_app/clk_app
+u_app/st_hold_reg[83] pin=D net=u_app/core_rx_bytes[19] clk=u_app/clk_app
+u_app/st_hold_reg[84] pin=D net=u_app/core_rx_bytes[20] clk=u_app/clk_app
+u_app/st_hold_reg[85] pin=D net=u_app/core_rx_bytes[21] clk=u_app/clk_app
+u_app/st_hold_reg[86] pin=D net=u_app/core_rx_bytes[22] clk=u_app/clk_app
+u_app/st_hold_reg[87] pin=D net=u_app/core_rx_bytes[23] clk=u_app/clk_app
+u_app/st_hold_reg[88] pin=D net=u_app/core_rx_bytes[24] clk=u_app/clk_app
+u_app/st_hold_reg[89] pin=D net=u_app/core_rx_bytes[25] clk=u_app/clk_app
+u_app/st_hold_reg[8] pin=D net=u_app/core_tx_bytes[8] clk=u_app/clk_app
+u_app/st_hold_reg[90] pin=D net=u_app/core_rx_bytes[26] clk=u_app/clk_app
+u_app/st_hold_reg[91] pin=D net=u_app/core_rx_bytes[27] clk=u_app/clk_app
+u_app/st_hold_reg[92] pin=D net=u_app/core_rx_bytes[28] clk=u_app/clk_app
+u_app/st_hold_reg[93] pin=D net=u_app/core_rx_bytes[29] clk=u_app/clk_app
+u_app/st_hold_reg[94] pin=D net=u_app/core_rx_bytes[30] clk=u_app/clk_app
+u_app/st_hold_reg[95] pin=D net=u_app/core_rx_bytes[31] clk=u_app/clk_app
+u_app/st_hold_reg[96] pin=D net=u_app/core_mismatch[0] clk=u_app/clk_app
+u_app/st_hold_reg[97] pin=D net=u_app/core_mismatch[1] clk=u_app/clk_app
+u_app/st_hold_reg[98] pin=D net=u_app/core_mismatch[2] clk=u_app/clk_app
+u_app/st_hold_reg[99] pin=D net=u_app/core_mismatch[3] clk=u_app/clk_app
+u_app/st_hold_reg[9] pin=D net=u_app/core_tx_bytes[9] clk=u_app/clk_app
+# puts "=== st_shadow first few ==="
+=== st_shadow first few ===
+# pincell "*u_app/st_shadow_reg*" "D"
+u_app/st_shadow_reg[0] pin=D net=u_app/st_hold[0] clk=u_app/dp_clk
+u_app/st_shadow_reg[100] pin=D net=u_app/st_hold[100] clk=u_app/dp_clk
+u_app/st_shadow_reg[101] pin=D net=u_app/st_hold[101] clk=u_app/dp_clk
+u_app/st_shadow_reg[102] pin=D net=u_app/st_hold[102] clk=u_app/dp_clk
+u_app/st_shadow_reg[103] pin=D net=u_app/st_hold[103] clk=u_app/dp_clk
+u_app/st_shadow_reg[104] pin=D net=u_app/st_hold[104] clk=u_app/dp_clk
+u_app/st_shadow_reg[105] pin=D net=u_app/st_hold[105] clk=u_app/dp_clk
+u_app/st_shadow_reg[106] pin=D net=u_app/st_hold[106] clk=u_app/dp_clk
+u_app/st_shadow_reg[107] pin=D net=u_app/st_hold[107] clk=u_app/dp_clk
+u_app/st_shadow_reg[108] pin=D net=u_app/st_hold[108] clk=u_app/dp_clk
+u_app/st_shadow_reg[109] pin=D net=u_app/st_hold[109] clk=u_app/dp_clk
+u_app/st_shadow_reg[10] pin=D net=u_app/st_hold[10] clk=u_app/dp_clk
+u_app/st_shadow_reg[110] pin=D net=u_app/st_hold[110] clk=u_app/dp_clk
+u_app/st_shadow_reg[111] pin=D net=u_app/st_hold[111] clk=u_app/dp_clk
+u_app/st_shadow_reg[112] pin=D net=u_app/st_hold[112] clk=u_app/dp_clk
+u_app/st_shadow_reg[113] pin=D net=u_app/st_hold[113] clk=u_app/dp_clk
+u_app/st_shadow_reg[114] pin=D net=u_app/st_hold[114] clk=u_app/dp_clk
+u_app/st_shadow_reg[115] pin=D net=u_app/st_hold[115] clk=u_app/dp_clk
+u_app/st_shadow_reg[116] pin=D net=u_app/st_hold[116] clk=u_app/dp_clk
+u_app/st_shadow_reg[117] pin=D net=u_app/st_hold[117] clk=u_app/dp_clk
+u_app/st_shadow_reg[118] pin=D net=u_app/st_hold[118] clk=u_app/dp_clk
+u_app/st_shadow_reg[119] pin=D net=u_app/st_hold[119] clk=u_app/dp_clk
+u_app/st_shadow_reg[11] pin=D net=u_app/st_hold[11] clk=u_app/dp_clk
+u_app/st_shadow_reg[120] pin=D net=u_app/st_hold[120] clk=u_app/dp_clk
+u_app/st_shadow_reg[121] pin=D net=u_app/st_hold[121] clk=u_app/dp_clk
+u_app/st_shadow_reg[122] pin=D net=u_app/st_hold[122] clk=u_app/dp_clk
+u_app/st_shadow_reg[123] pin=D net=u_app/st_hold[123] clk=u_app/dp_clk
+u_app/st_shadow_reg[124] pin=D net=u_app/st_hold[124] clk=u_app/dp_clk
+u_app/st_shadow_reg[125] pin=D net=u_app/st_hold[125] clk=u_app/dp_clk
+u_app/st_shadow_reg[126] pin=D net=u_app/st_hold[126] clk=u_app/dp_clk
+u_app/st_shadow_reg[127] pin=D net=u_app/st_hold[127] clk=u_app/dp_clk
+u_app/st_shadow_reg[128] pin=D net=u_app/st_hold[128] clk=u_app/dp_clk
+u_app/st_shadow_reg[129] pin=D net=u_app/st_hold[129] clk=u_app/dp_clk
+u_app/st_shadow_reg[12] pin=D net=u_app/st_hold[12] clk=u_app/dp_clk
+u_app/st_shadow_reg[130] pin=D net=u_app/st_hold[130] clk=u_app/dp_clk
+u_app/st_shadow_reg[131] pin=D net=u_app/st_hold[131] clk=u_app/dp_clk
+u_app/st_shadow_reg[132] pin=D net=u_app/st_hold[132] clk=u_app/dp_clk
+u_app/st_shadow_reg[133] pin=D net=u_app/st_hold[133] clk=u_app/dp_clk
+u_app/st_shadow_reg[134] pin=D net=u_app/st_hold[134] clk=u_app/dp_clk
+u_app/st_shadow_reg[135] pin=D net=u_app/st_hold[135] clk=u_app/dp_clk
+u_app/st_shadow_reg[136] pin=D net=u_app/st_hold[136] clk=u_app/dp_clk
+u_app/st_shadow_reg[137] pin=D net=u_app/st_hold[137] clk=u_app/dp_clk
+u_app/st_shadow_reg[138] pin=D net=u_app/st_hold[138] clk=u_app/dp_clk
+u_app/st_shadow_reg[139] pin=D net=u_app/st_hold[139] clk=u_app/dp_clk
+u_app/st_shadow_reg[13] pin=D net=u_app/st_hold[13] clk=u_app/dp_clk
+u_app/st_shadow_reg[140] pin=D net=u_app/st_hold[140] clk=u_app/dp_clk
+u_app/st_shadow_reg[141] pin=D net=u_app/st_hold[141] clk=u_app/dp_clk
+u_app/st_shadow_reg[142] pin=D net=u_app/st_hold[142] clk=u_app/dp_clk
+u_app/st_shadow_reg[143] pin=D net=u_app/st_hold[143] clk=u_app/dp_clk
+u_app/st_shadow_reg[144] pin=D net=u_app/st_hold[144] clk=u_app/dp_clk
+u_app/st_shadow_reg[145] pin=D net=u_app/st_hold[145] clk=u_app/dp_clk
+u_app/st_shadow_reg[146] pin=D net=u_app/st_hold[146] clk=u_app/dp_clk
+u_app/st_shadow_reg[147] pin=D net=u_app/st_hold[147] clk=u_app/dp_clk
+u_app/st_shadow_reg[148] pin=D net=u_app/st_hold[148] clk=u_app/dp_clk
+u_app/st_shadow_reg[149] pin=D net=u_app/st_hold[149] clk=u_app/dp_clk
+u_app/st_shadow_reg[14] pin=D net=u_app/st_hold[14] clk=u_app/dp_clk
+u_app/st_shadow_reg[150] pin=D net=u_app/st_hold[150] clk=u_app/dp_clk
+u_app/st_shadow_reg[151] pin=D net=u_app/st_hold[151] clk=u_app/dp_clk
+u_app/st_shadow_reg[152] pin=D net=u_app/st_hold[152] clk=u_app/dp_clk
+u_app/st_shadow_reg[153] pin=D net=u_app/st_hold[153] clk=u_app/dp_clk
+u_app/st_shadow_reg[154] pin=D net=u_app/st_hold[154] clk=u_app/dp_clk
+u_app/st_shadow_reg[155] pin=D net=u_app/st_hold[155] clk=u_app/dp_clk
+u_app/st_shadow_reg[156] pin=D net=u_app/st_hold[156] clk=u_app/dp_clk
+u_app/st_shadow_reg[157] pin=D net=u_app/st_hold[157] clk=u_app/dp_clk
+u_app/st_shadow_reg[158] pin=D net=u_app/st_hold[158] clk=u_app/dp_clk
+u_app/st_shadow_reg[159] pin=D net=u_app/st_hold[159] clk=u_app/dp_clk
+u_app/st_shadow_reg[15] pin=D net=u_app/st_hold[15] clk=u_app/dp_clk
+u_app/st_shadow_reg[160] pin=D net=u_app/st_hold[160] clk=u_app/dp_clk
+u_app/st_shadow_reg[161] pin=D net=u_app/st_hold[161] clk=u_app/dp_clk
+u_app/st_shadow_reg[162] pin=D net=u_app/st_hold[162] clk=u_app/dp_clk
+u_app/st_shadow_reg[163] pin=D net=u_app/st_hold[163] clk=u_app/dp_clk
+u_app/st_shadow_reg[164] pin=D net=u_app/st_hold[164] clk=u_app/dp_clk
+u_app/st_shadow_reg[165] pin=D net=u_app/st_hold[165] clk=u_app/dp_clk
+u_app/st_shadow_reg[166] pin=D net=u_app/st_hold[166] clk=u_app/dp_clk
+u_app/st_shadow_reg[167] pin=D net=u_app/st_hold[167] clk=u_app/dp_clk
+u_app/st_shadow_reg[168] pin=D net=u_app/st_hold[168] clk=u_app/dp_clk
+u_app/st_shadow_reg[169] pin=D net=u_app/st_hold[169] clk=u_app/dp_clk
+u_app/st_shadow_reg[16] pin=D net=u_app/st_hold[16] clk=u_app/dp_clk
+u_app/st_shadow_reg[170] pin=D net=u_app/st_hold[170] clk=u_app/dp_clk
+u_app/st_shadow_reg[171] pin=D net=u_app/st_hold[171] clk=u_app/dp_clk
+u_app/st_shadow_reg[172] pin=D net=u_app/st_hold[172] clk=u_app/dp_clk
+u_app/st_shadow_reg[173] pin=D net=u_app/st_hold[173] clk=u_app/dp_clk
+u_app/st_shadow_reg[174] pin=D net=u_app/st_hold[174] clk=u_app/dp_clk
+u_app/st_shadow_reg[175] pin=D net=u_app/st_hold[175] clk=u_app/dp_clk
+u_app/st_shadow_reg[176] pin=D net=u_app/st_hold[176] clk=u_app/dp_clk
+u_app/st_shadow_reg[177] pin=D net=u_app/st_hold[177] clk=u_app/dp_clk
+u_app/st_shadow_reg[178] pin=D net=u_app/st_hold[178] clk=u_app/dp_clk
+u_app/st_shadow_reg[179] pin=D net=u_app/st_hold[179] clk=u_app/dp_clk
+u_app/st_shadow_reg[17] pin=D net=u_app/st_hold[17] clk=u_app/dp_clk
+u_app/st_shadow_reg[180] pin=D net=u_app/st_hold[180] clk=u_app/dp_clk
+u_app/st_shadow_reg[181] pin=D net=u_app/st_hold[181] clk=u_app/dp_clk
+u_app/st_shadow_reg[182] pin=D net=u_app/st_hold[182] clk=u_app/dp_clk
+u_app/st_shadow_reg[183] pin=D net=u_app/st_hold[183] clk=u_app/dp_clk
+u_app/st_shadow_reg[184] pin=D net=u_app/st_hold[184] clk=u_app/dp_clk
+u_app/st_shadow_reg[185] pin=D net=u_app/st_hold[185] clk=u_app/dp_clk
+u_app/st_shadow_reg[186] pin=D net=u_app/st_hold[186] clk=u_app/dp_clk
+u_app/st_shadow_reg[187] pin=D net=u_app/st_hold[187] clk=u_app/dp_clk
+u_app/st_shadow_reg[188] pin=D net=u_app/st_hold[188] clk=u_app/dp_clk
+u_app/st_shadow_reg[189] pin=D net=u_app/st_hold[189] clk=u_app/dp_clk
+u_app/st_shadow_reg[18] pin=D net=u_app/st_hold[18] clk=u_app/dp_clk
+u_app/st_shadow_reg[190] pin=D net=u_app/st_hold[190] clk=u_app/dp_clk
+u_app/st_shadow_reg[191] pin=D net=u_app/st_hold[191] clk=u_app/dp_clk
+u_app/st_shadow_reg[192] pin=D net=u_app/st_hold[192] clk=u_app/dp_clk
+u_app/st_shadow_reg[193] pin=D net=u_app/st_hold[193] clk=u_app/dp_clk
+u_app/st_shadow_reg[194] pin=D net=u_app/st_hold[194] clk=u_app/dp_clk
+u_app/st_shadow_reg[195] pin=D net=u_app/st_hold[195] clk=u_app/dp_clk
+u_app/st_shadow_reg[196] pin=D net=u_app/st_hold[196] clk=u_app/dp_clk
+u_app/st_shadow_reg[197] pin=D net=u_app/st_hold[197] clk=u_app/dp_clk
+u_app/st_shadow_reg[198] pin=D net=u_app/st_hold[198] clk=u_app/dp_clk
+u_app/st_shadow_reg[199] pin=D net=u_app/st_hold[199] clk=u_app/dp_clk
+u_app/st_shadow_reg[19] pin=D net=u_app/st_hold[19] clk=u_app/dp_clk
+u_app/st_shadow_reg[1] pin=D net=u_app/st_hold[1] clk=u_app/dp_clk
+u_app/st_shadow_reg[200] pin=D net=u_app/st_hold[200] clk=u_app/dp_clk
+u_app/st_shadow_reg[201] pin=D net=u_app/st_hold[201] clk=u_app/dp_clk
+u_app/st_shadow_reg[202] pin=D net=u_app/st_hold[202] clk=u_app/dp_clk
+u_app/st_shadow_reg[203] pin=D net=u_app/st_hold[203] clk=u_app/dp_clk
+u_app/st_shadow_reg[204] pin=D net=u_app/st_hold[204] clk=u_app/dp_clk
+u_app/st_shadow_reg[205] pin=D net=u_app/st_hold[205] clk=u_app/dp_clk
+u_app/st_shadow_reg[206] pin=D net=u_app/st_hold[206] clk=u_app/dp_clk
+u_app/st_shadow_reg[207] pin=D net=u_app/st_hold[207] clk=u_app/dp_clk
+u_app/st_shadow_reg[208] pin=D net=u_app/st_hold[208] clk=u_app/dp_clk
+u_app/st_shadow_reg[209] pin=D net=u_app/st_hold[209] clk=u_app/dp_clk
+u_app/st_shadow_reg[20] pin=D net=u_app/st_hold[20] clk=u_app/dp_clk
+u_app/st_shadow_reg[210] pin=D net=u_app/st_hold[210] clk=u_app/dp_clk
+u_app/st_shadow_reg[211] pin=D net=u_app/st_hold[211] clk=u_app/dp_clk
+u_app/st_shadow_reg[212] pin=D net=u_app/st_hold[212] clk=u_app/dp_clk
+u_app/st_shadow_reg[213] pin=D net=u_app/st_hold[213] clk=u_app/dp_clk
+u_app/st_shadow_reg[214] pin=D net=u_app/st_hold[214] clk=u_app/dp_clk
+u_app/st_shadow_reg[215] pin=D net=u_app/st_hold[215] clk=u_app/dp_clk
+u_app/st_shadow_reg[216] pin=D net=u_app/st_hold[216] clk=u_app/dp_clk
+u_app/st_shadow_reg[217] pin=D net=u_app/st_hold[217] clk=u_app/dp_clk
+u_app/st_shadow_reg[218] pin=D net=u_app/st_hold[218] clk=u_app/dp_clk
+u_app/st_shadow_reg[219] pin=D net=u_app/st_hold[219] clk=u_app/dp_clk
+u_app/st_shadow_reg[21] pin=D net=u_app/st_hold[21] clk=u_app/dp_clk
+u_app/st_shadow_reg[220] pin=D net=u_app/st_hold[220] clk=u_app/dp_clk
+u_app/st_shadow_reg[221] pin=D net=u_app/st_hold[221] clk=u_app/dp_clk
+u_app/st_shadow_reg[222] pin=D net=u_app/st_hold[222] clk=u_app/dp_clk
+u_app/st_shadow_reg[223] pin=D net=u_app/st_hold[223] clk=u_app/dp_clk
+u_app/st_shadow_reg[224] pin=D net=u_app/st_hold[224] clk=u_app/dp_clk
+u_app/st_shadow_reg[225] pin=D net=u_app/st_hold[225] clk=u_app/dp_clk
+u_app/st_shadow_reg[226] pin=D net=u_app/st_hold[226] clk=u_app/dp_clk
+u_app/st_shadow_reg[227] pin=D net=u_app/st_hold[227] clk=u_app/dp_clk
+u_app/st_shadow_reg[228] pin=D net=u_app/st_hold[228] clk=u_app/dp_clk
+u_app/st_shadow_reg[229] pin=D net=u_app/st_hold[229] clk=u_app/dp_clk
+u_app/st_shadow_reg[22] pin=D net=u_app/st_hold[22] clk=u_app/dp_clk
+u_app/st_shadow_reg[230] pin=D net=u_app/st_hold[230] clk=u_app/dp_clk
+u_app/st_shadow_reg[231] pin=D net=u_app/st_hold[231] clk=u_app/dp_clk
+u_app/st_shadow_reg[232] pin=D net=u_app/st_hold[232] clk=u_app/dp_clk
+u_app/st_shadow_reg[233] pin=D net=u_app/st_hold[233] clk=u_app/dp_clk
+u_app/st_shadow_reg[234] pin=D net=u_app/st_hold[234] clk=u_app/dp_clk
+u_app/st_shadow_reg[235] pin=D net=u_app/st_hold[235] clk=u_app/dp_clk
+u_app/st_shadow_reg[236] pin=D net=u_app/st_hold[236] clk=u_app/dp_clk
+u_app/st_shadow_reg[237] pin=D net=u_app/st_hold[237] clk=u_app/dp_clk
+u_app/st_shadow_reg[238] pin=D net=u_app/st_hold[238] clk=u_app/dp_clk
+u_app/st_shadow_reg[239] pin=D net=u_app/st_hold[239] clk=u_app/dp_clk
+u_app/st_shadow_reg[23] pin=D net=u_app/st_hold[23] clk=u_app/dp_clk
+u_app/st_shadow_reg[240] pin=D net=u_app/st_hold[240] clk=u_app/dp_clk
+u_app/st_shadow_reg[241] pin=D net=u_app/st_hold[241] clk=u_app/dp_clk
+u_app/st_shadow_reg[242] pin=D net=u_app/st_hold[242] clk=u_app/dp_clk
+u_app/st_shadow_reg[243] pin=D net=u_app/st_hold[243] clk=u_app/dp_clk
+u_app/st_shadow_reg[244] pin=D net=u_app/st_hold[244] clk=u_app/dp_clk
+u_app/st_shadow_reg[245] pin=D net=u_app/st_hold[245] clk=u_app/dp_clk
+u_app/st_shadow_reg[246] pin=D net=u_app/st_hold[246] clk=u_app/dp_clk
+u_app/st_shadow_reg[247] pin=D net=u_app/st_hold[247] clk=u_app/dp_clk
+u_app/st_shadow_reg[248] pin=D net=u_app/st_hold[248] clk=u_app/dp_clk
+u_app/st_shadow_reg[249] pin=D net=u_app/st_hold[249] clk=u_app/dp_clk
+u_app/st_shadow_reg[24] pin=D net=u_app/st_hold[24] clk=u_app/dp_clk
+u_app/st_shadow_reg[250] pin=D net=u_app/st_hold[250] clk=u_app/dp_clk
+u_app/st_shadow_reg[251] pin=D net=u_app/st_hold[251] clk=u_app/dp_clk
+u_app/st_shadow_reg[252] pin=D net=u_app/st_hold[252] clk=u_app/dp_clk
+u_app/st_shadow_reg[253] pin=D net=u_app/st_hold[253] clk=u_app/dp_clk
+u_app/st_shadow_reg[254] pin=D net=u_app/st_hold[254] clk=u_app/dp_clk
+u_app/st_shadow_reg[255] pin=D net=u_app/st_hold[255] clk=u_app/dp_clk
+u_app/st_shadow_reg[256] pin=D net=u_app/st_hold[256] clk=u_app/dp_clk
+u_app/st_shadow_reg[257] pin=D net=u_app/st_hold[257] clk=u_app/dp_clk
+u_app/st_shadow_reg[258] pin=D net=u_app/st_hold[258] clk=u_app/dp_clk
+u_app/st_shadow_reg[259] pin=D net=u_app/st_hold[259] clk=u_app/dp_clk
+u_app/st_shadow_reg[25] pin=D net=u_app/st_hold[25] clk=u_app/dp_clk
+u_app/st_shadow_reg[260] pin=D net=u_app/st_hold[260] clk=u_app/dp_clk
+u_app/st_shadow_reg[261] pin=D net=u_app/st_hold[261] clk=u_app/dp_clk
+u_app/st_shadow_reg[262] pin=D net=u_app/st_hold[262] clk=u_app/dp_clk
+u_app/st_shadow_reg[263] pin=D net=u_app/st_hold[263] clk=u_app/dp_clk
+u_app/st_shadow_reg[264] pin=D net=u_app/st_hold[264] clk=u_app/dp_clk
+u_app/st_shadow_reg[265] pin=D net=u_app/st_hold[265] clk=u_app/dp_clk
+u_app/st_shadow_reg[266] pin=D net=u_app/st_hold[266] clk=u_app/dp_clk
+u_app/st_shadow_reg[267] pin=D net=u_app/st_hold[267] clk=u_app/dp_clk
+u_app/st_shadow_reg[268] pin=D net=u_app/st_hold[268] clk=u_app/dp_clk
+u_app/st_shadow_reg[269] pin=D net=u_app/st_hold[269] clk=u_app/dp_clk
+u_app/st_shadow_reg[26] pin=D net=u_app/st_hold[26] clk=u_app/dp_clk
+u_app/st_shadow_reg[270] pin=D net=u_app/st_hold[270] clk=u_app/dp_clk
+u_app/st_shadow_reg[271] pin=D net=u_app/st_hold[271] clk=u_app/dp_clk
+u_app/st_shadow_reg[272] pin=D net=u_app/st_hold[272] clk=u_app/dp_clk
+u_app/st_shadow_reg[273] pin=D net=u_app/st_hold[273] clk=u_app/dp_clk
+u_app/st_shadow_reg[274] pin=D net=u_app/st_hold[274] clk=u_app/dp_clk
+u_app/st_shadow_reg[275] pin=D net=u_app/st_hold[275] clk=u_app/dp_clk
+u_app/st_shadow_reg[276] pin=D net=u_app/st_hold[276] clk=u_app/dp_clk
+u_app/st_shadow_reg[277] pin=D net=u_app/st_hold[277] clk=u_app/dp_clk
+u_app/st_shadow_reg[278] pin=D net=u_app/st_hold[278] clk=u_app/dp_clk
+u_app/st_shadow_reg[279] pin=D net=u_app/st_hold[279] clk=u_app/dp_clk
+u_app/st_shadow_reg[27] pin=D net=u_app/st_hold[27] clk=u_app/dp_clk
+u_app/st_shadow_reg[280] pin=D net=u_app/st_hold[280] clk=u_app/dp_clk
+u_app/st_shadow_reg[281] pin=D net=u_app/st_hold[281] clk=u_app/dp_clk
+u_app/st_shadow_reg[282] pin=D net=u_app/st_hold[282] clk=u_app/dp_clk
+u_app/st_shadow_reg[283] pin=D net=u_app/st_hold[283] clk=u_app/dp_clk
+u_app/st_shadow_reg[284] pin=D net=u_app/st_hold[284] clk=u_app/dp_clk
+u_app/st_shadow_reg[285] pin=D net=u_app/st_hold[285] clk=u_app/dp_clk
+u_app/st_shadow_reg[286] pin=D net=u_app/st_hold[286] clk=u_app/dp_clk
+u_app/st_shadow_reg[287] pin=D net=u_app/st_hold[287] clk=u_app/dp_clk
+u_app/st_shadow_reg[288] pin=D net=u_app/st_hold[288] clk=u_app/dp_clk
+u_app/st_shadow_reg[289] pin=D net=u_app/st_hold[289] clk=u_app/dp_clk
+u_app/st_shadow_reg[28] pin=D net=u_app/st_hold[28] clk=u_app/dp_clk
+u_app/st_shadow_reg[290] pin=D net=u_app/st_hold[290] clk=u_app/dp_clk
+u_app/st_shadow_reg[291] pin=D net=u_app/st_hold[291] clk=u_app/dp_clk
+u_app/st_shadow_reg[292] pin=D net=u_app/st_hold[292] clk=u_app/dp_clk
+u_app/st_shadow_reg[293] pin=D net=u_app/st_hold[293] clk=u_app/dp_clk
+u_app/st_shadow_reg[294] pin=D net=u_app/st_hold[294] clk=u_app/dp_clk
+u_app/st_shadow_reg[295] pin=D net=u_app/st_hold[295] clk=u_app/dp_clk
+u_app/st_shadow_reg[296] pin=D net=u_app/st_hold[296] clk=u_app/dp_clk
+u_app/st_shadow_reg[297] pin=D net=u_app/st_hold[297] clk=u_app/dp_clk
+u_app/st_shadow_reg[298] pin=D net=u_app/st_hold[298] clk=u_app/dp_clk
+u_app/st_shadow_reg[299] pin=D net=u_app/st_hold[299] clk=u_app/dp_clk
+u_app/st_shadow_reg[29] pin=D net=u_app/st_hold[29] clk=u_app/dp_clk
+u_app/st_shadow_reg[2] pin=D net=u_app/st_hold[2] clk=u_app/dp_clk
+u_app/st_shadow_reg[300] pin=D net=u_app/st_hold[300] clk=u_app/dp_clk
+u_app/st_shadow_reg[301] pin=D net=u_app/st_hold[301] clk=u_app/dp_clk
+u_app/st_shadow_reg[302] pin=D net=u_app/st_hold[302] clk=u_app/dp_clk
+u_app/st_shadow_reg[303] pin=D net=u_app/st_hold[303] clk=u_app/dp_clk
+u_app/st_shadow_reg[304] pin=D net=u_app/st_hold[304] clk=u_app/dp_clk
+u_app/st_shadow_reg[305] pin=D net=u_app/st_hold[305] clk=u_app/dp_clk
+u_app/st_shadow_reg[306] pin=D net=u_app/st_hold[306] clk=u_app/dp_clk
+u_app/st_shadow_reg[307] pin=D net=u_app/st_hold[307] clk=u_app/dp_clk
+u_app/st_shadow_reg[308] pin=D net=u_app/st_hold[308] clk=u_app/dp_clk
+u_app/st_shadow_reg[309] pin=D net=u_app/st_hold[309] clk=u_app/dp_clk
+u_app/st_shadow_reg[30] pin=D net=u_app/st_hold[30] clk=u_app/dp_clk
+u_app/st_shadow_reg[310] pin=D net=u_app/st_hold[310] clk=u_app/dp_clk
+u_app/st_shadow_reg[311] pin=D net=u_app/st_hold[311] clk=u_app/dp_clk
+u_app/st_shadow_reg[312] pin=D net=u_app/st_hold[312] clk=u_app/dp_clk
+u_app/st_shadow_reg[313] pin=D net=u_app/st_hold[313] clk=u_app/dp_clk
+u_app/st_shadow_reg[314] pin=D net=u_app/st_hold[314] clk=u_app/dp_clk
+u_app/st_shadow_reg[315] pin=D net=u_app/st_hold[315] clk=u_app/dp_clk
+u_app/st_shadow_reg[316] pin=D net=u_app/st_hold[316] clk=u_app/dp_clk
+u_app/st_shadow_reg[317] pin=D net=u_app/st_hold[317] clk=u_app/dp_clk
+u_app/st_shadow_reg[318] pin=D net=u_app/st_hold[318] clk=u_app/dp_clk
+u_app/st_shadow_reg[319] pin=D net=u_app/st_hold[319] clk=u_app/dp_clk
+u_app/st_shadow_reg[31] pin=D net=u_app/st_hold[31] clk=u_app/dp_clk
+u_app/st_shadow_reg[32] pin=D net=u_app/st_hold[32] clk=u_app/dp_clk
+u_app/st_shadow_reg[33] pin=D net=u_app/st_hold[33] clk=u_app/dp_clk
+u_app/st_shadow_reg[34] pin=D net=u_app/st_hold[34] clk=u_app/dp_clk
+u_app/st_shadow_reg[35] pin=D net=u_app/st_hold[35] clk=u_app/dp_clk
+u_app/st_shadow_reg[36] pin=D net=u_app/st_hold[36] clk=u_app/dp_clk
+u_app/st_shadow_reg[37] pin=D net=u_app/st_hold[37] clk=u_app/dp_clk
+u_app/st_shadow_reg[38] pin=D net=u_app/st_hold[38] clk=u_app/dp_clk
+u_app/st_shadow_reg[39] pin=D net=u_app/st_hold[39] clk=u_app/dp_clk
+u_app/st_shadow_reg[3] pin=D net=u_app/st_hold[3] clk=u_app/dp_clk
+u_app/st_shadow_reg[40] pin=D net=u_app/st_hold[40] clk=u_app/dp_clk
+u_app/st_shadow_reg[41] pin=D net=u_app/st_hold[41] clk=u_app/dp_clk
+u_app/st_shadow_reg[42] pin=D net=u_app/st_hold[42] clk=u_app/dp_clk
+u_app/st_shadow_reg[43] pin=D net=u_app/st_hold[43] clk=u_app/dp_clk
+u_app/st_shadow_reg[44] pin=D net=u_app/st_hold[44] clk=u_app/dp_clk
+u_app/st_shadow_reg[45] pin=D net=u_app/st_hold[45] clk=u_app/dp_clk
+u_app/st_shadow_reg[46] pin=D net=u_app/st_hold[46] clk=u_app/dp_clk
+u_app/st_shadow_reg[47] pin=D net=u_app/st_hold[47] clk=u_app/dp_clk
+u_app/st_shadow_reg[48] pin=D net=u_app/st_hold[48] clk=u_app/dp_clk
+u_app/st_shadow_reg[49] pin=D net=u_app/st_hold[49] clk=u_app/dp_clk
+u_app/st_shadow_reg[4] pin=D net=u_app/st_hold[4] clk=u_app/dp_clk
+u_app/st_shadow_reg[50] pin=D net=u_app/st_hold[50] clk=u_app/dp_clk
+u_app/st_shadow_reg[51] pin=D net=u_app/st_hold[51] clk=u_app/dp_clk
+u_app/st_shadow_reg[52] pin=D net=u_app/st_hold[52] clk=u_app/dp_clk
+u_app/st_shadow_reg[53] pin=D net=u_app/st_hold[53] clk=u_app/dp_clk
+u_app/st_shadow_reg[54] pin=D net=u_app/st_hold[54] clk=u_app/dp_clk
+u_app/st_shadow_reg[55] pin=D net=u_app/st_hold[55] clk=u_app/dp_clk
+u_app/st_shadow_reg[56] pin=D net=u_app/st_hold[56] clk=u_app/dp_clk
+u_app/st_shadow_reg[57] pin=D net=u_app/st_hold[57] clk=u_app/dp_clk
+u_app/st_shadow_reg[58] pin=D net=u_app/st_hold[58] clk=u_app/dp_clk
+u_app/st_shadow_reg[59] pin=D net=u_app/st_hold[59] clk=u_app/dp_clk
+u_app/st_shadow_reg[5] pin=D net=u_app/st_hold[5] clk=u_app/dp_clk
+u_app/st_shadow_reg[60] pin=D net=u_app/st_hold[60] clk=u_app/dp_clk
+u_app/st_shadow_reg[61] pin=D net=u_app/st_hold[61] clk=u_app/dp_clk
+u_app/st_shadow_reg[62] pin=D net=u_app/st_hold[62] clk=u_app/dp_clk
+u_app/st_shadow_reg[63] pin=D net=u_app/st_hold[63] clk=u_app/dp_clk
+u_app/st_shadow_reg[64] pin=D net=u_app/st_hold[64] clk=u_app/dp_clk
+u_app/st_shadow_reg[65] pin=D net=u_app/st_hold[65] clk=u_app/dp_clk
+u_app/st_shadow_reg[66] pin=D net=u_app/st_hold[66] clk=u_app/dp_clk
+u_app/st_shadow_reg[67] pin=D net=u_app/st_hold[67] clk=u_app/dp_clk
+u_app/st_shadow_reg[68] pin=D net=u_app/st_hold[68] clk=u_app/dp_clk
+u_app/st_shadow_reg[69] pin=D net=u_app/st_hold[69] clk=u_app/dp_clk
+u_app/st_shadow_reg[6] pin=D net=u_app/st_hold[6] clk=u_app/dp_clk
+u_app/st_shadow_reg[70] pin=D net=u_app/st_hold[70] clk=u_app/dp_clk
+u_app/st_shadow_reg[71] pin=D net=u_app/st_hold[71] clk=u_app/dp_clk
+u_app/st_shadow_reg[72] pin=D net=u_app/st_hold[72] clk=u_app/dp_clk
+u_app/st_shadow_reg[73] pin=D net=u_app/st_hold[73] clk=u_app/dp_clk
+u_app/st_shadow_reg[74] pin=D net=u_app/st_hold[74] clk=u_app/dp_clk
+u_app/st_shadow_reg[75] pin=D net=u_app/st_hold[75] clk=u_app/dp_clk
+u_app/st_shadow_reg[76] pin=D net=u_app/st_hold[76] clk=u_app/dp_clk
+u_app/st_shadow_reg[77] pin=D net=u_app/st_hold[77] clk=u_app/dp_clk
+u_app/st_shadow_reg[78] pin=D net=u_app/st_hold[78] clk=u_app/dp_clk
+u_app/st_shadow_reg[79] pin=D net=u_app/st_hold[79] clk=u_app/dp_clk
+u_app/st_shadow_reg[7] pin=D net=u_app/st_hold[7] clk=u_app/dp_clk
+u_app/st_shadow_reg[80] pin=D net=u_app/st_hold[80] clk=u_app/dp_clk
+u_app/st_shadow_reg[81] pin=D net=u_app/st_hold[81] clk=u_app/dp_clk
+u_app/st_shadow_reg[82] pin=D net=u_app/st_hold[82] clk=u_app/dp_clk
+u_app/st_shadow_reg[83] pin=D net=u_app/st_hold[83] clk=u_app/dp_clk
+u_app/st_shadow_reg[84] pin=D net=u_app/st_hold[84] clk=u_app/dp_clk
+u_app/st_shadow_reg[85] pin=D net=u_app/st_hold[85] clk=u_app/dp_clk
+u_app/st_shadow_reg[86] pin=D net=u_app/st_hold[86] clk=u_app/dp_clk
+u_app/st_shadow_reg[87] pin=D net=u_app/st_hold[87] clk=u_app/dp_clk
+u_app/st_shadow_reg[88] pin=D net=u_app/st_hold[88] clk=u_app/dp_clk
+u_app/st_shadow_reg[89] pin=D net=u_app/st_hold[89] clk=u_app/dp_clk
+u_app/st_shadow_reg[8] pin=D net=u_app/st_hold[8] clk=u_app/dp_clk
+u_app/st_shadow_reg[90] pin=D net=u_app/st_hold[90] clk=u_app/dp_clk
+u_app/st_shadow_reg[91] pin=D net=u_app/st_hold[91] clk=u_app/dp_clk
+u_app/st_shadow_reg[92] pin=D net=u_app/st_hold[92] clk=u_app/dp_clk
+u_app/st_shadow_reg[93] pin=D net=u_app/st_hold[93] clk=u_app/dp_clk
+u_app/st_shadow_reg[94] pin=D net=u_app/st_hold[94] clk=u_app/dp_clk
+u_app/st_shadow_reg[95] pin=D net=u_app/st_hold[95] clk=u_app/dp_clk
+u_app/st_shadow_reg[96] pin=D net=u_app/st_hold[96] clk=u_app/dp_clk
+u_app/st_shadow_reg[97] pin=D net=u_app/st_hold[97] clk=u_app/dp_clk
+u_app/st_shadow_reg[98] pin=D net=u_app/st_hold[98] clk=u_app/dp_clk
+u_app/st_shadow_reg[99] pin=D net=u_app/st_hold[99] clk=u_app/dp_clk
+u_app/st_shadow_reg[9] pin=D net=u_app/st_hold[9] clk=u_app/dp_clk
+# close_design
+# exit 0
+INFO: [Common 17-206] Exiting Vivado at Thu Oct 29 03:41:37 2026...

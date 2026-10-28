@@ -1,0 +1,17 @@
+# 0x36 build (P11 APP8 CDC, OCC=0) -- readings
+date: 2026-10-29 03:26
+inputs: P11_CFG=c4 P11_APP8=1 P11_APP8_OCC=0 P11_APP8_CDC=1 P11_IMPL_STRATEGY=Performance_ExtraTimingOpt
+verdict: P7B_VERDICT = OK ; BITSTREAM-OK ; bat exit 0
+WNS = +0.017 ns (host: u_app_ctrl/init_rd_reg[1]/C -> u_app_ctrl/orph_zw_cnt_reg[3][7]/CE,
+                 g_hw.clk_out0, 15 levels, logic 1.334 / route 4.787 (78.2%))
+WHS = +0.010 ; WPWS = 0.000 ; setup/hold/pw failing endpoints = 0/0/0 (402,354 endpoints)
+app domain self: g_real.clk_out0 -> g_real.clk_out0, 6.400 ns, WNS +0.39, 0 failing (21,798 endpoints)
+dp<->app: report_clock_interaction = False Path both directions (8,427 + 431 paths ignored)
+           report_timing cross pair: none (false path); no 12-4739 / 12-508
+snapshot: NW 98, SNAP_P7BDP_NW 54, slot 53 cells=23 (W97 = app_cdc_status), SLOTS_OK=15
+modules: app_clk_gen=1, app_multi8_cdc=1, app_multi8=1, blackbox=0
+util: CLB LUT 136,068 / FF 106,480 / LUT-as-Memory 15,288 / BRAM 109 / URAM 17 (placed)
+      vs 0x34 baseline: dLUT -10 / dFF +1,081 / dLUTRAM +708  (two 77x256 FWFT FIFOs in LUTRAM)
+bitstream: wrapper_p4_0x36.bit  15,431,261 B
+sha256: d80bdb28fe0320d75774e2a23734b6e79c5789597e7feb4eaf1b67309d9adde9
+prev failing build #1: build_fail1_0x36/ (XDC pins; no bitstream)

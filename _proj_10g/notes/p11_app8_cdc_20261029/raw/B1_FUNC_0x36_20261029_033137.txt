@@ -1,0 +1,120 @@
+=== B1_FUNC_BEGIN 1793215897.558329500 Thu Oct 29 03:31:37     2026
+--- 0) deploy source + snap + env script; compile ---
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_tcp_sink_multi.cpp -> /tmp/p7b_biz/p7b_tcp_sink_multi.cpp
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_io.h -> /tmp/p7b_biz/p7b_io.h
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_pattern.h -> /tmp/p7b_biz/p7b_pattern.h
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_affinity.h -> /tmp/p7b_biz/p7b_affinity.h
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_pcie/p7b_biz/p7b_snap.sh -> /tmp/p7b_snap.sh
+PUT OK D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_app8_cdc_20261029/b0_env_setup_0x36.sh -> /tmp/b0_env_setup_0x36.sh
+-rwxr-xr-x 1 root root 68240 Oct 29 03:31 p7b_tcp_sink_multi
+DEPLOY_OK
+--- 1) netns/env setup (nsb 192.168.100.101/32 -> board .4) ---
+=== ENV_SETUP_BEGIN 1793215914.693722484 Thu Oct 29 03:31:54 AM CST 2026
+MOVE_enp1s0f1np1_RC=0
+MOVE_enp1s0f0np0_RC=0
+--- real ARP priming (no static neigh) ---
+
+--- 192.168.100.2 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1064ms
+rtt min/avg/max/mdev = 0.089/0.098/0.107/0.009 ms
+
+--- 192.168.100.4 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1021ms
+rtt min/avg/max/mdev = 0.086/0.113/0.140/0.027 ms
+--- static neighbours for wrong-port controls (board MAC) ---
+--- nsa ---
+lo               DOWN           
+enp1s0f1np1      UP             192.168.100.1/32 fe80::20f:53ff:fe2c:6801/64 
+192.168.100.2 dev enp1s0f1np1 scope link 
+192.168.100.2 dev enp1s0f1np1 lladdr 00:0a:35:01:fe:c0 REACHABLE 
+192.168.100.4 dev enp1s0f1np1 lladdr 00:0a:35:01:fe:c0 PERMANENT 
+NSA_CARRIER=1
+NSA_SPEED=10000
+--- nsb ---
+lo               DOWN           
+enp1s0f0np0      UP             192.168.100.101/32 fe80::20f:53ff:fe2c:6800/64 
+192.168.100.4 dev enp1s0f0np0 scope link 
+192.168.100.2 dev enp1s0f0np0 lladdr 00:0a:35:01:fe:c0 PERMANENT 
+192.168.100.4 dev enp1s0f0np0 lladdr 00:0a:35:01:fe:c0 REACHABLE 
+NSB_CARRIER=1
+NSB_SPEED=10000
+--- board identity (0x36: NW=98 BID=0x36 UNIMPL=0x1B8) ---
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x00000036   (want 0x00000036 = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1793215920.944226093
+ID_RC=0
+=== ENV_SETUP_END 1793215920.945202096
+--- 2) identity + baseline regs ---
+REG_0x00=0x50360001
+REG_0x04=0x00000036
+REG_0x14=0xdeadbeef
+REG_0x1B8=0xffffffff
+REG_0x1A4=0x00000000
+REG_0xEC=0x00000000
+REG_0xF0=0x00000000
+REG_0xF4=0x00000000
+REG_0xF8=0x00000000
+REG_0x118=0x00000000
+REG_0x08=0x00000000
+ID_MAGIC 0x50360001   (want 0x50360001)
+ID_BID   0x00000036   (want 0x00000036 = 本构建的 BUILD_ID)
+ID_MARKER 0xdeadbeef  (want 0xdeadbeef)
+ID_UNIMPL 0xffffffff  (want 0xffffffff: 未实现地址必须走 SLVERR)
+ID_OK 1793215924.449748908
+ID_RC=0
+--- 3) 8-conn downlink: each connection gets 12,288 B (lane8 check) ---
+MULTI_BEGIN conns=8 host=192.168.100.4 port=8080 maxbytes=12288 seconds=30
+MULTI_LIMITS conns=8 maxbytes=12288 rcvbuf=1048576 poll_ms=5000 stall_n=3 check=lane8 send_conns=0 send_bytes=0 send_pattern=xorshift
+PIN_RULE=none UNPINNED=1 ALLOWED_MASK=0xff
+MULTI_CONN id=0 status=2 err=0 got=0 want=12288 mism=0 first=-1 wall=15.015 Mbps=0.0 lport=56480 sent=0 unsent=0
+MULTI_CONN id=1 status=0 err=0 got=65536 want=12288 mism=0 first=-1 wall=0.000 Mbps=1747.1 lport=56482 sent=0 unsent=0
+MULTI_CONN id=2 status=2 err=0 got=0 want=12288 mism=0 first=-1 wall=15.015 Mbps=0.0 lport=56496 sent=0 unsent=0
+MULTI_CONN id=3 status=2 err=0 got=0 want=12288 mism=0 first=-1 wall=15.015 Mbps=0.0 lport=56512 sent=0 unsent=0
+MULTI_CONN id=4 status=2 err=0 got=0 want=12288 mism=0 first=-1 wall=15.015 Mbps=0.0 lport=56516 sent=0 unsent=0
+MULTI_CONN id=5 status=2 err=0 got=0 want=12288 mism=0 first=-1 wall=15.015 Mbps=0.0 lport=56530 sent=0 unsent=0
+MULTI_CONN id=6 status=0 err=0 got=13140 want=12288 mism=0 first=-1 wall=0.000 Mbps=815.7 lport=56542 sent=0 unsent=0
+MULTI_CONN id=7 status=2 err=0 got=0 want=12288 mism=0 first=-1 wall=15.015 Mbps=0.0 lport=56544 sent=0 unsent=0
+MULTI_SUM conns=8 ok=0 eof_short=0 stall=6 err=2 bytes=78676 mism=0 wall=15.016 agg_Mbps=0.0 check=lane8 sent=0 unsent=0
+DL_RC=1
+--- 3b) stats after downlink (wait >= 3 s for 1024-clk shadow refresh) ---
+REG_0xEC=0x00000000
+REG_0xF0=0x00000000
+REG_0xF4=0x00000000
+REG_0xF8=0x00000000
+REG_0x118=0x00000000
+REG_0x1A4=0x00000000
+--- 4) 8-conn uplink: each sends 12,288 B while receiving (seq check) ---
+MULTI_BEGIN conns=8 host=192.168.100.4 port=8080 maxbytes=16777216 seconds=15
+MULTI_LIMITS conns=8 maxbytes=16777216 rcvbuf=1048576 poll_ms=5000 stall_n=3 check=seq send_conns=8 send_bytes=12288 send_pattern=xorshift
+PIN_RULE=none UNPINNED=1 ALLOWED_MASK=0xff
+MULTI_CONN id=0 status=0 err=0 got=16822120 want=16777216 mism=0 first=-1 wall=0.062 Mbps=2175.6 lport=42414 sent=12288 unsent=0
+MULTI_CONN id=1 status=0 err=0 got=16791460 want=16777216 mism=0 first=-1 wall=0.032 Mbps=4243.5 lport=42418 sent=12288 unsent=0
+MULTI_CONN id=2 status=0 err=0 got=16841100 want=16777216 mism=0 first=-1 wall=0.029 Mbps=4569.1 lport=42420 sent=12288 unsent=0
+MULTI_CONN id=3 status=0 err=0 got=16798760 want=16777216 mism=0 first=-1 wall=0.059 Mbps=2286.5 lport=42436 sent=12288 unsent=0
+MULTI_CONN id=4 status=0 err=0 got=16813360 want=16777216 mism=0 first=-1 wall=0.090 Mbps=1499.2 lport=42482 sent=12288 unsent=0
+MULTI_CONN id=5 status=0 err=0 got=16833800 want=16777216 mism=0 first=-1 wall=0.099 Mbps=1354.6 lport=42448 sent=12288 unsent=0
+MULTI_CONN id=6 status=0 err=0 got=16795840 want=16777216 mism=0 first=-1 wall=0.059 Mbps=2274.2 lport=42458 sent=12288 unsent=0
+MULTI_CONN id=7 status=0 err=0 got=16836720 want=16777216 mism=0 first=-1 wall=0.132 Mbps=1018.7 lport=42470 sent=12288 unsent=0
+MULTI_SUM conns=8 ok=0 eof_short=0 stall=0 err=8 bytes=134533160 mism=0 wall=3.159 agg_Mbps=340.7 check=seq sent=98304 unsent=0
+UL_RC=1
+--- 5) stats after uplink ---
+REG_0xEC=0x00000000
+REG_0xF0=0x00000000
+REG_0xF4=0x00000000
+REG_0xF8=0x00000000
+REG_0x118=0x00000000
+REG_0x1A4=0x00000000
+REG_0x1A8=0x00210000
+REG_0x1AC=0x5a5a5a5a
+REG_0x1B0=0x00000000
+REG_0x1B4=0x00000000
+--- 6) 9th connection attempt (must not get an app slot) ---
+NINTH_CONNECT=OK
+--- 7) final identity + W97 ---
+REG_0x04=0x00000036
+REG_0x1A4=0x00000000
+CARRIER_P0=1
+SCRATCH_0x08=0x00000000
+=== B1_FUNC_END 1793215958.220493200 Thu Oct 29 03:32:38     2026

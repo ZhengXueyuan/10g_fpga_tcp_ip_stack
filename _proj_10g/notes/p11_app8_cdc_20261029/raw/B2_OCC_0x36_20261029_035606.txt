@@ -1,0 +1,28 @@
+=== B2_OCC_BEGIN tag=0x36 1793217366.004618700 Thu Oct 29 03:56:06     2026
+--- 0) deploy parser ---
+peer_ssh: FileNotFoundError: [Errno 2] No such file
+PUT_SKIP_USE_EXISTING
+PY_OK
+--- 1) clear stall + settle ---
+W62_pre=0x00000000
+W97_pre=0x00000020
+--- 2) RX stall FIRST (0x08=0x4) ---
+SCRATCH_stall=0x00000004
+--- 3) start 8-conn sink (conn0 sends 16,384 B) and wait W62 >= 12288 ---
+SINK_STARTED
+W62_at_stall=0x00000000
+W97_at_stall=0x00000020
+--- 4) capture board->PC windows for 2 s ---
+-rw-r--r-- 1 tcpdump tcpdump 24 Oct 29 03:55 /tmp/occ_0x36.pcap
+W62_after_cap=0x00000000
+W97_after_cap=0x00000020
+--- 5) clear stall + stop sink ---
+MULTI_CONN id=3 status=4 err=110 got=0 want=4294967296 mism=0 first=-1 wall=0.000 Mbps=0.0 lport=0 sent=0 unsent=0
+MULTI_CONN id=4 status=4 err=110 got=0 want=4294967296 mism=0 first=-1 wall=0.000 Mbps=0.0 lport=0 sent=0 unsent=0
+MULTI_CONN id=5 status=4 err=110 got=0 want=4294967296 mism=0 first=-1 wall=0.000 Mbps=0.0 lport=0 sent=0 unsent=0
+MULTI_CONN id=6 status=4 err=110 got=0 want=4294967296 mism=0 first=-1 wall=0.000 Mbps=0.0 lport=0 sent=0 unsent=0
+MULTI_CONN id=7 status=4 err=110 got=0 want=4294967296 mism=0 first=-1 wall=0.000 Mbps=0.0 lport=0 sent=0 unsent=0
+MULTI_SUM conns=8 ok=0 eof_short=0 stall=0 err=8 bytes=8589947700 mism=0 wall=15.019 agg_Mbps=4575.6 check=seq sent=16384 unsent=0
+--- 6) window parse ---
+PCAP /tmp/occ_0x36.pcap packets=0 conns=0
+=== B2_OCC_END tag=0x36 1793217409.925055600 Thu Oct 29 03:56:49     2026

@@ -33,8 +33,12 @@ import sys
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-TOPN = 14                    # P11 E1a-1: W96..W83 (p7bdp 槽 52..39)
-ITEMS_WANT = ["p7bdp_dout[%d*32 +: 32]" % s for s in range(52, 38, -1)]
+# P11 APP8 CDC (2026-10-29): 槽 53 只在 P11_APP8_CDC 构建存在 ⇒ 由 --cdc 选几何。
+#   cdc=on : W97..W83 = 槽 53..39 (15 项)
+#   cdc=off: W96..W83 = 槽 52..39 (14 项)
+def items_want(cdc_on):
+    hi = 53 if cdc_on else 52
+    return ["p7bdp_dout[%d*32 +: 32]" % s for s in range(hi, 38, -1)]
 
 
 def _norm(s):
@@ -50,6 +54,22 @@ def strip_line_comments(text):
         out.append(line[:i] if i >= 0 else line)
     return "\n".join(out)
 
+
+def apply_cdc_ifdef(text, cdc_on):
+    """P11_APP8_CDC ifdef in snap_dout_all has no else."""
+    out, depth = [], 0
+    for line in text.split('\n'):
+        st = line.strip()
+        if st.startswith("`ifdef P11_APP8_CDC"):
+            depth += 1
+            continue
+        if depth > 0 and st.startswith("`endif"):
+            depth = 0
+            continue
+        if depth > 0 and not cdc_on:
+            continue
+        out.append(line)
+    return '\n'.join(out)
 
 def extract_snap_items(code):
     """从 `snap_dout_all = {` 起取到配平的 `};`, 返回顶层逗号分隔的项。"""
@@ -94,6 +114,8 @@ def main():
     ap = argparse.ArgumentParser()
     here = os.path.dirname(os.path.abspath(__file__))
     ap.add_argument("--root", default=os.path.abspath(os.path.join(here, "..", "..", "..")))
+    ap.add_argument("--cdc", choices=["on", "off", "auto"], default="auto",
+                    help="P11 APP8 CDC geometry: on=98-word slot53, off=97-word, auto=on if source has slot53")
     a = ap.parse_args()
     path = os.path.join(a.root, "board", "wrapper_p4.v")
     if not os.path.isfile(path):
@@ -102,7 +124,11 @@ def main():
         return 1
     text = open(path, "r", encoding="utf-8", errors="replace").read()
     raw = text
-    code = strip_line_comments(text)
+    cdc_on = ("p7bdp_dout[53*32 +: 32]" in strip_line_comments(text)) if a.cdc == "auto" else (a.cdc == "on")
+    code = apply_cdc_ifdef(strip_line_comments(text), cdc_on)
+    TOPN = 15 if cdc_on else 14
+    ITEMS_WANT = items_want(cdc_on)
+    print("[info] cdc_on=%s TOPN=%d" % (cdc_on, TOPN))
     fails = []
 
     # 1) 顶部 TOPN 项

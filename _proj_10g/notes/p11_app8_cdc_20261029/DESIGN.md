@@ -1,11 +1,13 @@
-# P11 APP8 时序攻坚：8×app 独立时钟域 + CDC（实施级设计件 v4）
+# P11 APP8 时序攻坚：8×app 独立时钟域 + CDC（实施级设计件 v5）
 
-- 日期：2026-10-29（v1–v3 同日；**v4 = 第二独立复审回灌**）
-- 状态：**设计件 v4（未实施、未构建、未上板）**。v4 已按三级审查逐条改字：
+- 日期：2026-10-29（v1–v4 同日；**v5 = 第三轮独立对抗审查 V4-01…V4-27 回灌 + 实施回写**）
+- 状态：**设计件 v5（RTL 已实施；0x36 构建进行中；未上板）**。v5 已按四级审查逐条改字：
   ① `%TEMP%/bridge/xr12/REVIEW_APP8_CDC.md`（高 2 / 中 4 / 低 6）；
   ② 独立复审 #1 F1–F17（阻断 1 / 高 3 / 中 7 / 低 6）；
-  ③ **独立复审 #2 H1–H5 / M1–M9 / L1–L4（高 5 / 中 9 / 低 4）**（v3 未通过；`REVIEW.md` §6）。
-  **v4 复审通过后才进实施**（设计件自身 DoD）。
+  ③ **独立复审 #2 H1–H5 / M1–M9 / L1–L4（高 5 / 中 9 / 低 4）**（v3 未通过；`REVIEW.md` §6）；
+  ④ **独立复审 #3 V4-01…V4-27（阻断 1 / 高 6 / 中 9 / 低 11）** —— 处置见 **§11**。
+  ⚠️ 第三轮裁定"v4 未闭合、不能进实施"；本轮按用户 2026-10-29 指令「逐个修复 → 上板验证」
+  先修阻断/高 7 条（其中 V4-01 的 RTL 本已正确、§3 文字写反），**其余逐条落处置**后再构建。
 - 上游：`../p11_app8_contract_20261027/NEXT_TIMING_STUDY.md`（研究件，方案 A）
 - 触发：0x34 构建轮 = **1 次模块解析门失败（#1，无档案）+ 4 次时序门构建（#2–#5，均有 `FAILURE.md` 档案）**；
   最好 = `Congestion_SpreadLogic_high` **−0.205 / 5,162**；策略/布局搜索已关闭
@@ -84,16 +86,28 @@
 # clk_app ↔ dp_clk：唯一跨域连接全部是 CDC（FIFO/2FF/handshake）⇒ 双向 false_path。
 # ⚠️ 不写 set_clock_groups：clk_app 是 sys_clk_100 的 generated clock，若用
 #    -include_generated_clocks 重组，会有“同一 clock 进两个 group”的风险。
-set app_clk_c [get_clocks -of_objects [get_pins u_appclkgen/u_bufg_out/O]]
-set dp_clk_c  [get_clocks -of_objects [get_pins u_clkgen/u_bufg_out/O]]
+# ⚠️ 必须是综合后的层次名（generate 块会被保留为实例名的一部分）：
+set app_clk_c [get_clocks -of_objects [get_pins u_appclkgen/g_real.u_mmcm/CLKOUT0]]
+set dp_clk_c  [get_clocks -of_objects [get_pins u_clkgen/g_hw.u_mmcm/CLKOUT0]]
 set_false_path -from $app_clk_c -to $dp_clk_c
 set_false_path -from $dp_clk_c  -to $app_clk_c
 ```
 
+- ⛔ **0x36 构建 #1 失败（已归档 `build_fail1_0x36/`）**：XDC 初版用了源码级名字
+  `u_*/u_mmcm/CLKOUT0`，综合后 MMCM 在 generate 块里 ⇒ `12-508` + `12-4739`，
+  两条 `set_false_path` 被丢弃。实测名（synth DCP 查询 = `sta/query_mmcm.tcl`）=
+  `u_appclkgen/g_real.u_mmcm/CLKOUT0` / `u_clkgen/g_hw.u_mmcm/CLKOUT0`；已改正并重建。
 - 仍保留 `ku5p_p7b_cdc.xdc` 的四域 async group（clk_app 因是 sys_clk_100 的派生，
   自动留在第一组 ⇒ 对 pcie/gt 仍是 async）。
-- **门**：`P11_APP8_CDC_GATE`（见 §7）必须验证 `report_clock_interaction` 里
-  dp_clk↔clk_app 不再是 “Timed (unsafe)”，且无 `12-4739`。
+- **门（V4-08 订正：分类字符串是空判据）**：`P11_APP8_CDC_GATE` 的主判据 = **定向无路径见证**：
+  `report_timing -from [get_clocks clk_app] -to [get_clocks dp_clk] -max_paths 1` **为空**
+  （反向同理），**且** impl 日志无 `12-4739`。必须配**负对照**：同一构建先不加本 XDC（或临时注释）
+  跑一次，证明该对确实会出现路径 ⇒ "空"才有判别力。`report_clock_interaction` 只作辅助/登记，
+  **不得当唯一判据**（两钟同在 sys_clk_100 组时本来就是 "Timed (safe)"，丢约束也不报 unsafe）。
+- **组成员断言（V4-27）**：`report_clocks`/`get_clocks -include_generated_clocks sys_clk_100`
+  必须包含 `clk_app`；若自动派生关系不成立（clk_app 不在第一组），必须显式把它加进第一组并
+  登记 —— 否则 app↔pcie/gt 会变成未约束的 Timed (unsafe)，而本 XDC 只覆盖 dp↔app。门里加一条
+  `P11_APP8_CDC_CLKAPP_IN_GROUP = 1` 的硬判据。
 - ⚠️ `set_false_path` 会摘掉**所有**该对时钟的路径 ⇒ 必须先做 **§3** 的边界普查，
   任何“没有同步器的跨域”都必须在实施前消灭。
 
@@ -116,7 +130,8 @@ set_false_path -from $dp_clk_c  -to $app_clk_c
 | `app_rst_n` 沿 | app→DP | 1 | 2FF 后**下降沿检测** | W97[6]（armed，H5；H2） |
 | 统计 `req`/`ack` toggle | DP↔app | 2 | **双向 2FF toggle**（`ASYNC_REG`） | §4.5 相干快照握手（H2） |
 | `drop_cl`（close 丢失粘滞） | app→DP | 1 | app 域粘滞 → **2FF** | W97[3]（H2） |
-| **空接端口 8 个** | — | — | 经 CDC 包装**保持空接** | `active` / `act_id` / `done` / `dbg_lfsr` / `stat_arb_frames` / `stat_rx_orphan_frames` / `stat_rx_orphan_bytes` / `dbg_inst_mismatch`（`stat_close_pend_max` 例外：接 W97，L-4） |
+| `dbg_inst_mismatch[255:0]` | app→DP | 256 | **app 域按槽 OR 归约 + 粘滞 → 2FF** | **不是空接**（V4-01）：`mm_sticky[i] = \|core_dbg_inst_mismatch[i*32+:32]`，2FF 到 DP 驱动 W97[15:8]（§4.6） |
+| **空接端口 7 个** | — | — | 经 CDC 包装**保持空接** | `active` / `act_id` / `done` / `dbg_lfsr` / `stat_arb_frames` / `stat_rx_orphan_frames` / `stat_rx_orphan_bytes`（`stat_close_pend_max` 例外：接 W97，L-4；`dbg_inst_mismatch` 已改为上表的见证源，V4-01） |
 
 **统计列表**（与快照/状态行现有消费点一致，共 10×32 + 4 位）：`stat_tx_bytes` ·
 `stat_tx_frames` · `stat_rx_bytes` · `stat_mismatch` · `stat_frmwait_cyc` ·
@@ -143,6 +158,11 @@ rx_stall,                             // 0x08 bit2（DP 域，2FF 已在 wrapper
 stat_*（10×32 + close_pend_max[3:0]）, led[3:0],
 cdc_status[31:0]                      // → W97（见 §4.6）
 ```
+⚠️ **例化差异（V4-17，"只换例化名"只指数数据端口名）**：`i_bad_frame[127:0]` 在包装
+**内部**恒 tie 0（板级恒 0，wrapper 不再传）；`active/act_id/done/dbg_lfsr/
+stat_arb_frames/stat_rx_orphan_frames/stat_rx_orphan_bytes` 保持空接；**新增**的
+`dp_clk/dp_rst_n/reset_n/app_clk/app_rst_n/locked_app/cdc_status` 是时钟/复位/见证端口。
+`dbg_inst_mismatch` **不是空接**（V4-01，见 §3）。
 
 内部：
 
@@ -230,7 +250,7 @@ drop_cl = close_req && full;                 // app 域 → W97[3]：close 丢�
   1. **RX**：FIFO 里的在飞字会在恢复后交给已复位的 app ⇒ 图案相位断一次；产品行为 =
      断线重连（M-2 的跨会话残留是它的"正常换流"版本，见 §8.1）。
   2. **TX 半帧（Q8/F3，结构性可达）**：若 app 在一帧中途复位，TX FIFO 里可能留下
-     **无 `tlast` 的半帧**；消费者是 **`tcp_tx_frame` 的 `RX_RECV`**（`TCP_TX_OVL` 分支，
+     **无 `tlast` 的半帧**；消费者是 **`tcp_tx_frame` 的 `RX_IDLE` 活帧收字分支**（`TCP_TX_OVL`；`recv_first=1` 起，V4-10 订正）
      `rtl/tcp_tx_frame.v:1442-1477`；`S_RECV` 是串行分支 `:2681`，**板级不编译**）。
      **唯一出口 = `tlast`**；`len_over` 只决定 `tlast` 拍是收帧还是中止 ⇒ **无帧超时/abort**。
      后果：① wedge（等不到 tlast）；② 若复位后重放/新事件把**另一条连接**的帧接上，
@@ -312,22 +332,32 @@ assign app_tx_ready_app = ready_sr[31:16];
 | 1 | **保留 0**（RX 同上） | — |
 | 2 | 事件 FIFO 写被丢弃（`drop_ev`，事件丢失） | **DP 域**（写侧，F5）；**故障** |
 | 3 | close FIFO 写被丢弃（`drop_cl`，close 丢失） | app 域 → 2FF；**故障** |
-| 4 | 统计 stale（当前） | DP；**当前位** |
+| 4 | 统计 stale（当前；生成规则见下） | DP；**当前位** |
 | 5 | `locked_app` 同步值（当前） | DP；**当前位** |
 | 6 | `app_rst_seen`（**armed** 后 app 复位曾发生） | DP；**复位见证** |
 | 7 | 统计握手超时（**app_alive 门控**） | DP；**故障** |
-| 15:8 | **per-connection mismatch 出现过**（粘滞）：bit 8+i = app 实例 i 的 `dbg_inst_mismatch[i*32 +:32] != 0` | app 域粘滞 → 2FF；**观测**（H3） |
+| 15:8 | **per-slot（自 app 复位起）mismatch 出现过**（粘滞；**不是 per-connection**，V4-26）：bit 8+i = app 实例 i 的 `dbg_inst_mismatch[i*32 +:32] != 0` | app 域粘滞 → 2FF；**观测**（H3） |
 | 19:16 | `stat_close_pend_max[3:0]`（随 stats hold/shadow 过 CDC） | app→DP；观测 |
 | 20 | `dp_rst_seen`（**armed** 后 DP 功能复位曾发生） | DP；**复位见证**（F8） |
-| 31:21 | **CDC RX FIFO 写域占用** `dbg_occ_w`（9 位，零扩到 11 位） | DP 域；**观测**（H3：残留长度见证） |
+| 31:21 | **CDC RX FIFO 写域占用** `dbg_occ_w`（9 位，零扩到 11 位）—— **采样时刻的实时值，非粘滞**（V4-02） | DP 域；**活动性观测**（**不是残留长度见证**；残留长度无直接仪器，见 §8.1） |
 
+- **[4] 的生成规则（V4-12，与 RTL 逐字一致）**：`[4] = st_stale` = **当前一轮** stats 请求
+  发出后等到 ack 超过 **4096 个 `dp_clk`**（`st_to` 计满）；`[7] = st_to_sticky` = 曾发生过
+  超时。**"一帧" = 一次主机快照读（`snap_req`）**；判据里的"连续两帧为 1"要求两次读之间
+  ≥ 一个 1024 拍刷新周期（否则同一个 stale 事件会被读两次，是重复计数）。
 - **F1 修法（阻断；v4 收紧）**：**不使用 `fifo_async.ovf_pulse`** —— 它与本设计的
   `wr_en = src && !full` 互斥（`ovf_pulse = wr_en && full ≡ 0`）⇒ 恒 0。仅**事件/close**
   （无 ready 的源）设 `drop_ev` / `drop_cl`（W97[2]/[3]），在各自写域置粘滞；**TX/RX 不设
   计数器** —— `src && full` 是 stall 计数、不是丢字，其不丢字由握手同式 + 静态门保证（§4.1）。
 - **F2 修法（可执行性）**：
-  - **arming 与复位域（H5 写死）**：arming 计数器与 [6]/[20] 的粘滞位**只由板级 `reset_n`
-    复位**（`reset_n` 异步置位 / DP 域同步释放），**不得**接 `app_rst_n` / `dp_rst_n`；
+  - **arming 与复位域（H5 写死；V4-09 扩到同步链）**：arming 计数器与 [6]/[20] 的粘滞位
+    **只由板级 `reset_n` 复位**（`reset_n` 异步置位 / DP 域同步释放），**不得**接
+    `app_rst_n` / `dp_rst_n`；**同一句覆盖全部同步链与 prev/history 寄存器** ——
+    `app_rst_sync` / `locked_sync` / `arm_cnt` / `app_rst_prev` / `app_rst_seen` /
+    `dp_rst_prev` / `dp_rst_seen` / `drop_ev_sticky` / `drop_cl_sticky` / `drop_cl_sync` /
+    `mm_sticky` / `mm_sync0/mm_sync` / `led_sync0/led_sync` 一律用 `reset_n` 派生的域同步
+    复位（RTL = `rstn_dp_board` / `rstn_app_board`）。**若 prev 寄存器被 `dp_rst_n` 清零，
+    断言沿上 prev=0 ⇒ [20] 结构性恒 0**（[6] 同理）—— 这是本条要钉死的失效形态。
     arming 计数 = `reset_n` 释放后 ≥1024 个 `dp_clk` 拍。
   - **沿检测（H5 写死）**：`[6]` = 对 `app_rst_n` 的 **DP 同步值**做 **1→0 下降沿**检测
     （armed 后）；`[20]` = 对 `dp_rst_n` 做 1→0 下降沿检测（armed 后）。**不是低电平采样**
@@ -370,7 +400,10 @@ assign app_tx_ready_app = ready_sr[31:16];
 | 文件 | 改动 |
 |---|---|
 | `board/wrapper_p4.v` | `P11_APP8` 分支里：`ifdef P11_APP8_CDC` ⇒ 例化 `u_appclkgen` + `app_multi8_cdc`；`else` ⇒ 现有 `app_multi8`（**逐字保留**）。**`:1596/1600` 的 `rx_stall` 双门改为"raw `eco2_tvalid` 进包装、tready 由包装回驱"**（F10）。快照：W97 → **`p7bdp` 槽 53 / `SNAP_P7BDP_NW 53→54`**；`NW` 97→98（宏分支，见 §5.3） |
-| `board/build_p7b_ku5p.tcl` | 新 env `P11_APP8_CDC`（默认 0；=1 需 `P11_APP8=1 && P11_DUAL && DP_156MHZ && P7B_10G` —— **F13：`clk_in_100` 在 `ifdef P7B_10G` 内**）；加 define；加 CDC XDC；快照几何检查（W97）；**顺手修 `:88` 的陈旧注释"1 = 0x35 修复臂"（F16）** |
+| `board/build_p7b_ku5p.tcl` | 新 env `P11_APP8_CDC`（默认 0；=1 需 `P11_APP8=1 && P11_DUAL && DP_156MHZ && P7B_10G` —— **F13：`clk_in_100` 在 `ifdef P7B_10G` 内**）；加 define；加 CDC XDC；快照几何检查（W97）；模块解析硬门加 `app_clk_gen`/`app_multi8_cdc`；**`P7B_SNAP_TOP5_CDC` 的 `top_hi` 在 CDC 构建 = 53**（V4-05/V4-15，已实施）；**顺手修 `:88` 的陈旧注释"1 = 0x35 修复臂"（F16）** |
+| `_proj_10g/p7b_chain/sim/check_snap_top5_wired.py` | **TOPN 14→15（槽 53..39）**；文本解析器不认 `ifdef` ⇒ 必须加 `--cdc on|off`（或按 `P11_APP8_CDC` 出现自动切）并两套各跑一次，否则 CDC 构建矩阵红/非 CDC 构建假绿（V4-05/V4-16） |
+| `_proj_10g/notes/p7b_biz_win/check_window.py` | `nnew_top` 31→32 / `np11_top` 14→15；同上加几何参数（V4-05/V4-16） |
+| `_proj_10g/notes/p7b_readside_bid1c_20261011/apply_readside_bid1c.py` | **STAGES 加 0x36/0x37 条目（BID → NW=98 / UNIMPL=0x1B8）**；否则 `--bid 0x36` 在 `:1609` 硬退出（V4-14） |
 | `_proj_10g/notes/p7b_biz_win/tb_biz_win.v` | **`NW` 与 `BUILD_ID_V`/期望 BID 都改为 `+define+` 参数化**（`NW`/`BID`；或两份变体）—— 0x36/0x37 的 BID 不是 0x34（F7/L2） |
 | `_proj_pcie/p7b_biz/p7b_mir_dump.cpp` | 现硬编码 NW=71 代地址（`:157`）；**本批不用/重指**（F7） |
 | `board/ku5p_p7b_app8_cdc.xdc` | 仅 CDC 构建加入，`used_in_synthesis false` |
@@ -400,13 +433,13 @@ assign app_tx_ready_app = ready_sr[31:16];
 | C3 | 事件：8 槽 up/down 随机、背靠背、FIFO **近满但未满**（同拍 up+down 不写判据；若真满则 W97[2] 置位属预期） | 顺序保持、不丢、每事件恰一拍 |
 | C4 | close：8 连接逐个 close、背靠背 | 顺序/ID 保持；**W97[3]=0**（`ovf=0` 是空判据，M2） |
 | C4b | **close 满**：阻塞 close FIFO 读侧（或直接注入）17 个 close | **W97[3]=1**；变异 9 必须使本臂红（M2） |
-| C5 | `app_tx_ready`：逐位翻转、跨域延迟 2 拍 | 无毛刺、每位独立 |
+| C5 | `app_tx_ready`：逐位翻转、跨域延迟 **3 拍**（DP 寄存 1 + app 2FF，V4-19 与 §4.3 统一） | 无毛刺、每位独立 |
 | C6 | 统计：计数器每拍变化 + req/ack 握手 | 同一次 `shadow` 的所有字段来自**同一 app 拍**（用斜坡编码检验）；超时置 stale |
 | C7 | 复位：两域独立复位/偏斜释放/FIFO 两侧同 `reset_n`；**H5 三态**：① `reset_n` 释放后功能复位仍低 >1024 拍 ⇒ [6]=[20]=0；② armed 后功能复位 ⇒ [6]/[20]=1；③ 功能复位在 arming 前释放 ⇒ 不置 | 无陈旧字重现、无死锁；H5 三态逐条 |
 | C8 | 时钟比：156.25/156.25（随机相位）、156.25/100 | 全部判据仍成立（验证不依赖 1:1） |
 | C9 | 数据/事件交叠：±1~2 拍偏斜 **+ 两个方向的 ≥FIFO 深度长偏斜**（事件先于数据 / 数据先于事件） | 事件顺序不丢、数据逐字、无死锁 |
-| C10 | app 复位窗事件重放：N≤16 ⇒ 释放后全部按序；N=17 ⇒ W97[2]；**断言相位**：复位拉低落在 app 沿前/沿后各一次 | 复位期 **0 次 pop**；释放后每事件**恰 1 次**（H1） |
-| C11 | 跨会话 RX 残留：快关快开 + FIFO 预填；**用 W97[15:8] 每连接标志 + [31:21] 占用** | ① [31:21] ≤256 字；② 换流连接的 [15:8] 位置位且该连接余下**持续（≈255/256）失配**（预期，排除内容判据）；③ 未换流连接的标志位 = 0（H3/L1） |
+| C10 | app 复位窗事件重放：N≤16 ⇒ 释放后全部按序；N=17 ⇒ W97[2]；**断言相位**：复位拉低落在 app 沿前/沿后各一次 | 复位期 **0 次 pop**（观测点 = **CDC 事件 FIFO 的层次探针 `dbg_rbin`/`rd_en`**，不是核内计数器 —— 核在复位里计数恒 0 = 空判据，V4-13）；释放后每事件**恰 1 次**；`ev_down` 投递用 TB 对 core 的 `closing/active` 层次探针直接见证。⚠️ **异步断言沿可丢 1 事件**（`app_rst_n` 当 `rd_en` 门控的固有余量）⇒ 由 [6] 作废覆盖，登记不修（V4-13） |
+| C11 | 跨会话 RX 残留：快关快开 + FIFO 预填；**用 W97[15:8] 每连接标志 + [31:21] 占用** | ① [31:21] 是**采样时刻实时占用**：只作**活动性见证**（跑流时 >0），**不设"≤256"判据**（构造性恒真，V4-02）；② 换流槽的 [15:8] 位**允许**置 1 且该连接余下**持续（≈255/256）失配**（预期，排除内容判据）；③ **未换流槽的位必须相对本臂基线（delta）为 0**（不是绝对 0 —— `mm_sticky` 自 app 复位起粘滞，V4-26）；④ **残留长度本身无直接仪器**（实时值不可回看；登记为未测，V4-02） |
 
 ### 6.2 变异门（每个必须红）
 
@@ -415,9 +448,13 @@ assign app_tx_ready_app = ready_sr[31:16];
 丢 `close_id`；5. **`app_tx_ready` 同步去掉一级（单 FF）或去掉 `ASYNC_REG`**（F11：
 "整字 2FF"与逐位 2FF 硬件等价，不能当变异）；6. 统计不做 hold（直连）；7. 统计握手无超时；
 8. `set_false_path` 只写一个方向（静态门）；9. **`drop_ev/drop_cl` 改回 `ovf_pulse`**
-（F1：必须使 W97[2]/[3] 恒 0、C10 的 N=17 与 **C4b** 都不红，证明该变异有牙）；10. **TX/RX 的
+（F1、**V4-03 订正**：该变异使 W97[2]/[3] 结构性恒 0 ⇒ **C10 的 N=17 与 C4b 都必须红/FAIL**；
+若"不红"说明判据无牙，必须修门）；10. **TX/RX 的
 `wr_en` 与握手接受式改成不同表达式**（静态门必须红）；11. **源保持契约**：把 `app_pattern` 的
-`pw_data/pw_valid` 在 `!m_tready` 时改成不保持（或 TB 强制），全链门的 `$stable` 断言必须红（M8）。
+`pw_data/pw_valid` 在 `!m_tready` 时改成不保持（或 TB 强制），**core 侧（`u_app_cdc/u_core` 的
+`m_*`）显式 prev 寄存器断言**必须红（M8；**V4-04**：断言点必须在 app 侧 mux→FIFO 写侧，
+外层 `m_*` 是 CDC FIFO 读侧、`rd_en=0` 时天然保持 ⇒ 那里的断言是空判据；且本仓 xvlog 默认
+不带 `-sv`、`$stable` 全仓 0 命中 ⇒ **用显式 prev 寄存器，不引入 SV 依赖**）。
 
 ### 6.3 集成/结构门
 
@@ -425,8 +462,12 @@ assign app_tx_ready_app = ready_sr[31:16];
   例化**真 wrapper_p4**，覆盖：TCP app TX/RX 图案逐字节、事件/close 投递、`app_tx_ready`
   生效、`rx_stall` 停读、W97 读回；并入矩阵第 44 门。**这是坑 8 的硬要求**（模块级 TB 绿
   ≠ wrapper 分支正确）。
-- **源保持契约（M8）**：全链门加 `$stable` 断言：
-  TX `m_tvalid && !m_tready ⇒ $stable({m_tdata,m_tkeep,m_tlast,m_tid})`；RX 源（`eco2_*`）同理。
+- **源保持契约（M8；V4-04 订正）**：全链门用**显式 prev 寄存器**（`$stable` 在非 `-sv`
+  xvlog 下不可用，全仓 0 先例）：
+  **TX 断言点在 `u_app_cdc/u_core` 的 `m_*`（层次探针）** —— `core_m_tvalid && !core_m_tready
+  ⇒ 本拍与上拍 {tdata,tkeep,tlast,tid} 相同`（外层 `app_tx_*` 是 CDC FIFO 读侧，FWFT 在
+  `rd_en=0` 时天然保持 ⇒ 在外层断言恒真、无判别力）；RX 源（`eco2_*`）在 DP 侧写口断言，
+  位置正确。
 - `tb_app_multi8` 现有 A/B/C/D 用例在 **CDC 包装**下复跑（时钟比 1:1 + 相位偏移）。
 - 结构检查（Tcl/脚本）：
   - `u_app` 的 clock pin = `clk_app`，reset = `app_rst_n`；
@@ -436,9 +477,11 @@ assign app_tx_ready_app = ready_sr[31:16];
     **`wrapper_p4.v:1596/1600` 仍是 `eco2_tvalid && !app_rx_stall` / `app_rx_tready && !app_rx_stall`**
     （CDC 修改必须在 `ifdef P11_APP8_CDC` 内）；加一次 `P11_APP8_CDC=0` 的 `tb_p5_wrapper`
     功能回归。
-  - **`report_cdc -details` 落盘 + 白名单**（4 个 FIFO、逐位 2FF、stats req/ack toggle、
-    `app_tx_ready`、`locked_app`、`app_rst_n` 沿、`drop_cl`）：**白名单与 §3 表逐行对账**，
-    白名单外即 FAIL；**不列 TX/RX drop**（不存在，M3）。
+  - **`report_cdc -details` 落盘 + 白名单（V4-11：按 §3 行逐项列出，白名单外即 FAIL）**：
+    `u_tx` 77 · `u_rx` 77 · `u_ev` 6 · `u_cl` 5 · `app_tx_ready` 16 · **stats hold 324**
+    （10×32 + close_pend_max）· `led` 4 · `locked_app` 1 · `app_rst_n` 1 · stats `req`/`ack` 2
+    （toggle）· `drop_cl` 1 · **`mm_sync` 8**（per-slot 粘滞）。**不列 TX/RX drop**（不存在，M3）；
+    白名单里的每一项都必须给出 `report_cdc` 的匹配模式（实例/网名），**不得用"其它都算白"这种写法**。
   - **配对期望表（M4）**：`clk_app↔dp_clk` = **False Path**；`clk_app↔pcie_axi_aclk`、
     `clk_app↔gtrefclk0 派生` = **Asynchronous**；`clk_app↔sys_clk_100` = **同组 Timed (safe)
     或无路径**（生成关系，不得判 async）。只对前两类判 Asynchronous/False Path。
@@ -486,10 +529,14 @@ RAM**（`rtl/fifo_async.v:98/100` 自注：双时钟 LUTRAM 推断**未过综合
 
 ## 7. 构建与板级顺序
 
-1. **0x36**：`P11_APP8=1 P11_APP8_OCC=0 P11_APP8_CDC=1`，策略先用 `Performance_ExtraTimingOpt`
-   （新路径集下的基线）；**若失败，只允许一次重试且必须用 `Congestion_SpreadLogic_high`**
-   （不得引入第三种策略；L-5）。
-2. 0x36 过门 ⇒ **0x37**：同 CDC + `P11_APP8_OCC=1`。
+1. **0x36**（可直接复制的 env 行；**V4-06 订正 —— 缺 `P11_CFG=c4` 会立即
+   `P11_APP8_REQUIRES_C4` 退出**，且策略必须显式给，默认是 `Performance_Explore`）：
+   ```
+   P11_CFG=c4 P11_APP8=1 P11_APP8_OCC=0 P11_APP8_CDC=1 P11_IMPL_STRATEGY=Performance_ExtraTimingOpt
+   ```
+   （落地件 = `run_build_0x36.bat`；BID = 0x36）。**若失败，只允许一次重试且必须用
+   `Congestion_SpreadLogic_high`**（不得引入第三种策略；L-5）。
+2. 0x36 过门 ⇒ **0x37**：同 CDC + `P11_APP8_OCC=1`（其余同上一行，BID = 0x37）。
 3. 板级 A/B（0x36 vs 0x37）按 `DESIGN_OCC_V6.md` §6.6 的协议（端口映射：port0/J7 =
    板 .4 ← nsb .101），W97 判据按 **§7.1**（复位见证 vs 故障见证；**不再用"任何粘滞位 = FAIL"**）。
 4. 通过后：8×12KB 合同、第 9 连接拒绝、F1（TCB rcv_wnd=12KB）、F6/F14/F18 的观测项。
@@ -500,10 +547,13 @@ RAM**（`rtl/fifo_async.v:98/100` 自注：双时钟 LUTRAM 推断**未过综合
 |---|---|---|
 | **故障见证**（粘滞） | [2] 事件 drop · [3] close drop · [7] 统计超时 | 有效臂内增量必须 **0**，否则 **FAIL** |
 | **复位见证**（粘滞） | [6] `app_rst_seen` · [20] `dp_rst_seen` | **硬规则：任一为 1 ⇒ 立即停流、该轮作废、必须重烧重跑**（不记 PASS/FAIL；**无"重开窗"分支**） |
-| **当前位** | [4] 统计 stale · [5] `app_locked` | [4] 恢复后必须自清（连续两帧为 1 ⇒ FAIL）；[5] 每次读数必须 1（=0 ⇒ 作废 + 重烧） |
+| **当前位** | [4] 统计 stale · [5] `app_locked` | [4] 恢复后必须自清；**"连续两帧" = 两次主机快照读、且两次之间 ≥ 一个 1024 拍刷新周期**（同一次 stale 事件被读两次不算）⇒ FAIL；[5] 每次读数必须 1（=0 ⇒ 作废 + 重烧） |
 
-> **[15:8]（每连接 mismatch 标志）与 [31:21]（RX FIFO 占用）是观测位，不是故障见证**；
-> 用于 §8.1 的换流臂判据（H3）。
+> **[15:8]（per-slot mismatch 粘滞）与 [31:21]（RX FIFO 实时占用）是观测位，不是故障见证**；
+> 用于 §8.1 的换流臂判据（H3）。[31:21] 的 "≤DEPTH" 由构造保证、**不得当判据**（V4-02）。
+>
+> **优先级（V4-18）**：`[6]=1` 或 `[20]=1` ⇒ **本臂作废**，此时 `[2]/[3]` **不参与 FAIL 判定**
+> （复位窗内 drop 属预期）；只有 `[6]=[20]=0` 时 `[2]/[3]` 才是故障见证。
 
 **每臂流程**：
 1. 开跑前基线（重烧后）：`[2]=[3]=0 ∧ [7]=0 ∧ [6]=0 ∧ [20]=0 ∧ [5]=1`（[0]/[1] 恒 0）。
@@ -540,7 +590,7 @@ RAM**（`rtl/fifo_async.v:98/100` 自注：双时钟 LUTRAM 推断**未过综合
 6. **W97 几何**：NW 97→98 与读侧 20 文件同步；两套几何都要过门（§5.3-A）。
 7. **第二 MMCM 资源/时钟质量**：KU5P MMCM 数量足够（审查现核 **1/4 已用 ⇒ 剩 3**）；
    输入走 BUFG，MMCM 输入路径需在 STA 里确认。
-8. **TX 半帧（Q8/F3，结构性可达）**：消费者是 **`tcp_tx_frame` 的 `RX_RECV`**
+8. **TX 半帧（Q8/F3，结构性可达）**：消费者是 **`tcp_tx_frame` 的 `RX_IDLE` 活帧收字分支**（`TCP_TX_OVL`；V4-10 订正）
    （`TCP_TX_OVL` 分支；不是 `S_RECV`，也不是 tcp_echo），**唯一出口 = `tlast`**；
    app 一帧中途复位 ⇒ 半帧残留 ⇒ **wedge 或跨连接错帧**（旧 tid/seq + 新载荷）。
    **v4 = 登记残余 + 硬规则**（[6] ⇒ 停流/作废/重烧）；有界恢复（`app_tx_abort`）另开设计，
@@ -562,7 +612,9 @@ RAM**（`rtl/fifo_async.v:98/100` 自注：双时钟 LUTRAM 推断**未过综合
   - **OCC A/B 两臂（8 连接建立后不换流）**：`stat_mismatch` 必须 **0**；W97[15:8] 必须 **0**。
   - **换流/重连臂**：**不得用聚合 `stat_mismatch` 作逐连接判据**（8 实例聚合，分不清槽）。
     改用 W97：
-    ① **残留长度** = W97[31:21]（CDC RX FIFO 写域占用，≤256 字）；
+    ① **占用见证** = W97[31:21]（CDC RX FIFO 写域**实时**占用）：只证明"RX 通路在动/曾接近满"，
+       **不是残留长度**（实时值读不到历史峰值；"≤256"是构造性恒真，V4-02）⇒ **残留长度 = 未测**，
+       登记在案；
     ② **每连接标志** W97[15:8]：换流槽的位**允许置 1**（该连接余下字节**持续（≈255/256）失配**
        属预期 —— LFSR 无重同步，`rtl/app_pattern.v:790-792/1116-1146`），该连接的 RX 内容结果
        **整体排除**；**未换流槽的位必须 0**；
@@ -584,7 +636,7 @@ RAM**（`rtl/fifo_async.v:98/100` 自注：双时钟 LUTRAM 推断**未过综合
 | Q5 | app 复位时 TX/RX FIFO 是否要与功能复位同代 | **不**（P6B 硬规则：FIFO 只认 `reset_n`） |
 | Q6 | 统计握手周期 1024 拍 / 超时 4096 拍 | 倾向值；可按快照节奏调 |
 | Q7 | 0x36 的 BID/位流命名与读侧链 | 0x36/0x37；`--bid 0x36` |
-| Q8 | **TX 半帧**（v2 自核；独立复审 F3 改判）：消费者 = `tcp_tx_frame` 的 **`RX_RECV`**（`TCP_TX_OVL` 分支），后果 = wedge **或跨连接错帧** | **【已判定 · 结构性可达】**（触发 = app 复位时任一 app 有在飞帧）；v4 登记残余 + 硬规则（[6] ⇒ 重烧）；有界恢复另开 `app_tx_abort`（不在 v4） |
+| Q8 | **TX 半帧**（v2 自核；独立复审 F3 改判）：消费者 = `tcp_tx_frame` 的 **`RX_IDLE` 活帧收字分支**（`TCP_TX_OVL`；V4-10 订正），后果 = wedge **或跨连接错帧** | **【已判定 · 结构性可达】**（触发 = app 复位时任一 app 有在飞帧）；v4 登记残余 + 硬规则（[6] ⇒ 重烧）；有界恢复另开 `app_tx_abort`（不在 v4） |
 
 > **xr12 审查意见（v2 记录）**：Q1–Q7 **全部同意设计倾向、无需用户裁定**；Q4 的 "BRAM 允许"
 > 前提已按 L-1 删除。Q8 已由独立复审 F3 改判为"结构性可达"（见上）。
@@ -604,3 +656,76 @@ RAM**（`rtl/fifo_async.v:98/100` 自注：双时钟 LUTRAM 推断**未过综合
       功能差异归因给 CDC；只能拿 0x33（2 app）做"没把系统打死"的冒烟前后对照，**不得**
       写成"CDC 等价已板级证明"
 - [ ] 文档：README/OPEN_ITEMS/台账/审查队列同步；所有读数带文件:行
+
+---
+
+## 11. 第三轮独立对抗审查 V4-01…V4-27 处置（v5）
+
+审查报告：独立 Claude 审查 agent（只读，2026-10-29，约 19 min / 87 次工具调用；
+对象 = v4 606 行 + `REVIEW.md` §5/§6 + 现读 RTL/wrapper/build tcl/门脚本）。
+一句裁定原文：**"v4 条款未闭合，不能进实施：需修 27 条（阻断 1 / 高 6 / 中 9 / 低 11）"**。
+
+处置原则：① **阻断/高 7 条全部落字或落码**，其中 V4-01 的 RTL 本已正确（是 §3 文字写反）；
+② 中/低逐条给出"改什么 / 落到哪 / 或为何登记不改"；③ **不把"审查过了"当验收** ——
+构建/门/板级的判据仍按各自所有者裁定。
+
+| ID | 级别 | 审查发现（摘要） | 处置 | 落点 |
+|---|---|---|---|---|
+| V4-01 | **阻断** | §3 把 `dbg_inst_mismatch` 列入"空接"，§4.6 却拿它做 W97[15:8] ⇒ 若按 §3 实施，W97[15:8] 恒 0 = 空判据 | **RTL 本已接**：`mm_sticky[i] <= \|core_dbg_inst_mismatch[i*32+:32]`，2FF 到 DP（`rtl/app_multi8_cdc.v:313-345`）⇒ **改 §3 文字**（空接 8→7，新增该行） | §3；RTL 已符合 |
+| V4-02 | 高 | W97[31:21] = 实时占用，"≤256" 构造性恒真 ⇒ C11-①/§8.1-① 空判据 | 判据改为**活动性见证**（跑流时 >0）；**残留长度 = 未测**（实时值读不到历史峰值）；RTL 不改（实时采样是有用的健康位） | §4.6 表、§6.1 C11、§8.1 ① |
+| V4-03 | 高 | 变异 9 期望写反（§6.1 说必须红 / §6.2 说都不红） | 统一为 **C10 N=17 与 C4b 都必须红**；"不红" = 判据无牙，必须修门 | §6.2-9 |
+| V4-04 | 高 | M8 的 `$stable` 在 CDC FIFO **读侧**（恒真）；且全仓 xvlog 不带 `-sv`、`$stable` 0 命中 | 断言改到 **`u_app_cdc/u_core` 的 core 侧 `m_*`**，用**显式 prev 寄存器**；RX 侧位置不变 | §6.2-11、§6.3 |
+| V4-05 | 高 | 槽 53 的三处几何门未列：`check_snap_top5_wired.py` TOPN=14、build tcl `top_hi=52`、`check_window.py` nnew_top=31 | **build tcl `top_hi` 在 CDC 构建 = 53（已实施）**；另两件列入 §5.2 修改清单（构建后实施，属门脚本、非位流输入） | build tcl 已改；§5.2 |
+| V4-06 | 高 | 0x36/0x37 配方缺 `P11_CFG=c4`（`P11_DUAL` 是脚本内部派生量）⇒ 按字面执行立即 `P11_APP8_REQUIRES_C4` | §7 改为**可复制的完整 env 行**；落地件 `run_build_0x36.bat`（已用该行） | §7-1/2；`run_build_0x36.bat` |
+| V4-07 | 高 | P8 镜像（`u_mir`, dp_clk）snoop `app_rx_*`；CDC 后若这些名字变 app 侧会产生未列出的裸 CDC / 镜像断 | **RTL 修复**：CDC 分支里 `app_rx_tvalid/tready` 仍是 **DP 侧**（`= eco2_tvalid && !app_rx_stall` / `= eco2_tready`），app 侧一律 `core_rx_*`；原"未用"声明删除 | `board/wrapper_p4.v:1596-1603` |
+| V4-08 | 中 | "dp↔app 不再是 Timed (unsafe)" 是空判据（两钟同组本来就是 Timed (safe)） | 主判据改 **`report_timing -from clk_app -to dp_clk` 为空 + 无 12-4739**，并要求**去掉 XDC 的负对照**；`report_clock_interaction` 只作辅助 | §2.2 |
+| V4-09 | 中 | H5 只写了粘滞位复位域，未覆盖**同步链/prev/history** | §4.6 写死全部 `reset_n` 派生复位；并写明"prev 若被 `dp_rst_n` 清零 ⇒ [20] 结构性恒 0"的失效形态。RTL 已符合 | §4.6 F2 条 |
+| V4-10 | 中 | `RX_RECV` 不存在；并行分支是 **`RX_IDLE`**（`recv_first=1`） | 全文 `RX_RECV` → `RX_IDLE` 活帧收字分支（含 §9 Q8；REVIEW.md M9 同步订正） | DESIGN §4/§8/§9；REVIEW §6 |
+| V4-11 | 中 | 白名单漏 324 位 stats hold / led / mm_sync | §6.3 按 §3 逐项列出 12 类，并要求每项给 `report_cdc` 匹配模式 | §6.3 |
+| V4-12 | 中 | W97[4] 无生成规则/阈值；"连续两帧"未定义"帧" | 写死 `[4]=st_stale`（当前请求等 ack > 4096 dp_clk）；"一帧" = 一次主机快照读；两次读需 ≥1 个 1024 拍刷新周期 | §4.6、§7.1 |
+| V4-13 | 中 | H1 异步断言沿可丢 1 事件；C10 的 "0 pop" 观测点若用核内计数器 = 空判据 | 登记"断言沿可丢 1 事件，由 [6] 作废覆盖"；C10 观测点改 **CDC 事件 FIFO 的 `dbg_rbin`/`rd_en` 层次探针**；`ev_down` 投递用 core `closing/active` 层次探针见证 | §6.1 C10 |
+| V4-14 | 中 | `apply_readside_bid1c.py` 的 STAGES 无 0x36/0x37 ⇒ `--bid 0x36` 硬退出 | 列入 §5.2（构建后实施：加 STAGES 条目 NW=98 / UNIMPL=0x1B8 并跑 `--assert`） | §5.2 |
+| V4-15 | 中 | 新件导入/模块存在门缺口（漏导 `app_clk_gen` = 安静黑盒，无门） | 文件清单本已含两件（`:284`）；**模块门新增 `app_clk_gen`/`app_multi8_cdc` ≥1 且非黑盒（已实施）** | build tcl 已改 |
+| V4-16 | 中 | 文本解析门不认 `ifdef` ⇒ "两套几何都过"无执行约定 | §5.2 要求 `check_window.py`/`check_snap_top5_wired.py` 加 `--cdc on|off`（或几何参数）两套各跑；不保留"一套解析器验两套" | §5.2 |
+| V4-17 | 低 | §4.1 端口表漏 `i_bad_frame` 与空接项，"只换例化名"不成立 | §4.1 增"例化差异"段：`i_bad_frame` 内部 tie 0、7 个空接、新增时钟/复位/见证端口 | §4.1 |
+| V4-18 | 低 | [2]/[3] 与复位窗分层冲突 | §7.1 增优先级：`[6]=1` 或 `[20]=1` ⇒ 本臂作废，`[2]/[3]` 不参与 FAIL | §7.1 |
+| V4-19 | 低 | C5 "2 拍" vs §4.3 "DP 1 + app 2" | 统一为 **3 拍** | §6.1 C5 |
+| V4-20 | 低 | arming 从 reset_n 释放起算，启动 lock 抖动会作废整臂 | **登记不改**：`rst_app = ~locked | ext` ⇒ app 在未锁期间一直在复位；启动期 lock 晚于 armed 只产生 0→1 **释放**沿（不置 [6]）；只有"armed 后 lock 抖动"会置 [6] ⇒ 该轮作废重烧（保守，不产生假 PASS） | §4.6（本条） |
+| V4-21 | 低 | L-1 无数值带/基线/归属 | 登记：LUTRAM 估算 **600–1400 LUT**（2×(77×256) FWFT 单元门先例 + 控制），基线 = 0x33 综合 LUTRAM 6.66%；0x36 构建报告逐项归属（两条 FIFO / MMCM / stats / W97） | §6.4（构建后落数） |
+| V4-22 | 低 | "矩阵第 42/43/44 门"未定义 | 定义：**42 = 单元 TB（`tb_app_multi8_cdc`）** · **43 = CDC 静态/report_cdc + 几何门** · **44 = 真 wrapper 全链门（H4）**；注册点 = `sim/p4gates/run_matrix_p4dfix.bat` + manifest | 本条 |
+| V4-23 | 低 | 连续模式下 app 不产生 close_req ⇒ C4/C4b 无注入点 | TB 在 **core 侧 force `i_req`**（`u_app_cdc/u_core/u_close/i_req`）或给 `app_multi8_cdc` 加 TB-only 注入端口；C4b 的 17 个 close 由 force 推 | §6.1 C4/C4b |
+| V4-24 | 低 | W97 ≈96 FF 未与已知全局 WNS 宿主（快照阵列异步复位族）对账 | 列为 **0x36 构建第一观察对象**；若 WNS 宿主换到该族，按预登记 backstop 处理（不改功能） | §6.4 / 构建报告 |
+| V4-25 | 低 | stats 走 hold/shadow 后更新率变 1024 拍，`app_status_uart` 与 W51–W54 判据语义变 | 登记：**stats 每 1024 dp_clk 刷新**；终点读数必须 ≥1 个刷新周期后再判，任何 ΔW53 类逐字节记账要加此前件（`app_status_uart` 输入 = DP shadow，安全） | §4.5/§7.1 |
+| V4-26 | 低 | [15:8] 实为 per-slot since reset，不是 per-connection | §3/§4.6 改称 **per-slot (since app reset)**；"未换流槽必须 0"改为**相对本臂基线的 delta = 0** | §3、§4.6、§8.1 |
+| V4-27 | 低 | "clk_app 自动留在 sys_clk_100 第一组"是承重假设 | §2.2 增**组成员断言**（`get_clocks -include_generated_clocks sys_clk_100` 必须含 clk_app）；不成立则显式加组并登记 | §2.2 |
+
+### 11.1 本轮实施回写（RTL/构建件）
+
+| 件 | 状态 | 备注 |
+|---|---|---|
+| `rtl/app_clk_gen.v` | **新增** | MMCME4_BASE 100×12.5/8 = 156.25 MHz；`rst_app = ~locked | ext`，异步置位/4 拍同步释放；`SIM_BYPASS` 供 TB |
+| `rtl/app_multi8_cdc.v` | **新增** | 4×`fifo_async`（TX/RX 77×256 FWFT；ev 6×16；cl 5×16，两侧复位 = `reset_n`）；stats 324-bit hold/toggle（1024 拍刷新 / 4096 拍超时）；W97；**`mm_sync`/`led_sync` 本轮修为真 2FF**（原注释写 2FF、代码只有 1 级） |
+| `rtl/app_multi8.v` | 改 | `led` 宽度修正（`app_pattern.led` 是 [3:0]，输出端口不能接拼接）——单元门实测 |
+| `board/wrapper_p4.v` | 改 | `P11_APP8_CDC` 分支（`u_appclkgen` + `u_app_cdc`）；RX 别名保持 DP 侧（V4-07）；`NW 97→98` / `SNAP_P7BDP_NW 53→54` / 槽 53 = W97；`BUILD_ID_V = 0x36` |
+| `board/build_p7b_ku5p.tcl` | 改 | env 门 `P11_APP8_CDC`（默认 0；=1 需 APP8+c4+DP156+P7B10G）；导入两新件；CDC XDC（`used_in_synthesis false`）；**`top_hi=53`**；**模块门加两新件** |
+| `board/ku5p_p7b_app8_cdc.xdc` | **新增** | 双向 `set_false_path`（`u_appclkgen/u_mmcm/CLKOUT0` ↔ `u_clkgen/u_mmcm/CLKOUT0`） |
+| `tb/tb_app_multi8_cdc.v` + `run_tb_app_multi8_cdc.bat` | **新增** | A/B/C 原单域门 + D/D3：DP 6.4 ns / app 6.23 ns **相位漂移**；`TB_APP8_CDC_PASS`（XSIM_RC=0） |
+| `run_build_0x36.bat` | **新增** | `P11_CFG=c4 P11_APP8=1 P11_APP8_OCC=0 P11_APP8_CDC=1 P11_IMPL_STRATEGY=Performance_ExtraTimingOpt` |
+| C4 全链 elaborate | **PASS** | `compile/run_elab_c4_cdc.bat`（含 `P11_APP8_CDC`）→ `P11_C4_ELAB PASS` |
+
+### 11.2 仍未闭合（不许当已完成）
+
+1. **H4 真 wrapper 全链门（第 44 门）未写**：`$stable`→显式 prev、core 侧 TX 保持、镜像字节对账、
+   close force 注入（V4-04/13/17/23）都还没落成可跑的 TB。**在它绿之前，"CDC 不影响功能"只有
+   单元门 + elaborate 证据**。
+2. **几何文本门未改**（V4-05/16）：`check_snap_top5_wired.py` / `check_window.py` 仍按 14 槽解析；
+   构建后必须改并两套各跑，否则矩阵 `p7b_chain` 会红（这也是预期的"门抓到改动"）。
+3. **读侧工具未加 0x36/0x37**（V4-14）：板上读快照前必须加 STAGES 条目，否则 `--bid 0x36` 硬退出。
+4. **矩阵 42/43/44 未注册**（V4-22）。
+5. **板级判据按 §7.1（v5）执行**，其中 [31:21] 只作活动性、[15:8] 用 delta、[4] 的"帧"定义 =
+   一次快照读且间隔 ≥1024 拍；残留长度**未测**（V4-02）。
+6. **V4-20 的启动 lock 抖动**：已论证为"保守作废"而非假 PASS，登记不修。
+7. **实施结果回写（2026-10-29）**：0x36 构建 + 板级已做（`README_FOR_TL.md` / `BOARD_0X36_REPORT.md`）；
+   **0x37（OCC=1）构建 = TIMING_FAIL**（WNS −0.629、拥塞级 5、最差 `u_tcp2→u_app2/stg`；
+   `build_fail2_0x37/`，本轮不重试）；**OCC A/B 未执行**（RX 停顿钩子无效，`P7B_OPEN_ITEMS §0-81`）；
+   **app 统计字恒 0 未定位**（`§0-80`）。

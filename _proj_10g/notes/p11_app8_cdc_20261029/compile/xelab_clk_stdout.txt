@@ -1,0 +1,25 @@
+Vivado Simulator v2025.2
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+Running: C:/AMDDesignTools/2025.2/Vivado/bin/unwrapped/win64.o/xelab.exe -L unisim app_clk_gen -s check_clk 
+Multi-threading is on. Using 18 slave threads.
+Starting static elaboration
+Pass Through NonSizing Optimizer
+WARNING: [VRFC 10-5021] port 'clkfboutb' is not connected on this instance [D:/repo/XCKU5PMini/udp_hls_10g/rtl/app_clk_gen.v:56]
+Completed static elaboration
+Starting simulation data flow analysis
+Completed simulation data flow analysis
+Time Resolution for simulation is 1ps
+Compiling package std.standard
+Compiling package std.textio
+Compiling package ieee.std_logic_1164
+Compiling package ieee.numeric_std
+Compiling package ieee.vital_timing
+Compiling package ieee.vital_primitives
+Compiling package unisim.vpkg
+Compiling package unisim.vcomponents
+Compiling architecture mmcme4_adv_v of entity unisim.MMCME4_ADV [\MMCME4_ADV(clkfbout_mult_f=12.5...]
+Compiling architecture mmcme4_base_v of entity unisim.MMCME4_BASE [\MMCME4_BASE(clkfbout_mult_f=12....]
+Compiling architecture bufg_v of entity unisim.BUFG [bufg_default]
+Compiling module work.app_clk_gen
+Built simulation snapshot check_clk

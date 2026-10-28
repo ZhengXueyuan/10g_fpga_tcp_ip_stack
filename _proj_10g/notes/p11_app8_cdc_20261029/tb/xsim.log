@@ -1,0 +1,48 @@
+
+****** xsim v2025.2 (64-bit)
+  **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+  **** Start of session at: Thu Oct 29 05:26:46 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source xsim.dir/tb_app8_cdc/xsim_script.tcl
+# xsim {tb_app8_cdc} -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+=== A. axis_frame_mux8 ===
+  [PASS] A: no mid-frame tid change
+  [PASS] round-robin serves all 8 sources
+  A frames per tid: 26 26 26 26 26 25 25 25
+  [PASS] A2: single-source case no hang
+=== A3. withdraw-before-first-accept ===
+  [PASS] : withdraw-before-accept counted
+  [PASS] A3: mux released after abort
+  [PASS]  other source served after abort
+=== B. axis_tid_demux8 ===
+  [PASS] : 8 tids isolated (4 beats each)
+  [PASS] tid>=8 frame dropped and counted
+  [PASS] gal frames continue after orphan
+=== C. app_close_arb8 ===
+  [PASS] simultaneous requests all issued
+  [PASS] C: each id issued once
+=== D. app_multi8 integration ===
+  [PASS] rames never change tid mid-frame
+  [PASS] D: all 8 connections transmit
+  [PASS] es == arb_frames (in-flight <=8)
+  [PASS] ats handshake live (bounded lag)
+=== D3. cdc_status ===
+  [PASS]  locked_app visible in DP domain
+  [PASS] stale / no unexpected reset seen
+  [PASS] D: 8-connection RX pattern clean
+  [PASS] D: injected error counted once
+  [PASS] error isolated to its connection
+  [PASS] mismatch sticky propagated to DP
+=== D2. backpressure + ev_down ===
+  [PASS] esume after backpressure+ev_down
+  [PASS] deadlock (simulation progressed)
+TB_APP8_CDC_PASS
+$finish called at time : 77283200 ps : File "D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_app8_cdc_20261029/tb/tb_app_multi8_cdc.v" Line 593
+exit
+INFO: [Common 17-206] Exiting xsim at Thu Oct 29 05:26:48 2026...

@@ -124,6 +124,23 @@ def grab_concat(src, lhs_regex):
     return src[i + 1:j], m
 
 
+def cdc_strip(body, cdc_on):
+    """P11_APP8_CDC 在 snap_dout_all 里没有 `else：on 去指令保留项；off 连项一起去。"""
+    out, depth = [], 0
+    for line in body.split(chr(10)):
+        st = line.strip()
+        if st.startswith("`ifdef P11_APP8_CDC"):
+            depth += 1
+            continue
+        if depth > 0 and st.startswith("`endif"):
+            depth = 0
+            continue
+        if depth > 0 and not cdc_on:
+            continue
+        out.append(line)
+    return chr(10).join(out)
+
+
 def code_of(item):
     """去掉行注释, 只留表达式 (比对时用)."""
     return re.sub(r"//.*", "", item).strip()
@@ -135,6 +152,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--repo", default=os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..")))
     ap.add_argument("--mutate", default="none", choices=["none", "drop", "swap", "declpatho"])
+    ap.add_argument("--cdc", choices=["on", "off", "auto"], default="auto",
+                    help="P11 APP8 CDC geometry: on=98 words/slot53, off=97 words, auto from source")
     a = ap.parse_args()
     repo, mut = a.repo, a.mutate
     wpath = os.path.join(repo, "board", "wrapper_p4.v")
@@ -148,14 +167,20 @@ def main():
         print("       [mutate=declpatho] 装配里把一个已声明网名换成未声明的拼写")
 
     # ---------- 判据 1: 项数 == SNAP_NW_P6E ----------
-    m = re.search(r"localparam\s+SNAP_NW_P6E\s*=\s*(\d+)", src0)
-    ck(m is not None, "1a SNAP_NW_P6E 声明存在")
-    NW = int(m.group(1))
-    print("       SNAP_NW_P6E = %d" % NW)
+    # P11 APP8 CDC (2026-10-29): 源里有两套 localparam（98/97、54/53）⇒ 按 --cdc 选。
+    vals = [int(x) for x in re.findall(r"localparam\s+SNAP_NW_P6E\s*=\s*(\d+)", src0)]
+    ck(len(vals) > 0, "1a SNAP_NW_P6E 声明存在")
+    cdc_on = ("p7bdp_dout[53*32 +: 32]" in src0) if a.cdc == "auto" else (a.cdc == "on")
+    NW = (max(vals) if cdc_on else min(vals)) if vals else None
+    print("       SNAP_NW_P6E = %s (cdc_on=%s, all=%s)" % (NW, cdc_on, vals))
     # 束宽 localparam (先取: 后面的"逐项字数"换算要用它们)
     def lp(name):
-        mm = re.search(r"localparam\s+%s\s*=\s*(\d+)" % name, src0)
-        return int(mm.group(1)) if mm else None
+        xs = [int(x) for x in re.findall(r"localparam\s+%s\s*=\s*(\d+)" % name, src0)]
+        if not xs:
+            return None
+        if name in ("SNAP_P7BDP_NW", "SNAP_NW_P6E") and len(xs) > 1:
+            return max(xs) if cdc_on else min(xs)
+        return xs[0]
 
     fe, dp, pfe, pdp, tx, ch0 = (lp("SNAP_FE_NW"), lp("SNAP_DP_NW"), lp("SNAP_P7BFE_NW"),
                                  lp("SNAP_P7BDP_NW"), lp("SNAP_TX_NW"), lp("SNAP_CH0_NW"))
@@ -166,6 +191,7 @@ def main():
     #     按 `()[]{}` 计深度 ⇒ 不去注释会把深度带偏, 只切出前 22 项 (第一版的错, 症状 = 22 ≠ 57)。
     #     注释不参与结构 ⇒ 先剥掉是正确做法, 不是权宜。
     body = re.sub(r"//[^\n]*", "", body_raw)
+    body = cdc_strip(body, cdc_on)
     items = split_top_items(body)
 
     # 负对照/变异 (全在内存里做 -> 不改工作区)
@@ -281,8 +307,8 @@ def main():
     #   ⭐ P11 E1a-1 (2026-10-27): W85..W96 = p7bdp 槽 41..52 (12 项) 插在 W84 之上
     #      ⇒ 顶端段 = p7bdp 槽 52..39 (14 项: E1a 12 + W84/W83) + ch0 4 + p7bdp 38..26 (13)
     #      = **31 项**。W96..W85 的 din 源 = e1a_hist[0..9] / e1a_sum_total / e1a_max_total。
-    nnew_top = 31                             # W96..W66 (p7bdp 52..39 = 14 + ch0 3..0 = 4 + p7bdp 38..26 = 13)
-    np11_top = 14                             # E1a 12 + W84/W83 2 = p7bdp 槽 52..39
+    nnew_top = 32 if cdc_on else 31           # CDC: W97..W66 (p7bdp 53..39=15 + ch0 4 + p7bdp 38..26=13)
+    np11_top = 15 if cdc_on else 14           # CDC: E1a 12 + W84/W83 2 + W97 = p7bdp 槽 53..39
     nch0_top = 4                              # 顶端 ch0 束项数 (= SNAP_CH0_NW, W82..W79)
     ntx = 1                                   # 其后的 tx 束项数 (W65)
     nnew = 14                                 # W64..W51 (槽 25..12) —— 历史段
@@ -440,7 +466,8 @@ def main():
     gen = re.search(r"for\s*\(\s*gi\s*=\s*0\s*;\s*gi\s*<\s*(\d+)\s*;", src0)
     ck(gen is not None, "6a p7bdp generate 存在")
     gen_n = int(gen.group(1))
-    nassign = len(re.findall(r"assign\s+p7bdp_din\[(\d+)\*32\s*\+\:\s*32\]\s*=", src0))
+    _slots = [int(x) for x in re.findall(r"assign\s+p7bdp_din\[(\d+)\*32\s*\+\:\s*32\]\s*=", src0)]
+    nassign = len([x for x in _slots if x < pdp])   # CDC off: 槽 53 的 assign 属另一几何
     ck(gen_n + nassign == pdp, "6 p7bdp_din 驱动项数 == SNAP_P7BDP_NW",
        "(generate %d + 显式 %d = %d, NW=%d)" % (gen_n, nassign, gen_n + nassign, pdp))
 

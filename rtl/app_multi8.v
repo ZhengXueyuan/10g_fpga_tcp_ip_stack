@@ -104,6 +104,7 @@ module app_multi8 #(
             wire [7:0]  rxk;
             wire        rxl;
             wire [3:0]  rxi;
+            wire [3:0]  led_i;     // app_pattern.led = [3:0]（输出端口不能接拼接）
 
             app_pattern #(
                 .TX_BYTES     (TX_BYTES),
@@ -143,7 +144,7 @@ module app_multi8 #(
                 .act_id         (),
                 .done           (s_done[gi]),
                 .dbg_lfsr       (s_lfsr[gi*32 +: 32]),
-                .led            (s_led[gi]),
+                .led            (led_i),
                 .stat_frmwait_cyc(s_frmwait[gi*32 +: 32]),
                 .stat_bp_cyc     (s_bp[gi*32 +: 32]),
                 .stat_up_ev      (s_upev[gi*32 +: 32]),
@@ -152,6 +153,7 @@ module app_multi8 #(
                 .stat_up_pend    (s_uppend[gi*32 +: 32])
             );
 
+            assign s_led[gi] = led_i[0];   // 聚合 LED 只看每位实例的 bit0（原行为）
             assign s_data[gi*77 +: 77] = {tkeep, tlast, tdata, tid};
             assign {rxk, rxl, rxd, rxi} = r_data[gi*77 +: 77];
         end

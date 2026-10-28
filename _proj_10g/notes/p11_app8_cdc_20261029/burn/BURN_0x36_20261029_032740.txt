@@ -1,0 +1,21 @@
+=== BURN_BEGIN gen=0x36 1793215660.356532900 Thu Oct 29 03:27:40     2026
+--- 1) sha256 anchor ---
+WANT=d80bdb28fe0320d75774e2a23734b6e79c5789597e7feb4eaf1b67309d9adde9 GOT=d80bdb28fe0320d75774e2a23734b6e79c5789597e7feb4eaf1b67309d9adde9
+SHA_OK (copy is not an independent anchor)
+--- 2) pre-burn peer state ---
+active
+	Region 0: Memory at f7a00000 (32-bit, non-prefetchable) [size=64K]
+		LnkSta:	Speed 5GT/s (downgraded), Width x4
+ls: cannot access '/dev/xdma*': No such file or directory
+XDMA_NOT_LOADED
+PARENT_ROOT_PORT=0000:00:1c.0
+INSMOD_RC=0
+xdma                  110592  0
+--- 3) burn via JTAG 192.168.0.38:3121 @1MHz 1793215666 ---
+BURN_STDOUT=/d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p7b_biz_tcpreg/tcpreg_program_stdout.txt mtime=1793215675 T0=1793215666 age=9s
+# puts "TCPREG_BIT = $bit"
+TCPREG_BIT = D:\repo\XCKU5PMini\udp_hls_10g\_proj_10g\notes\p11_e1a_design_20261027\burn\wrapper_p4_0x36.bit
+# puts "TCPREG_BIT_EXISTS = [file exists $bit]"
+TCPREG_BIT_EXISTS = 0
+"puts "TCPREG_BIT_MTIME = [file mtime $bit]""
+BURN_FAIL (no HIGH)

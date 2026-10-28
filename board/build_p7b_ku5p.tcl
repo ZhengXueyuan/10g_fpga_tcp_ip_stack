@@ -85,7 +85,7 @@ puts "P11_APP8 = $P11_APP8_ON"
 
 # ---- P11 APP8 OCC (2026-10-28, REVIEW_V5 F10): 每连接接收占用 ----
 #   默认 0（本文件的所有构建都定义该宏；wrapper 用宏值，不用 ifdef）。
-#   1 = 0x35 修复臂，必须同时 P11_APP8=1 且 c4（P11_DUAL）。
+#   1 = 0x37 修复臂（0x34/0x35 已废弃，见 DESIGN v4 supersede），必须同时 P11_APP8=1 且 c4（P11_DUAL）。
 set P11_APP8_OCC_ON 0
 if {[info exists ::env(P11_APP8_OCC)] && ($::env(P11_APP8_OCC) ne "")} {
     if {$::env(P11_APP8_OCC) eq "1"} {
@@ -105,6 +105,31 @@ if {$P11_APP8_OCC_ON && ((!$P11_APP8_ON) || (!$P11_IS_DUAL))} {
 }
 lappend P11_DEFS P11_APP8_OCC=$P11_APP8_OCC_ON
 puts "P11_APP8_OCC = $P11_APP8_OCC_ON"
+
+# ---- P11 APP8 CDC (2026-10-29, DESIGN v4): 8×app 独立 156.25 MHz 域 ----
+#   默认关（不定义宏）⇒ 既有构建逐位不变。=1 需 P11_APP8=1 && c4(P11_DUAL) &&
+#   DP_156MHZ && P7B_10G（clk_in_100 在 wrapper 的 P7B_10G 分支内）。
+set P11_APP8_CDC_ON 0
+if {[info exists ::env(P11_APP8_CDC)] && ($::env(P11_APP8_CDC) ne "")} {
+    if {$::env(P11_APP8_CDC) eq "1"} {
+        set P11_APP8_CDC_ON 1
+    } elseif {$::env(P11_APP8_CDC) eq "0"} {
+        set P11_APP8_CDC_ON 0
+    } else {
+        puts "P11_APP8_CDC_BAD_VALUE"
+        puts "P7B_VERDICT = P11_APP8_CDC_BAD_VALUE"
+        exit 1
+    }
+}
+if {$P11_APP8_CDC_ON && ((!$P11_APP8_ON) || (!$P11_IS_DUAL) ||
+                         ([lsearch $P11_DEFS DP_156MHZ=1] < 0) ||
+                         ([lsearch $P11_DEFS P7B_10G=1] < 0))} {
+    puts "P11_APP8_CDC_REQUIRES_APP8_C4_DP156_P7B10G"
+    puts "P7B_VERDICT = P11_APP8_CDC_REQUIRES_APP8_C4_DP156_P7B10G"
+    exit 1
+}
+if {$P11_APP8_CDC_ON} { lappend P11_DEFS P11_APP8_CDC=1 }
+puts "P11_APP8_CDC = $P11_APP8_CDC_ON"
 
 # ⭐ 2026-10-27 E1a 0x33: implementation strategy is a build input (default = the
 #    0x31/0x32 Performance_Explore). A retry with a different strategy is a NEW INPUT,
@@ -256,6 +281,7 @@ import_files -norecurse \
     ${root_dir}/rtl/app_pattern.v ${root_dir}/rtl/app_udp_pattern.v \
     ${root_dir}/rtl/app_multi8.v ${root_dir}/rtl/axis_frame_mux8.v \
     ${root_dir}/rtl/axis_tid_demux8.v ${root_dir}/rtl/app_close_arb8.v \
+    ${root_dir}/rtl/app_clk_gen.v ${root_dir}/rtl/app_multi8_cdc.v \
     ${root_dir}/rtl/app_status_uart.v     ${root_dir}/rtl/rx_merge2.v ${root_dir}/rtl/tx_demux2.v ${root_dir}/rtl/maccnt_sync.v \
     ${root_dir}/rtl/win_pool_mgr.v ${root_dir}/rtl/retx_pool_shared.v \
     ${root_dir}/rtl/slow_merge2.v ${root_dir}/rtl/slow_demux2.v ${root_dir}/rtl/slow_cfg_demux.v
@@ -481,6 +507,14 @@ if {[info exists ::env(P11_APP8_PBLOCK)] && ($::env(P11_APP8_PBLOCK) eq "1")} {
 } else {
     puts "P11_APP8_PBLOCK = 0 (pblock experiment disabled; see build_fail2/FAILURE.md)"
 }
+# P11 APP8 CDC (0x36/0x37): clk_app↔dp_clk 双向 false_path (只 CDC 构建; DESIGN v4 §2.2)
+if {$P11_APP8_CDC_ON} {
+    add_files -fileset constrs_1 ${script_dir}/ku5p_p7b_app8_cdc.xdc
+    set_property used_in_synthesis false [get_files ${script_dir}/ku5p_p7b_app8_cdc.xdc]
+    puts "P11_APP8_CDC_XDC = 1 (false_path clk_app <-> dp_clk)"
+} else {
+    puts "P11_APP8_CDC_XDC = 0"
+}
 
 # ⚠️ 这一版是为了**线速测量**而打开 `UDP_TX_OVL`（组帧器乒乓重叠）：
 #   `rtl/udp_tx_frame.v` 的 body 一分为二，`ifdef UDP_TX_OVL` = 乒乓双 bank 版（343 insertion / 0 deletion），
@@ -629,6 +663,19 @@ if {$P11_IS_DUAL} {
                 if {[get_property IS_BLACKBOX $c]} { incr bb }
             }
         }
+        # P11 APP8 CDC (V4-15): 新件 app_clk_gen / app_multi8_cdc 必须解析且非黑盒。
+        # 漏导入形态: u_appclkgen 黑盒 ⇒ 无 clk_app, app 不工作而综合/时序照样过。
+        if {$P11_APP8_CDC_ON} {
+            foreach nm {app_clk_gen app_multi8_cdc} {
+                set cc [get_cells -hier -quiet -filter "REF_NAME =~ $nm"]
+                set nn [llength $cc]
+                puts "P7B_APP8_MODULE $nm=$nn (CDC)"
+                if {$nn < 1} { set p3ok 0 }
+                foreach c $cc {
+                    if {[get_property IS_BLACKBOX $c]} { incr bb }
+                }
+            }
+        }
         set cc [get_cells -hier -quiet -filter "REF_NAME =~ app_close_arb8"]
         set nn [llength $cc]
         puts "P7B_APP8_MODULE app_close_arb8=$nn (0 expected: continuous app closes never)"
@@ -674,7 +721,9 @@ sec "P7B_SNAP_TOP5_CDC"
 #    constant 0, so hold_b cells may be optimized away; checking them would be a false red.
 set e1a_on 0
 if {[lsearch -exact $P11_DEFS "P11_DUAL=1"] >= 0} { set e1a_on 1 }
-set top_hi [expr {$e1a_on ? 52 : 40}]
+# P11 APP8 CDC (V4-05): W97 = p7bdp 槽 53 ⇒ 必须把 53 也纳入 hold_b 检查，
+# 否则新字走裸多比特 CDC（F-21 同类复发面；0x2C 已实测过该形态）。
+set top_hi [expr {$P11_APP8_CDC_ON ? 53 : ($e1a_on ? 52 : 40)}]
 puts "P7B_SNAP_TOP5_E1A_ON = $e1a_on (slots 39..$top_hi)"
 set top5_bad 0
 for {set s 39} {$s <= $top_hi} {incr s} {

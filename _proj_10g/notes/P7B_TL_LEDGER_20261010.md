@@ -2225,3 +2225,88 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - **台架/端口映射（现核）**：`p7b_tcp_sink_multi` 已支持 `--send-conns/--send-bytes/--send-pattern`（send 0x28 偏移语义）；`SO_RCVBUF` 必须 connect 前；对端 nsb = `enp1s0f0np0` **192.168.100.101/32** ↔ 板 port0/J7 **192.168.100.4**，nsa = `enp1s0f1np1` **192.168.100.1/32** ↔ 板 port1/J8 **192.168.100.2**（DESIGN_OCC_V6 §6.6 已订正地址归属）。
 - **未做**：0x35（OCC=1）未构建；板级 A/B、F1/OCC 板级全部未做；新 OCC 门未登记进常驻矩阵（第 42/43 门）；pblock 数据驱动 placement 查询未做（#4 dcp 已归档，可复跑）。
 - **原件**：`_proj_10g/notes/p11_app8_contract_20261027/`（README_FOR_TL · DESIGN_OCC_V6 · REVIEW_V5 · build_fail{1,2,3}/ · NEXT_TIMING_STUDY.md）。
+
+## §10-171 2026-10-29 01:4x–02:1x：**P11 APP8 CDC（方案 A）第三轮审查回灌 v5 + RTL 实施 + 单元门 PASS + 0x36 构建启动**
+
+- **第三轮独立对抗审查（只读 agent）**：`DESIGN.md` v4 裁定 **未闭合** —— V4-01…V4-27（阻断 1 / 高 6 / 中 9 / 低 11）。阻断 = **§3 文字把 `dbg_inst_mismatch` 写成空接**（RTL 实现本已接它做 W97[15:8]）。高 6 = 实时占用空判据 / 变异 9 期望反 / M8 `$stable` 位置错且仓内无 `-sv` / 三处几何门未列 / 0x36 配方缺 `P11_CFG=c4` / P8 镜像 snoop 名未登记。
+- **处置**：`DESIGN.md` 升 **v5**，新增 **§11** 逐条处置表（27/27 有落点）+ §11.1 实施回写 + §11.2 未闭合清单；`REVIEW.md` 加 §7 并就地订正 M9（`RX_IDLE`，V4-10）、H3/H4/H5 的相关措辞。**未把审查当验收**：构建/门/板级判据仍按各自所有者。
+- **RTL 实施（新增/改动）**：
+  - `rtl/app_clk_gen.v`（新）：MMCME4_BASE，100×12.5/8 = **156.25 MHz**；`rst_app = ~locked | ext`（异步置位/4 拍同步释放）；`SIM_BYPASS`。
+  - `rtl/app_multi8_cdc.v`（新，~430 行）：4×`fifo_async`（TX/RX **77×256 FWFT**、ev **6×16**、cl **5×16**，两侧复位 = 板级 `reset_n`）；stats **324-bit hold/toggle**（1024 拍刷新 / 4096 拍超时）；W97 健康字；**`mm_sync`/`led_sync` 修为真 2FF**（原注释 2FF、代码 1 级；V4-09 同族）。
+  - `rtl/app_multi8.v`：`led` 宽度修正（`app_pattern.led`=[3:0]，输出端口不能接拼接；xelab `10-3091` 实测）。
+  - `board/wrapper_p4.v`：`P11_APP8_CDC` 分支（`u_appclkgen` + `app_multi8_cdc`）；**V4-07 修复** = CDC 分支的 `app_rx_tvalid/tready` 仍由 DP 侧驱动（P8 镜像 snoop 安全）；`SNAP_NW_P6E 97→98`（宏分支）、`SNAP_P7BDP_NW 53→54`、槽 53 = `cdc_status`；`BUILD_ID_V = 0x36`。
+  - `board/build_p7b_ku5p.tcl`：`P11_APP8_CDC` env 门（默认 0；=1 需 APP8+c4+DP156+P7B10G）；导入两新件；CDC XDC（`used_in_synthesis false`）；**`P7B_SNAP_TOP5_CDC` 的 `top_hi` 在 CDC 构建 = 53**（V4-05）；**模块解析硬门加 `app_clk_gen`/`app_multi8_cdc`**（V4-15）。
+  - `board/ku5p_p7b_app8_cdc.xdc`（新）：双向 `set_false_path`（`u_appclkgen/u_mmcm/CLKOUT0` ↔ `u_clkgen/u_mmcm/CLKOUT0`）；不写 `set_clock_groups`。
+- **门**：
+  - `tb/tb_app_multi8_cdc.v`（新）+ `run_tb_app_multi8_cdc.bat`：A/B/C 原单域 + D/D3 —— **DP 6.4 ns / app 6.23 ns 相位漂移**，TX/RX/事件/close 全走 CDC，统计等 1200 dp 沿再判，W97 位语义断言。**结果 = `TB_APP8_CDC_PASS` / XSIM_RC=0**（C4 段 D2 反压+ev_down 也过）。
+  - `compile/run_elab_c4_cdc.bat`（C4 全链 + `P11_APP8_CDC`）：**`P11_C4_ELAB PASS`**（RTL 改动后复跑）。
+  - `check_cdc_wiring.py`（新，源码结构门 19 项）：CDC 例化端口 / DP 侧 RX 别名 / 非 CDC 零回归表达式 / 双几何 / build 门 / XDC / RTL FIFO 参数 / mm_sync 2FF —— **`CDC_WIRING_STATIC_PASS`**。
+- **构建（在飞）**：`run_build_0x36.bat` = `P11_CFG=c4 P11_APP8=1 P11_APP8_OCC=0 P11_APP8_CDC=1 P11_IMPL_STRATEGY=Performance_ExtraTimingOpt`（BID 0x36）。02:09 启动，synth 在跑。**失败只允许一次重试且策略 = `Congestion_SpreadLogic_high`**（L-5）。
+- **板级准备（脚本已就位，未执行）**：`burn_0x36_board.sh`（sha256 锚 + JTAG 1 MHz + HIGH/DONE/新鲜度 + PCIe 设备级→根端口恢复 + 身份 NW=98/BID=0x36/UNIMPL=0x1B8 + 98 字 NFF 扫描 + MIR 0x1A8..0x1B4）；`b0_env_setup_0x36.sh`（nsa/nsb + /32 + ethtool 关合并）；`b1_func_0x36.sh`（8 连接下行 12KB / 上行 12KB / 统计+W97 / 第 9 连接）。对端现态 = **开机 2h24m / 板在 QSPI 厂商态（1 BAR 64K，无 xdma）** ⇒ 烧 0x36 后须走场景 C（连根端口 remove+rescan）。
+- **仍未闭合**：真 wrapper 全链门（H4/第 44 门，含 core 侧显式 prev 断言、镜像字节对账、close force 注入）**未写**；`check_snap_top5_wired.py`/`check_window.py` 的 CDC 几何未改（构建后）；`apply_readside_bid1c.py` 未加 0x36/0x37；矩阵 42/43/44 未注册；**残留长度（RX FIFO 历史峰值）无直接仪器 = 未测**。
+- **原件**：`_proj_10g/notes/p11_app8_cdc_20261029/`（DESIGN.md v5 · REVIEW.md · tb/ · compile/ · check_cdc_wiring.py · run_build_0x36.bat · burn/b0/b1 脚本）。
+
+## §10-172 2026-10-29 02:2x：**0x36 构建 #1 = CDC XDC 引脚名错（12-4739 丢弃 false_path）⇒ 归档作废 + 改正重建**
+
+- **症状**：`open_run synth_1`（主进程）与 impl 解析 `board/ku5p_p7b_app8_cdc.xdc` 时
+  `WARNING [Vivado 12-508] No pins matched 'u_appclkgen/u_mmcm/CLKOUT0'` /
+  `... 'u_clkgen/u_mmcm/CLKOUT0'` ⇒ 两条 `CRITICAL WARNING [Vivado 12-4739] set_false_path: No valid object(s)`；
+  构建 bat 的 `12-4739` 文本门必然判 FAIL ⇒ 该构建无有效位流（impl 在 02:24 被人为终止，未等到结束）。
+- **根因**：XDC 用的是**源码级**实例名；综合后两个 MMCM 都在 generate 块里：
+  `u_appclkgen/g_real.u_mmcm/CLKOUT0`（`app_clk_gen.v` 的 `g_real`）与
+  `u_clkgen/g_hw.u_mmcm/CLKOUT0`（`clk_gen_p6b.v` 的 `g_hw`）。
+  **实测法** = `sta/query_mmcm.tcl` 打开 `synth_1/wrapper_p4.dcp` 查 `get_cells -hier REF_NAME=~MMCME4*`
+  与 `get_pins *CLKOUT0`（读数：2 个 MMCME4_ADV + 对应两个 CLKOUT0 引脚 + 三个 BUFG）。
+- **处置**：XDC 两条引脚路径改为实测名（注释写明"改前先重跑 query_mmcm.tcl"）；**同一策略重建**（BID 仍 0x36；
+  这不是 L-5 的时序重试 —— 是约束缺陷修正，构建输入已变、须作为新输入记录）。
+- **#1 已通过的综合后门（只作参考、不作本构建判据）**：`app_clk_gen=1 / app_multi8_cdc=1`、`P7B_BLACKBOX_COUNT 0`、
+  `P7B_SNAP_TOP5_SLOTS_OK = 15`（槽 53 的 hold_b cells 已存在）、`P11_STA_WPM_REL_WNS = 2.459`（evup0 3.015 / evup1 3.059）。
+  ⛔ **#1 的时序读数无效**（CDC 对按时钟分析 ⇒ 只能当悲观下界，不引用 WNS）。
+- **原件**：`p11_app8_cdc_20261029/build_fail1_0x36/{FAILURE.md,stdout_build1.txt,query_mmcm.log,query_mmcm.tcl}`；
+  重建 = `run_build_0x36.bat`（run2，02:26 启动）。
+
+## §10-173 2026-10-29 02:2x–04:0x：**0x36（CDC/OCC=0）构建 PASS + 上板：身份/CDC 健康/8 连接数据面全过；新发现 app 统计字恒 0（观测面，未定位）；0x37 构建在飞**
+
+- **构建 0x36（#2，XDC 修正后）**：`P11_CFG=c4 P11_APP8=1 P11_APP8_OCC=0 P11_APP8_CDC=1 P11_IMPL_STRATEGY=Performance_ExtraTimingOpt`
+  ⇒ **WNS +0.017 / WHS +0.010 / WPWS 0.000 / setup·hold·pw 失败端点 0/0/0（402,354 端点）**，
+  `All user specified timing constraints are met`，`BITSTREAM-OK`，位流 `d80bdb28…9adde9`（15,431,261 B）。
+  - WNS 宿主 = `u_app_ctrl/init_rd_reg[1]/C → u_app_ctrl/orph_zw_cnt_reg[3][7]/CE`（g_hw.clk_out0，15 级，route 4.787/78.2%）。
+  - **app 自域** `g_real.clk_out0 → g_real.clk_out0` = 6.400 ns、WNS **+0.39**、0 失败（21,798 端点）；
+    **dp↔app 双向 = False Path**（8427/431 路径 ignored；`report_clock_interaction` 直接读数）；
+    无 `12-4739`/`12-508`。成员关系：clk_app = sys_clk_100 的派生（在第一组）。
+  - 资源：LUT 136,068 / FF 106,480 / **LUT-as-Memory 15,288**（vs 0x34 基线 +708 ⇒ 两条 77×256 FWFT FIFO 落 LUTRAM）/ BRAM 109 / URAM 17；dFF +1,081、dLUT −10。
+  - 快照：NW 98 / `SNAP_P7BDP_NW` 54 / 槽 53 `hold_b` cells=23（W97），`SLOTS_OK=15`；模块门 app_clk_gen=1 / app_multi8_cdc=1 / blackbox 0。
+  - 归档 `build_ok_0x36/`（stdout/timing/util/DRC/clkinteract/两 runme + READINGS.txt）；机械门 = `check_build_0x36.py` **PASS**。
+  - ⛔ **构建 #1 已归档作废**（`build_fail1_0x36/`）：XDC 用源码级 `u_*/u_mmcm/CLKOUT0`，综合后 MMCM 在 generate 块里 ⇒ 12-508/12-4739、false_path 被丢弃；`sta/query_mmcm.tcl` 从 synth DCP 实测真名后改正并重建。
+- **上板（0x36）**：JTAG 1 MHz，`End of startup status: HIGH`；sha 烧前/烧后核对；**QSPI 零写**。
+  - 上板前板在 **QSPI 厂商态**（1 BAR/64K，xdma 未加载）⇒ 设备级 remove+rescan 失败 ⇒ **根端口 `00:1c.0` remove+rescan 成功**，2 BAR（config 1/user 0），`LnkSta x4`、`/dev/xdma0_user`。
+  - 身份全中：MAGIC `0x50360001` / **BID `0x36`** / MARKER `0xdeadbeef` / **UNIMPL `0x1B8`=0xffffffff** / **98 字 NFF=0** / MIR 四字整体 +4（`0x1A8..0x1B4`）。
+  - **W97 = 0x00000020**（`locked_app`=1；ev/close drop=0；stats stale/timeout=0；app/dp 复位未见；per-slot mismatch=0）⇒ **CDC 健康字干净**。
+  - 数据面：① `p7b_tcp_sink`（成熟串行工具）**100 连接 × ~1 MiB = 107,052,876 B，`clean_conns=100`/`mismatch_bytes=0`/`stall=0`**，单连接 3.7–4.7 Gbps；② `p7b_tcp_sink_multi --check seq --conns 8`：**8/8 status=0、mism=0、stall=0**（`got>maxbytes` 是工具 64K 块过冲；同参数 `lane8` 模式的 6 STALL 归因工具模式，seq 下全过）；③ 上行 8×12,288 B（`sent=12288 unsent=0`）⇒ **W97[15:8]=0x00**（app 域直连粘滞）= 上行零失配。
+- ⚠️ **新发现（未定位，观测面）**：**W51–W54 / W71–W74 恒 0** —— 触发快照后与**流量进行中**（3 次采样；下行已收 3.22 GB、W84 0x16a7d→0x244872）均为 0，而同刻 W97 干净、内容 107 MB+3.2 GB `mism=0`。网表事实：st_hold C=`u_app/clk_app`(BUFGCE)/CE=req-ack 比较/D=8 实例求和锥、st_shadow C=`u_app/dp_clk`/CE=`st_req1`、计数器 FDCE CE=`pw_take`、各 320 cell；单元 TB 两种时钟比均过。**候选未证**：req 未翻转 / CE 未触发（与数据流冲突）/ 320 位 hold 的总线综合优化。⇒ 数据面判据改用不依赖统计握手的 oracle；登记 `P7B_OPEN_ITEMS §0-80`；原件 `BOARD_0X36_REPORT.md §4`。
+- **0x37（CDC+OCC=1）**：BID 已 bump `0x37`，`run_build_0x37.bat` 同策略构建在飞（04:0x 启动；构建设计输入变更 = 新输入）。
+- **仍未闭合**：H4 全链门未写；几何文本门/读侧工具未同步 0x36；矩阵 42/43/44 未注册；app 统计字异常（§0-80）；OCC A/B 未做（0x37 在飞）。
+- 原件：`p11_app8_cdc_20261029/{BOARD_0X36_REPORT.md,build_ok_0x36/,build_fail1_0x36/,bits/,burn/,raw/,check_build_0x36.py,decode_w97.py,check_cdc_wiring.py}`。
+
+## §10-174 2026-10-29 04:0x–05:xx：**0x36 板级补充：OCC A/B 被 RX 停顿钩子阻断（未执行）；app 统计字恒 0（未定位）；0x37（OCC=1）路由严重拥塞**
+
+- **OCC A/B（§6.6）阻断 —— 首次板测 `0x08 bit2` 停读钩子 = 无效**：
+  SCRATCH 写 `0x4` 并回读确认；单连接 16,384 / 131,072 / **524,288 B** 三档均 `unsent=0`（内核全 ACK）、
+  板→PC 数据帧窗口恒 **12288**（`tcpdump -i any`，2 s 784,208 帧；named-interface 抓到 0 = SFC9120 捕获路径特性）、
+  **触发快照**读 W62 全程 **0** ⇒ app RX 占用未升起 ⇒ **前件 W62≥12,288 不可达** ⇒
+  按 §6.6 条款记 **【未执行 / 空判据】**，**不记 PASS/FAIL**。候选未证：停读位未到 CDC 写门 /
+  上游不尊重 tready（丢而非背压）/ W62 源不符 / app 仍消费。登记 `P7B_OPEN_ITEMS §0-81`。
+- **app 统计字恒 0（§0-80）补充**：流量进行中（3 次触发快照、下行 3.2 GB、`W84` 0x16a7d→0x244872）
+  W51–W54/W71–W74 仍全 0，W97=0x20 干净；合成网表（0x37 构建前查得）已记 st_hold/st_shadow/计数器
+  的时钟与 CE；**单元 TB 两种时钟比均过**。状态 = 【未定位】。
+- **0x37（CDC+OCC=1）构建 = TIMING_FAIL（05:25 收口）**：综合后门全过（`SLOTS_OK=15`、
+  `P11_STA_WPM_REL_WNS=1.930`、无 12-4739）；实现**拥塞级 5**（`Route 35-448`/`35-443`，
+  `iter_120_CongestedCLBsAndNets.txt`；路由 ~60 min、overlaps 数千→57）⇒
+  最终 **WNS −0.629 / WHS +0.010**；最差 = `u_tcp_tx2/u_fifo_b/rptr_reg[6]/C → u_app2/stg_reg[9]/D`
+  （g_hw.clk_out0，data 7.107 = logic 2.023 / route 5.084）⇒ **OCC=1 的占用/tready 逻辑落在 DP 域
+  port1 app 暂存族**（不是 CDC 的 dp↔app；app 自域仍 +0.39）。资源 +2,264 LUT / +888 FF / +16 LUTRAM。
+  位流 `.TIMING_FAIL` **禁烧**；报告归档 `build_fail2_0x37/`（stdout/timing/util/DRC/clkinteract/两 runme/console）。
+  **本轮不做 L-5 重试**（0.63 ns gap + 拥塞级 5 + 75 min 构建 + OCC A/B 已被 §0-81 阻断）；
+  下一轮按新输入处理（`Congestion_SpreadLogic_high` 或 OCC 侧面积/布局改动）。
+- **板现态 = 0x36**（BID 0x36；两 BAR；`0x08=0`）；**0x37 未烧**。
+- 原件：`p11_app8_cdc_20261029/README_FOR_TL.md` · `BOARD_0X36_REPORT.md` §4/§5 · `occ_stallchk.sh`/`occ_w9.sh` · `raw/B2_OCC_*`。

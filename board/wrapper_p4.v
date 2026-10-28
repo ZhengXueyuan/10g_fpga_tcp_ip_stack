@@ -1593,11 +1593,19 @@ module wrapper_p4 #(
     // 看不见该字：app 侧 tvalid=0（不消费），echo 侧 tready=0（pipe/FIFO 保持）。
     // 只在 PCIE_OBS ∧ APP_MODE ∧ P11_APP8 生效；其余构建 app_rx_stall 恒 0。
     wire        app_rx_stall;
+`ifdef P11_APP8_CDC
+    // CDC 构建：raw eco2 进 app_multi8_cdc；tready 由它回驱（stall 在包装内施加，M5）。
+    // ⚠️ 这两个名字仍是 **DP 侧**：P8 载荷镜像 (u_mir, dp_clk) 直接 snoop 它们
+    //    (V4-07)；app 侧一律走包装内部的 core_rx_*。
+    wire        app_rx_tvalid = eco2_tvalid && !app_rx_stall;
+    wire        app_rx_tready = eco2_tready;   // 由 CDC 包装驱动（已含 full/stall）
+`else
     wire        app_rx_tvalid = eco2_tvalid && !app_rx_stall;
     wire        app_rx_tready;
+    assign eco2_tready = app_rx_tready && !app_rx_stall;
+`endif
     wire        app_rx_tlast  = eco2_tlast;
     wire [3:0]  app_rx_tid    = eco2_tid;
-    assign eco2_tready = app_rx_tready && !app_rx_stall;
 
     wire [63:0] app_tx_tdata, app2_tdata;
     wire [7:0]  app_tx_tkeep, app2_tkeep;
@@ -1751,6 +1759,63 @@ module wrapper_p4 #(
     //   ⚠️ 其余全部例化点 (含 sim/ 下 71 个镜像件) 不传该参数 ⇒ 默认 1'b0 ⇒ 逐位不变。
     //   ⚠️ `.TX_BYTES` 必须非 0 (连续模式的非法配置 = 0; 设计件 §1.3①)。
 `ifdef P11_APP8
+`ifdef P11_APP8_CDC
+    // ===== P11 APP8 CDC: 8×app 独立时钟域（DESIGN v4；0x36/0x37）=====
+    //   只在 P11_APP8_CDC 构建启用；P11_APP8 但未定义 CDC 时走下面的原路径（逐字保留）。
+    wire        clk_app, locked_app, rst_app;
+    wire        app_rst_n = ~rst_app;          // app_clk_gen 输出高有效
+    wire [31:0] app_cdc_status;
+
+    app_clk_gen u_appclkgen (
+        .clk_in_100 (clk_in_100),
+        .rst_ext    (~reset_n),
+        .clk_app    (clk_app),
+        .locked_app (locked_app),
+        .rst_app    (rst_app)
+    );
+
+    app_multi8_cdc #(.TX_BYTES(32'h0FFFFFFF), .TX_SEGSZ(12'd1460),
+                     .TX_CONTINUOUS(1'b1), .TX_SWCLOSE(1'b1)) u_app (
+        .dp_clk         (dp_clk),
+        .dp_rst_n       (dp_rst_n),
+        .reset_n        (reset_n),
+        .app_clk        (clk_app),
+        .app_rst_n      (app_rst_n),
+        .locked_app     (locked_app),
+        .ev_up          (app_ev_up),
+        .ev_down        (app_ev_down),
+        .ev_slot        (app_ev_slot),
+        .m_tdata        (app_tx_tdata),
+        .m_tkeep        (app_tx_tkeep),
+        .m_tvalid       (app_tx_tvalid),
+        .m_tready       (app_tx_tready),
+        .m_tlast        (app_tx_tlast),
+        .m_tid          (app_tx_tid),
+        .app_tx_ready   (app_tx_ready),
+        .close_req      (app_close_req),
+        .close_id       (app_close_id),
+        .rx_tdata       (eco2_tdata),
+        .rx_tkeep       (eco2_tkeep),
+        .rx_tvalid      (eco2_tvalid),
+        .rx_tready      (eco2_tready),
+        .rx_tlast       (eco2_tlast),
+        .rx_tid         (eco2_tid),
+        .rx_stall       (app_rx_stall),
+        .stat_tx_bytes  (app_tx_bytes),
+        .stat_tx_frames (app_tx_frames),
+        .stat_rx_bytes  (app_rx_bytes),
+        .stat_mismatch  (app_mismatch),
+        .stat_frmwait_cyc(app_frmwait_cyc),
+        .stat_bp_cyc     (app_bp_cyc),
+        .stat_up_ev      (app_up_ev),
+        .stat_sw_req     (app_sw_req),
+        .stat_sw_apply   (app_sw_apply),
+        .stat_up_pend    (app_up_pend),
+        .stat_close_pend_max (),
+        .led             (app_led),
+        .cdc_status      (app_cdc_status)
+    );
+`else
     // P11 APP8 (2026-10-27): 8 连接 app —— 8x app_pattern + 帧级 mux/demux/close 仲裁。
     //   只在 P11_APP8 构建里启用；默认（未定义）走下面的原单实例路径（逐字不变）。
     app_multi8 #(.TX_BYTES(32'h0FFFFFFF), .TX_SEGSZ(12'd1460),
@@ -1797,6 +1862,7 @@ module wrapper_p4 #(
         .stat_close_pend_max  (),
         .dbg_inst_mismatch    ()
     );
+`endif
 `else
     app_pattern #(.TX_BYTES(32'h0FFFFFFF), .TX_SEGSZ(12'd1460),
                   .TX_CONTINUOUS(1'b1),
@@ -5033,7 +5099,11 @@ module wrapper_p4 #(
     //   失败端点 (仍 <0) ⇒ 按同一预登记阶梯删 W85 (classify 总帧数), 只保留 W83/W84。
     //   快照 W0..W84; MIR 四字自动 = 0x174/0x178/0x17C/0x180; **未实现地址 = 0x184**
     //   (word 97); {snap_idx,5'b0} 最大 = (85-1)<<5 = 2688 < 4096 ✓.
+`ifdef P11_APP8_CDC
+    localparam SNAP_NW_P6E = 98;        // W0..W97 (P11 APP8 CDC: W97 = cdc_status; 未实现 = 0x1B8)
+`else
     localparam SNAP_NW_P6E = 97;        // 总字数 W0..W96 (未实现地址 = 0x1B4 = word 109; E1a-1)
+`endif
     // ⭐ P7B-GAP9-TX (2026-10-10): 63 → **65** (W63/W64 = app_pattern 的两个停滞计数器)。
     //   预算复算: 65 ≤ 119 (7 位译码上限) ✓; 未实现地址 = 0x20+4*65 = **0x124** (word 73, 真正未实现);
     //   `{snap_idx,5'b0}` 最大 = (65-1)<<5 = 2048 < 4096 ⇒ `axi_regs.snap_base` 仍是 [11:0] (**不动**);
@@ -5054,7 +5124,11 @@ module wrapper_p4 #(
     localparam SNAP_DP_NW  = 22;        // DP 束字数 (b 域 = dp_clk)
     // P7b 三条新束的字数 (与上面同源: 装配段 `snap_dout_all` 的项数必须与之对账)
     localparam SNAP_P7BFE_NW = 3;       // W36..W38 (b 域 = gmii_clk)
+`ifdef P11_APP8_CDC
+    localparam SNAP_P7BDP_NW = 54;      // 槽 0..53 (P11 APP8 CDC: 槽 53 = W97)
+`else
     localparam SNAP_P7BDP_NW = 53;      // P11 E1a-1: 41 → 53 (槽 41..52 = W85..W96)
+`endif
                                         // W39/W40, W45..W50 + W51..W60 (BIZ) + W61/W62 (WU)
                                         //   + **W63/W64 (P7B-GAP9-TX 的两个停滞计数器)**
                                         //   + **W66 (构建 E: tcp_tx_frame.stat_winstall)**
@@ -6020,6 +6094,9 @@ module wrapper_p4 #(
     assign p7bdp_din[50*32 +: 32] = e1a_hist[9*32 +: 32];  // W94 bin9
     assign p7bdp_din[51*32 +: 32] = e1a_sum_total;         // W95 sum_total
     assign p7bdp_din[52*32 +: 32] = e1a_max_total;         // W96 max_total (since reset)
+`ifdef P11_APP8_CDC
+    assign p7bdp_din[53*32 +: 32] = app_cdc_status;        // 槽 53 → W97 CDC 健康字
+`endif
 
     snap_cdc #(.W(32), .NW(SNAP_P7BFE_NW)) u_snap_p7bfe (
         .clk_a(pcie_axi_aclk), .rst_n(pcie_axi_aresetn), .req_a(snap_req),
@@ -6193,6 +6270,9 @@ module wrapper_p4 #(
     //    ⚠️ 该门要按 backstop 几何另行同步, 不在本构建执行面);
     //    布后门 = `board/build_p7b_ku5p.tcl` 的 P7B_SNAP_TOP5_CDC 段 (已同步为槽 39..40)。
     wire [SNAP_NW_P6E*32-1:0] snap_dout_all = {
+`ifdef P11_APP8_CDC
+        p7bdp_dout[53*32 +: 32],   // W97 CDC 健康字 (p7bdp 槽 53)
+`endif
         // ---- P11 E1a-1: W96..W85 (p7bdp 槽 52..41; MSB 端先写) ----
         p7bdp_dout[52*32 +: 32],   // W96 max_total (since reset)
         p7bdp_dout[51*32 +: 32],   // W95 sum_total
@@ -6430,7 +6510,7 @@ module wrapper_p4 #(
 
     axi_regs #(
         .MAGIC_V    (32'h50360001),
-        .BUILD_ID_V (32'h00000034),   // P11 E1a-1 (W85..W96; 0x32 = P3 C4 双栈) // ⚠️ 每次改动自增
+        .BUILD_ID_V (32'h00000037),   // P11 APP8 CDC+OCC 臂 (0x37 = CDC/OCC=1) // ⚠️ 每次改动自增
                                         //   ⭐ 本轮构建 (2026-10-15): **0x27 → 0x28** = **E12 观测计数器**
                                         //      (换流门四计数器: `stat_up_ev` / `stat_sw_req` /
                                         //       `stat_sw_apply` / `stat_up_pend` —— `rtl/app_pattern.v`
