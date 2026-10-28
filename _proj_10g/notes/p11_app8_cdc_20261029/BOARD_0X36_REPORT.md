@@ -95,3 +95,10 @@ QSPI：**零写入**（只 JTAG 易失烧录；烧前/烧后 sha 已核）
 - 候选（未证）：① 停读位没到 CDC FIFO 写门；② `eco2_tready` 未被上游尊重（数据被丢而非背压）；
   ③ W62 源不是该 echo FIFO；④ app 在停读期间仍有消费路径。需 ILA/新仪器定位。
 - 影响：**OCC=1（0x37）与 OCC=0（0x36）的窗行为差异本轮无法判定**；0x37 只做身份/W97/数据面冒烟。
+
+## 7. FINAL_STATE（本轮收尾，2026-10-29 06:1x 现读）
+
+- 板 = **0x36**：`0x04 = 0x00000036`；`0x08 = 0`（carrier 开）；`LnkSta x4`；2 BARs；`/dev/xdma0_user` 在。
+- 对端：xdma 已加载；nsb/nsa carrier 均 = 1；**无残留 `p7b_tcp_sink*` 进程**。
+- **QSPI 零写入**（全程只 JTAG 易失烧录；烧前/烧后 sha 核对）。
+- 未烧：0x37（TIMING_FAIL，`.TIMING_FAIL` 隔离，禁烧）。

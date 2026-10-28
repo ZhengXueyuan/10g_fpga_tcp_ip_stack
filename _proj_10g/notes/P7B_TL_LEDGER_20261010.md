@@ -2325,3 +2325,15 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
   - `_proj_10g/notes/p7b_biz_win/check_window.py`：`--cdc` + `cdc_strip` + 双值 localparam 取 max/min
     + 槽 53 din 计数豁免 ⇒ **两套 CHECK_WINDOW_PASS（PASS=122/FAIL=0）**；`--mutate drop` **RC=1**。
   - 仍未做：`apply_readside_bid1c.py` STAGES 加 0x36/0x37；`tb_biz_win` 参数化；矩阵 42/43/44 注册。
+
+## §10-176 2026-10-29 06:0x–06:2x：**收尾：板态固化 + 统计字恒 0 的判别计划**
+
+- **FINAL_STATE（现读）**：板 = **0x36**（`0x04=0x00000036`）、`0x08=0`、carrier P0/P1=1、`LnkSta x4`、
+  2 BAR、`/dev/xdma0_user` 在、xdma 已载、**无残留 sink 进程**、**QSPI 零写**；0x37 未烧（`.TIMING_FAIL` 隔离）。
+  已写入 `BOARD_0X36_REPORT.md §7`。
+- **`STATS_ZERO_ANALYSIS.md`（新）**：把 W51–W54/W71–W74 恒 0 的**证据 / 已排除项（网表时钟/CE/数据锥/
+  单元 TB 两时钟比）/ 5 条候选（H1 req 不翻 / H2 ack 不翻 / H3 CE 不触发 / H4 320 位 hold 综合 / H5 装配接错）/
+  判别实验与构建约束**写成下一轮可直接执行的一页件。
+  - 首选判别 = 把 `{st_ack_sync[1], st_req}` 接到 **W97[1:0]**（现保留 0，零新增字），**空载**多次读即可
+    判"统计握手有没有在动"（统计机不看业务）——一次构建 + 一次上板，成本最低。
+- 本文件与 `README_FOR_TL.md` / `BOARD_0X36_REPORT.md` 的最终版随下一次提交入库。
