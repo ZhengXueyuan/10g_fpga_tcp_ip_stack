@@ -52,8 +52,9 @@
   路径在 250 MHz 下要重新收时序（收益不确定）。
 - 为什么不是直接用 `clk_in_100`（100 MHz）：mux 是 8 B/cycle ⇒ 聚合上限
   **6.4 Gbps**，丢掉 8 连接 10G 的产品目标。
-- 为什么**不改 `clk_gen_p6b`**：它被多个 TB 例化；改端口会牵动镜像件。新模块只吃它已有的
-  `clk_in_100` 输出 ⇒ **既有模块零改动、零回归**。
+- 为什么**不改 `clk_gen_p6b`**：主树**已有 6 处例化**（`tb/tb_clk_gen_p6b.v:109/120/132/144`、
+  `sim/p6e_pcie/tb_p6e_pcie_counters.v`、`sim/f3_resync/tb_f3_resync.v` —— 2026-10-29 现核）；
+  加端口会牵动全部。新模块只吃它已有的 `clk_in_100` 输出 ⇒ **既有模块零改动、零回归**。
 
 ### 2.2 约束：只加 `set_false_path`，不动现有 `set_clock_groups`
 
