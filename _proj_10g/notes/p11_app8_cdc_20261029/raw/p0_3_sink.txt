@@ -1,0 +1,10 @@
+PIN_RULE=avoid-nic PIN_DEGRADED=none PIN_CPU=4 PIN_CORES_ONLINE=0-7 PIN_NIC_IFACE=enp1s0f0np0 PIN_NIC_CPUS=0,1,2,3,4,5 PIN_NIC_EXCLUDED=none PIN_CORE_LOAD=1683324 PIN_ALLOWED_MASK=10 PIN_GETCPU_START=4 PIN_FREQ_START_KHZ=3699604 PIN_GOV=schedutil PIN_NIC_IRQLINES=6 PIN_NIC_IFACE_SRC=auto PIN_TUPLE_ORDER=own_sib_t PIN_PAIR_RULE=load-only PIN_PAIR_DEGRADED=nic0-0 PIN_CPU_IO=6 PIN_CPU_WORK=5 PIN_PC_IO=2 PIN_PC_WORK=1 PIN_PAIR_EXCL=0 PIN_PAIR_REQ=want
+SINK_CHECK check=seq
+SINK_LIMITS maxbytes=268435456 poll_ms=5000 stall_n=3 rcvbuf=8388608 conns=100 secs=9
+SINK_RCVBUF_ORDER RCVBUF_ORDER=before_connect rcvbuf=8388608
+SINK_OPTS abort_rst=0 local_port=0 reconnect_delay_ms=0
+SINK_CONN 0 FAIL_CONNECT why=110 (Connection timed out) (t=5.005064)
+SINK_CONN 1 FAIL_CONNECT why=110 (Connection timed out) (t=10.009570)
+SINK_SUM conns=0 fail_conns=2 bytes=0 clean_conns=0 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=10.010 net_s=0.000 agg_Mbps=0.000 THREADED=on full_push=0 full_pop=0 free_push=0 free_pop=0 slot_wait_spins=0 checked_bytes=0 threads=0 check=seq
+SINK_DONE
+PIN_GETCPU_END=4 PIN_FREQ_END_KHZ=3799832
