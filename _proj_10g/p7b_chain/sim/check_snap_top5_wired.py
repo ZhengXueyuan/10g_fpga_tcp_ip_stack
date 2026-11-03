@@ -33,9 +33,9 @@ import sys
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-# P11 APP8 CDC (2026-10-29): 槽 53 只在 P11_APP8_CDC 构建存在 ⇒ 由 --cdc 选几何。
-#   cdc=on : W97..W83 = 槽 53..39 (15 项)
-#   cdc=off: W96..W83 = 槽 52..39 (14 项)
+# P11 APP8 CDC: 槽 53 只在 P11_APP8_CDC 构建存在; 0x39 起 CDC 另加 54..58 (W98..W102)
+#   cdc=on : W97..W83 = 槽 53..39 (15 项; 0x3B 诊断复用 W51..W53, 不改顶端)
+#   cdc=off: W96..W83  = 槽 52..39 (14 项)
 def items_want(cdc_on):
     hi = 53 if cdc_on else 52
     return ["p7bdp_dout[%d*32 +: 32]" % s for s in range(hi, 38, -1)]

@@ -307,8 +307,8 @@ def main():
     #   ⭐ P11 E1a-1 (2026-10-27): W85..W96 = p7bdp 槽 41..52 (12 项) 插在 W84 之上
     #      ⇒ 顶端段 = p7bdp 槽 52..39 (14 项: E1a 12 + W84/W83) + ch0 4 + p7bdp 38..26 (13)
     #      = **31 项**。W96..W85 的 din 源 = e1a_hist[0..9] / e1a_sum_total / e1a_max_total。
-    nnew_top = 32 if cdc_on else 31           # CDC: W97..W66 (p7bdp 53..39=15 + ch0 4 + p7bdp 38..26=13)
-    np11_top = 15 if cdc_on else 14           # CDC: E1a 12 + W84/W83 2 + W97 = p7bdp 槽 53..39
+    nnew_top = 32 if cdc_on else 31           # CDC (0x3B): W97..W66 (p7bdp 53..39=15 + ch0 4 + p7bdp 38..26=13)
+    np11_top = 15 if cdc_on else 14           # CDC (0x3B): E1a 12 + W84/W83 2 + W97 = 槽 53..39
     nch0_top = 4                              # 顶端 ch0 束项数 (= SNAP_CH0_NW, W82..W79)
     ntx = 1                                   # 其后的 tx 束项数 (W65)
     nnew = 14                                 # W64..W51 (槽 25..12) —— 历史段
@@ -318,7 +318,7 @@ def main():
                 ["p7bdp_dout[%d*32 +: 32]" % (pdp - 1 - np11_top - i)
                  for i in range(nnew_top - np11_top - nch0_top)])
     ck(topn == want_top,
-       "5a 最上面 %d 项 = W%d..W%d 的 p7bdp 槽 %s + ch0 槽 %s + p7bdp 槽 %s (P11 E1a-1)"
+       "5a 最上面 %d 项 = W%d..W%d 的 p7bdp 槽 %s + ch0 槽 %s + p7bdp 槽 %s (P11 E1a-1/0x39)"
        % (nnew_top, 96, 96 - np11_top + 1,
           "/".join("%d" % (pdp - 1 - i) for i in range(np11_top)),
           "/".join("%d" % (ch0 - 1 - i) for i in range(nch0_top)),
@@ -340,11 +340,18 @@ def main():
     #   W79..W82 在 **ch0 束槽 0..3**, 根本不在 p7bdp 里)。
     #   ⚠️ 2026-10-18 P1FIX: 原 `range(66, NW)` 会把 W76..W82 也按 `biz_w%d` 去找 ——
     #      那是 9 FAIL 中的 7 条 (W76..W82)。现在分段处理三种形态。
-    slot_map = [(k, k - 39) for k in range(51, 65)] + [(k, k - 40) for k in range(66, 76)]
+    # 0x3B DIAG (2026-11-04): W51..W53 复用为逐槽诊断, 不再接 biz_w51..53.
+    slot_map = [(k, k - 39) for k in range(54, 65)] + [(k, k - 40) for k in range(66, 76)]
     for k, slot in slot_map:
         pat = r"assign\s+p7bdp_din\[%d\*32\s*\+\:\s*32\]\s*=\s*biz_w%d\s*;" % (slot, k)
         ck(re.search(pat, src0) is not None, "5c 槽号映射 W%d" % k,
            "(p7bdp_din[%d*32 +: 32] = biz_w%d)" % (slot, k))
+    for k, slot, expr, lab in ((51, 12, r"\{16'd0,\s*app_tx_ready\}", "DIAG3B ready"),
+                               (52, 13, r"\{app_ev_cnt,\s*app_estab_cnt\}", "DIAG3B estab/ev"),
+                               (53, 14, r"app_init_ovf", "DIAG3B init_ovf")):
+        pat = r"assign\s+p7bdp_din\[%d\*32\s*\+\:\s*32\]\s*=\s*%s\s*;" % (slot, expr)
+        ck(re.search(pat, src0) is not None, "5c 槽号映射 W%d (0x3B %s)" % (k, lab),
+           "(p7bdp_din[%d*32 +: 32] = %s)" % (slot, expr))
     # W76..W78: p7bdp 槽 36..38, RHS = ch0 PCS 生产者 (名字不同, 所以单列)
     for k, slot, src_name in ((76, 36, "ch0_pcs_status"), (77, 37, "ch0_pcs_evt"),
                               (78, 38, "ch0_los_bundle")):

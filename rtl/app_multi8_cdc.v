@@ -11,11 +11,15 @@
 //                         ── close 5b FIFO ─> DP (app_ctrl)
 //   app_tx_ready[15:0] : DP 寄存 1 拍 -> app 侧逐位 2FF
 //   stats 10×32 + close_pend_max[3:0] : hold/toggle 握手 -> DP shadow
-//   W97 cdc_status[31:0] : [2] ev drop, [3] close drop, [4] stats stale,
+//   W97 cdc_status[31:0] : [0] st_req (stats 请求 toggle),
+//                          [1] st_ack_sync[1] (app 侧 ack 的 DP 同步值),
+//                          [2] ev drop, [3] close drop, [4] stats stale,
 //                          [5] locked_app, [6] app_rst_seen, [7] stats timeout,
 //                          [15:8] per-conn mismatch sticky,
 //                          [19:16] close_pend_max, [20] dp_rst_seen,
 //                          [31:21] RX FIFO write-side occupancy (9b zero-ext)
+//                          ([0]/[1] 为 §0-80 的 H1/H2 判别仪器: 空载两次触发快照,
+//                           req 应每 1024 dp_clk (~6.55µs) 翻转, ack 跟随)
 //
 // 硬规则 (设计件):
 //   · 4 个 CDC FIFO 的 wr_rst_n/rd_rst_n **全部接板级 reset_n** (P6B 规则)。
@@ -425,8 +429,8 @@ module app_multi8_cdc #(
     // [6] app reset seen; [7] timeout sticky;
     // [15:8] per-conn mismatch; [19:16] close_pend_max;
     // [20] dp reset seen; [31:21] RX FIFO occupancy (9b).
-    assign cdc_status[0]  = 1'b0;
-    assign cdc_status[1]  = 1'b0;
+    assign cdc_status[0]  = st_req;        // §0-80 H1: stats 请求 toggle
+    assign cdc_status[1]  = st_ack_sync[1];// §0-80 H2: app 侧 ack 的 DP 同步值
     assign cdc_status[2]  = drop_ev_sticky;
     assign cdc_status[3]  = drop_cl_sync[1];
     assign cdc_status[4]  = st_stale;

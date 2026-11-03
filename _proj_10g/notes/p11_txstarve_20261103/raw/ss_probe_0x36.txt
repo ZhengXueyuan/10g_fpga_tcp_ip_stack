@@ -1,0 +1,29 @@
+2 packets transmitted, 2 received, 0% packet loss, time 1022ms
+2 packets transmitted, 2 received, 0% packet loss, time 1021ms
+NSB_CARRIER=1
+=== SS during test ===
+0      0      192.168.100.101:35262 192.168.100.4:8080
+	 cubic rto:201 rtt:0.044/0.022 mss:1460 pmtu:1500 rcvmss:536 advmss:1460 cwnd:10 bytes_acked:1 segs_out:2 segs_in:1 send 2654545455bps lastsnd:4012 lastrcv:4012 lastack:4012 pacing_rate 5265454544bps delivered:1 app_limited rcv_space:14600 rcv_ssthresh:65535 minrtt:0.044 snd_wnd:12288                                                         
+0      0      192.168.100.101:35272 192.168.100.4:8080
+	 cubic rto:201 rtt:0.041/0.02 mss:1460 pmtu:1500 rcvmss:536 advmss:1460 cwnd:10 bytes_acked:1 segs_out:2 segs_in:1 send 2848780488bps lastsnd:3512 lastrcv:3512 lastack:3512 pacing_rate 5650731704bps delivered:1 app_limited rcv_space:14600 rcv_ssthresh:65535 minrtt:0.041 snd_wnd:12288                                                          
+64240  0      192.168.100.101:45844 192.168.100.4:8080
+	 cubic rto:201 rtt:0.063/0.031 ato:40 mss:1460 pmtu:1500 rcvmss:1460 advmss:1460 cwnd:10 bytes_acked:1 bytes_received:3869027170 segs_out:96940 segs_in:2650236 data_segs_in:2650235 send 1853968254bps lastsnd:7019 pacing_rate 3677460312bps delivered:1 app_limited rcv_rtt:3.438 rcv_space:4108440 rcv_ssthresh:2390622 minrtt:0.063 snd_wnd:12288
+0      0      192.168.100.101:45846 192.168.100.4:8080
+	 cubic rto:201 rtt:0.044/0.022 mss:1460 pmtu:1500 rcvmss:536 advmss:1460 cwnd:10 bytes_acked:1 segs_out:2 segs_in:1 send 2654545455bps lastsnd:6519 lastrcv:6519 lastack:6519 pacing_rate 5265454544bps delivered:1 app_limited rcv_space:14600 rcv_ssthresh:65535 minrtt:0.044 snd_wnd:12288                                                         
+0      0      192.168.100.101:45860 192.168.100.4:8080
+	 cubic rto:201 rtt:0.061/0.03 mss:1460 pmtu:1500 rcvmss:536 advmss:1460 cwnd:10 bytes_acked:1 segs_out:2 segs_in:1 send 1914754098bps lastsnd:6018 lastrcv:6018 lastack:6018 pacing_rate 3798032784bps delivered:1 app_limited rcv_space:14600 rcv_ssthresh:65535 minrtt:0.061 snd_wnd:12288                                                          
+0      0      192.168.100.101:45876 192.168.100.4:8080
+	 cubic rto:201 rtt:0.059/0.029 mss:1460 pmtu:1500 rcvmss:536 advmss:1460 cwnd:10 bytes_acked:1 segs_out:2 segs_in:1 send 1979661017bps lastsnd:5517 lastrcv:5517 lastack:5517 pacing_rate 3926779656bps delivered:1 app_limited rcv_space:14600 rcv_ssthresh:65535 minrtt:0.059 snd_wnd:12288                                                         
+0      0      192.168.100.101:45880 192.168.100.4:8080
+	 cubic rto:201 rtt:0.044/0.022 mss:1460 pmtu:1500 rcvmss:536 advmss:1460 cwnd:10 bytes_acked:1 segs_out:2 segs_in:1 send 2654545455bps lastsnd:5016 lastrcv:5016 lastack:5016 pacing_rate 5265454544bps delivered:1 app_limited rcv_space:14600 rcv_ssthresh:65535 minrtt:0.044 snd_wnd:12288                                                         
+0      0      192.168.100.101:45896 192.168.100.4:8080
+	 cubic rto:201 rtt:0.048/0.024 mss:1460 pmtu:1500 rcvmss:536 advmss:1460 cwnd:10 bytes_acked:1 segs_out:2 segs_in:1 send 2433333333bps lastsnd:4514 lastrcv:4514 lastack:4514 pacing_rate 4826666664bps delivered:1 app_limited rcv_space:14600 rcv_ssthresh:65535 minrtt:0.048 snd_wnd:12288                                                         
+=== RESULTS ===
+P0 SINK_SUM conns=1 fail_conns=0 bytes=4294984617 clean_conns=1 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=7.798 net_s=7.798 agg_Mbps=4406.437 THREADED=on full_push=102425 full_pop=102425 free_push=102441 free_pop=102425 slot_wait_spins=11174247 checked_bytes=4294984617 threads=2 check=seq
+P1 SINK_SUM conns=1 fail_conns=0 bytes=0 clean_conns=0 bad_conns=1 mismatch_bytes=0 stall_conns=1 err_conns=0 poll_tmo=3 wall_s=15.015 net_s=15.015 agg_Mbps=0.000 THREADED=on full_push=0 full_pop=0 free_push=16 free_pop=0 slot_wait_spins=0 checked_bytes=0 threads=2 check=seq
+P2 SINK_SUM conns=1 fail_conns=0 bytes=0 clean_conns=0 bad_conns=1 mismatch_bytes=0 stall_conns=1 err_conns=0 poll_tmo=3 wall_s=15.015 net_s=15.015 agg_Mbps=0.000 THREADED=on full_push=0 full_pop=0 free_push=16 free_pop=0 slot_wait_spins=0 checked_bytes=0 threads=2 check=seq
+P3 SINK_SUM conns=1 fail_conns=0 bytes=0 clean_conns=0 bad_conns=1 mismatch_bytes=0 stall_conns=1 err_conns=0 poll_tmo=3 wall_s=15.015 net_s=15.014 agg_Mbps=0.000 THREADED=on full_push=0 full_pop=0 free_push=16 free_pop=0 slot_wait_spins=0 checked_bytes=0 threads=2 check=seq
+P4 SINK_SUM conns=1 fail_conns=0 bytes=0 clean_conns=0 bad_conns=1 mismatch_bytes=0 stall_conns=1 err_conns=0 poll_tmo=3 wall_s=15.011 net_s=15.011 agg_Mbps=0.000 THREADED=on full_push=0 full_pop=0 free_push=16 free_pop=0 slot_wait_spins=0 checked_bytes=0 threads=2 check=seq
+P5 SINK_SUM conns=1 fail_conns=0 bytes=0 clean_conns=0 bad_conns=1 mismatch_bytes=0 stall_conns=1 err_conns=0 poll_tmo=3 wall_s=15.015 net_s=15.015 agg_Mbps=0.000 THREADED=on full_push=0 full_pop=0 free_push=16 free_pop=0 slot_wait_spins=0 checked_bytes=0 threads=2 check=seq
+P6 SINK_SUM conns=1 fail_conns=0 bytes=0 clean_conns=0 bad_conns=1 mismatch_bytes=0 stall_conns=1 err_conns=0 poll_tmo=3 wall_s=15.015 net_s=15.015 agg_Mbps=0.000 THREADED=on full_push=0 full_pop=0 free_push=16 free_pop=0 slot_wait_spins=0 checked_bytes=0 threads=2 check=seq
+P7 SINK_SUM conns=1 fail_conns=0 bytes=4294995001 clean_conns=1 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=11.186 net_s=11.186 agg_Mbps=3071.761 THREADED=on full_push=147680 full_pop=147680 free_push=147696 free_pop=147680 slot_wait_spins=6573416 checked_bytes=4294995001 threads=2 check=seq

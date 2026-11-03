@@ -682,6 +682,17 @@ if {$P11_IS_DUAL} {
         foreach c $cc {
             if {[get_property IS_BLACKBOX $c]} { incr bb }
         }
+        # P11 0x3B diagnostics: W51..W53 are repurposed (zero new FF/geometry).
+        #   Build-time witness = the three p7bdp_din source assignments in the wrapper.
+        if {$P11_APP8_CDC_ON} {
+            set wf "${root_dir}/board/wrapper_p4.v"
+            set fh [open $wf r]; set wsrc [read $fh]; close $fh
+            set d1 [regexp {p7bdp_din\[12\*32\s*\+:\s*32\]\s*=\s*\{16'd0,\s*app_tx_ready\}} $wsrc]
+            set d2 [regexp {p7bdp_din\[13\*32\s*\+:\s*32\]\s*=\s*\{app_ev_cnt,\s*app_estab_cnt\}} $wsrc]
+            set d3 [regexp {p7bdp_din\[14\*32\s*\+:\s*32\]\s*=\s*app_init_ovf} $wsrc]
+            puts "P7B_DIAG3B_SRC $d1$d2$d3"
+            if {!($d1 && $d2 && $d3)} { puts "P7B_DIAG3B_SRC_MISSING" ; exit 1 }
+        }
     }
     puts "P7B_BLACKBOX_COUNT $bb"
     if {$n1 != 0 || $n2 != 0 || !$p3ok || $bb != 0} {

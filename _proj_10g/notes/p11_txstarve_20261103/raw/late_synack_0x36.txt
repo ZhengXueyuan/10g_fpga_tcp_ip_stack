@@ -1,0 +1,17 @@
+MOVE_enp1s0f1np1_RC=0
+MOVE_enp1s0f0np0_RC=1
+2 packets transmitted, 2 received, 0% packet loss, time 1042ms
+NSB_CARRIER=cat: /sys/class/net/enp1s0f0np0/carrier: No such file or directory
+=== CONNS ===
+MULTI_CONN id=0 status=4 err=101 got=0 want=4294967296 mism=0 first=-1 wall=0.000 Mbps=0.0 lport=0 sent=0 unsent=0
+MULTI_CONN id=1 status=4 err=101 got=0 want=4294967296 mism=0 first=-1 wall=0.000 Mbps=0.0 lport=0 sent=0 unsent=0
+MULTI_CONN id=2 status=4 err=101 got=0 want=4294967296 mism=0 first=-1 wall=0.000 Mbps=0.0 lport=0 sent=0 unsent=0
+MULTI_CONN id=3 status=4 err=101 got=0 want=4294967296 mism=0 first=-1 wall=0.000 Mbps=0.0 lport=0 sent=0 unsent=0
+MULTI_CONN id=4 status=4 err=101 got=0 want=4294967296 mism=0 first=-1 wall=0.000 Mbps=0.0 lport=0 sent=0 unsent=0
+MULTI_CONN id=5 status=4 err=101 got=0 want=4294967296 mism=0 first=-1 wall=0.000 Mbps=0.0 lport=0 sent=0 unsent=0
+MULTI_CONN id=6 status=4 err=101 got=0 want=4294967296 mism=0 first=-1 wall=0.000 Mbps=0.0 lport=0 sent=0 unsent=0
+MULTI_CONN id=7 status=4 err=101 got=0 want=4294967296 mism=0 first=-1 wall=0.000 Mbps=0.0 lport=0 sent=0 unsent=0
+MULTI_SUM conns=8 ok=0 eof_short=0 stall=0 err=8 bytes=0 mism=0 wall=0.000 agg_Mbps=0.0 check=seq sent=0 unsent=0
+=== SYN-ACK timeline (time src>dst) ===
+=== counts ===
+SYNACK_TOTAL=0

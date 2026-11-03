@@ -1627,6 +1627,9 @@ module wrapper_p4 #(
     assign app2_tready = txin_tready;
 
     wire [15:0] app_tx_ready;
+    // P11 0x39 diagnostics: app_ctrl init-queue overflow / slot mismatch (unconnected until now)
+    wire [31:0] app_init_ovf, app_init_mism;
+    wire [31:0] a2_init_ovf, a2_init_mism;
     wire [7:0]  app_reg_addr;
     wire        app_reg_wr;
     wire [31:0] app_reg_wdata, app_reg_rdata;
@@ -2032,8 +2035,8 @@ module wrapper_p4 #(
         // 0x2F: EXT_QUOTA=1 时 init 等 manager 授予完成 (非 C4 常数 0)
         .i_ev_up_done   (wp_ev_done0),
         .i_ev_up_done_slot(wp_ev_done_slot0),
-        .stat_init_ovf  (),
-        .stat_init_mismatch(),
+        .stat_init_ovf  (app_init_ovf),
+        .stat_init_mismatch(app_init_mism),
         .i_occ_rd       (app_occ_rd),
         .i_occ_rd_id    (app_occ_rd_id)
     );
@@ -3393,7 +3396,7 @@ module wrapper_p4 #(
         .o_winq_rd_id_ev(a2_winq_rd_id_ev), .i_winq_rd_ev(a2_winq_rd_ev),
         .o_quota_rel(a2_quota_rel), .o_quota_rel_slot(a2_quota_rel_slot),
         .i_ev_up_done(wp_ev_done1), .i_ev_up_done_slot(wp_ev_done_slot1),
-        .stat_init_ovf(), .stat_init_mismatch(),
+        .stat_init_ovf(a2_init_ovf), .stat_init_mismatch(a2_init_mism),
         .rx_occ_bytes(app_rx_occ2),
         .fin_sent(a2_fin_sent), .rst_sent(a2_rst_sent),
         .retx_active(tx2_retx_active), .retx_id(tx2_retx_id),
@@ -4330,8 +4333,16 @@ module wrapper_p4 #(
     );
 `endif  // P11_DUAL (C4 无 fast demux)
 `ifdef P11_DUAL
+    // ⭐ P11 8-conn (2026-11-03): tx_arb 饥饿保护 —— 慢路径 SYN-ACK/FIN/RST 在
+    //   TCP fast 连续流下被严格优先无限期饿死 (板级 + tb_tx_arb_starve 已证;
+    //   _proj_10g/notes/p11_txstarve_20261103/DESIGN.md)。仅本 C4 双口路径启用;
+    //   其余构建 STARVE_GUARD 默认 0 = 历史严格优先, 逐位不变。
+    // ⛔ 2026-11-03 审查订正: 真实 tcp_tx_frame 帧间有 2 拍 tvalid=0 ⇒ legacy 已服务 slow,
+    //   guard 在真实源上 = no-op (见 p11_txstarve_20261103/DESIGN.md §9)。0x39 起关闭;
+    //   参数代码保留仅作"零气泡病理源"的防御性选项。
+    localparam TX_ARB_STARVE_GUARD = 1'b0;
     // ---- C4: 每口生产者天然独立 (无 demux); port0 = 单 UDP app + HLS demux d0 ----
-    tx_arb u_tx_udp_arb (
+    tx_arb #(.STARVE_GUARD(TX_ARB_STARVE_GUARD)) u_tx_udp_arb (
         .clk(dp_clk), .rst_n(dp_rst_n),
         .s_fast_tdata(utx2_tdata), .s_fast_tkeep(utx2_tkeep),
         .s_fast_tvalid(utx2_tvalid), .s_fast_tready(utx2_tready),
@@ -4344,7 +4355,7 @@ module wrapper_p4 #(
         .m_axis_tlast(mrg_tlast)
     );
     // port1 (ch0): 第二套 UDP app + HLS demux d1
-    tx_arb u_tx_udp_arb_p1 (
+    tx_arb #(.STARVE_GUARD(TX_ARB_STARVE_GUARD)) u_tx_udp_arb_p1 (
         .clk(dp_clk), .rst_n(dp_rst_n),
         .s_fast_tdata(utx2b_tdata), .s_fast_tkeep(utx2b_tkeep),
         .s_fast_tvalid(utx2b_tvalid), .s_fast_tready(utx2b_tready),
@@ -4440,7 +4451,7 @@ module wrapper_p4 #(
 `ifdef DUAL_SFP_A
 `ifdef P11_DUAL
     // ---- C4: 每口 tcp_tx_frame 直连本口 arb (无 fast demux) ----
-    tx_arb u_tx_arb (
+    tx_arb #(.STARVE_GUARD(TX_ARB_STARVE_GUARD)) u_tx_arb (
         .clk(dp_clk), .rst_n(dp_rst_n),
         .s_fast_tdata(tx_tdata), .s_fast_tkeep(tx_tkeep),
         .s_fast_tvalid(tx_tvalid), .s_fast_tready(tx_tready),
@@ -4452,7 +4463,7 @@ module wrapper_p4 #(
         .m_axis_tvalid(txsrc_tvalid), .m_axis_tready(txsrc_tready),
         .m_axis_tlast(txsrc_tlast)
     );
-    tx_arb u_tx_arb_p1 (
+    tx_arb #(.STARVE_GUARD(TX_ARB_STARVE_GUARD)) u_tx_arb_p1 (
         .clk(dp_clk), .rst_n(dp_rst_n),
         .s_fast_tdata(q1_tx_tdata), .s_fast_tkeep(q1_tx_tkeep),
         .s_fast_tvalid(q1_tx_tvalid), .s_fast_tready(q1_tx_tready),
@@ -5100,7 +5111,7 @@ module wrapper_p4 #(
     //   快照 W0..W84; MIR 四字自动 = 0x174/0x178/0x17C/0x180; **未实现地址 = 0x184**
     //   (word 97); {snap_idx,5'b0} 最大 = (85-1)<<5 = 2688 < 4096 ✓.
 `ifdef P11_APP8_CDC
-    localparam SNAP_NW_P6E = 98;        // W0..W97 (P11 APP8 CDC: W97 = cdc_status; 未实现 = 0x1B8)
+    localparam SNAP_NW_P6E = 98;        // W0..W97 (P11 APP8 CDC; 0x3B 诊断复用 W51..W53; 未实现 = 0x1B8)
 `else
     localparam SNAP_NW_P6E = 97;        // 总字数 W0..W96 (未实现地址 = 0x1B4 = word 109; E1a-1)
 `endif
@@ -6034,9 +6045,12 @@ module wrapper_p4 #(
     //   它落在三元表达式的未选分支里, 语义上无害, 但**是否被工具在详细化阶段求值依赖实现**
     //   (本工程的教训: 这种"某个工具恰好放过"的写法不该留在会被 Vivado 综合的路径上)。
     //   逐槽显式 assign 把它变成纯常量下标, 且新增部分**一眼可数** (4 项)。
-    assign p7bdp_din[12*32 +: 32] = biz_w51;   // 槽 12 → W51 app_pattern.stat_tx_bytes
-    assign p7bdp_din[13*32 +: 32] = biz_w52;   // 槽 13 → W52 app_pattern.stat_tx_frames
-    assign p7bdp_din[14*32 +: 32] = biz_w53;   // 槽 14 → W53 app_pattern.stat_rx_bytes
+    // ⭐ 0x3B DIAG (2026-11-04): 复用恒 0 的 app 统计字（§0-80）承载逐槽诊断。
+    //   W51 = port0 app_tx_ready[15:0]（组合 ⇒ 快照采样可能单拍不稳，仅诊断）;
+    //   W52 = {app_ev_cnt[15:0], app_estab_cnt[15:0]}; W53 = stat_init_ovf.
+    assign p7bdp_din[12*32 +: 32] = {16'd0, app_tx_ready};      // 槽 12 → W51 DIAG3B
+    assign p7bdp_din[13*32 +: 32] = {app_ev_cnt, app_estab_cnt}; // 槽 13 → W52 DIAG3B
+    assign p7bdp_din[14*32 +: 32] = app_init_ovf;                // 槽 14 → W53 DIAG3B
     assign p7bdp_din[15*32 +: 32] = biz_w54;   // 槽 15 → W54 app_pattern.stat_mismatch
     assign p7bdp_din[16*32 +: 32] = biz_w55;   // 槽 16 → W55 tcp_tx_frame.stat_retx
     assign p7bdp_din[17*32 +: 32] = biz_w56;   // 槽 17 → W56 app_udp_pattern.stat_tx_ovf
@@ -6096,6 +6110,11 @@ module wrapper_p4 #(
     assign p7bdp_din[52*32 +: 32] = e1a_max_total;         // W96 max_total (since reset)
 `ifdef P11_APP8_CDC
     assign p7bdp_din[53*32 +: 32] = app_cdc_status;        // 槽 53 → W97 CDC 健康字
+    // ---- 0x39 diagnostics: per-slot app TX readiness + app_ctrl init counters ----
+    //   源必须是 **dp 域寄存器输出** (snap_cdc 的 din_b 前提) ⇒ 先打一拍再进 p7bdp.
+    // 0x3B: the diagnostics live in the repurposed W51..W53 slots (zero new FF,
+    //   zero geometry change); the 0x3A debug registers were removed after 0x3A's
+    //   placement thrash / 0x39's FF blowup.
 `endif
 
     snap_cdc #(.W(32), .NW(SNAP_P7BFE_NW)) u_snap_p7bfe (
@@ -6510,7 +6529,7 @@ module wrapper_p4 #(
 
     axi_regs #(
         .MAGIC_V    (32'h50360001),
-        .BUILD_ID_V (32'h00000037),   // P11 APP8 CDC+OCC 臂 (0x37 = CDC/OCC=1) // ⚠️ 每次改动自增
+        .BUILD_ID_V (32'h0000003B),   // P11 APP8 CDC 诊断臂: W51..W53 复用 (0x3B; 0x39/0x3A 时序失败) // ⚠️ 每次改动自增
                                         //   ⭐ 本轮构建 (2026-10-15): **0x27 → 0x28** = **E12 观测计数器**
                                         //      (换流门四计数器: `stat_up_ev` / `stat_sw_req` /
                                         //       `stat_sw_apply` / `stat_up_pend` —— `rtl/app_pattern.v`

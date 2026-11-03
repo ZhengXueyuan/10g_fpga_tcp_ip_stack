@@ -1,0 +1,18 @@
+=== ENV ===
+MOVE_enp1s0f0np0_RC=0
+2 packets transmitted, 2 received, 0% packet loss, time 1042ms
+2 packets transmitted, 2 received, 0% packet loss, time 1021ms
+NSB_CARRIER=1
+T0 W6=0x0000003e W7=0x0000000d W16=0x00001e53 W17=0x00000000 W18=0x00000000 W20=0x0000000a W59=0x00000000 W97=0x00000020
+T1 W6=0x00000046 W7=0x00000015 W16=0x000020e3 W17=0x00000000 W18=0x00000000 W20=0x0000000a W59=0x00000000 W97=0x00000020
+T2 W6=0x00000050 W7=0x00000015 W16=0x0000239f W17=0x00000000 W18=0x00000000 W20=0x0000000a W59=0x00000000 W97=0x00000020
+=== CONNS ===
+MULTI_CONN id=0 status=0 err=0 got=4294980420 want=4294967296 mism=0 first=-1 wall=7.462 Mbps=4604.6 lport=52396 sent=0 unsent=0
+MULTI_CONN id=1 status=2 err=0 got=0 want=4294967296 mism=0 first=-1 wall=10.010 Mbps=0.0 lport=52402 sent=0 unsent=0
+MULTI_CONN id=2 status=2 err=0 got=0 want=4294967296 mism=0 first=-1 wall=10.010 Mbps=0.0 lport=52404 sent=0 unsent=0
+MULTI_CONN id=3 status=2 err=0 got=0 want=4294967296 mism=0 first=-1 wall=10.010 Mbps=0.0 lport=52406 sent=0 unsent=0
+MULTI_CONN id=4 status=2 err=0 got=0 want=4294967296 mism=0 first=-1 wall=10.010 Mbps=0.0 lport=52430 sent=0 unsent=0
+MULTI_CONN id=5 status=2 err=0 got=0 want=4294967296 mism=0 first=-1 wall=10.010 Mbps=0.0 lport=52422 sent=0 unsent=0
+MULTI_CONN id=6 status=2 err=0 got=0 want=4294967296 mism=0 first=-1 wall=10.010 Mbps=0.0 lport=52426 sent=0 unsent=0
+MULTI_CONN id=7 status=2 err=0 got=982508025 want=4294967296 mism=0 first=-1 wall=9.999 Mbps=786.0 lport=52432 sent=0 unsent=0
+MULTI_SUM conns=8 ok=0 eof_short=0 stall=7 err=1 bytes=5277488445 mism=0 wall=10.011 agg_Mbps=4217.5 check=seq sent=0 unsent=0

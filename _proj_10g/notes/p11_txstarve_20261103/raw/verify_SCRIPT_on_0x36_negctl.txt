@@ -1,0 +1,78 @@
+=== PRECOND ===
+CARRIER=1
+=== W97 idle x4 (0x38: [1:0] = {ack_sync[1], st_req}; should vary) ===
+  SNAP1 W97=0x00000020 STATUS=0x00010056
+  SNAP2 W97=0x00000020 STATUS=0x00020056
+  SNAP3 W97=0x00000020 STATUS=0x00030056
+  SNAP4 W97=0x00000020 STATUS=0x00040056
+=== warm-up (<=3; require last = 8/8) ===
+RUN_warm1 MULTI_SUM conns=8 ok=0 eof_short=0 stall=0 err=8 bytes=300268 mism=0 wall=3.089 agg_Mbps=0.8 check=seq sent=0 unsent=0
+  warm1: status0=8 status2=0 status4=0 zeros=0
+    conn0 status=0 got=65536
+    conn1 status=0 got=16060
+    conn2 status=0 got=35040
+    conn3 status=0 got=14600
+    conn4 status=0 got=65536
+    conn5 status=0 got=23360
+    conn6 status=0 got=14600
+    conn7 status=0 got=65536
+RUN_warm2 MULTI_SUM conns=8 ok=0 eof_short=0 stall=0 err=8 bytes=331092 mism=0 wall=3.060 agg_Mbps=0.9 check=seq sent=0 unsent=0
+  warm2: status0=8 status2=0 status4=0 zeros=0
+    conn0 status=0 got=56940
+    conn1 status=0 got=35040
+    conn2 status=0 got=17520
+    conn3 status=0 got=65536
+    conn4 status=0 got=65536
+    conn5 status=0 got=23360
+    conn6 status=0 got=54020
+    conn7 status=0 got=13140
+RUN_warm3 MULTI_SUM conns=8 ok=0 eof_short=0 stall=0 err=8 bytes=234896 mism=0 wall=3.060 agg_Mbps=0.6 check=seq sent=0 unsent=0
+  warm3: status0=8 status2=0 status4=0 zeros=0
+    conn0 status=0 got=65536
+    conn1 status=0 got=17520
+    conn2 status=0 got=16060
+    conn3 status=0 got=35040
+    conn4 status=0 got=13140
+    conn5 status=0 got=30660
+    conn6 status=0 got=21900
+    conn7 status=0 got=35040
+=== flood1 (4GiB/12s, SYN capture) ===
+RUN_flood1 MULTI_SUM conns=8 ok=0 eof_short=0 stall=1 err=7 bytes=6824280195 mism=0 wall=12.000 agg_Mbps=4549.5 check=seq sent=0 unsent=0
+  flood1: status0=1 status2=1 status4=6 zeros=6
+    conn0 status=0 got=4294977500
+    conn1 status=2 got=2529302695
+    conn2 status=4 got=0
+    conn3 status=4 got=0
+    conn4 status=4 got=0
+    conn5 status=4 got=0
+    conn6 status=4 got=0
+    conn7 status=4 got=0
+  SYN_OUT=32
+  SYNACK_IN=2
+  SYNACK_UNIQ_DST=2
+=== flood2 (no capture) ===
+RUN_flood2 MULTI_SUM conns=8 ok=0 eof_short=0 stall=1 err=7 bytes=5536833940 mism=0 wall=12.000 agg_Mbps=3691.2 check=seq sent=0 unsent=0
+  flood2: status0=1 status2=1 status4=6 zeros=6
+    conn0 status=0 got=4294980420
+    conn1 status=2 got=1241853520
+    conn2 status=4 got=0
+    conn3 status=4 got=0
+    conn4 status=4 got=0
+    conn5 status=4 got=0
+    conn6 status=4 got=0
+    conn7 status=4 got=0
+=== post-flood small ===
+RUN_post1 MULTI_SUM conns=8 ok=0 eof_short=0 stall=0 err=8 bytes=364672 mism=0 wall=3.095 agg_Mbps=0.9 check=seq sent=0 unsent=0
+  post1: status0=8 status2=0 status4=0 zeros=0
+    conn0 status=0 got=58400
+    conn1 status=0 got=65536
+    conn2 status=0 got=49640
+    conn3 status=0 got=51100
+    conn4 status=0 got=23360
+    conn5 status=0 got=65536
+    conn6 status=0 got=35040
+    conn7 status=0 got=16060
+=== single-conn rate (0x36 ref 4647 Mbps) ===
+MULTI_CONN id=0 status=0 err=0 got=4295002320 want=4294967296 mism=0 first=-1 wall=9.855 Mbps=3486.6 lport=55560 sent=0 unsent=0
+MULTI_SUM conns=1 ok=0 eof_short=0 stall=0 err=1 bytes=4295002320 mism=0 wall=9.855 agg_Mbps=3486.5 check=seq sent=0 unsent=0
+=== END ===

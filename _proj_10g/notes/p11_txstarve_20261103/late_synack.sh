@@ -1,0 +1,23 @@
+#!/bin/bash
+# late_synack.sh -- are the missing SYN-ACKs stuck in slow_tx_adp and flushed after fast idles?
+set -u
+T=/home/a/xdma_test/dma_ip_drivers-patched/XDMA/linux-kernel/tools
+B=/tmp/p7b_biz
+ps -eo pid,args | awk '/[t]cpdump/ {print $1}' | xargs -r kill -9
+sleep 1
+bash /tmp/b0_env_setup_0x36.sh >/tmp/late_env.log 2>&1
+grep -E 'MOVE_.*RC=|packet loss|NSB_CARRIER' /tmp/late_env.log | tail -4
+$T/reg_rw /dev/xdma0_user 0x08 w 0x0 >/dev/null 2>&1
+ps -eo pid,args | awk '/[p]7b_tcp_sink_multi/ {print $1}' | xargs -r kill -9
+rm -f /tmp/late.pcap
+ip netns exec nsb timeout 30 tcpdump -i any -nn -s 80 -w /tmp/late.pcap 'tcp and (tcp[tcpflags] & tcp-syn != 0)' >/dev/null 2>&1 &
+TP=$!
+sleep 1.5
+ip netns exec nsb timeout 20 $B/p7b_tcp_sink_multi --host 192.168.100.4 --port 8080 --conns 8 --maxbytes 4294967296 --seconds 3 --check seq > /tmp/late_run.txt 2>&1
+sleep 14
+kill $TP 2>/dev/null; sleep 0.5
+echo "=== CONNS ==="; grep -E 'MULTI_CONN|MULTI_SUM' /tmp/late_run.txt
+echo "=== SYN-ACK timeline (time src>dst) ==="
+tcpdump -tt -nn -r /tmp/late.pcap 2>/dev/null | grep 'Flags \[S.\]' | sed 's/ length 0//'
+echo "=== counts ==="
+echo "SYNACK_TOTAL=$(tcpdump -nn -r /tmp/late.pcap 2>/dev/null | grep -c 'Flags \[S.\]')"

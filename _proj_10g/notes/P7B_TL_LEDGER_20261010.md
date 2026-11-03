@@ -2353,3 +2353,122 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - 不影响"CDC 数据面正确"结论（内容 oracle 成立），但**直接影响 8 连接产品目标**，并与 OCC A/B 的
   "8 连接前件"相关（该前件本身已被 §0-81 阻断）。
 - 原件：`BOARD_0X36_REPORT.md §8`、`P7B_OPEN_ITEMS §0-83`、`multi_tx_check*.sh`。
+
+
+## §10-178 2026-11-03：**§0-83 根因已证 = tx_arb 慢路径饿死（板级 + 单元 TB）；非 win_pool/槽泄漏**
+
+- **板级复测（0x36 重烧，sha `d80bdb28…`，BID 0x36 / NW 98 / UNIMPL 0x1B8 / NFF=0；nsb .101 ↔ 板 .4，10G）**：
+  - 8 并发小传输（`p7b_tcp_sink_multi --conns 8 --maxbytes 12288`）：**烧后首跑 2/8**（冷启动弃）；
+    随后 4 跑 **8/8**（`mism=0`；工具 `err=8` = `got>maxbytes` 的已知过冲）。
+  - 8 并发洪泛（`--maxbytes 4 GiB --seconds 12`）：id1 4.295 GB/3287 Mbps；id0 887 MB；
+    **id2–id7 status=4 err=110 ETIMEDOUT（未建立）**。
+  - **洪泛停止后立即 2 跑小传输：8/8 全过** ⇒ **无槽/配额永久泄漏**；"每连接 2×12KB ⇒ 4 条"假设降级。
+  - 单连接洪泛中插入新连接：能建立但 5 s **0 字节**；停洪泛即恢复。
+  - **SYN 判别（决定性）**：洪泛窗口只抓 SYN 标志包（`raw/syn8.pcap`）⇒ peer 发 8 个唯一 SYN，
+    板只回 1 个 SYN-ACK（→33824）；其余 7 个各重传 5 次、36 个 SYN 全程无应答 ⇒
+    **SYN 全到达板上，失败在板侧慢路径**（不是对端 CPU/网卡/connect 超时）。
+- **根因（源码）**：`rtl/tx_arb.v` 帧边界 `if (!busy) { if (s_fast_tvalid) 选 fast; ... }` 严格优先；
+  `tcp_tx_frame` 持续发送时 fast `tvalid` 跨帧不放（帧间只有 1 拍仲裁气泡，而该气泡 fast 仍 valid）
+  ⇒ `s_slow_tvalid` 永不采样 ⇒ HLS 的 SYN-ACK/FIN/RST 无限期等。P7B "慢路径饿死已证伪"只覆盖
+  **单 UDP app** 构型（其帧间有结构性空隙），不适用于 TCP 连续流。
+- **单元 TB（零构建，`tb/tb_tx_arb_starve.v`）**：fast 组合连续 4 字帧 + slow held-valid，2525 拍：
+  legacy = fast **505** 帧 / slow **0**（`LEGACY_STARVE_CONFIRMED`）；guard = fast 255 / slow **250**。
+- 原件 = `_proj_10g/notes/p11_txstarve_20261103/DESIGN.md`；板级脚本 `e2b.sh` / `/tmp/e2b.sh`。
+
+## §10-179 2026-11-03：**修法已实现（STARVE_GUARD）+ 门；0x38 待审/待建**
+
+- `rtl/tx_arb.v`：参数 `STARVE_GUARD`（默认 0 = generate 分支逐位保留 legacy）。=1 时 fast 帧内
+  slow 挂起（`slow_wait`）⇒ 下一帧边界**无条件先发一帧 slow**；上限 1 个 fast 帧；slow 不挂起时
+  fast 独占；slow 连续挂起 ⇒ fast/slow 1:1（有意公平）。
+- `board/wrapper_p4.v`：`P11_DUAL` 段 `localparam TX_ARB_STARVE_GUARD=1`，四个 C4 实例
+  （`u_tx_udp_arb/_p1`、`u_tx_arb/_p1`）传参；其余构建默认 0。BID 0x37→**0x38**。
+- `rtl/app_multi8_cdc.v`：`W97[1:0] = {st_ack_sync[1], st_req}`（§0-80 H1/H2 仪器；两者均为 DP 域寄存器）。
+- 门：`sim/p4sim/run_tb_txarb_starve.bat`（legacy）/ `..._guard.bat`（guard）两臂；既有
+  `run_tb_txarb.bat` 回归 **PASS**（GUARD=0 三模式）；`check_txstarve_wiring.py --negctl` PASS
+  （两突变各有牙）；`board/build_p7b_ku5p.tcl` 新增综合网表硬门 `P7B_TXSTARVE_CELLS >= 4`。
+- 构建脚本 `p11_txstarve_20261103/run_build_0x38.bat`（CDC+guard+W97 观测，OCC=0，
+  `Performance_ExtraTimingOpt`）。**待独立审查 → 构建 0x38 → 板级 E1 复测 + 单连接速率回归。**
+
+
+## §10-180 2026-11-03：**新增两个独立病态（tx_arb 修法不覆盖）；0x38 判据加隔离纪律**
+
+- **冷启动零数据 warm-up**：重烧 0x36 + 干净 nsb 环境，连续 3 跑 8 并发小传输 =
+  **4/8 → 6/8 → 8/8** 成功，**0 个 ETIMEDOUT**（8 个 SYN-ACK 全出线）。零数据不是 SYN 丢失；
+  候选 = HLS cfg ADD 与对端首个纯 ACK 的竞态（`ack_seen` 门错过唯一 ACK）。【未定位】。
+- **会话累积后槽表疑似泄漏**：同一会话跑数十次连接（含强杀 sink）后，idle 8 并发 =
+  **5/8 成功、3 个源端口各重传 5 次 SYN 无 SYN-ACK**（pcap；线空闲、W83/W84 不涨）；
+  **同板重烧后 8/8 SYN-ACK 恢复** ⇒ 候选 = HLS `tcp_conn` T_SYN_RCVD 槽泄漏（对端从未建立
+  ⇒ 无 FIN/RST 回收）。【未判定】；登记 = `OPEN_ITEMS §0-85`。需 HLS 重综合才能直接观测槽表。
+- **0x38 板级纪律**：从新鲜烧录开始；预热跑数固定（≤3 跑，先达到 8/8 小传输）；
+  flood 判据 = **8 个 SYN 都有 SYN-ACK + 8 条都有数据**；不混入累积态读数。
+- 环境坑（本轮新增）：`ip netns delete` 在有遗留 `ip netns exec ... tcpdump` 持有者时会
+  静默失败 ⇒ 接口留在匿名旧 ns，`ip link set ... netns nsb` **RC=1**，b0 脚本继续跑 ⇒
+  nsb 无接口、8 连全 ETIMEDOUT（假红）。判据 = `MOVE_*_RC=0` + `NSB_CARRIER=1`；
+  修复 = 先杀掉持有者再重跑 b0。
+
+
+## §10-181 2026-11-03 21:0x：**审查推翻 tx_arb 根因；转向逐槽 app_tx_ready（0x39 诊断构建）**
+
+- **审查（独立 agent）HOLD**：S1 成立 —— `tcp_tx_frame.m_axis_tvalid` 每帧末必有 2 拍 0
+  （T_DONE 记账 + T_HDR 装载）；`tx_arb` 的重仲裁拍落在空洞内 ⇒ **legacy 会服务 slow**，
+  "无限期饿死"不成立；starve TB 的零气泡 fast 源是人为激励，505/0 只对那个源成立。
+  S2/S3/S4/S8/S9（门无牙、TB 判据、guard=1 无数据/背压门、W97 采样概率、注释）全部接受。
+- **新板级事实（0x36 重烧新鲜态）**：
+  1) 8 并发：8/8 建立；W6 +8 / **W7 +8** / W18=0（HLS 产出 8 个 SYN-ACK 帧）；但只有 id0/id7 有数据。
+  2) 8 个单连接 sink 间隔 0.5 s：P0/P7 OK（各 4.29GB），**P1–P6 全部 STALL/0 字节**（连接均建立）。
+  3) 对端灌 4096B×8：仍只有 2 条有下行（6 条 sent=4096 unsent=0, got=0）。
+  4) 早前"8 SYN→1–2 SYN-ACK"是**会话累积态**（重烧后 8/8 SYN-ACK）⇒ 独立病态 §0-85。
+- **新首选（未证）**：逐槽 `app_tx_ready[act_id]`（app_pattern.v:447）在槽 1–6 = 0；
+  app_ctrl `INIT_QD=4`，`stat_init_ovf`/`stat_init_mismatch` 此前未接快照。
+- **0x39 诊断构建已启动**（BID 0x39，OCC=0，CDC=1；guard **关闭**）：快照 NW 98→**103**
+  （未实现 0x1CC），p7bdp 54→**59**（槽 54..58 = W98..W102）：
+  W98=port0 `app_tx_ready[15:0]`、W99=port1、W100={ev_cnt,estab_cnt}、W101=init_ovf、W102=init_mism。
+  门：几何 `check_window --cdc on` 122/0、`check_snap_top5_wired --cdc on` TOPN=20 全过；
+  `check_txstarve_wiring --negctl` PASS（guard 禁用状态 + DBG39 tcl 门）；构建 tcl 硬门
+  `P7B_DBG39_CELLS` 五寄存器 ≥1。0x38 构建已停止、未上板。
+- **环境坑复现**：`ip netns delete` 遇遗留 tcpdump 持有者会静默失败 ⇒ move RC=1 ⇒ 8 连全
+  ETIMEDOUT 假红；`env_setup_robust.sh`（move 重试 3 次）已建立并使用。
+
+
+## §10-182 2026-11-03 22:0x：**0x39 TIMING_FAIL（FF +1496，port1 ready 复制 1056 cell）→ 0x3A 三字诊断**
+
+- 0x39（5 字诊断）构建 WNS **−0.629** / 7780 setup 端点；最差 = 既有
+  `u_tcp_tx/u_fifo_b/rptr_reg[4] → u_tcb/snd_nxt_r_reg[15][16]/CE`（17 级，route 5.015ns）。
+  资源 vs 0x36：LUT +32 / **FF +1496** / LUTRAM +708；`dbg_ready1_r` 综合成 **1056 cell**
+  （16bit×66 副本）⇒ DP 域余量 +0.017 被压穿。报告归档 `p11_txstarve_20261103/build_fail_0x39/`。
+- **0x3A**（在飞）：删 port1 ready / init_mismatch，只留
+  W98=port0 `app_tx_ready[15:0]` / W99={ev_cnt,estab_cnt} / W100=init_ovf；
+  NW 101 / UNIMPL 0x1C4 / p7bdp 57 / top_hi 56 / BID 0x3A。静态门全过（122/0、TOPN=18、
+  negctl、xvlog）。退路（预登记）：单字 W98 / 换 `Congestion_SpreadLogic_high` /
+  对 `u_tcp_tx/u_fifo_b→u_tcb` 旧族定向 retiming（A7 R-1 先例）。
+
+- **0x3A 停**（Global Iteration 7 / 4882 overlaps / 中间 WNS −1.078）；改 **0x3B**：
+  复用恒 0 的 W51..W53 = `{16'd0,app_tx_ready}` / `{app_ev_cnt,app_estab_cnt}` / `init_ovf`；
+  几何回 NW=98 / UNIMPL 0x1B8 / top_hi 53（与 0x36 同）；**零新 FF/零新槽**，BID 0x3B；
+  构建门 `P7B_DIAG3B_SRC 111`；板级读 W51/W52/W53。0x3B 构建在飞（00:21）。
+
+- **2026-11-04 01:5x 零构建决定性判别**：0x36 新鲜态 8 连接 + 每连灌 4096B；对端 `ss -tin`
+  显示 **8/8 `bytes_sent:4096 bytes_acked:4097`、无 retrans、snd_wnd 10.9–11.7KB**
+  ⇒ 板侧快路径 TCB/CAM/ACK 与 app RX 对 8 槽全部正常；下行仍只有 2 条。
+  ⇒ 缺陷压到 **app TX 产生/就绪**（ready/ev_up/active/mux），不是 HLS/cfg/TCB/win_pool/对端。
+  原件 = `raw/ss_ack_probe_0x36.txt`、`raw/ss_probe_0x36.txt`、DESIGN §9.2b。
+- **环境事件**：对端 21:10 左右重启（uptime 4:38；/tmp 清空、netns 消失、xdma 未加载），
+  且旧 `xdma.ko` 与新内核 `7.0.0-42-generic` **module_layout 不匹配** ⇒ 已在
+  `/home/a/xdma_test/dma_ip_drivers-patched/XDMA/linux-kernel/xdma` 重编 `xdma.ko`（成功），
+  `insmod` 后 2 BAR 识别、BID 0x36 可读；0x36 重烧 + 身份通过。
+
+
+## §10-183 2026-11-04 03:4x：**0x39/0x3A/0x3B 三个诊断臂全 TIMING_FAIL（既有 DP 贴边）；诊断被时序墙挡住**
+
+- 0x39（5 字，含 port1 ready 复制 1056 cell）：−0.629 / 7780；0x3A（3 字+debug regs）：placement
+  停（中间 −1.078）；0x3B（3 字复用 W51..W53，**零新 FF**）：ExtraTimingOpt **−1.359 / 13223**，
+  换 **ExplorePostRoutePhysOpt** 后 **−0.153 / 2789**（hold 0）——仍 FAIL，位流隔离。
+- 最差族全为**既有** `u_tcp_tx* ↔ u_tcb/u_app_ctrl/u_app2`（0x37 OCC 臂同族）。0x36 的 +0.017
+  是贴边 ⇒ 任何扰动都可能翻负。**未烧任何失败位流**（纪律）。
+- 零构建定位（本轮最有价值）：8 连 + 每连 4096B，对端 `ss -tin` = **8/8 bytes_acked:4097、
+  无 retrans、snd_wnd 10.9–11.7KB** ⇒ 快路径 TCB/ACK 与 app RX 对 8 槽全正常；下行仍 2 条
+  ⇒ 缺陷在 **app TX 产生/就绪**（ready/ev_up/active/mux）。
+- **下一阶段需裁定**：① DP 时序收口（ackq/fifo→app/tcb 寄存器切片/retiming，设计+审查）；
+  ② 单口降扰动诊断构建；③ VIO/ILA 观测通道。原件 = DESIGN §11、`build_fail_0x39/0x3A/0x3B*/`。
+- 环境：对端 21:10 重启 + 内核 7.0.0-42 ⇒ 旧 xdma.ko module_layout 不匹配，已重编并 insmod；
+  0x36 重烧 + 身份通过；板 = 0x36，`0x08=0`。
