@@ -2472,3 +2472,51 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
   ② 单口降扰动诊断构建；③ VIO/ILA 观测通道。原件 = DESIGN §11、`build_fail_0x39/0x3A/0x3B*/`。
 - 环境：对端 21:10 重启 + 内核 7.0.0-42 ⇒ 旧 xdma.ko module_layout 不匹配，已重编并 insmod；
   0x36 重烧 + 身份通过；板 = 0x36，`0x08=0`。
+
+
+## §10-184 2026-11-05：**用户裁定 A（DP 时序收口）；P1 策略扫描在飞**
+
+- 用户逐字裁定「A」= 走 DP 时序收口（先解 0x3B 诊断/产品的时序墙，再读 W51..W53）。
+- 设计件 = `_proj_10g/notes/p11_timing_close_20261105/DESIGN.md`：
+  F1 = TCB 写侧 CE 族（`u_tcp_tx/u_fifo_b/rptr → u_tcb/rcv_nxt_r[*]/CE`，−0.175；**禁止 RTL 写延迟**，
+  txdrop50 先例）；F2 = port1 app 读侧（−0.176）。
+- **P1 = 用同一 synth 网表并行 3 个 impl strategy**（不重综合）：
+  `Performance_NetDelay_high` / `Congestion_SpreadLogic_high` / `Performance_Explore`；
+  脚本 `p11_timing_close_20261105/sweep_impl.tcl`（`create_run -flow {Vivado Implementation 2025}`）；
+  过门 = WNS>0 且 0 失败端点；未过门的 bitstream 不烧。
+- P2 备选 = `start_ack_d1`(fo=88)/`bank_rdy`/`ctrl_doff`/`f_seq` 的 `max_fanout` 复制（无功能延迟）；
+  P3 = app 读侧 A7 式打拍；P4 = floorplan/pblock。
+- 扫描跑动中（03:4x 启动，3 臂并行 global place）；结果落 `impl_s2/s3/s4` 的 timing/util 报告。
+
+## §10-185 2026-11-05 05:3x：**DP 时序收口成功（0x3B 可烧位流）+ DIAG3B 上板**
+
+- 策略扫描（同一 synth 网表，3 臂）：`Congestion_SpreadLogic_high` 过门 ——
+  **WNS +0.027 / TNS 0.000 / setup·hold·PW 失败端点 0/0/0**（400,469 endpoints；
+  "All user specified timing constraints are met"）；另两臂 FAIL（ExtraTimingOpt −1.359 / 13223；
+  ExplorePostRoutePhysOpt −0.153 / 2789）。结果目录 = `p11_timing_close_20261105/`。
+- 位流 `8540ee90c769eea0cafd70152ca478a9f86220fe4e3a2624362ca2a14ce84057`（BID 0x3B）；
+  **已烧**（BURN_OK，REG_0x04=0x3B，WINDOW_SCAN_NFF=0，2 BARs，LnkSta x4）；QSPI 零写入。
+- ⚠️ 烧录脚本潜伏缺陷已修：`burn_0x38/39/3A/3B_board.sh` 的 `BIT_WIN` 曾硬编码到
+  `p11_app8_cdc_20261029/burn/`（首次 0x3B 烧录 "no HIGH" 的根因）⇒ 已改本目录 `burn/`。
+
+## §10-186 2026-11-05 05:4x–06:1x：**0x3B DIAG3B 板级诊断 —— 关键发现：测试口选错 + .2 口干净态 8/8**
+
+- **端口映射（已证·板级+源码）**：DIAG3B 的 W51–W53 源 = `u_app_ctrl` = **ch1/X0Y5/J8 = IP .2**；
+  而历史 8 连接测试全部打 **.4 = ch0/X0Y4/J7 = u_app_ctrl2 + 单实例 app_pattern**。
+  证据 = 打 .4 时 W51/W52 恒 0、打 .2 时立即出现与 sink 状态逐槽吻合的读数；
+  源码 = `board/wrapper_p4.v:292-300/1340/3102/3428/3829/4245`、前端 `:558/706`。
+  ⇒ 0x36/0x37 的“8 连接并发上限 2–4”“2/8 下行”**只在单会话 app_pattern 口成立**，
+  **不能作为 app8 产品判据**（0x36 §8.3 的 .2 图案失配 = app8 口，当时未识别）。
+- **仪器自检（已证）**：4 条已关闭 + 4 条活跃时 `W51=0x1e`、`W52={ev=28,estab=4}`，
+  与 sink 完成/活跃集合逐槽吻合 ⇒ 仪器可用；早前 W51–W54/W71–W74 恒 0 的解释 =
+  源是 app_pattern 实例（P11 不用），**不是快照通路坏**。
+- **干净态 .2 口 8 连接（已证）**：8×16 MB 一轮全部收满（4.6–9.1 Gbps 峰值），不重烧复跑仍 8/8；
+  8×256 MB 错开 8/8 收满；坏格式/假停顿 = 默认绑核（16 线程挤 2 核）+ 逐字节 seq 校验的台架自伤
+  （改 `--no-pin --check lane8` 后 `poll_tmo=0`）。
+- **新薄弱点（未定位）**：8 条同时 connect 时 `conn_ms` 阶梯 0.1 ms→4.1 s（SYN 重传），
+  末端连接 5 s 超时失败；对端 `TcpExtTCPSynRetrans` 单轮 +24。候选 = 数据洪泛下慢路径 SYN 处理/排队；
+  **旧“慢路径饿死被证伪”只覆盖 UDP 泛洪**。缺板侧 SYN 观测计数器（需构建）。
+- **未复现（未定位）**：首跑 .2 的 2/8（6 条 SYN 超时）在后续 4 次复跑（含 .4 污染后）均 8/8；
+  重烧后恢复，但 c2 轮未重烧仍 8/8 ⇒ 候选 = 会话级残留（慢盆/配额泄漏），**不判已解决**。
+- 原件 = `_proj_10g/notes/p11_txstarve_20261103/REPORT_0x3B_diag.md` + `raw/verify_0x3B_p0_*`。
+- 板现态 = **0x3B + 0x08=0 + carrier=1**。

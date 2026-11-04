@@ -33,7 +33,7 @@ cp -f "$BIT" "$DST"
 G2=$(sha256sum "$DST" | cut -d' ' -f1)
 [ "$G2" = "$WANT" ] || { echo "SHA_MISMATCH copy => REFUSE"; exit 1; }
 echo "SHA_OK (copy is not an independent anchor)"
-BIT_WIN="D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_app8_cdc_20261029/burn/$(basename "$DST")"
+BIT_WIN="D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_txstarve_20261103/burn/$(basename "$DST")"
 
 echo "--- 2) pre-burn peer state ---"
 $SSH --sudo "systemctl is-active hw_server; lspci -vv -s 02:00.0 2>/dev/null | grep -E 'LnkSta:|Region [0-9]+:'; ls /dev/xdma* 2>&1 | head; lsmod | grep -w xdma || echo XDMA_NOT_LOADED"

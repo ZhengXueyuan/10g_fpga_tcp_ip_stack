@@ -1,0 +1,18 @@
+=== ENV ===
+MOVE_enp1s0f0np0_RC=0
+2 packets transmitted, 2 received, 0% packet loss, time 1024ms
+2 packets transmitted, 2 received, 0% packet loss, time 1021ms
+NSB_CARRIER=1
+T0 W51=0x00000000 W52=0x00000000 W53=0x00000000 W97=0x00000020 W6=0x00000065 W7=0x0000000a W18=0x00000000
+=== START 8 staggered sinks (0.5s) ===
+T_at_P3 W51=0x00000000 W52=0x00000000 W53=0x00000000 W97=0x00000020 W6=0x0000006a W7=0x0000000e W18=0x00000000
+T_at_P7 W51=0x00000000 W52=0x00000000 W53=0x00000000 W97=0x00000020 W6=0x0000006e W7=0x00000012 W18=0x00000000
+T_end W51=0x00000000 W52=0x00000000 W53=0x00000000 W97=0x00000020 W6=0x0000007e W7=0x00000018 W18=0x00000000
+P0 SINK_SUM conns=1 fail_conns=0 bytes=4295028600 clean_conns=1 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=6.911 net_s=6.911 agg_Mbps=4971.776 THREADED=on full_push=80376 full_pop=80376 free_push=80392 free_pop=80376 slot_wait_spins=10289750 checked_bytes=4295028600 threads=2 check=seq
+P1 SINK_SUM conns=1 fail_conns=0 bytes=0 clean_conns=0 bad_conns=1 mismatch_bytes=0 stall_conns=1 err_conns=0 poll_tmo=3 wall_s=15.015 net_s=15.014 agg_Mbps=0.000 THREADED=on full_push=0 full_pop=0 free_push=16 free_pop=0 slot_wait_spins=0 checked_bytes=0 threads=2 check=seq
+P2 SINK_SUM conns=1 fail_conns=0 bytes=0 clean_conns=0 bad_conns=1 mismatch_bytes=0 stall_conns=1 err_conns=0 poll_tmo=3 wall_s=15.015 net_s=15.015 agg_Mbps=0.000 THREADED=on full_push=0 full_pop=0 free_push=16 free_pop=0 slot_wait_spins=0 checked_bytes=0 threads=2 check=seq
+P3 SINK_SUM conns=1 fail_conns=0 bytes=0 clean_conns=0 bad_conns=1 mismatch_bytes=0 stall_conns=1 err_conns=0 poll_tmo=3 wall_s=15.015 net_s=15.015 agg_Mbps=0.000 THREADED=on full_push=0 full_pop=0 free_push=16 free_pop=0 slot_wait_spins=0 checked_bytes=0 threads=2 check=seq
+P4 SINK_SUM conns=1 fail_conns=0 bytes=0 clean_conns=0 bad_conns=1 mismatch_bytes=0 stall_conns=1 err_conns=0 poll_tmo=3 wall_s=15.014 net_s=15.014 agg_Mbps=0.000 THREADED=on full_push=0 full_pop=0 free_push=16 free_pop=0 slot_wait_spins=0 checked_bytes=0 threads=2 check=seq
+P5 SINK_SUM conns=1 fail_conns=0 bytes=0 clean_conns=0 bad_conns=1 mismatch_bytes=0 stall_conns=1 err_conns=0 poll_tmo=3 wall_s=15.015 net_s=15.015 agg_Mbps=0.000 THREADED=on full_push=0 full_pop=0 free_push=16 free_pop=0 slot_wait_spins=0 checked_bytes=0 threads=2 check=seq
+P6 SINK_SUM conns=1 fail_conns=0 bytes=0 clean_conns=0 bad_conns=1 mismatch_bytes=0 stall_conns=1 err_conns=0 poll_tmo=3 wall_s=15.015 net_s=15.014 agg_Mbps=0.000 THREADED=on full_push=0 full_pop=0 free_push=16 free_pop=0 slot_wait_spins=0 checked_bytes=0 threads=2 check=seq
+P7 SINK_SUM conns=1 fail_conns=0 bytes=4294983340 clean_conns=1 bad_conns=0 mismatch_bytes=0 stall_conns=0 err_conns=0 poll_tmo=0 wall_s=9.776 net_s=9.776 agg_Mbps=3514.853 THREADED=on full_push=66896 full_pop=66896 free_push=66912 free_pop=66896 slot_wait_spins=10355231 checked_bytes=4294983340 threads=2 check=seq

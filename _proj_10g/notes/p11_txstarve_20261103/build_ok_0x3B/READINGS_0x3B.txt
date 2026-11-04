@@ -1,0 +1,32 @@
+# 0x3B impl_s3 (Congestion_SpreadLogic_high) READINGS (extracted 2026-11-04T22:03:30Z)
+## Design Timing Summary (wrapper_p4_timing_summary_routed.rpt:157-162)
+    WNS(ns)      TNS(ns)  TNS Failing Endpoints  TNS Total Endpoints      WHS(ns)      THS(ns)  THS Failing Endpoints  THS Total Endpoints     WPWS(ns)     TPWS(ns)  TPWS Failing Endpoints  TPWS Total Endpoints  
+    -------      -------  ---------------------  -------------------      -------      -------  ---------------------  -------------------     --------     --------  ----------------------  --------------------  
+      0.027        0.000                      0               400469        0.010        0.000                      0               400469        0.000        0.000                       0                123641  
+
+
+All user specified timing constraints are met.
+
+## route status
+Design Route Status
+                                               :      # nets :
+   ------------------------------------------- : ----------- :
+   # of logical nets.......................... :      301954 :
+       # of nets not needing routing.......... :       90272 :
+           # of internally routed nets........ :       86398 :
+           # of nets with no loads............ :        3874 :
+       # of routable nets..................... :      211682 :
+           # of fully routed nets............. :      211682 :
+       # of nets with routing errors.......... :           0 :
+   ------------------------------------------- : ----------- :
+
+## utilization (key rows)
+| CLB LUTs                   | 136748 |     0 |          0 |    216960 | 63.03 |
+| CLB Registers              | 106155 |     0 |          0 |    433920 | 24.46 |
+| CLB Registers                              | 106155 |     0 |          0 |    433920 | 24.46 |
+| Block RAM Tile    |  109 |     0 |          0 |       480 | 22.71 |
+| URAM              |   17 |     0 |          0 |        64 | 26.56 |
+| DSPs           |    4 |     0 |          0 |      1824 |  0.22 |
+| Bonded IOB       |   12 |    12 |          0 |       280 |  4.29 |
+| GTYE4_CHANNEL   |    6 |     6 |          0 |        16 |  37.50 |
+| GTYE4_CHANNEL |     6 |            Advanced |
