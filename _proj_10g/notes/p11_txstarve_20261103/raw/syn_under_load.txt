@@ -1,0 +1,8 @@
+=== ARM A: 2 long streams then probe at t=1s ===
+A_stream0 SINK_CONN 0 OK bytes=2147490940 first_mismatch=-1 mism_bytes=0 conn_ms=2057.333 dur_ms=1817.635 Mbps=9451.804 reads=3063
+A_stream1 SINK_CONN 0 OK bytes=2147491524 first_mismatch=0 mism_bytes=2139103263 conn_ms=0.093 dur_ms=2048.512 Mbps=8386.543 reads
+A_probe   SINK_CONN 0 OK bytes=16778320 first_mismatch=-1 mism_bytes=0 conn_ms=3104.199 dur_ms=22.746 Mbps=5901.215 reads=2823 pol
+=== ARM B: idle control (3 probes staggered 1s) ===
+B1 SINK_CONN 0 OK bytes=16778320 first_mismatch=-1 mism_bytes=0 conn_ms=0.116 dur_ms=17.834 Mbps=7526.616 reads=2791 poll_t
+B2 SINK_CONN 0 OK bytes=16778320 first_mismatch=-1 mism_bytes=0 conn_ms=0.159 dur_ms=21.376 Mbps=6279.434 reads=1319 poll_t
+B3 SINK_CONN 0 OK bytes=16782700 first_mismatch=-1 mism_bytes=0 conn_ms=0.147 dur_ms=20.055 Mbps=6694.791 reads=2047 poll_t
