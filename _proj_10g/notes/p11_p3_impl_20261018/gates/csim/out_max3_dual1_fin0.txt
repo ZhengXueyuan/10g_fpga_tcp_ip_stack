@@ -1,0 +1,94 @@
+P11_FIN_ARM=LEGACY
+
+=== CRC32 ===
+
+=== Reset ===
+
+=== P11 SYN pair same window (A idle / B ARP busy / B2 long busy / C near-full) ===
+P11_TB_SYNPAIR_ARM_A SYNACK=2 ADD=2 DEL=0 DROP=0
+P11_TB_SYNPAIR_ARM_A_CLEAN DEL=2
+P11_TB_SYNPAIR_ARM_B SYNACK=2 ADD=2 DEL=0 DROP=0 ARP=1 (ARP busy=72 < 2x62 feed)
+P11_TB_SYNPAIR_ARM_B_CLEAN DEL=2 (admits=2)
+P11_TB_SYNPAIR_ARM_B2 SYNACK=1 ADD=1 DEL=0 DROP=0 UDP=1 SURVIVOR_DPORT=25021 (UDP echo busy=954 > 2x62 feed)
+P11_TB_SYNPAIR_ARM_B2_CLEAN DEL=1 (admits=1)
+P11_TB_SYNPAIR_ARM_C SYNACK=1 ADD=1 DEL=0 DROP=1 PREFILL_SYNACK=2/2
+P11_TB_SYNPAIR_ARM_C_FULL SYNACK=0 ADD=0 DEL=0 DROP=2
+P11_TB_SYNPAIR_ARM_C_CLEAN DEL=3 (expect 3)
+P11_TB_SYNPAIR_SUMMARY A=2/2 B=2/2 B2=1/1 C=1/1
+
+=== P11 half-open leak (full table silently drops a new SYN) ===
+P11_TB_HALFOPEN_FILL SYNACK=3/3 ADD=3 DEL=0 DROP=0
+P11_TB_HALFOPEN_FULL SYNACK=0 ADD=0 DEL=0 DROP=1
+P11_TB_HALFOPEN_RESYN SYNACK=1 ADD=1 DEL=1 DROP=1
+P11_TB_HALFOPEN_RST DEL=1
+P11_TB_HALFOPEN_RECOVER SYNACK=1 ADD=1 DEL=0 DROP=1
+P11_TB_HALFOPEN_CLEAN DEL=3 (expect 3)
+
+=== P11 connection churn (SYN->SYN-ACK->FIN; slot reuse) ===
+P11_TB_CHURN ROUNDS=8 SYNACK=8 ADD_BAD=0 DEL_BAD=0 DROP=0
+P11_TB_CHURN_FINAL SYNACK=1 ADD=1 DEL=0 DROP=0
+P11_TB_CHURN_CLEAN DEL=1
+
+=== P11 zero-data FIN (FIN+ACK with ack==ISS+1) ===
+P11_TB_ZDFIN_ISS cfg_words=8 ISS1=0x12345679
+P11_TB_ZDFIN_FIN2 STATE2=4
+P11_TB_ZDFIN ARM=LEGACY FIN1_DEL=0 STATE1=3 FIN2_DEL=1 NEW_SYNACK=-1
+P11_TB_RESULT PASS (failed_delta=0)
+
+=== P3 MAX_TCP_CONN=8 (8 connections; 9th rejected) ===
+ SKIP: MAX_TCP_CONN=3 (<8; P3 网表构建需要 -DMAX_TCP_CONN=8)
+
+=== P3 DEL carries local_ip (cfg demux consistency) ===
+
+=== P3 adv_wnd (SYN-ACK window = runtime input) ===
+
+=== UDP default frame ===
+
+=== ARP Reply ===
+
+=== ICMP Echo ===
+
+=== IGMPv2 ===
+
+=== IGMPv1 ===
+
+=== IP checksum ===
+
+=== EtherType dispatch ===
+
+=== ARP active lookup ===
+ 74 bytes
+
+=== VLAN single tag (802.1Q) ===
+
+=== VLAN QinQ (802.1ad) ===
+
+=== UDP echo immediate + src-port ===
+
+=== TCP SYN -> SYN-ACK (handshake) ===
+ FAIL: got SYN-ACK
+
+=== TCP echo multi-MSS (2000B in 4 segments) ===
+recv_total=0
+ FAIL: all 2000 echo bytes received
+
+=== TCP echo 536B segment (Windows ignores MSS=460) ===
+ FAIL: got SYN-ACK
+
+=== DHCP Discover ===
+ 74 bytes
+
+=== P11 IP_B accept (ARP/ICMP/UDP) ===
+
+=== P11 broadcast reply source = IP_A ===
+
+=== P11 TCP dual-IP separation + cfg local_ip ===
+
+=== P11 IP_A reply signatures (dual vs legacy byte-equal) ===
+P11SIG ARP len=72 crc=485D91B0
+P11SIG ICMP len=72 crc=80B098A3
+P11SIG UDP len=72 crc=7C5314F3
+P11SIG SYNACK len=72 crc=035027A9
+P11_SUMMARY passed=111 failed=3
+INFO [HLS SIM]: The maximum depth reached by any hls::stream() instance in the design is 346
+WARNING [HLS SIM]: hls::stream 'class hls::stream<struct ap_uint<32>,0>0' contains leftover data, which may result in RTL simulation hanging.

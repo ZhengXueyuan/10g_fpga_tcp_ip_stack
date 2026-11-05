@@ -11,7 +11,9 @@ open_project -reset slowstack_prj
 #   ⚠️ C1 (0x2A) / C3 (0x2D) 回归配置继续用**归档的旧网表** (MAX=3, 无 adv_wnd
 #   端口) —— 本脚本产出的是 P3/C4 (0x2F) 用的新网表。旧网表在两处归档:
 #   构建目录 hls_archive_single_ip/ (单 IP) 与 P2 构建目录 (双 IP)。
-add_files src/udp_echo.cpp -cflags "-DBOARD_IP_DUAL=1 -DMAX_TCP_CONN=8"
+# P11 R2 (2026-11-06): -DP11_FIN_FIX=1 = 零数据连接的 FIN 优先（修槽泄漏）。
+#   默认 0 = 旧行为；csim 双臂由 gates/csim/run_csim_p3.bat 的 FIN 参数控制。
+add_files src/udp_echo.cpp -cflags "-DBOARD_IP_DUAL=1 -DMAX_TCP_CONN=8 -DP11_FIN_FIX=1"
 set_top udp_echo
 
 open_solution -reset solution1

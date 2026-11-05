@@ -6529,7 +6529,7 @@ module wrapper_p4 #(
 
     axi_regs #(
         .MAGIC_V    (32'h50360001),
-        .BUILD_ID_V (32'h0000003B),   // P11 APP8 CDC 诊断臂: W51..W53 复用 (0x3B; 0x39/0x3A 时序失败) // ⚠️ 每次改动自增
+        .BUILD_ID_V (32'h0000003C),   // 0x3C = P11_FIN_FIX=1（零板→对端数据的 FIN 直接释放；R2 修复）// ⚠️ 每次改动自增
                                         //   ⭐ 本轮构建 (2026-10-15): **0x27 → 0x28** = **E12 观测计数器**
                                         //      (换流门四计数器: `stat_up_ev` / `stat_sw_req` /
                                         //       `stat_sw_apply` / `stat_up_pend` —— `rtl/app_pattern.v`

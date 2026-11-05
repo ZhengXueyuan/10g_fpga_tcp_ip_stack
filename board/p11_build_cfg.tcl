@@ -45,6 +45,11 @@ proc p11_hls_variant_dir {root variant} {
         p3_dual_max8 {
             return [file join $root _proj_10g notes p11_p3_build_20261019 hls_archive_p3_dual_ip_max8]
         }
+        p11fix_fin {
+            # 0x3C: P3 网表 + P11_FIN_FIX=1（零板→对端数据的 FIN 直接释放）。
+            # 归档由 hls/run_hls.bat 重新综合后拷入（见 p11_synfix_20261105/DESIGN_v2.md §3）。
+            return [file join $root _proj_10g notes p11_synfix_20261105 hls_archive_p11fix_fin]
+        }
         default { return "" }
     }
 }

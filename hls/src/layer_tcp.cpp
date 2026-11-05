@@ -56,6 +56,17 @@ bool arp_lookup(arp_entry_t *table, ap_uint<32> ip, mac_addr_t &mac);
 #define TCP_RTO_MIN      10000000   // ~80ms min RTO
 #endif
 #define TCP_RTO_MAX      80000000   // ~640ms max RTO
+//=============================================================================
+// P11 R2 (2026-11-06): 零数据连接的对端 FIN 被握手 ACK 分支抢占
+//   被动构建的数据面在 fast path；HLS 的 c.seq 恒停在 ISS+1（HLS 不发数据）。
+//   对端未收到任何数据时 FIN 的 ack == c.seq，旧码 T_SYN_RCVD 首分支把它当
+//   第 3 个握手 ACK（→ T_ESTABLISHED），FIN 分支不可达 ⇒ 无 CFG_DEL、槽永久泄漏。
+//   P11_FIN_FIX=1: 首分支排除 FIN ⇒ FIN+ACK 落 FIN 分支（CFG_DEL + T_FREE）。
+//   默认 0 = 旧行为（源码级 inert；构建/具体 csim 臂用 -DP11_FIN_FIX=1 打开）。
+//=============================================================================
+#ifndef P11_FIN_FIX
+#define P11_FIN_FIX 0
+#endif
 // P4b: SYN+ACK/FIN+ACK 重传限次 — fast path 乐观建连后 HLS 永远收不到握手
 // ACK (纯 ACK 进 fast path), 无限重传会向对端发垃圾 SYN+ACK 触发 RST 杀连接
 #define TCP_MAX_RETRY    3
@@ -716,7 +727,14 @@ static void tcp_rx_process(bool rst, ip_rx_t &ip_rx, uint32_t *buf, mac_tx_req_t
                 cfg_write(cfg_stream,CFG_CMD_ADD,cid,c.peer_ip,c.local_ip,c.peer_port,
                           rx_smac,wnd,c.peer_wscale,c.peer_seq,c.seq+1);
                 tcp_send(buf,tx_req,cid,TCP_SYN|TCP_ACK,NULL,0);}break;
+#if P11_FIN_FIX
+        // P11 R2: FIN 优先 — 零数据连接的 FIN 也满足 ack==c.seq（HLS 不发数据，
+        // c.seq 停在 ISS+1），不能被这里的握手 ACK 分支吞掉；FIN+ACK 必须落到
+        // 下面的 FIN 分支（CFG_DEL + 释放槽）。纯 ACK/ACK+数据不受影响。
+        case T_SYN_RCVD:if((flags&TCP_ACK)&&ack==c.seq&&!(flags&TCP_FIN)){c.retrans_pending=false;c.state=T_ESTABLISHED;c.rto_timer=0;c.retry_cnt=0;}
+#else
         case T_SYN_RCVD:if((flags&TCP_ACK)&&ack==c.seq){c.retrans_pending=false;c.state=T_ESTABLISHED;c.rto_timer=0;c.retry_cnt=0;}
+#endif
             // P4b-5: 对端 SYN 重传 = SYN+ACK 丢失 — 原样重发 (seq 不变;
             // tcp_send 对 SYN 会再 +1, 先退一拍)。定时重传已废除 (会 RST
             // 活连接, 见 RTO 扫描处), 丢失恢复全靠此分支。

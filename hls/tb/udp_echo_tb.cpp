@@ -10,6 +10,17 @@
 #include "../src/eth_types.h"
 #include "../src/eth_utils.h"
 
+// P11 R2 (2026-11-06): the FIN arm is a compile-time selection. A missing -D
+// would silently run one arm twice (DESIGN_v2 §4.1) -> hard-fail instead.
+#ifndef P11_FIN_FIX
+#error "P11_FIN_FIX is not defined: pass -DP11_FIN_FIX=0 (LEGACY) or =1 (FIX)"
+#endif
+#if P11_FIN_FIX
+#define P11_FIN_ARM_NAME "FIX"
+#else
+#define P11_FIN_ARM_NAME "LEGACY"
+#endif
+
 // P4c (2026-09-12): 对齐当前 udp_echo 新签名 — P4b 起第 5 参为 cfg_stream
 // (连接配置记录 -> fast path CAM/TCB)。本 TB 各测试点沿用旧 8 参调用, cfg 记录
 // 本 TB 不消费 (csim 的 hls::stream 内存无界, 只写不读安全), 故加一层兼容壳
@@ -896,14 +907,17 @@ static int build_rst(uint8_t*f,uint32_t sip,uint32_t dip,uint16_t sport,uint32_t
     uint16_t tc=(uint16_t)(~s);f[ts+16]=(tc>>8)&0xFF;f[ts+17]=tc&0xFF;
     return idx;
 }
-// TCP FIN (无载荷): 返回帧长。P11 P3: 用于验证 DEL 记录携带 local_ip。
-static int build_fin(uint8_t*f,uint32_t sip,uint32_t dip,uint16_t sport,uint32_t seq){
+// TCP FIN (无载荷, ack 显式): 返回帧长。
+// P11 R2 (2026-11-06): 零数据连接的对端 FIN 携带 ack = ISS+1 (== HLS 的 c.seq;
+// HLS 不发数据)。旧的 build_fin 固定 ack=0，只覆盖 "已收到板数据" 的形态。
+// 新增本 helper；旧 build_fin 保持 ack=0 逐字节不变 (旧用例依赖该形态)。
+static int build_fin_ack(uint8_t*f,uint32_t sip,uint32_t dip,uint16_t sport,uint32_t seq,uint32_t ack){
     int idx=0; put_eth(f,idx,0x000A3501FEC0ULL,smac_101(),0x0800);
     put_ip_hdr(f,idx,sip,dip,6,40);
     int ts=idx;
     f[idx++]=(sport>>8)&0xFF;f[idx++]=sport&0xFF;f[idx++]=0x1F;f[idx++]=0x90;
     f[idx++]=(seq>>24)&0xFF;f[idx++]=(seq>>16)&0xFF;f[idx++]=(seq>>8)&0xFF;f[idx++]=seq&0xFF;
-    f[idx++]=0;f[idx++]=0;f[idx++]=0;f[idx++]=0;
+    f[idx++]=(ack>>24)&0xFF;f[idx++]=(ack>>16)&0xFF;f[idx++]=(ack>>8)&0xFF;f[idx++]=ack&0xFF;
     f[idx++]=0x50;f[idx++]=0x11;f[idx++]=0x20;f[idx++]=0x00;
     f[idx++]=0;f[idx++]=0;f[idx++]=0;f[idx++]=0;
     uint32_t s=6+20;s+=(sip>>16)&0xFFFF;s+=sip&0xFFFF;s+=(dip>>16)&0xFFFF;s+=dip&0xFFFF;
@@ -911,6 +925,10 @@ static int build_fin(uint8_t*f,uint32_t sip,uint32_t dip,uint16_t sport,uint32_t
     while(s>>16)s=(s&0xFFFF)+(s>>16);
     uint16_t tc=(uint16_t)(~s);f[ts+16]=(tc>>8)&0xFF;f[ts+17]=tc&0xFF;
     return idx;
+}
+// TCP FIN (无载荷, ack=0): 返回帧长。P11 P3: 用于验证 DEL 记录携带 local_ip。
+static int build_fin(uint8_t*f,uint32_t sip,uint32_t dip,uint16_t sport,uint32_t seq){
+    return build_fin_ack(f,sip,dip,sport,seq,0);
 }
 
 #define IP_A_U32 (0xC0A86402u)
@@ -1427,6 +1445,106 @@ static void test_p11_conn_churn(int rounds){
     CHECK(dels==1,"churn cleanup: 1 DEL");
 }
 
+//=============================================================================
+// P11 R2 (2026-11-06): zero-data FIN — the peer's FIN carries ack == c.seq ==
+// ISS+1 because the HLS side never sends data (data plane = fast path).
+//   LEGACY (P11_FIN_FIX=0): FIN#1 is swallowed by the T_SYN_RCVD handshake-ACK
+//     branch -> no CFG_DEL, state=T_ESTABLISHED. FIN#2 only then reaches the
+//     T_ESTABLISHED FIN branch -> CFG_DEL, state=T_LAST_ACK (not FREE): the
+//     slot stays occupied forever = R2 reproduced (negative control).
+//   FIX (P11_FIN_FIX=1): FIN#1 -> CFG_DEL + T_FREE; a fresh SYN is admitted.
+// State numbers: T_FREE=0, T_ESTABLISHED=3, T_LAST_ACK=4 (layer_tcp.cpp enum).
+//=============================================================================
+#if defined(TCP_STATE_PROBE)
+extern uint8_t tcp_state_probe(uint16_t port, uint32_t ip, uint32_t local_ip);
+#endif
+static void test_p11_zero_data_fin(void){
+    TEST("P11 zero-data FIN (FIN+ACK with ack==ISS+1)");
+    uint8_t f[256], cap[256]; uint32_t rec[64];
+    int n,m,w,adds,dels,a2,d2;
+    const uint16_t OLD_PORT=25500, NEW_PORT=25501;
+    const uint32_t SYN_SEQ=0x7e000000u;
+    int fin1_del=0, fin2_del=0, state1=-1, state2=-1;
+    int new_synack=0, new_add=0, new_del=0;
+    uint32_t iss1=0;
+
+    p11_reset_model();
+    // 1) Passive handshake: SYN -> SYN-ACK. On the board the 3rd ACK goes to
+    //    the fast path, so the HLS slot remains in T_SYN_RCVD.
+    n=build_syn(f,PEER_U32,IP_A_U32,OLD_PORT,SYN_SEQ); feed(f,n);
+    m=capture_if(pred_synack,cap,256);
+    CHECK(m>0,"zero-data FIN: SYN-ACK for the probe connection");
+    // cfg ADD w7 = snd_nxt = ISS+1 (authoritative; c.seq is slot-index based).
+    w=drain_cfg(rec,64);
+    for(int i=0;i+7<w;i+=8){
+        if((uint8_t)((rec[i]>>8)&0xFF)==0){ iss1=rec[i+7]; break; }
+    }
+    CHECK(w>=8&&iss1!=0,"zero-data FIN: cfg ADD carries snd_nxt = ISS+1");
+    printf("P11_TB_ZDFIN_ISS cfg_words=%d ISS1=0x%08X\n",w,iss1);
+
+    // 2) FIN#1 with ack = ISS+1 == c.seq (the R2 form).
+    n=build_fin_ack(f,PEER_U32,IP_A_U32,OLD_PORT,SYN_SEQ+1,iss1);
+    feed_settle(f,n,600);
+    cfg_add_del(&adds,&dels);
+    fin1_del=dels;
+#if defined(TCP_STATE_PROBE)
+    state1=(int)tcp_state_probe(OLD_PORT,PEER_U32,IP_A_U32);
+#endif
+
+#if P11_FIN_FIX
+    CHECK(fin1_del==1,"[FIX] zero-data FIN writes CFG_DEL");
+#if defined(TCP_STATE_PROBE)
+    CHECK(state1==0,"[FIX] slot is T_FREE after the FIN");
+#endif
+    // 3F) A fresh 4-tuple SYN is admitted (slot was really released).
+    n=build_syn(f,PEER_U32,IP_A_U32,NEW_PORT,SYN_SEQ+2); feed(f,n);
+    new_synack=count_frames(4000,pred_synack,cap,256);
+    cfg_add_del(&new_add,&new_del);
+    printf("P11_TB_ZDFIN_NEWS SYNACK=%d ADD=%d DEL=%d\n",new_synack,new_add,new_del);
+    CHECK(new_synack==1&&new_add==1,"[FIX] fresh SYN after FIN gets SYN-ACK + cfg ADD");
+#else
+    CHECK(fin1_del==0,"[LEGACY] zero-data FIN produces NO CFG_DEL (R2 reproduced)");
+#if defined(TCP_STATE_PROBE)
+    CHECK(state1==3,"[LEGACY] FIN#1 moved slot to T_ESTABLISHED (R2)");
+#endif
+    // 2L) FIN#2 (same form) is only now handled by the FIN path.
+    n=build_fin_ack(f,PEER_U32,IP_A_U32,OLD_PORT,SYN_SEQ+1,iss1);
+    feed_settle(f,n,600);
+    cfg_add_del(&a2,&d2);
+    fin2_del=d2;
+    CHECK(fin2_del==1,"[LEGACY] second FIN writes CFG_DEL");
+#if defined(TCP_STATE_PROBE)
+    state2=(int)tcp_state_probe(OLD_PORT,PEER_U32,IP_A_U32);
+    CHECK(state2==4,"[LEGACY] slot parked in T_LAST_ACK (not FREE) = leak");
+#endif
+    printf("P11_TB_ZDFIN_FIN2 STATE2=%d\n",state2);
+#endif
+
+    // Arm verdict line (FIN2_DEL / NEW_SYNACK = -1 when not applicable).
+    printf("P11_TB_ZDFIN ARM=%s FIN1_DEL=%d STATE1=%d FIN2_DEL=%d NEW_SYNACK=%d\n",
+           P11_FIN_ARM_NAME, fin1_del, state1,
+           (P11_FIN_FIX ? -1 : fin2_del),
+           (P11_FIN_FIX ? new_synack : -1));
+#if P11_FIN_FIX
+    CHECK(fin1_del==1&&new_synack==1&&new_add==1,
+          "[FIX] zero-data FIN releases the slot (arm verdict)");
+#else
+    CHECK(fin1_del==0&&fin2_del==1,
+          "[LEGACY] zero-data FIN leaks until a second FIN (arm verdict, R2)");
+#endif
+
+    // 4) Cleanup: RST both tuples (old slot may be FREE or T_LAST_ACK).
+    n=build_rst(f,PEER_U32,IP_A_U32,OLD_PORT,0); feed_settle(f,n,600);
+    n=build_rst(f,PEER_U32,IP_A_U32,NEW_PORT,0); feed_settle(f,n,600);
+    cfg_add_del(&adds,&dels);
+    settle(400);
+#if defined(TCP_STATE_PROBE)
+    CHECK(tcp_state_probe(OLD_PORT,PEER_U32,IP_A_U32)==0&&
+          tcp_state_probe(NEW_PORT,PEER_U32,IP_A_U32)==0,
+          "zero-data FIN cleanup: both tuples free");
+#endif
+}
+
 static void test_p3_max8(void){
     TEST("P3 MAX_TCP_CONN=8 (8 connections; 9th rejected)");
     drain(); for(int i=0;i<5;i++)udp_echo(false,g_rx,g_tx,g_msg,led_d0,led_d1,led_d2,led_d3); drain();
@@ -1495,6 +1613,7 @@ static void test_p3_del_local_ip(void){
 }
 
 int main() {
+    printf("P11_FIN_ARM=%s\n", P11_FIN_ARM_NAME);
     test_crc();
     test_reset();
     // P11 P3 candidate separation (2026-11-05): must run on an EMPTY TCP table;
@@ -1503,6 +1622,8 @@ int main() {
     test_p11_syn_pair_same_window();
     test_p11_halfopen_leak();
     test_p11_conn_churn(8);
+    // P11 R2 (2026-11-06): zero-data FIN (also needs an EMPTY table).
+    test_p11_zero_data_fin();
     printf("P11_TB_RESULT %s (failed_delta=%d)\n",
            (failed==p11tb_fail0)?"PASS":"FAIL", failed-p11tb_fail0);
     // P3 用例先跑 (需要空连接表; 自身结束后释放槽位)

@@ -1,0 +1,47 @@
+
+BID=0x0000003b (59) EXPECT=0x3B (59)
+2 packets transmitted, 2 received, 0% packet loss, time 1053ms
+2 packets transmitted, 2 received, 0% packet loss, time 1021ms
+NSB_CARRIER=1
+T0 W52=0x00000000 W97=0x00000023
+=== ROUND 1: .4 zero-data leak round ===
+R1 P0 bytes=4294967296 bytes=4294999400 
+R1 P1 bytes=4294967296 bytes=0 
+R1 P2 bytes=4294967296 bytes=0 
+R1 P3 bytes=4294967296 bytes=0 
+R1 P4 bytes=4294967296 bytes=0 
+R1 P5 bytes=4294967296 bytes=0 
+R1 P6 bytes=4294967296 bytes=0 
+R1 P7 bytes=4294967296 bytes=0 
+R1 END W52=0x00000000 W97=0x00000020
+--- ROUND 1: .2 8-conn probe ---
+PROBE1_0 conns=1 conns=1 fail_conns=0 
+PROBE1_1 conns=1 why=110 conns=0 
+PROBE1_2 conns=1 conns=1 fail_conns=0 
+PROBE1_3 conns=1 why=110 conns=0 
+PROBE1_4 conns=1 why=110 conns=0 
+PROBE1_5 conns=1 why=110 conns=0 
+PROBE1_6 conns=1 why=110 conns=0 
+PROBE1_7 conns=1 why=110 conns=0 
+R1 PROBE_SUCCESS=2/8
+=== ROUND 2: .4 zero-data leak round ===
+R2 P0 bytes=4294967296 bytes=0 
+R2 P1 bytes=4294967296 fail_conns=1 
+R2 P2 bytes=4294967296 fail_conns=1 
+R2 P3 bytes=4294967296 fail_conns=1 
+R2 P4 bytes=4294967296 fail_conns=1 
+R2 P5 bytes=4294967296 fail_conns=1 
+R2 P6 bytes=4294967296 fail_conns=1 
+R2 P7 bytes=4294967296 fail_conns=1 
+R2 END W52=0x00040000 W97=0x00000020
+--- ROUND 2: .2 8-conn probe ---
+PROBE2_0 conns=1 why=110 conns=0 
+PROBE2_1 conns=1 why=110 conns=0 
+PROBE2_2 conns=1 why=110 conns=0 
+PROBE2_3 conns=1 why=110 conns=0 
+PROBE2_4 conns=1 why=110 conns=0 
+PROBE2_5 conns=1 why=110 conns=0 
+PROBE2_6 conns=1 why=110 conns=0 
+PROBE2_7 conns=1 why=110 conns=0 
+R2 PROBE_SUCCESS=0/8
+TEND W52=0x00040000 W97=0x00000020

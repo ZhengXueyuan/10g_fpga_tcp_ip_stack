@@ -3,6 +3,32 @@
 
 === Reset ===
 
+=== P11 SYN pair same window (A idle / B ARP busy / B2 long busy / C near-full) ===
+P11_TB_SYNPAIR_ARM_A SYNACK=2 ADD=2 DEL=0 DROP=0
+P11_TB_SYNPAIR_ARM_A_CLEAN DEL=2
+P11_TB_SYNPAIR_ARM_B SYNACK=2 ADD=2 DEL=0 DROP=0 ARP=1 (ARP busy=72 < 2x62 feed)
+P11_TB_SYNPAIR_ARM_B_CLEAN DEL=2 (admits=2)
+P11_TB_SYNPAIR_ARM_B2 SYNACK=1 ADD=1 DEL=0 DROP=0 UDP=1 SURVIVOR_DPORT=25021 (UDP echo busy=954 > 2x62 feed)
+P11_TB_SYNPAIR_ARM_B2_CLEAN DEL=1 (admits=1)
+P11_TB_SYNPAIR_ARM_C SYNACK=1 ADD=1 DEL=0 DROP=1 PREFILL_SYNACK=2/2
+P11_TB_SYNPAIR_ARM_C_FULL SYNACK=0 ADD=0 DEL=0 DROP=2
+P11_TB_SYNPAIR_ARM_C_CLEAN DEL=3 (expect 3)
+P11_TB_SYNPAIR_SUMMARY A=2/2 B=2/2 B2=1/1 C=1/1
+
+=== P11 half-open leak (full table silently drops a new SYN) ===
+P11_TB_HALFOPEN_FILL SYNACK=3/3 ADD=3 DEL=0 DROP=0
+P11_TB_HALFOPEN_FULL SYNACK=0 ADD=0 DEL=0 DROP=1
+P11_TB_HALFOPEN_RESYN SYNACK=1 ADD=1 DEL=1 DROP=1
+P11_TB_HALFOPEN_RST DEL=1
+P11_TB_HALFOPEN_RECOVER SYNACK=1 ADD=1 DEL=0 DROP=1
+P11_TB_HALFOPEN_CLEAN DEL=3 (expect 3)
+
+=== P11 connection churn (SYN->SYN-ACK->FIN; slot reuse) ===
+P11_TB_CHURN ROUNDS=8 SYNACK=8 ADD_BAD=0 DEL_BAD=0 DROP=0
+P11_TB_CHURN_FINAL SYNACK=1 ADD=1 DEL=0 DROP=0
+P11_TB_CHURN_CLEAN DEL=1
+P11_TB_RESULT PASS (failed_delta=0)
+
 === P3 MAX_TCP_CONN=8 (8 connections; 9th rejected) ===
  SKIP: MAX_TCP_CONN=3 (<8; P3 网表构建需要 -DMAX_TCP_CONN=8)
 
@@ -57,6 +83,6 @@ P11SIG ARP len=72 crc=485D91B0
 P11SIG ICMP len=72 crc=80B098A3
 P11SIG UDP len=72 crc=7C5314F3
 P11SIG SYNACK len=72 crc=035027A9
-P11_SUMMARY passed=51 failed=3
-INFO [HLS SIM]: The maximum depth reached by any hls::stream() instance in the design is 148
+P11_SUMMARY passed=82 failed=3
+INFO [HLS SIM]: The maximum depth reached by any hls::stream() instance in the design is 346
 WARNING [HLS SIM]: hls::stream 'class hls::stream<struct ap_uint<32>,0>0' contains leftover data, which may result in RTL simulation hanging.
