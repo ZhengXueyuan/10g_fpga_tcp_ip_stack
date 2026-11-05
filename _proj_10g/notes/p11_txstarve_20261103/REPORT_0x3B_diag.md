@@ -140,3 +140,21 @@
 - **下一步**：读 `hls/src/layer_tcp.cpp` 的连接表/槽分配与释放路径 + csim/TB 复现；把
   `stat_no_slot`（若存在）接进快照；修法（排队/扩表/释放漏点）+ 构建 0x3C + 板级 A/B。
 - 原始件：本轮命令输出与 `raw/syn_pair_counters.txt`、本 §8；**未烧任何 TIMING_FAIL 位流**。
+
+## 9. 2026-11-05 23:4x 追加：**退化态把缺陷夹到 HLS 的 TCP 接收入口**（UDP/ICMP 正常，TCP 连 RST 都不回）
+
+- 退化态下三项同刻判别（同一位流、同一会话）：
+  1) `ping 192.168.100.2` **2/2 通**（0.074–0.095 ms）—— ICMP/ARP 正常；
+  2) HLS **UDP echo 8080 逐字节回环成功**（发送 `P11PROBE1234567`，收到同 15 B）—— 通用慢路径
+     `rx_classify → slow_rx_adp → HLS → slow_tx_adp` 与 HLS 本身**活着**；
+  3) TCP 到 **未监听端口 12345** 也 `TimeoutError`（**无 RST**）、TCP 8080 超时；
+     tcpdump 抓到 5 个 SYN（1 s 间隔重传）**板侧零回包**。
+- 计数：W18（slow_tx_adp purge）=0、W19（slow_rx_adp 丢帧）=0、W17（HLS 饥饿复位）=0；
+  W6/W16 照涨、W7 基本不动；W52（HLS cfg ADD/DEL 事件数）不涨。
+- ⇒ **缺陷局限在 HLS 的 TCP 接收处理**：连"未知端口应回 RST"都做不到 ⇒ 新 SYN 在 TCP 入口
+  被**静默丢弃**（不是 TX 侧丢、不是适配器 purge、不是通用慢路径、不是 HLS 整体死）。
+- 与源码侧候选一致（待 agent 复核）：`layer_tcp.cpp` 的 `tcp_find` 返回 −1 时静默丢弃
+  （内部 `tcp_stat_no_slot`，无顶层端口）；`udp_echo.cpp` 的 `tcp_proc_pending` 单槽在
+  新帧完成时会清掉挂起控制帧。**表满 vs 单槽覆盖**二者仍需 csim/源码定案。
+- 下一步（零构建）：用 csim/TB 做 connect/close churn，检查连接表占用与 `tcp_find` 结果；
+  一次构建时把 `tcp_stat_no_slot`/`stat_add`/`stat_del` 接进快照。

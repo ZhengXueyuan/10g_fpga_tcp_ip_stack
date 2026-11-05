@@ -2542,3 +2542,13 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - 状态清除 = 重烧（与"慢盆"同型）；本轮环境另修：对端 01:00.1 的 netdev 丢失（在不可见 netns）
   ⇒ PCI unbind/bind 恢复；`/tmp` 重启后需重部署。
 - 原文/证据 = `p11_txstarve_20261103/REPORT_0x3B_diag.md §8`；板 = 0x3B + `0x08=0` + carrier=1。
+
+## §10-189 2026-11-05 23:4x：**退化态 = HLS TCP 接收入口静默丢弃（UDP/ICMP 正常，TCP 连 RST 都不回）**
+
+- 同刻判别（0x3B、退化态）：`ping .2` 2/2（0.074–0.095 ms）；HLS **UDP echo 8080 逐字节回环成功**
+  （15 B 原样返回）；TCP **未监听端口 12345 也超时（无 RST）**、TCP 8080 超时；tcpdump 5 个 SYN
+  板侧零回包。W18/W19/W17 全 0，W6/W16 照涨、W7 基本不动、W52 事件数不涨。
+- ⇒ 通用慢路径 + HLS 活着；缺陷局限在 **HLS 的 TCP 接收入口**（新 SYN 连 RST 都发不出）。
+  候选 = `tcp_find` 无槽静默丢（`layer_tcp.cpp:620`，内部 `tcp_stat_no_slot` 无端口）或
+  `tcp_proc_pending` 单槽覆盖（`udp_echo.cpp:159-162`）；表满 vs 单槽仍待 csim/源码定案。
+- 下一步：csim/TB churn 检查连接表；一次构建接出 `tcp_stat_no_slot`/`stat_add`/`stat_del`。
