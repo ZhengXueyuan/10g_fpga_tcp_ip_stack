@@ -915,6 +915,101 @@ static int build_fin(uint8_t*f,uint32_t sip,uint32_t dip,uint16_t sport,uint32_t
 
 #define IP_A_U32 (0xC0A86402u)
 #define IP_B_U32 (0xC0A86404u)
+#define PEER_U32 (0xC0A86465u)   // 192.168.100.101 = smac_101()'s IP
+
+//=============================================================================
+// P11 P3 candidate separation helpers (2026-11-05)
+//   candidate (a) "half-open leak": the passive netlist (ACTIVE_CONNECT=0)
+//     never reaches tcp_rx_process's RTO scan branch (`!ip_rx.valid ||
+//     protocol != 6`) because every call site passes a valid TCP frame
+//     (udp_echo.cpp:182-190 / :257-260; the idle call is #if ACTIVE_CONNECT
+//     only, :271-276) -> T_SYN_RCVD slots never age out -> tcp_find() == -1
+//     -> new SYN silently dropped (tcp_stat_no_slot++).
+//   candidate (b) "pending overwrite": udp_echo.cpp's single tcp_proc_pending
+//     slot is cleared by ANY new frame completion (:162) -> two SYNs that
+//     complete inside one MAC-TX busy window keep only the second.
+// These helpers drive the model and observe SYN-ACK / cfg ADD / cfg DEL /
+// slot-drop counters. No HLS source is modified.
+//=============================================================================
+extern uint16_t tcp_slot_drop_count();  // layer_tcp.cpp non-static probe (P5d-D6)
+
+static bool pred_none(const uint8_t*c,int n){ (void)c;(void)n; return false; }
+
+// UDP echo reply to request source port 12345 (src 8080): proves the long
+// MAC-TX busy window used by arm B2 was really on the wire.
+static bool pred_udp_src12345(const uint8_t*c,int n){
+    return n>60 && c[20]==0x08 && c[21]==0x00 && c[31]==17 &&
+           c[42]==0x1F && c[43]==0x90 && c[44]==0x30 && c[45]==0x39;
+}
+// Same as pred_synack, but records the SYN-ACK's destination port (the peer
+// port of the admitted connection) for the "which SYN survived" observation.
+static uint16_t g_synack_dport = 0;
+static bool pred_synack_rec(const uint8_t*c,int n){
+    if(!pred_synack(c,n)) return false;
+    g_synack_dport=((uint16_t)c[44]<<8)|c[45];
+    return true;
+}
+
+// Drive the model for `passes` cycles; drain all TX and count complete frames
+// matching pred (and optionally pred2). All TX bytes are consumed.
+static int count_frames(int passes, bool (*pred)(const uint8_t*,int), uint8_t *buf, int max,
+                        bool (*pred2)(const uint8_t*,int)=NULL, int *cnt2=NULL){
+    int n=0,cnt=0;
+    if(cnt2) *cnt2=0;
+    for(int c=0;c<passes;c++){
+        udp_echo(true,g_rx,g_tx,g_msg,led_d0,led_d1,led_d2,led_d3);
+        while(!g_tx.empty()){
+            gmii_byte_t b=g_tx.read();
+            if(n<max) buf[n++]=b.data;
+            if(b.last){
+                if(pred(buf,n)) cnt++;
+                if(pred2&&cnt2&&pred2(buf,n))(*cnt2)++;
+                n=0;
+            }
+        }
+    }
+    return cnt;
+}
+static void settle(int passes){ uint8_t b[2048]; (void)count_frames(passes,pred_none,b,2048); }
+static void feed_settle(const uint8_t*f,int n,int passes){ feed(f,n); settle(passes); }
+
+// Drain cfg stream; count 8-word records (w0[15:8] = 0 ADD / 1 DEL).
+static int cfg_add_del(int *adds,int *dels){
+    uint32_t w[2048]; int n=drain_cfg(w,2048); *adds=0;*dels=0;
+    for(int i=0;i+7<n;i+=8){ uint8_t cmd=(uint8_t)((w[i]>>8)&0xFF); if(cmd==0)(*adds)++; else if(cmd==1)(*dels)++; }
+    if((n&7)!=0) printf("  CFG_WARN words=%d (not a multiple of 8)\n",n);
+    return n;
+}
+// UDP echo request with a chosen payload length: the echo reply holds the MAC
+// TX busy for 8+14+20+8+plen+4 passes (one byte per csim pass).
+static int build_udp_req_n(uint8_t*f,uint32_t sip,uint32_t dip,uint16_t sport,int plen){
+    int idx=0; put_eth(f,idx,0x000A3501FEC0ULL,smac_101(),0x0800);
+    put_ip_hdr(f,idx,sip,dip,17,(uint16_t)(20+8+plen));
+    f[idx++]=(sport>>8)&0xFF;f[idx++]=sport&0xFF;f[idx++]=0x1F;f[idx++]=0x90;
+    uint16_t ul=(uint16_t)(8+plen);f[idx++]=(ul>>8)&0xFF;f[idx++]=ul&0xFF;
+    f[idx++]=0;f[idx++]=0;
+    for(int i=0;i<plen;i++)f[idx++]=(uint8_t)(i&0xFF);
+    return idx;
+}
+// Fresh model: full reset (clears slots/ARP/TX) + 100 idle passes + cfg drain.
+static void p11_reset_model(void){
+    drain();
+    for(int i=0;i<5;i++) udp_echo(false,g_rx,g_tx,g_msg,led_d0,led_d1,led_d2,led_d3);
+    drain();
+    for(int i=0;i<100;i++) udp_echo(true,g_rx,g_tx,g_msg,led_d0,led_d1,led_d2,led_d3);
+    drain();
+    drain_cfg(NULL,0);
+}
+// RST each 4-tuple on IP_A, settling after each so deferred processing lands.
+static int p11_clean_ports(const uint16_t *ports,int nports){
+    uint8_t f[128]; int n;
+    for(int i=0;i<nports;i++){
+        n=build_rst(f,PEER_U32,IP_A_U32,ports[i],0);
+        feed_settle(f,n,400);
+    }
+    int adds,dels; cfg_add_del(&adds,&dels);
+    return dels;
+}
 
 // ---- G8-1: ARP / ICMP / UDP 到 IP_B (dual 接受 / legacy 丢弃) ----
 static void test_p11_ipb_arp_icmp_udp(void){
@@ -1104,6 +1199,234 @@ static void test_p3_adv_wnd(void){
     drain_cfg(NULL,0);
 }
 
+//=============================================================================
+// P11 P3 candidate separation (2026-11-05)
+//   Arm A : idle TX, two back-to-back SYNs           -> pending is not stressed
+//   Arm B : ARP reply (72-pass TX busy), then 2 SYNs -> 72 < 2x62 feed passes
+//   Arm B2: 900B UDP echo (954-pass TX busy), then 2 SYNs -> deterministic
+//           pending-overwrite signature (only the 2nd SYN survives)
+//   Arm C : MAX-1 half-open slots, then 2 new SYNs  -> one free slot admits one
+//=============================================================================
+static void test_p11_syn_pair_same_window(void){
+    TEST("P11 SYN pair same window (A idle / B ARP busy / B2 long busy / C near-full)");
+    uint8_t f[2048], cap[2048];
+    int n, synacks, adds, dels, cd;
+    int a_syn=0,a_add=0,b_syn=0,b_add=0,b2_syn=0,b2_add=0,c_syn=0,c_add=0;
+    uint16_t drop0;
+
+    // ---- Arm A: TX idle; two back-to-back SYNs, distinct source ports ----
+    p11_reset_model();
+    drop0 = tcp_slot_drop_count();
+    n=build_syn(f,PEER_U32,IP_A_U32,25000,0x70000000u); feed(f,n);
+    n=build_syn(f,PEER_U32,IP_A_U32,25001,0x71000000u); feed(f,n);
+    synacks=count_frames(4000,pred_synack,cap,2048);
+    cfg_add_del(&adds,&dels);
+    a_syn=synacks; a_add=adds;
+    printf("P11_TB_SYNPAIR_ARM_A SYNACK=%d ADD=%d DEL=%d DROP=%d\n",
+           synacks,adds,dels,(int)(tcp_slot_drop_count()-drop0));
+    CHECK(synacks==2,"arm A: 2 SYNs with idle TX -> 2 SYN-ACK");
+    CHECK(adds==2&&dels==0,"arm A: 2 cfg ADD, 0 DEL");
+    { uint16_t ports[2]={25000,25001}; cd=p11_clean_ports(ports,2); }
+    printf("P11_TB_SYNPAIR_ARM_A_CLEAN DEL=%d\n",cd);
+    CHECK(cd==2,"arm A cleanup: 2 DEL");
+
+    // ---- Arm B: ARP reply in flight (72-pass TX busy), then two SYNs ----
+    p11_reset_model();
+    drop0 = tcp_slot_drop_count();
+    n=build_arp_req(f,PEER_U32,IP_A_U32,smac_101()); feed(f,n);
+    n=build_syn(f,PEER_U32,IP_A_U32,25010,0x72000000u); feed(f,n);
+    n=build_syn(f,PEER_U32,IP_A_U32,25011,0x73000000u); feed(f,n);
+    int arp_replies=0;
+    synacks=count_frames(4000,pred_synack,cap,2048,pred_arp,&arp_replies);
+    cfg_add_del(&adds,&dels);
+    b_syn=synacks; b_add=adds;
+    printf("P11_TB_SYNPAIR_ARM_B SYNACK=%d ADD=%d DEL=%d DROP=%d ARP=%d (ARP busy=72 < 2x62 feed)\n",
+           synacks,adds,dels,(int)(tcp_slot_drop_count()-drop0),arp_replies);
+    CHECK(synacks==adds,"arm B: cfg ADD count matches SYN-ACK count (records consistent)");
+    CHECK(synacks>=1&&synacks<=2,"arm B: 1 or 2 admitted (observation arm)");
+    { uint16_t ports[2]={25010,25011}; cd=p11_clean_ports(ports,2); }
+    printf("P11_TB_SYNPAIR_ARM_B_CLEAN DEL=%d (admits=%d)\n",cd,synacks);
+    CHECK(cd==synacks,"arm B cleanup: one DEL per admitted connection");
+
+    // ---- Arm B2: 900B UDP echo reply = 954-pass TX busy, then two SYNs ----
+    // Both frame completions (62 and 124 passes after the echo starts) land
+    // inside the busy window; tcp_proc_pending is cleared by the 2nd frame
+    // completion -> only the 2nd SYN survives (candidate (b) signature).
+    p11_reset_model();
+    drop0 = tcp_slot_drop_count();
+    n=build_udp_req_n(f,PEER_U32,IP_A_U32,12345,900); feed(f,n);
+    n=build_syn(f,PEER_U32,IP_A_U32,25020,0x74000000u); feed(f,n);
+    n=build_syn(f,PEER_U32,IP_A_U32,25021,0x75000000u); feed(f,n);
+    int udp_replies=0; g_synack_dport=0;
+    synacks=count_frames(6000,pred_synack_rec,cap,2048,pred_udp_src12345,&udp_replies);
+    cfg_add_del(&adds,&dels);
+    b2_syn=synacks; b2_add=adds;
+    printf("P11_TB_SYNPAIR_ARM_B2 SYNACK=%d ADD=%d DEL=%d DROP=%d UDP=%d SURVIVOR_DPORT=%u (UDP echo busy=954 > 2x62 feed)\n",
+           synacks,adds,dels,(int)(tcp_slot_drop_count()-drop0),udp_replies,(unsigned)g_synack_dport);
+    CHECK(udp_replies==1,"arm B2: 900B UDP echo reply was sent (busy-window source present)");
+    CHECK(synacks==1&&adds==1,
+          "arm B2: only 1 of 2 SYNs survives a >124-pass TX-busy window (pending overwrite)");
+    CHECK(g_synack_dport==25021,
+          "arm B2: the SECOND SYN survives (later frame overwrote the pending first)");
+    { uint16_t ports[2]={25020,25021}; cd=p11_clean_ports(ports,2); }
+    printf("P11_TB_SYNPAIR_ARM_B2_CLEAN DEL=%d (admits=%d)\n",cd,synacks);
+    CHECK(cd==synacks,"arm B2 cleanup: one DEL per admitted connection");
+
+    // ---- Arm C: MAX-1 half-open slots, then two new SYNs ----
+    p11_reset_model();
+    drop0 = tcp_slot_drop_count();
+    int pre=0;
+    for(int k=0;k<MAX_TCP_CONN-1;k++){
+        n=build_syn(f,PEER_U32,IP_A_U32,(uint16_t)(25100+k),0x76000000u+(uint32_t)k*0x10000u);
+        feed(f,n);
+        if(capture_if(pred_synack,cap,256)>0) pre++;
+    }
+    cfg_add_del(&adds,&dels);
+    int pre_adds=adds, pre_dels=dels;
+    n=build_syn(f,PEER_U32,IP_A_U32,25190,0x77000000u); feed(f,n);
+    n=build_syn(f,PEER_U32,IP_A_U32,25191,0x77100000u); feed(f,n);
+    synacks=count_frames(4000,pred_synack,cap,2048);
+    cfg_add_del(&adds,&dels);
+    int drop_pair=(int)(tcp_slot_drop_count()-drop0);
+    printf("P11_TB_SYNPAIR_ARM_C SYNACK=%d ADD=%d DEL=%d DROP=%d PREFILL_SYNACK=%d/%d\n",
+           synacks,adds,dels,drop_pair,pre,MAX_TCP_CONN-1);
+    c_syn=synacks; c_add=adds;
+    CHECK(pre==MAX_TCP_CONN-1,"arm C: prefill MAX-1 half-open slots");
+    CHECK(pre_adds==MAX_TCP_CONN-1&&pre_dels==0,"arm C: prefill all ADD, no DEL");
+    CHECK(synacks==1&&adds==1,"arm C: exactly 1 of 2 new SYNs admitted (one free slot)");
+    CHECK(drop_pair<=1,"arm C: at most one slot-drop during the pair");
+    // Deterministic full-table signature: flush pending, then one more new SYN.
+    settle(600);
+    n=build_syn(f,PEER_U32,IP_A_U32,25192,0x77200000u); feed(f,n);
+    synacks=count_frames(4000,pred_synack,cap,2048);
+    cfg_add_del(&adds,&dels);
+    int drop_full=(int)(tcp_slot_drop_count()-drop0);
+    printf("P11_TB_SYNPAIR_ARM_C_FULL SYNACK=%d ADD=%d DEL=%d DROP=%d\n",synacks,adds,dels,drop_full);
+    CHECK(synacks==0&&adds==0,"arm C: full table silently drops a new SYN (no SYN-ACK/ADD)");
+    CHECK(drop_full==drop_pair+1,"arm C: full-table SYN increments tcp_slot_drop_count (+1)");
+    { uint16_t ports[20]; int np=0;
+      for(int k=0;k<MAX_TCP_CONN-1;k++) ports[np++]=(uint16_t)(25100+k);
+      ports[np++]=25190; ports[np++]=25191; ports[np++]=25192;
+      cd=p11_clean_ports(ports,np); }
+    printf("P11_TB_SYNPAIR_ARM_C_CLEAN DEL=%d (expect %d)\n",cd,MAX_TCP_CONN);
+    CHECK(cd==MAX_TCP_CONN,"arm C cleanup: MAX DEL (all occupied slots freed)");
+
+    printf("P11_TB_SYNPAIR_SUMMARY A=%d/%d B=%d/%d B2=%d/%d C=%d/%d\n",
+           a_syn,a_add,b_syn,b_add,b2_syn,b2_add,c_syn,c_add);
+}
+
+//=============================================================================
+// P11 half-open leak: fill every slot with SYN -> SYN-ACK (no 3rd ACK, no
+// FIN/RST). In the passive netlist the RTO scan branch is structurally
+// unreachable, so slots never age out; a brand-new SYN is silently dropped.
+// Minimal reproduction:
+//   MAX x (SYN distinct tuple -> SYN-ACK) ; (idle) ; SYN new tuple
+//   -> SYNACK=0 ADD=0 DROP=+1.
+//=============================================================================
+static void test_p11_halfopen_leak(void){
+    TEST("P11 half-open leak (full table silently drops a new SYN)");
+    uint8_t f[2048], cap[2048];
+    int n, synacks, adds, dels, got=0;
+    uint16_t drop0;
+
+    p11_reset_model();
+    drop0 = tcp_slot_drop_count();
+    // 1) Fill every slot with a half-open connection (SYN -> SYN-ACK only).
+    for(int k=0;k<MAX_TCP_CONN;k++){
+        n=build_syn(f,PEER_U32,IP_A_U32,(uint16_t)(25200+k),0x78000000u+(uint32_t)k*0x10000u);
+        feed(f,n);
+        if(capture_if(pred_synack,cap,256)>0) got++;
+    }
+    cfg_add_del(&adds,&dels);
+    printf("P11_TB_HALFOPEN_FILL SYNACK=%d/%d ADD=%d DEL=%d DROP=%d\n",
+           got,MAX_TCP_CONN,adds,dels,(int)(tcp_slot_drop_count()-drop0));
+    CHECK(got==MAX_TCP_CONN,"half-open fill: MAX SYN-ACKs");
+    CHECK(adds==MAX_TCP_CONN&&dels==0,"half-open fill: MAX cfg ADDs");
+
+    // 2) Long idle with no ACK/FIN/RST: passive-build RTO scan is unreachable,
+    //    so half-open slots must not age out no matter how long we wait.
+    settle(300000);
+
+    // 3) Brand-new 4-tuple SYN while the table is full -> silent drop.
+    n=build_syn(f,PEER_U32,IP_A_U32,25290,0x79000000u); feed(f,n);
+    synacks=count_frames(4000,pred_synack,cap,2048);
+    cfg_add_del(&adds,&dels);
+    int drop=(int)(tcp_slot_drop_count()-drop0);
+    printf("P11_TB_HALFOPEN_FULL SYNACK=%d ADD=%d DEL=%d DROP=%d\n",synacks,adds,dels,drop);
+    CHECK(synacks==0,"full table: new SYN gets no SYN-ACK");
+    CHECK(adds==0,"full table: new SYN gets no cfg ADD");
+    CHECK(drop==1,"full table: tcp_slot_drop_count +1");
+
+    // 4) Same 4-tuple SYN: entry-path recycle (DEL + ADD + SYN-ACK).
+    n=build_syn(f,PEER_U32,IP_A_U32,25200,0x7a000000u); feed(f,n);
+    synacks=count_frames(4000,pred_synack,cap,2048);
+    cfg_add_del(&adds,&dels);
+    printf("P11_TB_HALFOPEN_RESYN SYNACK=%d ADD=%d DEL=%d DROP=%d\n",
+           synacks,adds,dels,(int)(tcp_slot_drop_count()-drop0));
+    CHECK(synacks==1,"same-tuple SYN recycled: SYN-ACK");
+    CHECK(adds==1&&dels==1,"same-tuple SYN recycled: 1 ADD + 1 DEL");
+
+    // 5) RST one half-open tuple -> one slot is released -> new SYN succeeds.
+    n=build_rst(f,PEER_U32,IP_A_U32,25201,0); feed_settle(f,n,600);
+    cfg_add_del(&adds,&dels);
+    printf("P11_TB_HALFOPEN_RST DEL=%d\n",dels);
+    CHECK(dels==1,"RST releases one half-open slot (1 DEL)");
+    n=build_syn(f,PEER_U32,IP_A_U32,25291,0x7b000000u); feed(f,n);
+    synacks=count_frames(4000,pred_synack,cap,2048);
+    cfg_add_del(&adds,&dels);
+    printf("P11_TB_HALFOPEN_RECOVER SYNACK=%d ADD=%d DEL=%d DROP=%d\n",
+           synacks,adds,dels,(int)(tcp_slot_drop_count()-drop0));
+    CHECK(synacks==1&&adds==1,"after RST frees a slot, a new SYN succeeds");
+
+    // 6) Cleanup: RST every quadruple that may still own a slot.
+    { uint16_t ports[20]; int np=0;
+      for(int k=0;k<MAX_TCP_CONN;k++) ports[np++]=(uint16_t)(25200+k);
+      ports[np++]=25290; ports[np++]=25291;
+      int cd=p11_clean_ports(ports,np);
+      printf("P11_TB_HALFOPEN_CLEAN DEL=%d (expect %d)\n",cd,MAX_TCP_CONN);
+      CHECK(cd==MAX_TCP_CONN,"half-open cleanup: MAX DEL, table empty"); }
+}
+
+//=============================================================================
+// P11 connection churn: SYN -> SYN-ACK -> FIN (no final ACK: on the board the
+// 3rd ACK is consumed by the fast path, so HLS stays in T_SYN_RCVD). The FIN
+// branch must write CFG_DEL and free the slot; `rounds` > MAX_TCP_CONN proves
+// slot reuse.
+//=============================================================================
+static void test_p11_conn_churn(int rounds){
+    TEST("P11 connection churn (SYN->SYN-ACK->FIN; slot reuse)");
+    uint8_t f[2048], cap[2048];
+    int n, adds, dels, synacks, ok=0, bad_add=0, bad_del=0;
+    uint16_t drop0;
+    p11_reset_model();
+    drop0 = tcp_slot_drop_count();
+    for(int k=0;k<rounds;k++){
+        n=build_syn(f,PEER_U32,IP_A_U32,(uint16_t)(25300+k),0x7c000000u+(uint32_t)k*0x10000u);
+        feed(f,n);
+        if(capture_if(pred_synack,cap,256)>0) ok++;
+        cfg_add_del(&adds,&dels);
+        if(adds!=1) bad_add++;
+        n=build_fin(f,PEER_U32,IP_A_U32,(uint16_t)(25300+k),0x7c000001u+(uint32_t)k*0x10000u);
+        feed_settle(f,n,400);
+        cfg_add_del(&adds,&dels);
+        if(dels!=1) bad_del++;
+    }
+    printf("P11_TB_CHURN ROUNDS=%d SYNACK=%d ADD_BAD=%d DEL_BAD=%d DROP=%d\n",
+           rounds,ok,bad_add,bad_del,(int)(tcp_slot_drop_count()-drop0));
+    CHECK(ok==rounds,"churn: every round gets a SYN-ACK (slots reusable)");
+    CHECK(bad_add==0&&bad_del==0,"churn: exactly 1 ADD + 1 DEL per round");
+    // Fresh SYN after the churn loop still succeeds.
+    n=build_syn(f,PEER_U32,IP_A_U32,25400,0x7d000000u); feed(f,n);
+    synacks=count_frames(4000,pred_synack,cap,2048);
+    cfg_add_del(&adds,&dels);
+    printf("P11_TB_CHURN_FINAL SYNACK=%d ADD=%d DEL=%d DROP=%d\n",synacks,adds,dels,(int)(tcp_slot_drop_count()-drop0));
+    CHECK(synacks==1&&adds==1,"churn: fresh SYN after churn succeeds");
+    n=build_rst(f,PEER_U32,IP_A_U32,25400,0); feed_settle(f,n,400);
+    cfg_add_del(&adds,&dels);
+    printf("P11_TB_CHURN_CLEAN DEL=%d\n",dels);
+    CHECK(dels==1,"churn cleanup: 1 DEL");
+}
+
 static void test_p3_max8(void){
     TEST("P3 MAX_TCP_CONN=8 (8 connections; 9th rejected)");
     drain(); for(int i=0;i<5;i++)udp_echo(false,g_rx,g_tx,g_msg,led_d0,led_d1,led_d2,led_d3); drain();
@@ -1174,6 +1497,14 @@ static void test_p3_del_local_ip(void){
 int main() {
     test_crc();
     test_reset();
+    // P11 P3 candidate separation (2026-11-05): must run on an EMPTY TCP table;
+    // every case cleans up (RST) so test_p3_max8 below still sees MAX free slots.
+    int p11tb_fail0 = failed;
+    test_p11_syn_pair_same_window();
+    test_p11_halfopen_leak();
+    test_p11_conn_churn(8);
+    printf("P11_TB_RESULT %s (failed_delta=%d)\n",
+           (failed==p11tb_fail0)?"PASS":"FAIL", failed-p11tb_fail0);
     // P3 用例先跑 (需要空连接表; 自身结束后释放槽位)
     test_p3_max8();
     test_p3_del_local_ip();

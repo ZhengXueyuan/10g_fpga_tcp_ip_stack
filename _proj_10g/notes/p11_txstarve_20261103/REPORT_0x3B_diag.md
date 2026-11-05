@@ -181,3 +181,46 @@
 - 零构建剩余判别（独立复核建议，尚未做）：① 单项 connect 的 W52 已做（Δ=0）；② **旧源端口复用**
   （需先重烧建立基线再 churn；若旧四元组成、新四元组失败 ⇒ 表满实锤）；③ 双 SYN 间隔扫描
   （极小间隔才失败 ⇒ `tcp_proc_pending`；任意间隔都失败 ⇒ 持久表状态）。
+
+## 11. 2026-11-05 23:5x 追加：**板级决定性复现 —— 8 个半开 SYN 填满 HLS 表；RST 释放一槽即恢复**
+
+- 方法：重烧 0x3B → nsa 内 `iptables -I OUTPUT -p tcp --tcp-flags RST RST -d 192.168.100.2 -j DROP`
+  抑制内核 RST（板子的 SYN-ACK 回给**真实对端 MAC**，不是伪造源 MAC —— 单帧实测 pcap
+  `02:00:00:00:00:01 > board` 后板回 `board > 00:0f:53:2c:68:01`），再用 `raw_syn_table_probe.py` 发 8 个
+  原始 SYN（sport 40000..40007，dport 8080，伪造源 MAC）。
+- **结果（原始件 `raw/raw_syn_fill_rst_suppressed.txt`）**：
+  - `BASE_CONNECT OK`（新鲜态正常）；
+  - `RAW_SYN_SENT 8`（8 个 SYN 各得一个 SYN-ACK：**W7 `0x0a→0x13` = +9** = 1 个基线 + 8 个原始）；
+  - **`CONNECT_AFTER_FILL TimeoutError`**（第 9 条正常 connect 的 SYN 无应答 ⇒ 表满静默丢）；
+  - `RST_SENT 40000` → **`CONNECT_AFTER_RST OK`**（释放 1 槽后立即恢复）；
+  - 计数 PRE `W6=0x20 W7=0x0a W52=0` → POST `W6=0x2d W7=0x13 W52=0x000a0008`
+    （ev=10 / estab=8 ⇒ 8 个半开连接在 app_ctrl 侧被计为 ESTAB）。
+- ⇒ **【已证·板级】HLS 连接表容量 = 8；半开连接占槽且不老化；表满后新 SYN 静默丢；RST 可释放。**
+  与 csim（§12）和源码链（`layer_tcp.cpp:540/680`、`udp_echo.cpp:263-277`）**三方一致**。
+- 注：本实验结束时表内仍有 7 个半开槽（仅 RST 释放了 1 个）⇒ 板子现处于“只剩 1 槽”的退化态；
+  后续板级轮开始前必须重烧。
+
+## 12. 2026-11-05 23:5x 追加：**csim 判别用例实跑（TB 扩展 +331 行；基线 3 XFAIL 不动）**
+
+- 文件 = `hls/tb/udp_echo_tb.cpp`（新增 `test_p11_syn_pair_same_window` / `test_p11_halfopen_leak` /
+  `test_p11_conn_churn`；`tcp_slot_drop_count()` 作为 csim 专用探针链接）。运行 =
+  `run_csim_p3_all.bat` ⇒ **RC=0 / `CSIM_P3_ALL_PASS`，passed=106/103/82，failed=3（基线）**，两次重跑逐字节相同。
+- 原始判据行（MAX=8/DUAL=1）：
+  ```
+  P11_TB_SYNPAIR_ARM_A  SYNACK=2 ADD=2 DEL=0 DROP=0        # 空闲对照：2/2
+  P11_TB_SYNPAIR_ARM_B  SYNACK=2 ADD=2 DROP=0 ARP=1        # ARP busy 72 拍：不足以覆盖（负结果）
+  P11_TB_SYNPAIR_ARM_B2 SYNACK=1 ADD=1 DROP=0 UDP=1        # UDP busy 954 拍：pending 覆盖（幸存=第二个 SYN）
+  P11_TB_SYNPAIR_ARM_C  SYNACK=1 ADD=1 DROP=1 PREFILL=7/7  # 近满：只准入一个
+  P11_TB_SYNPAIR_ARM_C_FULL SYNACK=0 ADD=0 DROP=2          # 表满：静默丢
+  P11_TB_HALFOPEN_FILL  SYNACK=8/8 ADD=8 DEL=0 DROP=0
+  P11_TB_HALFOPEN_FULL  SYNACK=0 ADD=0 DROP=1              # 30 万 idle pass 后仍 0/0 ⇒ 不老化
+  P11_TB_HALFOPEN_RESYN SYNACK=1 ADD=1 DEL=1               # 同四元组 SYN 回收
+  P11_TB_HALFOPEN_RST   DEL=1                              # RST 释放
+  P11_TB_HALFOPEN_RECOVER SYNACK=1 ADD=1                   # 恢复
+  P11_TB_CHURN          ROUNDS=8 SYNACK=8 ADD_BAD=0 DEL_BAD=0 DROP=0
+  P11_TB_RESULT PASS (failed_delta=0)
+  ```
+- 结论：**(a) 半开槽永久泄漏**（被动构建无老化）与 **(b) `tcp_proc_pending` 单槽覆盖**两条候选
+  **均被 csim 证实**；(a) 是累积/永久机制（主因），(b) 需要足够长的 TX busy 覆盖两个 SYN 完成拍
+  （偶发，不累积）。遗留：**FIN 顺序 bug**（零数据 FIN 的 `ack==ISS+1` 被 `:719` ACK 分支吃掉）
+  尚未在 csim 用例中覆盖，修法设计需一并处理。

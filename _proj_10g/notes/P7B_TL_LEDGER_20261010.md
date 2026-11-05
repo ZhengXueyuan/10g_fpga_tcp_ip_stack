@@ -2552,3 +2552,15 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
   候选 = `tcp_find` 无槽静默丢（`layer_tcp.cpp:620`，内部 `tcp_stat_no_slot` 无端口）或
   `tcp_proc_pending` 单槽覆盖（`udp_echo.cpp:159-162`）；表满 vs 单槽仍待 csim/源码定案。
 - 下一步：csim/TB churn 检查连接表；一次构建接出 `tcp_stat_no_slot`/`stat_add`/`stat_del`。
+
+## §10-190 2026-11-05 23:5x：**表满机理板级坐实 + csim 双候选证实**
+
+- 板级（0x3B，RST 抑制 + 8 个原始 SYN）：`BASE OK` → 8 SYN 各得 SYN-ACK（W7 +9）→
+  **第 9 条正常 connect TimeoutError** → 原始 RST 释放一槽 → **CONNECT OK**；W52=0x000a0008
+  （ev=10/estab=8）。⇒ **【已证·板级】表容量 8、半开占槽不老化、表满静默丢、RST 可释放**。
+- csim（TB +331 行，RC=0，基线 3 XFAIL 不动）：ARM_A 2/2；ARM_B2（954 拍 busy）1/1 = pending 覆盖；
+  ARM_C 近满 1/1、再 0/0 DROP+1；HALFOPEN 8/8 后空转 30 万拍仍 0/0（不老化）；同四元组 SYN 回收、
+  RST 恢复；CHURN 8 轮 1 ADD/1 DEL。
+- ⇒ 两条候选均证实：(a) 半开永久泄漏（主因，累积）；(b) pending 单槽覆盖（偶发，需长 TX busy）。
+  遗留 = FIN 顺序 bug（零数据 FIN ack==ISS+1 被 ACK 分支抢占）待修。
+- 板现态：表内仍有 7 个半开槽（只剩 1 槽）⇒ 下一板级轮前必须重烧。原件 = 报告 §11/§12。
