@@ -2564,3 +2564,51 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - ⇒ 两条候选均证实：(a) 半开永久泄漏（主因，累积）；(b) pending 单槽覆盖（偶发，需长 TX busy）。
   遗留 = FIN 顺序 bug（零数据 FIN ack==ISS+1 被 ACK 分支抢占）待修。
 - 板现态：表内仍有 7 个半开槽（只剩 1 槽）⇒ 下一板级轮前必须重烧。原件 = 报告 §11/§12。
+
+## §10-191 2026-11-06 01:0x–02:2x：**F2（FIN 优先级）全链收口 —— csim 双臂 / HLS 重综合 / 0x3C 构建烧录 / 板级对称 A/B（W7 +2 vs +8）/ 回归**
+
+- **单变量 = F2**：`hls/src/layer_tcp.cpp` 的 `T_SYN_RCVD` 握手 ACK 分支加 `!(flags&TCP_FIN)`
+  （宏 `P11_FIN_FIX`，默认 0；`hls/run_hls.tcl` cflags 传 1）。旧码在 `#else`，源码级 inert；
+  **未改任何 RTL、未改快照几何（NW=98 / UNIMPL 0x1B8 不变）**。
+- **csim 双臂（已证）**：`run_csim_p3_all.bat` **4/4 臂 PASS、RC=0**；基线 3 条 XFAIL 逐字不变。
+  新增用例 `test_p11_zero_data_fin` 原始判据行：
+  `LEGACY FIN1_DEL=0 STATE1=3 FIN2_DEL=1 STATE2=4 NEW_SYNACK=-1`（复现 R2：单 FIN 不释放、槽停在
+  ESTABLISHED；第二个 FIN 才 DEL 并停 LAST_ACK）vs `FIX FIN1_DEL=1 STATE1=0 NEW_SYNACK=1`
+  （一个 FIN 即 DEL+FREE，新 SYN 可建连）。STATE 由 `TCP_STATE_PROBE` 直测（0=FREE/3=ESTAB/4=LAST_ACK）。
+- **HLS 重综合（构建 bat 不会自动做 = v1 的阻断项）**：`hls/run_hls.bat` RC=0；**All loop constraints
+  satisfied**；Estimated Fmax **156.92 MHz**；新归档 `hls_archive_p11fix_fin`（173 .v + 3 .dat）。
+  `HLS_SRC_HASH 93dc1327…4e17` / `HLS_NET_HASH 3fe03211…228d`（0x3B 为 `125a71f8…f8c3` ⇒ 网表确实变化）；
+  `udp_echo.v a3b55f03…048f` vs 旧 `38767094…0538`。构建 cfg 新增变体映射 `p11fix_fin`。
+- **0x3C 构建（已证）**：`P7B_TIMING_GATE=PASS` / `P7B_VERDICT=OK` / `BITSTREAM-OK`；
+  **WNS +0.046 / TNS 0.000 / setup 失败端点 0（总 400,560）；WHS +0.010 / hold 0；WPWS 0.000 / 0；
+  "All user specified timing constraints are met."**；路由 0 错；LUT 136,759（0x3B +11）。
+  位流 `bits/wrapper_p4_0x3C.bit` sha256 **`d09d787ceb4cb871d2c5ef9f6ef8a6082bfa92a270d3b9860147f1dbbf9f6a8e`**
+  （15,431,261 B）。已 JTAG 易失烧录并核身份：BID `0x3C` / MAGIC / marker / UNIMPL 全中 /
+  `WINDOW_SCAN_NFF=0` / 2 BAR / LnkSta x4 / 两 carrier=1 / `0x08=0`。QSPI 零写入。
+- ⭐ **板级 F2 A/B（同工装、同构型、单变量）【已证】**：工装 `leak_then_rawprobe.sh` = `.4` 口
+  8×4 GiB 一轮（单会话 app 只服务 1–2 条 ⇒ **6 条零数据连接**被关闭）→ 板空闲 → 8 个原始 SYN
+  （nsa 内 iptables 抑制内核 RST）→ **W7 增量 = 当前 HLS 空闲槽数**。结果：
+
+  | 臂 | .4 零数据连接 | 原始探针 W7 增量 | W52（ev/estab） | 判读 |
+  |---|---|---|---|---|
+  | 0x3B（负臂） | P1–P6 = 6 条 0 字节 | **+2** | `0x0002/0x0002` | 只剩 2 槽 ⇒ 6 槽被零数据 FIN 泄漏 |
+  | 0x3C（正臂） | P1–P6 = 6 条 0 字节 | **+8** | `0x0008/0x0008` | 8 槽全空 ⇒ FIN 全部释放 |
+
+  原始件 = `p11_synfix_20261105/raw/leak_then_rawprobe_0x3B.txt` / `..._0x3C.txt`；同一工装早前在
+  0x3C 上另测到 W7 +8（`raw/raw_probe_after_f2_0x3C.txt`）⇒ **F2 修复在板级坐实**。
+  负臂 `.2 8×4GiB` 探针 2/8→0/8 的历史签名亦复现（`raw/verify_f2_neg_0x3B.txt`）。
+- **回归（0x3C）**：新鲜态 8×16 MB **8/8 收满**（conn 0.11–1.45 ms，poll_tmo=0）；新鲜态 8×256 MB
+  **8/8 收满**（每条 268 MB，poll_tmo=0）。⚠️ **c→d 连续两轮**（先 16 MB 再 256 MB）第二轮
+  3 完成 / 5 停顿（8 条均建立成功）；**单独重跑 d（新鲜态）= 8/8** ⇒ **状态依赖（既有 A7 类），
+  不是 F2 回归**；登记为观测（未定位到行）。
+- **残余（未解决，不许当已收口）**：① **R1 半开泄漏**（本轮未修）：`T_SYN_RCVD` 槽无老化，对端放弃
+  重试后永久占槽；未来方案 = fast 侧 `ack_seen` 半开回收 + HLS `i_slot_dead` 掩码（不写 cfg）。
+  ② **R3 pending 单槽**（长 TX busy 下两 SYN 只处理一个；csim ARM_B2）。
+  ③ FIN 分支不校验 seq（F2 扩大伪造 FIN 暴露面）。④ `tcp_stat_no_slot` 仍不可板读。
+  ⑤ `T_LAST_ACK` 老化结构性不可达。
+- **Tier A**：本轮**观测几何未变**（NW=98、UNIMPL `0x1B8` 不变）⇒ **不触发**人读层几何刷新；
+  若未来接出 `tcp_stat_no_slot` 等新观测字，须提醒用户转达 kimi 同步 Tier A。
+- 原件 = `p11_synfix_20261105/RESULTS.md`（本文的全本）+ `DESIGN_v2.md` + `REVIEW_FINDINGS.md` +
+  `build_0x3C_stdout.txt` + `build_ok_0x3C/READINGS_0x3C.txt` + `bits/SHA256.txt` + `raw/`。
+  板级工装 = `leak_then_rawprobe.sh` / `raw_probe_table.sh` / `raw_syn_burst.py` / `verify_0x3C_f2.sh`。
+  板现态 = 0x3C + `0x08=0` + carrier=1（QSPI 零写入）。

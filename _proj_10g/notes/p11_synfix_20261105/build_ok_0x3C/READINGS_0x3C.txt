@@ -1,0 +1,38 @@
+# 0x3C build READINGS (extracted 2026-11-05T18:06:31Z)
+## Design Timing Summary
+    WNS(ns)      TNS(ns)  TNS Failing Endpoints  TNS Total Endpoints      WHS(ns)      THS(ns)  THS Failing Endpoints  THS Total Endpoints     WPWS(ns)     TPWS(ns)  TPWS Failing Endpoints  TPWS Total Endpoints  
+    -------      -------  ---------------------  -------------------      -------      -------  ---------------------  -------------------     --------     --------  ----------------------  --------------------  
+      0.046        0.000                      0               400560        0.010        0.000                      0               400560        0.000        0.000                       0                123664  
+
+
+All user specified timing constraints are met.
+
+## route status
+Design Route Status
+                                               :      # nets :
+   ------------------------------------------- : ----------- :
+   # of logical nets.......................... :      302063 :
+       # of nets not needing routing.......... :       90191 :
+           # of internally routed nets........ :       86317 :
+           # of nets with no loads............ :        3874 :
+       # of routable nets..................... :      211872 :
+           # of fully routed nets............. :      211872 :
+       # of nets with routing errors.......... :           0 :
+   ------------------------------------------- : ----------- :
+
+## utilization (key rows)
+| CLB LUTs                   | 136759 |     0 |          0 |    216960 | 63.03 |
+| CLB Registers              | 106174 |     0 |          0 |    433920 | 24.47 |
+| CLB Registers                              | 106174 |     0 |          0 |    433920 | 24.47 |
+| Block RAM Tile    |  109 |     0 |          0 |       480 | 22.71 |
+| URAM              |   17 |     0 |          0 |        64 | 26.56 |
+| DSPs           |    4 |     0 |          0 |      1824 |  0.22 |
+| Bonded IOB       |   12 |    12 |          0 |       280 |  4.29 |
+| GTYE4_CHANNEL   |    6 |     6 |          0 |        16 |  37.50 |
+| GTYE4_CHANNEL |     6 |            Advanced |
+## HLS hashes
+HLS_SRC_HASH = 93dc13279e11735ce796aa118c2b3bce5bb43d1e86564aacfe9d9e8b94c44e17  (n=15 files: hls/src/*.cpp|*.h + hls/run_hls.tcl)
+HLS_NET_HASH = 3fe03211b7f63e88e5b554b4aef182b1952a48ac0d682c03a920f157a896228d  (n=176 files: hls/slowstack_prj/solution1/syn/verilog/*.v|*.dat)
+P7B >>>>>>>>>> P7B_TIMING_GATE
+P7B_TIMING_WNS_DB = 0.046
+P7B_TIMING_GATE = PASS
