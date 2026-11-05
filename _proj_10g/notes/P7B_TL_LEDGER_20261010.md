@@ -2530,3 +2530,15 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
   与 HLS 连接上限/配额假设无关（空闲态即复现）。
 - 原件 = `p11_txstarve_20261103/raw/syn_pair_idle.txt`、`raw/syn_under_load.txt`、
   `REPORT_0x3B_diag.md §4.1`。下一步 = 慢路径 SYN 排队/观测（一次构建）。
+
+## §10-188 2026-11-05 23:0x：**退化态持续复现 —— HLS 收下 SYN 却不回 SYN-ACK（槽位耗尽/泄漏候选）**
+
+- 重烧后配对 R1（0.1 ms 两条）→ R2 一条失败 → R3 两条 5 s 超时；此后持续。同刻 `ping .2` 2/2 通
+  （0.089 ms），两条 connect 全 5 s 超时。
+- 快照计数：PRE `W6=0x1ab W7=0x4c W16=0x8eab W17=0` → POST `W6=0x1b5 W7=0x4c W16=0x91df W17=0`
+  ⇒ W6 +10 / W16 +0x334 / **W7 +0** ⇒ SYN 帧被收到并被 HLS 读走，**HLS 未发出任何回复**。
+- ⇒ 丢失点夹在 HLS（或输出口），不是慢路径饥饿、不是 classify/适配器溢出（W59/W60=0）；
+  ICMP/ARP 正常。候选 = **HLS 连接表/槽位耗尽或泄漏**（新鲜重烧 8 槽空 ⇒ 即时成功；累积后先丢一条后全丢）。
+- 状态清除 = 重烧（与"慢盆"同型）；本轮环境另修：对端 01:00.1 的 netdev 丢失（在不可见 netns）
+  ⇒ PCI unbind/bind 恢复；`/tmp` 重启后需重部署。
+- 原文/证据 = `p11_txstarve_20261103/REPORT_0x3B_diag.md §8`；板 = 0x3B + `0x08=0` + carrier=1。
