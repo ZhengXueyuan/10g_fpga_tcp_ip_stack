@@ -131,6 +131,14 @@ if {$P11_APP8_CDC_ON && ((!$P11_APP8_ON) || (!$P11_IS_DUAL) ||
 if {$P11_APP8_CDC_ON} { lappend P11_DEFS P11_APP8_CDC=1 }
 puts "P11_APP8_CDC = $P11_APP8_CDC_ON"
 
+# ---- P11 DIAG_TX (2026-11-06, 0x3D): 零几何诊断复用 ----
+#   把 port0 tcp_tx_frame 的 64 位卡死定位束复用到 W71/W72（原 app_pattern 统计）。
+#   代价 = 本构建失去 port1 app_pattern 的 ev_up/sw_req 计数；NW/UNIMPL 不变。
+set P11_DIAG_TX_ON 0
+if {[info exists ::env(P11_DIAG_TX)] && ($::env(P11_DIAG_TX) eq "1")} { set P11_DIAG_TX_ON 1 }
+if {$P11_DIAG_TX_ON} { lappend P11_DEFS P11_DIAG_TX=1 }
+puts "P11_DIAG_TX = $P11_DIAG_TX_ON"
+
 # ⭐ 2026-10-27 E1a 0x33: implementation strategy is a build input (default = the
 #    0x31/0x32 Performance_Explore). A retry with a different strategy is a NEW INPUT,
 #    not "rerun until pass"; used only if the first build's timing gate fails.

@@ -105,6 +105,10 @@ struct SinkIoArgs {
     long maxbytes;
     size_t slot_bytes;
     SinkConn *c;
+    // P11 DIAG (2026-11-06): --poke-ms N ⇒ 连接后 N ms 仍未收到数据时发 1 字节
+    //   (目的: 给板侧 tcp_rx 一个 ACK 观测; 若停顿立即恢复 ⇒ acks_ok 门未置位假说成立)
+    int poke_ms, poked;
+    double t_conn;
 };
 
 struct SinkCkArgs { SinkConn *c; int cpu, print_pin; };
@@ -142,6 +146,15 @@ static void *sink_io_main(void *arg) {
     int held = -1;                                  // 本线程**挂着的槽** (还没交还; -1 = 没有)
     SinkItem it;
     while (got < a->maxbytes) {
+        // P11 DIAG: poke —— 连接后 poke_ms 内零字节时主动发 1 字节 (制造一个 ACK)
+        if (a->poke_ms > 0 && !a->poked && got == 0 &&
+            (p7b_io_now_s() - a->t_conn) * 1000.0 >= (double)a->poke_ms) {
+            ssize_t sn = send(fd, "P", 1, MSG_NOSIGNAL);
+            a->poked = 1;
+            printf("SINK_POKE conn=%d rc=%zd at_ms=%.1f got=%lld\n",
+                   a->conn_id, sn, (p7b_io_now_s() - a->t_conn) * 1000.0, got);
+            fflush(stdout);
+        }
         short rev = 0;
         int pr = p7b_io_poll_readable_ev(fd, a->poll_ms, &rev);
         if (pr == 0) {                          // ⭐ poll 超时 = 确定语义 (计数 + 日志 + 中止)
@@ -292,6 +305,7 @@ int main(int argc, char **argv) {
     int reconnect_delay_ms = 0;      // --reconnect-delay-ms N: close 后 sleep N ms 再连下一条
     long maxbytes = 4L << 20;        // 每连接读上限 (1MB 图案 + 余量)
     int poll_ms = 5000;              // R1: 每次 poll 的等待上限 (ms)
+    int poke_ms = 0;                 // P11 DIAG: 0 = 关; >0 = 连接后 N ms 零数据则发 1 字节
     int stall_n = 3;                 // R1: 连续 --stall-n 次 poll 超时 = 该连接判 STALL 并中止
     int nslots = 16;                 // 双线程: 槽池深度 (流水深度)
     long slot_bytes = 64L << 10;     // 双线程: 每槽字节数 (recv 单次上限)
@@ -310,6 +324,7 @@ int main(int argc, char **argv) {
         else if (k == "--reconnect-delay-ms") reconnect_delay_ms = atoi(nx()); // sink delta: 重连延迟
         else if (k == "--maxbytes") maxbytes = atol(nx());
         else if (k == "--poll-ms") poll_ms = atoi(nx());
+        else if (k == "--poke-ms") poke_ms = atoi(nx());
         else if (k == "--stall-n") stall_n = atoi(nx());
         else if (k == "--no-thread") threaded = false;      // 已在上面预扫 (这里只为吃掉参数)
         else if (k == "--slots") nslots = atoi(nx());
@@ -442,7 +457,8 @@ int main(int argc, char **argv) {
             cn.pollnval = 0; cn.slot_wait_spins = 0;
             cn.first_mis = -1; cn.mism_bytes = 0; cn.checked_bytes = 0;
             for (int s = 0; s < nslots; s++) q_free.push(SinkItem{s, 0, 0});   // 全部槽入池
-            SinkIoArgs ia{fd, c, poll_ms, stall_n, cpu_io, (c == 0) ? 1 : 0, maxbytes, (size_t)slot_bytes, &cn};
+            SinkIoArgs ia{fd, c, poll_ms, stall_n, cpu_io, (c == 0) ? 1 : 0, maxbytes, (size_t)slot_bytes, &cn,
+                          poke_ms, 0, t1};
             SinkCkArgs ca{&cn, cpu_work, (c == 0) ? 1 : 0};
             pthread_t tio, tck;
             if (pthread_create(&tio, NULL, sink_io_main, &ia) != 0) p7b_io_die("pthread_create(io)");

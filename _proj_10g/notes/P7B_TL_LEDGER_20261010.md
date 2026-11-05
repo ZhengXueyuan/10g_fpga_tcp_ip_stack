@@ -2612,3 +2612,37 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
   `build_0x3C_stdout.txt` + `build_ok_0x3C/READINGS_0x3C.txt` + `bits/SHA256.txt` + `raw/`。
   板级工装 = `leak_then_rawprobe.sh` / `raw_probe_table.sh` / `raw_syn_burst.py` / `verify_0x3C_f2.sh`。
   板现态 = 0x3C + `0x08=0` + carrier=1（QSPI 零写入）。
+
+## §10-192 2026-11-06 03:0x–05:2x：**新缺陷：port0 (.2) 数据面偶发停顿（握手成功但快路径零数据）；诊断构建 0x3D（零几何复用 W71/W72）**
+
+- **现象【已证·板级】**：`.2` 8×256MB 一轮，TCP 握手全部成功（`conn_ms` 0.09–0.17 ms），
+  但部分/全部连接收不到数据（0 字节或部分后停）。抓包（`/tmp/wedge.pcap`）：SYN/SYN-ACK/ACK 后
+  **板侧 9 s 零数据帧**（对端窗口 65535、无 RST），第 9 s 对端超时 FIN，板回 FIN-ACK
+  ⇒ HLS/慢路径活着，**只有快路径数据不出**。同刻 `.4` 口 **8.8 Gbps / mism=0** ⇒ 非 MAC/GT/线/对端。
+- **停顿现场（V2 轮，0x3C）**：`W66/W67/W68/W55` 全部**冻结**（帧器不在窗口门等、无 ACK 推进、
+  无重传）；`W51=0x3d`（5 槽可接收）、`W52 estab=5`；~10 s 后随连接关闭而恢复。
+  ⇒ app_ctrl 的信用视图与快路径实际放行**不一致**；app TX 共享总线被一帧占住（AXI 不可撤）
+  ⇒ 全槽饿死。源码链：`tcp_tx_frame.tready` 帧首拍要求 `wnd_open && !tx_blk_sid && …`，
+  帧内拍只看 `!fifo_full && !bank_rdy`（`rtl/tcp_tx_frame.v:731`）。
+- **触发统计【已证·统计】**：300+ 轮（≥2400 连接）仅 1 次停顿（V2），且**所有观测到的停顿都落在
+  换烧后的第 1–2 轮**（V2 / t1,t2 / c1,c2 / 02:51 的 d2）；换烧后第 ≥3 轮全部 8/8。
+  ⚠️ 反例：02:51 楔死后第 3 次活动（单连接）仍 0 字节 ⇒ "2 轮后必好"不成立。
+  历史"首跑 2/8→复跑 8/8"（0x3B 报告 §5）同族。
+- **与 F2 的关系【未判定】**：0x3B（无 F2）在本轮 8 轮全 8/8，0x3C（F2）出现停顿；但 F2 的
+  新分支在有数据连接上（`ack != c.seq`）**不触发**（源码+抓包双证）⇒ 停顿更可能是既存缺陷，
+  0x3B/0x3C 差异可能只是抽样。**不许写成"F2 回归"**。
+- **诊断构建 0x3D（两次）**：
+  1. 首个方案 = 新增 p7bdp 槽 54/55（W98/W99，NW 100 / UNIMPL 0x1C0）⇒ **TIMING_FAIL
+     WNS −0.390 / 7537 端点**；最差族 = **既存** `u_tcp_tx/rx_state_reg[1] → u_app_ctrl/orph_cnt_reg[9][3]/CE`
+     （22 级、route 4.49 ns）⇒ 与诊断束无关、是 P&R 拥塞劣化。**位流已隔离、禁烧**。
+  2. 改用**零几何复用**：`P11_DIAG_TX=1` ⇒ W71/W72（原 port1 app_pattern 统计）承载 port0
+     `tcp_tx_frame.o_dbg_tx` 64 位束（W71=word A：rx_state/recv_first/bank/fifo/tready/
+     wnd_open/tx_blk_sid/start_id；W72=word B：tx_state/thcnt/ctrl/retx/probe 位）。
+     **NW 98 / UNIMPL 0x1B8 不变**（**Tier A 几何不变**；代价 = 本构建 W71/W72 不再是
+     app_pattern 统计）。构建中（05:1x 起）。
+- 原件 = `p11_synfix_20261105/STALL_INVESTIGATION.md`（现场+假设+判读表）+
+  `raw/disc*_0x3C_*rounds*.txt`（V2 现场）+ `decode_w98_w99.py`（束解码器）+
+  `burn_cycle_0x3D.sh`（换烧周期测试：每周期 4 轮，专抓换烧后 1–2 轮）。
+- 下一步 = 0x3D 上板：换烧周期 ×6，命中即解 W71/W72；判读：
+  `rx_state==RX_FLUSH` ⇒ 冲洗死锁；`m_axis_tvalid=1 & tready=0` ⇒ 下游 arbiter/MAC；
+  `s_axis_tvalid=0` ⇒ app 合并总线头阻塞（app 侧）。

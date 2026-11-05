@@ -2282,6 +2282,9 @@ module wrapper_p4 #(
     //   声明在 ifdef 外 (坑 24: 例化在 ifdef 内, 只在分支里声明会退化成隐式 1 位).
     wire [319:0] e1a_hist;
     wire [31:0]  e1a_sum_total, e1a_max_total;
+    // ⭐ P11 DIAG 0x3D (2026-11-06): port0 的 TX/RX 卡死定位束 (纯观测; W98/W99).
+    //   声明在 ifdef 外 (坑 24); 默认/OVL 两分支都有 o_dbg_tx 驱动 (legacy 分支恒 0).
+    wire [63:0]  tx_dbg_bundle;
     // P6e: `mac_tx_64.stat_frames` 原来**悬空** (线上真发出去多少帧, 以前全设计没有这个数)
     //   ⇒ 接出来当观测 (PCIE_OBS 作快照 W20)。声明在 ifdef **外**: 例化点在 ifdef 外,
     //   若只在分支里声明, 默认构建会退化成"隐式 1 位线 ⇒ 静默截断"(工程坑 24)。
@@ -3021,6 +3024,7 @@ module wrapper_p4 #(
         //  保证两个构建的端口表一致 — C12)
         .o_rst_sent     (tx_rst_sent),
         .o_retx_id      (tx_retx_id_o),
+        .o_dbg_tx       (tx_dbg_bundle),   // P11 DIAG 0x3D: W98/W99 (纯观测)
         .rb_id          (rb_id),
         .rb_snd_nxt     (rb_snd_nxt),
         .rb_rcv_nxt     (rb_rcv_nxt),
@@ -5995,8 +5999,16 @@ module wrapper_p4 #(
     // ⭐ P9 E12 (2026-10-15): 槽 31..34 → W71..W74 (换流门 4 个纯观测计数器; 纯观测)
     //   口径: **事件数** (不是拍数); 语义逐字定义 = rtl/app_pattern.v 的 E12 计数块。
     //   ⚠️ 32 位自然回卷 (156.25 MHz 下 27.487 s) ⇒ 判据必须 mod 2^32 且记原始值。
+`ifdef P11_DIAG_TX
+    // ⭐ P11 DIAG (0x3D): 零几何复用 —— W71/W72 改承载 port0 TX 卡死定位束
+    //   (word A / word B, 见 tcp_tx_frame.o_dbg_tx). 代价 = 本构建失去 port1
+    //   app_pattern 的 ev_up/sw_req 计数 (诊断期不用 .4). NW/UNIMPL 不变.
+    wire [31:0] biz_w71 = tx_dbg_bundle[31:0];     // 槽 31 → W71 = dbg word A
+    wire [31:0] biz_w72 = tx_dbg_bundle[63:32];    // 槽 32 → W72 = dbg word B
+`else
     wire [31:0] biz_w71 = app_up_ev;               // 槽 31 → W71 app 实收 ev_up 事件数
     wire [31:0] biz_w72 = app_sw_req;              // 槽 32 → W72 收尾请求数 (ev_same_act)
+`endif
     wire [31:0] biz_w73 = app_sw_apply;            // 槽 33 → W73 换流应用数 (sw_apply)
     wire [31:0] biz_w74 = app_up_pend;             // 槽 34 → W74 A3 登记数 (ev_other_act)
     wire [31:0] biz_w75 = app_stat_orphan;         // 槽 35 → W75 p9 孤儿回收提交数
@@ -6529,7 +6541,7 @@ module wrapper_p4 #(
 
     axi_regs #(
         .MAGIC_V    (32'h50360001),
-        .BUILD_ID_V (32'h0000003C),   // 0x3C = P11_FIN_FIX=1（零板→对端数据的 FIN 直接释放；R2 修复）// ⚠️ 每次改动自增
+        .BUILD_ID_V (32'h0000003D),   // 0x3D = 0x3C + W98/W99 TX 卡死定位束（F2 保留；NW 100 / UNIMPL 0x1C0）// ⚠️ 每次改动自增
                                         //   ⭐ 本轮构建 (2026-10-15): **0x27 → 0x28** = **E12 观测计数器**
                                         //      (换流门四计数器: `stat_up_ev` / `stat_sw_req` /
                                         //       `stat_sw_apply` / `stat_up_pend` —— `rtl/app_pattern.v`

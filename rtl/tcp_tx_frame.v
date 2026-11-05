@@ -229,7 +229,12 @@ module tcp_tx_frame (
     output wire [8:0]  dbg_pay_rptr,   // u_fifo rptr[8:0]
     output wire        dbg_pay_full2,  // u_fifo full (与 dbg_pay_full 同源, 直连端口)
     output wire        dbg_pay_empty,  // u_fifo empty
-    output wire [11:0] dbg_plen        // RUNNING plen (帧内累计, 未锁存; 区别于 plen_r)
+    output wire [11:0] dbg_plen,       // RUNNING plen (帧内累计, 未锁存; 区别于 plen_r)
+    // ---- P11 DIAG 0x3D: TX/RX 卡死定位束 (纯观测; 只有 wrapper 的 port0 例化接出) ----
+    //   [31:0]  = RX/接受门现场 (rx_state/recv_first/bank/fifo/tready/门控位/start_id)
+    //   [63:32] = TX 引擎现场 (tx_state/thcnt/ctrl/retx/probe 位)
+    //   ⚠️ 只读功能信号, 不驱动任何功能门; 默认 (TCP_TX_OVL 未定义) 分支恒 0。
+    output wire [63:0] o_dbg_tx
 );
 
     // RTO = RTO_LIM 次连接访问 x 16 tick x 16 连接 = 12.5M 拍 ≈ 100ms @125MHz (tick 版扫描, 见 scan_now)
@@ -1778,6 +1783,57 @@ module tcp_tx_frame (
     assign dbg_pay_full2    = rx_bank ? dfu_b : dfu_a;
     assign dbg_pay_empty    = fifo_empty_rx;
     assign dbg_plen         = plen;
+    // ---- P11 DIAG 0x3D: TX/RX 卡死定位束 (纯观测) ----
+    //   word A 每项都已在上面定义; 顺序固定, 读侧按位拆。
+    wire [31:0] dbg_word_a = {
+        start_id,             // [31:28]
+        rx_flush,             // [27]
+        acks_ok,              // [26]
+        st_ok,                // [25]
+        tx_blk_sid,           // [24]
+        wnd_open,             // [23]
+        1'b0,                 // [22] 保留
+        ctrl_tx_pend,         // [21]
+        ctrl_slot_busy,       // [20]
+        retx_active,          // [19]
+        scan_now,             // [18]
+        ring_eval,            // [17]
+        svc,                  // [16]
+        ackq_empty,           // [15]
+        ack_pend_r,           // [14]
+        m_axis_tready,        // [13]
+        m_axis_tvalid,        // [12]
+        s_axis_tready,        // [11]
+        s_axis_tvalid,        // [10]
+        fifo_full,            // [9]
+        fifo_empty_tx,        // [8]
+        fifo_empty_rx,        // [7]
+        bank_rdy[1],          // [6]
+        bank_rdy[0],          // [5]
+        tx_bank,              // [4]
+        rx_bank,              // [3]
+        recv_first,           // [2]
+        rx_state              // [1:0]
+    };
+    wire [31:0] dbg_word_b = {
+        tx_state,             // [31:29]
+        thcnt,                // [28:26]
+        tx_is_probe,          // [25]
+        tx_is_ctrl,           // [24]
+        probe_sel,            // [23]
+        ps_stage_rdy,         // [22]
+        ps_stage_estab,       // [21]
+        retx_begin,           // [20]
+        retx_deny,            // [19]
+        ring_start,           // [18]
+        pay_load,             // [17]
+        1'b0,                 // [16] 保留
+        replay_left,          // [15:12]
+        retx_id_r,            // [11:8]
+        svc_id_r,             // [7:4]
+        ctrl_id               // [3:0]
+    };
+    assign o_dbg_tx = {dbg_word_b, dbg_word_a};
 `else
     localparam [2:0] S_IDLE = 3'd0, S_RECV = 3'd1, S_WAIT = 3'd2, S_HDR = 3'd3,
                      S_PAY  = 3'd4, S_TAIL = 3'd5, S_DONE = 3'd6, S_RING = 3'd7;
@@ -2839,6 +2895,8 @@ module tcp_tx_frame (
     assign e1a_hist      = 320'd0;
     assign e1a_sum_total = 32'd0;
     assign e1a_max_total = 32'd0;
+    // P11 DIAG 0x3D: serial branch has no instrumentation (board uses TCP_TX_OVL).
+    assign o_dbg_tx      = 64'd0;
 `endif
 
 endmodule

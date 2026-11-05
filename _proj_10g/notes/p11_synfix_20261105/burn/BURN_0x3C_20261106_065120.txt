@@ -1,0 +1,37 @@
+=== BURN_BEGIN gen=0x3C 1793919080.751641000 Fri Nov  6 06:51:20     2026
+--- 1) sha256 anchor ---
+WANT=d09d787ceb4cb871d2c5ef9f6ef8a6082bfa92a270d3b9860147f1dbbf9f6a8e GOT=d09d787ceb4cb871d2c5ef9f6ef8a6082bfa92a270d3b9860147f1dbbf9f6a8e
+SHA_OK (copy is not an independent anchor)
+--- 2) pre-burn peer state ---
+
+active
+	Region 0: Memory at df200000 (32-bit, non-prefetchable) [size=1M]
+	Region 1: Memory at df300000 (32-bit, non-prefetchable) [size=64K]
+/dev/xdma0_c2h_0
+/dev/xdma0_control
+/dev/xdma0_events_0
+/dev/xdma0_events_1
+/dev/xdma0_events_10
+/dev/xdma0_events_11
+/dev/xdma0_events_12
+/dev/xdma0_events_13
+/dev/xdma0_events_14
+/dev/xdma0_events_15
+xdma                  114688  0
+
+PARENT_ROOT_PORT=0000:00:1c.0
+
+xdma                  114688  0
+--- 3) burn via JTAG 192.168.0.38:3121 @1MHz 1793919086 ---
+BURN_STDOUT=/d/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p7b_biz_tcpreg/tcpreg_program_stdout.txt mtime=1793919037 T0=1793919086 age=-49s
+# puts "TCPREG_BIT = $bit"
+TCPREG_BIT = D:/repo/XCKU5PMini/udp_hls_10g/_proj_10g/notes/p11_synfix_20261105/burn/wrapper_p4_0x3C.bit
+# puts "TCPREG_BIT_EXISTS = [file exists $bit]"
+TCPREG_BIT_EXISTS = 1
+# puts "TCPREG_BIT_MTIME = [file mtime $bit]"
+TCPREG_BIT_MTIME = 1793919033
+# puts "TCPREG_PROG device=$dev freq=1MHz"
+TCPREG_PROG device=xcku5p_0 freq=1MHz
+# if {![file exists $bit]} { puts "TCPREG-ABORT: bitstream missing"; exit 1 }
+# if {[catch {program_hw_devices $dev} em]} { puts "TCPREG-ABORT PROGRAM FAILED: $em"; exit 1 }
+BURN_FAIL (no HIGH)
