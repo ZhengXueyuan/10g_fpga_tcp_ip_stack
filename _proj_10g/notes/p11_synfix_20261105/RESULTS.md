@@ -75,3 +75,15 @@
 - 位流/报告：`bits/`、`build_ok_0x3C/`、`hls_archive_p11fix_fin/`、`hls_build/`。
 - 板级：`leak_then_rawprobe.sh`、`raw_probe_table.sh`、`raw_syn_burst.py`、`verify_0x3C_f2.sh`、`raw/`。
 - 负臂原始件：`raw/verify_f2_neg_0x3B.txt`（.4 轮后 .2 8×4GiB 探针 2/8→0/8，历史签名复现）。
+
+## 7. 收尾板态（2026-11-06 02:3x 现读，fresh 8×256 MB 回归之后）
+
+```
+BID=0x0000003c  SCRATCH(0x08)=0x00000000  W6=0x00000038  W7=0x00000011
+W52=0x002d0000（高半 = ADD/DEL 事件 45；低半 = 当前 ESTAB 0）
+CARRIER_P1=1  CARRIER_P0=1
+```
+
+- ⇒ 板 = **0x3C + `0x08=0` + 两 carrier=1**；当前无已建立连接（W52 低半 0）。
+  fresh 8×256 MB 的 8 条均带数据正常关闭 ⇒ 按 F2 各自释放槽（W7 为累计 SYN-ACK 数，不是空闲槽读数）。
+- **未再跑破坏性探针**（原始 SYN 探针会给表留半开槽），故收尾态按"干净"留板；QSPI 零写入。
