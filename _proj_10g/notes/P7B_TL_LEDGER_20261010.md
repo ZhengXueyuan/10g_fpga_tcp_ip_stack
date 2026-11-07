@@ -2733,3 +2733,39 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
     ⇒ 楔死 = **合法关闭与在途帧的协议竞态**，排水是结构性修法。
   - **板现态 = 0x3E 现役**（`0x08=0`、两 carrier=1）；QSPI 零写入。
   - **未覆盖/未收口**：帧内形态（`recv_first=0`）未观测；§0-90 / §0-91 / §0-88 与本修复无关，仍开放。
+
+- ⛔ **2026-11-07 12:5x 订正（0x3E 的排水判据有缺陷；0x3F 构建中）**：
+  - **缺陷（源码）**：`frame_pending` 直接用了 `!st_ok`，而 `rb_id` 在
+    `svc/ring_eval/scan_now/probe` 拍被仲裁借走（`rtl/tcp_tx_frame.v:727`）；
+    `scan_now` 每 16 拍 1 次（`tick_cnt==4'd15`，`:600`）且 `scan_id` 轮转 ⇒
+    扫描到任一条 ESTAB 连接时 `st_ok=1` ⇒ 旧 `else` 分支把 `drain_cnt` 清零
+    ⇒ **计数器永远到不了 65535 ⇒ 多连接同时活着时排水从不触发**。
+  - **板级证据 A（0x3E，同时 8 连、无错开）**：sim1/2/4/5/7 = 8/8；sim3 = 6/8；
+    sim6 = 5/8；**sim8 = 0/8（8 条全停，bytes 0–5840，4.0 s 不恢复；随后单连接 8.45 MB OK）**。
+    原件 = `p11_synfix_20261105/raw/sim_conns_0x3E_and_0x3D.txt`。
+  - **板级证据 B（0x3D，同时 8 连，复现）**：4 轮 = 8/8、8/8、8/8、**2/8**；
+    R4 现场 `W71=0x94103884` 冻结：`st_ok=0 / tx_blk_sid=1 / recv_first=1 / tvalid=1 /
+     tready=0 / wnd_open=1 / acks_ok=1 / start_id=5`；同刻 `W52` 低半 = **6 ESTAB**、
+    `W51=0x5f` ⇒ 与"扫描拍复位计数"模型吻合。原件 = `raw/sim_stall_0x3D_run1.txt`。
+  - ⇒ **§10-193 上面"0x3E 板级收口 / §0-92 一并消除"的措辞降级**：64 轮零停顿与
+    c→d 48/48 仍是**行为层事实**，但**不能归因给"排水生效"**；0x3E 的有效性 = **未判定**。
+  - **修法 0x3F**（已实施、构建中）：`frame_live = DRAIN_EN && rx_state==IDLE && recv_first
+    && s_axis_tvalid && !ack_pend_r`；`rb_is_tid = (rb_id == s_axis_tid)`；
+    只在 `rb_is_tid && !st_ok` 时计数、`rb_is_tid && st_ok` 时清零、借走拍保持计数、
+    `!frame_live` 清零。BID **0x3F**；策略 `Congestion_SpreadLogic_high`；
+    `.bit` 待构建门。
+  - **0x3F 待验证判据**：① 同时 8 连（无错开）多轮零停顿 / 停顿毫秒级恢复；
+    ② 错开 8×256MB 多轮零停顿；③ c→d 复跑 48/48（活连接不被误排）；
+    ④ 帧内形态（`recv_first=0`）仍未覆盖。
+  - **0x3F 构建尝试 A（`Congestion_SpreadLogic_high`）= TIMING_FAIL**：WNS **−0.097** /
+    setup 失败端点 **1306**（总 400,523）；最差族 = **既存** `u_app_ctrl/init_q_reg[2][1]/C →
+    u_app_ctrl/orph_saw_reg[14]/D`（19 级 / logic 2.007 ns / **route 4.344 ns (68.4%)**），
+    报告面**无 drain 单元** ⇒ 又是 P&R 布线主导的位移，不是新逻辑进关键路径。
+    报告 = `build_fail_0x3F_a/`（timing summary 保留）。
+  - **0x3F 尝试 B（`Performance_ExtraTimingOpt`）= TIMING_FAIL**：WNS **−0.874**；
+    最差族 = **PCS `rxoutclk_out[0]` 域** `pcs64_top/... → u_mac_rx_ch0/stat_crc_err_reg[4]/CE`
+    （route 5.036 ns (75.8%)）。报告 = `build_fail_0x3F_b/`。
+  - **0x3F 尝试 C（默认 `Performance_Explore`）构建中**（2026-11-07 15:20 起）。
+  - **0x3D 同时 8 连基线（用于 0x3F A/B）**：`simd` 4 轮（R4 = 2/8）+ `simd2` 8 轮
+    （R3 = 6/8 ⇒ 2 停顿）⇒ **12 轮 / 2 个停顿事件（10/96 连接）**；
+    原件 = `raw/sim_stall_0x3D_run1.txt` + `raw/sim_stall_0x3D_simd2_8rounds.txt`。

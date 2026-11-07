@@ -6544,7 +6544,7 @@ module wrapper_p4 #(
 
     axi_regs #(
         .MAGIC_V    (32'h50360001),
-        .BUILD_ID_V (32'h0000003E),   // 0x3E = 0x3C + 陈旧帧排水 backstop（st_ok=0 && !app_tx_ready ⇒ 丢帧到 tlast）// ⚠️ 每次改动自增
+        .BUILD_ID_V (32'h0000003F),   // 0x3F = 0x3E + 排水判据订正（只在本读口指向 s_axis_tid 时采样 st_ok；借走拍保持计数）// ⚠️ 每次改动自增
                                         //   ⭐ 本轮构建 (2026-10-15): **0x27 → 0x28** = **E12 观测计数器**
                                         //      (换流门四计数器: `stat_up_ev` / `stat_sw_req` /
                                         //       `stat_sw_apply` / `stat_up_pend` —— `rtl/app_pattern.v`

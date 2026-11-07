@@ -758,8 +758,26 @@ module tcp_tx_frame (
     //   代价 = 该帧被丢弃 (该连接 TCB 已死, 本来也发不出去); 收益 = 端口不再楔死。
     //   ⚠️ 只覆盖"帧首从未被接收"的形态 (recv_first=1, 即 0x3D 实测形态);
     //      帧内形态由 mid-frame 门 (fifo/bank) 决定, 不在此判据内。
-    wire       frame_pending = DRAIN_EN && (rx_state == RX_IDLE) && recv_first &&
-                               s_axis_tvalid && !st_ok;
+    //
+    // ⛔ 0x3F 订正 (2026-11-07, 板级 sim 同时 8 连仍停顿 4 s 后定位):
+    //   0x3E 版判据直接用了 `!st_ok`。但 `rb_id` 在 svc/ring_eval/scan_now/probe 拍
+    //   会被仲裁**借走** (`rtl/tcp_tx_frame.v:727` 的 mux) ⇒ 那些拍的 `st_ok` 属于
+    //   **别的连接**。`scan_now` 每 16 拍来 1 拍 (`tick_cnt==4'd15`) 且扫描 id 轮转;
+    //   只要还有一条 ESTAB 连接被扫到，`st_ok=1` ⇒ 旧代码走 `else` 把 `drain_cnt`
+    //   清零 ⇒ 计数器**永远到不了 65535** ⇒ 排水在"多连接同时活着"时从不触发。
+    //   (板级证据: 同时 8 连、7 条 ESTAB 时, W71 冻结于 st_ok=0/recv_first=1/tvalid=1,
+    //    但端口 4 s 不恢复; 而 0x3E 在"其余连接已关闭"的换烧周期里能恢复 ⇒ 与
+    //    "只有全表非 ESTAB 才能凑满计数"的模型逐条吻合。)
+    //   修法 = 只在读口**确实指向本帧槽** (`rb_id == s_axis_tid`) 时采样:
+    //     · 明确观察到本槽 ESTAB ⇒ 清零 (活连接的窗口关闭不会被误排);
+    //     · 借走拍 (svc/scan/probe) ⇒ **保持**计数, 不当作"帧已消失";
+    //     · 帧真的不在 (`!frame_live`) ⇒ 清零。
+    //   ⚠️ ack_pend 拍不需要单独处理: 它把 `start_id` 换成 ACK 槽号, 于是
+    //      `rb_id != s_axis_tid` (除非 ACK 恰属本槽, 那时样本本来就属本槽) ⇒
+    //      自动落到"借走拍保持计数"分支。所以 `frame_live` 不接 `ack_pend_r`。
+    wire       frame_live = DRAIN_EN && (rx_state == RX_IDLE) && recv_first &&
+                            s_axis_tvalid;
+    wire       rb_is_tid  = (rb_id == s_axis_tid);
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             drain_r <= 1'b0; drain_cnt <= 16'd0;
@@ -767,12 +785,15 @@ module tcp_tx_frame (
             drain_r <= 1'b0; drain_cnt <= 16'd0;
         end else if (drain_r) begin
             if (accept && s_axis_tlast) drain_r <= 1'b0;   // 排水完成 (recv_first 未动)
-        end else if (frame_pending) begin
+        end else if (!frame_live) begin
+            drain_cnt <= 16'd0;                            // 帧已不在 ⇒ 清
+        end else if (rb_is_tid && st_ok) begin
+            drain_cnt <= 16'd0;                            // 本槽明确活着 ⇒ 清
+        end else if (rb_is_tid) begin
             if (drain_cnt >= 16'd65535) drain_r <= 1'b1;
             else drain_cnt <= drain_cnt + 16'd1;
-        end else begin
-            drain_cnt <= 16'd0;
         end
+        // else: 读口被 svc/ring_eval/scan_now/probe 借走 ⇒ 保持计数 (不清零)
     end
     wire        start_data = (rx_state == RX_IDLE) && recv_first && !ack_pend_r &&
                              !svc && !ring_eval && !scan_now && !rx_flush &&
