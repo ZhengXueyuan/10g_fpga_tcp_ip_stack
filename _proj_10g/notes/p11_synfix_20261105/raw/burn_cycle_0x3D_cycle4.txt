@@ -19,3 +19,72 @@ P7 SINK_CONN 0 STALL bytes=91341980 first_mismatch=-1 mism_bytes=0 conn_ms=0.095
 C4_R2 OK=8 STALL=0
 C4_R3 OK=8 STALL=0
 C4_R4 OK=8 STALL=0
+C4_R1 OK=7 STALL=1
+--- SAMPLES (tail) ---
+S 12:23:29 W51=0x00000002 W52=0x00230001 W20=0x001657db W55=0x00000006 W66=0x028b8880 W67=0x026286ac W68=0x00041ffb W71=0x88103884 W72=0x00000001
+S 12:23:29 W51=0x00000002 W52=0x00230001 W20=0x001657db W55=0x00000006 W66=0x028b8880 W67=0x026286ac W68=0x00041ffb W71=0x88103884 W72=0x00000001
+S 12:23:30 W51=0x00000002 W52=0x00230001 W20=0x001657db W55=0x00000006 W66=0x028b8880 W67=0x026286ac W68=0x00041ffb W71=0x88103884 W72=0x00000001
+S 12:23:30 W51=0x00000002 W52=0x00230001 W20=0x001657db W55=0x00000006 W66=0x028b8880 W67=0x026286ac W68=0x00041ffb W71=0x88103884 W72=0x00000001
+S 12:23:31 W51=0x00000002 W52=0x00230001 W20=0x001657db W55=0x00000006 W66=0x028b8880 W67=0x026286ac W68=0x00041ffb W71=0x88103884 W72=0x00000001
+S 12:23:31 W51=0x00000002 W52=0x00230001 W20=0x001657db W55=0x00000006 W66=0x028b8880 W67=0x026286ac W68=0x00041ffb W71=0x88103884 W72=0x00000001
+--- CONNS ---
+P0 SINK_CONN 0 OK bytes=268439835 first_mismatch=-1 mism_bytes=0 conn_ms=0.160 dur_ms=229.987 Mbps=9337.553 reads=36080 poll_tmo=0 CPU_FREQ_KHZ=3900000 THREADED=on q_full_push=36080 q_full_pop=36080 q_free_push=36096 q_free_pop=36080 slot_wait_spins=133 checked_bytes=268439835
+P1 SINK_CONN 0 OK bytes=268498300 first_mismatch=0 mism_bytes=267448851 conn_ms=0.128 dur_ms=580.548 Mbps=3699.932 reads=4890 poll_tmo=0 CPU_FREQ_KHZ=3797987 THREADED=on q_full_push=4890 q_full_pop=4890 q_free_push=4906 q_free_pop=4890 slot_wait_spins=745204 checked_bytes=268498300
+P2 SINK_CONN 0 OK bytes=268474856 first_mismatch=-1 mism_bytes=0 conn_ms=0.092 dur_ms=527.530 Mbps=4071.422 reads=33787 poll_tmo=0 CPU_FREQ_KHZ=3700157 THREADED=on q_full_push=33787 q_full_pop=33787 q_free_push=33803 q_free_pop=33787 slot_wait_spins=0 checked_bytes=268474856
+P3 SINK_CONN 0 OK bytes=268454252 first_mismatch=-1 mism_bytes=0 conn_ms=0.091 dur_ms=322.369 Mbps=6662.043 reads=37563 poll_tmo=0 CPU_FREQ_KHZ=3700139 THREADED=on q_full_push=37563 q_full_pop=37563 q_free_push=37579 q_free_pop=37563 slot_wait_spins=164998 checked_bytes=268454252
+P4 SINK_CONN 0 OK bytes=268448595 first_mismatch=-1 mism_bytes=0 conn_ms=0.104 dur_ms=240.344 Mbps=8935.491 reads=35824 poll_tmo=0 CPU_FREQ_KHZ=3700248 THREADED=on q_full_push=35824 q_full_pop=35824 q_free_push=35840 q_free_pop=35824 slot_wait_spins=18125 checked_bytes=268448595
+P5 SINK_CONN 0 OK bytes=268436915 first_mismatch=-1 mism_bytes=0 conn_ms=0.142 dur_ms=647.950 Mbps=3314.292 reads=58498 poll_tmo=0 CPU_FREQ_KHZ=3700132 THREADED=on q_full_push=58498 q_full_pop=58498 q_free_push=58514 q_free_pop=58498 slot_wait_spins=15787 checked_bytes=268436915
+P6 SINK_CONN 0 STALL bytes=257918344 first_mismatch=0 mism_bytes=256911849 conn_ms=0.123 dur_ms=9722.260 Mbps=212.229 reads=11300 poll_tmo=3 CPU_FREQ_KHZ=3700145 THREADED=on q_full_push=11300 q_full_pop=11300 q_free_push=11316 q_free_pop=11300 slot_wait_spins=598544 checked_bytes=257918344
+P7 SINK_CONN 0 OK bytes=268442755 first_mismatch=-1 mism_bytes=0 conn_ms=0.097 dur_ms=406.654 Mbps=5281.006 reads=49447 poll_tmo=0 CPU_FREQ_KHZ=3700136 THREADED=on q_full_push=49447 q_full_pop=49447 q_free_push=49463 q_free_pop=49447 slot_wait_spins=129087 checked_bytes=268442755
+C4_R2 OK=5 STALL=3
+--- SAMPLES (tail) ---
+S 12:23:40 W51=0x00000007 W52=0x003b0003 W20=0x0026850d W55=0x00000007 W66=0x02aa724b W67=0x027f388e W68=0x00080560 W71=0x90103884 W72=0x00000002
+S 12:23:41 W51=0x00000007 W52=0x003b0003 W20=0x0026850d W55=0x00000007 W66=0x02aa724b W67=0x027f388e W68=0x00080560 W71=0x90103884 W72=0x00000002
+S 12:23:41 W51=0x00000007 W52=0x003b0003 W20=0x0026850d W55=0x00000007 W66=0x02aa724b W67=0x027f388e W68=0x00080560 W71=0x90103884 W72=0x00000002
+S 12:23:42 W51=0x00000007 W52=0x003b0003 W20=0x0026850d W55=0x00000007 W66=0x02aa724b W67=0x027f388e W68=0x00080560 W71=0x90103884 W72=0x00000002
+S 12:23:42 W51=0x00000007 W52=0x003b0003 W20=0x0026850d W55=0x00000007 W66=0x02aa724b W67=0x027f388e W68=0x00080560 W71=0x90103884 W72=0x00000002
+S 12:23:43 W51=0x00000004 W52=0x003d0001 W20=0x0026850f W55=0x00000007 W66=0x02aa724b W67=0x027f388e W68=0x00080560 W71=0x90103884 W72=0x00000002
+--- CONNS ---
+P0 SINK_CONN 0 OK bytes=268442755 first_mismatch=-1 mism_bytes=0 conn_ms=0.111 dur_ms=1410.996 Mbps=1522.004 reads=67898 poll_tmo=0 CPU_FREQ_KHZ=3700120 THREADED=on q_full_push=67898 q_full_pop=67898 q_free_push=67914 q_free_pop=67898 slot_wait_spins=21710 checked_bytes=268442755
+P1 SINK_CONN 0 OK bytes=268479812 first_mismatch=0 mism_bytes=267430122 conn_ms=0.171 dur_ms=1169.538 Mbps=1836.484 reads=46106 poll_tmo=0 CPU_FREQ_KHZ=3700152 THREADED=on q_full_push=46106 q_full_pop=46106 q_free_push=46122 q_free_pop=46106 slot_wait_spins=65610 checked_bytes=268479812
+P2 SINK_CONN 0 OK bytes=268457355 first_mismatch=0 mism_bytes=267409741 conn_ms=2.800 dur_ms=1031.117 Mbps=2082.848 reads=5926 poll_tmo=0 CPU_FREQ_KHZ=3700147 THREADED=on q_full_push=5926 q_full_pop=5926 q_free_push=5942 q_free_pop=5926 slot_wait_spins=499261 checked_bytes=268457355
+P3 SINK_CONN 0 OK bytes=268436915 first_mismatch=-1 mism_bytes=0 conn_ms=0.432 dur_ms=730.108 Mbps=2941.340 reads=57022 poll_tmo=0 CPU_FREQ_KHZ=3700144 THREADED=on q_full_push=57022 q_full_pop=57022 q_free_push=57038 q_free_pop=57022 slot_wait_spins=6874 checked_bytes=268436915
+P4 SINK_CONN 0 OK bytes=268438375 first_mismatch=-1 mism_bytes=0 conn_ms=0.095 dur_ms=707.427 Mbps=3035.658 reads=24058 poll_tmo=0 CPU_FREQ_KHZ=3700173 THREADED=on q_full_push=24058 q_full_pop=24058 q_free_push=24074 q_free_pop=24058 slot_wait_spins=66593 checked_bytes=268438375
+P5 SINK_CONN 0 STALL bytes=188331240 first_mismatch=-1 mism_bytes=0 conn_ms=0.086 dur_ms=9405.729 Mbps=160.184 reads=45060 poll_tmo=3 CPU_FREQ_KHZ=3703125 THREADED=on q_full_push=45060 q_full_pop=45060 q_free_push=45076 q_free_pop=45060 slot_wait_spins=0 checked_bytes=188331240
+P6 SINK_CONN 0 STALL bytes=16908260 first_mismatch=-1 mism_bytes=0 conn_ms=0.087 dur_ms=9101.480 Mbps=14.862 reads=5152 poll_tmo=3 CPU_FREQ_KHZ=3797616 THREADED=on q_full_push=5152 q_full_pop=5152 q_free_push=5168 q_free_pop=5152 slot_wait_spins=1042 checked_bytes=16908260
+P7 SINK_CONN 0 STALL bytes=0 first_mismatch=-1 mism_bytes=0 conn_ms=0.108 dur_ms=9009.135 Mbps=0.000 reads=0 poll_tmo=3 CPU_FREQ_KHZ=2500000 THREADED=on q_full_push=0 q_full_pop=0 q_free_push=16 q_free_pop=0 slot_wait_spins=0 checked_bytes=0
+C4_R3 OK=7 STALL=1
+--- SAMPLES (tail) ---
+S 12:23:53 W51=0x00000001 W52=0x00700001 W20=0x003ce050 W55=0x0000000e W66=0x033d9c9a W67=0x030bdb63 W68=0x000c23d1 W71=0x98103084 W72=0x00000003
+S 12:23:53 W51=0x00000001 W52=0x00700001 W20=0x003ce050 W55=0x0000000e W66=0x033d9c9a W67=0x030bdb63 W68=0x000c23d1 W71=0x98103084 W72=0x00000003
+S 12:23:54 W51=0x00000001 W52=0x00700001 W20=0x003ce050 W55=0x0000000e W66=0x033d9c9a W67=0x030bdb63 W68=0x000c23d1 W71=0x98103084 W72=0x00000003
+S 12:23:54 W51=0x00000001 W52=0x00700001 W20=0x003ce050 W55=0x0000000e W66=0x033d9c9a W67=0x030bdb63 W68=0x000c23d1 W71=0x98103084 W72=0x00000003
+S 12:23:55 W51=0x00000001 W52=0x00700001 W20=0x003ce050 W55=0x0000000e W66=0x033d9c9a W67=0x030bdb63 W68=0x000c23d1 W71=0x98103084 W72=0x00000003
+S 12:23:55 W51=0x00000001 W52=0x00700001 W20=0x003ce050 W55=0x0000000e W66=0x033d9c9a W67=0x030bdb63 W68=0x000c23d1 W71=0x98103084 W72=0x00000003
+--- CONNS ---
+P0 SINK_CONN 0 STALL bytes=259262024 first_mismatch=0 mism_bytes=258249713 conn_ms=0.121 dur_ms=12092.837 Mbps=171.514 reads=32029 poll_tmo=3 CPU_FREQ_KHZ=3700162 THREADED=on q_full_push=32029 q_full_pop=32029 q_free_push=32045 q_free_pop=32029 slot_wait_spins=287206 checked_bytes=259262024
+P1 SINK_CONN 0 OK bytes=268457355 first_mismatch=-1 mism_bytes=0 conn_ms=0.116 dur_ms=1868.423 Mbps=1149.450 reads=28090 poll_tmo=0 CPU_FREQ_KHZ=3704475 THREADED=on q_full_push=28090 q_full_pop=28090 q_free_push=28106 q_free_pop=28090 slot_wait_spins=80132 checked_bytes=268457355
+P2 SINK_CONN 0 OK bytes=268438375 first_mismatch=-1 mism_bytes=0 conn_ms=0.101 dur_ms=1456.948 Mbps=1473.976 reads=34470 poll_tmo=0 CPU_FREQ_KHZ=3700148 THREADED=on q_full_push=34470 q_full_pop=34470 q_free_push=34486 q_free_pop=34470 slot_wait_spins=1101 checked_bytes=268438375
+P3 SINK_CONN 0 OK bytes=268477795 first_mismatch=-1 mism_bytes=0 conn_ms=0.116 dur_ms=1557.553 Mbps=1378.972 reads=26050 poll_tmo=0 CPU_FREQ_KHZ=3700134 THREADED=on q_full_push=26050 q_full_pop=26050 q_free_push=26066 q_free_pop=26050 slot_wait_spins=228894 checked_bytes=268477795
+P4 SINK_CONN 0 OK bytes=268491720 first_mismatch=0 mism_bytes=267443655 conn_ms=0.132 dur_ms=1771.811 Mbps=1212.282 reads=33927 poll_tmo=0 CPU_FREQ_KHZ=3700162 THREADED=on q_full_push=33927 q_full_pop=33927 q_free_push=33943 q_free_pop=33927 slot_wait_spins=68320 checked_bytes=268491720
+P5 SINK_CONN 0 OK bytes=268438375 first_mismatch=-1 mism_bytes=0 conn_ms=0.110 dur_ms=1403.553 Mbps=1530.051 reads=41591 poll_tmo=0 CPU_FREQ_KHZ=3700137 THREADED=on q_full_push=41591 q_full_pop=41591 q_free_push=41607 q_free_pop=41591 slot_wait_spins=632 checked_bytes=268438375
+P6 SINK_CONN 0 OK bytes=268439835 first_mismatch=-1 mism_bytes=0 conn_ms=0.107 dur_ms=1249.912 Mbps=1718.136 reads=53002 poll_tmo=0 CPU_FREQ_KHZ=3700153 THREADED=on q_full_push=53002 q_full_pop=53002 q_free_push=53018 q_free_pop=53002 slot_wait_spins=13149 checked_bytes=268439835
+P7 SINK_CONN 0 OK bytes=268447135 first_mismatch=-1 mism_bytes=0 conn_ms=0.881 dur_ms=807.215 Mbps=2660.476 reads=15382 poll_tmo=0 CPU_FREQ_KHZ=3700145 THREADED=on q_full_push=15382 q_full_pop=15382 q_free_push=15398 q_free_pop=15382 slot_wait_spins=746 checked_bytes=268447135
+C4_R4 OK=4 STALL=4
+--- SAMPLES (tail) ---
+S 12:24:06 W51=0x000000b1 W52=0x008b0004 W20=0x0052b4d3 W55=0x0000000f W66=0x0349dc83 W67=0x031683c5 W68=0x0011a233 W71=0x88103884 W72=0x00000003
+S 12:24:06 W51=0x000000b1 W52=0x008b0004 W20=0x0052b4d3 W55=0x0000000f W66=0x0349dc83 W67=0x031683c5 W68=0x0011a233 W71=0x88103884 W72=0x00000003
+S 12:24:07 W51=0x000000b1 W52=0x008b0004 W20=0x0052b4d3 W55=0x0000000f W66=0x0349dc83 W67=0x031683c5 W68=0x0011a233 W71=0x88103884 W72=0x00000003
+S 12:24:07 W51=0x000000b1 W52=0x008b0004 W20=0x0052b4d3 W55=0x0000000f W66=0x0349dc83 W67=0x031683c5 W68=0x0011a233 W71=0x88103884 W72=0x00000003
+S 12:24:08 W51=0x000000b1 W52=0x008b0004 W20=0x0052b4d3 W55=0x0000000f W66=0x0349dc83 W67=0x031683c5 W68=0x0011a233 W71=0x88103884 W72=0x00000003
+S 12:24:08 W51=0x000000b1 W52=0x008b0004 W20=0x0052b4d3 W55=0x0000000f W66=0x0349dc83 W67=0x031683c5 W68=0x0011a233 W71=0x88103884 W72=0x00000003
+--- CONNS ---
+P0 SINK_CONN 0 STALL bytes=253622440 first_mismatch=-1 mism_bytes=0 conn_ms=0.143 dur_ms=12601.269 Mbps=161.014 reads=39302 poll_tmo=3 CPU_FREQ_KHZ=3700171 THREADED=on q_full_push=39302 q_full_pop=39302 q_free_push=39318 q_free_pop=39302 slot_wait_spins=2680 checked_bytes=253622440
+P1 SINK_CONN 0 OK bytes=268438375 first_mismatch=-1 mism_bytes=0 conn_ms=0.134 dur_ms=3141.894 Mbps=683.507 reads=46839 poll_tmo=0 CPU_FREQ_KHZ=3700122 THREADED=on q_full_push=46839 q_full_pop=46839 q_free_push=46855 q_free_pop=46839 slot_wait_spins=548 checked_bytes=268438375
+P2 SINK_CONN 0 OK bytes=268441295 first_mismatch=-1 mism_bytes=0 conn_ms=0.117 dur_ms=2988.028 Mbps=718.712 reads=35610 poll_tmo=0 CPU_FREQ_KHZ=3700127 THREADED=on q_full_push=35610 q_full_pop=35610 q_free_push=35626 q_free_pop=35610 slot_wait_spins=2677 checked_bytes=268441295
+P3 SINK_CONN 0 OK bytes=268439835 first_mismatch=-1 mism_bytes=0 conn_ms=0.118 dur_ms=2598.800 Mbps=826.350 reads=40822 poll_tmo=0 CPU_FREQ_KHZ=3700115 THREADED=on q_full_push=40822 q_full_pop=40822 q_free_push=40838 q_free_pop=40822 slot_wait_spins=1155 checked_bytes=268439835
+P4 SINK_CONN 0 STALL bytes=252996100 first_mismatch=-1 mism_bytes=0 conn_ms=0.114 dur_ms=11387.281 Mbps=177.739 reads=48970 poll_tmo=3 CPU_FREQ_KHZ=3700163 THREADED=on q_full_push=48970 q_full_pop=48970 q_free_push=48986 q_free_pop=48970 slot_wait_spins=1021 checked_bytes=252996100
+P5 SINK_CONN 0 STALL bytes=263251140 first_mismatch=-1 mism_bytes=0 conn_ms=0.124 dur_ms=11083.034 Mbps=190.021 reads=38599 poll_tmo=3 CPU_FREQ_KHZ=3700599 THREADED=on q_full_push=38599 q_full_pop=38599 q_free_push=38615 q_free_pop=38599 slot_wait_spins=17797 checked_bytes=263251140
+P6 SINK_CONN 0 OK bytes=268437499 first_mismatch=0 mism_bytes=267389748 conn_ms=10.252 dur_ms=1740.548 Mbps=1233.807 reads=57248 poll_tmo=0 CPU_FREQ_KHZ=3700155 THREADED=on q_full_push=57248 q_full_pop=57248 q_free_push=57264 q_free_pop=57248 slot_wait_spins=2024 checked_bytes=268437499
+P7 SINK_CONN 0 STALL bytes=244903320 first_mismatch=-1 mism_bytes=0 conn_ms=0.314 dur_ms=10468.735 Mbps=187.150 reads=46763 poll_tmo=3 CPU_FREQ_KHZ=3700142 THREADED=on q_full_push=46763 q_full_pop=46763 q_free_push=46779 q_free_pop=46763 slot_wait_spins=135 checked_bytes=244903320
+

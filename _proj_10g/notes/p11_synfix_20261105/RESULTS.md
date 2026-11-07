@@ -87,3 +87,22 @@ CARRIER_P1=1  CARRIER_P0=1
 - ⇒ 板 = **0x3C + `0x08=0` + 两 carrier=1**；当前无已建立连接（W52 低半 0）。
   fresh 8×256 MB 的 8 条均带数据正常关闭 ⇒ 按 F2 各自释放槽（W7 为累计 SYN-ACK 数，不是空闲槽读数）。
 - **未再跑破坏性探针**（原始 SYN 探针会给表留半开槽），故收尾态按"干净"留板；QSPI 零写入。
+
+## 8. 0x3E 陈旧帧排水（2026-11-07，§0-93/§0-94）
+
+- **构建**：尝试 A–F；**F = `Congestion_SpreadLogic_high` PASS**（WNS **+0.038** / WHS +0.010 /
+  三类端点 **0/0/0**）。位流 **`572a7e91…ed2b`**（BID 0x3E / NW 98 / UNIMPL 0x1B8）。
+  关键参数 = `DRAIN_EN`（port0=1 / port1=0 常数折叠；`tcp_tx_frame` 被两端口共例化，
+  排水逻辑曾给 port1 既存族 `u_tcp_tx2/u_fifo→u_tcb2` 加负载）。
+- **板级身份**：BID 0x3E / NW 98 / UNIMPL 0x1B8 / NFF=0 / 2 BAR / LnkSta x4 / 两 carrier=1 /
+  `0x08=0`；QSPI 零写入。
+- **主判据（板级）**：换烧周期 **64 轮 × 8×256 MB = 512 连接，64/64 轮 `OK=8 STALL=0`**
+  （零停顿）。原件 = `raw/burn_cycle_0x3E_cycle*.txt`。
+- **同工装 A/B**：0x3D（`39a7a9f5…8090`）两窗口 **48 轮 / 35 停顿连接** vs 0x3E **0/64**；
+  0x3D 的 96 条 W71 采样去重 16 值，全部满足 `st_ok=0 / tx_blk_sid=1 / recv_first=1 /
+  tvalid=1 / tready=0 / RX_IDLE / T_IDLE / fifo_full=0`（`wnd_open` 可 0 可 1）。
+- **§0-92 c→d 判别**：0x3E 上 `f2_disc6.sh cd` 连跑 3 次 = **48/48 连接 OK、0 STALL**
+  （c 轮 24/24 + d 轮 24/24，`mism_bytes=0`）vs 0x3C 旧 3/8 ⇒ 同根消除。
+  原件 = `raw/cd_0x3E_3runs.txt`。
+- **未覆盖**：帧内形态（`recv_first=0`）；§0-90（R1 半开泄漏）/ §0-91（pending 单槽 + FIN seq）
+  / §0-88（SYN-under-load）仍开放。

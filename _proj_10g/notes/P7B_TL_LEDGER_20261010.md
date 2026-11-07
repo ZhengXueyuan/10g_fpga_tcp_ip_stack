@@ -2647,7 +2647,7 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
   `rx_state==RX_FLUSH` ⇒ 冲洗死锁；`m_axis_tvalid=1 & tready=0` ⇒ 下游 arbiter/MAC；
   `s_axis_tvalid=0` ⇒ app 合并总线头阻塞（app 侧）。
 
-## §10-193 2026-11-07 00:3x–02:2x：**port0 停顿根因锁定（0x3D 板级诊断）＝ 已死连接的陈旧帧占住共享 app TX 总线；修复 0x3E（排水 backstop）在构建**
+## §10-193 2026-11-07 00:3x–12:3x：**port0 停顿根因锁定（0x3D 板级诊断）＝ 已死连接的陈旧帧占住共享 app TX 总线；修复 0x3E 构建 PASS + 板级收口（512 连接零停顿；c→d 48/48）**
 
 - **0x3D 诊断构建（第三次、零几何紧凑束）PASS**：WNS **+0.016** / 三类端点 0/0/0；
   位流 **`39a7a9f599307d6630f1c86fb5c30c658b346016c308b418e39bcb2273778090`**（15,431,261 B）；
@@ -2706,3 +2706,30 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - **0x3E 尝试 E（post-route phys opt）= TIMING_FAIL −0.328 / 5713**（反而更差；报告 =
   `build_fail_0x3E_e/`）。⇒ 尝试 F = 同网表 + **`Congestion_SpreadLogic_high`**
   （0x3D 在同一设计谱系上通过 +0.016 的策略）。D 的 −0.039 仍是历史最佳。
+- ⭐ **0x3E 尝试 F = PASS**：**WNS +0.038 / 三类端点 0/0/0 / `BITSTREAM-OK`**；
+  位流 **`572a7e91697d98805b1dfb9dc738a12ad5bcb375c1551a9c5d32b086df36ed2b`**
+  （15,431,261 B）；BID **0x3E** / NW 98 / UNIMPL 0x1B8。构建读数 = `build_ok_0x3E/`。
+  **已烧**（BURN_OK / ID_BID 0x3E / NFF=0 / 2 BAR / 两 carrier=1）。
+  上板验证 = 换烧周期 ×6（每周期 4 轮 8×256MB，disc6 采样）——判据：**无"整口楔死"**
+  （停顿轮里其余连接仍能收满；下一轮恢复 8/8）。
+- ⭐ **0x3E 板级收口（2026-11-07 11:36–12:35）【已证】**：
+  - 烧录身份门全中（BID **0x3E** / NW **98** / UNIMPL **0x1B8** / NFF=0 / 2 BAR / 两 carrier=1 / `0x08=0`）。
+  - **换烧周期 64 轮 × 8×256MB = 512 连接：64/64 轮 `OK=8 STALL=0`，零停顿**。
+    原件 = `p11_synfix_20261105/raw/burn_cycle_0x3E_cycle*.txt`（10 文件 / 64 条轮记录）。
+  - **同工装 A/B**：0x3D（`39a7a9f5…8090`）两个换烧窗口共 **48 轮 / 35 个停顿连接**
+    （窗口 1：19/24；窗口 2：16/24）vs 0x3E **0/64 轮** ⇒ 行为面成立。
+  - **W71 签名单值性**：0x3D 两窗口 48+48 条采样、去重 9+7 个取值，**全部**满足
+    `st_ok=0 / tx_blk_sid=1 / recv_first=1 / s_axis_tvalid=1 / s_axis_tready=0 /
+     rx_state=IDLE / tx_state=T_IDLE / fifo_full=0 / acks_ok=1`；
+    变化量仅 `start_id∈{0,1,2,4,6}` / `wnd_open∈{0,1}` / 偶发 `scan_now`。
+    ⇒ "窗口门关"不是拒收主因（第二窗口 16/48 条样本的 `wnd_open=1`）。
+  - **§0-92 c→d 判别（kimi 建议的下一轮开局项）**：0x3E 上 `f2_disc6.sh cd` 连跑 3 次
+    = **48/48 连接 OK、0 STALL**（c 轮 24/24 + d 轮 24/24，`mism_bytes=0`，`poll_tmo=0`）
+    vs 0x3C 旧观测 **3/8** ⇒ **§0-92 与 §0-93 同根，由 0x3E 一并消除（行为面）**。
+    原件 = `p11_synfix_20261105/raw/cd_0x3E_3runs.txt`。
+  - **上一层根因（源码复核）**：DEL 只有三条合法路径（对端 FIN / RST / bare-SYN 回收，
+    `hls/src/layer_tcp.cpp:656/685/756/778`），均按 `cid`、无跨槽误清；`slow_cfg_adp` 的 DEL =
+    CAM 清 + TCB state=0 + ev_down（`rtl/slow_cfg_adp.v:15,172-181`）
+    ⇒ 楔死 = **合法关闭与在途帧的协议竞态**，排水是结构性修法。
+  - **板现态 = 0x3E 现役**（`0x08=0`、两 carrier=1）；QSPI 零写入。
+  - **未覆盖/未收口**：帧内形态（`recv_first=0`）未观测；§0-90 / §0-91 / §0-88 与本修复无关，仍开放。
