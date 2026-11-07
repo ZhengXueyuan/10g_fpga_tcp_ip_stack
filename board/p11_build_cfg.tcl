@@ -50,6 +50,11 @@ proc p11_hls_variant_dir {root variant} {
             # 归档由 hls/run_hls.bat 重新综合后拷入（见 p11_synfix_20261105/DESIGN_v2.md §3）。
             return [file join $root _proj_10g notes p11_synfix_20261105 hls_archive_p11fix_fin]
         }
+        p11fix_fin_r1 {
+            # R1 (2026-11-08): p11fix_fin + i_slot_dead[7:0] 端口（半开槽释放）。
+            # 端口存在性由 p11_slot_dead_hits + 构建脚本硬门检查。
+            return [file join $root _proj_10g notes p11_synfix_20261105 hls_archive_p11fix_fin_r1]
+        }
         default { return "" }
     }
 }
@@ -73,4 +78,15 @@ proc p11_adv_wnd_hits {hls_dir} {
     set txt [read $fh]
     close $fh
     return [regexp -all {i_tcp_adv_wnd} $txt]
+}
+
+# R1 (2026-11-08): 统计 i_slot_dead 端口出现次数 (新变体 p11fix_fin_r1 必须 >0;
+#   旧变体必须 =0)。构建脚本在 p11_hls_variant_dir 之后调用并做硬门。
+proc p11_slot_dead_hits {hls_dir} {
+    set f [file join $hls_dir udp_echo.v]
+    if {![file exists $f]} { return -1 }
+    set fh [open $f r]
+    set txt [read $fh]
+    close $fh
+    return [regexp -all {i_slot_dead} $txt]
 }

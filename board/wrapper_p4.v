@@ -245,6 +245,20 @@ module wrapper_p4 #(
         end
     endgenerate
 
+    // R1 (2026-11-08): 半开老化只在 P11 APP8 CDC 构建启用; 结构防呆 = 必须同时
+    //   有 ack_obs (TCP_TX_OVL) 与 orphan 拆除机 (ORPHAN_EN_5)。违规组合 ⇒
+    //   例化不存在的模块 ⇒ elaboration 硬失败 (不会静默交付)。
+`ifdef P11_APP8_CDC
+    localparam HO_EN_DEF = 1'b1;
+`else
+    localparam HO_EN_DEF = 1'b0;
+`endif
+    generate
+        if (HO_EN_DEF && (!ACK_OBS_AVAILABLE || !ORPHAN_EN_5)) begin : g_ho_guard
+            HO_REQUIRES_ORPHAN_AND_TCP_TX_OVL u_ho_guard();
+        end
+    endgenerate
+
     // --- P5 app 接口构建开关 (默认关 = 现状 echo 数据面, 逐位不变) -------------
     // APP_MODE 定义时: 数据面接 app (AXIS 收发 + 寄存器控制), 且
     // cfg_suppress_data_ack 必须为 0 —— app 模式没有 echo 捎带, 逐段纯 ACK 是
@@ -1939,6 +1953,8 @@ module wrapper_p4 #(
         .m_ready        (app2_tready)
     );
 
+    wire        ho_fire_p0;
+    wire [3:0]  ho_slot_p0;
     app_ctrl #(
         .WIN_CAP(WIN_CAP_5),
         // P11 P3: C4 = 外部共享配额 (win_pool_mgr 唯一属主); 其它配置 = 内部池
@@ -1950,6 +1966,8 @@ module wrapper_p4 #(
         .ORPHAN_ZW_EN(ORPHAN_ZW_EN_5),
         .ORPHAN_ZW_LIM(ORPHAN_ZW_LIM_5),
         .ORPHAN_ZW_TICK_BITS(ORPHAN_ZW_TICK_BITS_5),
+        // R1 半开老化 (仅 P11_APP8_CDC 构建; 其它构建常数折叠)
+        .HO_EN(HO_EN_DEF), .HO_LIM(8'd8),
         .PER_CONN_OCC(`P11_APP8_OCC)
     ) u_app_ctrl (
         .clk            (dp_clk),
@@ -1982,6 +2000,8 @@ module wrapper_p4 #(
         .orphan_cam_clr (orphan_cam_clr),
         .orphan_cam_slot(orphan_cam_slot),
         .stat_orphan    (app_stat_orphan),
+        .o_ho_fire      (ho_fire_p0),
+        .o_ho_slot      (ho_slot_p0),
         .o_ev_up        (app_ev_up),
         .o_ev_down      (app_ev_down),
         .o_ev_slot      (app_ev_slot),
@@ -2846,6 +2866,9 @@ module wrapper_p4 #(
     wire [31:0] cfg1_tdata;
     wire        cfg1_tvalid, cfg1_tready;
     wire        cfg_demux_tready;
+    // R1 半开老化: ADD 记录命中 (清 slot_dead[cid]); 非 C4 构建恒 0
+    wire        cfg_add_hit;
+    wire [3:0]  cfg_add_slot;
     slow_cfg_demux #(.IP_B(IP_B_5)) u_cfg_demux (
         .clk(dp_clk), .rst_n(reset_n & hls_rst_n),
         .s_axis_tdata(hls_cfg_tdata), .s_axis_tvalid(hls_cfg_tvalid),
@@ -2853,6 +2876,7 @@ module wrapper_p4 #(
         .d0_tdata(cfg0_tdata), .d0_tvalid(cfg0_tvalid), .d0_tready(cfg0_tready),
         .d1_tdata(cfg1_tdata), .d1_tvalid(cfg1_tvalid), .d1_tready(cfg1_tready),
         .slot_port(cfg_slot_port),
+        .o_add_hit(cfg_add_hit), .o_add_slot(cfg_add_slot),
         .stat_slot_oor(cfg_stat_slot_oor),
         .stat_cfg_port_mismatch(cfg_stat_port_mismatch)
     );
@@ -2862,6 +2886,8 @@ module wrapper_p4 #(
     assign cfg0_tvalid = hls_cfg_tvalid;
     assign hls_cfg_tready = cfg0_tready;
     assign cfg_slot_port = 8'd0;
+    assign cfg_add_hit  = 1'b0;
+    assign cfg_add_slot = 4'd0;
     assign cfg_stat_slot_oor = 32'd0;
     assign cfg_stat_port_mismatch = 32'd0;
 `endif
@@ -3379,6 +3405,8 @@ module wrapper_p4 #(
     wire [15:0] a2_c0_rcv_wnd, a2_ev_cnt;   // a2_estab_cnt: 已在 ACC_MARGIN 段提前声明
     wire [31:0] a2_ev_drop, a2_stat_wu, a2_stat_pool_exh, a2_stat_slot_reuse;
     wire        a2_una_adv = rx2_upd_gnt && (rx2_upd_sel == 3'd2);
+    wire        ho_fire_p1;
+    wire [3:0]  ho_slot_p1;
     app_ctrl #(
         .WIN_CAP(WIN_CAP_5),
         .EXT_QUOTA(1'b1),
@@ -3388,6 +3416,8 @@ module wrapper_p4 #(
         .ORPHAN_ZW_EN(ORPHAN_ZW_EN_5),
         .ORPHAN_ZW_LIM(ORPHAN_ZW_LIM_5),
         .ORPHAN_ZW_TICK_BITS(ORPHAN_ZW_TICK_BITS_5),
+        // R1 半开老化 (port1)
+        .HO_EN(HO_EN_DEF), .HO_LIM(8'd8),
         .PER_CONN_OCC(`P11_APP8_OCC)
     ) u_app_ctrl2 (
         .clk(dp_clk), .rst_n(dp_rst_n),
@@ -3410,6 +3440,7 @@ module wrapper_p4 #(
         .scfg_busy(scfg2_busy),
         .orphan_cam_clr(orphan2_cam_clr), .orphan_cam_slot(orphan2_cam_slot),
         .stat_orphan(app2_stat_orphan),
+        .o_ho_fire(ho_fire_p1), .o_ho_slot(ho_slot_p1),
         .o_ev_up(a2_ev_up), .o_ev_down(a2_ev_down), .o_ev_slot(a2_ev_slot),
         .fin_req(a2_fin_req), .rst_req(a2_rst_req),
         .close_req(a2_close_req), .close_id(a2_close_id),
@@ -4019,6 +4050,26 @@ module wrapper_p4 #(
         .dbg_hls_rst    ()
     );
 
+    // ---- R1 半开老化: 全局 cid 位图 (8 位; cid 0..7) ----
+    //   置位 = 任一端口的 ho_fire (快路径判定"ADD 后从未见过 ACK"的槽);
+    //   清零 = cfg ADD 记录命中 (slow_cfg_demux S_ROUTE, 新连接已重建) 或同 cid
+    //   的 ev_up/ev_down。清优先 (同拍后写赢)。HO_EN_DEF=0 时本寄存器被常数 0
+    //   折叠 (无消费者例外: u_hls 端口仅在新 HLS 网表定义时连接)。
+    reg  [7:0] slot_dead;
+    always @(posedge dp_clk or negedge dp_rst_n) begin
+        if (!dp_rst_n) slot_dead <= 8'd0;
+        else begin
+            if (ho_fire_p0 && !ho_slot_p0[3]) slot_dead[ho_slot_p0[2:0]] <= 1'b1;
+            if (ho_fire_p1 && !ho_slot_p1[3]) slot_dead[ho_slot_p1[2:0]] <= 1'b1;
+            // ---- 清优先 ----
+            if (cfg_add_hit   && !cfg_add_slot[3])   slot_dead[cfg_add_slot[2:0]]   <= 1'b0;
+            if (scfg_ev_up    && !scfg_ev_slot[3])   slot_dead[scfg_ev_slot[2:0]]   <= 1'b0;
+            if (scfg_ev_down  && !scfg_ev_slot[3])   slot_dead[scfg_ev_slot[2:0]]   <= 1'b0;
+            if (scfg2_ev_up   && !scfg2_ev_slot[3])  slot_dead[scfg2_ev_slot[2:0]]  <= 1'b0;
+            if (scfg2_ev_down && !scfg2_ev_slot[3])  slot_dead[scfg2_ev_slot[2:0]]  <= 1'b0;
+        end
+    end
+
     // HLS 慢路径协议栈 (udp_hls_10g/hls 副本综合, P4b 版: cfg_stream +
     // 限次重传; ap_ctrl_none; 看门狗 hls_rst_n 脉冲复位; reset_n 软复位必接)
     udp_echo u_hls (
@@ -4037,6 +4088,11 @@ module wrapper_p4 #(
         .cfg_stream_TDATA (hls_cfg_tdata),
         .cfg_stream_TVALID(hls_cfg_tvalid),
         .cfg_stream_TREADY(hls_cfg_tready),
+        // R1 (2026-11-08): 半开槽死标记 (8 位 cid 电平) —— 仅新 HLS 网表
+        //   (含 i_slot_dead 端口) 连接; 旧归档无此端口 ⇒ 构建层开关。
+`ifdef P11_HLS_SLOT_DEAD
+        .i_slot_dead      (slot_dead),
+`endif
         // P11 P3: P3 网表 (MAX=8 + adv_wnd) 才有本端口。旧归档网表 (0x2A/0x2D)
         //   无此端口 ⇒ **构建层开关**: C4 构建 (P3 网表) 必须定义
         //   `P11_HLS_ADV_WND=1`; 未定义 = 旧网表 (端口省略, 行为不变)。

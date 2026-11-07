@@ -27,7 +27,8 @@
 | cfg 记录 w0 | `(wscale<<16) | (cmd<<8) | slot`，`slot = w0[3:0]` | `slow_cfg_adp.v:5-8, 99, 190` |
 | slow_cfg_adp 索引 | `slot` 直接作 `cam_cfg_addr` / `upd_id`（**本端口 16 槽空间**） | `slow_cfg_adp.v:158, 176-178` |
 | 端口选择 | demux 按 `local_ip` 路由；每端口独立 `slow_cfg_adp` + `u_tcb`/`u_tcb2` | `wrapper_p4.v:2843, 3960` |
-| app_ctrl 视图 | 每端口 16 槽，索引 = 同一 `cid` | `app_ctrl.v` `c_rcv_nxt[0:15]` / `orph_*[15:0]` |
+| app_ctrl 视图 | 每端口 16 槽，索引 = 同一 `cid`；**`scan_id[3:0]` = 本端口槽号（0..15），不含端口位**（app_ctrl 每端口一份；xr13 短审建议的"bit3=端口"不成立） | `app_ctrl.v:530` `scan_id` / `c_rcv_nxt[0:15]` / `orph_*[15:0]` |
+| `ho_cid` 产生 | `ho_cid = scan_id[2:0]`，且要求 **`!scan_id[3]`**（仅 0..7 会被 HLS 使用；8..15 永无 ADD ⇒ 不会 ESTAB） | §2.1；`slow_cfg_demux.v:12-14` |
 | 全局唯一性 | 一个 cid 同一时刻只属一个端口（HLS 表项唯一） | HLS 单表 |
 | **`slot_dead`** | **全局 8 位、按 cid 索引（0..7）**；置位 = 任一端口的 `ho_fire`（cid）；清零 = **demux 在 S_ROUTE 捕获到 `is_add` 的那一拍** + 同 cid 的 `ev_up/ev_down`（demux 已丢弃 slot≥8 的记录 ⇒ cid 域天然 0..7） | 本文 §2；`slow_cfg_demux.v:6-14,70-80` |
 | 时钟域 | `ap_clk = dp_clk`（HLS 与 app_ctrl 同域） | `wrapper_p4.v:4025` |
@@ -75,7 +76,7 @@ end
   ```
   **绝不 `cfg_write`**（H-1 的连环杀根因就是电平重复杀；边沿后同一电平只杀一次）。
 - **延迟预算（H-1 要求）**：清零发生在 `slow_cfg_demux` **捕获完整 8 词记录**的 S_ROUTE 拍。
-  预算 = demux 输入 FIFO 最多 16 词（2 条旧记录）+ 本记录 8 词捕获 = **≤24 拍 ≈154 ns**
+  预算 = demux 输入 FIFO 最多 16 词（2 条旧记录）+ 本记录 8 词捕获 + S_ROUTE 1 拍 = **≤25 拍 ≈160 ns**
   （1 词/拍，dp 156.25 MHz）；而"重建该 cid 的新 SYN" 触发的下一 HLS pass 至少相隔一个
   控制帧到达周期（10G 下 ≥ 数百拍；8 连同时建连时也 ≥ 数十拍）⇒ **清零先于下一 pass 观测**。
   ⚠️ 原先 v2 草稿把清零点写成"w0 第一词"，现按 demux 实际结构（整记录捕获后 S_ROUTE 才判口）
@@ -136,3 +137,37 @@ end
 - L-2 的存储数字是估算，未综合。
 - 观测面：`ho_fire` 计入 `stat_orphan`（`app_ctrl.v:1686`）会混语义；**本轮不扩快照几何**
   （NW=98 / UNIMPL 0x1B8），用 W52/W7 做判据。
+
+## 7. 实施状态（2026-11-08，进行中）
+
+- **RTL 已实施**（未构建）：
+  - `rtl/app_ctrl.v`：参数 `HO_EN`/`HO_LIM`；`ho_ack_seen[15:0]`（ack_obs 置位 /
+    ev_up·ev_down 清）；`ho_cnt[0:15]`（复用 `orph_scan_gate` + `orph_tick`）；
+    `ho_fire` OR 进 orphan 拆除 FSM；输出 `o_ho_fire`/`o_ho_slot`。
+    `HO_EN=0`（默认）⇒ 全部常数折叠。
+  - `rtl/slow_cfg_demux.v`：新增 `o_add_hit`/`o_add_slot`（S_ROUTE 捕获 is_add 那拍，
+    仅 slot<8）。
+  - `board/wrapper_p4.v`：`HO_EN_DEF`（仅 `P11_APP8_CDC`）+ 结构防呆
+    （`HO_REQUIRES_ORPHAN_AND_TCP_TX_OVL`）；两端口 `app_ctrl` 接 `HO_EN/HO_LIM`；
+    全局 `slot_dead[7:0]`（置位 = 两端口 ho_fire；清 = demux add_hit / 两端口 ev_up·ev_down；
+    清优先）；`u_hls.i_slot_dead(slot_dead)` 仅 `P11_HLS_SLOT_DEAD` 定义时连接。
+  - `board/p11_build_cfg.tcl`：新变体 `p11fix_fin_r1` + `p11_slot_dead_hits`；
+    `board/build_p7b_ku5p.tcl`：变体自动加 `P11_HLS_SLOT_DEAD=1` + 端口存在性硬门
+    （`P11_HLS_SLOT_DEAD_PORT_MISMATCH`）。
+- **HLS 已实施**：`hls/src/udp_echo.cpp` 新端口 `i_slot_dead`（ap_none）+ 静态
+  `slot_dead_seen[8]` + 每 pass 开头边沿释放循环（`tcp_conn[i].state=T_FREE;
+  retrans_pending=false`，**绝不 cfg_write**）；`hls/tb/udp_echo_tb.cpp` 兼容壳
+  （默认 `g_slot_dead=0`）+ 新用例 `test_p11_slot_dead_mask`。
+- **csim（MSVC，4 臂）【已证】**：`CSIM_P3_ALL_PASS`（4/4 臂 `CSIM_BASELINE_OK`，
+  3 条 P2 基线 XFAIL 逐字不变；passed 113→120）。R1 用例读数：
+  ```
+  R1_TB_MASK_FILL SYNACK=8/8 ADD=8 DEL=0
+  R1_TB_MASK_HOLD state0=0 DEL=0 (expect 0 / 0)
+  R1_TB_MASK_NEWSYN SYNACK=1 ADD=1 DEL=0
+  R1_TB_MASK_NO_REKILL state=2 (expect 2=T_SYN_RCVD)
+  R1_TB_MASK_REARM state=0 (expect 0)
+  ```
+  ⇒ 边沿语义（同电平不重复杀）、无 cfg DEL、重建槽不被误杀、回 0 后重新武装
+  四条全部 csim 通过。
+- **待做**：HLS 综合（进行中）→ 归档 `hls_archive_p11fix_fin_r1` → 定向 STA →
+  构建（先 `Congestion_SpreadLogic_low`）→ 板级（正臂 / 活连接安全臂 / 竞争臂 / 跨端口臂）。

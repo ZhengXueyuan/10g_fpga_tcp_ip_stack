@@ -33,6 +33,7 @@ void udp_echo(
     hls::stream<gmii_byte_t> &msg_stream,    // debug messages → UART IP
     hls::stream<ap_uint<32> > &cfg_stream,   // P4b: 连接配置记录 → fast path CAM/TCB
     ap_uint<16>               i_tcp_adv_wnd, // P11 P3: SYN-ACK 通告窗 (= 共享池配额)
+    ap_uint<8>                i_slot_dead,   // R1: 快路径半开槽死标记 (cid 位图, 电平)
     bool                     &led_d0,        // LED D0 (M16)
     bool                     &led_d1,        // LED D1 (N16)
     bool                     &led_d2,        // LED D2 (P15)
@@ -44,6 +45,7 @@ void udp_echo(
     #pragma HLS INTERFACE axis port=msg_stream
     #pragma HLS INTERFACE axis port=cfg_stream
     #pragma HLS INTERFACE ap_none port=i_tcp_adv_wnd
+    #pragma HLS INTERFACE ap_none port=i_slot_dead
     #pragma HLS INTERFACE ap_none port=led_d0
     #pragma HLS INTERFACE ap_none port=led_d1
     #pragma HLS INTERFACE ap_none port=led_d2
@@ -77,6 +79,8 @@ void udp_echo(
     static ap_uint<32> rx_src_ip  = 0;
     static ap_uint<32> rx_dst_ip  = 0;   // P11: 本帧目的 IP (回包源 IP 身份)
     static bool     init_done     = false;
+    // R1 (2026-11-08): 半开槽死标记的边沿记忆 (bit=1 表示该 cid 的 1 已被消费)
+    static ap_uint<8> slot_dead_seen = 0;
 
     // P4b: TCP 控制帧延迟处理。tcp_send 直写共享 TX 区 (TX_UDP_BASE),
     // 而 MAC TX 逐字节流式读同一区域 (每字节一拍) — 帧完成拍若恰有
@@ -109,6 +113,7 @@ void udp_echo(
         rx_src_ip      = 0;
         rx_dst_ip      = 0;
         init_done      = false;
+        slot_dead_seen = 0;
         tcp_proc_pending = false;
         tcp_proc_smac   = 0;
         dhcp_state     = DHCP_IDLE;
@@ -119,6 +124,20 @@ void udp_echo(
         dhcp_start     = false;
         dhcp_delay     = 0;
     } else {
+        // ---- R1 (2026-11-08): 半开槽释放 (边沿语义) ----
+        //   快路径 app_ctrl 判"ADD 后从未见过 ACK"的槽超时 ⇒ i_slot_dead[cid]=1。
+        //   这里只对 0→1 边沿动作一次 (同电平不重复杀); 位回 0 后重新武装。
+        //   **绝不 cfg_write** (HLS 释槽由本表完成; CAM/TCB/配额已由快路径清)。
+        //   语义: dead=1 且此前未见 ⇒ state=T_FREE + 清 retrans_pending。
+        for (int i = 0; i < MAX_TCP_CONN; i++) {
+            #pragma HLS UNROLL
+            if (i_slot_dead[i] && !slot_dead_seen[i]) {
+                tcp_conn[i].state = T_FREE;
+                tcp_conn[i].retrans_pending = false;
+            }
+            slot_dead_seen[i] = i_slot_dead[i];
+        }
+
         // One-time init
         if (!init_done) {
             buffer[TX_UDP_BASE + 7] = 0x48454C4C;

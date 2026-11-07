@@ -47,6 +47,11 @@ module slow_cfg_demux #(
     input  wire        d1_tready,
     // ---- 槽属主映射 (1 = port1; 给 win_pool_mgr / retx_pool_shared) ----
     output reg  [7:0]  slot_port,
+    // ---- R1 半开老化: ADD 记录命中脉冲 (1 拍; S_ROUTE 捕获到 is_add 那拍) ----
+    //   用途 = wrapper 清该 cid 的 slot_dead 位 (新连接已重建 ⇒ 撤销"死"标记)。
+    //   只在合法 cid (slot<8) 的 ADD 上发; slot>=8 的记录整条丢弃 ⇒ 不发。
+    output reg         o_add_hit,
+    output reg  [3:0]  o_add_slot,
     // ---- 观测 ----
     output reg  [31:0] stat_slot_oor,           // slot >= 8 的记录数 (应恒 0)
     output reg  [31:0] stat_cfg_port_mismatch   // DEL 的 w2 与 slot_port 不一致 (应恒 0)
@@ -104,8 +109,10 @@ module slow_cfg_demux #(
             rec4 <= 0; rec5 <= 0; rec6 <= 0; rec7 <= 0;
             dst_port <= 1'b0; do_play <= 1'b0;
             slot_port <= 8'd0;
+            o_add_hit <= 1'b0; o_add_slot <= 4'd0;
             stat_slot_oor <= 32'd0; stat_cfg_port_mismatch <= 32'd0;
         end else begin
+            o_add_hit <= 1'b0;              // 脉冲契约: 非命中拍恒 0
             case (state)
                 S_RECV: begin
                     do_play <= 1'b0;
@@ -139,6 +146,10 @@ module slow_cfg_demux #(
                     end else if (is_add) begin
                         dst_port <= ip_b_match;
                         slot_port[slot] <= ip_b_match;
+                        // R1: 合法 cid 的 ADD ⇒ 撤销该 cid 的"死"标记 (与 slot_port
+                        // 更新同拍; 整记录已捕获, 且 HLS 下一 pass 前必然先经过本拍)
+                        o_add_hit  <= 1'b1;
+                        o_add_slot <= slot;
                         do_play <= 1'b1;
                         state   <= S_PLAY;
                     end else if (is_del) begin

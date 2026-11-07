@@ -165,6 +165,18 @@ if {![file exists [file join $hls_dir udp_echo.v]]} {
     puts "P7B_VERDICT = P11_HLS_NETLIST_MISSING"
     exit 1
 }
+# R1 (2026-11-08): 新网表变体 p11fix_fin_r1 自带 i_slot_dead[7:0] 端口 ⇒ 自动加
+#   宏; 端口存在性硬门 (旧变体必须无此端口; 新变体必须有)。防止"宏开了端口不在"
+#   或"端口在宏没开"两种静默错配。
+if {$CFG_HLS_VARIANT eq "p11fix_fin_r1"} { lappend P11_DEFS P11_HLS_SLOT_DEAD=1 }
+set P11_SD_HITS [p11_slot_dead_hits $hls_dir]
+set P11_SD_DEF  [expr {[lsearch -exact $P11_DEFS "P11_HLS_SLOT_DEAD=1"] >= 0}]
+puts "P11_HLS_SLOT_DEAD_HITS = $P11_SD_HITS (P11_HLS_SLOT_DEAD=$P11_SD_DEF)"
+if {($P11_SD_DEF && $P11_SD_HITS <= 0) || (!$P11_SD_DEF && $P11_SD_HITS > 0)} {
+    puts "P7B_VERDICT = P11_HLS_SLOT_DEAD_PORT_MISMATCH"
+    exit 1
+}
+
 set P11_ADV_HITS [p11_adv_wnd_hits $hls_dir]
 set P11_CFG_CHK [p11_build_cfg_check $P11_DEFS $P11_ADV_HITS]
 puts "P11_CFG_INPUT  = $P11_CFG (env) ; HLS_VARIANT = $CFG_HLS_VARIANT"

@@ -28,13 +28,15 @@
 // 现本 TB 可直接 g++ 编译跑 csim; xsim 真 RTL 验证仍是最终判据。
 static hls::stream<ap_uint<32> > g_cfg;
 void udp_echo(bool, hls::stream<gmii_byte_t>&, hls::stream<gmii_byte_t>&, hls::stream<gmii_byte_t>&,
-              hls::stream<ap_uint<32> >&, ap_uint<16>, bool&, bool&, bool&, bool&);
+              hls::stream<ap_uint<32> >&, ap_uint<16>, ap_uint<8>, bool&, bool&, bool&, bool&);
 // P11 P3: 兼容壳新增 adv_wnd 形参 (默认 = g_adv_wnd = 0xC000 历史值 ⇒ 既有调用逐字不变)
+// R1: 兼容壳再增 slot_dead 形参 (默认 = g_slot_dead = 0 ⇒ 既有调用逐字不变)
 static ap_uint<16> g_adv_wnd = 0xC000;
+static ap_uint<8>  g_slot_dead = 0;
 static void udp_echo(bool reset_n, hls::stream<gmii_byte_t>&rx, hls::stream<gmii_byte_t>&tx,
                      hls::stream<gmii_byte_t>&msg, bool&d0, bool&d1, bool&d2, bool&d3,
-                     ap_uint<16> adv_wnd = g_adv_wnd) {
-    udp_echo(reset_n, rx, tx, msg, g_cfg, adv_wnd, d0, d1, d2, d3);
+                     ap_uint<16> adv_wnd = g_adv_wnd, ap_uint<8> slot_dead = g_slot_dead) {
+    udp_echo(reset_n, rx, tx, msg, g_cfg, adv_wnd, slot_dead, d0, d1, d2, d3);
 }
 
 static int passed=0,failed=0;
@@ -1612,6 +1614,80 @@ static void test_p3_del_local_ip(void){
     for(int i=0;i<40;i++){udp_echo(true,g_rx,g_tx,g_msg,led_d0,led_d1,led_d2,led_d3);while(!g_tx.empty())g_tx.read(dummy);}
 }
 
+//=============================================================================
+// R1 (2026-11-08): slot_dead mask — edge semantics.
+//   Fill the table with half-open connections, raise i_slot_dead[cid0], and
+//   check: (a) the slot is freed with NO cfg DEL; (b) a brand-new SYN succeeds;
+//   (c) holding the bit high does NOT re-kill the rebuilt slot; (d) dropping and
+//   re-raising the bit re-arms the edge and frees again.
+//=============================================================================
+static void test_p11_slot_dead_mask(void){
+    TEST("R1 slot_dead mask (edge: one free per rising edge, no cfg DEL)");
+    uint8_t f[2048], cap[2048];
+    int n, synacks, adds, dels, got=0;
+
+    g_slot_dead = 0;
+    p11_reset_model();
+
+    // 1) Fill every slot with a half-open connection (SYN -> SYN-ACK only).
+    for(int k=0;k<MAX_TCP_CONN;k++){
+        n=build_syn(f,PEER_U32,IP_A_U32,(uint16_t)(25300+k),0x7c000000u+(uint32_t)k*0x10000u);
+        feed(f,n);
+        if(capture_if(pred_synack,cap,256)>0) got++;
+    }
+    cfg_add_del(&adds,&dels);
+    printf("R1_TB_MASK_FILL SYNACK=%d/%d ADD=%d DEL=%d\n",got,MAX_TCP_CONN,adds,dels);
+    CHECK(got==MAX_TCP_CONN,"mask test: MAX SYN-ACKs");
+    CHECK(adds==MAX_TCP_CONN&&dels==0,"mask test: MAX cfg ADDs, no DEL");
+
+    // 2) Raise slot_dead[cid0] and hold it for 3 passes.
+    g_slot_dead = 0x01;
+    for(int i=0;i<3;i++) udp_echo(true,g_rx,g_tx,g_msg,led_d0,led_d1,led_d2,led_d3);
+    cfg_add_del(&adds,&dels);
+#if defined(TCP_STATE_PROBE)
+    printf("R1_TB_MASK_HOLD state0=%d DEL=%d (expect 0 / 0)\n",
+           (int)tcp_state_probe(25300,PEER_U32,IP_A_U32), dels);
+    CHECK(tcp_state_probe(25300,PEER_U32,IP_A_U32)==0,"mask frees cid0 to T_FREE(0)");
+#endif
+    CHECK(dels==0,"mask free emits no cfg DEL");
+
+    // 3) New SYN must now succeed (only the mask free made room). Keep the bit high.
+    n=build_syn(f,PEER_U32,IP_A_U32,25390,0x7d000000u); feed(f,n);
+    synacks=count_frames(4000,pred_synack,cap,2048);
+    cfg_add_del(&adds,&dels);
+    printf("R1_TB_MASK_NEWSYN SYNACK=%d ADD=%d DEL=%d\n",synacks,adds,dels);
+    CHECK(synacks==1&&adds==1,"new SYN succeeds after mask free");
+
+    // 4) Hold the level: the rebuilt cid0 must NOT be re-killed.
+    for(int i=0;i<3;i++) udp_echo(true,g_rx,g_tx,g_msg,led_d0,led_d1,led_d2,led_d3);
+#if defined(TCP_STATE_PROBE)
+    printf("R1_TB_MASK_NO_REKILL state=%d (expect %d=T_SYN_RCVD)\n",
+           (int)tcp_state_probe(25390,PEER_U32,IP_A_U32), 2 /*T_SYN_RCVD*/);
+    CHECK(tcp_state_probe(25390,PEER_U32,IP_A_U32)==2 /*T_SYN_RCVD*/,
+          "held level does not re-kill the rebuilt slot");
+#endif
+
+    // 5) Drop to 0 (re-arm), then raise again -> frees the rebuilt slot.
+    g_slot_dead = 0x00;
+    for(int i=0;i<2;i++) udp_echo(true,g_rx,g_tx,g_msg,led_d0,led_d1,led_d2,led_d3);
+    g_slot_dead = 0x01;
+    for(int i=0;i<3;i++) udp_echo(true,g_rx,g_tx,g_msg,led_d0,led_d1,led_d2,led_d3);
+#if defined(TCP_STATE_PROBE)
+    printf("R1_TB_MASK_REARM state=%d (expect 0)\n",
+           (int)tcp_state_probe(25390,PEER_U32,IP_A_U32));
+    CHECK(tcp_state_probe(25390,PEER_U32,IP_A_U32)==0 /*T_FREE*/,
+          "re-armed rising edge frees again");
+#endif
+    g_slot_dead = 0;
+
+    // 6) Cleanup: RST every quadruple that may still own a slot.
+    { uint16_t ports[24]; int np=0;
+      for(int k=0;k<MAX_TCP_CONN;k++) ports[np++]=(uint16_t)(25300+k);
+      ports[np++]=25390;
+      int cd=p11_clean_ports(ports,np);
+      printf("R1_TB_MASK_CLEAN DEL=%d\n",cd); }
+}
+
 int main() {
     printf("P11_FIN_ARM=%s\n", P11_FIN_ARM_NAME);
     test_crc();
@@ -1621,6 +1697,7 @@ int main() {
     int p11tb_fail0 = failed;
     test_p11_syn_pair_same_window();
     test_p11_halfopen_leak();
+    test_p11_slot_dead_mask();
     test_p11_conn_churn(8);
     // P11 R2 (2026-11-06): zero-data FIN (also needs an EMPTY table).
     test_p11_zero_data_fin();
