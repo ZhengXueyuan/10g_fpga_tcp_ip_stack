@@ -105,6 +105,37 @@ S 03:17:50..58 W51=0x3d W52=0x00480005（estab=5）—— 冻结 ~10 s 直到连
 - ⇒ 下一轮：**同输入换策略重试**（`Performance_Explore` 或 `Performance_ExtraTimingOpt`），
   或把束缩到 1 个字（只留 word A 的 22 位关键门）。
 
+### 6.4 0x3D 诊断结果（2026-11-07 02:0x）【已证·根因锁定】
+
+- **构建**：第三次 0x3D（零几何紧凑束，`P11_DIAG_TX=1`，只复用 W71）**PASS**：
+  WNS **+0.016** / 三类端点 0/0/0；位流 **`39a7a9f5…8090`**；BID 0x3D / NW 98 / UNIMPL 0x1B8。
+- **板级**：换烧后第 2/3 轮抓到停顿（C1_R2 6/8、C1_R3 5/8，均"传 100–260 MB 后停"）。
+  W71 解码（两例一致）：
+  ```
+  rx_state=RX_IDLE  recv_first=1  s_axis_tvalid=1  s_axis_tready=0
+  wnd_open=1  tx_blk_sid=1  acks_ok=1  st_ok=0
+  fifo_full=0  bank_rdy0/1=0  tx_state=T_IDLE  start_id=2/0
+  ```
+- **判读**：app 挂着帧、但该槽 **TCB 状态已非 ESTAB**（`st_ok=0`）⇒ `tx_blk_sid=1` ⇒ 快路径
+  永久拒收；同刻 app_ctrl 该槽 ready=0（W51）、estab 不含它（W52）⇒ **两侧都认为连接已不在**
+  ⇒ 这是**已死连接的陈旧帧**占住共享 AXIS 总线 ⇒ 全口饿死。
+  **排除**：窗口门（wnd_open=1）、r6 `acks_ok`（=1）、FIFO（full=0）、RX_FLUSH（state=IDLE）、
+  TX 引擎卡死（T_IDLE）。
+
+## 6.5 修复 0x3E（实施完成、构建中）
+
+- `rtl/tcp_tx_frame.v`：新增输入 `app_tx_ready_i[15:0]` + `drain_r`/`drain_cnt`：
+  帧挂起（`rx_state==RX_IDLE && recv_first && s_axis_tvalid`）且
+  **`st_ok==0 && app_tx_ready_i[s_axis_tid]==0`** 持续 **16384 拍（≈105 µs）** ⇒ 置 `drain_r`，
+  把该帧所有拍**接收并丢弃**（`tready=1`；`wr_act`/`wr_tap`/收帧体/E1a `first_present` 均以
+  `!drain_r` 门控），到 `tlast` 复位。
+- **代价** = 该连接丢一帧（其 TCB 已死、本来发不出去）；**收益** = 端口不再楔死。
+- 判据要求"两侧都认为不在"⇒ 不会误伤活连接的窗口关闭（窗口=0 时 `st_ok` 仍=1，不触发）。
+- wrapper 两实例接 `app_tx_ready`/`a2_tx_ready`；BID **0x3E**；诊断宏关闭（W71/W72 恢复原义）。
+- **未覆盖**：帧内形态（`recv_first=0`，由 FIFO/bank 门决定）。
+- **上一层未定位**：**TCB 状态为何被清**（哪条 DEL/state=0 落到活连接槽）—— 排水把"整口楔死"
+  降级为"单连接丢一帧"，根因仍需下一轮查（HLS FIN/槽复用/静默释放路径）。
+
 ## 7. 下一步
 
 1. 0x3D 用不同实现策略重建（预计 WNS 余量足够 → 上板）。

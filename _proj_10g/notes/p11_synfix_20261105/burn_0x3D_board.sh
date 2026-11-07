@@ -14,7 +14,7 @@ S=/tmp/p7b_snap.sh
 mkdir -p "$OUT/burn" "$OUT/raw"
 
 BIT=$OUT/bits/wrapper_p4_0x3D.bit
-SHAF=$OUT/bits/SHA256.txt
+SHAF=$OUT/bits/SHA256_0x3D.txt
 [ -f "$BIT" ] || { echo "FATAL: missing $BIT"; exit 3; }
 [ -f "$SHAF" ] || { echo "FATAL: missing $SHAF"; exit 3; }
 WANT=$(grep -Eo '[0-9a-f]{64}' "$SHAF" | head -1)

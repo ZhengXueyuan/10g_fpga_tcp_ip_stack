@@ -2646,3 +2646,63 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - 下一步 = 0x3D 上板：换烧周期 ×6，命中即解 W71/W72；判读：
   `rx_state==RX_FLUSH` ⇒ 冲洗死锁；`m_axis_tvalid=1 & tready=0` ⇒ 下游 arbiter/MAC；
   `s_axis_tvalid=0` ⇒ app 合并总线头阻塞（app 侧）。
+
+## §10-193 2026-11-07 00:3x–02:2x：**port0 停顿根因锁定（0x3D 板级诊断）＝ 已死连接的陈旧帧占住共享 app TX 总线；修复 0x3E（排水 backstop）在构建**
+
+- **0x3D 诊断构建（第三次、零几何紧凑束）PASS**：WNS **+0.016** / 三类端点 0/0/0；
+  位流 **`39a7a9f599307d6630f1c86fb5c30c658b346016c308b418e39bcb2273778090`**（15,431,261 B）；
+  BID **0x3D** / NW **98** / UNIMPL **0x1B8**（`P11_DIAG_TX=1` 把 32 位紧凑诊断字复用进 W71；
+  W72 保持 app_sw_req）。前两次失败：A（新增 W98/W99，NW 100）−0.390/7537；
+  B（64 位束）−0.046/477。**紧凑束 + 只动 W71 ⇒ 通过。**
+- **板级现场【已证】**：换烧 0x3D 后第 2/3 轮抓到停顿（C1_R2 6/8、C1_R3 5/8；均为"传了
+  100–260 MB 后停"）。采样 W71 解码（两例一致）：
+  `rx_state=RX_IDLE / recv_first=1 / s_axis_tvalid=1 / s_axis_tready=0 / wnd_open=1 /
+   tx_blk_sid=1 / acks_ok=1 / **st_ok=0** / fifo_full=0 / bank_rdy=0 / tx_state=T_IDLE /
+   start_id=2 / 0`。
+- **根因链（已证）**：app 在共享 TX 总线上仍挂着一帧（AXIS 不可撤），但该槽的**快路径 TCB
+  状态已不是 ESTAB**（`st_ok=0`）⇒ `tx_blk_sid=1` ⇒ 快路径永久拒收；同刻 `W51` 该槽
+  ready=0、`W52 estab` 不含它 ⇒ **app_ctrl 与 TCB 两侧都认为该连接已不在** ⇒ 这是一帧
+  **已死连接的陈旧帧**。它占住总线 ⇒ 全口饿死（W66/W67/W68/W55 冻结、其余槽 ready 也发不出）。
+  **排除项**：窗口（wnd_open=1）、r6 `acks_ok`（=1）、FIFO（full=0）、RX_FLUSH（state=IDLE）、
+  TX 引擎（T_IDLE）。
+- **修复 0x3E（实施完成、构建中）**：`rtl/tcp_tx_frame.v` 新增 `app_tx_ready_i[15:0]` 输入 +
+  `drain_r` 排水状态：帧挂起（`rx_state==RX_IDLE && recv_first && s_axis_tvalid`）且
+  **`st_ok==0 && app_tx_ready_i[s_axis_tid]==0`** 持续 **16384 拍（≈105 µs）** ⇒ 置 `drain_r`，
+  把该帧的拍**全部接收但丢弃**（`tready=1`；`wr_act/wr_tap/收帧体/E1a first_present` 全部
+  以 `!drain_r` 门控），到 `tlast` 复位。**代价 = 丢该连接的一帧**（其 TCB 已死、本来也发
+  不出去）；**收益 = 端口不再楔死**。判据要求"两侧都认为不在"⇒ 不会误伤活连接的窗口关闭
+  （app_tx_ready 因窗口=0 时 st_ok 仍=1，不触发）。wrapper：两实例分别接
+  `app_tx_ready` / `a2_tx_ready`；BID **0x3E**；诊断宏关闭（W71/W72 恢复原义）。
+- **未覆盖/登记**：只覆盖"帧首从未被接收"（recv_first=1，0x3D 实测形态）；帧内形态
+  （recv_first=0）由 FIFO/bank 门决定，不在本判据内。**TCB 状态为何被清**（哪条 DEL/state=0
+  落到活连接槽）**未定位** —— 是下一层的根因，排水只是把"整口楔死"降级为"单连接丢一帧"。
+- 原件 = `p11_synfix_20261105/STALL_INVESTIGATION.md` §6.4 + `build_ok_0x3D/` +
+  `bits/SHA256_0x3D.txt` + `burn_cycle_0x3D_cycle1.txt`（现场样本）+ `decode_w98_w99.py`。
+- **0x3E 构建尝试 A（`Congestion_SpreadLogic_high`）= TIMING_FAIL**：WNS **−0.632 / setup 8909**；
+  最差族 = **port1 既存** `u_tcp_tx2/u_fifo_a/wptr → u_tcb2/rcv_nxt/CE`（route 4.917 ns），
+  报告面 **`drain`/`app_tx_ready` 命中 0** ⇒ **不是修复逻辑的问题、是 P&R 拥塞劣化**
+  （该次 route iteration 0 重叠 115,299）。报告 = `build_fail_0x3E_a/`。
+  按"换策略 = 新输入"重试：`Performance_Explore`（02:3x 起，构建中）。
+- **0x3E 尝试 B（`Performance_Explore`）= TIMING_FAIL**：WNS **−0.188 / setup 3504**；
+  最差族仍是 **port1 既存** `u_tcp_tx2/u_fifo_a/rptr → u_tcb2/snd_wnd/CE`（route 4.494 ns）；
+  **`drain`/`app_tx_ready` 命中 0** ⇒ 仍是 P&R 拥塞、不是修复逻辑进关键路径。
+- **尝试 C（进行中）**：把排水判据压到最小 —— **去掉 `app_tx_ready_i[15:0]` 输入**，
+  仅 `!st_ok` 持续 **65536 拍（≈419 µs）** 触发（0x3D 实测时 app_ctrl 该槽 ready 也=0；
+  419 µs 远长于 DEL→ADD 过渡），换 **`Performance_ExtraTimingOpt`**。报告 =
+  `build_fail_0x3E_b/`（归档后补）。
+- **0x3E 尝试 C（简化 + ExtraTimingOpt）= TIMING_FAIL**：WNS **−0.176 / setup 3156**；
+  最差族仍是 **port1 既存** `u_tcp_tx2/u_fifo_a/wptr → u_tcb2/snd_una/CE`；报告面
+  `drain`/`app_tx_ready` 命中 **0**。报告 = `build_fail_0x3E_c/`。
+- ⭐ **尝试 D 的关键改动（进行中）**：`tcp_tx_frame` 被**两个端口共例化** ⇒ 排水逻辑在
+  **port1 的网表里也加了负载**（失败族正是 port1 的 `u_fifo→u_tcb2`）。新增参数
+  **`DRAIN_EN`**：`u_tcp_tx` = `1'b1`、`u_tcp_tx2` = **`1'b0`**（常数折叠 ⇒ port1 网表
+  回到 0x3D 结构，负载消失）。策略沿用 **`Performance_ExtraTimingOpt`**（0x36 同系通过
+  +0.017 的策略）。
+- **0x3E 尝试 D（DRAIN_EN port0-only + ExtraTimingOpt）**：**WNS −0.039 / setup 509**
+  （相对 B/C 的 −0.18 大幅改善 ⇒ **port1 负载确实是主因**）；最差族仍为 port1 既存
+  `u_tcp_tx2/u_fifo_b/rptr → u_app2/stg`（route 4.07 ns），`drain` 报告面命中 0。
+  报告 = `build_fail_0x3E_d/`。**距过门仅 0.039 ns** ⇒ 尝试 E = 同网表 +
+  **`Performance_ExplorePostRoutePhysOpt`**（面向布线主导的小违例）。
+- **0x3E 尝试 E（post-route phys opt）= TIMING_FAIL −0.328 / 5713**（反而更差；报告 =
+  `build_fail_0x3E_e/`）。⇒ 尝试 F = 同网表 + **`Congestion_SpreadLogic_high`**
+  （0x3D 在同一设计谱系上通过 +0.016 的策略）。D 的 −0.039 仍是历史最佳。

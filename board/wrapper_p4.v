@@ -2989,7 +2989,8 @@ module wrapper_p4 #(
                    //   + 共享 8 槽 retx (EXTERNAL_RETX=1); C3 保持每连接源 IP。
                    .PER_CONN_SRC_IP(P11_DUAL_DEF ? 1'b0 : DUAL_SFP_A_DEF),
                    .EXTERNAL_RETX(P11_DUAL_DEF),
-                   .E1A_EN(P11_DUAL_DEF)) u_tcp_tx (
+                   .E1A_EN(P11_DUAL_DEF),
+                   .DRAIN_EN(1'b1)) u_tcp_tx (
         .clk            (dp_clk),
         .rst_n          (dp_rst_n),
         .s_axis_tdata   (txin_tdata),
@@ -3488,7 +3489,8 @@ module wrapper_p4 #(
         end
     end
     tcp_tx_frame #(.RING_CAP(WIN_CAP_5), .PERSIST_EN(1'b1),
-                   .PER_CONN_SRC_IP(1'b0), .EXTERNAL_RETX(1'b1)) u_tcp_tx2 (
+                   .PER_CONN_SRC_IP(1'b0), .EXTERNAL_RETX(1'b1),
+                   .DRAIN_EN(1'b0)) u_tcp_tx2 (
         .clk(dp_clk), .rst_n(dp_rst_n),
         .s_axis_tdata(q1_app2_tdata), .s_axis_tkeep(q1_app2_tkeep),
         .s_axis_tvalid(q1_app2_tvalid), .s_axis_tready(q1_app2_tready),
@@ -6003,8 +6005,9 @@ module wrapper_p4 #(
     // ⭐ P11 DIAG (0x3D): 零几何复用 —— W71/W72 改承载 port0 TX 卡死定位束
     //   (word A / word B, 见 tcp_tx_frame.o_dbg_tx). 代价 = 本构建失去 port1
     //   app_pattern 的 ev_up/sw_req 计数 (诊断期不用 .4). NW/UNIMPL 不变.
-    wire [31:0] biz_w71 = tx_dbg_bundle[31:0];     // 槽 31 → W71 = dbg word A
-    wire [31:0] biz_w72 = tx_dbg_bundle[63:32];    // 槽 32 → W72 = dbg word B
+    // 0x3D-B2: 只复用 W71 (32 位紧凑束); W72 保持原义 ⇒ 诊断长路由减半。
+    wire [31:0] biz_w71 = tx_dbg_bundle[31:0];     // 槽 31 → W71 = 紧凑诊断字
+    wire [31:0] biz_w72 = app_sw_req;              // 槽 32 → W72 收尾请求数 (原义)
 `else
     wire [31:0] biz_w71 = app_up_ev;               // 槽 31 → W71 app 实收 ev_up 事件数
     wire [31:0] biz_w72 = app_sw_req;              // 槽 32 → W72 收尾请求数 (ev_same_act)
@@ -6541,7 +6544,7 @@ module wrapper_p4 #(
 
     axi_regs #(
         .MAGIC_V    (32'h50360001),
-        .BUILD_ID_V (32'h0000003D),   // 0x3D = 0x3C + W98/W99 TX 卡死定位束（F2 保留；NW 100 / UNIMPL 0x1C0）// ⚠️ 每次改动自增
+        .BUILD_ID_V (32'h0000003E),   // 0x3E = 0x3C + 陈旧帧排水 backstop（st_ok=0 && !app_tx_ready ⇒ 丢帧到 tlast）// ⚠️ 每次改动自增
                                         //   ⭐ 本轮构建 (2026-10-15): **0x27 → 0x28** = **E12 观测计数器**
                                         //      (换流门四计数器: `stat_up_ev` / `stat_sw_req` /
                                         //       `stat_sw_apply` / `stat_up_pend` —— `rtl/app_pattern.v`

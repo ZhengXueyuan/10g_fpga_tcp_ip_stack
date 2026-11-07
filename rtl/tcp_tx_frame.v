@@ -280,6 +280,8 @@ module tcp_tx_frame (
     //   0 = 原行为 (cfg_src_ip / o_port=0; 常量折叠 ⇒ 行为等价, 不是"网表逐位相同");
     //   1 = IP 头源 IP / IP 校验和 / TCP 伪头种子改用 cam_rd_dip, o_port 用 cam_rd_port。
     parameter         PER_CONN_SRC_IP = 1'b0;
+    // P11 STALL-FIX (0x3E): 排水只在 port0 启用 (port1=0 常数折叠, 网表回到 0x3D 结构)
+    parameter         DRAIN_EN = 1'b1;
     // P5 长度守卫上界 (app 契约: 一帧 = 一个 TCP 段 ≤1460B; 这里放到 1500 留
     // 余量)。超过即整帧中止 (不写 FIFO/ring/csum, 不收帧, tlast 拍回 S_IDLE
     // 并冲洗已写入的字节 + stat_drop_len++)。上界必须 < 载荷 FIFO 容量
@@ -733,11 +735,45 @@ module tcp_tx_frame (
     wire        len_over = (plen_n > PLEN_MAX);
 
     // ⚠️ 坑 10: 接受门与启动门**逐字同门** (双子句逐字写出, 见设计 §1.2)
-    assign s_axis_tready =
-          (  ( (rx_state == RX_IDLE) && !recv_first )
-          || ( (rx_state == RX_IDLE) &&  recv_first && !ack_pend_r && !svc &&
-               !ring_eval && !scan_now && !rx_flush && wnd_open && !tx_blk_sid ) )
-          && !fifo_full && !bank_rdy[rx_bank];
+    // ⭐ P11 STALL-FIX (0x3E): 排水拍无条件收字 (只吞不写; 见下方 drain 块)。
+    reg        drain_r;
+    reg [15:0] drain_cnt;
+    assign s_axis_tready = drain_r ? 1'b1 :
+          (  (  ( (rx_state == RX_IDLE) && !recv_first )
+             || ( (rx_state == RX_IDLE) &&  recv_first && !ack_pend_r && !svc &&
+                  !ring_eval && !scan_now && !rx_flush && wnd_open && !tx_blk_sid ) )
+             && !fifo_full && !bank_rdy[rx_bank] );
+
+    // ================= ⭐ P11 STALL-FIX (0x3E): 陈旧帧排水 =================
+    //   根因 (0x3D 板级诊断, 台账 §10-193): 连接关闭后 TCB 状态被清 (st_ok=0),
+    //   而 app 在共享 TX 总线上仍挂着一帧 (AXIS 不可撤) ⇒ 该帧永远等不到 tready
+    //   ⇒ 占住总线 ⇒ 全口饿死 (直到重烧)。0x3D 现场 W71 解码: rx_state=IDLE /
+    //   recv_first=1 / tvalid=1 / tready=0 / wnd_open=1 / acks_ok=1 /
+    //   **st_ok=0** / tx_blk_sid=1 / fifo_full=0 / tx_state=T_IDLE。
+    //   判据 = **快路径 TCB 非 ESTAB (st_ok=0) 持续 65536 拍 ≈419 µs**
+    //   (0x3D 实测时 app_ctrl 该槽 ready 也=0; 本判据不接 app_tx_ready 输入,
+    //    以最小改动面/布线代价换取时序可收口 —— 419 µs 远长于 DEL→ADD 过渡)。
+    //   持续 65536 拍 (≈419 µs @156.25MHz, 远长于 DEL→ADD 过渡) ⇒ 置 drain_r:
+    //   把这些拍全部接收 (tready=1) 但不写 FIFO/ring/seq/计数, 到 tlast 复位。
+    //   代价 = 该帧被丢弃 (该连接 TCB 已死, 本来也发不出去); 收益 = 端口不再楔死。
+    //   ⚠️ 只覆盖"帧首从未被接收"的形态 (recv_first=1, 即 0x3D 实测形态);
+    //      帧内形态由 mid-frame 门 (fifo/bank) 决定, 不在此判据内。
+    wire       frame_pending = DRAIN_EN && (rx_state == RX_IDLE) && recv_first &&
+                               s_axis_tvalid && !st_ok;
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            drain_r <= 1'b0; drain_cnt <= 16'd0;
+        end else if (!DRAIN_EN) begin
+            drain_r <= 1'b0; drain_cnt <= 16'd0;
+        end else if (drain_r) begin
+            if (accept && s_axis_tlast) drain_r <= 1'b0;   // 排水完成 (recv_first 未动)
+        end else if (frame_pending) begin
+            if (drain_cnt >= 16'd65535) drain_r <= 1'b1;
+            else drain_cnt <= drain_cnt + 16'd1;
+        end else begin
+            drain_cnt <= 16'd0;
+        end
+    end
     wire        start_data = (rx_state == RX_IDLE) && recv_first && !ack_pend_r &&
                              !svc && !ring_eval && !scan_now && !rx_flush &&
                              s_axis_tvalid && !fifo_full && !bank_rdy[rx_bank] &&
@@ -864,13 +900,13 @@ module tcp_tx_frame (
 
     // ---- 载荷写口 (活帧 + 重放共写当前接收 bank) ----
     wire        wr_ring = ring_wr;
-    wire        wr_act  = accept && (s_axis_tkeep != 8'h00) && !len_bad;
+    wire        wr_act  = accept && !drain_r && (s_axis_tkeep != 8'h00) && !len_bad;
     wire        wr      = wr_act || wr_ring;
     wire [72:0] fdin    = wr_ring ? fdin_ring :
                           {s_axis_tlast, s_axis_tkeep, s_axis_tdata};
 
     // ---- ring 写口 (tap) ----
-    wire        wr_tap      = accept && (s_axis_tkeep != 8'h00) && !len_bad;
+    wire        wr_tap      = accept && !drain_r && (s_axis_tkeep != 8'h00) && !len_bad;
     wire [3:0]  w_tap_conn  = (rx_state == RX_IDLE && !recv_first) ? f_conn[rx_bank] :
                               start_id;
     wire [31:0] w_tap_seq   = start_data ? rb_snd_nxt : tap_seq;
@@ -1445,7 +1481,7 @@ module tcp_tx_frame (
                     id_r           <= id_r + 16'd1;
                 end
                 // ---- 活帧收字 (含帧首拍上下文锁存) ----
-                if (accept) begin
+                if (accept && !drain_r) begin
                     if (recv_first) begin
                         recv_first <= 1'b0;
                         f_conn[rx_bank]  <= start_id;
@@ -1682,7 +1718,7 @@ module tcp_tx_frame (
         wire [33:0] ts64              = {ts_wrap, ts_ctr};
         wire [33:0] f_present_ts_tx   = tx_bank ? f_present_ts1 : f_present_ts0;
         wire        f_is_app_tx       = tx_bank ? f_is_app1 : f_is_app0;
-        wire        first_present     = recv_first && s_axis_tvalid && !start_data;
+        wire        first_present     = recv_first && s_axis_tvalid && !start_data && !drain_r;
         wire [33:0] lat64             = ts64 - f_present_ts_tx;
         wire        lat_ok            = !lat64[33] && !lat64[32]; // L < 2^32 (27.487s)
         wire        done_ev           = (tx_state == T_DONE) &&
@@ -1785,55 +1821,45 @@ module tcp_tx_frame (
     assign dbg_plen         = plen;
     // ---- P11 DIAG 0x3D: TX/RX 卡死定位束 (纯观测) ----
     //   word A 每项都已在上面定义; 顺序固定, 读侧按位拆。
-    wire [31:0] dbg_word_a = {
-        start_id,             // [31:28]
-        rx_flush,             // [27]
-        acks_ok,              // [26]
-        st_ok,                // [25]
-        tx_blk_sid,           // [24]
-        wnd_open,             // [23]
-        1'b0,                 // [22] 保留
-        ctrl_tx_pend,         // [21]
-        ctrl_slot_busy,       // [20]
-        retx_active,          // [19]
-        scan_now,             // [18]
-        ring_eval,            // [17]
-        svc,                  // [16]
-        ackq_empty,           // [15]
-        ack_pend_r,           // [14]
-        m_axis_tready,        // [13]
-        m_axis_tvalid,        // [12]
-        s_axis_tready,        // [11]
-        s_axis_tvalid,        // [10]
-        fifo_full,            // [9]
-        fifo_empty_tx,        // [8]
-        fifo_empty_rx,        // [7]
+    // P11 DIAG 0x3D-B2 (2026-11-07): 单字紧凑束 (32 位) —— 只动 W71 (W72 保持
+    //   app_sw_req) ⇒ 诊断长路由从 64 条减半到 32 条. 动机: 0x3D-B 的 64 位束把
+    //   WNS 从 0x3C 的 +0.046 压到 -0.046 (最差路径源 = rx_state, 被束分接).
+    //   位序 (读侧 decode_w98_w99.py 同步):
+    //   [1:0] rx_state [2] recv_first [3] rx_flush [4] fifo_full [5] bank_rdy0
+    //   [6] bank_rdy1 [7] s_axis_tvalid [8] s_axis_tready [9] m_axis_tvalid
+    //   [10] m_axis_tready [11] wnd_open [12] tx_blk_sid [13] acks_ok [14] st_ok
+    //   [15] svc [16] ring_eval [17] scan_now [18] retx_active [19] ack_pend_r
+    //   [20] ackq_empty [21] ctrl_slot_busy [22] tx_is_ctrl [25:23] tx_state
+    //   [29:26] start_id [30] spare [31] fifo_empty_rx
+    wire [31:0] dbg_word = {
+        fifo_empty_rx,        // [31]
+        1'b0,                 // [30]
+        start_id,             // [29:26]
+        tx_state,             // [25:23]
+        tx_is_ctrl,           // [22]
+        ctrl_slot_busy,       // [21]
+        ackq_empty,           // [20]
+        ack_pend_r,           // [19]
+        retx_active,          // [18]
+        scan_now,             // [17]
+        ring_eval,            // [16]
+        svc,                  // [15]
+        st_ok,                // [14]
+        acks_ok,              // [13]
+        tx_blk_sid,           // [12]
+        wnd_open,             // [11]
+        m_axis_tready,        // [10]
+        m_axis_tvalid,        // [9]
+        s_axis_tready,        // [8]
+        s_axis_tvalid,        // [7]
         bank_rdy[1],          // [6]
         bank_rdy[0],          // [5]
-        tx_bank,              // [4]
-        rx_bank,              // [3]
+        fifo_full,            // [4]
+        rx_flush,             // [3]
         recv_first,           // [2]
         rx_state              // [1:0]
     };
-    wire [31:0] dbg_word_b = {
-        tx_state,             // [31:29]
-        thcnt,                // [28:26]
-        tx_is_probe,          // [25]
-        tx_is_ctrl,           // [24]
-        probe_sel,            // [23]
-        ps_stage_rdy,         // [22]
-        ps_stage_estab,       // [21]
-        retx_begin,           // [20]
-        retx_deny,            // [19]
-        ring_start,           // [18]
-        pay_load,             // [17]
-        1'b0,                 // [16] 保留
-        replay_left,          // [15:12]
-        retx_id_r,            // [11:8]
-        svc_id_r,             // [7:4]
-        ctrl_id               // [3:0]
-    };
-    assign o_dbg_tx = {dbg_word_b, dbg_word_a};
+    assign o_dbg_tx = {32'd0, dbg_word};
 `else
     localparam [2:0] S_IDLE = 3'd0, S_RECV = 3'd1, S_WAIT = 3'd2, S_HDR = 3'd3,
                      S_PAY  = 3'd4, S_TAIL = 3'd5, S_DONE = 3'd6, S_RING = 3'd7;
