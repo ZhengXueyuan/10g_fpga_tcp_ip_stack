@@ -2810,3 +2810,32 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
     - **诚实口径**：40 轮无整口楔死 = 行为面成立；**没有"排水触发"的直接见证**
       （0x3F 无诊断字）。
   - **板现态 = 0x3F 现役**（`0x08=0`、两 carrier=1）；QSPI 零写入。
+
+## §10-194 2026-11-08 01:3x–：**R1 半开泄漏实施（v2 审查闭合）—— 快路径老化 + HLS slot_dead 边沿释槽；csim 4/4 PASS；0x40 构建中**
+
+- **设计 v2**（`p11_synfix_20261105/R1_R3_DESIGN_STUDY_v2.md`，提交 `f00d6698`）：对 xr13
+  审查逐条处置 —— H-1 接受（边沿语义 + demux S_ROUTE 清 + ≤25 拍预算）、H-2 接受（cid 恒等
+  映射表；全局 8 位位图）、H-3 接受（R3-1b 互斥门；ARM_B2 归 R3-1a）、**M-1 驳回**（o_ev_down
+  去 app 事件口，不是 slow_cfg_adp ⇒ i_slot_dead 必要）、M-2/M-3/M-4/L-2/L-3 接受、L-1 驳回
+  （HLS ap_clk = dp_clk）。kimi 短审（`R1_R3_DESIGN_REVIEW_xr13.md` + 转达）三条全成立，
+  两条文字级建议已回填（25 拍；scan_id 编码行 —— 并订正其"bit3=端口"说法：app_ctrl 每端口
+  一份、scan_id[3:0] 无端口位）。
+- **实施（提交 `8ffeae34`）**：`rtl/app_ctrl.v`（HO_EN/HO_LIM、ho_ack_seen、ho_cnt、
+  ho_fire OR 进 orphan FSM、o_ho_fire/o_ho_slot）；`rtl/slow_cfg_demux.v`（o_add_hit/
+  o_add_slot, S_ROUTE, slot<8）；`board/wrapper_p4.v`（HO_EN_DEF 仅 P11_APP8_CDC + 结构
+  防呆；两端口 app_ctrl；全局 slot_dead[7:0]，清优先；i_slot_dead 仅 P11_HLS_SLOT_DEAD）；
+  `board/p11_build_cfg.tcl`/`build_p7b_ku5p.tcl`（变体 p11fix_fin_r1 + 端口存在性硬门）。
+  `hls/src/udp_echo.cpp`（i_slot_dead[7:0] ap_none + slot_dead_seen + pass 开头边沿释槽，
+  不写 cfg）；`hls/tb/udp_echo_tb.cpp`（兼容壳 + test_p11_slot_dead_mask）。
+- **csim 4 臂 PASS（【已证】）**：`CSIM_P3_ALL_PASS`；基线 3 XFAIL 逐字不变；passed 113→120。
+  R1 读数：FILL 8/8；HOLD state0=0 DEL=0；NEWSYN 1；NO_REKILL state=2；REARM state=0。
+- **HLS 综合（提交 `3a004050`）**：All loop constraints satisfied / Estimated Fmax 156.92 MHz；
+  `udp_echo.v` 含 `i_slot_dead[7:0]`（15 命中）；归档 `hls_archive_p11fix_fin_r1`（176 件）；
+  BID **0x40**；构建封装 `run_build_0x40.bat`。
+- **0x3F 上 R1 泄漏基线（负对照，【已证·板级】）**：8 个原始 SYN ⇒ W6/W7 各 +8（8 个半开槽）；
+  空闲 4.5 s 后 8 个新原始 SYN ⇒ **W6 +8、W7 +0、W52 不动**（槽表仍满、新 SYN 静默丢弃）。
+  原件 = `raw/r1_baseline_0x3F_leak.txt`。
+- **0x40 构建尝试 A（`Congestion_SpreadLogic_low`）= TIMING_FAIL**：WNS **−0.395** /
+  3990 失败端点；最差族 = port1 既存 `u_tcp_tx2/ack_pend_r → u_tcb2/snd_nxt_r[7][10]/CE`
+  （route 5.208 ns / 73.6%），**无 R1 新逻辑**。报告 = `build_fail_0x40_a/`。
+  尝试 B（`Congestion_SpreadLogic_high`）2026-11-08 04:0x 起。

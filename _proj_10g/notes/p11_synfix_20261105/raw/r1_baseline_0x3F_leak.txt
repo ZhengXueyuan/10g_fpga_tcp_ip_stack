@@ -1,0 +1,14 @@
+# R1 half-open leak baseline on 0x3F (2026-11-08), no aging.
+# Tool: raw_probe_table.sh 8 <base> (raw SYNs, kernel RST suppressed; W6=SYN rx, W7=SYN-ACK tx, W52 low=ESTAB)
+=== FILL (0x3F baseline)
+BID=0x0000003f
+RAW_BURST_SENT 8
+W6_PRE=0x00000bf8 W6_POST=0x00000c00   (+8)
+W7_PRE=0x000003ce W7_POST=0x000003d6   (+8)
+W52_PRE=0x0ac90000 W52_POST=0x0ad10008 (estab 0 -> 8)
+=== PROBE after 4.5 s idle (8 new 4-tuples)
+RAW_BURST_SENT 8
+W6_PRE=0x00000c00 W6_POST=0x00000c08   (+8: the 8 SYNs reached the HLS)
+W7_PRE=0x000003d6 W7_POST=0x000003d6   (+0: NO SYN-ACK)
+W52_PRE=0x0ad10008 W52_POST=0x0ad10008 (unchanged: no free slot)
+=> table full of half-open slots; new SYNs silently dropped (R1 reproduced on 0x3F).
