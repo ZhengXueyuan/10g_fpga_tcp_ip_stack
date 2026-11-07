@@ -685,8 +685,10 @@ module app_ctrl #(
     assign      orphan_cam_slot = orph_slot;
 
     // ---- R1 半开老化寄存器 (HO_EN=0 ⇒ 综合裁掉) ----
-    reg  [15:0] ho_ack_seen;        // 本连接自 ADD 起见过 ACK (置位=活)
-    reg  [7:0]  ho_cnt [0:15];      // 每槽"无 ACK 的 ESTAB" tick 数 (8 位饱和)
+    // ⚠️ 只覆盖 cid 0..7 (HLS 槽域; slow_cfg_demux 已丢弃 slot>=8 的记录 ⇒
+    //    快速 TCB 的 8..15 恒非 ESTAB)。省 ~64 FF + 选择逻辑 (0x40 时序余量)。
+    reg  [7:0]  ho_ack_seen;        // cid 0..7: 本连接自 ADD 起见过 ACK (置位=活)
+    reg  [7:0]  ho_cnt [0:7];       // cid 0..7: 每槽"无 ACK 的 ESTAB" tick 数 (8 位饱和)
 
     //=========================================================================
     // P11 P3: 外部共享配额读口 (EXT_QUOTA=0 ⇒ 下面所有 winq_q_* 退化为内部
@@ -1055,13 +1057,13 @@ module app_ctrl #(
     // ---- R1 半开老化判据 (与 orphan 共用扫描门/FSM; HO_EN=0 ⇒ 常数折叠) ----
     //   语义 = "ADD 后从未见过 ACK 的 ESTAB 槽" —— ack_obs 在 ADD 时由 ev_up 清零,
     //   任何对端 ACK (含零推进) 置位 ⇒ 活连接不会被老化 (比"窗口关闭"保守得多)。
-    wire        ho_accrue      = HO_EN && orph_scan_gate &&
+    wire        ho_accrue      = HO_EN && orph_scan_gate && !scan_id[3] &&
                                  (rc_state == ST_ESTAB) &&
-                                 !ho_ack_seen[scan_id] &&
+                                 !ho_ack_seen[scan_id[2:0]] &&
                                  !fin_sent[scan_id] && !rst_sent[scan_id] &&
                                  !st_done[scan_id] && !to_fired[scan_id];
     wire        ho_fire        = HO_EN && orph_scan_gate && ho_accrue &&
-                                 (ho_cnt[scan_id] >= HO_LIM) && !orph_busy;
+                                 (ho_cnt[scan_id[2:0]] >= HO_LIM) && !orph_busy;
     assign      o_ho_fire      = ho_fire;
     assign      o_ho_slot      = scan_id;
     // FSM 组合量 (附录 B §6)
@@ -1166,7 +1168,7 @@ module app_ctrl #(
             ev1_v <= 1'b0; ev1_slot <= 4'd0;
             // p9 orphan fix: 复位 (ORPHAN_EN=0 ⇒ 常量折叠)
             orph_saw <= 16'd0; orph_slot <= 4'd0;
-            ho_ack_seen <= 16'd0;         // R1 半开老化 (HO_EN=0 ⇒ 常量折叠)
+            ho_ack_seen <= 8'd0;          // R1 半开老化 (HO_EN=0 ⇒ 常量折叠)
             orph_state_req <= 1'b0; orph_cam_req <= 1'b0; orph_state_done <= 1'b0;
             orph_wait_cam <= 1'b0; orph_notify_pend <= 1'b0; orph_down_r <= 1'b0;
             orphan_cam_clr_r <= 1'b0; stat_orphan <= 32'd0;
@@ -1178,7 +1180,7 @@ module app_ctrl #(
                 fin_to[wi] <= 18'd0;          // P5c-T3 G2: 关闭超时计数
                 orph_cnt[wi] <= 8'd0;         // p9 orphan fix
                 orph_zw_cnt[wi] <= 8'd0;
-                ho_cnt[wi] <= 8'd0;           // R1 半开老化
+                if (wi < 8) ho_cnt[wi] <= 8'd0;   // R1 半开老化 (cid 0..7)
             end
         end else begin
             // 每拍默认清零 (脉冲型寄存器铁律)
@@ -1650,15 +1652,16 @@ module app_ctrl #(
                 //   ack_obs 置位 = 该连接见过对端 ACK (活); ev_up/ev_down 清 (清优先)。
                 //   计数只在"ESTAB 且无 ACK"时累加; 扫描拍外不动。
                 if (HO_EN) begin : g_ho
-                    if (ack_obs) ho_ack_seen[ack_obs_id] <= 1'b1;
-                    if (orph_scan_gate) begin
+                    if (ack_obs && !ack_obs_id[3])
+                        ho_ack_seen[ack_obs_id[2:0]] <= 1'b1;
+                    if (orph_scan_gate && !scan_id[3]) begin
                         if (!ho_accrue || (ev_up && (ev_slot == scan_id)) ||
                             (ev_down_i && (ev_slot_i == scan_id)) ||
                             (ack_obs && (ack_obs_id == scan_id)))
-                            ho_cnt[scan_id] <= 8'd0;
+                            ho_cnt[scan_id[2:0]] <= 8'd0;
                         else if (orph_tick)
-                            ho_cnt[scan_id] <= (ho_cnt[scan_id] == 8'hFF) ?
-                                               8'hFF : ho_cnt[scan_id] + 8'd1;
+                            ho_cnt[scan_id[2:0]] <= (ho_cnt[scan_id[2:0]] == 8'hFF) ?
+                                                    8'hFF : ho_cnt[scan_id[2:0]] + 8'd1;
                     end
                 end
 
@@ -1667,9 +1670,9 @@ module app_ctrl #(
                     orph_cnt[ev_slot_i] <= 8'd0;
                     orph_saw[ev_slot_i] <= 1'b0;
                     if (ORPHAN_ZW_EN) orph_zw_cnt[ev_slot_i] <= 8'd0;
-                    if (HO_EN) begin
-                        ho_cnt[ev_slot_i]      <= 8'd0;
-                        ho_ack_seen[ev_slot_i] <= 1'b0;
+                    if (HO_EN && !ev_slot_i[3]) begin
+                        ho_cnt[ev_slot_i[2:0]]      <= 8'd0;
+                        ho_ack_seen[ev_slot_i[2:0]] <= 1'b0;
                     end
                 end
 
@@ -1690,7 +1693,7 @@ module app_ctrl #(
                     orph_cnt[orph_slot] <= 8'd0;
                     orph_saw[orph_slot] <= 1'b0;
                     if (ORPHAN_ZW_EN) orph_zw_cnt[orph_slot] <= 8'd0;
-                    if (HO_EN) ho_cnt[orph_slot] <= 8'd0;   // R1: 中止时同清
+                    if (HO_EN && !orph_slot[3]) ho_cnt[orph_slot[2:0]] <= 8'd0;  // R1: 中止时同清
                 end
                 else if (orph_fire || ho_fire) begin
                     // fire 拍: 只挂 state 写 + CAM 请求; 不写 pool、不发 o_ev_down
@@ -1703,7 +1706,7 @@ module app_ctrl #(
                     orph_state_done  <= 1'b0;
                     orph_wait_cam    <= 1'b0;
                     orph_notify_pend <= 1'b0;
-                    if (HO_EN) ho_cnt[scan_id] <= 8'd0;
+                    if (HO_EN && !scan_id[3]) ho_cnt[scan_id[2:0]] <= 8'd0;
                     orph_down_r      <= 1'b0;
                     orphan_cam_clr_r <= 1'b0;
                     orph_cnt[scan_id] <= 8'd0;
