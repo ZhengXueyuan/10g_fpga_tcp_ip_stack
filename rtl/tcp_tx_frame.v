@@ -772,12 +772,15 @@ module tcp_tx_frame (
     //     · 明确观察到本槽 ESTAB ⇒ 清零 (活连接的窗口关闭不会被误排);
     //     · 借走拍 (svc/scan/probe) ⇒ **保持**计数, 不当作"帧已消失";
     //     · 帧真的不在 (`!frame_live`) ⇒ 清零。
-    //   ⚠️ ack_pend 拍不需要单独处理: 它把 `start_id` 换成 ACK 槽号, 于是
-    //      `rb_id != s_axis_tid` (除非 ACK 恰属本槽, 那时样本本来就属本槽) ⇒
-    //      自动落到"借走拍保持计数"分支。所以 `frame_live` 不接 `ack_pend_r`。
+    //   ⚠️ 采样拍判据不用 `rb_id == s_axis_tid` 的比较器 (0x3F 尝试 A-D 的时序
+    //      分析显示 `rb_id` 已经是 TCB 读口的晚到网, 再挂比较器会加深关键锥):
+    //      直接用**借走条件**的补集 —— mux 的优先级是 svc > ring_eval > scan_now >
+    //      probe_sel > start_id, 所以 `!svc && !ring_eval && !scan_now && !probe_sel`
+    //      时 `rb_id ≡ start_id`; 再排除 `ack_pend_r` (那时 start_id 取 ACK 槽号)。
+    //      语义与比较器版**逐拍等价**, 但不加载 rb_id。
     wire       frame_live = DRAIN_EN && (rx_state == RX_IDLE) && recv_first &&
                             s_axis_tvalid;
-    wire       rb_is_tid  = (rb_id == s_axis_tid);
+    wire       rb_is_tid  = !svc && !ring_eval && !scan_now && !probe_sel && !ack_pend_r;
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             drain_r <= 1'b0; drain_cnt <= 16'd0;

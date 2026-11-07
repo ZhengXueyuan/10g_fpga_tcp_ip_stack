@@ -227,16 +227,43 @@ S 03:17:50..58 W51=0x3d W52=0x00480005（estab=5）—— 冻结 ~10 s 直到连
   未做负对照臂（0x3C 重烧 c→d）于同一时刻；旧 3/8 观测来自 2026-11-06 的 0x3C 记录
   （`raw/regress_0x3C_8x256MB.txt`）。
 
+## 6.8 0x3F 构建 PASS + 板级验证（2026-11-07 23:0x–23:1x）【已证·板级】
+
+- **构建 G（`Congestion_SpreadLogic_low`，借走条件判据）= PASS**：
+  **WNS +0.037 / WHS +0.010 / 三类端点 0/0/0（400,896）/ "All user specified timing
+  constraints are met." / `P7B_VERDICT = OK`**；位流
+  **`b87987c89b1b624d6ba7931ee6d091aec0f95ae4599431b4b634aec648700d8f`**（15,431,261 B）；
+  BID **0x3F** / NW 98 / UNIMPL 0x1B8。读数 = `build_ok_0x3F/`。
+  尝试史：A Congestion_high −0.097 / B Extra −0.874 / C Explore −0.337 / D NetDelay_high
+  −0.248 / **E Congestion_high + 借走条件判据 = 0.000（0 端点，被 WNS>0 硬门拒）** /
+  F Congestion_medium −0.537 / **G Congestion_low = +0.037 PASS**。
+- **板级身份**：BURN_OK / BID 0x3F / NFF=0 / 2 BAR / LnkSta x4 / 两 carrier=1 / `0x08=0`。
+- **同时 8 连（无错开）**：两批共 **40 轮 / 320 连接** ⇒ **2 个单连接停顿**
+  （`sx3f` R1 P7 = 0 B；`sx3f2` R12 P1 = 0 B，conn_ms 0.13/0.09 ms）；
+  **没有任何一轮出现"整口 8/8 停顿"**。
+  - 对照：0x3E 同时 8 连 13 轮 ⇒ 13 个停顿连接，含 **sim8 = 0/8 整口停顿**；
+    0x3D 同时 8 连 12 轮 ⇒ 2 个停顿事件（10 连接），含已证整口楔死现场（W71 st_ok=0）。
+  ⇒ **端口级楔死在 0x3F 的 40 轮同时连 + 16 轮错开（下）里均未观测到**（行为面）。
+- **错开 8×256 MB**：**16 轮 × 8 = 128 连接全 OK、0 STALL**（`/tmp` 原件已归档
+  `raw/board_0x3F_run.txt`）。
+- **c→d 状态依赖**：3 连跑 = **48/48 连接 OK、0 STALL**（c 轮 24/24 + d 轮 24/24，
+  `mism_bytes=0`，每条 d 轮 268 MB）⇒ **活连接没有被误排水**（这是 0x3F 判据的负向安全臂）。
+- **残余（未收口）**：2 个单连接零字节停顿（2/320 ≈ 0.6%）。形态 = 建连成功（<0.2 ms）、
+  该连接 0 字节、其余 7 条正常完成 ⇒ **不是端口级楔死**；与 LONGSEND 轮登记的
+  **A7 静默形态（同槽重连 `ev_up` 被吞）**同貌，**未定位**（0x3F 无诊断字，需 0x3F+DIAG
+  构建或 xsim 复现）。
+- ⚠️ **诚实口径**：40 轮同时连未出现整口楔死 ≠ "已证排水每次都触发"；判据层仍是
+  **行为面成立**（整口楔死从 0x3E 的 1/13 轮降到 0/40 轮），但**没有"排水触发"的直接见证**。
+
 ## 7. 下一步
 
-1. **烧回 0x3E 作为现役位流**（板最后为 0x3D 换烧周期末态），核 BID 0x3E / NW 98 /
-   UNIMPL `0x1B8` / NFF=0 / 两 carrier=1。
-2. **§0-92 c→d 状态依赖判别（0x3E 上）**：`f2_disc6.sh cd 0 <tag>`（先 8×16 MB、再 8×256 MB，
-   轮内错开 0.5/0.3 s）多跑几轮。0x3C 的观测 = 第二轮 3/8 完成 + 5 停顿；
-   若 0x3E 第二轮恢复 8/8 ⇒ §0-92 与 §0-93 同根（陈旧帧楔死），**由 0x3E 一并收口**。
-3. 诊断宏 `P11_DIAG_TX` 已关（W71/W72 恢复 `app_up_ev`/`app_sw_req` 原义）；若未来再需要
-   W71 诊断，重建条件 = `DRAIN_EN` 保持 + `P11_DIAG_TX=1` + 策略
-   `Congestion_SpreadLogic_high`（0x3D 在同谱系 PASS +0.016）。
-4. **残余（未收口，不许当已答）**：帧内形态（`recv_first=0`）未覆盖/未观测；
-   §0-90（R1 半开泄漏）/ §0-91（pending 单槽 + FIN seq）/ §0-88（SYN-under-load）
-   与本修复无关，仍开放。
+1. **板现役 = 0x3F**（`0x08=0`、两 carrier=1）；QSPI 零写入。回退件 = 0x3E 位流已归档。
+2. **残余单连接零字节停顿（2/320）**：先判别是否 = **A7 静默形态**（`ev_up` 被吞）——
+   最便宜的一刀 = 0x3F 上重复"同槽重连"构型（连续 close→connect 同四元组）并按 W52/W7 判；
+   或做 0x3F+`P11_DIAG_TX` 构建抓 W71（代价 = 一次构建，且需重新过 timing 门）。
+3. **帧内形态（`recv_first=0`）**仍未覆盖/未观测。
+4. **下一批缺陷**：§0-90（R1 半开泄漏，设计研究见 `R1_R3_DESIGN_STUDY.md`）/
+   §0-91（pending 单槽 + FIN/RST seq 校验）/ §0-88（SYN-under-load）—— 与本修复无关，仍开放。
+5. 若要再动 `tcp_tx_frame`：先定向 STA `u_tcp_tx/u_fifo_* → u_tcb/*` 与
+   `u_app_ctrl/init_*→orph_*`（0x3F 尝试 A/C 的最差族），再选策略；
+   **0x3F 的通过档 = `Congestion_SpreadLogic_low`（+0.037）**。

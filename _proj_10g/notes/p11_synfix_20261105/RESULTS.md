@@ -102,7 +102,26 @@ CARRIER_P1=1  CARRIER_P0=1
   0x3D 的 96 条 W71 采样去重 16 值，全部满足 `st_ok=0 / tx_blk_sid=1 / recv_first=1 /
   tvalid=1 / tready=0 / RX_IDLE / T_IDLE / fifo_full=0`（`wnd_open` 可 0 可 1）。
 - **§0-92 c→d 判别**：0x3E 上 `f2_disc6.sh cd` 连跑 3 次 = **48/48 连接 OK、0 STALL**
-  （c 轮 24/24 + d 轮 24/24，`mism_bytes=0`）vs 0x3C 旧 3/8 ⇒ 同根消除。
-  原件 = `raw/cd_0x3E_3runs.txt`。
+  （c 轮 24/24 + d 轮 24/24，`mism_bytes=0`）vs 0x3C 旧 3/8 ⇒ **未复现**；
+  ⛔ 归因后来被 §9 限定（0x3E 的排水判据有缺陷、未必参与），0x3F 上已重跑 3 次复现同样结果。
+  原件 = `raw/cd_0x3E_3runs.txt`（0x3F 的 3 次在 `raw/board_0x3F_run.txt`）。
 - **未覆盖**：帧内形态（`recv_first=0`）；§0-90（R1 半开泄漏）/ §0-91（pending 单槽 + FIN seq）
   / §0-88（SYN-under-load）仍开放。
+
+## 9. 0x3F 排水判据订正（2026-11-07，§0-94 最终版）
+
+- **0x3E 缺陷**：`frame_pending` 直接用 `!st_ok`，而 `rb_id` 每 16 拍被 `scan_now`
+  （及 svc/ring_eval/probe）借走 ⇒ 扫描到任一 ESTAB 槽就把 `drain_cnt` 清零 ⇒
+  **多连接同时活着时排水从不触发**。板级：0x3E 同时 8 连 13 轮 = 13 个停顿连接
+  （含 sim8 0/8 整口停顿）；0x3D 同时 8 连复现（simd R4 2/8，W71=0x94103884）。
+- **0x3F 修法**：采样判据 = 借走条件的补集 `!svc && !ring_eval && !scan_now &&
+  !probe_sel && !ack_pend_r`（此时 `rb_id ≡ start_id`）；借走拍**保持**计数；
+  本槽明确 ESTAB 或帧消失才清零。
+- **构建 G PASS**（`Congestion_SpreadLogic_low`）：WNS **+0.037** / WHS +0.010 /
+  三类端点 0/0/0；位流 **`b87987c8…0d8f`**；BID 0x3F / NW 98 / UNIMPL 0x1B8。
+  尝试 A–G 全记录在 `build_fail_0x3F_*/` 与 `build_0x3F_stdout*.txt`；
+  E 档曾达 0.000 / 0 端点但被 "WNS>0" 硬门拒。
+- **板级（行为面）**：同时 8 连 40 轮 / 320 连接 ⇒ **2 个单连接零字节停顿、无整口楔死**；
+  错开 8×256 MB 16 轮 / 128 连接全 OK；c→d 3 连跑 48/48 OK（活连接未误排）。
+  原件 = `raw/board_0x3F_run.txt`；分析 = `STALL_INVESTIGATION.md` §6.5/§6.8。
+- **残余**：2/320 单连接零字节（疑 A7 `ev_up` 吞，未定位）；帧内形态（`recv_first=0`）未覆盖。

@@ -2769,3 +2769,44 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
   - **0x3D 同时 8 连基线（用于 0x3F A/B）**：`simd` 4 轮（R4 = 2/8）+ `simd2` 8 轮
     （R3 = 6/8 ⇒ 2 停顿）⇒ **12 轮 / 2 个停顿事件（10/96 连接）**；
     原件 = `raw/sim_stall_0x3D_run1.txt` + `raw/sim_stall_0x3D_simd2_8rounds.txt`。
+  - **0x3F 尝试 D（`Performance_NetDelay_high`）= TIMING_FAIL**：WNS **−0.248**；
+    最差族 = **port1 既存** `u_tcp_tx2/u_fifo_a/rptr_reg[0]_replica/C →
+    u_app_ctrl2/orph_cnt_reg[15][1]/CE`（route 4.587 ns (70.9%)）。报告 = `build_fail_0x3F_d/`。
+  - **尝试 E 的 RTL 调整（新输入）**：把采样判据从 `rb_id == s_axis_tid` 比较器改为
+    **借走条件的补集** `!svc && !ring_eval && !scan_now && !probe_sel && !ack_pend_r`
+    （mux 优先级决定：这些全 0 时 `rb_id ≡ start_id`；`frame_live` 已含 `rx_state==IDLE`）
+    ⇒ 语义逐拍等价，但**不加载 `rb_id`**（A–D 的时序分析显示 `rb_id` 是 TCB 读口的晚到网）。
+    策略回到 A 的最佳档 `Congestion_SpreadLogic_high`。
+  - **0x3F 尝试 E 构建中**（2026-11-07 19:0x 起）。
+  - ⭐ **0x3F 尝试 E（借走条件判据 + `Congestion_SpreadLogic_high`）= 实质过时序、
+    但被硬门拒**：Design Timing Summary **WNS 0.000 / WHS 0.001 / 三类失败端点 0/0/0
+    （400,975 端点）/ "All user specified timing constraints are met."**
+    项目的 `P7B_TIMING_GATE` 要求 **WNS > 0**（严格），0.000 被判 TIMING_FAIL ⇒ 位流
+    隔离（`.TIMING_FAIL`，禁烧）。**重要信号：0x3F 的 RTL 改动本身是可收敛的**
+    （0 失败端点），只差一个正的 WNS 余量。报告 = `build_fail_0x3F_e/`。
+  - **0x3F 尝试 F（`Congestion_SpreadLogic_medium`）构建中**（2026-11-07 20:4x 起）。
+  - **0x3F 尝试 F（`Congestion_SpreadLogic_medium`）= TIMING_FAIL**：WNS **−0.537** /
+    7419 失败端点 ⇒ 该档反而劣化（与 A 的 high 档 −0.097 对比）。报告 = `build_fail_0x3F_f/`。
+  - **0x3F 尝试 G（`Congestion_SpreadLogic_low`，同 E 网表）构建中**（2026-11-07 21:5x 起）。
+    目标 = 把 E 的 0.000 推成严格正余量。
+  - ⭐ **0x3F 尝试 G（`Congestion_SpreadLogic_low`，同 E 网表）= PASS**：
+    **WNS +0.037 / WHS +0.010 / 三类失败端点 0/0/0（400,896 端点）/
+    "All user specified timing constraints are met." / `P7B_VERDICT = OK`**；
+    位流 **`b87987c89b1b624d6ba7931ee6d091aec0f95ae4599431b4b634aec648700d8f`**
+    （15,431,261 B）；BID **0x3F** / NW 98 / UNIMPL 0x1B8；读数 = `build_ok_0x3F/`。
+    通过档 = `Congestion_SpreadLogic_low`（E 的 0.000 在 low 档被推成 +0.037）。
+  - **0x3F 板级（2026-11-07 23:10–23:18）【已证·行为面】**：
+    - 烧录身份全中（BURN_OK / BID 0x3F / NFF=0 / 2 BAR / 两 carrier=1 / `0x08=0`）。
+    - **同时 8 连（无错开）40 轮 / 320 连接** ⇒ **2 个单连接零字节停顿**（sx3f R1 P7、
+      sx3f2 R12 P1，conn_ms 0.13/0.09 ms），**无任何整口 8/8 楔死**。
+      对照：0x3E 同时 8 连 13 轮 = 13 个停顿连接（含 sim8 **0/8 整口停顿**）；
+      0x3D 同时 8 连 12 轮 = 2 个停顿事件（含已证整口楔死现场）。
+    - **错开 8×256 MB 16 轮 / 128 连接：全 OK、0 STALL**。
+    - **c→d 3 连跑：48/48 OK、0 STALL**（`mism_bytes=0`；活连接未被误排水）。
+    - 原件 = `p11_synfix_20261105/raw/board_0x3F_run.txt`（含全部 SINK_CONN 行 + 最终
+      BID/`0x08`）+ `/tmp/simdiag_3f{,2}.log`、`/tmp/stag_3f.log`（已归档）。
+    - **残余（未收口）**：2 个单连接零字节停顿（2/320 ≈ 0.6%），形态与 LONGSEND 轮登记的
+      **A7 静默形态（同槽重连 `ev_up` 被吞）**同貌，未定位；帧内形态（`recv_first=0`）未覆盖。
+    - **诚实口径**：40 轮无整口楔死 = 行为面成立；**没有"排水触发"的直接见证**
+      （0x3F 无诊断字）。
+  - **板现态 = 0x3F 现役**（`0x08=0`、两 carrier=1）；QSPI 零写入。
