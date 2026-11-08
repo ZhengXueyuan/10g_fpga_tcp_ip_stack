@@ -3000,9 +3000,22 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
   原件 = 对端 `/home/a/p11_bench/{soak40b_*,sx40r_*,sx40b_*}`。
 - **0x40 第二波其余臂**：N（`Performance_NetDelay_low`）= **TIMING_FAIL −0.255 / 3535**
   （最差 = `u_tcp_tx/u_fifo_b/rptr → u_tcb/rcv_wnd_r[3][1]/CE`，既存 TCB 族）；报告 = `build_fail_0x40_n/`。
+  M（`Performance_ExplorePostRoutePhysOpt`）= **TIMING_FAIL −0.106 / 1273**
+  （最差 = `u_tcp_tx/ack_pend_r_reg/C → u_app_ctrl/orph_cnt_reg[2][0]/CE` —— p9 既存 orphan 锥，
+  非 R1 新增 `ho_*`/`slot_dead`）；报告 = `build_fail_0x40_m/`。
 - ⚠️ **§0-80 部分不复现（0x40，2026-11-08 22:35 现读）**：流量后 **W71=W73=0x142（322）非零**
   ⇒ "W71–W74 恒 0"（0x36 的登记）在本位**未复现**；W51/W53/W54 仍 0。按"未复现"登记，
   **不写"已修"**（没有单变量拆刀）。
+- ⚠️⚠️ **台架坑（本轮回灌，必须记）：`p7b_tcp_sink --local-port N` 不能当"同四元组重连"判据** ——
+  2026-11-08 22:4x 实测（0x40）：`--conns 4 --local-port 49000 --abort-rst`（无延迟）在
+  **0x40 与 0x3F 上都是 OK/STALL/OK/STALL（2/4 零字节）**；而同一构型加
+  `--reconnect-delay-ms 500` ⇒ **4/4 OK、mism=0**。
+  更强的反证：`--conns 8 --local-port 49001`（8 个 socket 同端口并发）⇒ 全部打印
+  `OK bytes=1048576` 但 `SINK_SUM` 给 **`wall_s=0.024` 搬 8 MB（≈349 GB/s，物理不可能）+
+  `mismatch_bytes=7,311,402`** ⇒ **`SO_REUSEPORT` 把同 4-tuple 的流分摊到多个 socket**，
+  读数纯属台架自伤。**结论：这一族"零字节/失配"不作板级缺陷登记**（前一次差点误记）。
+  同四元组判据若要用，必须：**串行 + 每次 close 后 ≥500 ms 延迟 + 每连接独立校验**。
+  该测试对 0x3F/0x40 表现**逐位同形** ⇒ 与 R1 无关。
 - ⭐ **构建输入绑定（已核）**：`git diff --stat 3a004050 HEAD -- rtl board hls` = **空**
   （HEAD 与出位流的那份净表在 RTL/board/HLS 上**逐字节相同**，两 commit 之间只差 notes/docs）；
   胜出 worktree `_builds/b0x40_refine` HEAD = `3a004050`，源码零改动（只有报告文件被构建写脏）。
