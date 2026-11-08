@@ -2857,3 +2857,8 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - **梯子现况**：A low −0.395 / **B high 0.000（0 端点，被 WNS>0 门拒，最佳）** /
   C high+trim −0.659 / D NetDelay_high −1.042 / E Explore −0.458。
   **F（`Performance_ExtraTimingOpt`）2026-11-08 13:3x 起**。
+- **0x40 尝试 F（`Performance_ExtraTimingOpt`）= TIMING_FAIL**：WNS **−0.107** / 1491 端点；
+  最差族 = port0 既存 `u_tcp_tx/u_fifo_a/wptr → u_tcb/rcv_nxt_r[13][18]/CE`（route 4.576 ns /
+  71.5%）。**报告面 R1 新逻辑（ho_*/slot_dead）命中 0** ⇒ 仍是 P&R 全局位移，不是新逻辑
+  进关键锥。报告 = `build_fail_0x40_f/`。
+- **0x40 尝试 G（`Congestion_SpreadLogic_medium`）2026-11-08 15:1x 起**。
