@@ -2850,3 +2850,10 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - **R1 板级负对照已取（0x3F）**：8 个原始 SYN 填半开（W6/W7 +8）→ 空闲 4.5 s →
   8 个新原始 SYN ⇒ **W6 +8 / W7 +0 / W52 不动**（表满、新 SYN 静默丢弃）；
   原件 = `raw/r1_baseline_0x3F_leak.txt`。0x40 的正臂判据 = 同构型 W7 +8。
+- **0x40 尝试 D（`Performance_NetDelay_high`）= TIMING_FAIL**：WNS **−1.042** /
+  13858 失败端点（该策略对本网表最差）。报告 = `build_fail_0x40_d/`。
+- **0x40 尝试 E（`Performance_Explore`）= TIMING_FAIL**：WNS **−0.458** / 7614 端点。
+  报告 = `build_fail_0x40_e/`。
+- **梯子现况**：A low −0.395 / **B high 0.000（0 端点，被 WNS>0 门拒，最佳）** /
+  C high+trim −0.659 / D NetDelay_high −1.042 / E Explore −0.458。
+  **F（`Performance_ExtraTimingOpt`）2026-11-08 13:3x 起**。
