@@ -1,0 +1,61 @@
+
+===== xvlog.log
+INFO: [VRFC 10-2263] Analyzing Verilog file "/tmp/ho_sim/fifo_sync.v" into library work
+INFO: [VRFC 10-311] analyzing module fifo_sync
+===== xelab.log
+Vivado Simulator v2025.2
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+Running: /opt/AMD/2025.2/Vivado/bin/unwrapped/lnx64.o/xelab -debug typical tb_app_ho -s tb_ho 
+Multi-threading is on. Using 6 slave threads.
+WARNING: [XSIM 43-3431] One or more environment variables have been detected which affect the operation of the C compiler. These are typically not set in standard installations and are not tested by AMD, however they may be appropriate for your system, so the flow will attempt to continue.  If errors occur, try running xelab with the "-mt off -v 1" switches to see more information from the C compiler. The following environment variables have been detected:
+Starting static elaboration
+Pass Through NonSizing Optimizer
+WARNING: [VRFC 10-3645] port 'o_winq_rd_id' remains unconnected for this instance [/tmp/ho_sim/tb_app_ho.v:89]
+WARNING: [VRFC 10-3645] port 'full_next' remains unconnected for this instance [/tmp/ho_sim/app_ctrl.v:534]
+Completed static elaboration
+Starting simulation data flow analysis
+Completed simulation data flow analysis
+Time Resolution for simulation is 1ps
+Compiling module work.fifo_sync(W=102,D=16,AW=4)
+Compiling module work.app_ctrl(ORPHAN_EN=1'b1,ORPHAN_L...
+Compiling module work.tb_app_ho
+Built simulation snapshot tb_ho
+n snapshot tb_ho
+===== xsim.log
+#-----------------------------------------------------------
+# xsim v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 12:34:56 MST 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Sun Nov  8 17:44:17 2026
+# Process ID         : 232445
+# Current directory  : /tmp/ho_sim
+# Command line       : xsim -mode tcl -source {xsim.dir/tb_ho/xsim_script.tcl}
+# Log file           : /tmp/ho_sim/xsim.log
+# Journal file       : /tmp/ho_sim/xsim.jou
+# Running On         : a-MS-7850
+# Platform           : Ubuntu
+# Operating System   : Ubuntu 26.04.1 LTS
+# Processor Detail   : Intel(R) Xeon(R) CPU E3-1275 v3 @ 3.50GHz
+# CPU Frequency      : 3722.309 MHz
+# CPU Physical cores : 4
+# CPU Logical cores  : 8
+# Host memory        : 24526 MB
+# Swap memory        : 8589 MB
+# Total Virtual      : 33116 MB
+# Available Virtual  : 27676 MB
+#-----------------------------------------------------------
+source xsim.dir/tb_ho/xsim_script.tcl
+# xsim {tb_ho} -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+A: fires=8 n_state_wr=8 n_cam=8 n_down=8
+B: fire[3]=0 fires=7
+C: fire[5]=1
+TB_APP_HO PASS (errs=0)
+TB_RESULT PASS
+$finish called at time : 480964 ns : File "/tmp/ho_sim/tb_app_ho.v" Line 267
+exit
+INFO: xsimkernel Simulation Memory Usage: 281624 KB (Peak: 338896 KB), Simulation CPU Usage: 1450 ms
+INFO: [Common 17-206] Exiting xsim at Sun Nov  8 17:44:24 2026...

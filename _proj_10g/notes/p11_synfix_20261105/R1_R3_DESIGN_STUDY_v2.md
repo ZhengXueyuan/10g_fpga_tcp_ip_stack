@@ -171,3 +171,16 @@ end
   四条全部 csim 通过。
 - **待做**：HLS 综合（进行中）→ 归档 `hls_archive_p11fix_fin_r1` → 定向 STA →
   构建（先 `Congestion_SpreadLogic_low`）→ 板级（正臂 / 活连接安全臂 / 竞争臂 / 跨端口臂）。
+
+## 8. R1 RTL 单元门（2026-11-08，远端 xsim）【已证】
+
+- `tb/tb_app_ho.v`（app_ctrl HO_EN=1 + 16 槽 TCB 行为模型）在远端 Linux 的
+  Vivado 2025.2 xsim 上 **TB_RESULT PASS (errs=0)**：
+  - A（8 槽 ESTAB、无 ACK）：`fires=8 / n_state_wr=8 / n_cam=8 / n_down=8`
+    ⇒ 每槽一次 `o_ho_fire` 且走完 orphan 拆除序列（state=0 / CAM 清 / o_ev_down）；
+  - B（slot3 一次 `ack_obs`）：`fire[3]=0`、其余 7 槽照常 fire ⇒ ACK 抑制成立；
+  - C（slot5 先 ACK 再 `ev_up`）：`fire[5]=1` ⇒ 清位后重新武装成立。
+- 门脚本 = `sim/p11_ho_gate/run_tb_app_ho.{bat,sh}`；原始日志 =
+  `_proj_10g/notes/p11_synfix_20261105/raw/ho_sim/remote_sim_logs.txt`。
+- ⚠️ 远端 xsim 必须带 `LD_LIBRARY_PATH=/opt/AMD/.xinstall/2025.2/lib/lnx64.o/Ubuntu/24`
+  （`libncurses.so.5` 在 ViVado 的 .xinstall 里；Ubuntu 24 系统只有 .so.6）。

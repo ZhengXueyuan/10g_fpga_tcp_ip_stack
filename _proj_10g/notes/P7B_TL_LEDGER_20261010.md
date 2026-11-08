@@ -2867,3 +2867,16 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
 - **并行臂（2026-11-08 16:4x 起，worktree，同 commit 87f54d2f / 同网表）**：
   H = Congestion_low / I = ExploreWithRemap / J = RefinePlacement / K = WLBlockPlacement；
   每臂实测仅吃 1–1.4 核（Vivado route 迭代单线程），5 臂合计 CPU ~32%、内存剩 ~31 GB。
+- ⭐ **R1 RTL 单元门（远端 xsim，2026-11-08 17:44）【已证】**：`tb/tb_app_ho.v`
+  （app_ctrl HO_EN=1 + 16 槽 TCB 行为模型）在远端 Linux（192.168.0.38，Vivado 2025.2
+  xsim）运行 **TB_RESULT PASS (errs=0)**：
+  ```
+  A: fires=8 n_state_wr=8 n_cam=8 n_down=8   (8 槽各一次 fire + 完整拆除序列)
+  B: fire[3]=0 fires=7                        (一次 ack_obs ⇒ slot3 永不 fire)
+  C: fire[5]=1                                (ack_obs 后 ev_up 清位 ⇒ 重新可 fire)
+  ```
+  ⇒ R1 快路径老化的 RTL 语义（阈值/ACK 抑制/清位重武装/拆除序列）板前已证。
+  **远端 xsim 配方**（本机跑构建时用）：
+  `LD_LIBRARY_PATH=/opt/AMD/.xinstall/2025.2/lib/lnx64.o/Ubuntu/24`（xsim 需要
+  `libncurses.so.5`，Vivado 自带在 .xinstall 下；Ubuntu 24 系统库只有 .so.6）。
+  门脚本 = `sim/p11_ho_gate/run_tb_app_ho.{bat,sh}`；原始日志 = `raw/ho_sim/remote_sim_logs.txt`。
