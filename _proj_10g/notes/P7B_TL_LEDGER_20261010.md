@@ -2839,3 +2839,14 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
   3990 失败端点；最差族 = port1 既存 `u_tcp_tx2/ack_pend_r → u_tcb2/snd_nxt_r[7][10]/CE`
   （route 5.208 ns / 73.6%），**无 R1 新逻辑**。报告 = `build_fail_0x40_a/`。
   尝试 B（`Congestion_SpreadLogic_high`）2026-11-08 04:0x 起。
+- **0x40 构建尝试 B（`Congestion_SpreadLogic_high`）= TIMING_FAIL（0.000 被硬门拒）**：
+  WNS **0.000** / WHS 0.002 / **0 失败端点 / "All user specified timing constraints
+  are met"**；项目门要求 WNS>0 ⇒ 位流隔离。报告 = `build_fail_0x40_b/`。
+- **RTL 资源修剪（语义不变）**：`ho_ack_seen`/`ho_cnt` 收窄到 cid **0..7**（HLS 槽域；
+  demux 已丢弃 slot≥8 ⇒ fast 8..15 恒非 ESTAB），省 ~64 FF + 选择逻辑。
+- **0x40 尝试 C（同策略 + 修剪网表）= TIMING_FAIL**：WNS **−0.659**；报告 =
+  `build_fail_0x40_c/`。⇒ 修剪未改变"P&R 方差主导"的结论。
+- **0x40 尝试 D（`Performance_NetDelay_high`，面向布线主导失败）2026-11-08 08:2x 起**。
+- **R1 板级负对照已取（0x3F）**：8 个原始 SYN 填半开（W6/W7 +8）→ 空闲 4.5 s →
+  8 个新原始 SYN ⇒ **W6 +8 / W7 +0 / W52 不动**（表满、新 SYN 静默丢弃）；
+  原件 = `raw/r1_baseline_0x3F_leak.txt`。0x40 的正臂判据 = 同构型 W7 +8。
