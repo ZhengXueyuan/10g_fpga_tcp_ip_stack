@@ -2862,3 +2862,8 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
   71.5%）。**报告面 R1 新逻辑（ho_*/slot_dead）命中 0** ⇒ 仍是 P&R 全局位移，不是新逻辑
   进关键锥。报告 = `build_fail_0x40_f/`。
 - **0x40 尝试 G（`Congestion_SpreadLogic_medium`）2026-11-08 15:1x 起**。
+- **0x40 尝试 G（`Congestion_SpreadLogic_medium`）= TIMING_FAIL**：WNS **−0.960** / 14174 端点；
+  报告 = `build_fail_0x40_g/`。⇒ 策略梯子 A–G 全部不过；**B（high）仍是唯一 0.000/0 端点**。
+- **并行臂（2026-11-08 16:4x 起，worktree，同 commit 87f54d2f / 同网表）**：
+  H = Congestion_low / I = ExploreWithRemap / J = RefinePlacement / K = WLBlockPlacement；
+  每臂实测仅吃 1–1.4 核（Vivado route 迭代单线程），5 臂合计 CPU ~32%、内存剩 ~31 GB。
