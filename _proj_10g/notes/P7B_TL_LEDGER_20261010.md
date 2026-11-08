@@ -2992,6 +2992,21 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
     `app_multi8` 也是每槽送入同一 core 逻辑）——见 `RESULTS.md` §9 订正。
 - **R1 板级收口口径**：**行为面已证（正臂 ×3 + 释放见证 + 安全臂 ×2 + 跨端口 ×2 + 回归 24/24 & 48/48）**；
   **判据层裁定权在用户**（本件不代行）。QSPI 全程零写入。
+- ⭐ **加固两支（2026-11-08 22:35–22:47）**：
+  ① **长时活连接**：8 条并发、每条 **12 GB**、**46.4–83.7 s**（= 3.44 s 老化时延的 13–24 倍）
+  ⇒ **8/8 OK / `mism_bytes=0` / `poll_tmo=0`**、聚合 ≈9.7 Gbps ⇒ **活连接不被误老化**；
+  ② **同时 8 连重复**：**20 轮 ×8 = 160/160 OK**、**40 轮 ×8 = 320/320 OK**、0 STALL
+  （与 0x3F 的 2/320 同规模；⚠️ **0 vs 2 不显著** ⇒ 只能写"0x40 上 320 连接未观测到该残余"）。
+  原件 = 对端 `/home/a/p11_bench/{soak40b_*,sx40r_*,sx40b_*}`。
+- **0x40 第二波其余臂**：N（`Performance_NetDelay_low`）= **TIMING_FAIL −0.255 / 3535**
+  （最差 = `u_tcp_tx/u_fifo_b/rptr → u_tcb/rcv_wnd_r[3][1]/CE`，既存 TCB 族）；报告 = `build_fail_0x40_n/`。
+- ⚠️ **§0-80 部分不复现（0x40，2026-11-08 22:35 现读）**：流量后 **W71=W73=0x142（322）非零**
+  ⇒ "W71–W74 恒 0"（0x36 的登记）在本位**未复现**；W51/W53/W54 仍 0。按"未复现"登记，
+  **不写"已修"**（没有单变量拆刀）。
+- ⭐ **构建输入绑定（已核）**：`git diff --stat 3a004050 HEAD -- rtl board hls` = **空**
+  （HEAD 与出位流的那份净表在 RTL/board/HLS 上**逐字节相同**，两 commit 之间只差 notes/docs）；
+  胜出 worktree `_builds/b0x40_refine` HEAD = `3a004050`，源码零改动（只有报告文件被构建写脏）。
+  该构建的 **HLS_SRC_HASH = `7d8933e7…e57a`（15 件）/ HLS_NET_HASH = `468e46dc…6639`（176 件）**。
 - **0x40 并行臂 I（worktree，`Performance_ExploreWithRemap`）= TIMING_FAIL**（2026-11-08 19:1x）：
   WNS **−0.255** / setup 5279 / hold 0 / pw 0；最差路径 =
   `u_tcp_tx/u_fifo_b/wptr_reg[2]_replica/C → u_tcb/rcv_wnd_r_reg[0][9]/CE` ——
