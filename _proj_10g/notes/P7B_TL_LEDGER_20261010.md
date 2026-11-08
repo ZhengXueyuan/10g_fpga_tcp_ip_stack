@@ -3003,6 +3003,13 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
   M（`Performance_ExplorePostRoutePhysOpt`）= **TIMING_FAIL −0.106 / 1273**
   （最差 = `u_tcp_tx/ack_pend_r_reg/C → u_app_ctrl/orph_cnt_reg[2][0]/CE` —— p9 既存 orphan 锥，
   非 R1 新增 `ho_*`/`slot_dead`）；报告 = `build_fail_0x40_m/`。
+  R（`Performance_ExtraTimingOpt`，2026-11-08 23:0x）= **TIMING_FAIL −1.088 / 10863**
+  （最差族 = PCS RX 域 `pcs64/.../<hidden> → u_mac_rx_ch0/stat_crc_err_reg[28]/CE`）；
+  报告 = `build_fail_0x40_r/`。⇒ **第二波全部收口，唯一过门 = Auto_1 +0.021**。
+  ⚠️ **P（`Performance_Auto_2`）在 2026-11-08 23:48 主动中止（无判定）**：中止时仍在
+  布线 Global Iteration（overlaps 3379→2028，拥塞明显），且**结论已被 O 的 PASS 取代**
+  （梯子已有 13 个数据点）；中止原因 = 释放共用机时（另有会话在同机施工）。
+  该臂**没有 verdict、没有位流**，不得按 FAIL/未测之外的说法引用。
 - ⚠️ **§0-80 部分不复现（0x40，2026-11-08 22:35 现读）**：流量后 **W71=W73=0x142（322）非零**
   ⇒ "W71–W74 恒 0"（0x36 的登记）在本位**未复现**；W51/W53/W54 仍 0。按"未复现"登记，
   **不写"已修"**（没有单变量拆刀）。
