@@ -33,6 +33,10 @@ snap(){ $T/reg_rw /dev/xdma0_user 0x18 w 1 >/dev/null 2>&1; sleep 0.05; }
 u32(){ printf '%u' "$(( $1 & 0xffffffff ))"; }
 
 echo "=== ID_BEGIN $STAMP ==="
+# ⚠️ the snapshot window reads ZERO until a trigger write (0x18 <- 1) has happened:
+#    reading first and concluding "all counters are zero / wedged" is a false alarm
+#    (verified 2026-11-08: pre-trigger all zeros, post-trigger W5=0x493ef051 etc.)
+snap
 BID=$(reg 0x04); echo "ID_BID=$BID"
 echo "ID_02=$($T/reg_rw /dev/xdma0_user 0x02 w 2>/dev/null | tail -1 | sed 's/.*: *//')"
 # geometry (authoritative, wrapper_p4.v localparam SNAP_NW_P6E): 98 words W0..W97,
