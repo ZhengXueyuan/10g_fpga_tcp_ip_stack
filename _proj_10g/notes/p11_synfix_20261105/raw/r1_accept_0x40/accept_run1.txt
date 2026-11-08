@@ -1,0 +1,54 @@
+
+=== ID_BEGIN 20261108_220607 ===
+ID_BID=0x00000040
+ID_02=0x00405036
+ID_W97=0x00000000
+ID_UNIMPL_1B8=0xffffffff
+ID_CARRIER=0x00000000
+ID_BID_OK
+=== ID_END ===
+=== ARM_B_BEGIN live connection, ACK history, idle 6.0s ===
+ARM_B first_bytes=67160
+ARM_B after_idle_bytes=65536
+ARM_B PASS
+=== ARM_B_END ===
+=== ARM_B2_BEGIN 8 concurrent live conns, synchronous idle 6.0s ===
+ARM_B2 conn0 first=exc: after_idle=0
+ARM_B2 conn1 first=exc: after_idle=0
+ARM_B2 conn2 first=exc:timed out after_idle=0
+ARM_B2 conn3 first=exc: after_idle=0
+ARM_B2 conn4 first=exc: after_idle=0
+ARM_B2 conn5 first=exc: after_idle=0
+ARM_B2 conn6 first=exc: after_idle=0
+ARM_B2 conn7 first=exc: after_idle=0
+ARM_B2 ok=0/8 FAIL
+=== ARM_B2_END ===
+=== ARM_A_BEGIN fill 8 half-open raw SYNs ===
+ARM_A PRE W6=52 W7=15 W52=3080192
+W6_PRE=0x00000034 W6_POST=0x0000003c
+W7_PRE=0x0000000f W7_POST=0x00000017
+W52_PRE=0x002f0000 W52_POST=0x00370008
+ARM_A fill dW6=8 dW7=8
+=== ARM_A wait 6.0s (aging) ===
+=== ARM_A probe 8 fresh raw SYNs ===
+W6_PRE=0x0000003c W6_POST=0x00000044
+W7_PRE=0x00000017 W7_POST=0x0000001f
+W52_PRE=0x003f0000 W52_POST=0x00470008
+ARM_A probe dW6=8 dW7=8 dW52=1572872
+ARM_A W52_pre=3080192 W52_post=4653064 estab_pre=0 estab_post=8
+ARM_A_AGING PASS (dW7=8)
+=== ARM_A_END ===
+=== ARM_T_BEGIN aging latency / race window ===
+ARM_T first_success=1 latency_s=2.14 (design ~3.44 s = 8 x 429.4967 ms)
+SINK_CONN 0 POLL_TIMEOUT 2 x 1000 ms 无数据 (got=0) => 中止本连接
+SINK_CONN 0 STALL bytes=0 first_mismatch=-1 mism_bytes=0 conn_ms=0.176 dur_ms=2002.291 Mbps=0.000 reads=0 poll_tmo=2 CPU_FREQ_KHZ=2600000 THREADED=on q_full_push=0 q_full_pop=0 q_free_push=16 q_free_pop=0 slot_wait_spins=0 checked_bytes=0
+SINK_CONN 0 OK bytes=16778320 first_mismatch=-1 mism_bytes=0 conn_ms=0.123 dur_ms=15.748 Mbps=8523.517 reads=2054 poll_tmo=0 CPU_FREQ_KHZ=3862668 THREADED=on q_full_push=2054 q_full_pop=2054 q_free_push=2070 q_free_pop=2054 slot_wait_spins=0 checked_bytes=16778320
+ARM_T_PROBE_PASS
+=== ARM_T_END ===
+=== ARM_C_BEGIN cross-port race (probabilistic; no cid readout) ===
+ARM_C port1_only ok=12/12 (port0 had 8 half-open aging concurrently)
+ARM_C PASS
+ARM_C port0_only ok=6/6
+ARM_C_REV PASS
+=== ARM_C_END ===
+=== R1_ACCEPT_DONE 20261108_220607 dir=/home/a/p11_bench/r1_accept_20261108_220607 ===

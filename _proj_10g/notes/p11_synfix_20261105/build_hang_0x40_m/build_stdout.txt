@@ -1,0 +1,902 @@
+
+****** Vivado v2025.2 (64-bit)
+  **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+  **** Start of session at: Sun Nov  8 19:38:08 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source {D:\repo\XCKU5PMini\_builds\b0x40_low\board\build_p7b_ku5p.tcl}
+# set project_name p7b_ku5p_prj
+# set top_module   wrapper_p4
+# set part_name    xcku5p-ffvb676-1-e
+# set gquad        Quad_X0Y1        
+# set script_dir [file dirname [file normalize [info script]]]
+# set root_dir   [file dirname $script_dir]
+# set mac_dir    ${root_dir}/_proj_10g/p7b_mac/rtl
+# source [file join $script_dir p11_build_cfg.tcl]
+## proc p11_build_cfg_check {defs adv_hits} {
+##     set cn 0
+##     set cfg ""
+##     foreach {nm tag} {P11_CFG_C1 c1 P11_CFG_C2 c2 P11_CFG_C3 c3 P11_CFG_C4 c4} {
+##         if {[lsearch -exact $defs "${nm}=1"] >= 0} { incr cn; set cfg $tag }
+##     }
+##     set enf  [expr {[lsearch -exact $defs "P11_CFG_ENFORCE=1"] >= 0}]
+##     set dual [expr {[lsearch -exact $defs "P11_DUAL=1"] >= 0}]
+##     set advw [expr {[lsearch -exact $defs "P11_HLS_ADV_WND=1"] >= 0}]
+##     if {!$enf}                    { return [list 0 P11_CFG_ENFORCE_MISSING       $cfg $dual $advw] }
+##     if {$cn != 1}                 { return [list 0 P11_CFG_SELECT_ONE            $cfg $dual $advw] }
+##     if {$dual && $adv_hits <= 0}  { return [list 0 P11_HLS_PORT_MISSING           $cfg $dual $advw] }
+##     if {$dual && !$advw}          { return [list 0 P11_HLS_ADV_WND_MACRO_MISSING $cfg $dual $advw] }
+##     if {!$dual && $adv_hits > 0}  { return [list 0 P11_HLS_PORT_UNEXPECTED        $cfg $dual $advw] }
+##     if {!$dual && $advw}          { return [list 0 P11_HLS_ADV_WND_MACRO_UNEXPECTED $cfg $dual $advw] }
+##     return [list 1 OK $cfg $dual $advw]
+## }
+## proc p11_hls_variant_dir {root variant} {
+##     switch -- $variant {
+##         c1 {
+##             return [file join $root _proj_10g notes p11_build_0x2C_20261018 hls_archive_single_ip]
+##         }
+##         p2_dual_max3 {
+##             return [file join $root _proj_10g notes p11_p3_build_20261019 hls_archive_p2_dual_ip_max3]
+##         }
+##         p3_dual_max8 {
+##             return [file join $root _proj_10g notes p11_p3_build_20261019 hls_archive_p3_dual_ip_max8]
+##         }
+##         p11fix_fin {
+##             # 0x3C: P3 网表 + P11_FIN_FIX=1（零板→对�??数据�? FIN 直接释放）�?
+##             # 归档甡� hls/run_hls.bat 重新综合后拷入（�? p11_synfix_20261105/DESIGN_v2.md §3）�?
+##             return [file join $root _proj_10g notes p11_synfix_20261105 hls_archive_p11fix_fin]
+##         }
+##         p11fix_fin_r1 {
+##             # R1 (2026-11-08): p11fix_fin + i_slot_dead[7:0] �?口（半开槽释放）�?
+##             # �?口存在性由 p11_slot_dead_hits + 构建脚本�?门�?�查�?
+##             return [file join $root _proj_10g notes p11_synfix_20261105 hls_archive_p11fix_fin_r1]
+##         }
+##         default { return "" }
+##     }
+## }
+## proc p11_default_variant {cfg} {
+##     switch -- $cfg {
+##         c1      { return "c1" }
+##         c2      { return "c1" }
+##         c3      { return "p2_dual_max3" }
+##         c4      { return "p3_dual_max8" }
+##         default { return "" }
+##     }
+## }
+## proc p11_adv_wnd_hits {hls_dir} {
+##     set f [file join $hls_dir udp_echo.v]
+##     if {![file exists $f]} { return -1 }
+##     set fh [open $f r]
+##     set txt [read $fh]
+##     close $fh
+##     return [regexp -all {i_tcp_adv_wnd} $txt]
+## }
+## proc p11_slot_dead_hits {hls_dir} {
+##     set f [file join $hls_dir udp_echo.v]
+##     if {![file exists $f]} { return -1 }
+##     set fh [open $f r]
+##     set txt [read $fh]
+##     close $fh
+##     return [regexp -all {i_slot_dead} $txt]
+## }
+# set P11_CFG "c3"
+# if {[info exists ::env(P11_CFG)] && ($::env(P11_CFG) ne "")} {
+#     set P11_CFG [string tolower $::env(P11_CFG)]
+# }
+# set P11_DEFS [list APP_MODE=1 DEV_USP=1 PCIE_OBS=1 DP_156MHZ=1 P7B_10G=1 \
+#                    UDP_TX_OVL=1 TCP_TX_OVL=1]
+# set P11_CONFIG_NAME ""
+# switch -- $P11_CFG {
+#     c1 {
+#         lappend P11_DEFS P11_CFG_C1=1 P11_CFG_ENFORCE=1
+#         set P11_CONFIG_NAME "single"
+#     }
+#     c2 {
+#         lappend P11_DEFS P11_CFG_C2=1 P11_CFG_ENFORCE=1 SFP2_MODE_B=1
+#         set P11_CONFIG_NAME "mirror"
+#     }
+#     c3 {
+#         lappend P11_DEFS P11_CFG_C3=1 P11_CFG_ENFORCE=1 SFP2_MODE_A=1 DUAL_SFP_A=1
+#         set P11_CONFIG_NAME "shared"
+#     }
+#     c4 {
+#         lappend P11_DEFS P11_CFG_C4=1 P11_CFG_ENFORCE=1 SFP2_MODE_A=1 DUAL_SFP_A=1 P11_DUAL=1
+#         set P11_CONFIG_NAME "dual"
+#     }
+#     default {
+#         puts "P11_CONFIG_INPUT = <$P11_CFG>"
+#         puts "P7B_VERDICT = P11_CFG_UNKNOWN"
+#         exit 1
+#     }
+# }
+# set P11_IS_DUAL [expr {[lsearch -exact $P11_DEFS "P11_DUAL=1"] >= 0}]
+# if {$P11_IS_DUAL} { lappend P11_DEFS P11_HLS_ADV_WND=1 }
+# set P11_APP8_ON 0
+# if {[info exists ::env(P11_APP8)] && ($::env(P11_APP8) ne "") && ($::env(P11_APP8) ne "0")} {
+#     if {!$P11_IS_DUAL} {
+#         puts "P11_APP8_REQUIRES_C4"
+#         puts "P7B_VERDICT = P11_APP8_REQUIRES_C4"
+#         exit 1
+#     }
+#     lappend P11_DEFS P11_APP8=1
+#     set P11_APP8_ON 1
+# }
+# puts "P11_APP8 = $P11_APP8_ON"
+P11_APP8 = 1
+# set P11_APP8_OCC_ON 0
+# if {[info exists ::env(P11_APP8_OCC)] && ($::env(P11_APP8_OCC) ne "")} {
+#     if {$::env(P11_APP8_OCC) eq "1"} {
+#         set P11_APP8_OCC_ON 1
+#     } elseif {$::env(P11_APP8_OCC) eq "0"} {
+#         set P11_APP8_OCC_ON 0
+#     } else {
+#         puts "P11_APP8_OCC_BAD_VALUE"
+#         puts "P7B_VERDICT = P11_APP8_OCC_BAD_VALUE"
+#         exit 1
+#     }
+# }
+# if {$P11_APP8_OCC_ON && ((!$P11_APP8_ON) || (!$P11_IS_DUAL))} {
+#     puts "P11_APP8_OCC_REQUIRES_APP8_C4"
+#     puts "P7B_VERDICT = P11_APP8_OCC_REQUIRES_APP8_C4"
+#     exit 1
+# }
+# lappend P11_DEFS P11_APP8_OCC=$P11_APP8_OCC_ON
+# puts "P11_APP8_OCC = $P11_APP8_OCC_ON"
+P11_APP8_OCC = 0
+# set P11_APP8_CDC_ON 0
+# if {[info exists ::env(P11_APP8_CDC)] && ($::env(P11_APP8_CDC) ne "")} {
+#     if {$::env(P11_APP8_CDC) eq "1"} {
+#         set P11_APP8_CDC_ON 1
+#     } elseif {$::env(P11_APP8_CDC) eq "0"} {
+#         set P11_APP8_CDC_ON 0
+#     } else {
+#         puts "P11_APP8_CDC_BAD_VALUE"
+#         puts "P7B_VERDICT = P11_APP8_CDC_BAD_VALUE"
+#         exit 1
+#     }
+# }
+# if {$P11_APP8_CDC_ON && ((!$P11_APP8_ON) || (!$P11_IS_DUAL) ||
+#                          ([lsearch $P11_DEFS DP_156MHZ=1] < 0) ||
+#                          ([lsearch $P11_DEFS P7B_10G=1] < 0))} {
+#     puts "P11_APP8_CDC_REQUIRES_APP8_C4_DP156_P7B10G"
+#     puts "P7B_VERDICT = P11_APP8_CDC_REQUIRES_APP8_C4_DP156_P7B10G"
+#     exit 1
+# }
+# if {$P11_APP8_CDC_ON} { lappend P11_DEFS P11_APP8_CDC=1 }
+# puts "P11_APP8_CDC = $P11_APP8_CDC_ON"
+P11_APP8_CDC = 1
+# set P11_DIAG_TX_ON 0
+# if {[info exists ::env(P11_DIAG_TX)] && ($::env(P11_DIAG_TX) eq "1")} { set P11_DIAG_TX_ON 1 }
+# if {$P11_DIAG_TX_ON} { lappend P11_DEFS P11_DIAG_TX=1 }
+# puts "P11_DIAG_TX = $P11_DIAG_TX_ON"
+P11_DIAG_TX = 0
+# set P11_IMPL_STRATEGY "Performance_Explore"
+# if {[info exists ::env(P11_IMPL_STRATEGY)] && ($::env(P11_IMPL_STRATEGY) ne "")} {
+#     set P11_IMPL_STRATEGY $::env(P11_IMPL_STRATEGY)
+# }
+# puts "P11_IMPL_STRATEGY = $P11_IMPL_STRATEGY"
+P11_IMPL_STRATEGY = Performance_ExplorePostRoutePhysOpt
+# set CFG_HLS_VARIANT ""
+# if {[info exists ::env(P11_HLS_VARIANT)] && ($::env(P11_HLS_VARIANT) ne "")} {
+#     set CFG_HLS_VARIANT $::env(P11_HLS_VARIANT)
+# } else {
+#     set CFG_HLS_VARIANT [p11_default_variant $P11_CFG]
+# }
+# set hls_dir [p11_hls_variant_dir $root_dir $CFG_HLS_VARIANT]
+# if {$hls_dir eq ""} {
+#     puts "P11_HLS_VARIANT_INPUT = <$CFG_HLS_VARIANT>"
+#     puts "P7B_VERDICT = P11_HLS_VARIANT_UNKNOWN"
+#     exit 1
+# }
+# if {![file exists [file join $hls_dir udp_echo.v]]} {
+#     puts "P11_HLS_DIR_MISSING = $hls_dir"
+#     puts "P7B_VERDICT = P11_HLS_NETLIST_MISSING"
+#     exit 1
+# }
+# if {$CFG_HLS_VARIANT eq "p11fix_fin_r1"} { lappend P11_DEFS P11_HLS_SLOT_DEAD=1 }
+# set P11_SD_HITS [p11_slot_dead_hits $hls_dir]
+# set P11_SD_DEF  [expr {[lsearch -exact $P11_DEFS "P11_HLS_SLOT_DEAD=1"] >= 0}]
+# puts "P11_HLS_SLOT_DEAD_HITS = $P11_SD_HITS (P11_HLS_SLOT_DEAD=$P11_SD_DEF)"
+P11_HLS_SLOT_DEAD_HITS = 16 (P11_HLS_SLOT_DEAD=1)
+# if {($P11_SD_DEF && $P11_SD_HITS <= 0) || (!$P11_SD_DEF && $P11_SD_HITS > 0)} {
+#     puts "P7B_VERDICT = P11_HLS_SLOT_DEAD_PORT_MISMATCH"
+#     exit 1
+# }
+# set P11_ADV_HITS [p11_adv_wnd_hits $hls_dir]
+# set P11_CFG_CHK [p11_build_cfg_check $P11_DEFS $P11_ADV_HITS]
+# puts "P11_CFG_INPUT  = $P11_CFG (env) ; HLS_VARIANT = $CFG_HLS_VARIANT"
+P11_CFG_INPUT  = c4 (env) ; HLS_VARIANT = p11fix_fin_r1
+# puts "P11_CONFIG     = [lindex $P11_CFG_CHK 2] ($P11_CONFIG_NAME)"
+P11_CONFIG     = c4 (dual)
+# puts "P11_HLS_DIR    = $hls_dir"
+P11_HLS_DIR    = D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1
+# puts "P11_HLS_ADV_WND_HITS = $P11_ADV_HITS (P11_DUAL=$P11_IS_DUAL)"
+P11_HLS_ADV_WND_HITS = 3 (P11_DUAL=1)
+# puts "P7B_VERILOG_DEFINE_LIST = $P11_DEFS"
+P7B_VERILOG_DEFINE_LIST = APP_MODE=1 DEV_USP=1 PCIE_OBS=1 DP_156MHZ=1 P7B_10G=1 UDP_TX_OVL=1 TCP_TX_OVL=1 P11_CFG_C4=1 P11_CFG_ENFORCE=1 SFP2_MODE_A=1 DUAL_SFP_A=1 P11_DUAL=1 P11_HLS_ADV_WND=1 P11_APP8=1 P11_APP8_OCC=0 P11_APP8_CDC=1 P11_HLS_SLOT_DEAD=1
+# if {[lindex $P11_CFG_CHK 0] != 1} {
+#     puts "P11_CFG_PAIRING_FAIL = [lindex $P11_CFG_CHK 1]"
+#     puts "P7B_VERDICT = [lindex $P11_CFG_CHK 1]"
+#     exit 1
+# }
+# puts "P11_CFG_PAIRING = OK"
+P11_CFG_PAIRING = OK
+# proc sec {s} { puts "\nP7B >>>>>>>>>> $s" }
+# catch {set_param general.maxThreads 8}
+# proc p7b_ps_sha256 {f} {
+#     if {![file exists $f]} { return "MISSING" }
+#     set out ""
+#     if {[catch {set out [exec powershell -NoProfile -Command "(Get-FileHash -LiteralPath '$f' -Algorithm SHA256).Hash"]} e]} {
+#         puts "P7B_HASH_EXEC_ERR $e"
+#         return "ERR"
+#     }
+#     return [string tolower [string trim $out]]
+# }
+# proc p7b_sha256_set {files} {
+#     global script_dir
+#     set acc ""
+#     foreach f [lsort $files] {
+#         set h [p7b_ps_sha256 $f]
+#         puts "P7B_HASH_FILE $h $f"
+#         if {($h eq "ERR") || ($h eq "MISSING")} { return "FAIL" }
+#         append acc $h
+#     }
+#     set tmp [file join $script_dir _p7b_hash_acc.tmp]
+#     set fh [open $tmp w]
+#     puts -nonewline $fh $acc
+#     close $fh
+#     set comb [p7b_ps_sha256 $tmp]
+#     file delete -force $tmp
+#     return $comb
+# }
+# sec "P7B_ENV"
+
+P7B >>>>>>>>>> P7B_ENV
+# puts "P7B_VIVADO = [version -short]"
+P7B_VIVADO = 2025.2
+# puts "P7B_PART_N = [llength [get_parts $part_name -quiet]]"
+P7B_PART_N = 1
+# set hls_src_files [concat [glob -nocomplain ${root_dir}/hls/src/*.cpp] \
+#                          [glob -nocomplain ${root_dir}/hls/src/*.h] \
+#                          [glob -nocomplain ${root_dir}/hls/run_hls.tcl]]
+# set hls_net_files [concat [glob -nocomplain ${hls_dir}/*.v] \
+#                          [glob -nocomplain ${hls_dir}/*.dat]]
+P7B_HASH_FILE 72ea59d09efecc243bfeea0f7e04f432fdf9894540f59b515932c4619dfa75cf D:/repo/XCKU5PMini/_builds/b0x40_low/hls/run_hls.tcl
+P7B_HASH_FILE f3713103a926b24163c9e40dc64e70c4d249209bc7a262477efbd6527e841f70 D:/repo/XCKU5PMini/_builds/b0x40_low/hls/src/eth_types.h
+P7B_HASH_FILE 2c1c622a0e2b3167d157da64440e1f5a8a5c210573805864cce9f79c9c728f5c D:/repo/XCKU5PMini/_builds/b0x40_low/hls/src/eth_utils.h
+P7B_HASH_FILE 914bccacb76c31f6f8245e89c88d8ffaccdd7393e37cfbe891f2bf22261982e7 D:/repo/XCKU5PMini/_builds/b0x40_low/hls/src/layer_arp.cpp
+P7B_HASH_FILE 6d30d3edcb2cf4600ad0bc963874636f8068e8b81773e7d7db975df6b51891ab D:/repo/XCKU5PMini/_builds/b0x40_low/hls/src/layer_dhcp.cpp
+P7B_HASH_FILE 9f0f2a4b9d7cb7dc4cd11ee0309f18f8ba5435907a6d399a08163430afcf259e D:/repo/XCKU5PMini/_builds/b0x40_low/hls/src/layer_icmp.cpp
+P7B_HASH_FILE f2e54d3d274bff12a1135f01ba4ae239ead9f69d96a2107a65a4bc2ba2261bb7 D:/repo/XCKU5PMini/_builds/b0x40_low/hls/src/layer_igmp.cpp
+P7B_HASH_FILE cfec281621728e6d6b64d27fa5d26d261f820d211467b5c4ca3c52342a7f7d70 D:/repo/XCKU5PMini/_builds/b0x40_low/hls/src/layer_ip.cpp
+P7B_HASH_FILE 54fd261d044670b3885c22cb4821e199786dfe235ab74caf0eccfe6d19e86382 D:/repo/XCKU5PMini/_builds/b0x40_low/hls/src/layer_mac.cpp
+P7B_HASH_FILE f30bc208fad20e1c3af18fb3454b50b1d020b27bfb1965ab1373e1ca60cacf40 D:/repo/XCKU5PMini/_builds/b0x40_low/hls/src/layer_stats.cpp
+P7B_HASH_FILE 454aa4b992739a0cda3546ef2bdcae7c52d4cfe2444aa3106ae50d59a3a9b0d4 D:/repo/XCKU5PMini/_builds/b0x40_low/hls/src/layer_tcp.cpp
+P7B_HASH_FILE df824d851d5abe71b89276f2500466c9eaa95fc088d60a6549c49f8fcc6e681a D:/repo/XCKU5PMini/_builds/b0x40_low/hls/src/layer_uart.cpp
+P7B_HASH_FILE 030a0a49fe8ac1d64be12a51db8a2df7becb608e1bb64df1036cc482f76994c4 D:/repo/XCKU5PMini/_builds/b0x40_low/hls/src/layer_udp.cpp
+P7B_HASH_FILE 3a5dee53a002aafe5b4d0c49f5464b6c1483c585b4dcf975b4c85f09fe5dfa24 D:/repo/XCKU5PMini/_builds/b0x40_low/hls/src/udp_echo.cpp
+P7B_HASH_FILE 8828b98601f6d87e252b75016596b33d5b5f679a5867b3c878c168bf9e2b70bf D:/repo/XCKU5PMini/_builds/b0x40_low/hls/src/udp_echo.h
+# set HLS_SRC_HASH [p7b_sha256_set $hls_src_files]
+P7B_HASH_FILE ece44f240deae6df2068dea8c0fb4c73eb83ce2b8ee1eb307036713c4c9001b6 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo.v
+P7B_HASH_FILE 1000dd451f50491b4562667bdf4d8068a1a09dbd655f3c75ba7a4238d9f8ee3c D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_arp_dump.v
+P7B_HASH_FILE 298ffda0cb1d5e35a6ed4967ae7a87e035f870ef899d5129f1b37a6335a4fdb2 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_arp_dump_Pipeline_VITIS_LOOP_223_1.v
+P7B_HASH_FILE bb336c017cac84ca75adc7751de641604acf6e3dfb447586f64f73832eedae12 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_arp_dump_Pipeline_VITIS_LOOP_223_1_p_const_ZZL8arp_dumpRN3hls6streamI11gmii_bcud.dat
+P7B_HASH_FILE 61bbf1172e099555f7cf87587f811a0c88cbe0282d40754d5514601cbd1b7305 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_arp_dump_Pipeline_VITIS_LOOP_223_1_p_const_ZZL8arp_dumpRN3hls6streamI11gmii_bcud.v
+P7B_HASH_FILE 4ddeb33f798915eb1667c0817660bfff48c99c6c99b132ca087ed19114a82b3c D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_arp_dump_stream_gmii_byte_t_0_operator_s.v
+P7B_HASH_FILE 83118a36bb85c139e24ea48eaecd6d18f76ef0295ab3abdabe575ff53232d182 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_arp_rx_process.v
+P7B_HASH_FILE 72da2d49e0d26dd7d9e7a66368799ae00b1296d5abefac09712d2385b4edab20 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_arp_rx_process_Pipeline_VITIS_LOOP_172_2.v
+P7B_HASH_FILE 6c41f03154c143f2a600e5ef2b4fc2ce7f3ed80a737f7f0197cf62b3284a0439 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_arp_rx_process_Pipeline_VITIS_LOOP_178_3.v
+P7B_HASH_FILE 2b642af79a1d5146976d73116e388a4d2a81ce62ce04b2dcedbe8bb269fb7fa4 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_arp_rx_process_Pipeline_VITIS_LOOP_186_4.v
+P7B_HASH_FILE 788cc7f31a1554d861b6d309261f0318acfef0d566c212b6a928d80e602005a7 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_arp_rx_process_Pipeline_VITIS_LOOP_209_5.v
+P7B_HASH_FILE cc9975062769f066cbe7593b64b2832d1fbd3a82e9d5771414da613f895cb126 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_arp_rx_process_arp_bytes_RAM_AUTO_1R1W.v
+P7B_HASH_FILE 457a688cb162ad89f8dca88ce8beb1d2104ee5dd638dd2b3751c5ed4df182a5b D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_arp_update.v
+P7B_HASH_FILE 7e9c9e28cb0ec1cdae8fd8b3cb019fbf5f85d57695e90c01cc539f3ec9f2146a D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_buffer_r_RAM_2P_BRAM_1R1W.v
+P7B_HASH_FILE 360880b9149b8e7e2696ebef53fdd3a3c1b7972d5373d7c56814c82823ab40d5 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_buffer_r_RAM_2P_BRAM_1R1W_ram.v
+P7B_HASH_FILE 10d4ce46a323c529a8749b2771223144b422dd5eb3058a90d3174fe9e566a116 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_cfg_write.v
+P7B_HASH_FILE d94f6c1ea4ee50221eb0c1e686bc48cab51fc626a8b6fcf95df576e111d95ae8 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_cfg_write_Pipeline_VITIS_LOOP_225_1.v
+P7B_HASH_FILE 28b0bedfd4d8cd4ac7a219efc12d313f6ba7e38833cce2b1183cf40d70829f3b D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_cfg_write_Pipeline_VITIS_LOOP_230_2.v
+P7B_HASH_FILE 61aac195cdc451e19a0bcb41e54f4eb67b49e3aa01bebfbe8206303154759349 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_cfg_write_w_RAM_AUTO_1R1W.v
+P7B_HASH_FILE 419029c35b9306fe38412bfea3ef7f0433483bd3529be7f97d88f395b3562446 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_dhcp_build_headers.v
+P7B_HASH_FILE 329e079db7d97810d21f6b9bd388de924b43faad3f207960d0c0c9f3d09b4245 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_dhcp_build_headers_Pipeline_VITIS_LOOP_54_1.v
+P7B_HASH_FILE 0d6556c780222cfa4206cbab7715c7fb3d224818f38b644a6b87403146d3fd13 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_dhcp_build_headers_Pipeline_VITIS_LOOP_58_2.v
+P7B_HASH_FILE 9dc28fbf7d08f23b162ea56238a26444f4f426c9342e12d24a70ff6a810bf1fb D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_dhcp_build_headers_Pipeline_VITIS_LOOP_69_1.v
+P7B_HASH_FILE 529a888c31c153a7cfa8526574aebf93bf4277c496a4fc3129847d66db15e121 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_dhcp_build_headers_Pipeline_VITIS_LOOP_79_2.v
+P7B_HASH_FILE c6c736f90a17a70f7e28f1081090f5594bf9ad514ec376891d359c05815348f3 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_dhcp_build_headers_Pipeline_VITIS_LOOP_83_3.v
+P7B_HASH_FILE 844dbb4e4877283420571f050f5386a45a8795def38e79b459aa693c214b3251 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_dhcp_build_headers_ip_words_RAM_AUTO_1R1W.v
+P7B_HASH_FILE 33003f3f278f028393a390faefbb93c828ed5c8cd93d8f3fd9d0a7f1c18a7cb4 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_dhcp_tx_process.v
+P7B_HASH_FILE c83af525736b0175eb74f0c0bb6b965e2668e452ad3dd7dfb77238b2b0f10265 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_dhcp_tx_process_Pipeline_VITIS_LOOP_32_1.v
+P7B_HASH_FILE 1431da7fef4d44801eae2032a7355ead00bcef674472410325417a4839aa0023 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_dhcp_tx_process_Pipeline_VITIS_LOOP_32_13.v
+P7B_HASH_FILE 6f7a1cc4865f78d81bdf076c5ff8acfec939576ac62d079859d8e1e3914500e5 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_dhcp_write_opt.v
+P7B_HASH_FILE 63f13c5568e8297f9b5fd18e27e554366816dd6b9a1b78d2f8a658e85adff18a D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_fifo_w32_d512_A.v
+P7B_HASH_FILE 9b798e7e065121a036e41b25afeaab63dd001ca2e353db0ae4bac2e349926f16 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_flow_control_loop_pipe_sequential_init.v
+P7B_HASH_FILE 78a6eaa7d01f6e1911392bfa9efeeccd6ee166ad8244c959e54577ab424012d6 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_frame_buf_RAM_AUTO_1R1W.v
+P7B_HASH_FILE 1ae83ec70f8ddb738eba74e0663417d61ec69f376990b7197ddafdfea31babf2 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_frame_buf_RAM_AUTO_1R1W_ram.v
+P7B_HASH_FILE ef274519fcbed6c9aaa48bc00aa25822a4327be11f125d73fc17dc8e3d3466de D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_icmp_rx_process.v
+P7B_HASH_FILE fe4408bc06f809ed378f3fec6ca42c0d37e7b8b5b9665f91ad95c2a03d1ae9d0 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_icmp_rx_process_Pipeline_VITIS_LOOP_105_3.v
+P7B_HASH_FILE 44f1952dea5ffc20c3f7910d57fafc612bd6f18b67772ce7a472f60c2d660524 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_icmp_rx_process_Pipeline_VITIS_LOOP_112_1.v
+P7B_HASH_FILE 4c9927257917baab63ed9abec784633d9cea1367c8a2a5af92c0bafc658a3ec4 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_icmp_rx_process_Pipeline_VITIS_LOOP_125_4.v
+P7B_HASH_FILE 6c9e6e4acdae689af102d06adb225fb6574cac11c3b9cd5c154a619cc0954c4c D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_icmp_rx_process_Pipeline_VITIS_LOOP_153_5.v
+P7B_HASH_FILE c392317297a3312aa8c71c46ac45a9a4767ae49f5babcac3d7dffc002e64ec8b D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_icmp_rx_process_Pipeline_VITIS_LOOP_161_6.v
+P7B_HASH_FILE e0c70236325d1db55a9a8221fd593c769b9a72c4c7e3bc609934c548e612f72f D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_icmp_rx_process_Pipeline_VITIS_LOOP_30_1.v
+P7B_HASH_FILE b64b61b4d17282b7efade71da462ab95298b82d1b2269cf25159b1be1420dbef D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_icmp_rx_process_Pipeline_VITIS_LOOP_36_2.v
+P7B_HASH_FILE 36b5f30109e8f169997b3d07b1e734d5752de27d96ed0f7247d5f1a500fe8679 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_icmp_rx_process_Pipeline_VITIS_LOOP_54_1.v
+P7B_HASH_FILE 2ae16cb3d46ff803a2c9111c0c215ea58a3a7124449bebbc44ac24b8ea8890a4 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_icmp_rx_process_Pipeline_VITIS_LOOP_58_2.v
+P7B_HASH_FILE 06d4b3ed7deac711867a3b200384bc9803d28d6c2d664ded08f00cdb49d2e90d D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_icmp_rx_process_Pipeline_VITIS_LOOP_62_1.v
+P7B_HASH_FILE 2f16c515a20381bbfd5867ddbdfa1eaef45d2eb76f471658a852f6629a97e121 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_icmp_rx_process_Pipeline_VITIS_LOOP_86_2.v
+P7B_HASH_FILE c7b1211c31421e47348970ea752f213354a6fafd333ba90014481db1b54ae6e5 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_icmp_rx_process_csum_buf_RAM_AUTO_1R1W.v
+P7B_HASH_FILE 6067dee60cb431f2ce888e0443aa0e92156c5414fbe1c15cd278f36a7ecec001 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_icmp_rx_process_ip_words_RAM_AUTO_1R1W.v
+P7B_HASH_FILE 393ca6bd8d3a5f346840fc2635cdcfc6d169f866b4749839d1e82584aa70a5d1 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_igmp_rx_process.v
+P7B_HASH_FILE b1a875ea1c7a85577437d8bd58d1d040665dbbce68c1fc447868685f1aed875f D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_igmp_rx_process_Pipeline_VITIS_LOOP_131_2.v
+P7B_HASH_FILE c6aea7038e38284fd394fd9ad6ac9ec77a562ec9bbbffdf899382e6350a31366 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_igmp_rx_process_Pipeline_VITIS_LOOP_135_3.v
+P7B_HASH_FILE 86b14d56aeea0c166ace5a6d6c89546e00d8cb9794e35330ea989e36223ecb1b D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_igmp_rx_process_Pipeline_VITIS_LOOP_27_1.v
+P7B_HASH_FILE 525a00b2a9fd3e7e7c252bee2108be4e30b07a15e0487e5e1b5f496fdfea2955 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_igmp_rx_process_Pipeline_VITIS_LOOP_31_2.v
+P7B_HASH_FILE b782cdda52a64aeef88eef7fdaafa983f7a0c7355fc6f7354b7b5a7a13ee2a9e D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_igmp_rx_process_Pipeline_VITIS_LOOP_54_1.v
+P7B_HASH_FILE 3940bcce24f4a7333d9c5652c1854808e3e5268db4475bab2323918fe7b39f9f D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_igmp_rx_process_Pipeline_VITIS_LOOP_55_1.v
+P7B_HASH_FILE ff089023814a555fd99ad976bfca117ba65077eae684f30190cd88f2c283e681 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_igmp_rx_process_Pipeline_VITIS_LOOP_58_2.v
+P7B_HASH_FILE a8c0a40da19584ae706754cdf298fca607fc6cb8e686afd77132dcbc5a118b79 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_igmp_rx_process_ip_words_RAM_AUTO_1R1W.v
+P7B_HASH_FILE 08ee720c9933c90570c5d294db5281da7573f38ec048e0060907b77a2210bd79 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_igmp_rx_process_report_RAM_AUTO_1R1W.v
+P7B_HASH_FILE 3e6e3c06689292ba5e8534994ed9ff13d6d80b8502aa99afe63730ec7648bd21 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_ip_rx_process.v
+P7B_HASH_FILE c150402f6039c002854332a3106caf80a0e6dab4e6879ec6008f9275f83d52f6 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_ip_rx_process_Pipeline_VITIS_LOOP_43_1.v
+P7B_HASH_FILE 3ecf2f3502f919e44fa5ed3802624eaa92d2e92d4c99bb570b8e7e411f356019 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_ip_rx_process_Pipeline_VITIS_LOOP_54_1.v
+P7B_HASH_FILE 404712973c8aba9060f2788acfc629c7d473724153bfaae6954fbbd7b1d398fd D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_ip_rx_process_Pipeline_VITIS_LOOP_58_2.v
+P7B_HASH_FILE 6e988a5374d2082cfba5d7604883f2c601ce7e361033b3201a5dd40bffadffcc D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_ip_rx_process_Pipeline_VITIS_LOOP_69_2.v
+P7B_HASH_FILE 54ffa87dbd95a6ea6252d4399ea7dd90e7682b250a26e53882bf16a50e51f5c8 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_ip_rx_process_hdr_RAM_AUTO_1R1W.v
+P7B_HASH_FILE 72457c999154e4461539c5b6c9c2509b94b6dd4cbc1b6afc40c431aa47daaf53 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_ip_rx_process_words_RAM_AUTO_1R1W.v
+P7B_HASH_FILE 09765627948d18a3fdb080520febc90142515388bcd438ab0fea59ab697c5e24 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_l1_age_RAM_AUTO_1R1W.v
+P7B_HASH_FILE 984ee805a68ef98f780d2d6edc4312c284f0774d12adaac790a9c75e4b916e12 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_l1_age_RAM_AUTO_1R1W_ram.v
+P7B_HASH_FILE 934f576e8d6a9c1198a02499ec70eb86f075367ac4701278302ba02c31b6edce D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_l1_cache_ip_RAM_AUTO_1R1W.v
+P7B_HASH_FILE eb8cea9c556dda5f046cf7494c9f89463dfd44235d43a95124d4610cc9aa9c0c D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_l1_cache_ip_RAM_AUTO_1R1W_ram.v
+P7B_HASH_FILE ecbc221a9acf9d4092806481d19910dfdc344a2c011c7e26b4cd1215567e914e D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_l1_cache_mac_RAM_AUTO_1R1W.v
+P7B_HASH_FILE 4fb76cd550029a4f9eb3f1e07e7188f5ee04615c60092b73d494a8eb2c4818ab D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_l1_cache_mac_RAM_AUTO_1R1W_ram.v
+P7B_HASH_FILE ad4a073c5512dfb449990c93909ee7a307350a9a92764550748e06cce5171f64 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_l1_cache_valid_RAM_AUTO_1R1W.v
+P7B_HASH_FILE 06fb1417e5b29a7420330f99465df4e9692af592526c7dce0be5286aa8fab062 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_l1_cache_valid_RAM_AUTO_1R1W_ram.v
+P7B_HASH_FILE d9c8ab1f290783c6c8a2a0be8dbaec98456366f5d21357289395216a83f0acb8 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_l1_insert.v
+P7B_HASH_FILE d18b2179bf702997f9db93cbfcb36ed48e80c46b3d323703ad28a3a2ee233158 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_l1_insert_Pipeline_VITIS_LOOP_89_2.v
+P7B_HASH_FILE 21ffead831c459699dcfe3f27eba88110bd2778f52ac9e29a4e889758fa5b96f D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_l1_lookup.v
+P7B_HASH_FILE b71cc4706692c708850d3d4b80d2c0bd9588ace8ac5597e1cc2c48f8382032a7 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_l2_table_ip_RAM_2P_BRAM_1R1W.v
+P7B_HASH_FILE cb58aecf6a2835b42c99eaabe66854af9395201d4f27d906faae5652d814c883 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_l2_table_ip_RAM_2P_BRAM_1R1W_ram.v
+P7B_HASH_FILE d764527111066b93ed53bfdf81f4863b5f6298aff512a0f888bad6e3d891702e D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_l2_table_mac_RAM_2P_BRAM_1R1W.v
+P7B_HASH_FILE 044e18d08c20dfa433f94754ad8bcdeb716e4f3e461dc8242dad5290474408d9 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_l2_table_mac_RAM_2P_BRAM_1R1W_ram.v
+P7B_HASH_FILE dedd4689c1129d3a1f16f272596278868e34140b8a5450c88caea2aec6654153 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_l2_table_valid_RAM_2P_BRAM_1R1W.v
+P7B_HASH_FILE 61174d1dcdbcf928dbbc7645abcce041aebb1ce841369b659d53e51cac732994 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_l2_table_valid_RAM_2P_BRAM_1R1W_ram.v
+P7B_HASH_FILE cbb5323107906cfc6f98de5fc5836015375a857095106cae860d7a4451fae523 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_mac_rx_process.v
+P7B_HASH_FILE 18918017e694f7430d32e7165814d5471371acc93465fefb93c63ec5aee1a954 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_mac_tx_process.v
+P7B_HASH_FILE de7b88e854c485afdc3c3c4379efd1065116ffc87509693f656b3ef59da316fc D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_mac_tx_process_Pipeline_VITIS_LOOP_36_1.v
+P7B_HASH_FILE 5de134b1cd4a7d228d1c7c6bbb5071e852328915099960a783147f7de24ed310 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_mac_tx_process_Pipeline_VITIS_LOOP_36_12.v
+P7B_HASH_FILE fc7b30cc39374dbd19e1e1d80e0cbf0198dc55141326cea06f0560e38a62fc52 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_mac_tx_process_preamble_ROM_AUTO_1R.dat
+P7B_HASH_FILE 8029356a4c148a7e9f553e555a2fe590b7c2aa5131a4b6cc3f6eb42e60449865 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_mac_tx_process_preamble_ROM_AUTO_1R.v
+P7B_HASH_FILE 6835bce646ce92be0c73c66967b52b67972dd3c33dd97528e24014043dac5911 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_mac_tx_process_src_mac_ROM_AUTO_1R.dat
+P7B_HASH_FILE 600e761d36a487d5295a4c14dcf2746c22e6dc490e941039a6249fdc5d54d960 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_mac_tx_process_src_mac_ROM_AUTO_1R.v
+P7B_HASH_FILE 44d33f28376e80433c88c188783e6c4818db40da5579a4fb8a0bb7411d05fbce D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_mul_32ns_34ns_65_1_1.v
+P7B_HASH_FILE 129d8de7c75ad06819210585b9d5c6ab344d77d070573780a3040742e435715e D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_mul_7ns_9ns_15_1_1.v
+P7B_HASH_FILE 3e7be84027ca7b2a95bf8823e93419262fa055684e10a370ae0aa7ee4a863d51 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_mul_8ns_10ns_17_1_1.v
+P7B_HASH_FILE 5325e67a5a58b74e7fa63139ad15d5ce1c2939e2bea08f4676f2b70552381fdf D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_regslice_both.v
+P7B_HASH_FILE 62368cf56de750cf778d752fe46b946b066725e6abdb00c9d6f6f5fd0418cd66 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_sparsemux_19_8_3_1_1.v
+P7B_HASH_FILE 81b82cfdfd41be26e23b214e7460478346179091a8a6cfae59d5db6b5a1deea1 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_sparsemux_19_8_4_1_1.v
+P7B_HASH_FILE 637dd260a8dbe7b252c5a35f5b12ab1246a10cc4badc0995adbf7d02b289a12e D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_sparsemux_7_2_8_1_1.v
+P7B_HASH_FILE 75b478a703363ea93326d43e051b0e81ba728575eb55691c90f46e84f1f3139f D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_sparsemux_9_3_8_1_1.v
+P7B_HASH_FILE 0d395a39931adca31983ea62cf6d6d5e419162076bc4aaadb05da00eb66e58ae D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_stats_event.v
+P7B_HASH_FILE 5a8a2fc29f32bc1682669ffdf6a6ee72f90fae0e6b91c0f413e981e47b638eb5 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_stats_report.v
+P7B_HASH_FILE b338f8c4d0c3628788726de18b6ef0c864ab187f1c1bfddf2f72e1dc42454f6b D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_stats_report_Pipeline_VITIS_LOOP_31_1.v
+P7B_HASH_FILE e81864b6cb0bbcbedd23213eaee7f40499ac848d7433a8b5cd6639e7c59a3109 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_stats_report_bool_stream_bool_unsigned_short_operator_Pipeline_VITIS_LOOP_29.v
+P7B_HASH_FILE 04cee87761678b647255e622542367c0307fa51799e15ad8cb12cd0800e666ed D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_stats_report_bool_stream_bool_unsigned_short_operator_Pipeline_VITIS_LOOP_29_1.v
+P7B_HASH_FILE 87e5da2517ed5682f79e083b93f26df3fc0f904ba19768845ebabed2f6a5806d D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_stats_report_bool_stream_gmii_byte_t_0_bool_unsigned_short_operator_1.v
+P7B_HASH_FILE 1ab12047b9a597744353ba9d162dcce5da81abace056691d6525f4b1d7bb8d55 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_stats_report_bool_stream_gmii_byte_t_0_bool_unsigned_short_operator_s.v
+P7B_HASH_FILE e6c0a697ec3f2e118c7c914fc3d86888823232fab6e43ffe0f4ecca915555967 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_stats_report_bool_stream_gmii_byte_t_0_bool_unsigned_short_operator_s_b_RAM_Abkb.v
+P7B_HASH_FILE c1f527f8538ce0626c2b4f6efd4747bb1531b86c98ca9dbb07efa1da4b68b8e9 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_conn_local_ip_RAM_2P_BRAM_1R1W.v
+P7B_HASH_FILE 6b1b129db176f655ed017bfb36304069ec61536557bde692e7a140481dcfdefd D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_conn_local_ip_RAM_2P_BRAM_1R1W_ram.v
+P7B_HASH_FILE a15d433f52728b433090070dd79ade3e6b6e1f0e8269cf232dcd12ea90b3a5a1 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_conn_peer_ip_RAM_2P_BRAM_1R1W.v
+P7B_HASH_FILE e0b39b0112fd199896175d2bcc0ed8b3c1071d3823ac1592fd9c672eeb7a612b D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_conn_peer_ip_RAM_2P_BRAM_1R1W_ram.v
+P7B_HASH_FILE c5901dc71b5bcb8a886aecd6e26c1ad8d26bdcaa62da9b3e12a07acdedbed2e8 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_conn_peer_port_RAM_2P_BRAM_1R1W.v
+P7B_HASH_FILE 069224c272a55998b92bedba5da106910e16d41e3315c10edd8f4c722d7fdc54 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_conn_peer_port_RAM_2P_BRAM_1R1W_ram.v
+P7B_HASH_FILE 88684be27e324144e429d3deb86ec73183dbe65c4fcdd1dbb249bed89a1fd8ae D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_conn_retrans_pending_RAM_2P_BRAM_1R1W.v
+P7B_HASH_FILE 82bea2e649376c45e0fbff9da7fed6e17591c5ea4115d9c881a9951a116d3b65 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_conn_retrans_pending_RAM_2P_BRAM_1R1W_ram.v
+P7B_HASH_FILE 03b081ee755084a3e482f19b5f1391e59a4522bb9597bad8c7d1db582946ec5c D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_conn_state_RAM_2P_BRAM_1R1W.v
+P7B_HASH_FILE 4cd6a83ab0d4a5c5b2cd3041eb4fa10a04e62724ca8d6b05139af9fd36eb7b69 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_conn_state_RAM_2P_BRAM_1R1W_ram.v
+P7B_HASH_FILE 348eb7c48fb7f3f8f4cf56c264408c836a60a3fdd714df2712e06a801f8c2b2f D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_find.v
+P7B_HASH_FILE 6f897cc591146b565313f5094525e0c975c53918a10f1fc5d20aeebef490746a D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_parse_opts.v
+P7B_HASH_FILE becfbf91f09b27f3373e2b4b26ee08e8a570d8d12eb6adca7f4ad1bd92686fd0 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_parse_opts_Pipeline_VITIS_LOOP_435_1.v
+P7B_HASH_FILE 046c8cea51413879d26c3eb12ec1c2f81e8f4ff6a32594a19eb02b3254b1a5ed D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_rx_process.v
+P7B_HASH_FILE fe129c42e7686afb2bc49ed84266b754614999164607b2524e322ef3da106647 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_rx_process_Pipeline_VITIS_LOOP_394_1.v
+P7B_HASH_FILE 707492ea16e3fdf4357fd4c73261dbac9888a0670b6f9b63d214c62ff91b4c36 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_rx_process_Pipeline_VITIS_LOOP_549_1.v
+P7B_HASH_FILE 90fe5b5e099401c0843330f13aec52af796fc0523b94b8f6e808aae8b35c701a D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_rx_process_Pipeline_VITIS_LOOP_614_3.v
+P7B_HASH_FILE 873e4b2f79f887427cd6e9a256c766bad79d9ff6bf944b6444b54b71630c3ddd D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_rx_process_Pipeline_VITIS_LOOP_626_4.v
+P7B_HASH_FILE 08b92f1edfdb1751721123699f1b8054b74156ebb9ccc5a337c2bb3315963653 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_rx_process_payload_RAM_AUTO_1R1W.v
+P7B_HASH_FILE f1e0f413a8493ecce5f138d8fc2db0014e60b1a5831e14ae8e6a68d8bcc5ec75 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_rx_process_tcp_conn_cwnd_RAM_2P_BRAM_1R1W.v
+P7B_HASH_FILE e434fac00871377cb0d33736b5489e10fae8d70d2090a5d87ee3e39688a0d90d D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_rx_process_tcp_conn_cwnd_RAM_2P_BRAM_1R1W_ram.v
+P7B_HASH_FILE 47c4d49332c2bd8dfb51bdb68825adbe5b9be69a6748c8be64add56e56e71396 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_rx_process_tcp_conn_dup_ack_cnt_RAM_2P_BRAM_1R1W.v
+P7B_HASH_FILE af97435af7898edcf8bf0195165c4afe669759012f8fdab1a940f2c80c271e3d D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_rx_process_tcp_conn_dup_ack_cnt_RAM_2P_BRAM_1R1W_ram.v
+P7B_HASH_FILE 1115736c40ba67fb95eec2d1379f3808485a19373fd7ebe6923447423a6df9b4 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_rx_process_tcp_conn_peer_mss_RAM_2P_BRAM_1R1W.v
+P7B_HASH_FILE dfc8676aca9d0d4d568a1a65e1f912e206f04c45b4aeb2a32565c241b4d0be92 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_rx_process_tcp_conn_peer_mss_RAM_2P_BRAM_1R1W_ram.v
+P7B_HASH_FILE b4c23b1350b61e019c99432d710e113c1bcc2bad848c4eb5929791d8fbc8e156 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_rx_process_tcp_conn_rto_RAM_2P_BRAM_1R1W.v
+P7B_HASH_FILE 373f55253a5adffb3889ca1859e20fcc457ee727bbb50f091ff954d467bb9f16 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_rx_process_tcp_conn_rto_RAM_2P_BRAM_1R1W_ram.v
+P7B_HASH_FILE 0ebd5a89d20e0099edd9a9fbd61c5521935fe96bf30e73b31b29906f69b29173 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_rx_process_tcp_conn_ssthresh_RAM_2P_BRAM_1R1W.v
+P7B_HASH_FILE abc7c8994f04e509f47744e0a4a2c923e7e25a0b6398db6a478b46031e547b4d D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_rx_process_tcp_conn_ssthresh_RAM_2P_BRAM_1R1W_ram.v
+P7B_HASH_FILE d26cdb6f2a6a7c80ac6164834ceb0104274bbd10c0acadad98a7705fe44f97c6 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_send.v
+P7B_HASH_FILE 49145bf4421753b5b01a02102a6fa991590162e86b2cbd9bcccfda51ffb2a381 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_send_1.v
+P7B_HASH_FILE f1586d18e49ac43079e42cfd935e302ef3f65eb073420ab2057b5280403c43b3 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_send_1_Pipeline_VITIS_LOOP_112_1.v
+P7B_HASH_FILE 1b881614a1dfedb4a85f07bc0f9eed35ed46ba9e6253a378b0775514a61d7712 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_send_1_Pipeline_VITIS_LOOP_234_1.v
+P7B_HASH_FILE 3f92f7c5cf42c3e49bddd1853f9dc1b2cfc4cf0eb53408a10c12855f100b195b D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_send_1_Pipeline_VITIS_LOOP_236_2.v
+P7B_HASH_FILE 9a0112efd273683f091db44907a7f836020f7897dabf57aa17251807431d665c D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_send_1_Pipeline_VITIS_LOOP_327_1.v
+P7B_HASH_FILE c4a7ac4acbab5a79bd0bb91a14f0cd73faa9b908e432ba4a07d7d91bf809eeed D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_send_1_Pipeline_VITIS_LOOP_339_2.v
+P7B_HASH_FILE 24ad1f7639786463f890956e04351f54953165ab6816f5bfbff8ea7867a14a68 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_send_1_Pipeline_VITIS_LOOP_341_3.v
+P7B_HASH_FILE 59e9c53ec23da7f78ccdba83ec85e37d855e6dc2649b68c60ebf7c68557a1880 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_send_1_Pipeline_VITIS_LOOP_347_4.v
+P7B_HASH_FILE 8e1ee91a68ed5a9768d0ebc0440f11f54d163761455e620d5b696a95972637be D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_send_1_Pipeline_VITIS_LOOP_353_5.v
+P7B_HASH_FILE c4aba0bbfbdce06f999bddb988c1ade730844969526ca6e2d8e194804270f552 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_send_1_Pipeline_VITIS_LOOP_54_1.v
+P7B_HASH_FILE 82c109fe73568069f65447a43a7df3e18a29a5a254d976ade13d667fbf2908b8 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_send_1_Pipeline_VITIS_LOOP_58_2.v
+P7B_HASH_FILE 046c758ff5ba20a18926bb5a00e5dc56759ec44d4e04d4a0428dd812615497e7 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_send_1_iw_RAM_AUTO_1R1W.v
+P7B_HASH_FILE 5b93ad38009627ae1e0242693ec51c453cc29961dbff1b51107772d0fac91c58 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_send_Pipeline_VITIS_LOOP_112_1.v
+P7B_HASH_FILE 0260563ea565351e5721c0cbdff50d01197669a225dc598dd7e9dd86a7b872ce D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_send_Pipeline_VITIS_LOOP_234_1.v
+P7B_HASH_FILE dbd15429fe08ae0afe69dfd257edb86808fd934083f1d07712bcd5a58a06f61a D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_send_Pipeline_VITIS_LOOP_236_2.v
+P7B_HASH_FILE 50df08fd8c1d67a99b14d3b3b224134817417bc50a9273133555031301a5778f D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_send_Pipeline_VITIS_LOOP_339_2.v
+P7B_HASH_FILE 0a04c3cf3af08767d8b5d481122d11c12bf87aa445c5f5a882929d85232482b9 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_send_Pipeline_VITIS_LOOP_341_3.v
+P7B_HASH_FILE cc345c0da420c6676275e870bff1bbea50949a3f08c92e4f1a0b23b11ea43c0c D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_send_Pipeline_VITIS_LOOP_347_4.v
+P7B_HASH_FILE 0a7170525362550d25f5b51c0c9bf1e8da0a240d9a1a990cf2808067bd94906e D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_send_Pipeline_VITIS_LOOP_54_1.v
+P7B_HASH_FILE f0b2d5c0e815b0ed85f85d17a5b12a163e7cbb812d8dbe2ed7c79e9c6c04e8d6 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_send_Pipeline_VITIS_LOOP_58_2.v
+P7B_HASH_FILE cc6aa5d31461af7669d8091365ce23e44c4a22c4eeb761899fe6926d29fe2663 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_send_bufs_RAM_2P_BRAM_1R1W.v
+P7B_HASH_FILE 406be540d78b63c2a2efda2e4eecddea570e3e7f7abf1758a42cc039960986cf D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_send_bufs_RAM_2P_BRAM_1R1W_ram.v
+P7B_HASH_FILE 7a84a6f0e75acc11cea8dd4d1047a738aa7aa0f1a3d80f9d40e004339ce805c4 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_send_iw_RAM_AUTO_1R1W.v
+P7B_HASH_FILE 548f60fae9a1d85fdb45d522be9bc02ea21d44f9e36d2f47488f099af12ef585 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_tcp_send_seg_RAM_AUTO_1R1W.v
+P7B_HASH_FILE 00fbad6567d9723d8bfcce7633577fcbd128d9f6d6e6a80626c8ef723560ce38 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_udiv_23ns_32ns_32_27_seq_1.v
+P7B_HASH_FILE 8bf4200ed43a936b887723b7ff76cecc33c5b456a3b0f3a83c50e33131ac0c41 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_udp_echo_Pipeline_VITIS_LOOP_188_2.v
+P7B_HASH_FILE 3c4a0ed6e961637631a3ded972f99cc42f9b8a86fadde457cd35a575ba76c58a D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_udp_echo_Pipeline_VITIS_LOOP_189_3.v
+P7B_HASH_FILE 7b307d86c312471155f1b9598b56454d1fb1e69159c69a4e4a7663605ce7a681 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_udp_echo_Pipeline_VITIS_LOOP_224_4.v
+P7B_HASH_FILE 0d41c49b971ef77accc2c3e7e29ea6921284daae8f54aa37b4864c0b3d5ef922 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_udp_echo_Pipeline_VITIS_LOOP_39_1.v
+P7B_HASH_FILE c9b2c7973154a6033db1997fefce4e6c073cd4e5b76bcd5cc1fcad684a156bf6 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_udp_tx_process.v
+P7B_HASH_FILE 86ed874bf5e69cb7b6dff5f4e15e179deab310fe2af616a99bdaab94168fdfac D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_udp_tx_process_Pipeline_VITIS_LOOP_112_1.v
+P7B_HASH_FILE 3aee6541e86538798956614d168ec04c8e61d3d985d44dff0c3ef6a19bc03732 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_udp_tx_process_Pipeline_VITIS_LOOP_152_1.v
+P7B_HASH_FILE 79956b1e06775b31cb4cc1e4d02427d118b4c7c031ec2a6cd83bd7340ee231ac D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_udp_tx_process_Pipeline_VITIS_LOOP_182_1.v
+P7B_HASH_FILE c2bd17a5d6eb634938126b491c85a09106db2f0a7c9a557a88790a9cab6061e8 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_udp_tx_process_Pipeline_VITIS_LOOP_186_2.v
+P7B_HASH_FILE 174520ce25b27aa5317390092ecaafe44a49c17800eafc6ffdbc854b7aae28be D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_udp_tx_process_Pipeline_VITIS_LOOP_54_1.v
+P7B_HASH_FILE 02213ce46671af85b535537d70ac4386f41e98bfc7893c0f1dab28a5f86f509b D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_udp_tx_process_Pipeline_VITIS_LOOP_58_2.v
+P7B_HASH_FILE 34828baf7f2c6d8a8e58e6d07a51ec2645158b49cb77229564880a31013c1652 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_udp_tx_process_ip_words_RAM_AUTO_1R1W.v
+P7B_HASH_FILE b74b977984029974dec544e45c0ff03ab08428e9b45e5bfabd44d6c5a521f7c5 D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_urem_32ns_5ns_4_36_1.v
+P7B_HASH_FILE 0bd1288a793332556b3e4e7f03a47a78dd0af5016742074b607c3601b137516a D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_urem_7ns_5ns_7_11_1.v
+P7B_HASH_FILE 0670539ebdee7f4b338bd39011f4b0fd08a62a9a9b42d981c2081bfd40cbf5fd D:/repo/XCKU5PMini/_builds/b0x40_low/_proj_10g/notes/p11_synfix_20261105/hls_archive_p11fix_fin_r1/udp_echo_urem_8ns_8ns_7_12_1.v
+# set HLS_NET_HASH [p7b_sha256_set $hls_net_files]
+# puts "HLS_SRC_HASH = $HLS_SRC_HASH  (n=[llength $hls_src_files] files: hls/src/*.cpp|*.h + hls/run_hls.tcl)"
+HLS_SRC_HASH = 7d8933e79021c7603dc867ff02c7dd03d4f3ae54e06b1e222c4c3c46bd38e57a  (n=15 files: hls/src/*.cpp|*.h + hls/run_hls.tcl)
+# puts "HLS_NET_HASH = $HLS_NET_HASH  (n=[llength $hls_net_files] files: hls/slowstack_prj/solution1/syn/verilog/*.v|*.dat)"
+HLS_NET_HASH = 468e46dcee5709cf3b9a11e57c6da04cb0ea39fc25a39e7ee080ec3637d36639  (n=176 files: hls/slowstack_prj/solution1/syn/verilog/*.v|*.dat)
+# if {($HLS_SRC_HASH eq "FAIL") || ($HLS_NET_HASH eq "FAIL")} {
+#     puts "P7B_VERDICT = HLS_HASH_FAIL"
+#     exit 1
+# }
+# sec "P7B_CREATE $project_name"
+
+P7B >>>>>>>>>> P7B_CREATE p7b_ku5p_prj
+# create_project -force $project_name ${root_dir}/vivado_prj -part $part_name
+create_project: Time (s): cpu = 00:00:46 ; elapsed = 00:00:08 . Memory (MB): peak = 554.555 ; gain = 242.070
+# set_property target_language Verilog [current_project]
+# sec "P7B_IP_CREATE"
+
+P7B >>>>>>>>>> P7B_IP_CREATE
+# create_ip -name xxv_ethernet -vendor xilinx.com -library ip -version 5.0 -module_name pcs64
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1704] No user IP repositories specified
+INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'C:/AMDDesignTools/2025.2/Vivado/data/ip'.
+# set ip [get_ips pcs64]
+# puts "P7B_IS_LOCKED_AT_CREATE = [get_property IS_LOCKED $ip]"
+P7B_IS_LOCKED_AT_CREATE = 0
+# set DESIRED [list \
+#     CONFIG.LINE_RATE            {10} \
+#     CONFIG.CLOCKING             {Asynchronous} \
+#     CONFIG.BASE_R_KR            {BASE-R} \
+#     CONFIG.GT_REF_CLK_FREQ      {156.25} \
+#     CONFIG.GT_TYPE              {GTY} \
+#     CONFIG.INCLUDE_SHARED_LOGIC {1} \
+#     CONFIG.GT_GROUP_SELECT      $gquad \
+#     CONFIG.NUM_OF_CORES         {2} \
+#     CONFIG.LANE1_GT_LOC         {X0Y4} \
+#     CONFIG.LANE2_GT_LOC         {X0Y5} \
+#     CONFIG.CORE                 {Ethernet PCS/PMA 64-bit} ]
+# set conv -1
+# for {set rnd 1} {$rnd <= 8} {incr rnd} {
+#     foreach {k v} $DESIRED { catch {set_property $k $v $ip} e }
+#     set bad 0
+#     foreach {k v} $DESIRED {
+#         set gv "<err>"; catch {set gv [get_property $k $ip]}
+#         if {[string trim $gv] ne [string trim $v]} { incr bad ; puts "P7B_RB_MISMATCH $k want=<$v> got=<$gv>" }
+#     }
+#     puts "P7B_ROUND #$rnd MISMATCH_N = $bad"
+#     if {$bad == 0} { set conv $rnd ; break }
+# }
+P7B_RB_MISMATCH CONFIG.LINE_RATE want=<10> got=<25>
+P7B_RB_MISMATCH CONFIG.BASE_R_KR want=<BASE-R> got=<BASE-KR>
+P7B_RB_MISMATCH CONFIG.GT_REF_CLK_FREQ want=<156.25> got=<161.1328125>
+P7B_RB_MISMATCH CONFIG.NUM_OF_CORES want=<2> got=<1>
+P7B_RB_MISMATCH CONFIG.LANE2_GT_LOC want=<X0Y5> got=<NA>
+P7B_ROUND #1 MISMATCH_N = 5
+P7B_ROUND #2 MISMATCH_N = 0
+# puts "P7B_CONVERGED_AT_ROUND = $conv"
+P7B_CONVERGED_AT_ROUND = 2
+# if {$conv < 0} { puts "P7B_VERDICT = IP_NOT_CONVERGED" ; exit 1 }
+# generate_target all $ip
+INFO: [IP_Flow 19-1686] Generating 'Instantiation Template' target for IP 'pcs64'...
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'pcs64'...
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_tsn_802d1cm@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_tsn_802d1cm@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_tsn_802d1cm@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_tsn_802d1cm@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'pcs64'...
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_tsn_802d1cm@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_basekr@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+WARNING: [IP_Flow 19-650] IP license key 'xxv_eth_mac_pcs@2025.05' is enabled with a Design_Linking license.
+INFO: [Common 17-14] Message 'IP_Flow 19-650' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
+INFO: [IP_Flow 19-1686] Generating 'Implementation' target for IP 'pcs64'...
+INFO: [IP_Flow 19-1686] Generating 'Change Log' target for IP 'pcs64'...
+generate_target: Time (s): cpu = 00:00:09 ; elapsed = 00:00:11 . Memory (MB): peak = 730.980 ; gain = 19.984
+# puts "P7B_IS_LOCKED_POSTGEN = [get_property IS_LOCKED $ip]"
+P7B_IS_LOCKED_POSTGEN = 0
+# catch {puts "P7B_LOCK_DETAILS = [get_property LOCK_DETAILS $ip]"}
+P7B_LOCK_DETAILS = IP is not locked
+# catch {puts "P7B_USED_LICENSE_KEYS = [get_property USED_LICENSE_KEYS $ip]"}
+P7B_USED_LICENSE_KEYS = {{implementation {xxv_eth_mac_pcs@2025.05 design_linking} {xxv_eth_basekr@2025.05 design_linking} {xxv_tsn_802d1cm@2025.05 design_linking}} {simulation {xxv_eth_mac_pcs@2025.05 design_linking} {xxv_eth_basekr@2025.05 design_linking} {xxv_tsn_802d1cm@2025.05 design_linking}} {synthesis {xxv_eth_mac_pcs@2025.05 design_linking} {xxv_eth_basekr@2025.05 design_linking} {xxv_tsn_802d1cm@2025.05 design_linking}} {changelog {xxv_eth_mac_pcs@2025.05 design_linking} {xxv_eth_basekr@2025.05 design_linking} {xxv_tsn_802d1cm@2025.05 design_linking}} {instantiation_template {xxv_eth_mac_pcs@2025.05 design_linking} {xxv_eth_basekr@2025.05 design_linking} {xxv_tsn_802d1cm@2025.05 design_linking}}}
+# puts "P7B_GT_REF_CLK_FREQ = [get_property CONFIG.GT_REF_CLK_FREQ $ip]"
+P7B_GT_REF_CLK_FREQ = 156.25
+# puts "P7B_LINE_RATE       = [get_property CONFIG.LINE_RATE $ip]"
+P7B_LINE_RATE       = 10
+# puts "P7B_CORE            = [get_property CONFIG.CORE $ip]"
+P7B_CORE            = Ethernet PCS/PMA 64-bit
+# puts "P7B_NUM_OF_CORES    = [get_property CONFIG.NUM_OF_CORES $ip]"
+P7B_NUM_OF_CORES    = 2
+# sec "P7B_ADD_DATAPATH"
+
+P7B >>>>>>>>>> P7B_ADD_DATAPATH
+# import_files -norecurse \
+#     ${root_dir}/rtl/crc32_8b.v ${root_dir}/rtl/fifo_sync.v ${root_dir}/rtl/checksum16.v \
+#     ${root_dir}/rtl/frame_fifo.v ${root_dir}/rtl/mac_rx_64.v ${root_dir}/rtl/mac_tx_64.v \
+#     ${root_dir}/rtl/tcp_cam.v ${root_dir}/rtl/tcb.v ${root_dir}/rtl/tcp_rx.v \
+#     ${root_dir}/rtl/tcp_tx_frame.v ${root_dir}/rtl/retx_ram.v ${root_dir}/rtl/tcp_echo.v \
+#     ${root_dir}/rtl/axis_pipe.v ${root_dir}/rtl/rx_classify.v ${root_dir}/rtl/vlan_strip.v \
+#     ${root_dir}/rtl/slow_rx_adp.v ${root_dir}/rtl/slow_cfg_adp.v ${root_dir}/rtl/slow_tx_adp.v \
+#     ${root_dir}/rtl/udp_rx.v ${root_dir}/rtl/udp_split.v ${root_dir}/rtl/udp_tx_cfg.v \
+#     ${root_dir}/rtl/udp_tx_frame.v ${root_dir}/rtl/tx_arb.v ${root_dir}/rtl/app_ctrl.v \
+#     ${root_dir}/rtl/app_pattern.v ${root_dir}/rtl/app_udp_pattern.v \
+#     ${root_dir}/rtl/app_multi8.v ${root_dir}/rtl/axis_frame_mux8.v \
+#     ${root_dir}/rtl/axis_tid_demux8.v ${root_dir}/rtl/app_close_arb8.v \
+#     ${root_dir}/rtl/app_clk_gen.v ${root_dir}/rtl/app_multi8_cdc.v \
+#     ${root_dir}/rtl/app_status_uart.v     ${root_dir}/rtl/rx_merge2.v ${root_dir}/rtl/tx_demux2.v ${root_dir}/rtl/maccnt_sync.v \
+#     ${root_dir}/rtl/win_pool_mgr.v ${root_dir}/rtl/retx_pool_shared.v \
+#     ${root_dir}/rtl/slow_merge2.v ${root_dir}/rtl/slow_demux2.v ${root_dir}/rtl/slow_cfg_demux.v
+# sec "P7B_ADD_OBS"
+
+P7B >>>>>>>>>> P7B_ADD_OBS
+# import_files -norecurse ${root_dir}/rtl/snap_cdc.v ${root_dir}/_proj_pcie/rtl/axi_regs.v \
+#                          ${root_dir}/rtl/clk_gen_p6b.v ${root_dir}/rtl/fifo_async.v \
+#                          ${root_dir}/rtl/snap_seq.v \
+#                          ${root_dir}/rtl/app_rx_mirror.v \
+#                          ${root_dir}/rtl/axis_c2h_stream.v \
+#                          ${root_dir}/rtl/mir_uram_fifo.v
+# sec "P7B_ADD_MAC"
+
+P7B >>>>>>>>>> P7B_ADD_MAC
+# import_files -norecurse ${mac_dir}/crc32_64.v ${mac_dir}/mac_rx_10g.v ${mac_dir}/mac_tx_10g.v
+# sec "P7B_ADD_BOARD"
+
+P7B >>>>>>>>>> P7B_ADD_BOARD
+# import_files -norecurse ${script_dir}/wrapper_p4.v ${script_dir}/util_gmii_to_rgmii_us.v \
+#                          ${script_dir}/util_gmii_to_rgmii.v ${script_dir}/uart_dbg.v
+# import_files -norecurse [glob -nocomplain ${hls_dir}/*.v]
+# set hls_imp_dir [file join ${root_dir}/vivado_prj/${project_name}.srcs/sources_1/imports [file tail $hls_dir]]
+# if {![file exists [file join $hls_imp_dir udp_echo.v]]} {
+#     set hls_imp_hits [glob -nocomplain ${root_dir}/vivado_prj/${project_name}.srcs/sources_1/imports/*/udp_echo.v]
+#     if {[llength $hls_imp_hits] != 1} {
+#         puts "P11_HLS_IMPORT_DIR_HITS = [llength $hls_imp_hits]"
+#         puts "P7B_VERDICT = HLS_IMPORT_DIR_MISSING"
+#         exit 1
+#     }
+#     set hls_imp_dir [file dirname [lindex $hls_imp_hits 0]]
+# }
+# set hls_dat_files [glob -nocomplain ${hls_dir}/*.dat]
+# if {[llength $hls_dat_files] < 1} {
+#     puts "P11_HLS_DAT_N = 0"
+#     puts "P7B_VERDICT = HLS_DAT_MISSING"
+#     exit 1
+# }
+# set hls_dat_copied 0
+# foreach dat $hls_dat_files {
+#     set dst [file join $hls_imp_dir [file tail $dat]]
+#     if {[catch {file copy -force $dat $dst} e]} {
+#         puts "P11_HLS_DAT_COPY_FAIL $dat -> $dst : $e"
+#         puts "P7B_VERDICT = HLS_DAT_COPY_FAIL"
+#         exit 1
+#     }
+#     if {![file exists $dst] || [file size $dst] != [file size $dat]} {
+#         puts "P11_HLS_DAT_COPY_VERIFY_FAIL $dst"
+#         puts "P7B_VERDICT = HLS_DAT_COPY_VERIFY_FAIL"
+#         exit 1
+#     }
+#     incr hls_dat_copied
+# }
+# puts "P11_HLS_DAT_COPIED = $hls_dat_copied dir=$hls_imp_dir"
+P11_HLS_DAT_COPIED = 3 dir=D:/repo/XCKU5PMini/_builds/b0x40_low/vivado_prj/p7b_ku5p_prj.srcs/sources_1/imports/hls_archive_p11fix_fin_r1
+# sec "P7B_ADD_XDMA"
+
+P7B >>>>>>>>>> P7B_ADD_XDMA
+# set_msg_config -id {IP_Flow 19-3461} -new_severity {ERROR}
+# set_msg_config -id {IP_Flow 19-3438} -new_severity {ERROR}
+# catch { set_msg_config -string {Restoring to previous valid configuration} -new_severity {ERROR} }
+# create_ip -name xdma -vendor xilinx.com -library ip -module_name xdma_0
+# set xip [get_ips xdma_0]
+# set XDMA_BASE12 [list \
+#     CONFIG.pcie_blk_locn              {X0Y0} \
+#     CONFIG.pf0_device_id              {9034} \
+#     CONFIG.pf0_subsystem_id           {0007} \
+#     CONFIG.ref_clk_freq               {100_MHz} \
+#     CONFIG.mode_selection             {Basic} \
+#     CONFIG.axi_data_width             {128_bit} \
+#     CONFIG.num_queues                 {1} \
+#     CONFIG.axilite_master_en          {true} \
+#     CONFIG.axilite_master_scale       {Megabytes} \
+#     CONFIG.axilite_master_size        {1} \
+#     CONFIG.pl_link_cap_max_link_speed {8.0_GT/s} \
+#     CONFIG.pl_link_cap_max_link_width {X4} ]
+# set XDMA_IF_MODE {AXI_Stream}
+# set xdma_bad 0
+# set xerr "" 
+# set xrc  [catch {set_property -dict $XDMA_BASE12 $xip} xerr]
+# puts "P7B_XDMA_RC_BASE = $xrc ; MSG = <$xerr>"
+P7B_XDMA_RC_BASE = 0 ; MSG = <>
+# set xerr2 "" 
+# set xrc2 [catch {set_property CONFIG.xdma_axi_intf_mm $XDMA_IF_MODE $xip} xerr2]
+# puts "P7B_XDMA_RC_INTF = $xrc2 ; MSG = <$xerr2>"
+P7B_XDMA_RC_INTF = 0 ; MSG = <AXI_Stream>
+# if {$xrc != 0 || $xrc2 != 0} { set xdma_bad 1 ; puts "P7B_XDMA_CFG_CATCH_FAIL" }
+# foreach m [list $xerr $xerr2] {
+#     foreach pat {19-3461 19-3438 {Restoring to previous valid configuration} 17-39} {
+#         if {[string first $pat $m] >= 0} { puts "P7B_XDMA_MSG_HIT <$pat> MSG=<$m>" ; set xdma_bad 1 }
+#     }
+# }
+# set XDMA_RB [concat $XDMA_BASE12 [list CONFIG.xdma_axi_intf_mm $XDMA_IF_MODE]]
+# set xdma_rb_bad 0
+# foreach {k v} $XDMA_RB {
+#     set gv "<err>" ; catch { set gv [get_property $k $xip] }
+#     if {[string trim $gv] ne [string trim $v]} {
+#         incr xdma_rb_bad ; puts "P7B_XDMA_RB_MISMATCH $k want=<$v> got=<$gv>"
+#     }
+# }
+# puts "P7B_XDMA_RB_MISMATCH_N = $xdma_rb_bad"
+P7B_XDMA_RB_MISMATCH_N = 0
+# generate_target all $xip
+INFO: [IP_Flow 19-1686] Generating 'Instantiation Template' target for IP 'xdma_0'...
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'xdma_0'...
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'xdma_0'...
+INFO: [IP_Flow 19-1686] Generating 'Implementation' target for IP 'xdma_0'...
+INFO: [IP_Flow 19-1686] Generating 'Change Log' target for IP 'xdma_0'...
+generate_target: Time (s): cpu = 00:00:05 ; elapsed = 00:00:06 . Memory (MB): peak = 837.066 ; gain = 0.000
+# set xdma_gen_file ""
+# foreach f [list \
+#     "${root_dir}/vivado_prj/${project_name}.gen/sources_1/ip/xdma_0/synth/xdma_0.sv" \
+#     "${root_dir}/vivado_prj/${project_name}.gen/sources_1/ip/xdma_0/xdma_0_stub.v" \
+#     "${root_dir}/vivado_prj/${project_name}.gen/sources_1/ip/xdma_0/sim/xdma_0.sv" ] {
+#     if {[file exists $f]} { set xdma_gen_file $f ; break }
+# }
+# puts "P7B_XDMA_GEN_FILE = $xdma_gen_file"
+P7B_XDMA_GEN_FILE = D:/repo/XCKU5PMini/_builds/b0x40_low/vivado_prj/p7b_ku5p_prj.gen/sources_1/ip/xdma_0/synth/xdma_0.sv
+# set xdma_gen_bad 0
+# if {$xdma_gen_file eq ""} {
+#     set xdma_gen_bad 1 ; puts "P7B_XDMA_GEN_MISSING (无生成产物可解析)"
+# } else {
+#     set fh [open $xdma_gen_file r] ; set gtxt [read $fh] ; close $fh
+#     foreach t {DMA_ST=1 DMA_MM=0 XDMA_AXI_INTF_MM=0 AXI_DATA_WIDTH=128 USER_CLK_FREQ=2 XDMA_AXILITE_MASTER=TRUE} {
+#         if {[string first $t $gtxt] < 0} { incr xdma_gen_bad ; puts "P7B_XDMA_GEN_MISS <$t>" }
+#     }
+#     puts "P7B_XDMA_GEN_BAD_N = $xdma_gen_bad"
+# }
+P7B_XDMA_GEN_BAD_N = 0
+# proc p7b_cfg_dump {ip path} {
+#     set fp [open $path w]
+#     foreach p [lsort [list_property $ip]] {
+#         if {[string match "CONFIG.*" $p]} {
+#             set gv "<err>" ; catch { set gv [get_property $p $ip] }
+#             puts $fp "$p = $gv"
+#         }
+#     }
+#     close $fp
+#     return $path
+# }
+# proc p7b_cfg_diff_keys {ref mine} {
+#     #  ⚠️ �?异键**必须�? A 里删�?**再进 diffs —�? 否则它会�?"左表残留"�?�?**再数一�?**
+#     #     (排练脚本 `p9_axis_impl_20261011/check_cfgdiff_teeth.tcl` 实测抓到: 2 行�??数成 4 �?
+#     #      �? 构建里会**假红**)。左表残留只会剩"�?在参照里、我方没�?"的键�?
+#     array set A {}
+#     set fa [open $ref r]
+#     while {[gets $fa line] >= 0} { if {[regexp {^(\S+) = (.*)$} $line -> k v]} { set A($k) $v } }
+#     close $fa
+#     set diffs {}
+#     set fb [open $mine r]
+#     while {[gets $fb line] >= 0} {
+#         if {[regexp {^(\S+) = (.*)$} $line -> k v]} {
+#             if {[info exists A($k)] && ($A($k) eq $v)} {
+#                 unset A($k)
+#             } else {
+#                 lappend diffs $k
+#                 catch { unset A($k) }
+#             }
+#         }
+#     }
+#     close $fb
+#     foreach k [lsort [array names A]] { lappend diffs $k }
+#     return $diffs
+# }
+# set xdma_cfg_mine "${script_dir}/p7b_ku5p_xdma_cfg_post_gen.txt"
+# p7b_cfg_dump $xip $xdma_cfg_mine
+# puts "P7B_XDMA_CFG_DUMP = $xdma_cfg_mine"
+P7B_XDMA_CFG_DUMP = D:/repo/XCKU5PMini/_builds/b0x40_low/board/p7b_ku5p_xdma_cfg_post_gen.txt
+# set ref_dir ${root_dir}/_proj_10g/notes/p8_axis_conf_20261011/work
+# set xdma_diff_bad 0
+# foreach arm [list \
+#         [list ST ${ref_dir}/cfg_st_post_gen.txt [list CONFIG.Component_Name]] \
+#         [list MM ${ref_dir}/cfg_mm_post_gen.txt [list CONFIG.Component_Name CONFIG.xdma_axi_intf_mm]] ] {
+#     set tag  [lindex $arm 0]
+#     set ref  [lindex $arm 1]
+#     set exp  [lindex $arm 2]
+#     if {![file exists $ref]} {
+#         incr xdma_diff_bad ; puts "P7B_XDMA_CFGREF_MISSING $tag $ref" ; continue
+#     }
+#     set dk [p7b_cfg_diff_keys $ref $xdma_cfg_mine]
+#     puts "P7B_XDMA_CFGDIFF_${tag}_N = [llength $dk] ; {[join $dk { }]}"
+#     foreach k $dk { if {[lsearch -exact $exp $k] < 0} { incr xdma_diff_bad ; puts "P7B_XDMA_CFGDIFF_UNEXPECTED $tag $k" } }
+#     foreach k $exp { if {[lsearch -exact $dk $k] < 0} { incr xdma_diff_bad ; puts "P7B_XDMA_CFGDIFF_MISSING $tag $k" } }
+# }
+P7B_XDMA_CFGDIFF_ST_N = 1 ; {CONFIG.Component_Name}
+P7B_XDMA_CFGDIFF_MM_N = 2 ; {CONFIG.Component_Name CONFIG.xdma_axi_intf_mm}
+# if {$xdma_bad || $xdma_rb_bad != 0 || $xdma_gen_bad != 0 || $xdma_diff_bad != 0} {
+#     puts "P7B_VERDICT = XDMA_ST_CFG_FAIL"
+#     exit 1
+# }
+# puts "P7B_XDMA_VERDICT = OK (AXI_Stream / 回�?? 13/13 / 生成参数 6/6 / 参照 diff �?�?预期�?)"
+P7B_XDMA_VERDICT = OK (AXI_Stream / 回�?? 13/13 / 生成参数 6/6 / 参照 diff �?�?预期�?)
+# sec "P7B_CONSTR"
+
+P7B >>>>>>>>>> P7B_CONSTR
+# add_files -fileset constrs_1 ${script_dir}/ku5p_p7b_gt.xdc
+# add_files -fileset constrs_1 ${script_dir}/ku5p_p6e_pcie.xdc
+# add_files -fileset constrs_1 ${script_dir}/ku5p_p6b_sysclk.xdc
+# add_files -fileset constrs_1 ${script_dir}/ku5p_p7b_cdc.xdc
+# set_property used_in_synthesis false [get_files ${script_dir}/ku5p_p7b_cdc.xdc]
+# if {[info exists ::env(P11_APP8_PBLOCK)] && ($::env(P11_APP8_PBLOCK) eq "1")} {
+#     add_files -fileset constrs_1 ${script_dir}/ku5p_p7b_app8.xdc
+#     set_property used_in_synthesis false [get_files ${script_dir}/ku5p_p7b_app8.xdc]
+#     puts "P11_APP8_PBLOCK = 1 (negative experiment re-enabled)"
+# } else {
+#     puts "P11_APP8_PBLOCK = 0 (pblock experiment disabled; see build_fail2/FAILURE.md)"
+# }
+P11_APP8_PBLOCK = 0 (pblock experiment disabled; see build_fail2/FAILURE.md)
+# if {$P11_APP8_CDC_ON} {
+#     add_files -fileset constrs_1 ${script_dir}/ku5p_p7b_app8_cdc.xdc
+#     set_property used_in_synthesis false [get_files ${script_dir}/ku5p_p7b_app8_cdc.xdc]
+#     puts "P11_APP8_CDC_XDC = 1 (false_path clk_app <-> dp_clk)"
+# } else {
+#     puts "P11_APP8_CDC_XDC = 0"
+# }
+P11_APP8_CDC_XDC = 1 (false_path clk_app <-> dp_clk)
+# set_property verilog_define $P11_DEFS [current_fileset]
+# puts "P7B_VERILOG_DEFINE = [get_property verilog_define [current_fileset]]"
+P7B_VERILOG_DEFINE = APP_MODE=1 DEV_USP=1 PCIE_OBS=1 DP_156MHZ=1 P7B_10G=1 UDP_TX_OVL=1 TCP_TX_OVL=1 P11_CFG_C4=1 P11_CFG_ENFORCE=1 SFP2_MODE_A=1 DUAL_SFP_A=1 P11_DUAL=1 P11_HLS_ADV_WND=1 P11_APP8=1 P11_APP8_OCC=0 P11_APP8_CDC=1 P11_HLS_SLOT_DEAD=1
+# set_property top $top_module [current_fileset]
+# update_compile_order -fileset sources_1
+# puts "P7B_TOP = [get_property top [current_fileset]]"
+P7B_TOP = wrapper_p4
+# puts "P7B_NFILES = [llength [get_files -quiet]]"
+P7B_NFILES = 458
+# foreach f [get_files -quiet -of [get_filesets constrs_1]] { puts "P7B_CONSTR_FILE $f" }
+P7B_CONSTR_FILE D:/repo/XCKU5PMini/_builds/b0x40_low/board/ku5p_p7b_gt.xdc
+P7B_CONSTR_FILE D:/repo/XCKU5PMini/_builds/b0x40_low/board/ku5p_p6e_pcie.xdc
+P7B_CONSTR_FILE D:/repo/XCKU5PMini/_builds/b0x40_low/board/ku5p_p6b_sysclk.xdc
+P7B_CONSTR_FILE D:/repo/XCKU5PMini/_builds/b0x40_low/board/ku5p_p7b_cdc.xdc
+P7B_CONSTR_FILE D:/repo/XCKU5PMini/_builds/b0x40_low/board/ku5p_p7b_app8_cdc.xdc
+# sec "P7B_SYNTH"
+
+P7B >>>>>>>>>> P7B_SYNTH
+# reset_run synth_1
+# catch {launch_runs synth_1 -jobs 8} e
+WARNING: [Vivado 12-7122] Auto Incremental Compile:: No reference checkpoint was found in run synth_1. Auto-incremental flow will not be run, the standard flow will be run instead.
+[Sun Nov  8 19:41:25 2026] Launched xdma_0_synth_1, pcs64_synth_1...
+Run output will be captured here:
+xdma_0_synth_1: D:/repo/XCKU5PMini/_builds/b0x40_low/vivado_prj/p7b_ku5p_prj.runs/xdma_0_synth_1/runme.log
+pcs64_synth_1: D:/repo/XCKU5PMini/_builds/b0x40_low/vivado_prj/p7b_ku5p_prj.runs/pcs64_synth_1/runme.log
+[Sun Nov  8 19:41:25 2026] Launched synth_1...
+Run output will be captured here: D:/repo/XCKU5PMini/_builds/b0x40_low/vivado_prj/p7b_ku5p_prj.runs/synth_1/runme.log
+# puts "P7B_SYNTH_LAUNCH = $e"
+P7B_SYNTH_LAUNCH = 0
+# wait_on_run synth_1
+[Sun Nov  8 19:41:25 2026] Waiting for synth_1 to finish...
+

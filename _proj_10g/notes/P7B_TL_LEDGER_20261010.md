@@ -2938,6 +2938,60 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
   ⚠️ 远端配方补一条：脚本里 `set -u` 会让 `source settings64.sh` **静默退出**
   （settings64.sh 展开未定义变量 ⇒ 非交互 bash 直接 exit 1，`|| true` 拦不住）
   ⇒ 必须 `set +u` 包住 source（已修；本次首跑就是踩这个，RC=1 且三个日志都没生成）。
+- ⭐ **台架两条 10G 链路都在线（2026-11-08 20:0x 现测）**：`nsa/enp1s0f1np1`
+  (192.168.100.1/32) ↔ 板 port0(.2)；`nsb/enp1s0f0np0` (192.168.100.101/32) ↔ 板 port1(.4)；
+  两侧 **carrier 均 = 1**，`ip netns exec nsb ping 192.168.100.4` **2/2 通**（rtt 0.085 ms，
+  ARP `00:0a:35:01:fe:c0` = 板 MAC）⇒ **§3 的跨端口同号臂（H-2/L-3）可跑**，
+  撤回本文件上方"只有一条 10G 链路 ⇒ NOT_RUN"的说法。
+  新工具（已上传对端并语法自检）：`/tmp/raw_probe_table_p1.sh` +
+  `/tmp/raw_syn_{burst,table_probe}_p1.py`（iface `enp1s0f0np0` / SIP `.101` / DIP `.4`）。
+  在 0x3F 上先做了路径验证：**1 个原始 SYN ⇒ W6 +1 / W7 +0**（表满时正解）。
+- ⚠️ **W52 字段布局订正（现读板 0x3F）**：`W52 = 0x0ad10008` 且此时板上有 **8 个半开槽**
+  ⇒ **estab 计数 = 低 16 位**，高 16 位是累计事件数（不是之前写的 `>>16`）。
+  `r1_board_accept.sh` 的 ARM A 已按 `& 0xFFFF` 解码。
+- ⚠️ **板上遗留态（0x3F，等待重烧清除）**：port0 8 个半开槽占满 HLS 表（W52 estab=8），
+  期间任意新 SYN 只增 W6 不增 W7。20:0x 观测到一段 W6/W7 各 +~1.3k 的**瞬态增长**
+  （90 s 后复查：30 s 内 **零增长**；8 s 抓包 **0 个 SYN**）⇒ 判为一次性遗留流量/前一轮
+  残留进程，**已静息**；验收轮以重烧 0x40 开局，状态清零。
+- **0x40 第二波 Q（`Flow_RunPostRoutePhysOpt`，修剪前净表）= TIMING_FAIL**（2026-11-08 22:00）：
+  WNS **−1.851** / setup 14561 / hold 0 / pw 0；最差族换到 **PCS RX 时钟域**
+  （`pcs64/.../<hidden> → u_mac_rx_ch0/stat_crc_err_reg[16]/CE`，−0.329）。报告 = `build_fail_0x40_q/`。
+- **0x40 第二波 M 首启工具级停滞（2026-11-08 19:38–20:05）**：父 Vivado PID 6216 在
+  top-level `synth_1` 上 **0% CPU / WS 5.5 MB 冻结 >20 min**（两个 OOC 子跑 pcs64 19:43:21、
+  xdma_0 19:46:59 已收口，但 `synth_1/runme.log` 从未生成）；杀进程后重试两次仍复现
+  （第二次 12988 同样 0% CPU），**直到 `rm -rf vivado_prj` 后第三次才正常**（20:23 起进 synthesis）。
+  ⇒ 归因 = **被杀的构建留下的 `vivado_prj` 状态损坏**（症状与 P7B build F run1 的
+  `xdma_0` OOC 停滞同族；首次成因仍未定位）。证据 = `build_hang_0x40_m/`。
+  ⚠️ 纪律补充：**工具级停滞的构建，重试前必须清空该 worktree 的 `vivado_prj`**（否则会连撞）。
+- ⭐⭐ **0x40 构建 PASS = 第二波 O（`Performance_Auto_1`，修剪前净表 `3a004050`）**（2026-11-08 21:59）：
+  **WNS +0.021 / WHS +0.010 / setup·hold·pw 端点 0/0/0**（401,202 端点）/
+  `All user specified timing constraints are met`；位流 **`0fd075f8…47b9`**（15,431,261 B）；
+  LUT 138,011 / FF 106,541 / BRAM 109。报告 = `build_ok_0x40_o/`。
+  ⭐ **`Performance_Auto_1` = Vivado 2025.2 的 ML 自动策略**（`list_property_value STRATEGY`
+  实查存在 `Performance_Auto_1/2/3`）；本网表上它是唯一过门者（P = Auto_2 仍在跑）。
+- **0x40 已烧 + 身份门全中（2026-11-08 22:05，JTAG 1 MHz 易失；QSPI 零写入）**：
+  SHA 锚 `0fd075f8…` → `bits/wrapper_p4_0x40.bit`；`BURN_OK (HIGH + DONE + path + freshness + no-ABORT)`；
+  `ID_BID=0x00000040` / `ID_MAGIC=0x50360001` / `ID_MARKER=0xdeadbeef` / `ID_UNIMPL=0xffffffff` /
+  `WINDOW_SCAN_NFF=0`（98 字）/ `BAR_COUNT=2` / `LnkSta x4` / `CARRIER_P1=1` `P0=1` / `0x08=0`。
+- ⭐⭐ **R1 板级判据（0x40）—— 正臂/安全臂/跨端口/回归全部正结果（2026-11-08 22:06–22:20）**：
+  - **ARM A 正臂【已证 ×3】**：8 原始 SYN 填半开（W6/W7 各 +8）→ 空闲 6.0 s → 8 新原始 SYN ⇒
+    **dW7 = +8**（0x3F 负对照 = +0）；**等待期 W52 estab 8 → 0**（slot 真的被释放）。
+    读数：`accept_run1.txt`（0x3F→0x40 同构型）、`arm_a_repeat.txt` ×2。
+  - **ARM B 活连接安全【已证】**：单连接（有 ACK 历史）空闲 6.0 s ⇒ 仍收 65,536 B。
+  - **ARM B2 八连接同步空闲【已证 ×2】**：**8/8 全部恢复**（`arm_b2_v2.txt`）。
+    ⚠️ 首版 `threading.Barrier` 写法 0/8 = **工具缺陷**（一个 worker 异常级联 abort），不是板子。
+  - **ARM T 老化时延+race**：首次成功探测在 T0+2.14 s（T0 距最后一批 ADD ≈2.2 s）⇒ 实际 ≈4.3 s，
+    与设计 3.44 s 相容；其前一次探测 **connect 成功但 2.0 s 零字节**（见残余）。
+  - **ARM C 跨端口 race【已证】**：port0 8 半开老化期间 port1 **12/12** 1 MB 传输 OK；
+    反向 **6/6** OK（板侧无 cid 读出 ⇒ 概率型）。
+  - **回归**：**同时 8 连 256 MB × 3 轮 = 24/24 OK**（`mism_bytes=0` / `poll_tmo=0` / 7.7–9.45 Gbps）；
+    **c→d ×3 轮 = 48/48 OK、0 STALL**。原件 = 对端 `/home/a/p11_bench/r1c{1,2,3}_*`、`r1cd{1,2,3}_*`。
+  - **残余（本轮 1 次）**：ARM T 第 1 次探测 connect 成功（0.176 ms）后 **2.0 s 零字节**，
+    下一次即 8.5 Gbps ⇒ 与 §0-94 "8 路同建连初始化窗 / 单连接零字节" 同族，**未定位**；
+    ⚠️ 归因限定：**"A7 `ev_up` 吞"这个候选不成立**（A3 `up_pend_r` 修复在同一棵 RTL 里，
+    `app_multi8` 也是每槽送入同一 core 逻辑）——见 `RESULTS.md` §9 订正。
+- **R1 板级收口口径**：**行为面已证（正臂 ×3 + 释放见证 + 安全臂 ×2 + 跨端口 ×2 + 回归 24/24 & 48/48）**；
+  **判据层裁定权在用户**（本件不代行）。QSPI 全程零写入。
 - **0x40 并行臂 I（worktree，`Performance_ExploreWithRemap`）= TIMING_FAIL**（2026-11-08 19:1x）：
   WNS **−0.255** / setup 5279 / hold 0 / pw 0；最差路径 =
   `u_tcp_tx/u_fifo_b/wptr_reg[2]_replica/C → u_tcb/rcv_wnd_r_reg[0][9]/CE` ——

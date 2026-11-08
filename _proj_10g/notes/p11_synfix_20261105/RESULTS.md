@@ -124,4 +124,46 @@ CARRIER_P1=1  CARRIER_P0=1
 - **板级（行为面）**：同时 8 连 40 轮 / 320 连接 ⇒ **2 个单连接零字节停顿、无整口楔死**；
   错开 8×256 MB 16 轮 / 128 连接全 OK；c→d 3 连跑 48/48 OK（活连接未误排）。
   原件 = `raw/board_0x3F_run.txt`；分析 = `STALL_INVESTIGATION.md` §6.5/§6.8。
-- **残余**：2/320 单连接零字节（疑 A7 `ev_up` 吞，未定位）；帧内形态（`recv_first=0`）未覆盖。
+- **残余**：2/320 单连接零字节（**未定位**；⚠️ 2026-11-08 复核：**"A7 `ev_up` 吞"这个候选不成立**
+  —— 构建 E 的 A3 修复（`app_pattern.up_pend_r/up_pend_id`）就在 0x3F/0x40 的同一棵 RTL 里，
+  `app_multi8` 也把每个槽的 `evu` 送进各自 core 的同一逻辑 ⇒ 该形态已被修掉，残余是**另一个**机制）；
+  帧内形态（`recv_first=0`）未覆盖。
+
+## 10. 0x40 = R1 半开槽老化（2026-11-08）—— 构建 PASS + 板级判据
+
+- **设计**：`R1_R3_DESIGN_STUDY_v2.md`（xr13 审查逐条处置：H-1 边沿语义 / H-2 cid 映射 /
+  H-3 R3-1b 归下批 / M-1 驳回 / M-2/M-3/M-4 接受 / L-1 驳回）。
+- **实现**：`rtl/app_ctrl.v`（`HO_EN/HO_LIM`、`ho_ack_seen`、`ho_cnt`、`o_ho_fire/o_ho_slot`）、
+  `rtl/slow_cfg_demux.v`（`o_add_hit/o_add_slot`）、`board/wrapper_p4.v`（全局 `slot_dead[7:0]`，
+  清优先；`HO_EN_DEF` 仅 CDC 构建 + 结构防呆）、`hls/src/udp_echo.cpp`（`i_slot_dead` 边沿释槽，
+  不写 cfg）。csim 4/4 PASS；RTL 单元门 `tb/tb_app_ho.v` 远端 xsim PASS（A/B/C 三臂）。
+- **老化时延**：`HO_LIM(8) × ORPHAN_TICK(429.4967 ms) ≈ 3.44 s`（tick = 2^26 拍 @156.25 MHz，
+  `scan_round` 每 256 拍 +1，tick 轮内 16 槽都被扫到）。
+- **构建（0x40）= PASS**：`Performance_Auto_1` + **修剪前净表（commit `3a004050`）**；
+  **WNS +0.021 / WHS +0.010 / setup·hold·pw 端点 0/0/0**（401,202 端点）；
+  `All user specified timing constraints are met`；位流 **`0fd075f8…47b9`**（15,431,261 B）；
+  LUT 138,011 / FF 106,541 / BRAM 109。报告 = `build_ok_0x40_o/`。
+- **梯子（记录在案）**：修剪后净表全部 TIMING_FAIL（low −0.892 / high −0.659 / Explore −0.458 /
+  Extra −0.107 / refine −0.237 / remap −0.255 / WLBlock −1.441 / NetDelay_high −1.042 / medium −0.960）；
+  修剪前：low −0.395 / **high 0.000（0 端点、约束全满足，被 `WNS>0` 门拒）** / remap −0.031 /
+  **Auto_1 +0.021（PASS）**；`Flow_RunPostRoutePhysOpt` −1.851（PCS RX 域）。
+  ⇒ **trim 经三组配对判定为回归**，已回退（提交 `54cc8a74`）。
+- **板级（0x40；BID 0x40 / NW 98 / UNIMPL 0x1B8 / NFF=0 / 2 BAR / 两 carrier=1；QSPI 零写入）**：
+  - **ARM A 正臂【已证 ×3】**：8 个原始 SYN 填半开（W6/W7 各 +8）→ 等 6.0 s →
+    8 个新原始 SYN ⇒ **dW7 = +8**（0x3F 基线 +0）；同时 **W52 estab 8 → 0**（等待期直接见证释槽）。
+    三次复现：`raw/r1_accept_0x40/accept_run1.txt`、`arm_a_repeat.txt`。
+  - **ARM B 活连接安全【已证】**：单连接带 ACK 历史、空闲 6.0 s（> 3.44 s）⇒ 恢复收数据（+65,536 B）。
+  - **ARM B2 八连接同步空闲【已证 ×2】**：8 条并发活连接、同步空闲 6.0 s ⇒ **8/8 恢复**
+    （`arm_b2_v2.txt`）。⚠️ 首版用 `threading.Barrier` 的写法**不可用**（一个 worker 异常就级联
+    abort ⇒ 0/8），是测试工具的缺陷，**不是板子**。
+  - **ARM T 老化时延 + race**：首次成功探测在 T0 后 **2.14 s**，而 T0 距最后一批 ADD ≈2.2 s
+    ⇒ 实际 ≈**4.3 s**（与 3.44 s + 突发展布相容）；**其前一次探测 connect 成功但 2.0 s 零字节**
+    （见"残余"）。
+  - **ARM C 跨端口 race【已证】**：port0 8 个半开老化期间，port1 连续 12 次 1 MB 传输 **12/12 OK**；
+    反向 port1 半开、port0 **6/6 OK**。⚠️ 板侧无 cid 读出 ⇒ 概率型，不是精确同号构造。
+  - **回归**：8 连接同时 256 MB **3 轮 / 24 连接全 OK**（`mism_bytes=0`、`poll_tmo=0`、7.7–9.45 Gbps）；
+    **c→d 3 轮 48/48 OK、0 STALL**（16 MB 轮 + 256 MB 轮）。原件 = 对端
+    `/home/a/p11_bench/r1c*`、`r1cd*`（摘要见台账 §10-194）。
+  - **残余（本次观测到 1 次）**：ARM T 的第 1 次探测 **connect 成功（0.176 ms）但 2.0 s 零字节**，
+    下一次即正常（8.5 Gbps）⇒ 与 §0-94 的"8 路同建连初始化窗 / 单连接零字节"同族，
+    **未定位**；本轮未做 0x3F A/B（0x3F 无 R1，但该形态在 0x3F 也存在）。

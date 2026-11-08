@@ -195,6 +195,18 @@
 
 ---
 
+### §0-90 追加（2026-11-08：R1 实施完成、构建在跑、板级判据未跑）
+
+| 格 | 现状 |
+|---|---|
+| 实施 | **【已证·源码 + csim 4/4 + RTL 单元门】**：`rtl/app_ctrl.v`（`HO_EN`/`HO_LIM`/`ho_ack_seen`/`ho_cnt`/`o_ho_fire`）、`rtl/slow_cfg_demux.v`（`o_add_hit/o_add_slot`）、wrapper 全局 `slot_dead[7:0]`（清优先）、`hls/src/udp_echo.cpp`（`i_slot_dead` 边沿释槽、不写 cfg）都已落地；csim `CSIM_P3_ALL_PASS`（FILL/HOLD/NEWSYN/NO_REKILL/REARM 各臂）；RTL 单元门 `tb/tb_app_ho.v` 在远端 xsim **TB_RESULT PASS**（A: 8 槽各一次 fire + 完整拆除；B: 一次 `ack_obs` ⇒ 该槽永不 fire；C: `ev_up` 清位后重武装）。**修剪前净表（`3a004050`）同样 PASS**（`raw/ho_sim/pretrim_xsim.log`）。 |
+| 老化时延 | **设计值 3.44 s** = `HO_LIM(8) × ORPHAN_TICK(429.4967 ms)`；板级等待判据取 **6.0 s**（≥1.5 tick 余量）。 |
+| 构建 | **0x40 PASS = `Performance_Auto_1` + 修剪前净表 `3a004050`：WNS +0.021 / WHS +0.010 / 三类端点 0/0/0；位流 `0fd075f8…47b9`**。梯子：修剪后净表全 FAIL；修剪前 high 0.000（0 端点、约束全满足，被 `WNS>0` 门拒）/ remap −0.031 / low −0.395；`Flow_RunPostRoutePhysOpt` −1.851。⚠️ **trim（cid 0..7）经三组配对判定为回归**（A−0.395→H−0.892；B 0.000/0→C−0.659；L−0.031/288→I−0.255/5279），已回退（提交 `54cc8a74`）。 |
+| 板级 | ⭐ **已跑并全部正结果（行为面）**：**ARM A 正臂 ×3：dW7 = +8**（0x3F 负对照 +0）+ **等待期 W52 estab 8→0**；**ARM B 单连空闲 6 s 后仍收 65,536 B**；**ARM B2 八连同步空闲 6 s ⇒ 8/8 恢复 ×2**；**ARM T** 首次成功 ≈4.3 s（设计 3.44 s）；**ARM C 跨端口 12/12 + 6/6**；**8 连 256 MB ×3 轮 24/24 OK**、**c→d ×3 轮 48/48 OK、0 STALL**。⚠️ 残余 1 次"connect 成功但 2.0 s 零字节"（同 §0-94 家族，未定位；**"A7 ev_up 吞"候选不成立**）。脚本 = `r1_board_accept.sh`；原件 = `raw/r1_accept_0x40/` + 对端 `/home/a/p11_bench/r1c*`、`r1cd*`。 |
+| 负对照基线 | **0x3F：填 8 半开 → 空闲 4.5 s → 8 新原始 SYN ⇒ W6 +8 / W7 +0 / W52 不动**（`raw/r1_baseline_0x3F_leak.txt`）⇒ 0x40 正臂的判据 = 同构型 **W7 +8**。 |
+
+---
+
 ## §1 A 类：缺陷 / 未判定（逐条四格）
 
 ### A1 ★ 窗口门：**子成分 = ✅ 已答（按窗大小分工）**；「大规模抬窗」= ⛔ **判明不值得做（收益上界 +1.5～2%）** —— 本项**不再占"待办"**；残留 = 两个新未定位项（**A17 / A18**）
