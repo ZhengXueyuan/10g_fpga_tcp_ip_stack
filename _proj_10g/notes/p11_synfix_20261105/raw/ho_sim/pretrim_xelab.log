@@ -1,0 +1,19 @@
+Vivado Simulator v2025.2
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+Running: /opt/AMD/2025.2/Vivado/bin/unwrapped/lnx64.o/xelab -debug typical -L xil_defaultlib xil_defaultlib.tb_app_ho -s tb_ho 
+Multi-threading is on. Using 6 slave threads.
+WARNING: [XSIM 43-3431] One or more environment variables have been detected which affect the operation of the C compiler. These are typically not set in standard installations and are not tested by AMD, however they may be appropriate for your system, so the flow will attempt to continue.  If errors occur, try running xelab with the "-mt off -v 1" switches to see more information from the C compiler. The following environment variables have been detected:
+Starting static elaboration
+Pass Through NonSizing Optimizer
+WARNING: [VRFC 10-3645] port 'o_winq_rd_id' remains unconnected for this instance [/home/a/p11_ho_prretrim/tb/tb_app_ho.v:89]
+WARNING: [VRFC 10-3645] port 'full_next' remains unconnected for this instance [/home/a/p11_ho_prretrim/rtl/app_ctrl.v:534]
+Completed static elaboration
+Starting simulation data flow analysis
+Completed simulation data flow analysis
+Time Resolution for simulation is 1ps
+Compiling module xil_defaultlib.fifo_sync(W=102,D=16,AW=4)
+Compiling module xil_defaultlib.app_ctrl(ORPHAN_EN=1'b1,ORPHAN_L...
+Compiling module xil_defaultlib.tb_app_ho
+Built simulation snapshot tb_ho
+n snapshot tb_ho

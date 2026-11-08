@@ -2880,3 +2880,65 @@ selftest：对端 g++ `-O3 -Wall` 零告警，**T1–T14 全 OK / RC=0**；新�
   `LD_LIBRARY_PATH=/opt/AMD/.xinstall/2025.2/lib/lnx64.o/Ubuntu/24`（xsim 需要
   `libncurses.so.5`，Vivado 自带在 .xinstall 下；Ubuntu 24 系统库只有 .so.6）。
   门脚本 = `sim/p11_ho_gate/run_tb_app_ho.{bat,sh}`；原始日志 = `raw/ho_sim/remote_sim_logs.txt`。
+- **0x40 并行臂 K（worktree，`Performance_WLBlockPlacement`）= TIMING_FAIL**：
+  WNS **−1.441** / 14765 端点。报告 = `build_fail_0x40_k/`。
+- **0x40 并行臂 J（worktree，`Performance_RefinePlacement`）= TIMING_FAIL**（2026-11-08 19:05 收口）：
+  WNS **−0.237** / setup 2300 / hold 0 / pw 0；最差路径 =
+  `u_tcp_tx2/u_fifo_b/rptr_reg[4]/C → u_app2/tx_lfsr_reg[26]/CE`（DP 域 `g_hw.clk_out0`，
+  data 6.419 ns = logic 2.163 / route 4.256）。**宿主源族 = 既存 `u_tcp_tx*/u_fifo_*`
+  （0x31 全局 WNS 同源，`u_tcp_tx/u_fifo_b/rptr_reg[0] → u_tcb/snd_wnd_r_reg[6][5]/CE +0.031`
+  ——TTL 台账 §10-160）**，宿端换到 `u_app2` 而已；**报告面 R1 新逻辑（ho_*/slot_dead）命中 0**。
+  报告 = `build_fail_0x40_j/`（stdout / timing_summary_routed / util / drc）。
+- **0x40 并行臂 H（worktree，`Congestion_SpreadLogic_low`）= TIMING_FAIL**（2026-11-08 19:36）：
+  WNS **−0.892** / setup 12959 / hold 0 / pw 0；最差路径 =
+  `u_tcp_tx/u_fifo_a/wptr_reg[1]/C → u_tcb/snd_una_r_reg[8][15]/CE`（既存 TCB 族）。
+  报告 = `build_fail_0x40_h/`。
+- **0x40 并行臂 L（worktree，`Performance_ExploreWithRemap`，**净表 = 修剪前 commit `3a004050`**）
+  = TIMING_FAIL，但**最接近通过**（2026-11-08 19:25）**：WNS **−0.031** / setup **288** / hold 0 /
+  pw 0；最差路径 = `u_tcp_tx/FSM_sequential_rx_state_reg[0]/C → u_tcp_tx/u_csum/acc_reg[31]/D`
+  （既存 tcp_tx 校验和族）。报告 = `build_fail_0x40_l/`。
+- ⭐ **修剪（trim）= 真实回归，非"方差不变"（三组配对，方向全同）**：
+  | 策略 | 修剪前（`3a004050`） | 修剪后（`87f54d2f`） |
+  |---|---|---|
+  | `Congestion_SpreadLogic_low` | A **−0.395** | H **−0.892** |
+  | `Congestion_SpreadLogic_high` | B **0.000 / 0 端点 / 约束全满足** | C **−0.659** |
+  | `Performance_ExploreWithRemap` | L **−0.031 / 288** | I **−0.255 / 5279** |
+  ⇒ 三对全同向 ⇒ **下一波一律用修剪前净表**（`git diff 3a004050 87f54d2f -- rtl board hls`
+  实测**只有 `rtl/app_ctrl.v`** 一处差异 = trim 本身）。⚠️ 机制未定位（trim 只加
+  `!scan_id[3]` 门与窄索引，理论上不该动 TCB 族 ⇒ 判为**净表变化引起的放置重排**，
+  但"修剪更好/更差"的机制**未证**；本结论只覆盖这 3 组配对）。
+- **策略梯子累计（修剪前净表为优）**：low −0.395 / **high 0.000（0 端点，被 WNS>0 门拒）** /
+  remap −0.031；修剪后：high −0.659 / low −0.892 / Extra −0.107 / Explore −0.458 /
+  refine −0.237 / remap −0.255 / WLBlock −1.441 / NetDelay_high −1.042 / medium −0.960。
+- 并行臂 H（low）/ I（remap）/ J（refine）/ L（unt+remap）全部收口 ⇒ **本地第一波结束**。
+- **第二波（2026-11-08 19:38 起，5 臂并行，净表全部 = 修剪前 `3a004050`）**：
+  M = `Performance_ExplorePostRoutePhysOpt` · N = `Performance_NetDelay_low` ·
+  O = `Performance_Auto_1` · P = `Performance_Auto_2` · Q = `Flow_RunPostRoutePhysOpt`。
+  策略名先经 **Vivado 2025.2 实查**（`list_property_value STRATEGY [get_runs impl_1]`；
+  ⚠️ 该表里**没有** `Performance_Congestion_SpreadLogic_*` —— 现役策略名是
+  `Congestion_SpreadLogic_{high,medium,low}`，第一波 A/C/H/G 用的正是后者，名字无误）。
+  worktree = `_builds/b0x40_{low,remap,refine,unt,wlblk}`（后者的 K 轮报告已归档 ⇒ 可复用）。
+  日志 = `$CLAUDE_JOB_DIR/tmp/w2_{m,n,o,p,q}.log`；每臂自带 `ARCHIVE_DONE` 归档。
+  ⚠️ 启动时踩了两个坑（已修）：① `MSYS_NO_PATHCONV=1` **不能与 `cmd //c` 并用**
+  （`//c` 不被改写 ⇒ cmd 开交互壳、什么都没跑）；② `printf '...\\..\\board\\run_build...'`
+  里 **`\b` 被 printf 解释成退格** ⇒ bat 的 `call` 行损坏（必须是 heredoc + `sed 's/$/\r/'`）。
+- **R1 老化时延设计值 = 3.44 s**：`ORPHAN_TICK_BITS=18` ⇒ tick = 2^26 拍 / 156.25 MHz =
+  **429.4967 ms**（`scan_round` 每 256 拍 +1；tick 轮内 16 槽都被扫到 ⇒ 每槽每 tick +1）；
+  `HO_LIM=8` ⇒ **8 × 429.4967 ms ≈ 3.44 s**（相位粒度 0.43 s）。⇒ 板级等待默认值从
+  4.5 s 提到 **6.0 s**（`r1_aging_test.sh` 已改）；另新增 `r1_board_accept.sh`
+  （ID 门 / ARM B 活连接安全 / ARM A 正臂 / **ARM T 老化时延+race 连续探测** /
+  ARM C 跨端口 = **NOT_RUN**（只有一条 10G 链路））。
+- ⭐ **修剪前 RTL 过 R1 单元门（远端 xsim，2026-11-08 19:52）【已证】**：把
+  `_builds/b0x40_low/rtl/app_ctrl.v`（= `3a004050`，`ho_cnt [0:15]` / `ho_ack_seen[15:0]`；
+  md5 `6ce5cd4aba4cde2c06507a5b9ec22df5`，上传后 md5 复核一致）+ 主树 `rtl/fifo_sync.v` +
+  `tb/tb_app_ho.v` 传到对端 `/home/a/p11_ho_prretrim` 跑同一 TB：
+  `A: fires=8 n_state_wr=8 n_cam=8 n_down=8` / `B: fire[3]=0 fires=7` / `C: fire[5]=1` /
+  `TB_RESULT PASS (errs=0)` ⇒ **待出位流的那份净表（修剪前）RTL 语义与修剪版逐条同结果**。
+  原件 = `raw/ho_sim/pretrim_xsim.log` + `pretrim_xelab.log`。
+  ⚠️ 远端配方补一条：脚本里 `set -u` 会让 `source settings64.sh` **静默退出**
+  （settings64.sh 展开未定义变量 ⇒ 非交互 bash 直接 exit 1，`|| true` 拦不住）
+  ⇒ 必须 `set +u` 包住 source（已修；本次首跑就是踩这个，RC=1 且三个日志都没生成）。
+- **0x40 并行臂 I（worktree，`Performance_ExploreWithRemap`）= TIMING_FAIL**（2026-11-08 19:1x）：
+  WNS **−0.255** / setup 5279 / hold 0 / pw 0；最差路径 =
+  `u_tcp_tx/u_fifo_b/wptr_reg[2]_replica/C → u_tcb/rcv_wnd_r_reg[0][9]/CE` ——
+  **正是既存 TCB 族**（0x31 全局 WNS 同源）。报告 = `build_fail_0x40_i/`。

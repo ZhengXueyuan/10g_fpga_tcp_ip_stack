@@ -1,0 +1,36 @@
+#-----------------------------------------------------------
+# xsim v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 12:34:56 MST 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Sun Nov  8 19:45:45 2026
+# Process ID         : 234411
+# Current directory  : /home/a/p11_ho_prretrim
+# Command line       : xsim -mode tcl -source {xsim.dir/tb_ho/xsim_script.tcl}
+# Log file           : /home/a/p11_ho_prretrim/xsim.log
+# Journal file       : /home/a/p11_ho_prretrim/xsim.jou
+# Running On         : a-MS-7850
+# Platform           : Ubuntu
+# Operating System   : Ubuntu 26.04.1 LTS
+# Processor Detail   : Intel(R) Xeon(R) CPU E3-1275 v3 @ 3.50GHz
+# CPU Frequency      : 3848.797 MHz
+# CPU Physical cores : 4
+# CPU Logical cores  : 8
+# Host memory        : 24526 MB
+# Swap memory        : 8589 MB
+# Total Virtual      : 33116 MB
+# Available Virtual  : 27641 MB
+#-----------------------------------------------------------
+source xsim.dir/tb_ho/xsim_script.tcl
+# xsim {tb_ho} -autoloadwcfg -runall
+Time resolution is 1 ps
+run -all
+A: fires=8 n_state_wr=8 n_cam=8 n_down=8
+B: fire[3]=0 fires=7
+C: fire[5]=1
+TB_APP_HO PASS (errs=0)
+TB_RESULT PASS
+$finish called at time : 480964 ns : File "/home/a/p11_ho_prretrim/tb/tb_app_ho.v" Line 267
+exit
+INFO: xsimkernel Simulation Memory Usage: 281992 KB (Peak: 339264 KB), Simulation CPU Usage: 1470 ms
+INFO: [Common 17-206] Exiting xsim at Sun Nov  8 19:45:49 2026...

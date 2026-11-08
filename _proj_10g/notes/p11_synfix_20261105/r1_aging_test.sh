@@ -4,10 +4,12 @@
 #     idle > WAIT, must still receive data (not aged; aging requires !ack_seen).
 #   ARM A then: 8 raw SYNs fill half-open -> wait WAIT -> 8 new raw SYNs
 #     => W7 +8 / W52 low +8 on 0x40 (baseline 0x3F: W7 +0).
+#   Design aging latency = HO_LIM(8) x ORPHAN_TICK(429.4967 ms) ~ 3.44 s
+#   => WAIT default 6.0 s (>=1.5 tick margin; a 4.5 s default leaves only 0.2 tick).
 #   usage: bash /tmp/r1_aging_test.sh [wait_s]
 set -u
 T=/home/a/xdma_test/dma_ip_drivers-patched/XDMA/linux-kernel/tools
-WAIT=${1:-4.5}
+WAIT=${1:-6.0}
 reg(){ $T/reg_rw /dev/xdma0_user "$1" w 2>/dev/null | tail -1 | sed 's/.*: *//'; }
 snap(){ $T/reg_rw /dev/xdma0_user 0x18 w 1 >/dev/null 2>&1; sleep 0.05; }
 echo "BID=$(reg 0x04)"
